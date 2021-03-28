@@ -4354,7 +4354,7 @@ public class ServletDemo02 extends HttpServlet{
   }
   ```
 
-* 方式二：访问时拼接jsessionid标识，通过encodeURL()方法重写地址
+* 方式二：访问时拼接jsessionid标识，通过encodeURL()方法**重写地址**
 
   ```java
   @Override

@@ -28,7 +28,7 @@
 
 - 数据
 
-  - 想要持久化存储的数据
+  - 想要永久化存储的数据
 
   ![](https://gitee.com/seazean/images/raw/master/DB/数据库、数据表、数据之间的关系.png)
   
@@ -3650,7 +3650,6 @@ public class JDBCDemo01 {
           close(con,stat,null);
       }
   }
-  ```
 ```
   
   
@@ -3676,7 +3675,7 @@ public class JDBCDemo01 {
       private Integer age;
       private Date birthday;
       ........
-```
+  ```
 
 - 数据准备
 

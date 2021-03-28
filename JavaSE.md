@@ -371,13 +371,13 @@ public class ScannerDemo {
 
 目前我们只需要记住两个内存，分别是：栈内存和堆内存
 
-| 区域名称   | 作用                                                       |
-| ---------- | ---------------------------------------------------------- |
-| 寄存器     | 给CPU使用，和我们开发无关。                                |
-| 本地方法栈 | JVM在使用操作系统功能的时候使用，和我们开发无关。          |
-| 方法区     | 存储可以运行的class文件。                                  |
-| 堆内存     | 存储对象或者数组，new来创建的，都存储在堆内存。            |
-| 方法栈     | 方法运行时使用的内存，比如main方法运行，进入方法栈中执行。 |
+| 区域名称   | 作用                                                     |
+| ---------- | -------------------------------------------------------- |
+| 寄存器     | 给CPU使用，和我们开发无关                                |
+| 本地方法栈 | JVM在使用操作系统功能的时候使用，和我们开发无关          |
+| 方法区     | 存储可以运行的class文件                                  |
+| 堆内存     | 存储对象或者数组，new来创建的，都存储在堆内存            |
+| 方法栈     | 方法运行时使用的内存，比如main方法运行，进入方法栈中执行 |
 
 
 
@@ -2648,19 +2648,30 @@ public class Student {
 
 #### 概述
 
-String 被声明为 final，因此它不可被继承。(Integer 等包装类也不能被继承）
-在 Java 9 之后，String 类的实现改用 byte 数组存储字符串，同时使用 `coder` 来标识使用了哪种编码。
-value 数组被声明为 final，这意味着 value 数组初始化之后就不能再引用其它数组。并且 String 内部没有改变 value 数组的方法，因此可以**保证 String 不可变**。
+**String 被声明为 final，因此它不可被继承 (Integer 等包装类也不能被继承）**
 
 ```java
 public final class String implements java.io.Serializable, Comparable<String>, CharSequence {
  	/** The value is used for character storage. */
     private final byte[] value;
-
     /** The identifier of the encoding used to encode the bytes in {@code value}. */
     private final byte coder;
 }
 ```
+
+在 Java 9 之后，String 类的实现改用 byte 数组存储字符串，同时使用 `coder` 来标识使用了哪种编码。
+value 数组被声明为 final，这意味着 value 数组初始化之后就不能再引用其它数组，并且 String 内部没有改变 value 数组的方法，因此可以**保证 String 不可变**
+
+**注意：不能改变的意思是每次更改字符串都会产生新的对象，并不是对原始对象进行改变**
+
+```java
+String s = "abc";
+s = s + "cd"; //s = abccd 新对象
+```
+
+
+
+****
 
 
 
@@ -2708,30 +2719,150 @@ s.replace("-","");//12378
 
 
 
+***
+
+
+
 #### String Pool
 
-字符串常量池（String Pool）保存着所有字符串字面量（literal strings），这些字面量在编译时期就确定。不仅如此，还可以使用 String 的 intern() 方法在运行过程将字符串添加到 String Pool 中。
+**字符串常量池（String Pool / StringTable / 串池）**保存着所有字符串字面量（literal strings），这些字面量在编译时期就确定
 
-当一个字符串调用 intern() 方法时，如果 String Pool 中已经存在一个字符串和该字符串值相等（使用 equals() 方法进行确定），那么就会返回 String Pool 中字符串的引用；否则，就会在 String Pool 中添加一个新的字符串，并返回这个新字符串的引用。
+* StringTable，hashtable （哈希表 + 链表）结构，不能扩容
+
+* 常量池中的字符串仅是符号，第一次使用时才变为对象
+* 利用串池机制，来避免重复创建字符串对象
+* 字符串**变量**的拼接的原理是StringBuilder（jdk1.8）
+* 字符串**常量**拼接的原理是编译期优化
+* 可以使用 String 的 intern() 方法在运行过程将字符串添加到 String Pool 中
+
+ **intern()** ：
+
+* jdk1.8：当一个字符串调用 intern() 方法时，如果 String Pool 中已经存在一个字符串和该字符串值相等（使用 equals() 方法进行确定），就会返回 String Pool 中字符串的引用；反之就会在 String Pool 中添加一个新的字符串，并返回这个新字符串的引用
+* jdk1.6：将这个字符串对象尝试放入串池，如果有就不放入，如果没有会把此对象复制一份，放入串池，把串池中的对象返回
 
 ```java
-String s1 = new String("aaa");
-String s2 = new String("aaa");
-System.out.println(s1 == s2);	// false
-String s3 = s1.intern();
-String s4 = s2.intern();
-System.out.println(s3 == s4);	// true
-/*s3和s4是通过s1.intern()和s2.intern()方法取得同一个字符串引用。intern()首先把 "aaa" 放到 String Pool中，然后返回这个字符串引用，因此s3和s4引用的是同一个字符串*/
+public class Demo {
+    // 常量池中的信息都会被加载到运行时常量池中，这时a b ab都是常量池中的符号，还没有变为java字符串对象，是懒惰的
+    // ldc #2 会把 a 符号变为 "a" 字符串对象     ldc:反编译后的指令
+    // ldc #3 会把 b 符号变为 "b" 字符串对象
+    // ldc #4 会把 ab 符号变为 "ab" 字符串对象
+    public static void main(String[] args) {
+        String s1 = "a"; // 懒惰的
+        String s2 = "b";
+        String s3 = "ab";
+        // new StringBuilder().append("a").append("b").toString()  new String("ab")
+        String s4 = s1 + s2; 
+        String s5 = "a" + "b";  // javac 在编译期间的优化，结果已经在编译期确定为ab
 
-String s5 = "bbb";
-String s6 = "bbb";
-System.out.println(s5 == s6);	// true
+        System.out.println(s3 == s4); // false
+        System.out.println(s3 == s5); // true
+        System.out.println(s3 == s6); // true
+
+        String x2 = new String("c") + new String("d"); // new String("cd")
+        x2.intern();
+        String x1 = "cd";
+
+        System.out.println(x1 == x2); //true
+    }
+}
 ```
 
 - == 比较基本数据类型：比较的是具体的值
 - == 比较引用数据类型：比较的是对象地址值
 
-在 Java 7之前，String Pool 被放在运行时常量池中，它属于永久代。而在 Java 7，String Pool 被移到堆中，这是因为永久代的空间有限，在大量使用字符串的场景下会导致OutOfMemoryError 错误。
+在 Java 7之前，String Pool 被放在运行时常量池中，它属于永久代。而在 Java 7以后，String Pool 被移到堆中，这是因为永久代的空间有限，在大量使用字符串的场景下会导致OutOfMemoryError 错误
+
+演示 StringTable 位置：
+
+* `-Xmx10m`设置堆内存10m
+
+* 在jdk8下设置： `-Xmx10m -XX:-UseGCOverheadLimit`（运行参数在Run Configurations VM options）
+
+* 在jdk6下设置： `-XX:MaxPermSize=10m`
+
+  ```java
+  public static void main(String[] args) throws InterruptedException {
+      List<String> list = new ArrayList<String>();
+      int i = 0;
+      try {
+          for (int j = 0; j < 260000; j++) {
+              list.add(String.valueOf(j).intern());
+              i++;
+          }
+      } catch (Throwable e) {
+          e.printStackTrace();
+      } finally {
+          System.out.println(i);
+      }
+  }
+  ```
+
+![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-内存图对比.png)
+
+演示垃圾回收：
+
+虚拟机参数设置：`-Xmx10m -XX:+PrintStringTableStatistics -XX:+PrintGCDetails -verbose:gc`
+
+```java
+public static void main(String[] args) throws InterruptedException {
+    int i = 0;
+    try {
+        for (int j = 0; j < 100000; j++) { // j=100, j=10000
+            //j变大后，Number of entries不会变大那么多，因为存在垃圾回收
+            String.valueOf(j).intern();
+            i++;
+        }
+    } catch (Throwable e) {
+        e.printStackTrace();
+    } finally {
+        System.out.println(i);
+    }
+}
+```
+
+
+
+#### 优化常量池
+
+两种方式：
+
+* 调整 -XX:StringTableSize=桶个数，数量越少，性能越差
+
+* intern 将字符串对象放入常量池，通过复用字符串的引用，减少内存占用
+
+```java
+/**
+ * 演示 intern 减少内存占用
+ * -XX:StringTableSize=200000 -XX:+PrintStringTableStatistics
+ * -Xsx500m -Xmx500m -XX:+PrintStringTableStatistics -XX:StringTableSize=200000
+ */
+public class Demo1_25 {
+    public static void main(String[] args) throws IOException {
+        List<String> address = new ArrayList<>();
+        System.in.read();
+        for (int i = 0; i < 10; i++) {
+            //很多数据
+            try (BufferedReader reader = new BufferedReader(new InputStreamReader(new FileInputStream("linux.words"), "utf-8"))) {
+                String line = null;
+                long start = System.nanoTime();
+                while (true) {
+                    line = reader.readLine();
+                    if(line == null) {
+                        break;
+                    }
+                    address.add(line.intern());
+                }
+                System.out.println("cost:" +(System.nanoTime()-start)/1000000);
+            }
+        }
+        System.in.read();
+    }
+}
+```
+
+
+
+***
 
 
 
@@ -4584,7 +4715,7 @@ HashMap继承关系如下图所示：
        int s = m.size();
        if (s > 0)
        {
-           //判断参数集合的长度是否大于0，说明大于0
+           //判断参数集合的长度是否大于0
            if (table == null)  // 判断table是否已经初始化
            { // pre-size
                    // 未初始化，s为m的实际元素个数
@@ -4643,13 +4774,13 @@ HashMap继承关系如下图所示：
 
      当向HashMap中添加一个元素时，需要根据key的hash值，去确定其在数组中的具体位置。HashMap为了存取高效，要尽量较少碰撞，把数据尽可能分配均匀，每个链表长度大致相同，实现该方法的算法就是取模，hash%length，计算机中直接求余效率不如位移运算，所以源码中使用 hash&(length-1)，实际上**hash % length == hash & (length-1)的前提是length是2的n次幂**
 
-   * 为什么这样能均匀分布减少碰撞呢
-     2的n次方实际就是1后面n个0，2的n次方-1  实际就是n个1；
+     能均匀分布减少碰撞：2的n次方就是1后面n个0，2的n次方-1  实际是n个1，可以**保证散列的均匀性**
+   
 
-     说明：**按位与运算：相同的二进制数位上，都是1的时候，结果为1，否则为零**
+  说明：**按位与运算：相同的二进制数位上，都是1的时候，结果为1，否则为零**
      注意： 当然如果不考虑效率直接求余即可（就不需要要求长度必须是2的n次方了）
 
-     ```java
+  ```java
      例如长度为8时候，3&(8-1)=3  2&(8-1)=2 ，不同位置上，不碰撞；
      例如长度为9时候，3&(9-1)=0  2&(9-1)=0 ，都在0上，碰撞了；
      举例：  
@@ -4669,13 +4800,13 @@ HashMap继承关系如下图所示：
      ---------------------
      	00000010-----》2  数组下标
      说明：上述计算结果是不同位置上，不碰撞；
-     ```
+  ```
 
-   * 如果输入值不是2的幂会怎么样？
-
-     创建HashMap对象时，输入的数组长度是10，不是2的幂，HashMap通过位移运算和或运算得到的肯定是2的幂次数，并且是离那个数最近的数字。
-
-     ```java
+* 如果输入值不是2的幂会怎么样？
+  
+  创建HashMap对象时，输入的数组长度是10，不是2的幂，HashMap通过位移运算和或运算得到的肯定是2的幂次数，并且是离那个数最近的数字。
+  
+  ```java
      /**
      * Returns a power of two size for the given target capacity.
       返回比指定初始化容量大的最小的2的n次幂
@@ -4689,18 +4820,18 @@ HashMap继承关系如下图所示：
          n |= n >>> 16;
          return (n < 0) ? 1 : (n >= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + 1;
      }
-     ```
-
-     分析算法：
-
-     1. `int n = cap - 1;`
+  ```
+  
+  分析算法：
+  
+  1. `int n = cap - 1;`
         防止cap已经是2的幂。如果cap已经是2的幂， 不执行减1操作，则执行完后面的无符号右移操作之后，返回的capacity将是这个cap的2倍
      2. n=0时（经过了cap-1之后），则经过后面的几次无符号右移依然是0，最后返回的capacity是1，最后有n+1
      3. **|（按位或运算）：相同的二进制数位上，都是0的时候，结果为0，否则为1**
-
-     * 第一次右移
-
-       ```java
+  
+  * 第一次右移
+  
+    ```java
        int n = cap - 1;//cap=10  n=9
        n |= n >>> 1;
        	00000000 00000000 00000000 00001001 //9
@@ -4708,38 +4839,38 @@ HashMap继承关系如下图所示：
        --------------------------------------------------
           	00000000 00000000 00000000 00001101 //按位或之后是13
        	//使得n的二进制表示中与最高位的1紧邻的右边一位为1
-       ```
-
-     *  第二次右移
-
-       ```java
+    ```
+  
+  *  第二次右移
+  
+    ```java
         n |= n >>> 2;//n通过第一次右移变为了：n=13
        	00000000 00000000 00000000 00001101  // 13
            00000000 00000000 00000000 00000011  //13右移之后变为3
        -------------------------------------------------
          	00000000 00000000 00000000 00001111	 //按位或之后是15
        //无符号右移两位，会将最高位两个连续的1右移两位，然后再与原来的n做或操作，这样n的二进制表示的高位中会有4个连续的1
-       ```
-
-     * 第三次右移
-
-       ```java
+    ```
+  
+  * 第三次右移
+  
+    ```java
        n |= n >>> 4;//n通过第一、二次右移变为了：n=15
        	00000000 00000000 00000000 00001111  // 15
            00000000 00000000 00000000 00000000  //15右移之后变为0
        ----------------------------------------
            00000000 00000000 00000000 00001111  //按异或之后是15
        	//高位中的连续的4个1，右移4位，再做或操作，这样n的二进制表示的高位中会有8个连续的1
-       ```
-
-       注意：容量最大是32bit的正数，因此最后n |= n >>> 16，最多也就32个1（但是这已经是负数了）。在执行tableSizeFor之前，对initialCapacity做了判断，如果大于MAXIMUM_CAPACITY(2 ^ 30)，则取MAXIMUM_CAPACITY；如果小于MAXIMUM_CAPACITY(2 ^ 30)，会执行移位操作。所以移位操作之后，最大30个1，加1之后得2 ^ 30
-
-     * 得到的capacity却被赋值给了threshold
-
-       ```java
+    ```
+  
+    注意：容量最大是32bit的正数，因此最后n |= n >>> 16，最多也就32个1（但是这已经是负数了）。在执行tableSizeFor之前，对initialCapacity做了判断，如果大于MAXIMUM_CAPACITY(2 ^ 30)，则取MAXIMUM_CAPACITY；如果小于MAXIMUM_CAPACITY(2 ^ 30)，会执行移位操作。所以移位操作之后，最大30个1，加1之后得2 ^ 30
+  
+  * 得到的capacity却被赋值给了threshold
+  
+    ```java
        this.threshold = tableSizeFor(initialCapacity);//initialCapacity=10
-       ```
-
+    ```
+  
 3. 默认的负载因子，默认值是0.75 
 
     ```java
@@ -4815,47 +4946,47 @@ HashMap继承关系如下图所示：
 
  10. HashMap中存放元素的个数(**重点**)
 
-    ```java
-    //存放元素的个数，HashMap中K-V的实时数量，不是table数组的长度。
-    transient int size;
-    ```
+```java
+//存放元素的个数，HashMap中K-V的实时数量，不是table数组的长度。
+transient int size;
+```
 
 11. 记录HashMap的修改次数 
 
-      ```java
-     //每次扩容和更改map结构的计数器
-     transient int modCount;  
-      ```
+       ```java
+      //每次扩容和更改map结构的计数器
+      transient int modCount;  
+       ```
 
 12. 调整大小下一个容量的值计算方式为(容量*负载因子) 
 
-      ```java
-     //临界值,当实际大小(容量*负载因子)超过临界值时，会进行扩容
-     int threshold;
-      ```
+       ```java
+      //临界值,当实际大小(容量*负载因子)超过临界值时，会进行扩容
+      int threshold;
+       ```
 
 13. **哈希表的加载因子(重点)**
 
-     ```java
-     // 加载因子
-     final float loadFactor;
-     ```
+      ```java
+      // 加载因子
+      final float loadFactor;
+      ```
 
-     * 加载因子的概述
+      * 加载因子的概述
 
-       loadFactor加载因子，是用来衡量 HashMap 满的程度，表示**HashMap的疏密程度**，影响hash操作到同一个数组位置的概率，计算HashMap的实时加载因子的方法为：size/capacity，而不是占用桶的数量去除以capacity，capacity 是桶的数量，也就是 table 的长度length。
+        loadFactor加载因子，是用来衡量 HashMap 满的程度，表示**HashMap的疏密程度**，影响hash操作到同一个数组位置的概率，计算HashMap的实时加载因子的方法为：size/capacity，而不是占用桶的数量去除以capacity，capacity 是桶的数量，也就是 table 的长度length。
 
-       当HashMap里面容纳的元素已经达到HashMap数组长度的75%时，表示HashMap拥挤，需要扩容，而扩容这个过程涉及到 rehash、复制数据等操作，非常消耗性能，所以开发中尽量减少扩容的次数，可以通过创建HashMap集合对象时指定初始容量来尽量避免。
+        当HashMap里面容纳的元素已经达到HashMap数组长度的75%时，表示HashMap拥挤，需要扩容，而扩容这个过程涉及到 rehash、复制数据等操作，非常消耗性能，所以开发中尽量减少扩容的次数，可以通过创建HashMap集合对象时指定初始容量来尽量避免。
 
-       ```java
-       HashMap(int initialCapacity, float loadFactor)//构造指定初始容量和加载因子的空HashMap
-       ```
+        ```java
+        HashMap(int initialCapacity, float loadFactor)//构造指定初始容量和加载因子的空HashMap
+        ```
 
-     * 为什么加载因子设置为0.75，初始化临界值是12？
+      * 为什么加载因子设置为0.75，初始化临界值是12？
 
-       loadFactor太大导致查找元素效率低，存放的数据拥挤，太小导致数组的利用率低，存放的数据会很分散。loadFactor的默认值为**0.75f是官方给出的一个比较好的临界值**。
+        loadFactor太大导致查找元素效率低，存放的数据拥挤，太小导致数组的利用率低，存放的数据会很分散。loadFactor的默认值为**0.75f是官方给出的一个比较好的临界值**。
 
-     * **threshold**计算公式：capacity(数组长度默认16) * loadFactor(负载因子默认0.75)。这个值是当前已占用数组长度的最大值。**当Size>=threshold**的时候，那么就要考虑对数组的resize(扩容)，这就是 **衡量数组是否需要扩增的一个标准**， 扩容后的 HashMap 容量是之前容量的**两倍**.
+      * **threshold**计算公式：capacity(数组长度默认16) * loadFactor(负载因子默认0.75)。这个值是当前已占用数组长度的最大值。**当Size>=threshold**的时候，那么就要考虑对数组的resize(扩容)，这就是 **衡量数组是否需要扩增的一个标准**， 扩容后的 HashMap 容量是之前容量的**两倍**.
 
 
 
@@ -4940,6 +5071,8 @@ HashMap继承关系如下图所示：
    当HashMap中的元素个数超过数组大小(数组长度)*loadFactor(负载因子)时，就会进行数组扩容。进行扩容，会伴随着一次重新hash分配，并且会遍历hash表中所有的元素，是非常耗时的，所以要尽量避免resize
 
    HashMap在进行扩容时，使用的rehash方式非常巧妙，因为每次扩容都是翻倍，与原来计算的 (n-1)&hash的结果相比，只是多了一个bit位，节点**要么就在原来的位置，要么就被分配到"原位置+旧容量"的位置**
+   
+   注意：这里也要求**数组长度2的幂**
 
 ![](https://gitee.com/seazean/images/raw/master/JavaSE/HashMap-resize扩容.png)
 
@@ -4949,8 +5082,8 @@ HashMap继承关系如下图所示：
 5. get
 
    1. 通过hash值获取该key映射到的桶
-   2. 桶上的key就是要查找的key,则直接找到并返回
-   3. 桶上的key不是要找的key,则查看后续的节点：
+   2. 桶上的key就是要查找的key，则直接找到并返回
+   3. 桶上的key不是要找的key，则查看后续的节点：
 
       * 如果后续节点是红黑树节点，通过调用红黑树的方法根据key获取value
 
@@ -5274,17 +5407,12 @@ public class MyVariableParameter4 {
 
 异常：程序在"编译"或者"执行"的过程中可能出现的问题，Java为常见的代码异常都设计一个类来代表。
 
-异常是应该尽量提前避免的，异常可能也是无法做到绝对避免的，异常有太多情况了。异常一旦出现了，如果没有提前处理，程序就会退出JVM虚拟机而终止，开发中异常需要提前处理
-研究异常并且避免异常，然后提前处理异常，体现的是程序的安全, 健壮性！
+错误：Error ，程序员无法处理的错误，只能重启系统，比如内存奔溃，JVM本身的奔溃
 
-异常不是错误：
-
->Error : 错误的意思，严重错误Error，无法通过处理的错误，一旦出现，程序员无能为，只能重启系统，优化项目。比如内存奔溃，JVM本身的奔溃。
+Java中异常继承的根类是：Throwable
 
 ```
 异常的体系:
-     Java中异常继承的根类是：Throwable。
-
          Throwable(根类，不是异常类)
       /              \
     Error           Exception（异常，需要研究和处理）
@@ -10374,8 +10502,6 @@ public class Client {
 * 服务器端：可以监测用户上线，离线，并实现消息转发功能
 * 客户端：通过channel可以无阻塞发送消息给其它所有客户端用户，同时可以接受其它客户端用户通过服务端转发来的消息
 
-
-
 ```java
 public class ChatServer {
     //定义属性
@@ -12387,6 +12513,1100 @@ public class XPathDemo {
 
 
 
+# JVM
+
+## JVM概述
+
+### 基本介绍
+
+JVM：全称Java Virtual Machine，即Java虚拟机，本身是一个虚拟计算机
+
+特点：
+
+* Java虚拟机基于**二进制字节码**执行，由一套字节码指令集、一组寄存器、一个栈、一个垃圾回收堆、一个方法区等组成
+* JVM屏蔽了与操作系统平台相关的信息，从而能够让Java程序只需要生成能够在JVM上运行的字节码文件，通过该机制实现的**跨平台性**
+
+JVM结构：
+
+<img src="https://gitee.com/seazean/images/raw/master/JavaSE/JVM-概述图.png" style="zoom: 80%;" />
+
+JVM、JRE、JDK对比：
+
+<img src="https://gitee.com/seazean/images/raw/master/JavaSE/JVM-JRE关系.png" style="zoom: 80%;" />
+
+
+
+***
+
+
+
+### 生命周期
+
+JVM的生命周期分为三个阶段，分别为：启动、运行、死亡。
+
+- **启动**：当启动一个Java程序时，JVM的实例就已经产生，对于拥有main函数的类就是JVM实例运行的起点。
+
+- **运行**：main()方法是一个程序的初始起点，任何线程均可由在此处启动。在JVM内部有两种线程类型，分别为：**用户线程和守护线程**。JVM通常使用的是守护线程，而main()使用的则是用户线程，守护线程会随着用户线程的结束而结束。
+
+- **死亡**：当程序中的用户线程都中止，JVM才会退出
+
+
+
+***
+
+
+
+### 内存结构
+
+#### 内存概述
+
+JVM内存结构是JVM中非常重要的一部分，并且在JDK7和JDK8中也进行了一些改动。内存是非常重要的系统资源，是硬盘和 CPU 的中间仓库及桥梁，承载着操作系统和应用程序的实时运行
+
+JVM 内存结构规定了 Java 在运行过程中内存申请、分配、管理的策略，保证了 JVM 的高效稳定运行
+
+Java**反编译**指令：`javap -v Test.class`
+
+* Java1.8以前的内存结构图：
+  ![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-Java7内存结构图.png)
+
+* Java1.8之后的内存结果图：
+
+  ![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-Java8内存结构图.png)
+
+
+
+***
+
+
+
+#### 虚拟机栈
+
+Java 虚拟机栈：Java Virtual Machine Stacks，每个线程运行时所需要的内存
+
+* 虚拟机栈时线程私有的，对应方法调用到执行完成的整个过程
+* 保存执行方法时的**局部变量、动态连接信息、方法返回地址信息**等
+* 每个栈由多个栈帧（Frame）组成，对应着每次方法调用时所占用的内存
+* 每个线程只能有一个活动栈帧，对应着当前正在执行的那个方法
+
+设置栈内存大小：`-Xss size`   `-Xss 1024k`
+
+* 进入 Run/Debug Configurations   ---> VM options 设置参数
+
+虚拟机栈特点：
+
+* 栈内存**不需要进行GC**，方法开始执行的时候会进栈，方法调用后自动弹栈，相当于清空了数据
+
+* 栈内存分配越大越大，可用的线程数越少
+
+* 方法内的局部变量是否**线程安全**：
+  * 如果方法内局部变量没有逃离方法的作用访问，它是线程安全的
+  * 如果是局部变量引用了对象，并逃离方法的作用范围，需要考虑线程安全
+
+栈内存溢出：
+
+* 栈帧过多导致栈内存溢出 （超过了栈的容量）
+* 栈帧过大导致栈内存溢出
+
+线程运行诊断：
+
+* 定位：用top定位哪个进程对cpu的占用过高
+* ps H -eo pid,tid,%cpu | grep 进程id （用ps命令进一步定位是哪个线程引起的cpu占用过高）
+
+* jstack 进程id：可以根据线程id 找到有问题的线程，进一步定位到问题代码的源码行号
+
+
+
+
+
+#### 本地方法栈
+
+本地方法栈是为虚拟机**执行本地方法时提供服务的**。
+
+* 不需要进行GC，与虚拟机栈类似
+
+* 本地方法一般是由其他语言编写
+
+
+
+***
+
+
+
+#### 程序计数器
+
+Program Counter Register 程序计数器（寄存器）
+
+作用：内部保存字节码的行号，用于记录正在执行的字节码指令地址（下一条jvm指令的地址）
+
+原理：
+
+* java虚拟机对于多线程是通过线程轮流切换并且分配线程执行时间，一个处理器只会处理执行一个线程
+* 切换线程需要从程序计数器中来回去到当前的线程上一次执行的行号
+
+特点：
+
+* 是线程私有的
+* 不会存在内存溢出，是JVM规范中唯一一个不出现OOM的区域，所以这个空间不会进行GC
+
+#20：去Constant pool查看该地址的指令
+
+```java
+0: getstatic #20 		// PrintStream out = System.out;
+3: astore_1 			// --
+4: aload_1 				// out.println(1);
+5: iconst_1 			// --
+6: invokevirtual #26 	// --
+9: aload_1 				// out.println(2);
+10: iconst_2 			// --
+11: invokevirtual #26 	// --
+```
+
+
+
+****
+
+
+
+#### 堆
+
+Heap 堆：主要用来保存**对象实例，数组**等，通过 new 关键字创建对象都会使用堆内存
+特点：
+
+* 它是线程共享的，堆中对象都需要考虑线程安全的问题
+* 有垃圾回收机制
+* 当堆中没有内存空间可分配给实例，也无法再扩展时，则抛出OutOfMemoryError异常
+
+设置堆内存指令：`-Xmx Size`
+
+内存溢出：new出对象，循环添加字符数据
+
+堆内存诊断工具：（控制台命令）
+
+1. jps：查看当前系统中有哪些 java 进程
+2. jmap：查看堆内存占用情况 `jhsdb jmap --heap --pid 进程id`
+3. jconsole：图形界面的，多功能的监测工具，可以连续监测
+
+```java
+public static void main(String[] args) throws InterruptedException {
+    System.out.println("1...");
+    Thread.sleep(30000);
+    byte[] array = new byte[1024 * 1024 * 10]; // 10 Mb
+    System.out.println("2...");
+    Thread.sleep(20000);
+    array = null;
+    System.gc();
+    System.out.println("3...");
+    Thread.sleep(1000000L);
+}
+```
+
+在Java7中堆内会存在**年轻代、老年代和方法区(永久代)**：
+
+* Young区被划分为三部分，Eden区和两个大小严格相同的Survivor区。Survivor区间，某一时刻只有其中一个是被使用的，另外一个留做垃圾回收时复制对象。在Eden区变满的时候， GC就会将存活的对象移到空闲的Survivor区间中，根据JVM的策略，在经过几次垃圾回收后，仍然存活于Survivor的对象将被移动到Tenured区间
+* Tenured区主要保存生命周期长的对象，一般是一些老的对象，当一些对象在Young复制转移一定的次数以后，对象就会被转移到Tenured区
+* Perm代主要保存**Class、ClassLoader、静态变量、常量、编译后的代码**，在java7中堆内方法区会受到GC的管理。方法区（永久代）有大小的限制，如果大量的动态生成类，放入到方法区，很容易造成OOM
+
+Java8：
+
+* 为了**避免方法区出现OOM**，在java8中将堆内的方法区（永久代）移动到了本地内存上，重新开辟了一块空间，叫做**元空间**
+
+
+
+
+
+***
+
+
+
+#### 本地内存
+
+##### 本地内存
+
+本地内存：又叫做**堆外内存**，线程共享的区域，本地内存这块区域是不会受到JVM的控制的，也就是说对于这块区域是不会发生GC的，因此对于整个java的执行效率是提升非常大
+
+常量池：
+
+* 常量池，就是一张表，虚拟机指令根据这张常量表找到要执行的类名、方法名、参数类型、字面量等信息
+* 运行时常量池，常量池是 *.class 文件中的，当该类被加载，它的常量池信息就会放入运行时常量池，并把里面的符号地址变为真实地址
+
+本地内存概述图：
+
+<img src="https://gitee.com/seazean/images/raw/master/JavaSE/JVM-内存图对比.png" style="zoom: 67%;" />
+
+
+
+
+
+##### 元空间
+
+在 HotSpot JVM 中，永久代（ ≈ 方法区）中用于存放类和方法的元数据以及常量池，每当一个类初次被加载的时候，它的元数据都会放到永久代中。永久代是有大小限制的，因此加载的类太多，很可能导致永久代内存溢出，即OutOfMemoryError
+
+Java 8 中 PermGen 被移出 HotSpot JVM：
+
+* 由于 PermGen 内存经常会溢出，引发OutOfMemoryError，为了让这一块内存可以更灵活地被管理，不要经常出现OOM
+* 移除 PermGen 可以促进 HotSpot JVM 与 JRockit VM 的融合，因为 JRockit 没有永久代
+
+PermGen 被元空间代替，其他内容比如**类元信息、字段、静态属性、方法、常量池**等都移动到元空间区，元空间的本质和永久代类似，都是对 JVM 规范中方法区的实现
+
+元空间与永久代区别：元空间并不在虚拟机中，而是使用本地内存。因此默认情况下，元空间的大小仅受本地内存限制
+
+方法区内存溢出：
+
+* JDK1.8以前会导致永久代内存溢出
+
+  ```sh
+  #演示永久代内存溢出 java.lang.OutOfMemoryError: PerGen space
+  -XX:MaxPermSize=8m
+  ```
+
+* JDK1.8以后会导致元空间内存溢出
+
+  ```sh
+  #演示元空间内存溢出 java.lang.OutOfMemoryError: Metaspace
+  -XX:MaxMetaspaceSize=8m
+  ```
+
+场景：spring、mybatis
+
+元空间内存溢出演示：
+
+```java
+public class Demo1_8 extends ClassLoader { // 可以用来加载类的二进制字节码
+    public static void main(String[] args) {
+        int j = 0;
+        try {
+            Demo1_8 test = new Demo1_8();
+            for (int i = 0; i < 10000; i++, j++) {
+                // ClassWriter 作用是生成类的二进制字节码
+                ClassWriter cw = new ClassWriter(0);
+                // 版本号， public， 类名, 包名, 父类， 接口
+                cw.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, "Class" + i, null, "java/lang/Object", null);
+                // 返回 byte[]
+                byte[] code = cw.toByteArray();
+                // 执行了类的加载
+                test.defineClass("Class" + i, code, 0, code.length); // Class 对象
+            }
+        } finally {
+            System.out.println(j);
+        }
+    }
+}
+```
+
+
+
+
+
+
+
+##### 直接内存
+
+Direct Memory特点：
+
+* 常见于 NIO 操作时，用于数据缓冲区
+* 分配回收成本较高，但读写性能高
+* 不受 JVM 内存回收管理
+
+分配和回收原理：
+
+* 使用了 Unsafe 对象完成直接内存的分配回收，并且回收需要主动调用 freeMemory 方法
+* ByteBuffer 的实现类内部，使用了 Cleaner （虚引用）来监测 ByteBuffer 对象，一旦
+* ByteBuffer 对象被垃圾回收，那么就会由 ReferenceHandler 线程通过 Cleaner 的 clean 方法调
+  用 freeMemory 来释放直接内存
+
+```java
+/**
+ * 直接内存分配的底层原理：Unsafe
+ */
+public class Demo1_27 {
+    static int _1Gb = 1024 * 1024 * 1024;
+
+    public static void main(String[] args) throws IOException {
+        Unsafe unsafe = getUnsafe();
+        // 分配内存
+        long base = unsafe.allocateMemory(_1Gb);
+        unsafe.setMemory(base, _1Gb, (byte) 0);
+        System.in.read();
+        // 释放内存
+        unsafe.freeMemory(base);
+        System.in.read();
+    }
+
+    public static Unsafe getUnsafe() {
+        try {
+            Field f = Unsafe.class.getDeclaredField("theUnsafe");
+            f.setAccessible(true);
+            Unsafe unsafe = (Unsafe) f.get(null);
+            return unsafe;
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
+```
+
+
+
+***
+
+
+
+### VM参数
+
+| 功能               | 参数                                                         |
+| ------------------ | ------------------------------------------------------------ |
+| 堆初始大小         | -Xms                                                         |
+| 堆最大大小         | -Xmx 或 -XX:MaxHeapSize=size                                 |
+| 新生代大小         | -Xmn 或 (-XX:NewSize=size + -XX:MaxNewSize=size )            |
+| 幸存区比例（动态） | -XX:InitialSurvivorRatio=ratio 和 -XX:+UseAdaptiveSizePolicy |
+| 幸存区比例         | -XX:SurvivorRatio=ratio                                      |
+| 晋升阈值           | -XX:MaxTenuringThreshold=threshold                           |
+| 晋升详情           | -XX:+PrintTenuringDistribution                               |
+| GC详情             | -XX:+PrintGCDetails -verbose:gc                              |
+| FullGC 前 MinorGC  | -XX:+ScavengeBeforeFullGC                                    |
+
+
+
+***
+
+
+
+
+
+## 垃圾回收
+
+### 判断方法
+
+#### 垃圾收集
+
+垃圾：**如果一个或多个对象没有任何的引用指向它了，那么这个对象现在就是垃圾**
+
+垃圾收集主要是针对堆和方法区进行。程序计数器、虚拟机栈和本地方法栈这三个区域属于线程私有的，只存在于线程的生命周期内，线程结束之后就会消失，因此不需要对这三个区域进行垃圾回收
+
+在堆里存放着几乎所有的Java对象实例，在GC执行垃圾回收之前，首先需要区分出内存中哪些是存活对象，哪些是已经死亡的对象。只有被标记为己经死亡的对象，GC才会在执行垃圾回收时，释放掉其所占用的内存空间，因此这个过程我们可以称为**垃圾标记阶段**，判断对象存活一般有两种方式：**引用计数算法**和**可达性分析算法**
+
+
+
+#### 引用计数法
+
+引用计数算法（Reference Counting）：对每个对象保存一个整型的引用计数器属性，用于记录对象被引用的情况。对于一个对象A，只要有任何一个对象引用了A，则A的引用计数器就加1；当引用失效时，引用计数器就减1；当对象A的引用计数器的值为0，即表示对象A不可能再被使用，可进行回收
+
+优点：
+
+- 回收没有延迟性，无需等到内存不够的时候才开始回收，运行时根据对象计数器是否为0，可以直接回收
+- 在垃圾回收过程中，应用无需挂起；如果申请内存时，内存不足，则立刻报OOM错误。
+- 区域性，更新对象的计数器时，只是影响到该对象，不会扫描全部对象
+
+缺点：
+
+- 每次对象被引用时，都需要去更新计数器，有一点时间开销。 
+
+- **浪费CPU资源**，即使内存够用，仍然在运行时进行计数器的统计。
+
+- **无法解决循环引用问题，会引发内存泄露**（最大的缺点）
+
+  内存泄漏（Memory Leak）：是指程序中已动态分配的堆内存由于某种原因程序未释放或无法释放，造成系统内存的浪费，导致程序运行速度减慢甚至系统崩溃等严重后果
+
+  ```java
+  public class Test {
+      public Object instance = null;
+      public static void main(String[] args) {
+          Test a = new Test();// a = 1
+          Test b = new Test();// b = 1
+          a.instance = b;		// b = 2
+          b.instance = a;		// a = 2
+          a = null;			// a = 1
+          b = null;			// b = 1
+      }
+  }
+  ```
+
+![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-循环引用.png)
+
+
+
+***
+
+
+
+#### 可达性分析
+
+可达性分析算法：也可以称为 根搜索算法、追踪性垃圾收集
+
+**GC Roots**：
+
+- 虚拟机栈中引用的对象：各个线程被调用的方法中使用到的参数、局部变量等
+- 本地方法栈中引用的对象：Java类的引用类型静态变量
+- 方法区中类静态属性引用的对象
+- 方法区中的常量引用的对象：字符串常量池（string Table）里的引用
+
+注意：
+
+* GC Roots是一组活跃的**引用**，不是对象
+* 由于Root采用栈方式存放变量和指针，如果一个指针保存了堆内存中的对象，但自己不在堆内存中，它就是一个Root
+
+使用可达性分析算法来判断内存是否可回收，分析工作必须在一个能保障**一致性的快照**中进行。这点不满足的话分析结果的准确性就无法保证，这点也是导致GC进行时必须“Stop The World”的一个重要原因
+
+过程：
+
+- 可达性分析算法是以根对象集合（GCRoots）为起始点，按照从上至下的方式搜索被根对象集合所连接的目标对象是否可达
+
+- 使用可达性分析算法后，内存中的存活对象都会被根对象集合直接或间接连接着，搜索所走过的路径称为引用链（Reference Chain）
+
+- 如果目标对象没有任何引用链相连，则是不可达的，就意味着该对象己经死亡，可以标记为垃圾对象
+
+- 在可达性分析算法中，只有能够被根对象集合直接或者间接连接的对象才是存活对象
+
+  <img src="https://gitee.com/seazean/images/raw/master/JavaSE/JVM-可达性分析算法.png" style="zoom:67%;" />
+
+
+
+***
+
+
+
+#### finalization
+
+Java语言提供了对象终止（finalization）机制来允许开发人员提供对象被销毁之前的自定义处理逻辑
+
+垃圾回收此对象之前，会先调用这个对象的finalize()方法，finalize() 方法允许在子类中被重写，用于在对象被回收时进行资源释放。通常在这个方法中进行一些资源释放和清理的工作，比如关闭文件、套接字和数据库连接等
+
+生存OR死亡：如果从所有的根节点都无法访问到某个对象，说明对象己经不再使用，此对象需要被回收。但事实上这时候它们暂时处于”缓刑“阶段。**一个无法触及的对象有可能在某一个条件下“复活”自己**，如果这样对它的回收就是不合理的，所以虚拟机中的对象可能的三种状态：
+
+- 可触及的：从根节点开始，可以到达这个对象。
+- 可复活的：对象的所有引用都被释放，但是对象有可能在finalize() 中复活
+- 不可触及的：对象的 finalize() 被调用，并且没有复活，那么就会进入不可触及状态，不可触及的对象不可能被复活。因为**finalize()只会被调用一次**，等到这个对象再被标记为可回收时就必须回收
+
+注意：永远不要主动调用某个对象的finalize()方法，应该交给垃圾回收机制调用
+
+* finalize() 时可能会导致对象复活。
+* finalize() 方法的执行时间是没有保障的，它完全由GC线程决定，极端情况下，若不发生GC，则finalize()方法将没有执行机会。因为优先级比较低，即使主动调用该方法，也不会因此就直接进行回收
+* 一个糟糕的finalize() 会严重影响GC的性能。
+
+
+
+***
+
+
+
+#### 四种引用
+
+无论是通过引用计数算法判断对象的引用数量，还是通过可达性分析算法判断对象是否可达，判定对象是否可被回收都与引用有关，Java 提供了四种强度不同的引用类型
+
+1. 强引用：被强引用关联的对象不会被回收，只有所有GCRoots都不通过强引用引用该对象，才能被垃圾回收
+
+  * 强引用可以直接访问目标对象
+  * 虚拟机宁愿抛出OOM异常，也不会回收强引用所指向对象
+  * 强引用可能导致**内存泄漏**
+
+  ```java
+  Object obj = new Object();//使用 new 一个新对象的方式来创建强引用
+  ```
+
+2. 软引用（SoftReference）：被软引用关联的对象只有在内存不够的情况下才会被回收
+
+  * **仅（可能有强引用，一个对象可以被多个引用）**有软引用引用该对象时，在垃圾回收后，内存仍不足时会再次出发垃圾回收，回收软引用对象
+  * 配合引用队列来释放软**引用自身**，在构造软引用时，可以指定一个引用队列，当软引用对象被回收时，就会加入指定的引用队列，通过这个队列可以跟踪对象的回收情况
+  * 软引用通常用来实现内存敏感的缓存，比如高速缓存就有用到软引用；如果还有空闲内存，就可以暂时保留缓存，当内存不足时清理掉，这样就保证了使用缓存的同时不会耗尽内存
+
+  ```java
+  Object obj = new Object();
+  SoftReference<Object> sf = new SoftReference<Object>(obj);
+  obj = null;  // 使对象只被软引用关联
+  ```
+
+3. 弱引用（WeakReference）：被弱引用关联的对象一定会被回收，只能存活到下一次垃圾回收发生之前
+
+  * 仅有弱引用引用该对象时，在垃圾回收时，无论内存是否充足，都会回收弱引用对象
+  * 配合引用队列来释放弱引用自身
+  * WeakHashMap用来存储图片信息，可以在内存不足的时候及时回收，避免了OOM
+
+  ```java
+  Object obj = new Object();
+  WeakReference<Object> wf = new WeakReference<Object>(obj);
+  obj = null;
+  ```
+
+4. 虚引用（PhantomReference）：也称为“幽灵引用”或者“幻影引用”，是所有引用类型中最弱的一个
+
+  * 一个对象是否有虚引用的存在，不会对其生存时间造成影响，也无法通过虚引用得到一个对象
+  * 为对象设置虚引用的唯一目的是在于跟踪垃圾回收过程，能在这个对象被回收时收到一个系统通知
+
+  * 必须配合引用队列使用，主要配合 ByteBuffer 使用，被引用对象回收时会将虚引用入队，由 Reference Handler 线程调用虚引用相关方法释放直接内存
+
+  ```java
+  Object obj = new Object();
+  PhantomReference<Object> pf = new PhantomReference<Object>(obj, null);
+  obj = null;
+  ```
+
+5. 终结器引用（finalization）
+
+
+
+***
+
+
+
+### 回收算法
+
+#### 标记清除
+
+当成功区分出内存中存活对象和死亡对象后，GC接下来的任务就是执行垃圾回收，释放掉无用对象所占用的内存空间，以便有足够的可用内存空间为新对象分配内存。目前在JVM中比较常见的三种垃圾收集算法是
+
+- 标记清除算法（Mark-Sweep）
+- 复制算法（copying）
+- 标记压缩算法（Mark-Compact）
+
+标记清除算法，是将垃圾回收分为2个阶段，分别是**标记和清除**。
+
+- **标记**：Collector从引用根节点开始遍历，**标记所有被引用的对象**，一般是在对象的Header中记录为可达对象，**标记的是引用的对象，不是垃圾**
+- **清除**：Collector对堆内存从头到尾进行线性的遍历，如果发现某个对象在其Header中没有标记为可达对象，则将其回收，清除并不是真的置空，而是把需要清除的对象地址保存在空闲的地址列表里
+
+回收和分配：
+
+- 回收阶段：判断回收后的分块与前一个空闲分块是否连续，若连续会合并这两个分块。回收对象就是把分块连接到 “**空闲链表**” 的单向链表，之后进行分配时只需要遍历这个空闲链表，就可以找到分块
+- 分配阶段：程序会搜索空闲链表寻找空间大于等于新对象大小 size 的块 block，如果找到的块等于 size，会直接返回这个分块；如果找到的块大于 size，会将块分割成大小为 size 与 (block - size) 的两部分，返回大小为 size 的分块，并把大小为 (block - size) 的块返回给空闲链表
+
+缺点：
+
+- 标记和清除过程效率都不高
+- 进行GC的时候，需要停止整个应用程序，用户体验较差
+- 会产生大量不连续的内存碎片，导致无法给大对象分配内存，需要维护一个空闲链表
+
+<img src="https://gitee.com/seazean/images/raw/master/JavaSE/JVM-标记清除算法.png" style="zoom: 67%;" />
+
+
+
+***
+
+
+
+#### 复制算法
+
+复制算法的核心就是，**将原有的内存空间一分为二，每次只用其中的一块**，在垃圾回收时，将正在使用的对象复制到另一个内存空间中，然后将该内存空间清理，交换两个内存的角色，完成垃圾的回收
+
+应用场景：如果内存中的垃圾对象较多，需要复制的对象就较少，这种情况下适合使用该方式并且效率比较高，反之，则不适合
+
+![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-复制算法.png)
+
+优点：
+
+- 没有标记和清除过程，实现简单，运行高效
+- 复制过去以后保证空间的连续性，不会出现“碎片”问题。
+
+缺点：
+
+- 主要不足是只使用了内存的一半。
+- 对于G1这种分拆成为大量region的GC，复制而不是移动，意味着GC需要维护region之间对象引用关系，不管是内存占用或者时间开销也不小
+
+现在的商业虚拟机都采用这种收集算法回收新生代，但是并不是划分为大小相等的两块，而是一块较大的 Eden 空间和两块较小的 Survivor 空间
+
+
+
+***
+
+
+
+#### 标记整理
+
+标记整理（压缩）算法是在标记清除算法的基础之上，做了优化改进的算法
+
+标记阶段和标记清除算法一样，也是从根节点开始，对对象的引用进行标记，在清理阶段，并不是简单的直接清理可回收对象，而是将存活对象都向内存另一端移动，然后清理边界以外的垃圾，从而**解决了碎片化**的问题
+
+优点：不会产生内存碎片
+
+缺点：需要移动大量对象，处理效率比较低
+
+<img src="https://gitee.com/seazean/images/raw/master/JavaSE/JVM-标记整理算法.png" style="zoom:67%;" />
+
+
+
+***
+
+
+
+### 分代收集
+
+#### 分代概述
+
+在java8时，堆被分为了两份：新生代和老年代（1：2），在java7时，还存在一个永久代
+
+- 新生代使用：复制算法
+- 老年代使用：标记 - 清除 或者 标记 - 整理 算法
+
+**Minor GC 和 Full GC**：
+
+- Minor GC：回收新生代，因为新生代对象存活时间很短，因此 Minor GC 会频繁执行，执行的速度一般也会比较快。
+- Full GC：回收老年代和新生代，老年代对象其存活时间长，因此 Full GC 很少执行，执行速度会比 Minor GC 慢很多
+
+ Eden 和 Survivor 大小比例默认为 8:1:1
+
+![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-分代收集算法.png)
+
+
+
+#### 内存分配
+
+工作机制：
+
+* **对象优先在 Eden 分配**：当创建一个对象的时候，对象会被分配在新生代的Eden区，当Eden区要满了时候，触发YoungGC
+
+* 当进行YoungGC后，此时在Eden区存活的对象被移动到S0区，并且**当前对象的年龄会加1**，清空Eden区
+
+* 当再一次触发YoungGC的时候，会把Eden区中存活下来的对象和S0中的对象，移动到S1区中，这些对象的年龄会加1，清空Eden区和S0区
+
+* to区永远是空Survivor区，from区是有数据的，每次MinorGC后两个区域互换
+
+晋升到老年代：
+
+* **长期存活的对象进入老年代**：为对象定义年龄计数器，对象在 Eden 出生并经过 Minor GC 依然存活，将移动到 Survivor 中，年龄就增加 1 岁，增加到一定年龄则移动到老年代中
+  * -XX:MaxTenuringThreshold 用来定义年龄的阈值
+* **大对象直接进入老年代**：需要连续内存空间的对象，最典型的大对象是那种很长的字符串以及数组；避免在 Eden 和 Survivor 之间的大量内存复制；经常出现大对象会提前触发垃圾收集以获取足够的连续空间分配给大对象，
+  * -XX:PretenureSizeThreshold，大于此值的对象直接在老年代分配
+* **动态对象年龄判定**：如果在Survivor区中相同年龄的对象的所有大小之和超过Survivor空间的一半，年龄大于或等于该年龄的对象就可以直接进入老年代
+* **空间分配担保**：
+  * 在发生 Minor GC 之前，虚拟机先检查老年代最大可用的连续空间是否大于新生代所有对象总空间，如果条件成立的话，那么 Minor GC 可以确认是安全的
+  * 如果不成立，虚拟机会查看 HandlePromotionFailure 的值是否允许担保失败，如果允许那么就会继续检查老年代最大可用的连续空间是否大于历次晋升到老年代对象的平均大小，如果大于，将尝试着进行一次 Minor GC；如果小于，或者 HandlePromotionFailure 的值不允许冒险，那么就要进行一次 Full GC。
+
+
+
+#### 回收策略
+
+对于 Minor GC，其触发条件非常简单，当 Eden 空间满时，就将触发一次 Minor GC
+
+Full GC 则相对复杂，**FullGC同时回收新生代和老年代，当前只会存在一个FullGC的线程进行执行，其他的线程全部会被挂起**
+
+有以下**触发条件**：
+
+* 调用 System.gc()：
+
+  * 不建议使用这种方式，应该让虚拟机管理内存，一般情况下，垃圾回收应该是自动进行的，无须手动触发。在一些特殊情况下，如正在编写一个性能基准，可以在运行之间调用System.gc() 
+  * 在默认情况下，通过system.gc（）者Runtime.getRuntime().gc() 的调用，会显式触发FullGC，同时对老年代和新生代进行回收，尝试释放被丢弃对象占用的内存，但是虚拟机不一定真正去执行，无法保证对垃圾收集器的调用
+
+* 老年代空间不足：
+
+  * 为了避免引起的 Full GC，应当尽量不要创建过大的对象以及数组
+  * 通过 -Xmn 虚拟机参数调大新生代的大小，让对象尽量在新生代被回收掉，不进入老年代。还可以通过 -XX:MaxTenuringThreshold 调大对象进入老年代的年龄，让对象在新生代多存活一段时间
+
+* 空间分配担保失败：
+
+* JDK 1.7 及以前的永久代空间不足：
+
+  * 在 JDK 1.7 及以前，HotSpot 虚拟机中的方法区是用永久代实现的，永久代中存放的为一些 Class 的信息、常量、静态变量等数据。当系统中要加载的类、反射的类和调用的方法较多时，永久代可能会被占满，在未配置为采用 CMS GC 的情况下也会执行 Full GC，如果经过 Full GC 仍然回收不了，那么虚拟机会抛出 java.lang.OutOfMemoryError
+  * 可采用增大永久代空间或转为使用 CMS GC来避免
+
+* Concurrent Mode Failure：
+
+  执行 CMS GC 的过程中同时有对象要放入老年代，而此时老年代空间不足（可能是 GC 过程中浮动垃圾过多导致暂时性的空间不足），便会报 Concurrent Mode Failure 错误，并触发 Full GC
+
+
+
+
+
+***
+
+
+
+### 垃圾回收器
+
+#### GC概述
+
+垃圾收集器分类：
+
+* 按线程数分（垃圾回收线程数），可以分为串行垃圾回收器和并行垃圾回收器
+  * 除了 CMS 和 G1 之外，其它垃圾收集器都是以串行的方式执行
+* 按照工作模式分，可以分为并发式垃圾回收器和独占式垃圾回收器
+  * 并发式垃圾回收器与应用程序线程交替工作，以尽可能减少应用程序的停顿时间。
+  * 独占式垃圾回收器（Stop the world）一旦运行，就停止应用程序中的所有用户线程，直到垃圾回收过程完全结束
+* 按碎片处理方式分，可分为压缩武垃圾回收器和非压缩式垃圾回收器
+  * 压缩式垃圾回收器会在回收完成后，对存活对象进行压缩整理，消除回收后的碎片。
+  * 非压缩式的垃圾回收器不进行这步操作。
+* 按工作的内存区间分，又可分为年轻代垃圾回收器和老年代垃圾回收器
+
+GC性能指标：
+
+- **吞吐量**：程序的运行时间占总运行时间的比例（总运行时间 = 程序的运行时间 + 内存回收的时间）
+- 垃圾收集开销：吞吐量的补数，垃圾收集所用时间与总运行时间的比例
+- **暂停时间**：执行垃圾收集时，程序的工作线程被暂停的时间
+- **收集频率**：相对于应用程序的执行，收集操作发生的频率
+- **内存占用**：Java堆区所占的内存大小
+- 快速：一个对象从诞生到被回收所经历的时间
+
+**垃圾收集器的组合关系**：
+
+![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-垃圾回收器关系图.png)
+
+新生代收集器：Serial、ParNew、Paralle1 Scavenge；
+
+老年代收集器：Serial old、Parallel old、CMS；
+
+整堆收集器：G1
+
+* 红色虚线在JDK9移除、绿色虚线在JDK14弃用该组合、青色虚线在JDK14删除CMS垃圾回收器
+
+查看默认的垃圾收回收器：
+
+* `-XX:+PrintcommandLineFlags`：查看命令行相关参数（包含使用的垃圾收集器）
+
+* 使用命令行指令：jinfo -flag  相关垃圾回收器参数  进程ID
+
+
+
+***
+
+
+
+#### Serial
+
+**Serial**：串行垃圾收集器，作用于新生代，是指使用单线程进行垃圾回收，采用**复制算法**
+
+**STW（Stop-The-World）**：垃圾回收时，只有一个线程在工作，并且java应用中的所有线程都要暂停，等待垃圾回收的完成
+
+**Serial old**：执行老年代垃圾回收的串行收集器，内存回收算法使用的是**标记-整理算法**，同样也采用了串行回收和"Stop the World"机制，
+
+- Serial old是运行在Client模式下默认的老年代的垃圾回收器
+- Serial old在Server模式下主要有两个用途：
+  - 在 JDK 1.5 以及之前版本（Parallel Old 诞生以前）中与 Parallel Scavenge 收集器搭配使用
+  - 作为老年代CMS收集器的**后备垃圾回收方案**，在并发收集发生 Concurrent Mode Failure 时使用
+
+开启参数：`-XX:+UseSerialGC == Serial + SerialOld` 等价于新生代用Serial GC且老年代用Serial old GC
+
+![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-Serial 收集器.png)
+
+优点：简单而高效（与其他收集器的单线程比），对于限定单个CPU的环境来说，Serial收集器由于没有线程交互的开销，可以获得最高的单线程收集效率。
+
+缺点：对于交互性较强的应用而言，这种垃圾收集器是不能够接受的，比如Javaweb应用
+
+
+
+****
+
+
+
+#### ParNew
+
+Par是Parallel并行的缩写，New：只能处理的是新生代
+
+**并行垃圾收集器**在串行垃圾收集器的基础之上做了改进，**采用复制算法**，将单线程改为了多线程进行垃圾回收，这样可以缩短垃圾回收的时间
+
+对于其他的行为（收集算法、stop the world、对象分配规则、回收策略等）同Serial收集器一样，应用在年轻代，除Serial外，只有**ParNew GC能与CMS收集器配合工作**
+
+开启参数：`-XX：+UseParNewGC`，表示年轻代使用并行收集器，不影响老年代
+
+限制线程数量：`-XX:ParallelGCThreads`，默认开启和CPU数据相同的线程数
+
+![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-ParNew收集器.png)
+
+ParNew 是很多JVM运行在Server模式下新生代的默认垃圾收集器
+
+- 对于新生代，回收次数频繁，使用并行方式高效
+- 对于老年代，回收次数少，使用串行方式节省资源（CPU并行需要切换线程，串行可以省去切换线程的资源）
+
+
+
+****
+
+
+
+#### Parallel
+
+Parallel Scavenge收集器是应用于新生代的并行垃圾回收器，**采用复制算法**、并行回收和"Stop the World"机制
+
+Parallel Old收集器：是一个应用于老年代的并行垃圾回收器，**采用标记-整理算法**
+
+对比其他回收器：
+
+* 其它收集器目标是尽可能缩短垃圾收集时用户线程的停顿时间
+* Parallel目标是达到一个可控制的吞吐量，被称为“吞吐量优先”收集器
+* Parallel Scavenge对比ParNew拥有**自适应调节策略**，可以通过一个开关参数打开GC Ergonomics
+
+应用场景：
+
+* 停顿时间越短就越适合需要与用户交互的程序，良好的响应速度能提升用户体验
+* 高吞吐量可以高效率地利用 CPU 时间，尽快完成程序的运算任务，适合在后台运算而不需要太多交互
+
+停顿时间和吞吐量的关系：新生代空间变小 -> 缩短停顿时间 -> 垃圾回收变得频繁 -> 导致吞吐量下降
+
+在注重吞吐量及CPU资源敏感的场合，都可以优先考虑Parallel Scavenge+Parallel Old收集器，在server模式下的内存回收性能很好，**Java8默认是此垃圾收集器组合**
+
+![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-ParallelScavenge收集器.png)
+
+参数配置：
+
+* `-XX:+UseAdaptivesizepplicy`：设置Parallel scavenge收集器具有**自适应调节策略**，在这种模式下，年轻代的大小、Eden和Survivor的比例、晋升老年代的对象年龄等参数会被自动调整，**虚拟机会根据当前系统的运行情况收集性能监控信息，动态调整这些参数以提供最合适的停顿时间或者最大的吞吐量**
+* `-XX：+UseParallelGC`：手动指定年轻代使用Paralle并行收集器执行内存回收任务
+
+* `-XX：+UseParalleloldcc`：手动指定老年代使用并行回收收集器执行内存回收任务
+  * 上面两个参数，默认开启一个，另一个也会被开启（互相激活），默认jdk8是开启的
+* `-XX:ParallelGcrhreads`：设置年轻代并行收集器的线程数。一般最好与CPU数量相等，以避免过多的线程数影响垃圾收集性能
+  * 在默认情况下，当CPU数量小于8个，ParallelGcThreads的值等于CPU数量
+  * 当CPU数量大于8个，ParallelGCThreads的值等于3+[5*CPU Count]/8]
+* `-XX:MaxGCPauseMillis`：设置垃圾收集器最大停顿时间（即STW的时间），单位是毫秒
+  * 对于用户来讲，停顿时间越短体验越好；在服务器端，注重高并发，整体的吞吐量
+  * 为了把停顿时间控制在MaxGCPauseMillis以内，收集器在工作时会调整Java堆大小或其他一些参数
+* `-XX:GCTimeRatio`：垃圾收集时间占总时间的比例（=1/（N+1）），用于衡量吞吐量的大小
+  * 取值范围（0，100）。默认值99，也就是垃圾回收时间不超过1
+  * 与`-xx:MaxGCPauseMillis`参数有一定矛盾性，暂停时间越长，Radio参数就容易超过设定的比例
+
+
+
+***
+
+
+
+#### CMS
+
+CMS全称 Concurrent Mark Sweep，是一款**并发**的、使用**标记-清除**算法、针对老年代的垃圾回收器，其最大特点是**让垃圾收集线程与用户线程同时工作**
+
+CMS收集器的关注点是尽可能缩短垃圾收集时用户线程的停顿时间，停顿时间越短（低延迟）越适合与用户交互的程序，良好的响应速度能提升用户体验，目前大部分的Java应用集中在互联网站或者B/S系统的服务端上
+
+分为以下四个流程：
+
+- 初始标记：使用STW出现短暂停顿，仅标记一下 GC Roots 能直接关联到的对象，速度很快，
+- 并发标记：进行 GC Roots的直接关联对象开始遍历整个对象图，在整个回收过程中耗时最长，不需要STW，可以与垃圾收集线程一起并发运行
+- 重新标记：修正并发标记期间因用户程序继续运作而导致标记产生变动的那一部分对象的标记记录，比初始标记时间长但远比并发标记时间短，需要STW
+- 并发清除：清除标记为可以回收对象，由于不需要移动存活对象，所以这个阶段可以与用户线程同时并发的，这同样是不选择标记整理算法的原因
+
+在整个过程中耗时最长的并发标记和并发清除过程中，收集器线程都可以与用户线程一起工作，不需要进行停顿
+
+![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-CMS收集器.png)
+
+优点：并发收集、低延迟
+
+缺点：
+
+- 吞吐量降低：在并发阶段虽然不会导致用户停顿，但是会因为占用了一部分线程而导致应用程序变慢，CPU 利用率不够高
+- CMS收集器无法处理浮动垃圾，可能出现 Concurrent Mode Failure导致另一次Full GC的产生。
+  浮动垃圾是指并发清除阶段由于用户线程继续运行而产生的垃圾，这部分垃圾只能到下一次 GC 时才能进行回收。由于浮动垃圾的存在，需要预留出一部分内存，CMS 收集不能等待老年代快满的时候再回收，如果预留的内存不够存放浮动垃圾，就会出现 Concurrent Mode Failure，这时虚拟机将临时启用 Serial Old 来替代 CMS，导致很长的停顿时间
+- 标记 - 清除算法导致的空间碎片，往往出现老年代空间无法找到足够大连续空间来分配当前对象，不得不提前触发一次 Full GC；为新对象分配内存空间时，将无法使用指针碰撞（Bump the Pointer）技术，而只能够选择空闲链表（Free List）执行内存分配
+
+参数设置：
+
+* `-XX：+UseConcMarkSweepGC`：手动指定使用CMS收集器执行内存回收任务
+
+  开启该参数后会自动将`-XX:+UseParNewGC`打开，即：ParNew+CMS+Serial old的组合
+
+* `-XX:CMSInitiatingoccupanyFraction`：设置堆内存使用率的阈值，一旦达到该阈值，便开始进行回收
+
+  * JDK5及以前版本的默认值为68，即当老年代的空间使用率达到68%时，会执行一次CMS回收，JDK6及以上版本默认值为92%
+
+* `-XX:+UseCMSCompactAtFullCollection`：用于指定在执行完Full GC后对内存空间进行压缩整理，以此避免内存碎片的产生，由于内存压缩整理过程无法并发执行，所带来的问题就是停顿时间变得更长
+
+* `-XX:CMSFullGCsBeforecompaction`：设置在执行多少次Full GC后对内存空间进行压缩整理
+
+* `-XX:ParallelCMSThreads`：设置CMS的线程数量
+
+  * CMS默认启动的线程数是(ParallelGCThreads+3)/4，ParallelGCThreads是年轻代并行收集器的线程数
+  * 收集线程占用的CPU资源多于25%，对用户程序影响可能较大；当CPU资源比较紧张时，受到CMS收集器线程的影响，应用程序的性能在垃圾回收阶段可能会非常糟糕
+
+Serial GC、Parallel GC、Concurrent Mark Sweep GC这三个GC不同：
+
+- 最小化地使用内存和并行开销，选Serial GC
+- 最大化应用程序的吞吐量，选Parallel GC
+- 最小化GC的中断或停顿时间，选CMS GC
+
+
+
+***
+
+
+
+#### G1
+
+##### 特点
+
+G1（Garbage-First）是一款面向服务端应用的垃圾收集器，**应用于新生代和老年代**、采用标记-整理算法、软实时、低延迟、可设定目标(最大STW停顿时间)的垃圾回收器，用于代替CMS，适用于较大的堆(>4~6G)，在JDK9之后默认使用G1
+
+并发与并行：
+
+* 并行性：G1在回收期间，可以有多个GC线程同时工作，有效利用多核计算能力，此时用户线程STW
+* 并发性：G1拥有与应用程序交替执行的能力，部分工作可以和应用程序同时执行，因此不会在整个回收阶段发生完全阻塞应用程序的情况
+* HotSpot垃圾收集器里，其他的垃圾收集器使用内置的JVM线程执行GC的多线程操作，而G1 GC可以采用应用线程承担后台运行的GC工作，即当JVM的GC线程处理速度慢时，系统会调用应用程序线程加速垃圾回收过程
+
+分代收集：
+
+* 从分代上看，G1依然属于分代型垃圾回收器，会区分年轻代和老年代，年轻代依然有Eden区和Survivor区。从堆的结构上看，不要求整个Eden区、年轻代或者老年代都是连续的，也不再坚持固定大小和固定数量
+* 将整个Java堆划分成约2048个大小相同的独立Region块，每个Region块大小根据堆空间的实际大小而定，整体被控制在1MB到32MB之间且为2**的N次幂**，所有的Region大小相同，且在JVM生命周期内不会被改变
+* G1 把堆划分成多个大小相等的独立区域（Region），从而将原来的一整块内存空间划分成多个的小空间，使得每个小空间可以单独进行垃圾回收；新生代和老年代不再物理隔离，不用担心每个代内存是否足够
+
+* **新的区域Humongous**：本身属于老年代区，当出现了一个巨大的对象，超出了分区容量的一半，则这个对象会进入到该区域。如果一个H区装不下一个巨型对象，那么G1会寻找连续的H分区来存储，为了能找到连续的H区 ，有时候不得不启动Full GC
+* G1 不会对巨型对象进行拷贝，回收时被优先考虑，G1 会跟踪老年代所有 incoming 引用，这样老年代incoming 引用为0 的巨型对象就可以在新生代垃圾回收时处理掉
+* 每个Region都是通过指针碰撞（Bump the pointer）来分配空间
+
+Region结构图：
+
+![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-G1 Region区域.png)
+
+**G1对比CMS优点**：
+
+- **空间整合**：
+
+  - CMS：“标记-清除”算法、内存碎片、若干次GC后进行一次碎片整理
+  - G1：整体来看是基于“标记 - 整理”算法实现的收集器，从局部（Region 之间）上来看是基于“复制”算法实现的，两种算法都可以避免内存碎片
+  - 这种特性有利于程序长时间运行，分配大对象时不会因为无法找到连续内存空间而提前触发下一次GC，尤其是当Java堆非常大的时候，G1的优势更加明显
+
+- **可预测的停顿时间模型（即：软实时soft real-time）**：
+
+  - G1除了追求低停顿外，还能建立可预测的停顿时间模型，能让使用者明确指定在一个长度为 M 毫秒的时间片段内，消耗在 GC 上的时间不得超过 N 毫秒
+  - 由于分区的原因，G1可以只选取部分区域进行内存回收，这样缩小了回收的范围，因此对于全局停顿情况的发生也能得到较好的控制
+  - G1跟踪各个Region里面的垃圾堆积的价值大小（回收所获得的空间大小以及回收所需时间的经验值），在后台维护一个优先列表，每次根据允许的收集时间，优先回收价值最大的Region，保证了G1收集器在有限的时间内可以获取尽可能高的收集效率
+
+  * 相比于CMS GC，G1未必能做到CMS在最好情况下的延时停顿，但是最差情况要好很
+
+G1垃圾收集器的缺点：
+
+* 相较于CMS，G1还不具备全方位、压倒性优势。比如在用户程序运行过程中，G1无论是为了垃圾收集产生的内存占用（Footprint）还是程序运行时的额外执行负载（overload）都要比CMS要高
+* 从经验上来说，在小内存应用上CMS的表现大概率会优于G1，而G1在大内存应用上则发挥其优势。平衡点在6-8GB之间
+
+应用场景：
+
+* 面向服务端应用，针对具有大内存、多处理器的机器
+* 需要低GC延迟，并具有大堆的应用程序提供解决方案
+
+
+
+
+
+##### 参数
+
+- `-XX:+UseG1GC`：手动指定使用G1垃圾收集器执行内存回收任务
+- `-XX:G1HeapRegionSize`：设置每个Region的大小。值是2的幂，范围是1MB到32MB之间，目标是根据最小的Java堆大小划分出约2048个区域，默认是堆内存的1/2000
+- `-XX:MaxGCPauseMillis`：设置期望达到的最大GC停顿时间指标 (JVM会尽力实现，但不保证达到)，默认值是200ms
+- `-XX:+ParallelGcThread`：设置STW工作线程数的值，最多设置为8
+- `-XX:ConcGCThreads`：设置并发标记线程数，设置为并行垃圾回收线程数(ParallelGcThreads) 的1/4左右
+- `-XX:InitiatingHeapoccupancyPercent`：设置触发并发Mixed GC周期的Java堆占用率阈值，超过此值，就触发GC，默认值是45
+- `-XX:+ClassUnloadingWithConcurrentMark`：并发标记类卸载，默认启用，所有对象都经过并发标记后，就可以知道哪些类不再被使用，当一个类加载器的所有类都不再使用，则卸载它所加载的所有类
+
+
+
+
+
+##### 记忆集
+
+每个 Region 都有一个 Remembered Set，用来记录该 Region 对象的引用对象所在的 Region
+
+* Reference类型数据写操作时，都会产生一个Write Barrier暂时中断操作，检查将要写入的引用指向的对象是否和该Reference类型数据在不同的Region（其他收集器：检查老年代对象是否引用了新生代对象），如果不同，通过CardTable把相关引用信息记录到引用指向对象的所在Region对应的Remembered Set中
+* 当进行垃圾收集时，在GC根节点的枚举范围加入Remembered Set，就可以保证不进行全局扫描，也不会有遗漏
+
+
+
+##### 回收
+
+G1中提供了三种垃圾回收模式：YoungGC、Mixed GC和Fu11GC，在不同的条件下被触发
+
+![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-G1回收过程.png)
+
+顺时针：young gc -> young gc+concurrent mark -> Mixed GC顺序，进行垃圾回收
+
+* **Young GC**：发生在年轻代的GC算法，一般对象（除了巨型对象）都是在eden region中分配内存，当所有eden region被耗尽无法申请内存时，就会触发一次young gc，活跃对象会被拷贝到survivor region或者晋升到old region中，空闲的region会被放入空闲列表中，等待下次被使用
+
+  YGC时，G1停止应用程序的执行 (Stop-The-Wor1d)，G1创建回收集 (Collection Set)，回收集是指需要被回收的内存分段的集合，年轻代回收过程的回收集包含年轻代Eden区和Survivor区所有的内存分段
+
+  **回收过程**：
+
+  1. 扫描根：根引用连同RSet记录的外部引用作为扫描存活对象的入口
+
+  2. 更新RSet：处理dirty card queue 中的card，更新RSet；此阶段完成后，RSet可以准确的反映老年代对所在的内存分段中对象的引用
+
+  3. 处理RSet：识别被老年代对象指向的Eden中的对象，这些被指向的Eden中的对象被认为是存活的对象
+
+  4. 复制对象：对象树被遍历，Eden区内存段中存活的对象会被复制到Survivor区中空的内存分段，Survivor区内存段中存活的对象如果年龄未达阈值，年龄会加1，达到阀值会被会被复制到old区中空的内存分段，如果Survivor空间不够，Eden空间的部分数据会直接晋升到老年代空间
+
+  5. 处理引用：处理Soft，Weak，Phantom，JNI Weak 等引用，最终Eden空间的数据为空，GC停止工作
+
+* **Mixed GC**：当越来越多的对象晋升到老年代old region时，为了避免堆内存被耗尽，虚拟机会触发一个混合的垃圾收集器，即**mixed gc**，除了回收整个young region，还会回收一部分的old region，**过程同YGC**
+
+  注意：**是一部分老年代，而不是全部老年代**，可以选择哪些old region收集，对垃圾回收的耗时时间进行控制
+
+  在G1中，Mixed GC可以通过`-XX:InitiatingHeapOccupancyPercent`设置阈值
+
+* **Full GC**：如果对象内存分配速度过快，Mixed GC来不及回收，导致老年代被填满，就会触发一次Full GC，G1的Full GC算法就是单线程执行的垃圾回收，会导致异常长时间的暂停时间，需要进行不断的调优，尽可能的避免Full GC
+
+  **产生Full GC的原因**：
+
+  * 晋升时没有足够的to-space来存放晋升的对象
+  * 并发处理过程完成之前空间耗尽
+
+G1 收集器的工作过程：
+
+- **初始标记**：标记从根节点直接可达的对象，这个阶段是STW的，并且会触发一次年轻代GC
+- 根区域扫描 (Root Region Scanning)：G1 GC扫描survivor区直接可达的老年代区域对象，并标记被引用的对象，这一过程必须在Young GC之前完成
+- **并发标记** (Concurrent Marking)：在整个堆中进行并发标记（和应用程序并发执行），可能被YoungGC中断。在并发标记阶段，若发现区域对象中的所有对象都是垃圾，那这个区域会被立即回收，同时并发标记过程中，会计算每个区域的对象活性，即区域中存活对象的比例
+- **最终标记**：为了修正在并发标记期间因用户程序继续运作而导致标记产生变动的那一部分标记记录，虚拟机将这段时间对象变化记录在线程的 Remembered Set Logs 里面，最终标记阶段需要把 Remembered Set Logs 的数据合并到 Remembered Set 中，这阶段需要停顿线程，但是可并行执行
+- **筛选回收**：并发清理阶段，首先对各个 Region 中的回收价值和成本进行排序，根据用户所期望的 GC 停顿时间来制定回收计划。此阶段其实也可以做到与用户程序一起并发执行，但是因为只回收一部分 Region，时间是用户可控制的，而且停顿用户线程将大幅度提高收集效率
+
+![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-G1收集器.jpg)
+
+
+
+
+
+##### 调优
+
+G1的设计原则就是简化JVM性能调优，只需要简单的三步即可完成调优：
+
+1. 开启G1垃圾收集器
+2. 设置堆的最大内存
+3. 设置最大的停顿时间（stw）
+
+**不断调优暂停时间指标**：
+
+* `XX:MaxGCPauseMillis=x`可以设置启动应用程序暂停的时间，G1在运行的时候会根据这个参数选择CSet来满足响应时间的设置
+* 设置到100ms或者200ms都可以(不同情况下会不一样)，但设置成50ms就不太合理
+* 暂停时间设置的太短，就会导致出现G1跟不上垃圾产生的速度，最终退化成Full GC
+* 对这个参数的调优是一个持续的过程，逐步调整到最佳状态
+
+**不要设置新生代和老年代的大小**：
+
+- 避免使用-Xmn或-XX:NewRatio等相关选项显式设置年轻代大小，G1收集器在运行的时候会调整新生代和老年代的大小，从而达到我们为收集器设置的暂停时间目标
+- 设置了新生代大小相当于放弃了G1为我们做的自动调优，我们需要做的只是设置整个堆内存的大小，剩下的交给G1自己去分配各个代的大小
+
+
+
+
+
+***
+
+
+
+#### 总结
+
+![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-垃圾回收器总结.png)
+
+
+
+
+
+***
+
+
+
+### 日志分析
+
+内存分配与垃圾回收的参数列表：进入 Run/Debug Configurations   ---> VM options 设置参
+
+- `-XX:+PrintGC`：输出GC日志。类似：-verbose:gc
+- `-XX:+PrintGcDetails`：输出GC的详细日志
+- `-XX:+PrintGcTimestamps`：输出GC的时间戳（以基准时间的形式）
+- `-XX:+PrintGCDatestamps`：输出GC的时间戳（以日期的形式，如2013-05-04T21：53：59.234+0800）
+- `-XX:+PrintHeapAtGC`：在进行GC的前后打印出堆的信息
+- `-Xloggc:../logs/gc.1og`：日志文件的输出路径
+
+
+
+
+
+
+
+
+
+
+
+***
+
+
+
 
 
 
@@ -12693,10 +13913,6 @@ public class BufferedInputStrem extends InputStream {
 
 
 ***
-
-
-
-# JVM
 
 
 
