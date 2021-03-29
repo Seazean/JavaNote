@@ -12853,17 +12853,20 @@ public class Demo1_27 {
 
 ### VM参数
 
-| 功能               | 参数                                                         |
-| ------------------ | ------------------------------------------------------------ |
-| 堆初始大小         | -Xms                                                         |
-| 堆最大大小         | -Xmx 或 -XX:MaxHeapSize=size                                 |
-| 新生代大小         | -Xmn 或 (-XX:NewSize=size + -XX:MaxNewSize=size )            |
-| 幸存区比例（动态） | -XX:InitialSurvivorRatio=ratio 和 -XX:+UseAdaptiveSizePolicy |
-| 幸存区比例         | -XX:SurvivorRatio=ratio                                      |
-| 晋升阈值           | -XX:MaxTenuringThreshold=threshold                           |
-| 晋升详情           | -XX:+PrintTenuringDistribution                               |
-| GC详情             | -XX:+PrintGCDetails -verbose:gc                              |
-| FullGC 前 MinorGC  | -XX:+ScavengeBeforeFullGC                                    |
+| 参数                                                         | 功能                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| -Xms                                                         | 堆初始大小（默认为物理内存的1/64）                           |
+| -Xmx 或 -XX:MaxHeapSize=size                                 | 堆最大大小（默认为物理内存的1/4）                            |
+| -Xmn 或 -XX:NewSize=size + -XX:MaxNewSize=size               | 新生代大小（初始值及最大值）                                 |
+| -XX:NewRatio                                                 | 新生代与老年代在堆结构的占比                                 |
+| -XX:SurvivorRatio=ratio                                      | 幸存区比例（Eden和S0/S1空间的比例）                          |
+| -XX:InitialSurvivorRatio=ratio 和 -XX:+UseAdaptiveSizePolicy | 幸存区比例（动态）                                           |
+| -XX:MaxTenuringThreshold=threshold                           | 晋升阈值                                                     |
+| -XX:+PrintTenuringDistribution                               | 晋升详情                                                     |
+| -XX:+PrintFlagsInitial                                       | 查看所有的参数的默认初始值                                   |
+| -XX:+PrintFlagsFinal                                         | 查看所有的参数的最终值<br />（可能会存在修改，不再是初始值） |
+| -XX:+PrintGCDetails                                          | GC详情，打印gc简要信息：<br />1. -XX：+PrintGC   2. - verbose:gc |
+| -XX:+ScavengeBeforeFullGC                                    | FullGC 前 MinorGC                                            |
 
 
 
@@ -12873,9 +12876,208 @@ public class Demo1_27 {
 
 
 
-## 垃圾回收
+## 内存管理
 
-### 判断方法
+### 分代思想
+
+#### 分代概述
+
+在java8时，堆被分为了两份：新生代和老年代（1：2），在java7时，还存在一个永久代
+
+- 新生代使用：复制算法
+- 老年代使用：标记 - 清除 或者 标记 - 整理 算法
+
+**Minor GC 和 Full GC**：
+
+- Minor GC：回收新生代，因为新生代对象存活时间很短，因此 Minor GC 会频繁执行，执行的速度一般也会比较快。
+- Full GC：回收老年代和新生代，老年代对象其存活时间长，因此 Full GC 很少执行，执行速度会比 Minor GC 慢很多
+
+ Eden 和 Survivor 大小比例默认为 8:1:1
+
+![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-分代收集算法.png)
+
+
+
+
+
+***
+
+
+
+#### 回收策略
+
+对于 Minor GC，其触发条件非常简单，当 Eden 空间满时，就将触发一次 Minor GC
+
+Full GC 则相对复杂，**FullGC同时回收新生代和老年代，当前只会存在一个FullGC的线程进行执行，其他的线程全部会被挂起**
+
+有以下**触发条件**：
+
+* 调用 System.gc()：
+
+  * 不建议使用这种方式，应该让虚拟机管理内存，一般情况下，垃圾回收应该是自动进行的，无须手动触发。在一些特殊情况下，如正在编写一个性能基准，可以在运行之间调用System.gc() 
+  * 在默认情况下，通过system.gc（）者Runtime.getRuntime().gc() 的调用，会显式触发FullGC，同时对老年代和新生代进行回收，尝试释放被丢弃对象占用的内存，但是虚拟机不一定真正去执行，无法保证对垃圾收集器的调用
+
+* 老年代空间不足：
+
+  * 为了避免引起的 Full GC，应当尽量不要创建过大的对象以及数组
+  * 通过 -Xmn 虚拟机参数调大新生代的大小，让对象尽量在新生代被回收掉，不进入老年代。还可以通过 -XX:MaxTenuringThreshold 调大对象进入老年代的年龄，让对象在新生代多存活一段时间
+
+* 空间分配担保失败：
+
+* JDK 1.7 及以前的永久代空间不足：
+
+  * 在 JDK 1.7 及以前，HotSpot 虚拟机中的方法区是用永久代实现的，永久代中存放的为一些 Class 的信息、常量、静态变量等数据。当系统中要加载的类、反射的类和调用的方法较多时，永久代可能会被占满，在未配置为采用 CMS GC 的情况下也会执行 Full GC，如果经过 Full GC 仍然回收不了，那么虚拟机会抛出 java.lang.OutOfMemoryError
+  * 可采用增大永久代空间或转为使用 CMS GC来避免
+
+* Concurrent Mode Failure：
+
+  执行 CMS GC 的过程中同时有对象要放入老年代，而此时老年代空间不足（可能是 GC 过程中浮动垃圾过多导致暂时性的空间不足），便会报 Concurrent Mode Failure 错误，并触发 Full GC
+
+
+
+***
+
+
+
+### 内存分配
+
+#### 分代分配
+
+工作机制：
+
+* **对象优先在 Eden 分配**：当创建一个对象的时候，对象会被分配在新生代的Eden区，当Eden区要满了时候，触发YoungGC
+
+* 当进行YoungGC后，此时在Eden区存活的对象被移动到S0区，并且**当前对象的年龄会加1**，清空Eden区
+
+* 当再一次触发YoungGC的时候，会把Eden区中存活下来的对象和S0中的对象，移动到S1区中，这些对象的年龄会加1，清空Eden区和S0区
+
+* to区永远是空Survivor区，from区是有数据的，每次MinorGC后两个区域互换
+
+晋升到老年代：
+
+* **长期存活的对象进入老年代**：为对象定义年龄计数器，对象在 Eden 出生并经过 Minor GC 依然存活，将移动到 Survivor 中，年龄就增加 1 岁，增加到一定年龄则移动到老年代中
+  * -XX:MaxTenuringThreshold 用来定义年龄的阈值
+* **大对象直接进入老年代**：需要连续内存空间的对象，最典型的大对象是那种很长的字符串以及数组；避免在 Eden 和 Survivor 之间的大量内存复制；经常出现大对象会提前触发垃圾收集以获取足够的连续空间分配给大对象，
+  * -XX:PretenureSizeThreshold，大于此值的对象直接在老年代分配
+* **动态对象年龄判定**：如果在Survivor区中相同年龄的对象的所有大小之和超过Survivor空间的一半，年龄大于或等于该年龄的对象就可以直接进入老年代
+* **空间分配担保**：
+  * 在发生 Minor GC 之前，虚拟机先检查老年代最大可用的连续空间是否大于新生代所有对象总空间，如果条件成立的话，那么 Minor GC 可以确认是安全的
+  * 如果不成立，虚拟机会查看 HandlePromotionFailure 的值是否允许担保失败，如果允许那么就会继续检查老年代最大可用的连续空间是否大于历次晋升到老年代对象的平均大小，如果大于，将尝试着进行一次 Minor GC；如果小于，或者 HandlePromotionFailure 的值不允许冒险，那么就要进行一次 Full GC。
+
+
+
+***
+
+
+
+#### TLAB
+
+TLAB：Thread Local Allocation Buffer，也就是为每个线程单独分配了一个缓冲区，多线程分配内存时，使用TLAB可以避免线程安全问题，同时还能够提升内存分配的吞吐量，这种内存分配方式叫做**快速分配策略**
+
+- 栈上分配使用的是栈来进行对象内存的分配
+- TLAB 分配使用的是 Eden 区域进行内存分配，属于堆内存
+
+背景：堆区是线程共享区域，任何线程都可以访问到堆区中的共享数据，由于对象实例的创建在JVM中非常频繁，因此在并发环境下为避免多个线程操作同一地址，需要使用加锁等机制，进而影响分配速度
+
+问题：堆空间都是共享的么？ 不一定，因为还有TLAB，在堆中划分出一块区域，为每个线程所独占
+
+![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-TLAB内存分配策略.jpg)
+
+JVM是将TLAB作为内存分配的首选，但不是所有的对象实例都能够在TLAB中成功分配内存，一旦对象在TLAB空间分配内存失败时，JVM就会尝试着通过**使用加锁机制确保数据操作的原子性**，从而直接在Eden空间中分配内存
+
+栈上分配优先于 TLAB 分配进行，逃逸分析中若可进行栈上分配优化，会优先进行对象栈上直接分配内存
+
+参数设置：
+
+* `-XX:UseTLAB`：设置是否开启TLAB空间
+
+* `-XX:TLABWasteTargetPercent`：设置TLAB空间所占用Eden空间的百分比大小，默认情况下，TLAB空间的内存非常小，仅占有整个Eden空间的1，即1%
+* `-XX:TLABRefillWasteFraction`：指当 TLAB 空间不足，请求分配的对象内存大小超过此阈值时不会进行 TLAB 分配，直接进行堆内存分配，否则还是会优先进行 TLAB 分配
+
+![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-TLAB内存分配过程.jpg)
+
+
+
+***
+
+
+
+#### 堆外分配
+
+即时编译（Just-in-time Compilation，JIT）是一种通过在运行时将字节码翻译为机器码，从而改善字节码编译语言性能的技术，在HotSpot实现中有多种选择：C1、C2和C1+C2，分别对应client、server和分层编译
+
+* C1编译速度快，优化方式比较保守；C2编译速度慢，优化方式比较激进
+* C1+C2在开始阶段采用C1编译，当代码运行到一定热度之后采用G2重新编译
+* 在1.8之前，分层编译默认是关闭的，可以添加`-server -XX:+TieredCompilation`参数进行开启
+
+**逃逸分析**：并不是直接的优化手段，而是一个代码分析，通过动态分析对象的作用域，为其它优化手段如栈上分配、标量替换和同步消除等提供依据，发生逃逸行为的情况有两种：方法逃逸和线程逃逸
+
+* 方法逃逸：当一个对象在方法中定义之后，作为参数传递到其它方法中
+* 线程逃逸：如类变量或实例变量，可能被其它线程访问到
+
+如果不存在逃逸行为，则可以对该对象进行如下优化：同步消除、标量替换和栈上分配
+
+* **同步消除**
+
+  线程同步本身比较耗时，如果确定一个对象不会逃逸出线程，无法被其它线程访问到，那该对象的读写就不会存在竞争，则可以消除对该对象的同步锁，通过`-XX:+EliminateLocks`可以开启同步消除
+
+* **标量替换**
+
+  * 标量替换：如果把一个对象拆散，将其成员变量恢复到基本类型来访问
+  * 标量 (scalar) ：不可分割的量，如基本数据类型和reference类型
+    聚合量 (Aggregate)：一个数据可以继续分解
+  * 如果逃逸分析发现一个对象不会被外部访问，并且该对象可以被拆散，那么经过优化之后，并不直接生成该对象，而是在栈上创建若干个成员变量
+  * 参数设置：
+    `-XX:+EliminateAllocations`：开启标量替换
+    `-XX:+PrintEliminateAllocations`：查看标量替换情况
+
+* **栈上分配**
+
+  JIT编译器在编译期间根据逃逸分析的结果，如果一个对象没有逃逸出方法的话，就可能被优化成栈上分配。分配完成后，继续在调用栈内执行，最后线程结束，栈空间被回收，局部变量对象也被回收，这样就无需GC
+
+  User对象的作用域局限在方法fn中，可以使用标量替换的优化手段在栈上分配对象的成员变量，这样就不会生成User对象，大大减轻GC的压力
+
+  ```java
+  public class JVM {
+      public static void main(String[] args) throws Exception {
+          int sum = 0;
+          int count = 1000000;
+          //warm up
+          for (int i = 0; i < count ; i++) {
+              sum += fn(i);
+          }
+          System.out.println(sum);
+          System.in.read();
+      }
+      private static int fn(int age) {
+          User user = new User(age);
+          int i = user.getAge();
+          return i;
+      }
+  }
+  
+  class User {
+      private final int age;
+  
+      public User(int age) {
+          this.age = age;
+      }
+  
+      public int getAge() {
+          return age;
+      }
+  }
+  ```
+
+  
+
+
+
+***
+
+
+
+### 垃圾判断
 
 #### 垃圾收集
 
@@ -12995,50 +13197,49 @@ Java语言提供了对象终止（finalization）机制来允许开发人员提�
 
 1. 强引用：被强引用关联的对象不会被回收，只有所有GCRoots都不通过强引用引用该对象，才能被垃圾回收
 
-  * 强引用可以直接访问目标对象
-  * 虚拟机宁愿抛出OOM异常，也不会回收强引用所指向对象
-  * 强引用可能导致**内存泄漏**
+   * 强引用可以直接访问目标对象
+   * 虚拟机宁愿抛出OOM异常，也不会回收强引用所指向对象
+   * 强引用可能导致**内存泄漏**
 
-  ```java
-  Object obj = new Object();//使用 new 一个新对象的方式来创建强引用
-  ```
+   ```java
+   Object obj = new Object();//使用 new 一个新对象的方式来创建强引用
+   ```
 
 2. 软引用（SoftReference）：被软引用关联的对象只有在内存不够的情况下才会被回收
 
-  * **仅（可能有强引用，一个对象可以被多个引用）**有软引用引用该对象时，在垃圾回收后，内存仍不足时会再次出发垃圾回收，回收软引用对象
-  * 配合引用队列来释放软**引用自身**，在构造软引用时，可以指定一个引用队列，当软引用对象被回收时，就会加入指定的引用队列，通过这个队列可以跟踪对象的回收情况
-  * 软引用通常用来实现内存敏感的缓存，比如高速缓存就有用到软引用；如果还有空闲内存，就可以暂时保留缓存，当内存不足时清理掉，这样就保证了使用缓存的同时不会耗尽内存
+   * **仅（可能有强引用，一个对象可以被多个引用）**有软引用引用该对象时，在垃圾回收后，内存仍不足时会再次出发垃圾回收，回收软引用对象
+   * 配合引用队列来释放软**引用自身**，在构造软引用时，可以指定一个引用队列，当软引用对象被回收时，就会加入指定的引用队列，通过这个队列可以跟踪对象的回收情况
+   * 软引用通常用来实现内存敏感的缓存，比如高速缓存就有用到软引用；如果还有空闲内存，就可以暂时保留缓存，当内存不足时清理掉，这样就保证了使用缓存的同时不会耗尽内存
 
-  ```java
-  Object obj = new Object();
-  SoftReference<Object> sf = new SoftReference<Object>(obj);
-  obj = null;  // 使对象只被软引用关联
-  ```
+   ```java
+   Object obj = new Object();
+   SoftReference<Object> sf = new SoftReference<Object>(obj);
+   obj = null;  // 使对象只被软引用关联
+   ```
 
 3. 弱引用（WeakReference）：被弱引用关联的对象一定会被回收，只能存活到下一次垃圾回收发生之前
 
-  * 仅有弱引用引用该对象时，在垃圾回收时，无论内存是否充足，都会回收弱引用对象
-  * 配合引用队列来释放弱引用自身
-  * WeakHashMap用来存储图片信息，可以在内存不足的时候及时回收，避免了OOM
+   * 仅有弱引用引用该对象时，在垃圾回收时，无论内存是否充足，都会回收弱引用对象
+   * 配合引用队列来释放弱引用自身
+   * WeakHashMap用来存储图片信息，可以在内存不足的时候及时回收，避免了OOM
 
-  ```java
-  Object obj = new Object();
-  WeakReference<Object> wf = new WeakReference<Object>(obj);
-  obj = null;
-  ```
+   ```java
+   Object obj = new Object();
+   WeakReference<Object> wf = new WeakReference<Object>(obj);
+   obj = null;
+   ```
 
 4. 虚引用（PhantomReference）：也称为“幽灵引用”或者“幻影引用”，是所有引用类型中最弱的一个
 
-  * 一个对象是否有虚引用的存在，不会对其生存时间造成影响，也无法通过虚引用得到一个对象
-  * 为对象设置虚引用的唯一目的是在于跟踪垃圾回收过程，能在这个对象被回收时收到一个系统通知
+   * 一个对象是否有虚引用的存在，不会对其生存时间造成影响，也无法通过虚引用得到一个对象
+   * 为对象设置虚引用的唯一目的是在于跟踪垃圾回收过程，能在这个对象被回收时收到一个系统通知
+   * 必须配合引用队列使用，主要配合 ByteBuffer 使用，被引用对象回收时会将虚引用入队，由 Reference Handler 线程调用虚引用相关方法释放直接内存
 
-  * 必须配合引用队列使用，主要配合 ByteBuffer 使用，被引用对象回收时会将虚引用入队，由 Reference Handler 线程调用虚引用相关方法释放直接内存
-
-  ```java
-  Object obj = new Object();
-  PhantomReference<Object> pf = new PhantomReference<Object>(obj, null);
-  obj = null;
-  ```
+   ```java
+   Object obj = new Object();
+   PhantomReference<Object> pf = new PhantomReference<Object>(obj, null);
+   obj = null;
+   ```
 
 5. 终结器引用（finalization）
 
@@ -13119,86 +13320,6 @@ Java语言提供了对象终止（finalization）机制来允许开发人员提�
 缺点：需要移动大量对象，处理效率比较低
 
 <img src="https://gitee.com/seazean/images/raw/master/JavaSE/JVM-标记整理算法.png" style="zoom:67%;" />
-
-
-
-***
-
-
-
-### 分代收集
-
-#### 分代概述
-
-在java8时，堆被分为了两份：新生代和老年代（1：2），在java7时，还存在一个永久代
-
-- 新生代使用：复制算法
-- 老年代使用：标记 - 清除 或者 标记 - 整理 算法
-
-**Minor GC 和 Full GC**：
-
-- Minor GC：回收新生代，因为新生代对象存活时间很短，因此 Minor GC 会频繁执行，执行的速度一般也会比较快。
-- Full GC：回收老年代和新生代，老年代对象其存活时间长，因此 Full GC 很少执行，执行速度会比 Minor GC 慢很多
-
- Eden 和 Survivor 大小比例默认为 8:1:1
-
-![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-分代收集算法.png)
-
-
-
-#### 内存分配
-
-工作机制：
-
-* **对象优先在 Eden 分配**：当创建一个对象的时候，对象会被分配在新生代的Eden区，当Eden区要满了时候，触发YoungGC
-
-* 当进行YoungGC后，此时在Eden区存活的对象被移动到S0区，并且**当前对象的年龄会加1**，清空Eden区
-
-* 当再一次触发YoungGC的时候，会把Eden区中存活下来的对象和S0中的对象，移动到S1区中，这些对象的年龄会加1，清空Eden区和S0区
-
-* to区永远是空Survivor区，from区是有数据的，每次MinorGC后两个区域互换
-
-晋升到老年代：
-
-* **长期存活的对象进入老年代**：为对象定义年龄计数器，对象在 Eden 出生并经过 Minor GC 依然存活，将移动到 Survivor 中，年龄就增加 1 岁，增加到一定年龄则移动到老年代中
-  * -XX:MaxTenuringThreshold 用来定义年龄的阈值
-* **大对象直接进入老年代**：需要连续内存空间的对象，最典型的大对象是那种很长的字符串以及数组；避免在 Eden 和 Survivor 之间的大量内存复制；经常出现大对象会提前触发垃圾收集以获取足够的连续空间分配给大对象，
-  * -XX:PretenureSizeThreshold，大于此值的对象直接在老年代分配
-* **动态对象年龄判定**：如果在Survivor区中相同年龄的对象的所有大小之和超过Survivor空间的一半，年龄大于或等于该年龄的对象就可以直接进入老年代
-* **空间分配担保**：
-  * 在发生 Minor GC 之前，虚拟机先检查老年代最大可用的连续空间是否大于新生代所有对象总空间，如果条件成立的话，那么 Minor GC 可以确认是安全的
-  * 如果不成立，虚拟机会查看 HandlePromotionFailure 的值是否允许担保失败，如果允许那么就会继续检查老年代最大可用的连续空间是否大于历次晋升到老年代对象的平均大小，如果大于，将尝试着进行一次 Minor GC；如果小于，或者 HandlePromotionFailure 的值不允许冒险，那么就要进行一次 Full GC。
-
-
-
-#### 回收策略
-
-对于 Minor GC，其触发条件非常简单，当 Eden 空间满时，就将触发一次 Minor GC
-
-Full GC 则相对复杂，**FullGC同时回收新生代和老年代，当前只会存在一个FullGC的线程进行执行，其他的线程全部会被挂起**
-
-有以下**触发条件**：
-
-* 调用 System.gc()：
-
-  * 不建议使用这种方式，应该让虚拟机管理内存，一般情况下，垃圾回收应该是自动进行的，无须手动触发。在一些特殊情况下，如正在编写一个性能基准，可以在运行之间调用System.gc() 
-  * 在默认情况下，通过system.gc（）者Runtime.getRuntime().gc() 的调用，会显式触发FullGC，同时对老年代和新生代进行回收，尝试释放被丢弃对象占用的内存，但是虚拟机不一定真正去执行，无法保证对垃圾收集器的调用
-
-* 老年代空间不足：
-
-  * 为了避免引起的 Full GC，应当尽量不要创建过大的对象以及数组
-  * 通过 -Xmn 虚拟机参数调大新生代的大小，让对象尽量在新生代被回收掉，不进入老年代。还可以通过 -XX:MaxTenuringThreshold 调大对象进入老年代的年龄，让对象在新生代多存活一段时间
-
-* 空间分配担保失败：
-
-* JDK 1.7 及以前的永久代空间不足：
-
-  * 在 JDK 1.7 及以前，HotSpot 虚拟机中的方法区是用永久代实现的，永久代中存放的为一些 Class 的信息、常量、静态变量等数据。当系统中要加载的类、反射的类和调用的方法较多时，永久代可能会被占满，在未配置为采用 CMS GC 的情况下也会执行 Full GC，如果经过 Full GC 仍然回收不了，那么虚拟机会抛出 java.lang.OutOfMemoryError
-  * 可采用增大永久代空间或转为使用 CMS GC来避免
-
-* Concurrent Mode Failure：
-
-  执行 CMS GC 的过程中同时有对象要放入老年代，而此时老年代空间不足（可能是 GC 过程中浮动垃圾过多导致暂时性的空间不足），便会报 Concurrent Mode Failure 错误，并触发 Full GC
 
 
 
@@ -13586,14 +13707,12 @@ G1的设计原则就是简化JVM性能调优，只需要简单的三步即可完
 
 内存分配与垃圾回收的参数列表：进入 Run/Debug Configurations   ---> VM options 设置参
 
-- `-XX:+PrintGC`：输出GC日志。类似：-verbose:gc
+- `-XX:+PrintGC`：输出GC日志，类似：-verbose:gc
 - `-XX:+PrintGcDetails`：输出GC的详细日志
 - `-XX:+PrintGcTimestamps`：输出GC的时间戳（以基准时间的形式）
 - `-XX:+PrintGCDatestamps`：输出GC的时间戳（以日期的形式，如2013-05-04T21：53：59.234+0800）
 - `-XX:+PrintHeapAtGC`：在进行GC的前后打印出堆的信息
 - `-Xloggc:../logs/gc.1og`：日志文件的输出路径
-
-
 
 
 

@@ -8632,6 +8632,7 @@ AnnotationAwareAspectJAutoProxyCreator是这种类型的后置处理器：Instan
 
 * InstantiationAwareBeanPostProcessor是在创建Bean实例之前进行拦截，会调用后置处理器来返回对象`postProcessBeforeInstantiation()`
 * BeanPostProcessor是在Bean对象创建完成初始化前后调用
+* **该类会在bean的实例化和初始化的前后起作用**
 
 
 
@@ -8669,12 +8670,12 @@ AnnotationAwareAspectJAutoProxyCreator是这种类型的后置处理器：Instan
 
    * 是否需要跳过：子类`AspectJAwareAdvisorAutoProxyCreator.shouldSkip()`
 
-     * `findCandidateAdvisors()`：获取候选的增强器（切面里面的通知方法）每一个封装的通知方法的增强器是 InstantiationModelAwarePointcutAdvisor
+     * `findCandidateAdvisors()`：获取候选的增强器（切面里面的通知方法）每一个封装的通知方法的增强器是 InstantiationModelAwarePointcutAdvisor**（AAAPC）**
 
      * `if()`：判断每一个增强器是否是 AspectJPointcutAdvisor 类型的，返回true，否则继续执行
      * `return super.shouldSkip(beanClass, beanName)`：永远返回false  
 
-   * `getCustomTargetSource(beanClass, beanName)`：返回为空，createBean()
+   * `getCustomTargetSource(beanClass, beanName)`：返回为空，doCreateBean()
 
    **进入applyBeanPostProcessorsAfterInitialization：后置处理器创建AOP**
 
@@ -8695,7 +8696,7 @@ AnnotationAwareAspectJAutoProxyCreator是这种类型的后置处理器：Instan
 
    创建动态代理：`wrapIfNecessary()`调用`createProxy()`（wrap包装）
 
-   * `getAdvicesAndAdvisorsForBean()`：获取当前bean的所有增强器 (通知方法)，
+   * `getAdvicesAndAdvisorsForBean()`：获取当前bean的所有增强器 (通知方法)
 
      * findEligibleAdvisors()：找到哪些通知方法是需要切入当前bean方法的
      * AopUtils.findAdvisorsThatCanApply()：获取到能在bean使用的增强器
