@@ -12581,16 +12581,22 @@ Java**反编译**指令：`javap -v Test.class`
 
 #### 虚拟机栈
 
-Java 虚拟机栈：Java Virtual Machine Stacks，每个线程运行时所需要的内存
+Java 虚拟机栈：Java Virtual Machine Stacks，**每个线程**运行时所需要的内存
 
 * 虚拟机栈时线程私有的，对应方法调用到执行完成的整个过程
-* 保存执行方法时的**局部变量、动态连接信息、方法返回地址信息**等
+
+* 保存执行方法时的**局部变量表、常量池引用、方法返回地址信息**等
+
 * 每个栈由多个栈帧（Frame）组成，对应着每次方法调用时所占用的内存
+
 * 每个线程只能有一个活动栈帧，对应着当前正在执行的那个方法
+
+  <img src="https://gitee.com/seazean/images/raw/master/JavaSE/JVM-虚拟机栈.png" style="zoom:50%;" />
 
 设置栈内存大小：`-Xss size`   `-Xss 1024k`
 
 * 进入 Run/Debug Configurations   ---> VM options 设置参数
+* 在 JDK 1.4 中默认为 256K，而在 JDK 1.5+ 默认为 1M
 
 虚拟机栈特点：
 
@@ -12602,10 +12608,10 @@ Java 虚拟机栈：Java Virtual Machine Stacks，每个线程运行时所需要
   * 如果方法内局部变量没有逃离方法的作用访问，它是线程安全的
   * 如果是局部变量引用了对象，并逃离方法的作用范围，需要考虑线程安全
 
-栈内存溢出：
+异常：
 
-* 栈帧过多导致栈内存溢出 （超过了栈的容量）
-* 栈帧过大导致栈内存溢出
+* 栈帧过多导致栈内存溢出 （超过了栈的容量），会抛出 OutOfMemoryError 异常
+* 当线程请求的栈深度超过最大值，会抛出 StackOverflowError 异常
 
 线程运行诊断：
 
@@ -12624,7 +12630,9 @@ Java 虚拟机栈：Java Virtual Machine Stacks，每个线程运行时所需要
 
 * 不需要进行GC，与虚拟机栈类似
 
-* 本地方法一般是由其他语言编写
+* 本地方法一般是由其他语言编写，并且被编译为基于本机硬件和操作系统的程序，对这些方法需要特别处理
+
+  <img src="https://gitee.com/seazean/images/raw/master/JavaSE/JVM-本地方法栈.png" style="zoom:67%;" />
 
 
 
@@ -12636,7 +12644,7 @@ Java 虚拟机栈：Java Virtual Machine Stacks，每个线程运行时所需要
 
 Program Counter Register 程序计数器（寄存器）
 
-作用：内部保存字节码的行号，用于记录正在执行的字节码指令地址（下一条jvm指令的地址）
+作用：内部保存字节码的行号，用于记录正在执行的字节码指令地址（如果正在执行的是本地方法则为空）
 
 原理：
 
@@ -12669,16 +12677,16 @@ Program Counter Register 程序计数器（寄存器）
 
 #### 堆
 
-Heap 堆：主要用来保存**对象实例，数组**等，通过 new 关键字创建对象都会使用堆内存
+Heap 堆：用来保存**对象实例，数组**等，通过 new 创建对象都会使用堆内存，是垃圾收集的主要区域（"GC 堆"）
+
 特点：
 
 * 它是线程共享的，堆中对象都需要考虑线程安全的问题
 * 有垃圾回收机制
-* 当堆中没有内存空间可分配给实例，也无法再扩展时，则抛出OutOfMemoryError异常
 
 设置堆内存指令：`-Xmx Size`
 
-内存溢出：new出对象，循环添加字符数据
+内存溢出：new出对象，循环添加字符数据，当堆中没有内存空间可分配给实例，也无法再扩展时，就会抛出OutOfMemoryError异常
 
 堆内存诊断工具：（控制台命令）
 
@@ -12704,13 +12712,30 @@ public static void main(String[] args) throws InterruptedException {
 
 * Young区被划分为三部分，Eden区和两个大小严格相同的Survivor区。Survivor区间，某一时刻只有其中一个是被使用的，另外一个留做垃圾回收时复制对象。在Eden区变满的时候， GC就会将存活的对象移到空闲的Survivor区间中，根据JVM的策略，在经过几次垃圾回收后，仍然存活于Survivor的对象将被移动到Tenured区间
 * Tenured区主要保存生命周期长的对象，一般是一些老的对象，当一些对象在Young复制转移一定的次数以后，对象就会被转移到Tenured区
-* Perm代主要保存**Class、ClassLoader、静态变量、常量、编译后的代码**，在java7中堆内方法区会受到GC的管理。方法区（永久代）有大小的限制，如果大量的动态生成类，放入到方法区，很容易造成OOM
-
-Java8：
-
-* 为了**避免方法区出现OOM**，在java8中将堆内的方法区（永久代）移动到了本地内存上，重新开辟了一块空间，叫做**元空间**
+* Perm代主要保存**Class、ClassLoader、静态变量、常量、编译后的代码**，在java7中堆内方法区会受到GC的管理。
 
 
+
+***
+
+
+
+#### 方法区
+
+方法区 / 永久代：在HotSpot JVM中，用于存放已被加载的类信息、常量池、静态变量以及即时编译器编译后的代码等数据，每当一个类初次被加载时，它的**元数据**都会放到永久代中
+
+方法区是一个 JVM 规范，**永久代与元空间都是其一种实现方式**
+
+方法区和堆一样不需要连续的内存，并且可以动态扩展；方法区有大小限制，因此加载的类太多，可能导致永久代内存溢出 (OutOfMemoryError)；对这块区域进行垃圾回收主要是对常量池的回收和对类的卸载，比较难实现
+
+为了**避免方法区出现OOM**，在JDK8中将堆内的方法区（永久代）移动到了本地内存上，重新开辟了一块空间，叫做**元空间**，元空间存储类的元信息，静态变量和常量池等放入堆中
+
+
+
+**运行时常量池**是方法区的一部分
+
+* Class 文件中的常量池（编译器生成的字面量和符号引用）会在类加载后被放入这个区域
+* 除了在编译期生成的常量，还允许动态生成，例如 String 类的 intern()
 
 
 
@@ -12735,20 +12760,15 @@ Java8：
 
 
 
+***
+
 
 
 ##### 元空间
 
-在 HotSpot JVM 中，永久代（ ≈ 方法区）中用于存放类和方法的元数据以及常量池，每当一个类初次被加载的时候，它的元数据都会放到永久代中。永久代是有大小限制的，因此加载的类太多，很可能导致永久代内存溢出，即OutOfMemoryError
+PermGen 被元空间代替，其他内容比如**类信息、字段、静态属性、方法、常量池**等都移动到元空间区，元空间的本质和永久代类似，都是对 JVM 规范中方法区的实现
 
-Java 8 中 PermGen 被移出 HotSpot JVM：
-
-* 由于 PermGen 内存经常会溢出，引发OutOfMemoryError，为了让这一块内存可以更灵活地被管理，不要经常出现OOM
-* 移除 PermGen 可以促进 HotSpot JVM 与 JRockit VM 的融合，因为 JRockit 没有永久代
-
-PermGen 被元空间代替，其他内容比如**类元信息、字段、静态属性、方法、常量池**等都移动到元空间区，元空间的本质和永久代类似，都是对 JVM 规范中方法区的实现
-
-元空间与永久代区别：元空间并不在虚拟机中，而是使用本地内存。因此默认情况下，元空间的大小仅受本地内存限制
+元空间与永久代区别：元空间不在虚拟机中，使用的本地内存，默认情况下，元空间的大小仅受本地内存限制
 
 方法区内存溢出：
 
@@ -12795,7 +12815,7 @@ public class Demo1_8 extends ClassLoader { // 可以用来加载类的二进制�
 
 
 
-
+***
 
 
 
@@ -12810,9 +12830,9 @@ Direct Memory特点：
 分配和回收原理：
 
 * 使用了 Unsafe 对象完成直接内存的分配回收，并且回收需要主动调用 freeMemory 方法
-* ByteBuffer 的实现类内部，使用了 Cleaner （虚引用）来监测 ByteBuffer 对象，一旦
-* ByteBuffer 对象被垃圾回收，那么就会由 ReferenceHandler 线程通过 Cleaner 的 clean 方法调
-  用 freeMemory 来释放直接内存
+* ByteBuffer 的实现类内部，使用了 Cleaner （虚引用）来监测 ByteBuffer 对象，一旦ByteBuffer 对象被垃圾回收，那么就会由 ReferenceHandler 线程通过 Cleaner 的 clean 方法调用 freeMemory 来释放直接内存
+
+<img src="https://gitee.com/seazean/images/raw/master/JavaSE/JVM-直接内存.png" style="zoom:50%;" />
 
 ```java
 /**
@@ -12867,6 +12887,7 @@ public class Demo1_27 {
 | -XX:+PrintFlagsFinal                                         | 查看所有的参数的最终值<br />（可能会存在修改，不再是初始值） |
 | -XX:+PrintGCDetails                                          | GC详情，打印gc简要信息：<br />1. -XX：+PrintGC   2. - verbose:gc |
 | -XX:+ScavengeBeforeFullGC                                    | FullGC 前 MinorGC                                            |
+| -XX:+DisableExplicitGC                                       | 禁用显式垃圾回收，让System.gc无效                            |
 
 
 
