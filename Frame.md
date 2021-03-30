@@ -8331,18 +8331,26 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
     * 将所有的后置处理器拿出来，并且把名字叫beanName的类中的变量都封装到InjectionMetadata的injectedElements集合里面，目的是以后从中获取，创建实例，通过反射注入到相应类
     * `AutowiredAnnotationBeanPostProcessor.postProcessMergedBeanDefinition`
   * 添加工厂：`DefaultSingletonBeanRegistry.addSingletonFactory()`
+    
     * 允许提前引用才执行，用来解决**循环依赖**
   * **填充属性 (依赖注入)**：`populateBean(beanName, RootBeanDefinition, BeanWrapper)`
+    
     * 填充准备：通过awareBeanPostProcessor拦截，判断控制程序是否继续进行属性填充
     * 获取依赖：根据autowire类型 (Type/Name)提取依赖，存入 PropertyValues，并给bean注册依赖
     * 后置处理：判断是否需要进行 BeanPostProcessor 和 依赖检查
-      * `postProcessPropertyValues`：转入AutowiredAnnotationBeanPostProcessor（**注解**）
-    * 执行`postProcessPropertyValues()`方法
-      * 执行私有内部类`AutowiredFieldElement().inject()`方法注入元数据
-      * inject()方法内`resolveDependency()`方法，用来解决循环依赖，调用beanFactory.getBean()获取bean
-      * `ReflectionUtils.makeAccessible(field)`：利用反射为此对象赋值
-    * 填充属性：将所有解析到的 PropertyValues 中的属性填充至 BeanWrapper 中
+      
+      * `postProcessProperties`：转入**AutowiredAnnotationBeanPostProcessor**（**注解**）
+      
+      * `findAutowiringMetadata()`：找到需要注入的元数据
+      * `InjectionMetadata.InjectedElement.inject()`：注入数据（底层重写了方法）
+        * `DefaultListableBeanFactory.resolveDependency()`：解决依赖
+        * `doResolveDependency().resolveCandidate()`：通过工厂获取Bean对象
+        * `registerDependentBeans()`：将Bean注册为Autowired自动装配的Bean
+        * `ReflectionUtils.makeAccessible()`：修改访问权限，true代表暴力破解
+        * `method.invoke`：利用反射为此对象赋值
+    * 填充属性：`applyPropertyValues()`，将所有解析的PropertyValues的属性填充至BeanWrapper 
   * **初始化**：`initializeBean(String, Object, RootBeanDefinition)`
+    
     * 填充Aware接口属性：`invokeAwareMethods(beanName,bean)`
       * BeanName、ClassLoader对象实例、Spring工厂、Spring上下文ApplicationContext
     * 前置处理：`applyBeanPostProcessorsBeforeInitialization()`
@@ -8353,6 +8361,7 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
     * 后置处理：`applyBeanPostProcessorsAfterInitialization()`，**AOP在此完成，跳转注解**
   * 循环依赖检查：bean 创建后，它所依赖的bean一定是初始化完成，如果没有就报错
   * **注册销毁**：`AbstractBeanFactory.registerDisposableBeanIfNecessary`，
+    
     * 根据不同的scope进行disposableBean的注册，在销毁对象时调用destory()
 
 

@@ -417,7 +417,7 @@ id会显示用户以及所属群组的实际与有效ID。若两个ID相同，�
 
 ### sudo命令
 
-sudo:控制用户对系统命令的使用权限,root允许的操作。通过sudo可以提高普通用户的操作权限
+sudo：控制用户对系统命令的使用权限,root允许的操作。通过sudo可以提高普通用户的操作权限
 
 - -V 显示版本编号
 - -h 会显示版本编号及指令的使用方式说明
@@ -436,11 +436,13 @@ sudo:控制用户对系统命令的使用权限,root允许的操作。通过sudo
 
 ### top命令
 
-top：用于实时显示 process 的动态。
+top：用于实时显示 process 的动态
 
 top -c：command属性进行了命令补全
 
 top -p 进程号：显示指定pid的进程信息
+
+top -d 秒数：表示进程界面更新时间（每几秒刷新一次）
 
 ![](https://gitee.com/seazean/images/raw/master/Linux/top命令.png)
 
@@ -1602,6 +1604,143 @@ vim 中提供有一个 被复制文本的缓冲区
 
 
 
+***
+
+
+
+### 链接
+
+```sh
+ln [-sf] source_filename dist_filename
+```
+
+* -s：默认是实体链接，加 -s 为符号链接
+* -f：如果目标文件存在时，先删除目标文件
+
+<img src="https://gitee.com/seazean/images/raw/master/Linux/文件链接.png" style="zoom: 80%;" />
+
+**实体链接**：
+
+* 在目录下创建一个条目，记录着文件名与 inode 编号，这个 inode 就是源文件的 inode
+* 删除任意一个条目，文件还是存在，只要引用数量不为 0
+* 不能跨越文件系统、不能对目录进行链接
+
+```sh
+ln /etc/crontab .
+ll
+34474855 -rw-r--r--. 2 root root 451 Jun 10 2014 crontab
+34474855 -rw-r--r--. 2 root root 451 Jun 10 2014 /etc/crontab
+```
+
+**符号链接**：
+
+* 符号链接文件保存着源文件所在的绝对路径，在读取时会定位到源文件上，可以理解为 Windows 的快捷方式
+
+* 当源文件被删除了，链接文件就打不开了
+
+* 记录的是路径，所以可以为目录建立符号链接
+
+  ```sh
+  34474855 -rw-r--r--. 2 root root 451 Jun 10 2014 /etc/crontab
+  53745909 lrwxrwxrwx. 1 root root 12 Jun 23 22:31 /root/crontab2 -> /etc/crontab
+  ```
+
+  
+
+
+
+***
+
+
+
+## 进程管理
+
+### 查看进程
+
+ps 指令：查看某个时间点的进程信息
+
+top指令：实时显示进程信息
+
+pstree：查看进程树
+
+```sh
+pstree -A	#查看所有进程树
+```
+
+
+
+
+
+### 进程状态
+
+| 状态 | 说明                                                         |
+| ---- | ------------------------------------------------------------ |
+| R    | running or runnable (on run queue) 正在执行或者可执行，此时进程位于执行队列中 |
+| D    | uninterruptible sleep (usually I/O) 不可中断阻塞，通常为 IO 阻塞 |
+| S    | interruptible sleep (waiting for an event to complete) 可中断阻塞，此时进程正在等待某个事件完成 |
+| Z    | zombie (terminated but not reaped by its parent) 僵死，进程已经终止但是尚未被其父进程获取信息 |
+| T    | stopped (either by a job control signal or because it is being traced) 结束，进程既可以被作业控制信号结束，也可能是正在被追踪 |
+
+孤儿进程：
+
+* 一个父进程退出，而它的一个或多个子进程还在运行，那么这些子进程将成为孤儿进程
+
+* 孤儿进程将被 init 进程（进程号为 1）所收养，并由 init 进程对它们完成状态收集工作
+* 孤儿进程会被 init 进程收养，所以孤儿进程不会对系统造成危害
+
+僵尸进程：
+
+* 一个子进程的进程描述符在子进程退出时不会释放，只有当父进程通过 wait() 或 waitpid() 获取了子进程信息后才会释放。如果子进程退出，而父进程并没有调用 wait() 或 waitpid()，那么子进程的进程描述符仍然保存在系统中，这种进程称之为僵尸进程
+* 僵尸进程通过 ps 命令显示出来的状态为 Z（zombie）
+* 系统所能使用的进程号是有限的，产生大量僵尸进程，会导致系统没有可用的进程号而不能产生新的进程
+
+* 要消灭系统中大量的僵尸进程，只需要将其父进程杀死，此时僵尸进程就会变成孤儿进程，从而被 init 进程所收养，这样 init 进程就会释放所有的僵尸进程所占有的资源，从而结束僵尸进程
+
+
+
+***
+
+
+
+### 状态改变
+
+#### SIGCHLD 
+
+当一个子进程改变了它的状态时（停止运行，继续运行或者退出），有两件事会发生在父进程中：
+
+- 得到 SIGCHLD 信号
+- waitpid() 或者 wait() 调用会返回
+
+子进程发送的 SIGCHLD 信号包含了子进程的信息，比如进程 ID、进程状态、进程使用 CPU 的时间等；在子进程退出时，它的进程描述符不会立即释放，这是为了让父进程得到子进程信息，父进程通过 wait() 和 waitpid() 来获得一个已经退出的子进程的信息
+
+
+
+#### wait
+
+```c
+pid_t wait(int *status)
+```
+
+参数：status 用来保存被收集的子进程退出时的状态，如果不关心子进程**如何**销毁，可以设置这个参数为 NULL
+
+父进程调用 wait() 会一直阻塞，直到收到一个子进程退出的 SIGCHLD 信号，wait() 函数就会销毁子进程并返回
+
+* 成功，返回被收集的子进程的进程 ID
+* 失败，返回 -1，同时 errno 被置为 ECHILD（如果调用进程没有子进程，调用就会失败）
+
+
+
+#### waitpid
+
+```c
+pid_t waitpid(pid_t pid, int *status, int options)
+```
+
+作用和 wait() 完全相同，只是多了两个可控制的参数 pid 和 options
+
+* pid：指示一个子进程的 ID，表示只关心这个子进程退出的 SIGCHLD 信号；如果 pid=-1 时，那么和 wait() 作用相同，都是关注所有子进程退出的 SIGCHLD 信号
+* options：主要有 WNOHANG 和 WUNTRACED 两个，WNOHANG 可以使 waitpid() 调用变成非阻塞的，就是会立即返回，父进程可以继续执行其它任务
+
 
 
 
@@ -1687,7 +1826,8 @@ netstat [-acCeFghilMnNoprstuvVwx][-A<网络类型>][--ip]
 
 补充：
 
-* lsof -i：端口号：查看指定端口号
+* netstat -apn | grep port：查看指定端口号
+* lsof -i:port ：查看指定端口号
 
 
 
