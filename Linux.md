@@ -6,7 +6,7 @@
 
 操作系统作为接口的示意图:
 
-![](https://gitee.com/seazean/images/raw/master/Linux/操作系统.png)
+<img src="https://gitee.com/seazean/images/raw/master/Linux/操作系统.png" style="zoom:80%;" />
 
 
 
@@ -1987,98 +1987,6 @@ mount [-fnrsvw] [-t vfstype] [-o options] device dir
 * 重新加载防火墙规则：`service iptables reload`
 
 备注：默认情况下22端口号是放行的
-
-
-
-***
-
-
-
-## Nginx
-
-### 安装软件
-
-*Nginx*(engine x) 是一个高性能的[HTTP](https://baike.baidu.com/item/HTTP)和[反向代理](https://baike.baidu.com/item/反向代理/7793488)web服务器，同时也提供了IMAP/POP3/SMTP服务。
-
-Nginx两个最核心的功能：高性能的静态web服务器，反向代理
-
-* 安装指令：sudo apt-get install nginx
-
-* 查看版本：nginx -v
-* 系统指令：systemctl / service  start/restart/stop/status nginx
-
-配置文件安装目录：/etc/nginx
-日志文件：/var/log/nginx
-
-
-
-***
-
-
-
-### 配置文件
-
-nginx.conf 文件时nginx的主配置文件
-
-<img src="https://gitee.com/seazean/images/raw/master/Linux/Nginx配置文件conf.jpg" style="zoom:80%;" />
-
-* main部分
-  <img src="https://gitee.com/seazean/images/raw/master/Linux/Nginx配置文件main部分.jpg" style="zoom: 67%;" />
-
-* events部分
-  <img src="https://gitee.com/seazean/images/raw/master/Linux/Nginx配置文件events部分.jpg" style="zoom:67%;" />
-
-* server部分
-  <img src="https://gitee.com/seazean/images/raw/master/Linux/Nginx配置文件server部分.jpg" style="zoom:67%;" />
-
-  root设置的路径会拼接上location的路径，然后去最终路径寻找对应的文件
-
-
-
-***
-
-
-
-### 发布项目
-
-1. 创建一个toutiao目录
-   	cd /home
-   	mkdir toutiao
-
-2. 将项目上传到toutiao目录
-
-3. 解压项目 unzip web.zip
-
-4. 编辑Nginx配置文件nginx.conf
-
-   ```shell
-   server {
-   	listen       80;
-   	server_name  localhost;
-   	location / {
-   		root   /home/seazean/toutiao;
-   		index  index.html index.htm;
-   	}
-   }
-   ```
-
-5. 重启nginx服务：systemctl  restart nginx
-
-6. 浏览器打开网址 http://127.0.0.1:80
-
-
-
-
-
-***
-
-
-
-### 反向代理
-
-> 无法访问Google，可以配置一个代理服务器，发送请求到代理服务器，代理服务器经过转发，再将请求转发给Google，返回结果之后，再次转发给用户。这个叫做正向代理。正向代理对于用户来说，是有感知的。
-
-反向代理︰反向代理服务器位于用户和真实服务器之间,提供响应的请求和响应的中转服务;对于用户而言，反向代理服务器是感知不到的，访问反向代理服务器就像在访问真实的服务器﹔反向代理可以有效地降低服务器的负载消耗，提升服务器的性能。
 
 
 

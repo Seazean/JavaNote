@@ -1920,7 +1920,7 @@ Mapper 接口开发需要遵循以下规范：
 
 * 动态代理对象如何生成的？ 
 
-  通过动态代理开发模式，我们只编写一个接口，不写实现类，我们通过 **getMapper()** 方法最终获取到 org.apache.ibatis.binding.MapperProxy 代理对象，然后执行功能，而这个代理对象正是 MyBatis 使用了 JDK 的动态代理技术，帮助我们生成了代理实现类对象。从而可以进行相关持久化操作。 
+  通过动态代理开发模式，我们只编写一个接口，不写实现类，我们通过 **getMapper()** 方法最终获取到 org.apache.ibatis.binding.MapperProxy 代理对象，然后执行功能，而这个代理对象正是 MyBatis 使用了 JDK 的动态代理技术，帮助我们生成了代理实现类对象。从而可以进行相关持久化操作
 
 * 方法是如何执行的？
 
@@ -5218,6 +5218,8 @@ public class ClassName {
 
 #### Mybatis
 
+**原理**：DAO接口不需要去创建实现类，因为MyBatis-Spring提供了一个动态代理的实现**MapperFactoryBean**，这个类可以让你直接注入数据映射器接口到service层 bean 中，底层将会为你创建JDK代理
+
 ![](https://gitee.com/seazean/images/raw/master/Frame/IoC注解整合MyBatis图解.png)
 
 * pom.xml
@@ -5484,36 +5486,35 @@ ApplicationContext：
 **ApplicationContext和BeanFactory对比：**
 
 * BeanFactory和ApplicationContext是Spring的两大核心接口，都可以当做Spring的容器
-
 * BeanFactory是Spring里面最底层的接口，是IoC的核心，定义了IoC的基本功能，包含了各种Bean的定义、加载、实例化，依赖注入和生命周期管理。ApplicationContext接口作为BeanFactory的子类，除了提供BeanFactory所具有的功能外，还提供了更完整的框架功能：
 
-  * 继承MessageSource，因此支持国际化。
+  * 继承MessageSource，因此支持国际化
   * 资源文件访问，如URL和文件（ResourceLoader）。
-  * 载入多个（有继承关系）上下文（即同时加载多个配置文件） ，使得每一个上下文都专注于一个特定的层次，比如应用的web层。
-  * 提供在监听器中注册bean的事件。
-
+  * 载入多个（有继承关系）上下文（即同时加载多个配置文件） ，使得每一个上下文都专注于一个特定的层次，比如应用的web层
+  * 提供在监听器中注册bean的事件
 * BeanFactory创建的bean采用延迟加载形式，只有在使用到某个Bean时(调用getBean())，才对该Bean进行加载实例化（Spring早期使用该方法获取bean），这样就不能提前发现一些存在的Spring的配置问题；ApplicationContext是在容器启动时，一次性创建了所有的Bean，容器启动时，就可以发现Spring中存在的配置错误，这样有利于检查所依赖属性是否注入
 * ApplicationContext启动后预载入所有的单实例Bean，所以程序启动慢，运行时速度快
 * 两者都支持BeanPostProcessor、BeanFactoryPostProcessor的使用，但两者之间的区别是：BeanFactory需要手动注册，而ApplicationContext则是自动注册
-* BeanFactory通常以编程的方式被创建，ApplicationContext还能以声明的方式创建
+
+
 
 FileSystemXmlApplicationContext：
 
-1. 加载文件系统中任意位置的配置文件，而ClassPathXmlApplicationContext只能加载类路径下的配置文件
+* 加载文件系统中任意位置的配置文件，而ClassPathXmlApplicationContext只能加载类路径下的配置文件
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/ApplicationContext层级结构图.png)
 
-* BeanFactory的基本使用
+**BeanFactory的基本使用**：
 
-  ```java
-  String FACTORY_BEAN_PREFIX = "&";//获取工厂Bean本身，在Bean的id前加此符号
-  ```
-  
-  ```java
-  Resource res = new ClassPathResource("applicationContext.xml");
-  BeanFactory bf = new XmlBeanFactory(res);
-  UserService userService = (UserService)bf.getBean("userService");
-  ```
+```java
+String FACTORY_BEAN_PREFIX = "&";//获取工厂Bean本身，在Bean的id前加此符号
+```
+
+```java
+Resource res = new ClassPathResource("applicationContext.xml");
+BeanFactory bf = new XmlBeanFactory(res);
+UserService userService = (UserService)bf.getBean("userService");
+```
 
 
 
@@ -8339,10 +8340,10 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
     * 获取依赖：根据autowire类型 (Type/Name)提取依赖，存入 PropertyValues，并给bean注册依赖
     * 后置处理：判断是否需要进行 BeanPostProcessor 和 依赖检查
       
-      * `postProcessProperties`：转入**AutowiredAnnotationBeanPostProcessor**（**注解**）
+      * `postProcessProperties`：转入**AutowiredAnnotationBeanPostProcessor（注解**）
       
       * `findAutowiringMetadata()`：找到需要注入的元数据
-      * `InjectionMetadata.InjectedElement.inject()`：注入数据（底层重写了方法）
+      * `InjectionMetadata.InjectedElement.inject()`：注入数据（重写实现，注入变量或方法）
         * `DefaultListableBeanFactory.resolveDependency()`：解决依赖
         * `doResolveDependency().resolveCandidate()`：通过工厂获取Bean对象
         * `registerDependentBeans()`：将Bean注册为Autowired自动装配的Bean

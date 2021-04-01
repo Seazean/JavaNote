@@ -106,7 +106,7 @@ A[byte]-->B[short]
 C[char]-->D[int]
 B-->D
 D-->F[long]
-F-->G[float]
+G[float]
 G-->H[double]
 ```
 
@@ -187,8 +187,8 @@ Java为包装类做了一些特殊功能，具体来看特殊功能主要有：
 
 #### 装箱拆箱
 
-* **自动装箱**：可以直接把基本数据类型的值或者变量赋值给包装类。
-* **自动拆箱**：可以把包装类的变量直接赋值给基本数据类型。
+* **自动装箱**：可以直接把基本数据类型的值或者变量赋值给包装类
+* **自动拆箱**：可以把包装类的变量直接赋值给基本数据类型
 
 ```java
 public class PackegeClass {
@@ -300,18 +300,18 @@ public class ScannerDemo {
 
 #### 面试题
 
-* 有了基本数据类型，为什么还要引用类型？
+* 有了基本数据类型，为什么还要引用数据类型？
 
-  > 1、它封装了数据和处理该数据的方法，比如Integer.parseInt(String)就是将String字符类型数据转换为Integer整型数据。
+  > 1、引用数据类型封装了数据和处理该数据的方法，比如Integer.parseInt(String)就是将String字符类型数据转换为Integer整型数据
   >
-  > 2、Java中大部分类和方法都是针对引用数据类型，包括泛型和集合。
+  > 2、Java中大部分类和方法都是针对引用数据类型，包括泛型和集合
   >
   > 3、引用类型在堆里，基本类型在栈里。栈空间小且连续，栈上的数据随时就会被收回
 
 * 引用数据类型那么好，为什么还用基本数据类型？
 
-  > 栈空间小且连续，往往会被放在缓存。引用类型cache miss（缓存未命中）率高且要多一次解引用。对象还要再多储存一个对象头，对基本数据类型来说空间浪费率太高
-  > 逻辑上来讲，java只有包装类就够了，为了运行速度，需要用到基本数据类型。优先考虑运行效率的问题，所以二者同时存在是合乎情理的。
+  > 栈空间小且连续，往往会被放在缓存。引用类型cache miss（缓存未命中）率高且要多一次解引用，对象还要再多储存一个对象头，对基本数据类型来说空间浪费率太高
+  > 逻辑上来讲，java只有包装类就够了，为了运行速度，需要用到基本数据类型；优先考虑运行效率的问题，所以二者同时存在是合乎情理的。
 
 * Java集合不能存放基本数据类型，只存放对象的引用？
 
@@ -680,39 +680,47 @@ public class MethodDemo01 {
 
 #### 参数传递
 
-* **基本数据类型的参数，形式参数的改变，不影响实际参数**
+**Java 的参数是以值传递的形式传入方法中**
+
+值传递和引用传递的区别在于传递后会不会影响实参的值：值传递会创建副本，引用传递不会创建副本
+
+* 基本数据类型：形式参数的改变，不影响实际参数
   每个方法在栈内存中，都会有独立的栈空间，方法运行结束后就会弹栈消失
+  
+  ```java
+  public class ArgsDemo01 {
+  	public static void main(String[] args) {
+  		int number = 100;
+  		System.out.println("调用change方法前：" + number);//100
+  		change(number);
+  		System.out.println("调用change方法后：" + number);//100
+  	}
+  	public static void change(int number) {
+  		number = 200;
+  	}
+  }
+  ```
+  
+* 引用类型：，形式参数的改变，影响实际参数的值
+  **引用数据类型的传参，本质上是将对象的地址以值的方式传递到形参中**，内存中会造成两个引用指向同一个内存的效果，所以即使方法弹栈，堆内存中的数据也已经是改变后的结果
 
-```java
-public class ArgsDemo01 {
-	public static void main(String[] args) {
-		int number = 100;
-		System.out.println("调用change方法前：" + number);//100
-		change(number);
-		System.out.println("调用change方法后：" + number);//100
-	}
-	public static void change(int number) {
-		number = 200;
-	}
-}
-```
+  ```java
+  public class PassByValueExample {
+      public static void main(String[] args) {
+          Dog dog = new Dog("A");
+          func(dog);
+          System.out.println(dog.getName());	// B
+      }
+      private static void func(Dog dog) {
+          dog.setName("B");
+      }
+  }
+  class Dog {
+      String name;//.....
+  }
+  ```
 
-* **引用类型的参数，形式参数的改变，影响实际参数的值**
-  引用数据类型的传参，传入的是地址值，内存中会造成两个引用指向同一个内存的效果，所以即使方法弹栈，堆内存中的数据也已经是改变后的结果
-
-```java
-public class ArgsDemo02 {
-	public static void main(String[] args) {
-		int[] arr = {10, 20, 30};
-		System.out.println("调用change方法前：" + arr[1]);
-		change(arr);
-		System.out.println("调用change方法后：" + arr[1]);
-	}
-	public static void change(int[] arr) {
-		arr[1] = 200;
-	}
-}
-```
+  
 
 
 
@@ -1855,10 +1863,10 @@ public class FinalDemo {
 
 > 父类知道子类要完成某个功能，但是每个子类实现情况不一样。
 
-抽象方法：没有方法体，只有方法签名，必须用**abstract**修饰的方法就是抽象方法。
-抽象类：拥有抽象方法的类必须定义成抽象类，必须用**abstract**修饰，抽象类是为了被继承。
+抽象方法：没有方法体，只有方法签名，必须用**abstract**修饰的方法就是抽象方法
+抽象类：拥有抽象方法的类必须定义成抽象类，必须用**abstract**修饰，抽象类是为了被继承
 
-一个类继承抽象类，**必须重写抽象类的全部抽象方法**，否则这个类必须定义成抽象类，因为拥有抽象方法的类必须定义成抽象类。
+一个类继承抽象类，**必须重写抽象类的全部抽象方法**，否则这个类必须定义成抽象类，因为拥有抽象方法的类必须定义成抽象类
 
 ```java
 public class AbstractDemo {
@@ -1889,9 +1897,9 @@ abstract class Animal{
 #### 面试问题
 
 一、抽象类是否有构造器，是否可以创建对象，为什么?
-答：抽象类作为类一定有构造器，而且必须有构造器，提供给子类继承后调用父类构造器使用的。
+答：抽象类作为类一定有构造器，而且必须有构造器，提供给子类继承后调用父类构造器使用的
 
-1、抽象类有构造器，但是抽象类不能创建对象，类的其他成分它都具备！
+1、抽象类有构造器，但是抽象类不能创建对象，类的其他成分它都具备
 2、抽象类中存在抽象方法，但不能执行，抽象类中也可没有抽象方法
 
 > 抽象在学术上本身意味着不能实例化。
@@ -1917,7 +1925,7 @@ abstract class Animal{
 
 
 二、static与abstract能同时使用吗？
-答：不能，被static修饰的方法属于类，是类自己的东西，不是给子类来继承的，而抽象方法本身没有实现，就是用来给子类继承。
+答：不能，被static修饰的方法属于类，是类自己的东西，不是给子类来继承的，而抽象方法本身没有实现，就是用来给子类继承
 
 
 
@@ -2286,11 +2294,13 @@ class Animal{}
 
 #### 概述
 
-> 内部类是类的五大成分之一：成员变量，方法，构造器，代码块，内部类。
+内部类是类的五大成分之一：成员变量，方法，构造器，代码块，内部类
 
-* 概念：定义在一个类里面的类就是内部类。
-* 内部类作用：提供更好的封装性, 内部类有更多权限修饰符 , 封装性有更多的控制，可以体现出组件思想。**间接解决类无法多继承引起的一系列问题**
-* 内部类的分类：静态内部类、实例内部类（成员内部类）、局部内部类、**匿名内部类**（重点）
+概念：定义在一个类里面的类就是内部类
+
+作用：提供更好的封装性，体现出组件思想，**间接解决类无法多继承引起的一系列问题**
+
+分类：静态内部类、实例内部类（成员内部类）、局部内部类、**匿名内部类**（重点）
 
 
 
@@ -2303,16 +2313,19 @@ class Animal{}
 定义：有static修饰，属于外部类本身，会加载一次
 
 静态内部类中的成分研究：
-    类有的成分它都有，静态内部类属于外部类本身，只会加载一次
-    所以它的特点与外部类是完全一样的，只是位置在别人里面而已。
+
+* 类有的成分它都有，静态内部类属于外部类本身，只会加载一次
+* 特点与外部类是完全一样的，只是位置在别人里面
+* 可以定义静态成员
 
 静态内部类的访问格式：外部类名称.内部类名称
 
 静态内部类创建对象的格式：外部类名称.内部类名称 对象名称 = new 外部类名称.内部类构造器;
 
 静态内部类的访问拓展：
-    静态内部类中是否可以直接访问外部类的静态成员?可以，外部类的静态成员只有一份，可以被共享！
-    静态内部类中是否可以直接访问外部类的实例成员?不可以，外部类的成员必须用外部类对象访问！！
+
+* 静态内部类中是否可以直接访问外部类的静态成员?	可以，外部类的静态成员只有一份，可以被共享
+* 静态内部类中是否可以直接访问外部类的实例成员?	不可以，外部类的成员必须用外部类对象访问
 
 ```java
 public class Demo{
@@ -2321,7 +2334,7 @@ public class Demo{
     }
 }
 
-class Outter{
+static class Outter{
     public static int age;
     private double salary;
     public static class Inner{
@@ -2340,25 +2353,22 @@ class Outter{
 
 #### 实例内部类
 
-定义：(了解语法)
-	无static修饰的内部类，属于外部类的每个对象，跟着外部类对象一起加载。
+定义：无static修饰的内部类，属于外部类的每个对象，跟着外部类对象一起加载。
 
-实例内部类的成分特点：
-    实例内部类中不能定义静态成员，其他都可以定义
+实例内部类的成分特点：实例内部类中不能定义静态成员，其他都可以定义
 
-实例内部类的访问格式：
-    外部类名称.内部类名称。
+实例内部类的访问格式：外部类名称.内部类名称
 
-创建对象的格式：
-    外部类名称.内部类名称 对象名称 = new 外部类构造器.new 内部构造器;
-	`Outter.Inner in = new Outter().new Inner();`
+创建对象的格式：外部类名称.内部类名称 对象名称 = new 外部类构造器.new 内部构造器;
 
-拓展：**实例内部类可以访问外部类的全部成员！**
+* `Outter.Inner in = new Outter().new Inner();`
+
+拓展：**实例内部类可以访问外部类的全部成员**
 
 > * 实例内部类中是否可以直接访问外部类的静态成员？
 >   可以，外部类的静态成员可以被共享访问！
 > * 实例内部类中是否可以访问外部类的实例成员？
->   可以的，实例内部类属于外部类对象，可以直接访问外部类对象的实例成员！
+>   可以，实例内部类属于外部类对象，可以直接访问外部类对象的实例成员！
 
 
 
@@ -2393,8 +2403,8 @@ public class InnerClass{
 
 #### 匿名内部类
 
-匿名内部类：就是一个没有名字的局部内部类。
-作用：简化代码，也是开发中常用的形式。
+匿名内部类：没有名字的局部内部类
+作用：简化代码，是开发中常用的形式
 
 匿名内部类的格式：
 
@@ -2405,17 +2415,20 @@ new 类名|抽象类|接口(形参){
 ```
  匿名内部类的特点：
 
-* 匿名内部类是一个没有名字的内部类。
+* 匿名内部类不能定义静态成员
 * 匿名内部类一旦写出来，就会立即创建一个匿名内部类的对象返回
 * **匿名内部类的对象的类型相当于是当前new的那个的类型的子类类型**
+* 匿名内部类引用局部变量，局部变量必须是final修饰，底层创建为内部类的成员变量
 
 ```java
 public class Anonymity {
     public static void main(String[] args) {
+        //final n = 1;//局部变量
         Animal a = new Animal(){
             @Override
             public void run() {
                 System.out.println("猫跑的贼溜~~");
+                //System.out.println(n);
             }
         };
         a.run();
@@ -2468,8 +2481,8 @@ static {
  ```
 
 * 静态代码块特点： 
-  * 必须有static修饰。
-  * 会与类一起优先加载，且自动触发执行一次。
+  * 必须有static修饰
+  * 会与类一起优先加载，且自动触发执行一次
   * 只能访问静态资源
 * 静态代码块作用：
   * 可以在执行类的方法等操作之前先在静态代码块中进行静态资源的初始化 
@@ -2519,11 +2532,10 @@ main方法被执行
 
 * 实例代码块的特点：
   * 无static修饰，属于对象
-  * 会与类的对象一起加载，每次创建类的对象的时候，实例代码块都会被加载且自动触发执行一次。
-  * 实例代码块的代码在底层实际上是提取到每个构造器中去执行的！ 
+  * 会与类的对象一起加载，每次创建类的对象的时候，实例代码块都会被加载且自动触发执行一次
+  * 实例代码块的代码在底层实际上是提取到每个构造器中去执行的
   
-* 实例代码块的作用：
-  * 实例代码块可以在创建对象之前进行实例资源的初始化操作。 
+* 实例代码块的作用：实例代码块可以在创建对象之前进行实例资源的初始化操作
 
 ```java
 public class CodeDemo {
@@ -5192,7 +5204,7 @@ public class MapDemo{
 }
 ```
 
-优点：泛型在编译阶段约束了操作的数据类型，从而不会出现类型转换异常。
+优点：泛型在编译阶段约束了操作的数据类型，从而不会出现类型转换异常
 			体现的是Java的严谨性和规范性，数据类型，经常需要进行统一！
 
 
@@ -6950,7 +6962,7 @@ public class ThreadDead {
 
 ### volatile
 
-问题：线程修改了某个成员变量的值，但是在主线程中读取到的还是之前的值修改后的值无法读取到。
+问题：线程修改了某个成员变量的值，但是在主线程中读取到的还是之前的值修改后的值无法读取到
 原因：按照JMM模型，所有的成员变量和静态变量都存在于主内存中，主内存中的变量可以被多个线程共享。
  		  每个线程都存在一个专属于自己的工作内存，工作内存一开始存储的是成员变量的副本。
 	   	线程都是直接访问自己工作内存中的该变量，其他线程对主内存变量值的修改将不可见
@@ -7909,7 +7921,7 @@ File类：代表操作系统的文件对象。
 File类：是用来操作操作系统的文件对象的，删除文件，获取文件信息，创建文件（文件夹）...
 			  广义来说操作系统认为文件包含（文件和文件夹）
 
-File类的创建文件对象的API:
+File类的创建文件对象的API：
      包：java.io.File
      构造器：
          	public File(String pathname):根据路径获取文件对象
@@ -7917,16 +7929,16 @@ File类的创建文件对象的API:
        	  public File(File parent , String child)
 
 File类创建文件对象的格式:
-    a.File f = new File("绝对路径/相对路径");
-        绝对路径：从磁盘的的盘符一路走到目的位置的路径。
-            -- 绝对路径依赖具体的环境，一旦脱离环境，代码可能出错！！
-            -- 一般是定位某个操作系统中的某个文件对象。
-        **相对路径**：不带盘符的。（重点）
-            -- 默认是直接相对到工程目录下寻找文件的。
-            -- 相对路径只能用于寻找工程下的文件，可以跨平台！
 
-​    b.File f = new File("文件对象/文件夹对象");
-​        广义来说：文件是包含文件和文件夹的。
+* `File f = new File("绝对路径/相对路径");`
+  * 绝对路径：从磁盘的的盘符一路走到目的位置的路径。
+    * 绝对路径依赖具体的环境，一旦脱离环境，代码可能出错
+    * 一般是定位某个操作系统中的某个文件对象
+  * **相对路径**：不带盘符的（重点）
+    * 默认是直接相对到工程目录下寻找文件的。
+    * 相对路径只能用于寻找工程下的文件，可以跨平台！
+
+* `File f = new File("文件对象/文件夹对象");`广义来说：文件是包含文件和文件夹的
 
 ```java
 public class FileDemo{
@@ -10772,65 +10784,6 @@ AsynchronousSocketChannel, AsynchronousServerSocketChannel, AsynchronousFileChan
 
 ## 反射
 
-### 类加载器
-
-* 作用：负责将.class文件（存储的物理文件）加载在到内存中
-* 加载过程
-  当一个类被使用时才会从硬盘加载到内存。
-  * 加载 ：通过包名 + 类名，获取这个类，准备用流进行传输。把这个类加载到内存中，加载完毕创建一个class对象
-  * 链接(验证)：确保Class文件字节流中包含的信息符合当前虚拟机的要求，并且不会危害虚拟机自身安全
-                          (文件中的信息是否符合虚拟机规范有没有安全隐患)
-  * 链接(准备)：负责为类的类变量（被static修饰的变量）分配内存，并设置默认初始化值(初始化静态变量)
-  * 链接(解析)：将类的二进制数据流中的符号引用替换为直接引用
-                         (本类中如果用到了其他类，此时就需要找到对应的类)
-  * 初始化：根据程序员通过程序制定的主观计划去初始化类变量和其他资源
-                   (静态变量赋值以及初始化其他资源)
-
-+ 分类
-
-  + Bootstrap class loader：虚拟机的内置类加载器，通常表示为null ，并且没有父null
-  + Platform class loader：平台类加载器,负责加载JDK中一些特殊的模块
-  + System class loader：系统类加载器,负责加载用户类路径上所指定的类库
-
-+ 类加载器的继承关系
-
-  + System的父加载器为Platform
-  + Platform的父加载器为Bootstrap
-
-+ 双亲委派模型
-  如果一个类加载器收到了类加载请求，它并不会自己先去加载，而是把这个请求委托给父类的加载器去执行，如果父类加载器还存在其父类加载器，则进一步向上委托，依次递归，请求最终将到达顶层的启动类加载器，如果父类加载器可以完成类加载任务，就成功返回，倘若父类加载器无法完成此加载任务，子加载器才会尝试自己去加载，这就是双亲委派模式
-
-+ ClassLoader 
-  public static ClassLoader getSystemClassLoader() : 获取系统类加载器
-  public InputStream getResourceAsStream(String name) : 加载某一个资源文件
-
-  ```java
-  public class ClassLoaderDemo2 {
-      public static void main(String[] args) throws IOException {
-          //获取系统类加载器
-          ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
-  
-          //利用加载器去加载一个指定的文件
-          //参数：文件的路径（放在src的根目录下，默认去那里加载）
-          //返回值：字节流。
-          InputStream is = systemClassLoader.getResourceAsStream("prop.properties");
-          Properties prop = new Properties();
-          prop.load(is);
-  
-          System.out.println(prop);
-          is.close();
-      }
-  }
-  ```
-
-  
-
-
-
-***
-
-
-
 ### Junit
 
 > 单元测试是指程序员写的测试代码给自己的类中的方法进行预期正确性的验证。
@@ -10844,8 +10797,9 @@ AsynchronousSocketChannel, AsynchronousServerSocketChannel, AsynchronousFileChan
   *  单元测试：Junit编写的一小段代码，用来对某个类中的某个方法进行功能测试或业务逻辑测试	
 
 Junit单元测试框架的作用：
-    用来对类中的方法功能进行有目的的测试，以保证程序的正确性和稳定性。
-    能够**独立的**测试某个方法或者所有方法的预期正确性。
+
+* 用来对类中的方法功能进行有目的的测试，以保证程序的正确性和稳定性
+* 能够**独立的**测试某个方法或者所有方法的预期正确性
 
 Junit框架的使用步骤：
 
@@ -10956,18 +10910,20 @@ public class UserServiceTest {
 
 ### 反射
 
-反射是指对于任何一个类，在"运行的时候"都可以直接得到这个类全部成分。
-    在运行时,可以直接得到这个类的构造器对象。（Constructor）
-    在运行时,可以直接得到这个类的成员变量对象。（Field）
-    在运行时,可以直接得到这个类的成员方法对象。（Method）
+反射是指对于任何一个类，在"运行的时候"都可以直接得到这个类全部成分
 
-核心思想：得到编译以后的class文件对象。在运行时获取类的字节码文件对象，然后解析类中的全部成分。
+* 构造器对象：Constructor
+* 成员变量对象：Field
 
-反射提供了一个Class类型，就是可以得到编译以后的class类对象。
-    HelloWorld.java -> javac -> HelloWorld.class
-	`Class c = HelloWorld.class;`
+* 成员方法对象：Method
 
-注意：反射是工作在运行时的技术，因为只有运行之后才会有class类对象。
+核心思想：在运行时获取类编译后的字节码文件对象，然后解析类中的全部成分。
+
+反射提供了一个Class类型：HelloWorld.java -> javac -> HelloWorld.class
+
+* `Class c = HelloWorld.class;` 
+
+注意：反射是工作在**运行时**的技术，只有运行之后才会有class类对象
 
 
 
@@ -10977,26 +10933,21 @@ public class UserServiceTest {
 
 ### 获取
 
->反射是通过先得到编译以后的Class类对象：字节码文件。
->然后才可以得到类中的全部成分，进行一些功能设计。
-
-反射为一个类的全部成分都设计了一个类型来代表这个对象：
-    Class : 字节码文件的类型
-    Constructor : 构造器的类型
-    Field : 成员变量的类型
-    Method : 方法的类型
-
 #### 获取类对象
 
-反射技术的第一步永远是先得到Class类对象:有三种方式获取
-    （1） 类名.class
-    （2） 通过类的对象.getClass()方法
-    （3） Class.forName("类的全限名")   -->`public static Class<?> forName(String className)`
+反射技术的第一步是先得到Class类对象，有三种方式获取：
+
+* 类名.class
+* 通过类的对象.getClass()方法
+* Class.forName("类的全限名")   --> `public static Class<?> forName(String className) `
 
 Class类下的方法：
-     `String getSimpleName()` : 获得类名字符串：类名
-     `String getName()` : 获得类全名：包名+类名
-     `T newInstance()` : 创建Class对象关联类的对象,其实底层也是调用无参数构造器，已经被淘汰。
+
+| 方法                   | 作用                                                         |
+| ---------------------- | ------------------------------------------------------------ |
+| String getSimpleName() | 获得类名字符串：类名                                         |
+| String getName()       | 获得类全名：包名+类名                                        |
+| T newInstance()        | 创建Class对象关联类的对象，底层是调用无参数构造器，已经被淘汰 |
 
 ```java
 public class ReflectDemo{
@@ -11025,24 +10976,28 @@ class Student{}
 
 
 
+***
+
+
+
 #### 获取构造器
 
 获取构造器的API：
-	1.Constructor getConstructor(Class... parameterTypes)
-		根据参数匹配获取某个构造器，只能拿public修饰的构造器，几乎不用！
-	2.**Constructor getDeclaredConstructor(Class... parameterTypes)**
-		根据参数匹配获取某个构造器，只要申明就可以定位，不关心权限修饰符，建议使用！
-	3.Constructor[] getConstructors()
-		获取所有的构造器，只能拿public修饰的构造器。几乎不用！
-	4.**Constructor[] getDeclaredConstructors()**
-		获取所有申明的构造器，只要申明就可以定位，不关心权限修饰符。建议使用！
+
+* Constructor getConstructor(Class... parameterTypes)：根据参数匹配获取某个构造器，只能拿public修饰的构造器，几乎不用！
+* **Constructor getDeclaredConstructor(Class... parameterTypes)**：根据参数匹配获取某个构造器，只要申明就可以定位，不关心权限修饰符
+* Constructor[] getConstructors()：获取所有的构造器，只能拿public修饰的构造器，几乎不用！
+* **Constructor[] getDeclaredConstructors()**：获取所有构造器，只要申明就可以定位，不关心权限修饰符。
 
 Constructor的常用API：
-	`T newInstance(Object... initargs)` : 创建对象，注入构造器需要的数据。
-	`void setAccessible(true)` : 修改访问权限，true代表暴力攻破权限，false保留不可访问权限(暴力反射)
-	` String getName()` : 以字符串形式返回此构造函数的名称
-	`int getParameterCount()` : 返回参数数量
-	`Class<?>[] getParameterTypes` : 返回参数类型数组
+
+| 方法                              | 作用                                   |
+| --------------------------------- | -------------------------------------- |
+| T newInstance(Object... initargs) | 创建对象，注入构造器需要的数据         |
+| void setAccessible(true)          | 修改访问权限，true攻破权限（暴力反射） |
+| String getName()                  | 以字符串形式返回此构造函数的名称       |
+| int getParameterCount()           | 返回参数数量                           |
+| Class<?>[] getParameterTypes      | 返回参数类型数组                       |
 
 ```java
 public class TestStudent01 {
@@ -11120,20 +11075,28 @@ public class TestStudent02 {
 
 
 
+***
+
+
+
 #### 获取成员变量
 
 获取Field成员变量API：
-	 1.Field getField(String name) : 根据成员变量名获得对应Field对象，只能获得public修饰
-     2.Field getDeclaredField(String name) : 根据成员变量名获得对应Field对象，所有申明的变量
-     3.Field[] getFields() : 获得所有的成员变量对应的Field对象，只能获得public的
-     4.Field[] getDeclaredFields() : 获得所有的成员变量对应的Field对象，只要申明了就可以得到
+
+* Field getField(String name) : 根据成员变量名获得对应Field对象，只能获得public修饰
+* Field getDeclaredField(String name) : 根据成员变量名获得对应Field对象，所有申明的变量
+* Field[] getFields() : 获得所有的成员变量对应的Field对象，只能获得public的
+* Field[] getDeclaredFields() : 获得所有的成员变量对应的Field对象，只要申明了就可以得到 
 
 Field的方法：给成员变量赋值和取值
-	`void set(Object obj, Object value)` : 给对象注入某个成员变量数据。**obj是对象**，value是值
-	`Object get(Object obj)` : 获取对象的成员变量的值。**obj是对象**
-	`void setAccessible(true) `: 暴力反射，设置为可以直接访问私有类型的属性。
-	`Class getType() `: 获取属性的类型，返回Class对象。
-	`String getName()` : 获取属性的名称。
+
+| 方法                               | 作用                                                 |
+| ---------------------------------- | ---------------------------------------------------- |
+| void set(Object obj, Object value) | 给对象注入某个成员变量数据，**obj是对象**，value是值 |
+| Object get(Object obj)             | 获取对象的成员变量的值，**obj是对象**                |
+| void setAccessible(true)           | 暴力反射，设置为可以直接访问私有类型的属性           |
+| Class getType()                    | 获取属性的类型，返回Class对象                        |
+| String getName()                   | 获取属性的名称                                       |
 
 ```Java
 public class FieldDemo {
@@ -11205,17 +11168,14 @@ public class FieldDemo02 {
 #### 获取方法
 
 获取Method方法API：
-	1、Method getMethod(String name,Class...args);
-				根据方法名和参数类型获得对应的方法对象，只能获得public的
-	2、Method getDeclaredMethod(String name,Class...args);
-   			 根据方法名和参数类型获得对应的方法对象，包括private的
-	3、Method[] getMethods();
-    			获得类中的所有成员方法对象，返回数组，只能获得public修饰的且包含父类的
-	4、Method[] getDeclaredMethods();
- 			   获得类中的所有成员方法对象，返回数组,只获得本类申明的方法。
+
+* Method getMethod(String name,Class...args)：根据方法名和参数类型获得方法对象，public修饰
+* Method getDeclaredMethod(String name,Class...args)：根据方法名和参数类型获得方法对象，包括private
+* Method[] getMethods()：获得类中的所有成员方法对象返回数组，只能获得public修饰且包含父类的
+* Method[] getDeclaredMethods()：获得类中的所有成员方法对象，返回数组，只获得本类申明的方法
 
 Method常用API：
-	public Object invoke(Object obj， Object... args) : 使用指定的参数调用由此方法对象。obj对象名，new的
+`public Object invoke(Object obj, Object... args) `: 使用指定的参数调用由此方法对象，obj对象名
 
 ```java
 public class MethodDemo{
@@ -11273,7 +11233,7 @@ public class Dog {
 1. 反射可以破坏面向对象的封装性（暴力反射）
 2. 同时可以破坏泛型的约束性
 
- 泛型只能工作在编译阶段，运行阶段泛型就消失了。反射工作在运行时阶段。
+ 泛型只能工作在编译阶段，运行阶段泛型就消失了，反射工作在运行时阶段。
 
 ```java
 public class ReflectDemo {
@@ -11364,11 +11324,7 @@ public class Pig {
 }
 ```
 
-​    
-
-***
-
-
+ 
 
 
 
@@ -12562,8 +12518,6 @@ JVM内存结构是JVM中非常重要的一部分，并且在JDK7和JDK8中也进
 
 JVM 内存结构规定了 Java 在运行过程中内存申请、分配、管理的策略，保证了 JVM 的高效稳定运行
 
-Java**反编译**指令：`javap -v Test.class`
-
 * Java1.8以前的内存结构图：
   ![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-Java7内存结构图.png)
 
@@ -12581,13 +12535,13 @@ Java**反编译**指令：`javap -v Test.class`
 
 Java 虚拟机栈：Java Virtual Machine Stacks，**每个线程**运行时所需要的内存
 
-* 虚拟机栈时线程私有的，对应方法调用到执行完成的整个过程
+* 虚拟机栈是**每个线程私有的**，对应方法调用到执行完成的整个过程
 
 * 保存执行方法时的**局部变量表、常量池引用、方法返回地址信息**等
 
 * 每个栈由多个栈帧（Frame）组成，对应着每次方法调用时所占用的内存
 
-* 每个线程只能有一个活动栈帧，对应着当前正在执行的那个方法
+* 每个线程只能有一个活动栈帧，对应着当前正在执行的那个方法（**一个方法一个栈帧**）
 
   <img src="https://gitee.com/seazean/images/raw/master/JavaSE/JVM-虚拟机栈.png" style="zoom:50%;" />
 
@@ -12624,11 +12578,13 @@ Java 虚拟机栈：Java Virtual Machine Stacks，**每个线程**运行时所�
 
 #### 本地方法栈
 
-本地方法栈是为虚拟机**执行本地方法时提供服务的**。
+本地方法栈是为虚拟机**执行本地方法时提供服务的**
 
 * 不需要进行GC，与虚拟机栈类似
 
 * 本地方法一般是由其他语言编写，并且被编译为基于本机硬件和操作系统的程序，对这些方法需要特别处理
+
+* JNI：Java Native Interface，通过使用 Java本地接口书写程序，可以确保代码在不同的平台上方便移植
 
   <img src="https://gitee.com/seazean/images/raw/master/JavaSE/JVM-本地方法栈.png" style="zoom:67%;" />
 
@@ -12653,6 +12609,8 @@ Program Counter Register 程序计数器（寄存器）
 
 * 是线程私有的
 * 不会存在内存溢出，是JVM规范中唯一一个不出现OOM的区域，所以这个空间不会进行GC
+
+Java**反编译**指令：`javap -v Test.class`
 
 #20：去Constant pool查看该地址的指令
 
@@ -13152,7 +13110,7 @@ JVM是将TLAB作为内存分配的首选，但不是所有的对象实例都能�
 
 #### 可达性分析
 
-可达性分析算法：也可以称为 根搜索算法、追踪性垃圾收集
+可达性分析算法：也可以称为根搜索算法、追踪性垃圾收集
 
 **GC Roots**：
 
@@ -13218,7 +13176,7 @@ Java语言提供了对象终止（finalization）机制来允许开发人员提�
 
    * 强引用可以直接访问目标对象
    * 虚拟机宁愿抛出OOM异常，也不会回收强引用所指向对象
-   * 强引用可能导致**内存泄漏**
+   * 强引用可能导致**内存泄漏**（引用计数法小节解释了什么是内存泄漏）
 
    ```java
    Object obj = new Object();//使用 new 一个新对象的方式来创建强引用
@@ -14056,7 +14014,7 @@ public class BufferedInputStrem extends InputStream {
 
 
 
-# JUC
+# Java
 
 
 
