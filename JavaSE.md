@@ -32,70 +32,71 @@ Java语言提供了八种基本类型。六种数字类型（四个整数型，�
 **byte：**
 
 - byte 数据类型是8位、有符号的，以二进制补码表示的整数；**8位一个字节**
-- 最小值是 **-128（-2^7）**；
-- 最大值是 **127（2^7-1）**；
-- 默认值是 **`0`**；
+- 最小值是 **-128（-2^7）**
+- 最大值是 **127（2^7-1）**
+- 默认值是 **`0`**
 - byte 类型用在大型数组中节约空间，主要代替整数，因为 byte 变量占用的空间只有 int 类型的四分之一；
 - 例子：`byte a = 100，byte b = -50`
 
 **short：**
 
 - short 数据类型是 16 位、有符号的以二进制补码表示的整数
-- 最小值是 **-32768（-2^15）**；
-- 最大值是 **32767（2^15 - 1）**；
+- 最小值是 **-32768（-2^15）**
+- 最大值是 **32767（2^15 - 1）**
 - Short 数据类型也可以像 byte 那样节省空间。一个short变量是int型变量所占空间的二分之一；
-- 默认值是 **`0`**；
+- 默认值是 **`0`**
 - 例子：`short s = 1000，short r = -20000`
 
 **int：**
 
-- int 数据类型是32位、4字节、有符号的以二进制补码表示的整数；
-- 最小值是 **-2,147,483,648（-2^31）**；
-- 最大值是 **2,147,483,647（2^31 - 1）**；
-- 一般地整型变量默认为 int 类型；
+- int 数据类型是32位、4字节、有符号的以二进制补码表示的整数
+- 最小值是 **-2,147,483,648（-2^31）**
+- 最大值是 **2,147,483,647（2^31 - 1）**
+- 一般地整型变量默认为 int 类型
 - 默认值是 **`0`** ；
 - 例子：`int a = 100000, int b = -200000`
 
 **long：**
 
-- long 数据类型是 64 位、有符号的以二进制补码表示的整数；
-- 最小值是 **-9,223,372,036,854,775,808（-2^63）**；
-- 最大值是 **9,223,372,036,854,775,807（2^63 -1）**；
-- 这种类型主要使用在需要比较大整数的系统上；
+- long 数据类型是 64 位、有符号的以二进制补码表示的整数
+- 最小值是 **-9,223,372,036,854,775,808（-2^63）**
+- 最大值是 **9,223,372,036,854,775,807（2^63 -1）**
+- 这种类型主要使用在需要比较大整数的系统上
 - 默认值是 **` 0L`**
 - 例子： `long a = 100000L，Long b = -200000L`
-  "L"理论上不分大小写，但是若写成"l"容易与数字"1"混淆，不容易分辩。所以最好大写。
+  "L"理论上不分大小写，但是若写成"l"容易与数字"1"混淆，不容易分辩，所以最好大写
 
 **float：**
 
-- float 数据类型是单精度、32位、符合IEEE 754标准的浮点数；
-- float 在储存大型浮点数组的时候可节省内存空间；
+- float 数据类型是单精度、32位、符合IEEE 754标准的浮点数
+- float 在储存大型浮点数组的时候可节省内存空间
 - 默认值是 **`0.0f`**
-- 浮点数不能用来表示精确的值，如货币；
+- 浮点数不能用来表示精确的值，如货币
 - 例子：`float f1 = 234.5F`
 
 **double：**
 
-- double 数据类型是双精度、64 位、符合IEEE 754标准的浮点数；
-- 浮点数的默认类型为double类型；
-- double类型同样不能表示精确的值，如货币；
+- double 数据类型是双精度、64 位、符合IEEE 754标准的浮点数
+- 浮点数的默认类型为double类型
+- double类型同样不能表示精确的值，如货币
 - 默认值是 **`0.0d`**
 - 例子：`double d1 = 123.4`
 
 **boolean：**
 
-- boolean数据类型表示一位的信息；
-- 只有两个取值：true 和 false；
-- 这种类型只作为一种标志来记录 true/false 情况；
-- 默认值是 **`false`**；
+- boolean数据类型表示一位的信息
+- 只有两个取值：true 和 false
+- 这种类型只作为一种标志来记录 true/false 情况
+- JVM规范指出boolean当做int处理，也就是4字节，boolean数组当做byte数组处理，这样我们可以得出boolean类型占了单独使用是4个字节，在数组中是确定的1个字节
+- 默认值是 **`false`**
 - 例子：`boolean one = true`
 
 **char：**
 
-- char类型是一个单一的 16 位 Unicode 字符；
+- char类型是一个单一的 16 位 Unicode 字符
 - 最小值是 **`\u0000`**（即为0）
-- 最大值是 **`\uffff`**（即为65,535）；
-- char 数据类型可以储存任何字符；
+- 最大值是 **`\uffff`**（即为65,535）
+- char 数据类型可以储存任何字符
 - 例子：`char c = 'A';`   `char c = '张';`
 
 ```mermaid
@@ -1437,7 +1438,7 @@ static 静态修饰的成员（方法和成员变量）属于类本身的。
 * 静态方法：有static修饰，属于类
 
   * 类名.静态方法（同一个类中访问静态成员可以省略类名不写）
-  * 对象.静态方法（不推荐）
+  * 对象.静态方法（不推荐，参考 JVM类加载--> 字节码 --> 方法调用）
   
 * 实例方法：无static修饰，属于对象
 
@@ -2418,7 +2419,7 @@ new 类名|抽象类|接口(形参){
 * 匿名内部类不能定义静态成员
 * 匿名内部类一旦写出来，就会立即创建一个匿名内部类的对象返回
 * **匿名内部类的对象的类型相当于是当前new的那个的类型的子类类型**
-* 匿名内部类引用局部变量，局部变量必须是final修饰，底层创建为内部类的成员变量
+* 匿名内部类引用局部变量，局部变量必须是final修饰，底层创建为内部类的成员变量（JVM类加载字节码内部类）
 
 ```java
 public class Anonymity {
@@ -5697,8 +5698,11 @@ finally: 0-1次
 
 
 
-**finally的作用**：可以在代码执行完毕以后进行资源的释放操作。
+**finally的作用**：可以在代码执行完毕以后进行资源的释放操作
+
 资源：资源都是实现了Closeable接口的，都自带close()关闭方法！
+
+注意：如果在 finally 中出现了 return，会吞掉异常
 
 ```java
 public class FinallyDemo {
@@ -5892,7 +5896,8 @@ public class Demo{
 	3.创建一个新的线程对象。
 	4.调用线程对象的start()方法启动线程
 
-* **start()方法底层其实是给CPU注册当前线程，并且触发run()方法执行**。线程的启动必须调用start()方法，如果线程直接调用run()方法，相当于变成了普通类的执行，此时将只有主线程在执行该线程。
+* **start()方法底层其实是给CPU注册当前线程，并且触发run()方法执行**。
+* 线程的启动必须调用start()方法，如果线程直接调用run()方法，相当于变成了普通类的执行，此时将只有主线程在执行该线程
 *  建议线程先创建子线程，主线程的任务放在之后，否则主线程永远是先执行完！
 
 Thread构造器：
@@ -12678,7 +12683,7 @@ public static void main(String[] args) throws InterruptedException {
 
 #### 方法区
 
-方法区 / 永久代：在HotSpot JVM中，用于存放已被加载的类信息、常量池、静态变量以及即时编译器编译后的代码等数据，每当一个类初次被加载时，它的**元数据**都会放到永久代中
+方法区 / 永久代：在HotSpot JVM中，用于存放**已被加载的类信息**、常量池、静态变量以及即时编译器编译后的代码等数据，每当一个类初次被加载时，它的**元数据**都会放到永久代中
 
 方法区是一个 JVM 规范，**永久代与元空间都是其一种实现方式**
 
@@ -13690,6 +13695,1676 @@ G1的设计原则就是简化JVM性能调优，只需要简单的三步即可完
 - `-XX:+PrintGCDatestamps`：输出GC的时间戳（以日期的形式，如2013-05-04T21：53：59.234+0800）
 - `-XX:+PrintHeapAtGC`：在进行GC的前后打印出堆的信息
 - `-Xloggc:../logs/gc.1og`：日志文件的输出路径
+
+
+
+
+
+***
+
+
+
+## 类加载
+
+### 编译执行
+
+ Java文件编译执行的过程：
+
+![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-Java文件编译执行的过程.png)
+
+- 类加载器：用于装载字节码文件(.class文件)
+- 运行时数据区：用于分配存储空间
+- 执行引擎：执行字节码文件或本地方法
+- 垃圾回收器：用于对JVM中的垃圾内容进行回收
+
+
+
+***
+
+
+
+### 字节码
+
+#### 类结构
+
+class文件是编译器编译之后供虚拟机解释执行的二进制字节码文件
+
+根据 JVM 规范，类文件结构如下：
+
+```java
+ClassFile {
+	u4 				magic;			//魔数
+    u2 				minor_version;	//小版本
+    u2 				major_version;	//主版本
+    u2 				constant_pool_count;
+    cp_info			constant_pool[constant_pool_count-1];
+    u2	 			access_flags;
+    u2 				this_class;
+    u2 				super_class;
+    u2 				interfaces_count;
+    u2 				interfaces[interfaces_count];
+    u2 				fields_count;
+    field_info 		fields[fields_count];
+    u2 				methods_count;
+    method_info 	methods[methods_count];
+    u2 				attributes_count;
+    attribute_info 	attributes[attributes_count];
+}
+```
+
+HelloWorld.java 执行 `javac -parameters -d . HellowWorld.java`指令：
+
+```sh
+0000000 ca fe ba be 00 00 00 34 00 23 0a 00 06 00 15 09
+0000020 00 16 00 17 08 00 18 0a 00 19 00 1a 07 00 1b 07
+0000040 00 1c 01 00 06 3c 69 6e 69 74 3e 01 00 03 28 29 //...
+```
+
+魔数：0~3 字节，表示是否是Classs类型的文件，ca fe ba be代表Java
+
+版本：4~7 字节，表示类的版本 00 34（52） 表示是 Java 8
+
+常量池：8~9 字节，表示常量池长度，00 23 （35） 表示常量池有 #1~#34项，注意 #0 项不计入，也没有值
+
+* 第#1项 0a 表示一个 Method 信息，00 06 和 00 15（21） 表示它引用了常量池中 #6 和 #21 项来获得
+  这个方法的【所属类】和【方法名】
+* 第#2项 09 表示一个 Field 信息，00 16（22）和 00 17（23） 表示它引用了常量池中 #22 和 # 23 项
+  来获得这个成员变量的【所属类】和【成员变量名】
+* 第#n项
+
+![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-类结构常量池.png)
+
+```sh
+0000660 29 56 00 21 00 05 00 06 00 00 00 00 00 02 00 01
+```
+
+访问标识与继承信息：
+
+* 00 21 表示该 class 是一个类，公共的
+* 00 05 表示根据常量池中 #5 找到本类全限定名
+* 00 06 表示根据常量池中 #6 找到父类全限定名
+* 00 00 表示接口的数量，本类为 0
+
+Field信息：表示成员变量数量，00 00表示本类为 0
+
+![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-类结构Field信息.png)
+
+Method信息：表示方法数量，00 02 本类为 2，一个方法由 访问修饰符，名称，参数描述，方法属性数量，方法属性组成
+
+附加属性：
+
+* 00 01 表示附加属性数量
+* 00 13 表示引用了常量池 #19 项，即【SourceFile】
+* 00 00 00 02 表示此属性的长度
+* 00 14 表示引用了常量池 #20 项，即【HelloWorld.java】
+
+```sh
+0001100 00 12 00 00 00 05 01 00 10 00 00 00 01 00 13 00
+0001120 00 00 02 00 14
+```
+
+
+
+
+
+****
+
+
+
+#### javap
+
+`javap -v HelloWorld.class`：反编译 class 文件
+
+slot：局部变量表中最基本的存储单元
+
+aload：从局部变量表的相应位置装载一个对象引用到操作数栈的栈顶
+
+* aload_0把this装载到了操作数栈中
+* aload_0是一组格式为aload_的操作码中的一个，这一组操作码把对象的引用装载到操作数栈中标志了待处理的局部变量表中的位置，但取值仅可为0、1、2或者3
+
+iload_,lload_,fload_,dload_：i代表int型，l代表long型，f代表float型以及d代表double型
+
+* 在局部变量表中的索引位置大于3的变量的装载可以使用iload、lload、fload,、dload和aload
+* 这些操作码都需要一个操作数的参数，用于确认需要装载的局部变量的位置
+
+Ljava.lang.String：
+
+* `[`：表示一维数组 
+* `[[`：表示二维数组 
+* `L`：表示一个对象 
+* `java.lang.String`：表示对象的类型 
+
+
+
+
+
+
+
+***
+
+
+
+#### 执行流程
+
+原始Java代码：
+
+```java
+public class Demo {
+	public static void main(String[] args) {
+        int a = 10;
+        int b = Short.MAX_VALUE + 1;
+        int c = a + b;
+        System.out.println(c);
+	}
+}
+```
+
+javap -v Demo.class：省略
+
+* 常量池载入运行时常量池
+
+* 方法区字节码载入方法区
+
+* main 线程开始运行，分配栈帧内存：（操作数栈stack=2，局部变量表locals=4）
+
+* **执行引擎**开始执行字节码
+
+  `bipush 10`：将一个 byte 压入操作数栈（其长度会补齐 4 个字节），类似的指令
+
+  * sipush 将一个 short 压入操作数栈（其长度会补齐 4 个字节）
+  * ldc 将一个 int 压入操作数栈
+  * ldc2_w 将一个 long 压入操作数栈（分两次压入，因为 long 是 8 个字节）
+  * 这里小的数字都是和字节码指令存在一起，超过 short 范围的数字存入了常量池
+
+  `istore_1`：将操作数栈顶数据弹出，存入局部变量表的 slot 1
+
+  ![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-字节码执行流程1.png)
+
+  `ldc #3`：从常量池加载 #3 数据到操作数栈
+  Short.MAX_VALUE 是 32767，所以 32768 = Short.MAX_VALUE + 1 实际是在编译期间计算完成
+
+  ![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-字节码执行流程2.png)
+
+  `istore_2`：将操作数栈顶数据弹出，存入局部变量表的 slot 2
+
+  `iload_1`：将局部变量表的 slot 1数据弹出，放入操作数栈栈顶
+
+  `iload_2`：将局部变量表的 slot 2数据弹出，放入操作数栈栈顶
+
+  `iadd`：执行相加操作
+
+  ![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-字节码执行流程3.png)
+
+  `istore_3`：将操作数栈顶数据弹出，存入局部变量表的 slot 3
+
+  `getstatic #4`：获取静态字段
+
+  ![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-字节码执行流程4.png)
+
+  `iload_3`：
+
+  ![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-字节码执行流程5.png)
+
+  `invokevirtual #5`：
+
+  * 找到常量池 #5 项
+  * 定位到方法区 java/io/PrintStream.println:(I)V 方法
+  * **生成新的栈帧**（分配 locals、stack等）
+  * 传递参数，执行新栈帧中的字节码
+  * 执行完毕，弹出栈帧
+  * 清除 main 操作数栈内容
+
+  ![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-字节码执行流程6.png)
+
+  return：完成 main 方法调用，弹出 main 栈帧，程序结束
+
+  
+
+***
+
+
+
+#### 条件判断
+
+```java
+public static void main(String[] args) {
+    int a = 0;
+    if(a == 0) {
+    	a = 10;
+    } else {
+    	a = 20;
+    }
+}
+```
+
+说明：
+
+* byte，short，char 都会按 int 比较，因为操作数栈都是 4 字节
+* goto 用来进行跳转到指定行号的字节码
+
+```sh
+1: istore_1
+2: iload_1
+3: ifne 12
+6: bipush 10
+8: istore_1
+9: goto 15
+12: bipush 20
+14: istore_1
+15: return
+```
+
+<img src="https://gitee.com/seazean/images/raw/master/JavaSE/JVM-字节码条件判断指令.png" style="zoom:67%;" />
+
+
+
+***
+
+
+
+#### 循环控制
+
+iinc 指令：是直接在局部变量 slot 上进行运算
+
+while循环：
+
+```java
+public static void main(String[] args) {
+    int a = 0;
+    while (a < 10) {
+    	a++;
+    }
+}
+```
+
+```sh
+0: 	iconst_0
+1: 	istore_1
+2: 	iload_1
+3: 	bipush 10
+5: 	if_icmpge 14
+8: 	iinc 1, 1
+11: goto 2
+14: return
+```
+
+for循环：
+
+```java
+for (int i = 0; i < 10; i++) { }
+```
+
+```sh
+0: 	iconst_0
+1:	istore_1
+2: 	iload_1
+3: 	bipush 10
+5: 	if_icmpge 14
+8: 	iinc 1, 1
+11: goto 2
+14: return
+```
+
+
+
+
+
+***
+
+
+
+#### 面试题
+
+##### 分析i++
+
+从字节码角度分析：a++ 和 ++a 的区别是先执行 iload 还是 先执行 iinc
+
+```java
+public class Demo {
+    public static void main(String[] args) {
+        int a = 10;
+        int b = a++ + ++a + a--;
+        System.out.println(a);	//11
+        System.out.println(b);	//34
+    }
+}
+```
+
+
+
+##### 判断结果
+
+```java
+public class Demo3_6_1 {
+    public static void main(String[] args) {
+        int i = 0;
+        int x = 0;
+        while (i < 10) {
+            x = x++;
+            i++;
+        }
+        System.out.println(x); // 结果是 0
+    }
+}
+```
+
+
+
+
+
+***
+
+
+
+#### 构造方法
+
+##### `<cinit>()V`
+
+```java
+public class Demo3_8_1 {
+    static int i = 10;
+    static {
+    	i = 20;
+    }
+    static {
+    	i = 30;
+    }
+}
+```
+
+编译器会按从上至下的顺序，收集所有 static 静态代码块和静态成员赋值的代码，合并为一个特殊的方
+法 <cinit>()V ：
+
+```sh
+0: 	bipush 10
+2:	putstatic #2 // Field i:I
+5: 	bipush 20
+7: 	putstatic #2 // Field i:I
+10: bipush 30
+12: putstatic #2 // Field i:I
+15: return
+```
+
+<cinit>()V 方法会在类加载的初始化阶段被调用
+
+
+
+##### `<init>()V`
+
+```java
+public class Demo {
+    private String a = "s1";
+    {
+    	b = 20;
+    }
+    private int b = 10;
+    {
+    	a = "s2";
+    }
+    public Demo3_8_2(String a, int b) {
+        this.a = a;
+        this.b = b;
+    }
+    public static void main(String[] args){
+        Demo d = new Demo("s3",30);
+        System.out.println(d.a);//s3
+		System.out.println(d.b);//30
+    }
+}
+```
+
+字节码：
+
+![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-字节码构造方法.png)
+
+
+
+***
+
+
+
+#### 方法调用
+
+```java
+public class Demo {
+    public Demo() { }
+    private void test1() { }
+    private final void test2() { }
+    
+    public void test3() { }
+    public static void test4() { }
+    
+    public static void main(String[] args) {
+        Demo3_9 d = new Demo3_9();
+        d.test1();
+        d.test2();
+        d.test3();
+        d.test4();
+        Demo.test4();
+    }
+}
+```
+
+几种不同的方法调用对应的字节码指令：
+
+```java
+0: 	new 			#2 // class cn/itcast/jvm/t3/bytecode/Demo
+3: 	dup
+4: 	invokespecial 	#3 // Method "<init>":()V
+7: 	astore_1
+8: 	aload_1
+9: 	invokespecial 	#4 // Method test1:()V
+12: aload_1
+13: invokespecial 	#5 // Method test2:()V
+16: aload_1
+17: invokevirtual 	#6 // Method test3:()V
+20: aload_1
+21: pop
+22: invokestatic 	#7 // Method test4:()V
+25: invokestatic 	#7 // Method test4:()V
+28: return
+```
+
+* new 是创建对象，给对象分配堆内存，执行成功会将**对象引用**压入操作数栈
+
+* dup 是赋值操作数栈栈顶的内容，本例即为**对象引用**（对象在堆内），为什么需要两份引用呢？
+
+  * 一个要配合 invokespecial 调用该对象的构造方法 "<init>":()V （会消耗掉栈顶一个引用）
+
+  * 一个要配合 astore_1 赋值给局部变量
+
+* 最终方法（final），私有方法（private），构造方法都是由 **invokespecial** 指令来调用，属于静态绑定
+  * 执行 invokespecial 的情况是通过 super 调用父类方法
+* 普通成员方法是由 **invokevirtual** 调用，属于动态绑定，即支持多态
+* `d.test4()` 是通过【对象引用】调用一个静态方法，在调用**invokestatic** 之前执行了 pop 指令，把【对象引用】从操作数栈弹掉
+  * 不建议使用`对象.静态方法()`的方式调用静态方法，多了aload和pop指令
+  * 成员方法与静态方法调用的区别是：执行方法前是否需要【对象引用】
+
+
+
+***
+
+
+
+#### 多态原理
+
+执行 **invokevirtual** 指令：
+
+1. 先通过栈帧中的对象引用找到对象
+2. 分析对象头，找到对象的实际 Class
+3. Class 结构中有 vtable，它在类加载的链接阶段就已经根据方法的重写规则生成好了
+4. 查表得到方法的具体地址
+5. 执行方法的字节码
+
+
+
+***
+
+
+
+#### 异常处理
+
+##### try-catch
+
+```java
+public static void main(String[] args) {
+    int i = 0;
+    try {
+    	i = 10;
+    } catch (ArithmeticException e) {
+    	i = 30;
+    } catch (NullPointerException e) {
+    	i = 40;
+    } catch (Exception e) {
+    	i = 50;
+    }
+}
+```
+
+```java
+public static void main(java.lang.String[]);
+    descriptor: ([Ljava/lang/String;)V
+    flags: ACC_PUBLIC, ACC_STATIC
+    Code:
+      stack=1, locals=3, args_size=1
+        0: iconst_0
+        1: istore_1
+        2: bipush 10
+        4: istore_1
+        5: goto 26
+        8: astore_2
+        9: bipush 30
+        11: istore_1
+        12: goto 26
+        15: astore_2
+        16: bipush 40
+        18: istore_1
+        19: goto 26
+        22: astore_2
+        23: bipush 50
+        25: istore_1
+        26: return
+    Exception table:
+    	from to target type
+    	2 	  5		8  Class java/lang/Exception
+        2 	  5 	15 Class java/lang/NullPointerException
+		2 	  5 	22 Class java/lang/Exception
+    LineNumberTable: ...
+    LocalVariableTable:
+    	Start 	Length Slot Name     Signature
+    		9 		3 	2 		e 		Ljava/lang/ArithmeticException;
+			16 		3 	2 		e 		Ljava/lang/NullPointerException;
+			23 		3 	2 		e 		Ljava/lang/Exception;
+    		0 		27 	0 		args 	[Ljava/lang/String;
+    		2 		25 	1 		i 		I
+      StackMapTable: ...
+    MethodParameters: ...
+}
+```
+
+* 多出一个 **Exception table** 的结构，[from, to) 是前闭后开的检测范围，一旦这个范围内的字节码执行出现异常，则通过 type 匹配异常类型，如果一致，进入 target 所指示行号
+* 8 行的字节码指令 astore_2 是将异常对象引用存入局部变量表的 slot 2 位置
+* 因为异常出现时，只能进入 Exception table 中一个分支，所以局部变量表 slot 2 位置被共用
+
+
+
+##### finally
+
+finally 中的代码被复制了 3 份，分别放入 try 流程，catch 流程以及 catch 剩余的异常类型流程
+
+```java
+public static void main(String[] args) {
+    int i = 0;
+    try {
+    	i = 10;
+    } catch (Exception e) {
+    	i = 20;
+    } finally {
+    	i = 30;
+    }
+}
+```
+
+```java
+0: 	iconst_0
+1: 	istore_1 	// 0 -> i
+2: 	bipush 10 	// try --------------------------------------
+4: 	istore_1 	// 10 -> i |
+5: 	bipush 30 	// finally |
+7: 	istore_1 	// 30 -> i |
+8: 	goto 27 	// return -----------------------------------
+11: astore_2 	// catch Exceptin -> e ----------------------
+12: bipush 20 	// |
+14: istore_1 	// 20 -> i |
+15: bipush 30 	// finally |
+17: istore_1 	// 30 -> i |
+18: goto 27 	// return -----------------------------------
+21: astore_3 	// catch any -> slot 3 ----------------------
+22: bipush 30 	// finally |
+24: istore_1 	// 30 -> i |
+25: aload_3 	// <- slot 3 |
+26: athrow 		// throw ------------------------------------
+27: return
+```
+
+
+
+##### return
+
+```java
+public static int test() {
+    try {
+    	return 10;
+    } finally {
+    	return 20;
+    }
+}
+```
+
+```java
+0: bipush 10 	// <- 10 放入栈顶
+2: istore_0 	// 10 -> slot 0 (从栈顶移除了)
+3: bipush 20 	// <- 20 放入栈顶
+5: ireturn 		// 返回栈顶 int(20)
+6: astore_1 	// catch any -> slot 1
+7: bipush 20 	// <- 20 放入栈顶
+9: ireturn 		// 返回栈顶 int(20)
+```
+
+* 由于 finally 中的 ireturn 被插入了所有可能的流程，因此返回结果肯 finally 的为准
+* 跟上例中的 finally 相比，发现没有 athrow ，这告诉我们：如果在 finally 中出现了 return，会**吞掉异常**
+
+
+
+##### 面试题
+
+```java
+public class Demo3_12_2 {
+    public static void main(String[] args) {
+    	int result = test();
+    	System.out.println(result);//10
+	}
+	public static int test() {
+        int i = 10;
+        try {
+            return i;
+        } finally {
+            i = 20;
+        }
+   	}
+}
+```
+
+```java
+0: 	bipush 10 	// <- 10 放入栈顶
+2: 	istore_0 	// 10 -> i
+3: 	iload_0 	// <- i(10)
+4: 	istore_1 	// 10 -> slot 1，暂存至 slot 1，目的是为了固定返回值
+5: 	bipush 20 	// <- 20 放入栈顶
+7: 	istore_0 	// 20 -> i
+8: 	iload_1 	// <- slot 1(10) 载入 slot 1 暂存的值
+9: 	ireturn 	// 返回栈顶的 int(10)
+10: astore_2
+11: bipush 20
+13: istore_0
+14: aload_2
+15: athrow
+```
+
+
+
+***
+
+
+
+#### synchronized
+
+代码：
+
+```java
+public static void main(String[] args) {
+    Object lock = new Object();
+    synchronized (lock) {
+        System.out.println("ok");
+    }
+}
+```
+
+```java
+0: 	new				#2		// new Object
+3: 	dup
+4: 	invokespecial 	#1 		// invokespecial <init>:()V
+7: 	astore_1 				// lock引用 -> lock
+8: 	aload_1					// <- lock （synchronized开始）
+9: 	dup						//一份加锁使用，一份解锁使用
+10: astore_2 				// lock引用 -> slot 2
+11: monitorenter 			// monitorenter(lock引用)
+12: getstatic 		#3		// <- System.out
+15: ldc 			#4		// <-"o一k"
+17: invokevirtual 	#5 		// invokevirtual println:(Ljava/lang/String;)V
+20: aload_2 				// <- slot 2(lock引用)
+21: monitorexit 			// monitorexit(lock引用)
+22: goto 30
+25: astore_3 				// any -> slot 3
+26: aload_2 				// <- slot 2(lock引用)
+27: monitorexit 			// monitorexit(lock引用)
+28: aload_3
+29: athrow
+30: return
+Exception table:
+    from to target type
+      12 22 25 		any
+      25 28 25 		any
+LineNumberTable: ...
+LocalVariableTable:
+    Start Length Slot Name Signature
+    	0 	31 		0 args [Ljava/lang/String;
+    	8 	23 		1 lock Ljava/lang/Object;
+```
+
+dup：一个用来初始化，一个用来对象引用
+
+说明：
+
+* 通过异常**finally机制**，确保一定会被解锁
+* 方法级别的 synchronized 不会在字节码指令中有所体现
+
+
+
+***
+
+
+
+### 编译优化
+
+#### 语法糖
+
+语法糖：指 java 编译器把 *.java 源码编译为 *.class 字节码的过程中，自动生成和转换的一些代码，主要是为了减轻程序员的负担
+
+
+
+#### 默认构造器
+
+```java
+public class Candy1 {
+}
+```
+
+```java
+public class Candy1 {
+    // 这个无参构造是编译器帮助我们加上的
+    public Candy1() {
+        super(); // 即调用父类 Object 的无参构造方法，即调用 java/lang/Object."
+        <init>":()V
+    }
+}
+```
+
+
+
+***
+
+
+
+#### 自动拆装箱
+
+```java
+Integer x = 1;
+int y = x;
+```
+
+这段代码在 JDK 5 之前是无法编译通过的，必须改写为代码片段2：
+
+```java
+Integer x = Integer.valueOf(1);
+int y = x.intValue();
+```
+
+JDK5以后编译阶段自动转换成上述片段
+
+
+
+***
+
+
+
+#### 泛型集合取值
+
+泛型也是在 JDK 5 开始加入的特性，但 java 在编译泛型代码后会执行**泛型擦除**的动作，即泛型信息
+在编译为字节码之后就丢失了，实际的类型都当做了 Object 类型来处理：
+
+```java
+List<Integer> list = new ArrayList<>();
+list.add(10); // 实际调用的是 List.add(Object e)
+Integer x = list.get(0); // 实际调用的是 Object obj = List.get(int index);
+```
+
+编译器真正生成的字节码中，还要额外做一个类型转换的操作：
+
+```java
+// 需要将 Object 转为 Integer
+Integer x = (Integer)list.get(0);
+```
+
+如果前面的 x 变量类型修改为 int 基本类型那么最终生成的字节码是：
+
+```java
+// 需要将 Object 转为 Integer, 并执行拆箱操作
+int x = ((Integer)list.get(0)).intValue();
+```
+
+
+
+***
+
+
+
+#### 可变参数
+
+```java
+public class Candy4 {
+    public static void foo(String... args) {
+        String[] array = args; // 直接赋值
+        System.out.println(array);
+    }
+    public static void main(String[] args) {
+    	foo("hello", "world");
+    }
+}
+```
+
+可变参数`String... args`其实是`String[] args` ， java 编译器会在编译期间将上述代码变换为：
+
+```java
+public static void main(String[] args) {
+	foo(new String[]{"hello", "world"});
+}
+```
+
+注意：如果调用了foo()则等价代码为`foo(new String[]{})` ，创建了一个空的数组，而不会传递 null 进去
+
+
+
+****
+
+
+
+#### foreach
+
+**数组的循环：**
+
+```java
+int[] array = {1, 2, 3, 4, 5}; // 数组赋初值的简化写法也是语法糖哦
+for (int e : array) {
+	System.out.println(e);
+}
+```
+
+编译后：
+
+```java
+for(int i = 0; i < array.length; ++i) {
+	int e = array[i];
+	System.out.println(e);
+}
+```
+
+**集合的循环：**
+
+```java
+List<Integer> list = Arrays.asList(1,2,3,4,5);
+for (Integer i : list) {
+	System.out.println(i);
+}
+```
+
+编译后转换为对迭代器的调用：
+
+```java
+List<Integer> list = Arrays.asList(1, 2, 3, 4, 5);
+Iterator iter = list.iterator();
+while(iter.hasNext()) {
+    Integer e = (Integer)iter.next();
+    System.out.println(e);
+}
+```
+
+注意：foreach 循环写法，能够配合数组以及所有实现了 Iterable 接口的集合类一起使用，其中 Iterable 用来获取集合的迭代器（ Iterator ）
+
+
+
+***
+
+
+
+#### switch
+
+##### 字符串
+
+从 JDK  开始，switch 可以作用于字符串和枚举类：
+
+```java
+switch (str) {
+    case "hello": {
+        System.out.println("h");
+        break;
+    }
+    case "world": {
+        System.out.println("w");
+        break;
+    }
+}
+```
+
+注意：switch 配合 String 和枚举使用时，变量不能为null
+
+会被编译器转换为：
+
+```java
+byte x = -1;
+switch(str.hashCode()) {
+    case 99162322: // hello 的 hashCode
+        if (str.equals("hello")) {
+        	x = 0;
+        }
+    	break;
+    case 113318802: // world 的 hashCode
+        if (str.equals("world")) {
+        	x = 1;
+        }
+}
+switch(x) {
+    case 0:
+    	System.out.println("h");
+    	break;
+    case 1:
+    	System.out.println("w");
+        break;
+}
+```
+
+总结：
+
+* 执行了两遍 switch，第一遍是根据字符串的 hashCode 和 equals 将字符串的转换为相应byte 类型，第二遍才是利用 byte 执行进行比较
+* hashCode 是为了提高效率，减少可能的比较；而 equals 是为了防止 hashCode 冲突
+
+
+
+
+
+##### 枚举
+
+switch 枚举的例子，原始代码：
+
+```java
+enum Sex {
+	MALE, FEMALE
+}
+public class Candy7 {
+    public static void foo(Sex sex) {
+        switch (sex) {
+        case MALE:
+        	System.out.println("男"); break;
+        case FEMALE:
+        	System.out.println("女"); break;
+        }
+	}
+}
+```
+
+编译转换后的代码：
+
+```java
+/**
+* 定义一个合成类（仅 jvm 使用，对我们不可见）
+* 用来映射枚举的 ordinal 与数组元素的关系
+* 枚举的 ordinal 表示枚举对象的序号，从 0 开始
+* 即 MALE 的 ordinal()=0，FEMALE 的 ordinal()=1
+*/
+static class $MAP {
+    // 数组大小即为枚举元素个数，里面存储case用来对比的数字
+    static int[] map = new int[2];
+    static {
+    	map[Sex.MALE.ordinal()] = 1;
+    	map[Sex.FEMALE.ordinal()] = 2;
+	}
+}
+public static void foo(Sex sex) {
+    int x = $MAP.map[sex.ordinal()];
+    switch (x) {
+        case 1:
+        	System.out.println("男");
+        	break;
+        case 2:
+        	System.out.println("女");
+        	break;
+    }
+}
+```
+
+
+
+***
+
+
+
+#### 枚举类
+
+JDK 7 新增了枚举类：
+
+```java
+enum Sex {
+	MALE, FEMALE
+}
+```
+
+编译转换后：
+
+```java
+public final class Sex extends Enum<Sex> {
+    public static final Sex MALE;
+    public static final Sex FEMALE;
+    private static final Sex[] $VALUES;
+    static {
+        MALE = new Sex("MALE", 0);
+        FEMALE = new Sex("FEMALE", 1);
+        $VALUES = new Sex[]{MALE, FEMALE};
+    }
+    private Sex(String name, int ordinal) {
+    	super(name, ordinal);
+    }
+    public static Sex[] values() {
+    	return $VALUES.clone();
+    }
+    public static Sex valueOf(String name) {
+    	return Enum.valueOf(Sex.class, name);
+    }
+}
+```
+
+
+
+#### try-w-r
+
+JDK 7 开始新增了对需要关闭的资源处理的特殊语法`try-with-resources`，格式：
+
+```java
+try(资源变量 = 创建资源对象){
+} catch( ) {
+}
+```
+
+其中资源对象需要实现 **AutoCloseable**接口，例如 InputStream、OutputStream、Connection、Statement、ResultSet等接口都实现了 AutoCloseable ，使用 try-withresources可以不用写 finally 语句块，编译器会帮助生成关闭资源代码：
+
+```java
+try(InputStream is = new FileInputStream("d:\\1.txt")) {
+	System.out.println(is);
+} catch (IOException e) {
+	e.printStackTrace();
+}
+```
+
+转换成：
+
+`addSuppressed(Throwable e)`：添加被压制异常，是为了防止异常信息的丢失（try-with-resources 生成的 fianlly 中如果抛出了异常）
+
+```java
+try {
+    InputStream is = new FileInputStream("d:\\1.txt");
+    Throwable t = null;
+    try {
+    	System.out.println(is);
+    } catch (Throwable e1) {
+    	// t 是我们代码出现的异常
+    	t = e1;
+    	throw e1;
+    } finally {
+        // 判断了资源不为空
+        if (is != null) {
+            // 如果我们代码有异常
+            if (t != null) {
+                try {
+                	is.close();
+                } catch (Throwable e2) {
+                    // 如果 close 出现异常，作为被压制异常添加
+                    t.addSuppressed(e2);
+                }
+            } else {
+                // 如果我们代码没有异常，close 出现的异常就是最后 catch 块中的 e
+                is.close();
+            }
+		}
+	}
+} catch (IOException e) {
+    e.printStackTrace();
+}
+```
+
+
+
+***
+
+
+
+#### 方法重写
+
+方法重写时对返回值分两种情况：
+
+* 父子类的返回值完全一致
+* 子类返回值可以是父类返回值的子类（比较绕口，见下面的例子）
+
+```java
+class A {
+    public Number m() {
+		return 1;
+    }
+}
+class B extends A {
+    @Override
+    // 子类m方法的返回值是Integer是父类m方法返回值Number的子类
+    public Integer m() {
+    	return 2;
+    }
+}
+```
+
+对于子类，java 编译器会做如下处理：
+
+```java
+class B extends A {
+    public Integer m() {
+    	return 2;
+    }
+	// 此方法才是真正重写了父类 public Number m() 方法
+	public synthetic bridge Number m() {
+    	// 调用 public Integer m()
+    	return m();
+    }
+}
+```
+
+其中桥接方法比较特殊，仅对 java 虚拟机可见，并且与原来的 public Integer m() 没有命名冲突
+
+
+
+***
+
+
+
+#### 匿名内部类
+
+源代码：
+
+```java
+public class Candy11 {
+    public static void main(String[] args) {
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+            	System.out.println("ok");
+            }
+        };
+    }
+}
+```
+
+转化后代码：
+
+```java
+// 额外生成的类
+final class Candy11$1 implements Runnable {
+    Candy11$1() {
+    }
+    public void run() {
+    	System.out.println("ok");
+    }
+}
+```
+
+```java
+public class Candy11 {
+    public static void main(String[] args) {
+    	Runnable runnable = new Candy11$1();
+    }
+}
+```
+
+引用局部变量的匿名内部类，源代码：
+
+```java
+public class Candy11 {
+    public static void test(final int x) {
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+            	System.out.println("ok:" + x);
+            }
+        };
+    }
+}
+```
+
+转换后代码：
+
+```java
+final class Candy11$1 implements Runnable {
+    int val$x;
+    Candy11$1(int x) {
+    	this.val$x = x;
+    }
+    public void run() {
+    	System.out.println("ok:" + this.val$x);
+    }
+}
+public class Candy11 {
+    public static void test(final int x) {
+    	Runnable runnable = new Candy11$1(x);
+    }
+}
+```
+
+局部变量必须是 final 的：因为在创建Candy11￥1 对象时，将 x 的值赋值给了 Candy11$1 对象的 val属性，x不应该再发生变化了；如果变化，this.val​x属性没有机会再跟着变化
+
+
+
+
+
+***
+
+
+
+### 加载机制
+
+#### 加载过程
+
+##### 生命周期
+
+类是在运行期间第一次使用时动态加载的，而不是一次性加载所有类，因为一次性加载会占用很多的内存
+
+![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-类的生命周期.png)
+
+包括 7 个阶段：
+
+* 加载（Loading）
+* 链接：验证（Verification）、准备（Preparation）、解析（Resolution）
+* 初始化（Initialization）
+* 使用（Using）
+* 卸载（Unloading）
+
+
+
+***
+
+
+
+##### 加载
+
+加载是类加载的一个阶段，注意不要混淆。
+
+加载过程完成以下三件事：
+
+- 通过类的完全限定名称获取定义该类的二进制字节流
+- 将该字节流表示的静态存储结构转换为方法区的运行时存储结构
+- 在内存中生成一个代表该类的 Class 对象，作为方法区中该类各种数据的访问入口
+
+其中二进制字节流可以从以下方式中获取：
+
+- 从 ZIP 包读取，成为 JAR、EAR、WAR 格式的基础
+- 从网络中获取，最典型的应用是 Applet
+- 运行时计算生成，例如动态代理技术，在 java.lang.reflect.Proxy 使用 ProxyGenerator.generateProxyClass 的代理类的二进制字节流
+- 由其他文件生成，例如由 JSP 文件生成对应的 Class 类
+
+将类的字节码载入方法区中，内部采用 C++ 的 instanceKlass 描述 java 类，它的重要 field 有：
+
+* _java_mirror 即 java 的类镜像，例如对 String 来说，就是 String.class，作用是把 class 暴露给 java 使用
+* _super 即父类
+* _fields 即成员变量
+* _methods 即方法
+* _constants 即常量池
+* _class_loader 即类加载器
+* _vtable 虚方法表
+* _itable 接口方法表
+* 如果这个类还有父类没有加载，先加载父类
+* 加载和链接可能是交替运行的
+
+注意：
+
+* instanceKlass 元数据是存储在方法区（1.8 后的元空间内），但 _java_mirror是存储在堆中
+* instanceKlass和_java_mirror相互持有对方的地址，堆中对象通过instanceKlass和元空间进行交互
+
+<img src="https://gitee.com/seazean/images/raw/master/JavaSE/JVM-类的生命周期-加载.png" style="zoom:80%;" />
+
+
+
+***
+
+
+
+##### 验证
+
+链接阶段包含验证、准备、解析阶段
+
+验证：确保 Class 文件的字节流中包含的信息是否符合 JVM规范，并且不会危害虚拟机自身的安全
+
+
+
+##### 准备
+
+类变量是被 static 修饰的变量，准备阶段为**静态变量分配内存并设置初始值**，使用的是方法区的内存
+
+* 类变量也叫静态变量，就是在变量前加了static 的变量
+* 实例变量也叫对象变量，即没加static 的变量
+
+实例变量不会在这阶段分配内存，它会在对象实例化时随着对象一起被分配在堆中。实例化不是类加载的一个过程，类加载发生在所有实例化操作之前，并且类加载只进行一次，实例化可以进行多次
+
+**类变量初始化**：
+
+* static 变量在 JDK 7 之前存储于 instanceKlass 末尾，从 JDK 7 开始，存储于 _java_mirror 末尾
+* static 变量分配空间和赋值是两个步骤：**分配空间在准备阶段完成，赋值在初始化阶段完成**
+* 如果 static 变量是 final 的基本类型，以及字符串常量，那么编译阶段值就确定了，赋值在准备阶段完成
+* 如果 static 变量是 final 的，但属于引用类型，那么赋值也会在初始化阶段完成
+
+实例：
+
+* 初始值一般为 0 值，例如下面的类变量 value 被初始化为 0 而不是 123：
+
+  ```java
+  public static int value = 123;
+  ```
+
+* 常量 value 被初始化为 123 而不是 0：
+
+  ```java
+  public static final int value = 123;
+  ```
+
+
+
+##### 解析
+
+将常量池的符号引用替换为直接引用（内存地址）的过程
+
+* 符号引用：一组符号来描述目标，可以是任何字面量。属于编译原理方面的概念如：包括类和接口的全限名、字段的名称和描述符、方法的名称和描述符
+* 直接引用：直接指向目标的指针、相对偏移量或一个间接定位到目标的句柄
+
+其中解析过程在某些情况下可以在初始化阶段之后再开始，这是为了支持 Java 的动态绑定。
+
+```java
+public class Load2 {
+    public static void main(String[] args) throws Exception{
+    ClassLoader classloader = Load2.class.getClassLoader();
+    // loadClass 加载类方法不会导致类的解析和初始化，也不会加载D
+    Class<?> c = classloader.loadClass("cn.itcast.jvm.t3.load.C");
+        
+    // new C();会导致类的解析和初始化，从而解析初始化D
+    System.in.read();
+    }
+}
+class C {
+	D d = new D();
+}
+class D {
+}
+```
+
+
+
+****
+
+
+
+##### 初始化
+
+###### 概述
+
+初始化阶段才真正开始执行类中定义的 Java 程序代码，在准备阶段，类变量已经赋过一次系统要求的初始值；在初始化阶段，通过程序制定的计划去初始化类变量和其它资源
+
+在编译生成class文件时，编译器会产生两个方法加于class文件中，一个是类的初始化方法clinit, 另一个是实例的初始化方法init
+
+类构造器<clinit>()与实例构造器<init>()不同，它不需要程序员进行显式调用。在一个类的生命周期中，类构造器<clinit>()最多会被虚拟机调用一次，而实例构造器<init>()则会被虚拟机调用多次，只要程序员创建对象
+
+
+
+###### clinit
+
+<clinit>()：类构造器，由编译器自动收集类中所有类变量的赋值动作和静态语句块中的语句合并产生的
+
+作用：是在类加载过程中的初始化阶段进行静态变量初始化和执行静态代码块
+
+* 如果类中没有静态变量或静态代码块，那么clinit方法将不会被生成
+* 在执行clinit方法时，必须先执行父类的clinit方法
+* clinit方法只执行一次
+* static变量的赋值操作和静态代码块的合并顺序由源文件中出现的顺序决定
+
+线程安全问题：
+
+* 虚拟机会保证一个类的 <clinit>() 方法在多线程环境下被正确的加锁和同步，如果多个线程同时始化一个类，只会有一个线程执行这个类的 <clinit>() 方法，其它线程都阻塞等待，直到活动线程执行 <clinit>() 方法完毕
+* 如果在一个类的 <clinit>() 方法中有耗时的操作，就可能造成多个线程阻塞，在实际过程中此种阻塞很隐蔽
+
+特别注意的是，静态语句块只能访问到定义在它之前的类变量，定义在它之后的类变量只能赋值，不能访问
+
+```java
+public class Test {
+    static {
+        i = 0;                // 给变量赋值可以正常编译通过
+        System.out.print(i);  // 这句编译器会提示“非法向前引用”
+    }
+    static int i = 1;
+}
+```
+
+补充：
+
+接口中不可以使用静态语句块，但仍然有类变量初始化的赋值操作，因此接口与类一样都会生成 <clinit>() 方法。但两者不同的是，执行接口的 <clinit>() 方法不需要先执行父接口的 <clinit>() 方法，只有当父接口中定义的变量使用时，父接口才会初始化；接口的实现类在初始化时也一样不会执行接口的 <clinit>() 方法
+
+
+
+###### init
+
+init指的是实例构造器，主要作用是在类实例化过程中执行，执行内容包括成员变量初始化和代码块的执行
+
+初始化即调用 <cinit>()V ，虚拟机会保证这个类的构造方法的线程安全，先为实例变量分配内存空间，再执行赋默认值，然后根据源码中的顺序执行赋初值或代码块，没有成员变量初始化和代码块则不会执行
+
+创建对象的过程：**父类的类构造器<clinit>() -> 子类的类构造器<clinit>() -> 父类的成员变量和实例代码块 -> 父类的构造函数 -> 子类的成员变量和实例代码块 -> 子类的构造函数**
+
+
+
+###### 初始化时机
+
+类的初始化是懒惰的
+
+**主动引用**：虚拟机规范中并没有强制约束何时进行加载，但是规范严格规定了有且只有下列五种情况必须对类进行初始化（加载、验证、准备都会随之发生）：
+
+* 遇到 new、getstatic、putstatic、invokestatic 这四条字节码指令时，如果类没有进行过初始化，则必须先触发其初始化，最常见的生成这 4 条指令的场景是：
+  * 使用 new 关键字实例化对象时
+  * 读取或设置一个类的静态字段（被 final 修饰、已在编译期把结果放入常量池的静态字段除外，即变量）
+  * 调用一个类的静态方法时
+* 使用 java.lang.reflect 包的方法对类进行反射调用的时候，如果类没有进行初始化，则需要先触发其初始化
+
+* 当初始化一个类的时候，如果发现其父类还没有进行过初始化，则需要先触发其父类的初始化
+
+* 当虚拟机启动时，需要指定一个要执行的主类（包含 main() 方法的那个类），虚拟机会先初始化这个主类
+* 当使用 JDK 1.7 的动态语言支持时，如果一个 java.lang.invoke.MethodHandle 实例最后的解析结果为 REF_getStatic, REF_putStatic, REF_invokeStatic 的方法句柄，并且这个方法句柄所对应的类没有进行过初始化，则需要先触发其初始化
+
+**被动引用**：所有引用类的方式都不会触发初始化，称为被动引用
+
+* 通过子类引用父类的静态字段，不会导致子类初始化，只会触发父类的初始化
+* 通过数组定义来引用类，不会触发此类的初始化。该过程会对数组类进行初始化，数组类是一个由虚拟机自动生成的、直接继承自 Object 的子类，其中包含了数组的属性和方法
+* 常量在编译阶段会存入调用类的常量池中，本质上并没有直接引用到定义常量的类，因此不会触发定义常量的类的初始化
+* 类对象.class 不会触发初始化，Class.forName会
+
+
+
+***
+
+
+
+##### 卸载
+
+执行了System.exit()方法，程序正常执行结束，程序在执行过程中遇到了异常或错误而异常终止，由于操作系统出现错误而导致Java虚拟机进程终止
+
+
+
+
+
+****
+
+
+
+#### 类加载器
+
+类与类加载器：
+
+* 两个类相等，需要类本身相等，并且使用同一个类加载器进行加载，因为每一个类加载器都拥有一个独立的类名称空间
+* 这里的相等，包括类的 Class 对象的 equals() 方法、isAssignableFrom() 方法、isInstance() 方法的返回结果为 true，也包括使用 instanceof 关键字做对象所属关系判定结果为 true
+
+类加载器作用：加载字节码到JVM内存，得到Class类的对象
+
+从 Java 虚拟机的角度来讲，只存在以下两种不同的类加载器：
+
+- 启动类加载器（Bootstrap ClassLoader），使用 C++ 实现，是虚拟机自身的一部分；
+- 所有其它类的加载器，使用 Java 实现，独立于虚拟机，继承自抽象类 java.lang.ClassLoade
+
+从 Java 开发人员的角度看，类加载器可以划分得更细致一些：
+
+* **启动类加载器（Bootstrap ClassLoader）**：此类加载器负责加载在`JAVA_HOME/jre/lib`目录中的，或者被 -Xbootclasspath 参数所指定的路径中的类，并且是虚拟机识别的（仅按照文件名识别，如 rt.jar，名字不符合的类库即使放在 lib 目录中也不会被加载）类库加载到虚拟机内存中。启动类加载器无法被 Java 程序直接引用，用户在编写自定义类加载器时，如果需要把加载请求委派给启动类加载器，直接使用 null 代替即可
+* **扩展类加载器（Extension ClassLoader）**：由ExtClassLoader (sun.misc.Launcher$ExtClassLoader) 实现，负责将`JAVA_HOME/jre/lib/ext`或者被 java.ext.dir 系统变量所指定路径中的所有类库加载到内存中，开发者可以直接使用扩展类加载器，上级为 Bootstrap，显示为 null
+* **应用程序类加载器（Application ClassLoader）**：AppClassLoader(sun.misc.Launcher$AppClassLoader)实现，负责加载用户类路径（ClassPath）上所指定的类库，上级为 Extension
+  * 这个类加载器是ClassLoader中的getSystemClassLoader() 方法的返回值，因此称为系统类加载器
+  * 可以直接使用这个类加载器，如果应用程序中没有自定义类加载器，这个就是程序中默认的类加载器
+
+* 自定义类加载器：自定义加载目录的类，上级是Application
+
+
+
+
+
+***
+
+
+
+#### 加载模型
+
+##### 三种模型
+
+在JVM中，对于类加载模型提供了三种，分别为全盘加载、双亲委派、缓存机制
+
+- **全盘加载：**当一个类加载器负责加载某个Class时，该Class所依赖和引用的其他Class也将由该类加载器负责载入，除非显示指定使用另外一个类加载器来载入
+
+- **双亲委派：**先让父类加载器加载该Class，在父类加载器无法加载该类时才尝试从自己的类路径中加载该类。简单来说就是，某个特定的类加载器在接到加载类的请求时，首先将加载任务委托给父加载器，**依次递归**，如果父加载器可以完成类加载任务，就成功返回；只有父加载器无法完成此加载任务时，才自己去加载
+
+- **缓存机制：**会保证所有加载过的Class都会被缓存，当程序中需要使用某个Class时，类加载器先从缓存区中搜寻该Class，只有当缓存区中不存在该Class对象时，系统才会读取该类对应的二进制数据，并将其转换成Class对象存入缓冲区中
+  - 这就是修改了Class后，必须重新启动JVM，程序所做的修改才会生效的原因
+
+
+
+***
+
+
+
+##### 双亲委派模型
+
+双亲委派模型 (Parents Delegation Model)：该模型要求除了顶层的启动类加载器外，其它的类加载器都要有自己的父类加载器，这里的父子关系一般通过组合关系（Composition）来实现，而不是继承关系（Inheritance）
+
+<img src="https://gitee.com/seazean/images/raw/master/JavaSE/JVM-双亲委派模型.png" style="zoom:67%;" />
+
+工作过程：一个类加载器首先将类加载请求转发到父类加载器，只有当父类加载器无法完成时才尝试自己加载
+
+双亲委派机制的优点：
+
+* 通过双亲委派机制可以避免某一个类被重复加载，当父类已经加载后则无需重复加载，保证唯一性
+
+* Java类随着它的类加载器一起具有一种带有优先级的层次关系，从而使得基础类得到统一
+
+* 为了安全，保证类库API不会被修改
+
+  在工程中新建java.lang包，接着在该包下新建String类，并定义main函数
+
+  ```java
+  public class String {
+      public static void main(String[] args) {
+  
+          System.out.println("demo info");
+      }
+  }
+  ```
+
+  此时执行main函数，会出现异常，在类 java.lang.String 中找不到 main 方法，防止恶意篡改核心API库
+  出现该信息是因为双亲委派的机制，java.lang.String的在启动类加载器(Bootstrap classLoader)得到加载，启动类加载器优先级更高，在核心jre库中有其相同名字的类文件，但该类中并没有main方法
+
+**源码分析：**
+
+```java
+protected Class<?> loadClass(String name, boolean resolve)
+    throws ClassNotFoundException {
+    synchronized (getClassLoadingLock(name)) {
+       //调用当前类加载器的findLoadedClass(name)，检查当前类加载器是否已加载过指定name的类
+        Class c = findLoadedClass(name);
+        
+        //判断当前类加载器如果没有加载过
+        if (c == null) {
+            long t0 = System.nanoTime();
+            try {
+                //判断当前类加载器是否有父类加载器
+                if (parent != null) {
+                    //如果当前类加载器有父类加载器，则调用父类加载器的loadClass(name,false)
+         			//父类加载器的loadClass方法，又会检查自己是否已经加载过
+                    c = parent.loadClass(name, false);
+                } else {
+                    
+                    //当前类加载器没有父类加载器，说明当前类加载器是BootStrapClassLoader
+          			//则调用BootStrap ClassLoader的方法加载类
+                    c = findBootstrapClassOrNull(name);
+                }
+            } catch (ClassNotFoundException e) {
+                // ClassNotFoundException thrown if class not found
+                // from the non-null parent class loader
+            }
+
+            if (c == null) {
+                // 如果调用父类的类加载器无法对类进行加载，则用自己的findClass(name)方法进行加载
+                long t1 = System.nanoTime();
+                c = findClass(name);
+
+                // this is the defining class loader; record the stats
+                sun.misc.PerfCounter.getParentDelegationTime().addTime(t1 - t0);
+                sun.misc.PerfCounter.getFindClassTime().addElapsedTimeFrom(t1);
+                sun.misc.PerfCounter.getFindClasses().increment();
+            }
+        }
+        if (resolve) {
+            resolveClass(c);
+        }
+        return c;
+    }
+}
+```
+
+
+
+
+
+***
+
+
+
+#### 自定义
+
+对于自定义类加载器的实现，只需要继承ClassLoader类，覆写findClass方法即可
+
+java.lang.ClassLoader 的 loadClass() 实现了双亲委派模型的逻辑，自定义类加载器一般不去重写它，但是需要重写 findClass() 方法
+
+```java
+//自定义类加载器，读取指定的类路径classPath下的class文件
+public class MyClassLoader extends ClassLoader{
+    private String classPath;
+
+    public MyClassLoader(String classPath) {
+        this.classPath = classPath;
+    }
+
+    @Override
+    protected Class<?> findClass(String name) throws ClassNotFoundException {
+        byte[] data = new byte[0];
+        try {
+            data = loadByte(name);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return defineClass(name, data, 0, data.length);
+    }
+
+    private byte[] loadByte(String name) throws Exception {
+        name = name.replaceAll("\\.", "/");
+        FileInputStream fis = new FileInputStream(classPath + "/" + name + ".class");
+        int len = fis.available();
+        byte[] data = new byte[len];
+        fis.read(data);
+        fis.close();
+        return data;
+    }
+}
+```
+
+```java
+public class ClassLoaderTest {
+    public static void main(String[] args) throws Exception {
+        MyClassLoader classLoader = new MyClassLoader("D:\\workspace\\course\\java97\\redisLock\\src\\main\\java");
+        Class clazz = classLoader.loadClass("com.itheima.demo.User");
+        System.out.println(clazz.getClassLoader().getClass().getName());
+    }
+}//当存在.java文件时，根据双亲委派机制，显示当前类加载器为AppClassLoader，而当将.java文件删除时，则显示使用的是自定义的类加载器
+```
+
+
+
+***
+
+
+
+
+
+
 
 
 
