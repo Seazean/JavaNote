@@ -12832,6 +12832,27 @@ public class Demo1_27 {
 
 
 
+### 深浅拷贝
+
+浅拷贝（shallowCopy）只是增加了一个指针指向已存在的内存地址
+
+深拷贝（deepCopy）是增加了一个指针并且申请了一个新的内存，使这个增加的指针指向这个新的内存
+
+* 使用深拷贝的情况下，释放内存的时候不会因为出现浅拷贝时释放同一个内存的错误
+
+浅复制：仅仅是指向被复制的内存地址，如果原地址发生改变，那么浅复制出来的对象也会相应的改变
+
+深复制：在计算机中开辟一块新的内存地址用于存放复制的对象
+
+
+
+
+
+
+***
+
+
+
 ### VM参数
 
 | 参数                                                         | 功能                                                         |
@@ -12904,7 +12925,7 @@ Full GC 则相对复杂，**FullGC同时回收新生代和老年代，当前只�
   * 为了避免引起的 Full GC，应当尽量不要创建过大的对象以及数组
   * 通过 -Xmn 虚拟机参数调大新生代的大小，让对象尽量在新生代被回收掉，不进入老年代。还可以通过 -XX:MaxTenuringThreshold 调大对象进入老年代的年龄，让对象在新生代多存活一段时间
 
-* 空间分配担保失败：
+* 空间分配担保失败
 
 * JDK 1.7 及以前的永久代空间不足：
 
@@ -12984,17 +13005,21 @@ JVM是将TLAB作为内存分配的首选，但不是所有的对象实例都能�
 
 
 
-#### 堆外分配
+#### 栈上分配
 
 即时编译（Just-in-time Compilation，JIT）是一种通过在运行时将字节码翻译为机器码，从而改善字节码编译语言性能的技术，在HotSpot实现中有多种选择：C1、C2和C1+C2，分别对应client、server和分层编译
 
 * C1编译速度快，优化方式比较保守；C2编译速度慢，优化方式比较激进
 * C1+C2在开始阶段采用C1编译，当代码运行到一定热度之后采用G2重新编译
 * 在1.8之前，分层编译默认是关闭的，可以添加`-server -XX:+TieredCompilation`参数进行开启
+* JIT介绍参考类加载 --> 运行优化 --> 即时编译
 
 **逃逸分析**：并不是直接的优化手段，而是一个代码分析，通过动态分析对象的作用域，为其它优化手段如栈上分配、标量替换和同步消除等提供依据，发生逃逸行为的情况有两种：方法逃逸和线程逃逸
 
-* 方法逃逸：当一个对象在方法中定义之后，作为参数传递到其它方法中
+* 方法逃逸：当一个对象在方法中定义之后，被外部方法引用
+  * 全局逃逸：一个对象的作用范围逃出了当前方法或者当前线程
+    * 比如对象是一个静态变量、全局变量赋值、已经发生逃逸的对象、作为当前方法的返回值
+  * 参数逃逸：一个对象被作为方法参数传递或者被参数引用
 * 线程逃逸：如类变量或实例变量，可能被其它线程访问到
 
 如果不存在逃逸行为，则可以对该对象进行如下优化：同步消除、标量替换和栈上分配
@@ -13008,7 +13033,7 @@ JVM是将TLAB作为内存分配的首选，但不是所有的对象实例都能�
   * 标量替换：如果把一个对象拆散，将其成员变量恢复到基本类型来访问
   * 标量 (scalar) ：不可分割的量，如基本数据类型和reference类型
     聚合量 (Aggregate)：一个数据可以继续分解
-  * 如果逃逸分析发现一个对象不会被外部访问，并且该对象可以被拆散，那么经过优化之后，并不直接生成该对象，而是在栈上创建若干个成员变量
+  * 如果逃逸分析发现一个对象不会被外部访问，并且该对象可以被拆散，那么经过优化之后，并不直接生成该对象，而是将该对象成员变量分解若干个被这个方法使用的成员变量所代替
   * 参数设置：
     `-XX:+EliminateAllocations`：开启标量替换
     `-XX:+PrintEliminateAllocations`：查看标量替换情况
@@ -13119,8 +13144,8 @@ JVM是将TLAB作为内存分配的首选，但不是所有的对象实例都能�
 
 **GC Roots**：
 
-- 虚拟机栈中引用的对象：各个线程被调用的方法中使用到的参数、局部变量等
-- 本地方法栈中引用的对象：Java类的引用类型静态变量
+- 虚拟机栈中局部变量表中引用的对象：各个线程被调用的方法中使用到的参数、局部变量等
+- 本地方法栈中引用的对象
 - 方法区中类静态属性引用的对象
 - 方法区中的常量引用的对象：字符串常量池（string Table）里的引用
 
@@ -13387,31 +13412,6 @@ GC性能指标：
 
 
 
-#### ParNew
-
-Par是Parallel并行的缩写，New：只能处理的是新生代
-
-**并行垃圾收集器**在串行垃圾收集器的基础之上做了改进，**采用复制算法**，将单线程改为了多线程进行垃圾回收，这样可以缩短垃圾回收的时间
-
-对于其他的行为（收集算法、stop the world、对象分配规则、回收策略等）同Serial收集器一样，应用在年轻代，除Serial外，只有**ParNew GC能与CMS收集器配合工作**
-
-开启参数：`-XX：+UseParNewGC`，表示年轻代使用并行收集器，不影响老年代
-
-限制线程数量：`-XX:ParallelGCThreads`，默认开启和CPU数据相同的线程数
-
-![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-ParNew收集器.png)
-
-ParNew 是很多JVM运行在Server模式下新生代的默认垃圾收集器
-
-- 对于新生代，回收次数频繁，使用并行方式高效
-- 对于老年代，回收次数少，使用串行方式节省资源（CPU并行需要切换线程，串行可以省去切换线程的资源）
-
-
-
-****
-
-
-
 #### Parallel
 
 Parallel Scavenge收集器是应用于新生代的并行垃圾回收器，**采用复制算法**、并行回收和"Stop the World"机制
@@ -13421,7 +13421,7 @@ Parallel Old收集器：是一个应用于老年代的并行垃圾回收器，**
 对比其他回收器：
 
 * 其它收集器目标是尽可能缩短垃圾收集时用户线程的停顿时间
-* Parallel目标是达到一个可控制的吞吐量，被称为“吞吐量优先”收集器
+* Parallel目标是达到一个可控制的吞吐量，被称为“**吞吐量优先**”收集器
 * Parallel Scavenge对比ParNew拥有**自适应调节策略**，可以通过一个开关参数打开GC Ergonomics
 
 应用场景：
@@ -13458,9 +13458,34 @@ Parallel Old收集器：是一个应用于老年代的并行垃圾回收器，**
 
 
 
+#### ParNew
+
+Par是Parallel并行的缩写，New：只能处理的是新生代
+
+**并行垃圾收集器**在串行垃圾收集器的基础之上做了改进，**采用复制算法**，将单线程改为了多线程进行垃圾回收，这样可以缩短垃圾回收的时间
+
+对于其他的行为（收集算法、stop the world、对象分配规则、回收策略等）同Serial收集器一样，应用在年轻代，除Serial外，只有**ParNew GC能与CMS收集器配合工作**
+
+开启参数：`-XX：+UseParNewGC`，表示年轻代使用并行收集器，不影响老年代
+
+限制线程数量：`-XX:ParallelGCThreads`，默认开启和CPU数据相同的线程数
+
+![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-ParNew收集器.png)
+
+ParNew 是很多JVM运行在Server模式下新生代的默认垃圾收集器
+
+- 对于新生代，回收次数频繁，使用并行方式高效
+- 对于老年代，回收次数少，使用串行方式节省资源（CPU并行需要切换线程，串行可以省去切换线程的资源）
+
+
+
+****
+
+
+
 #### CMS
 
-CMS全称 Concurrent Mark Sweep，是一款**并发**的、使用**标记-清除**算法、针对老年代的垃圾回收器，其最大特点是**让垃圾收集线程与用户线程同时工作**
+CMS全称 Concurrent Mark Sweep，是一款**并发的、使用标记-清除**算法、针对老年代的垃圾回收器，其最大特点是**让垃圾收集线程与用户线程同时工作**
 
 CMS收集器的关注点是尽可能缩短垃圾收集时用户线程的停顿时间，停顿时间越短（低延迟）越适合与用户交互的程序，良好的响应速度能提升用户体验，目前大部分的Java应用集中在互联网站或者B/S系统的服务端上
 
@@ -13480,7 +13505,7 @@ CMS收集器的关注点是尽可能缩短垃圾收集时用户线程的停顿�
 缺点：
 
 - 吞吐量降低：在并发阶段虽然不会导致用户停顿，但是会因为占用了一部分线程而导致应用程序变慢，CPU 利用率不够高
-- CMS收集器无法处理浮动垃圾，可能出现 Concurrent Mode Failure导致另一次Full GC的产生。
+- CMS收集器无法处理浮动垃圾，可能出现 Concurrent Mode Failure导致另一次Full GC的产生
   浮动垃圾是指并发清除阶段由于用户线程继续运行而产生的垃圾，这部分垃圾只能到下一次 GC 时才能进行回收。由于浮动垃圾的存在，需要预留出一部分内存，CMS 收集不能等待老年代快满的时候再回收，如果预留的内存不够存放浮动垃圾，就会出现 Concurrent Mode Failure，这时虚拟机将临时启用 Serial Old 来替代 CMS，导致很长的停顿时间
 - 标记 - 清除算法导致的空间碎片，往往出现老年代空间无法找到足够大连续空间来分配当前对象，不得不提前触发一次 Full GC；为新对象分配内存空间时，将无法使用指针碰撞（Bump the Pointer）技术，而只能够选择空闲链表（Free List）执行内存分配
 
@@ -13498,7 +13523,7 @@ CMS收集器的关注点是尽可能缩短垃圾收集时用户线程的停顿�
 
 * `-XX:CMSFullGCsBeforecompaction`：设置在执行多少次Full GC后对内存空间进行压缩整理
 
-* `-XX:ParallelCMSThreads`：设置CMS的线程数量
+* `-XX:ParallelCMSThreads`：**设置CMS的线程数量**
 
   * CMS默认启动的线程数是(ParallelGCThreads+3)/4，ParallelGCThreads是年轻代并行收集器的线程数
   * 收集线程占用的CPU资源多于25%，对用户程序影响可能较大；当CPU资源比较紧张时，受到CMS收集器线程的影响，应用程序的性能在垃圾回收阶段可能会非常糟糕
@@ -13525,7 +13550,7 @@ G1（Garbage-First）是一款面向服务端应用的垃圾收集器，**应用
 
 * 并行性：G1在回收期间，可以有多个GC线程同时工作，有效利用多核计算能力，此时用户线程STW
 * 并发性：G1拥有与应用程序交替执行的能力，部分工作可以和应用程序同时执行，因此不会在整个回收阶段发生完全阻塞应用程序的情况
-* HotSpot垃圾收集器里，其他的垃圾收集器使用内置的JVM线程执行GC的多线程操作，而G1 GC可以采用应用线程承担后台运行的GC工作，即当JVM的GC线程处理速度慢时，系统会调用应用程序线程加速垃圾回收过程
+* HotSpot垃圾收集器里，其他的垃圾收集器使用内置的JVM线程执行GC的多线程操作，而G1 GC可以采用应用线程承担后台运行的GC工作，即JVM的GC线程处理速度慢时，系统会**调用应用程序线程加速垃圾回收**过程
 
 分代收集：
 
@@ -13535,13 +13560,12 @@ G1（Garbage-First）是一款面向服务端应用的垃圾收集器，**应用
 
 * **新的区域Humongous**：本身属于老年代区，当出现了一个巨大的对象，超出了分区容量的一半，则这个对象会进入到该区域。如果一个H区装不下一个巨型对象，那么G1会寻找连续的H分区来存储，为了能找到连续的H区 ，有时候不得不启动Full GC
 * G1 不会对巨型对象进行拷贝，回收时被优先考虑，G1 会跟踪老年代所有 incoming 引用，这样老年代incoming 引用为0 的巨型对象就可以在新生代垃圾回收时处理掉
-* 每个Region都是通过指针碰撞（Bump the pointer）来分配空间
 
-Region结构图：
+* Region结构图：
 
 ![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-G1 Region区域.png)
 
-**G1对比CMS优点**：
+**G1对比CMS（其他回收器）优点**：
 
 - **空间整合**：
 
@@ -13551,11 +13575,11 @@ Region结构图：
 
 - **可预测的停顿时间模型（即：软实时soft real-time）**：
 
-  - G1除了追求低停顿外，还能建立可预测的停顿时间模型，能让使用者明确指定在一个长度为 M 毫秒的时间片段内，消耗在 GC 上的时间不得超过 N 毫秒
+  - G1可以建立可预测的停顿时间模型，可以指定在一个长度为 M 毫秒的时间片段内，消耗在 GC 上的时间不得超过 N 毫秒
   - 由于分区的原因，G1可以只选取部分区域进行内存回收，这样缩小了回收的范围，因此对于全局停顿情况的发生也能得到较好的控制
-  - G1跟踪各个Region里面的垃圾堆积的价值大小（回收所获得的空间大小以及回收所需时间的经验值），在后台维护一个优先列表，每次根据允许的收集时间，优先回收价值最大的Region，保证了G1收集器在有限的时间内可以获取尽可能高的收集效率
+  - G1跟踪各个Region里面的垃圾堆积的价值大小（回收所获得的空间大小以及回收所需时间的经验值），在后台维护一个**优先列表**，每次根据允许的收集时间，优先回收价值最大的Region，保证了G1收集器在有限的时间内可以获取尽可能高的收集效率
 
-  * 相比于CMS GC，G1未必能做到CMS在最好情况下的延时停顿，但是最差情况要好很
+  * 相比于CMS GC，G1未必能做到CMS在最好情况下的延时停顿，但是最差情况要好很多
 
 G1垃圾收集器的缺点：
 
@@ -13566,8 +13590,6 @@ G1垃圾收集器的缺点：
 
 * 面向服务端应用，针对具有大内存、多处理器的机器
 * 需要低GC延迟，并具有大堆的应用程序提供解决方案
-
-
 
 
 
@@ -13589,14 +13611,14 @@ G1垃圾收集器的缺点：
 
 每个 Region 都有一个 Remembered Set，用来记录该 Region 对象的引用对象所在的 Region
 
-* Reference类型数据写操作时，都会产生一个Write Barrier暂时中断操作，检查将要写入的引用指向的对象是否和该Reference类型数据在不同的Region（其他收集器：检查老年代对象是否引用了新生代对象），如果不同，通过CardTable把相关引用信息记录到引用指向对象的所在Region对应的Remembered Set中
-* 当进行垃圾收集时，在GC根节点的枚举范围加入Remembered Set，就可以保证不进行全局扫描，也不会有遗漏
+* Reference类型数据写操作时，都会产生一个Write Barrier暂时中断操作，检查将要写入的引用指向的对象是否和该Reference类型数据在不同的Region（其他收集器：检查老年代对象是否引用了新生代对象），不同便通过 CardTable 把相关引用信息记录到被引用对象所属的 Region 的 Remembered Set 之中
+* 进行内存回收时，在 GC 根节点的枚举范围中加入 Remembered Set 即可保证不对全堆扫描也不会有遗漏
 
 
 
 ##### 回收
 
-G1中提供了三种垃圾回收模式：YoungGC、Mixed GC和Fu11GC，在不同的条件下被触发
+G1中提供了三种垃圾回收模式：YoungGC、Mixed GC和FullGC，在不同的条件下被触发
 
 ![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-G1回收过程.png)
 
@@ -13626,12 +13648,14 @@ G1中提供了三种垃圾回收模式：YoungGC、Mixed GC和Fu11GC，在不同
 
 * **Full GC**：如果对象内存分配速度过快，Mixed GC来不及回收，导致老年代被填满，就会触发一次Full GC，G1的Full GC算法就是单线程执行的垃圾回收，会导致异常长时间的暂停时间，需要进行不断的调优，尽可能的避免Full GC
 
-  **产生Full GC的原因**：
+  产生Full GC的原因：
 
-  * 晋升时没有足够的to-space来存放晋升的对象
+  * 晋升时没有足够的空间存放晋升的对象
   * 并发处理过程完成之前空间耗尽
+  
+  
 
-G1 收集器的工作过程：
+**G1 收集器的工作过程**：
 
 - **初始标记**：标记从根节点直接可达的对象，这个阶段是STW的，并且会触发一次年轻代GC
 - 根区域扫描 (Root Region Scanning)：G1 GC扫描survivor区直接可达的老年代区域对象，并标记被引用的对象，这一过程必须在Young GC之前完成
@@ -15362,13 +15386,164 @@ public class ClassLoaderTest {
 
 
 
+### 运行优化
+
+#### 即时编译
+
+##### 分层编译
+
+```java
+public static void main(String[] args) {
+    for (int i = 0; i < 200; i++) {
+        long start = System.nanoTime();
+        for (int j = 0; j < 1000; j++) {
+        	new Object();
+        }
+        long end = System.nanoTime();
+        System.out.printf("%d\t%d\n",i,(end - start));
+    }
+}
+```
+
+```java
+0 96426
+....
+199 854
+```
+
+JVM 将执行状态分成了 5 个层次：
+
+* 0 层，解释执行（Interpreter）
+* 1 层，使用 C1 即时编译器编译执行（不带 profiling）
+* 2 层，使用 C1 即时编译器编译执行（带基本的 profiling）
+* 3 层，使用 C1 即时编译器编译执行（带完全的 profiling）
+* 4 层，使用 C2 即时编译器编译执行
+
+说明：profiling 是指在运行过程中收集一些程序执行状态的数据，例如方法的调用次数，循环的回边次数等
+
+即时编译器（JIT）与解释器的区别：
+
+* 解释器是将字节码解释为机器码，下次即使遇到相同的字节码，仍会执行重复的解释
+* JIT 是将一些字节码编译为机器码，并存入 Code Cache，下次遇到相同的代码，直接执行，无需再编译
+* 解释器是将字节码解释为针对所有平台都通用的机器码
+* JIT 会根据平台类型，生成平台特定的机器码
+
+对于占据大部分的不常用的代码，我们无需耗费时间将其编译成机器码，而是采取解释执行的方式运行；另一方面，对于仅占据小部分的热点代码，我们则可以将其编译成机器码，以达到理想的运行速度。 执行效率上简单比较一下 `Interpreter < C1 < C2`，总的目标是发现热点代码（hotspot名称的由来）
+
+这种优化手段称之为逃逸分析，发现新建的对象是否逃逸，可以使用 -XX:-DoEscapeAnalysis 关闭逃逸分析
+
+
+
+##### 方法内联
+
+Inlining
+
+```java
+private static int square(final int i) {
+	return i * i;
+}
+System.out.println(square(9));
+```
+
+如果发现 square 是热点方法，并且长度不太长时，会进行内联，所谓的内联就是把方法内代码拷贝、粘贴到调用者的位置：
+
+```java
+System.out.println(9 * 9);
+```
+
+还能够进行常量折叠（constant folding）的优化：
+
+```java
+System.out.println(81);
+```
 
 
 
 
+##### 字段优化
+
+JMH 基准测试请参考：http://openjdk.java.net/projects/code-tools/jmh/
+
+```java
+@Warmup(iterations = 2, time = 1)		//2轮热身
+@Measurement(iterations = 5, time = 1)	//5轮测试
+@State(Scope.Benchmark)
+```
 
 
 
+***
+
+
+
+#### 反射优化
+
+```java
+public class Reflect1 {
+    public static void foo() {
+    	System.out.println("foo...");
+    }
+    public static void main(String[] args) throws Exception {
+        Method foo = Reflect1.class.getMethod("foo");
+        for (int i = 0; i <= 16; i++) {
+            System.out.printf("%d\t", i);
+            foo.invoke(null);
+        }
+        System.in.read();
+    }
+}
+```
+
+foo.invoke 0 ~ 15次调用的是MethodAccessor的实现类`NativeMethodAccessorImpl.invoke0()`，本地方法执行速度慢；当调用到第 16 次时，会采用运行时生成的类`sun.reflect.GeneratedMethodAccessor1`代替
+
+```java
+public Object invoke(Object obj, Object[] args)throws Exception {
+    // inflationThreshold 膨胀阈值，默认 15
+    if (++numInvocations > ReflectionFactory.inflationThreshold()
+        && !ReflectUtil.isVMAnonymousClass(method.getDeclaringClass())) {
+        MethodAccessorImpl acc = (MethodAccessorImpl)
+            new MethodAccessorGenerator().
+            generateMethod(method.getDeclaringClass(),
+                           method.getName(),
+                           method.getParameterTypes(),
+                           method.getReturnType(),
+                           method.getExceptionTypes(),
+                           method.getModifiers());
+        parent.setDelegate(acc);
+    }
+    //调用本地方法实现
+    return invoke0(method, obj, args);
+}
+private static native Object invoke0(Method m, Object obj, Object[] args);
+```
+
+```java
+public class GeneratedMethodAccessor1 extends MethodAccessorImpl {
+    // 如果有参数，那么抛非法参数异常
+    block4 : {
+        if (arrobject == null || arrobject.length == 0) break block4;
+            throw new IllegalArgumentException();
+    }
+    try {
+        // 可以看到，已经是直接调用方法
+        Reflect1.foo();
+        // 因为没有返回值
+        return null;
+    }
+    catch (Throwable throwable) {
+    	throw new InvocationTargetException(throwable);
+    }
+    catch (ClassCastException | NullPointerException runtimeException) {
+    	throw new IllegalArgumentException(Object.super.toString());
+    }
+ 
+}
+```
+
+通过查看 ReflectionFactory 源码可知：
+
+* sun.reflect.noInflation 可以用来禁用膨胀，直接生成 GeneratedMethodAccessor1，但首次生成比较耗时，如果仅反射调用一次，不划算
+* sun.reflect.inflationThreshold 可以修改膨胀阈值
 
 
 
@@ -15377,6 +15552,80 @@ public class ClassLoaderTest {
 ***
 
 
+
+
+
+## JVM调优
+
+### 服务器性能
+
+对于一个系统要部署上线时，则一定会对JVM进行调整，不经过任何调整直接上线，容易出现线上系统频繁FullGC造成系统卡顿、CPU使用频率过高、系统无反应等问题
+
+对于一个应用来说通常重点关注的性能指标主要是吞吐量、响应时间、QPS、TPS等、并发用户数等，而这些性能指标又依赖于系统服务器的资源，如：CPU、内存、磁盘IO、网络IO等。对于这些指标数据的收集，通常可以根据Java本身的工具或指令进行查询
+
+JDK 自带了监控工具，位于 JDK 的 bin 目录下，其中最常用的是 jconsole 和 jvisualvm 这两款视图监控工具：
+
+* jconsole：用于对 JVM 中的内存、线程和类等进行监控；
+* jvisualvm：JDK 自带的全能分析工具，可以分析：内存快照、线程快照、程序死锁、监控内存的变化、gc 变化等
+  
+
+
+
+### 参数调优
+
+对于JVM调优，主要就是调整年轻代、年老大、元空间的内存空间大小及使用的垃圾回收器类型
+
+* 设置堆的初始大小和最大大小，为了防止垃圾收集器在初始大小、最大大小之间收缩堆而产生额外的时间，通常把最大、初始大小设置为相同的值
+
+  ```sh
+  -Xms：设置堆的初始化大小
+  -Xmx：设置堆的最大大小
+  ```
+
+* 设置年轻代中Eden区和两个Survivor区的大小比例。该值如果不设置，则默认比例为8:1:1。Java官方通过增大Eden区的大小，来减少YGC发生的次数，但有时我们发现，虽然次数减少了，但Eden区满的时候，由于占用的空间较大，导致释放缓慢，此时STW的时间较长，因此需要按照程序情况去调优
+
+  ```sh
+  -XX:SurvivorRatio
+  ```
+
+* 年轻代和老年代默认比例为1：2。可以通过调整二者空间大小比率来设置两者的大小。
+
+  ```sh
+  -XX:newSize   设置年轻代的初始大小
+  -XX:MaxNewSize   设置年轻代的最大大小，  初始大小和最大大小两个值通常相同
+  ```
+
+* 线程堆栈的设置：**每个线程默认会开启1M的堆栈**，用于存放栈帧、调用参数、局部变量等，但一般256K就够用，通常减少每个线程的堆栈，可以产生更多的线程，但这实际上还受限于操作系统
+
+  ```sh
+  -Xss   对每个线程stack大小的调整,-Xss128k
+  ```
+
+* 一般一天超过一次FullGC就是有问题，首先通过工具查看是否出现内存泄露，如果出现内存泄露则调整代码，没有的话则调整JVM参数
+* 系统CPU持续飙高的话，首先先排查代码问题，如果代码没问题，则咨询运维或者云服务器供应商，通常服务器重启或者服务器迁移即可解决
+* 如果数据查询性能很低下的话，如果系统并发量并没有多少，则应更加关注数据库的相关问题
+* 如果服务器配置还不错，JDK8开始尽量使用G1或者新生代和老年代组合使用并行垃圾回收器
+
+
+
+***
+
+
+
+## JMM
+
+java 内存模型是 Java MemoryModel（JMM）的意思
+
+JMM 定义了一套在多线程读写共享数据时（成员变量、数组）时，对数据的可见性、有序
+性、和原子性的规则和保障
+
+
+
+
+
+
+
+***
 
 
 
