@@ -6881,7 +6881,9 @@ AOP的通知类型共5种：前置通知，后置通知、返回后通知、抛�
       <aop:config>
           <aop:pointcut id="pt" expression="execution(* *..*(..))"/>
           <aop:aspect ref="myAdvice">
+              <aop:before method="before" pointcut="pt"/>
               <aop:around method="around" pointcut-ref="pt"/>
+              <aop:after method="after" pointcut="pt"/>
               <aop:after-returning method="afterReturning" pointcut-ref="pt" returning="ret"/>
               <aop:after-throwing method="afterThrowing" pointcut-ref="pt" throwing="t"/>
           </aop:aspect>
@@ -7382,7 +7384,11 @@ Spirng可以通过配置的形式控制使用的代理形式，Spring会先判�
 
 ### 基本概念
 
+#### 事务介绍
+
 事务：数据库中多个操作合并在一起形成的操作序列
+
+Spring事务一般加到业务层，对应着业务的操作，数据层有自己默认的隔离界别
 
 作用：
 
@@ -7391,27 +7397,63 @@ Spirng可以通过配置的形式控制使用的代理形式，Spring会先判�
 
 事务特征（ACID）：
 
-- 原子性（Atomicity）指事务是一个不可分割的整体，其中的操作要么全执行或全不执行
 
-- 一致性（Consistency）事务前后数据的完整性必须保持一致
 
-- 隔离性（Isolation）事务的隔离性是多个用户并发访问数据库时，数据库为每一个用户开启的事务，不能被其他事务的操作数据所干扰，多个并发事务之间要相互隔离
 
-- 持久性（Durability）持久性是指一个事务一旦被提交，它对数据库中数据的改变就是永久性的，接下来即使数据库发生故障也不应该对其有任何影响
 
-隔离级别：
+***
 
-* 脏读：允许读取未提交的信息
-  原因：Read uncommitted
-  解决方案： （表级读锁）
-* 不可重复读：读取过程中单个数据发生了变化
-  解决方案： Repeatable read （行级写锁）
-* 幻读：读取过程中数据条目发生了变化
-  解决方案： Serializable（表级写锁）
+
+
+#### 隔离级别
+
+TransactionDefinition 接口中定义了五个表示隔离级别的常量：
+
+- **TransactionDefinition.ISOLATION_DEFAULT:** 使用后端数据库默认的隔离级别，Mysql 默认采用的 REPEATABLE_READ隔离级别 Oracle 默认采用的 READ_COMMITTED隔离级别.
+- **TransactionDefinition.ISOLATION_READ_UNCOMMITTED:** 最低的隔离级别，允许读取尚未提交的数据变更，可能会导致脏读、幻读或不可重复读
+- **TransactionDefinition.ISOLATION_READ_COMMITTED:** 允许读取并发事务已经提交的数据，可以阻止脏读，但是幻读或不可重复读仍有可能发生
+- **TransactionDefinition.ISOLATION_REPEATABLE_READ:** 对同一字段的多次读取结果都是一致的，除非数据是被本身事务自己所修改，可以阻止脏读和不可重复读，但幻读仍有可能发生。
+- **TransactionDefinition.ISOLATION_SERIALIZABLE:** 最高的隔离级别，完全服从ACID的隔离级别。所有的事务依次逐个执行，这样事务之间就完全不可能产生干扰，也就是说，该级别可以防止脏读、不可重复读以及幻读。但是这将严重影响程序的性能。通常情况下也不会用到该级别
 
 
 
 ****
+
+
+
+#### 传播行为
+
+事务传播行为描述的是事务协调员对事务管理员所携带事务的处理态度
+
+![](https://gitee.com/seazean/images/raw/master/Frame/事务传播行为.png)
+
+**支持当前事务的情况：**
+
+* TransactionDefinition.PROPAGATION_REQUIRED： 如果当前存在事务，则加入该事务；如果当前没有事务，则创建一个新的事务
+* TransactionDefinition.PROPAGATION_SUPPORTS： 如果当前存在事务，则加入该事务；如果当前没有事务，则以非事务的方式继续运行
+* TransactionDefinition.PROPAGATION_MANDATORY： 如果当前存在事务，则加入该事务；如果当前没有事务，则抛出异常（mandatory：强制性）
+
+**不支持当前事务的情况：**
+
+- TransactionDefinition.PROPAGATION_REQUIRES_NEW： 创建一个新的事务，如果当前存在事务，则把当前事务挂起
+- TransactionDefinition.PROPAGATION_NOT_SUPPORTED： 以非事务方式运行，如果当前存在事务，则把当前事务挂起
+- TransactionDefinition.PROPAGATION_NEVER： 以非事务方式运行，如果当前存在事务，则抛出异常
+
+**其他情况：**
+
+* **TransactionDefinition.PROPAGATION_NESTED：** 如果当前存在事务，则创建一个事务作为当前事务的嵌套事务来运行；如果当前没有事务，则该取值等价于TransactionDefinition.PROPAGATION_REQUIRED 
+
+
+
+
+
+
+
+
+
+
+
+***
 
 
 
@@ -7451,6 +7493,16 @@ PlatformTransactionManager，平台事务管理器实现类：
 管理器：
 
 - JPA（Java Persistence API）Java EE 标准之一，为POJO提供持久化标准规范，并规范了持久化开发的统一API，符合JPA规范的开发可以在不同的JPA框架下运行
+
+  **非持久化一个字段**：
+
+  ```java
+  static String transient1; // not persistent because of static
+  final String transient2 = “Satish”; // not persistent because of final
+  transient String transient3; // not persistent because of transient
+  @Transient
+  String transient4; // not persistent because of @Transient
+  ```
 
 - JDO(Java Data Object )是Java对象持久化规范，用于存取某种数据库中的对象，并提供标准化API。与JDBC相比，JDBC仅针对关系数据库进行操作，JDO可以扩展到关系数据库、文件、XML、对象数据库（ODBMS）等，可移植性更强
 
@@ -7610,7 +7662,7 @@ TransactionStatus 此接口定义了事务在执行过程中某个时间点上�
       <property name="dataSource" ref="dataSource"/>
       <property name="typeAliasesPackage" value="domain"/>
   </bean>
-  <!--扫描映射配置文件-->
+  <!--扫描映射配置和Dao-->
   <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
       <property name="basePackage" value="dao"/>
   </bean>
@@ -7764,7 +7816,7 @@ TransactionStatus 此接口定义了事务在执行过程中某个时间点上�
       </tx:attributes>
   </tx:advice>
   
-  <!--使用aop:advisor在AOP配置中引用事务专属通知类-->
+  <!--使用aop:advisor在AOP配置中引用事务专属通知类，底层invoke调用-->
   <aop:config>
       <aop:pointcut id="pt" expression="execution(* service.*Service.*(..))"/>
       <aop:advisor advice-ref="txAdvice" pointcut-ref="pt"/>
@@ -7773,7 +7825,7 @@ TransactionStatus 此接口定义了事务在执行过程中某个时间点上�
 
 * aop:advice与aop:advisor区别
   * aop:advice配置的通知类可以是普通java对象，不实现接口，也不使用继承关系
-  * aop:advisor配置的通知类必须实现通知接口
+  * aop:advisor配置的通知类必须实现通知接口，底层invoke调用
 
     - MethodBeforeAdvice
 
@@ -7782,6 +7834,8 @@ TransactionStatus 此接口定义了事务在执行过程中某个时间点上�
     - ThrowsAdvice
 
     - ……
+
+方法调用：`AbstractAspectJAdvice#invokeAdviceMethod(org.aspectj.weaver.tools.JoinPointMatch, java.lang.Object, java.lang.Throwable)`
 
 
 
@@ -7845,6 +7899,7 @@ TransactionStatus 此接口定义了事务在执行过程中某个时间点上�
     <tx:method name="get*" read-only="true"/>
     <tx:method name="find*" read-only="true"/>
 </tx:attributes>
+<aop:pointcut id="pt" expression="execution(* service.*Service.*(..))"/><!--标准-->
 ```
 
 说明：通常事务属性会配置多个，包含1个读写的全事务属性，1个只读的查询类事务属性
@@ -7862,66 +7917,6 @@ TransactionStatus 此接口定义了事务在执行过程中某个时间点上�
 
 
 ***
-
-
-
-##### 传播行为
-
-事务传播行为描述的是事务协调员对事务管理员所携带事务的处理态度
-
-![](https://gitee.com/seazean/images/raw/master/Frame/事务传播行为.png)
-
-| 传播属性      | 事务管理员 | 事务协调员                                                   |
-| ------------- | ---------- | ------------------------------------------------------------ |
-| REQUIRED      | 开启T1     | 加入T1                                                       |
-| REQUIRED      | 无         | 新建T2                                                       |
-| REQUIRED_NEW  | 开启T1     | 加入T1                                                       |
-| REQUIRED_NEW  | 开启T1     | 新建T1                                                       |
-| SUPPORTS      | 开启T1     | 加入T1                                                       |
-| SUPPORTS      | 无         | 无                                                           |
-| NOT_SUPPORTED | 开启T1     | 无                                                           |
-| NOT_SUPPORTED | 无         | 无                                                           |
-| MANDATORY     | 开启T1     | 加入T1                                                       |
-| MANDATORY     | 无         | ERROR                                                        |
-| NEVER         | 开启T1     | ERROR                                                        |
-| NEVER         | 无         | 无                                                           |
-| NESTED        |            | 设置savePoint，一旦事务回滚<br />事务将回滚到savePoint处，<br />交由客户响应提交/回滚 |
-
-应用：
-
-- 场景A：生成订单业务
-
-  - 子业务S1：记录日志到数据库表X
-
-  - 子业务S2：保存订单数据到数据库表Y
-
-  - 子业务S3：……
-
-  - 如果S2或S3或……事务提交失败，此时S1是否回滚？如何控制？
-
-  - （S1需要新事务）
-
-- 场景B：生成订单业务
-
-  - 背景1：订单号生成依赖数据库中一个专门用于控制订单号编号生成的表M获取
-
-  - 背景2：每次获取完订单号，表M中记录的编号自增1
-
-  - 子业务S1：从表M中获取订单编号
-
-  - 子业务S2：保存订单数据，订单编号来自于表M
-
-  - 子业务S3：……
-
-  - 如果S2或S3或……事务提交失败，此时S1是否回滚？如何控制？
-
-  - （S1需要新事务）
-
-
-
-
-
-****
 
 
 
@@ -7998,7 +7993,12 @@ public class TransactionManagerConfig {
 public interface AccountService{} 
 ```
 
-说明：通常配置在接口上
+说明：
+
+* 接口上配置总体的，方法中配置具体的
+* `@Transactional` 注解只有作用到 public 方法上事务才生效，不推荐在接口上使用；
+* 避免同一个类中调用 `@Transactional` 注解的方法，这样会导致事务失效；
+* 正确的设置 `@Transactional` 的 rollbackFor 和 propagation 属性，否则事务可能会回滚失败
 
 
 
@@ -8024,7 +8024,7 @@ public interface AccountService{}
 
   ```java
   //对当前接口的所有方法添加事务
-  @Transactional
+  @Transactional(isolation = Isolation.DEFAULT)
   public interface AccountService {
       //对当前方法添加事务，该配置将替换接口的配置
       @Transactional(
@@ -8110,9 +8110,20 @@ public interface AccountService{}
 
 ### 底层原理
 
+TransactionManagementConfigurationSelector类：
+
+* 导入AutoProxyRegistrar组件和ProxyTransactionManagementConfiguration组件
+
+* AutoProxyRegistrar：利用后置处理器机制在对象创建以后包装对象，返回一个代理对象（增强器），代理对象执行方法利用拦截器链进行调用，通过@Transactional作为方法拦截的标记，把有事务管理的类作为目标类，生成代理对象，然后增强@Transactional标记的方法，在使用目标方法的时候，从IOC容器中获取的其实是被增强的代理类，且事务方法会被代理，跟AOP原理一样
+
+* ProxyTransactionManagementConfiguration：向IOC容器中导入事务增强器(BeanFactoryTransactionAttributeSourceAdvisor)，事务注解@Transactional的解析器(AnnotationTransactionAttributeSource)和事务方法拦截器(TransactionInterceptor)
+  
+
+通过AOP动态织入，进行事务开启和提交
+
 事务底层原理解析：策略模式
 
-策略模式（Strategy Pattern）使用不同策略的对象实现不同的行为方式，策略对象的变化导致行为的变化。
+策略模式（Strategy Pattern）**使用不同策略的对象实现不同的行为方式**，策略对象的变化导致行为的变化，每个事务对应一个新的connection对象
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/Spring-事务底层原理策略模式.png)
 
@@ -8131,8 +8142,9 @@ public interface AccountService{}
 Spring ioc容器就是很多Map集合，保存了单实例Bean，环境信息等资源
 
 * **BeanDefinition**：是Spring中极其重要的一个概念，它存储了 bean 对象的所有特征信息，如是否单例、是否懒加载、factoryBeanName等
-
 * **BeanDefinationRegistry**：存放BeanDefination的容器，是一种键值对的形式，通过特定的Bean定义的id，映射到相应的BeanDefination
+
+* **BeanDefinitionReader**：读取配置文件，比如xml用dom4j解析，配置文件用io流
 
 Spring容器的启动流程：三个步骤
 
@@ -8787,6 +8799,18 @@ AnnotationAwareAspectJAutoProxyCreator是这种类型的后置处理器：Instan
 
 
 
+***
+
+
+
+#### Transactional
+
+如果一个类或者一个类中的 public 方法上被标注@Transactional 注解的话，Spring 容器就会在启动的时候为其创建一个代理类，在调用被@Transactional注解的 public 方法的时候，实际调用的是TransactionInterceptor类中的 invoke()方法。这个方法的作用就是在目标方法之前开启事务，方法执行过程中如果遇到异常的时候回滚事务，方法调用完成之后提交事务
+
+`TransactionInterceptor` 类中的 `invoke()`方法内部实际调用的是 `TransactionAspectSupport` 类的 `invokeWithinTransaction()`方法
+
+
+
 
 
 
@@ -9092,6 +9116,8 @@ Controller加载控制：SpringMVC的处理器对应的bean必须按照规范格
 
 
 ### 注解驱动
+
+纯注解开发：
 
 * 使用注解形式转化SpringMVC核心配置文件为配置类 java / config /  SpringMVCConfiguration.java
 
@@ -13394,7 +13420,7 @@ SpringBoot不能直接获取在其他工程中定义的Bean（pom导入springboo
 三种解决办法：
 
 1. 使用@ComponentScan扫描com.example.config包
-2. 使用import注解，加载类，这些类都会被Spring创建并放入ioc容器
+2. 使用Import注解，加载类，这些类都会被Spring创建并放入ioc容器
 3. 对Import注解进行封装
    **重点：Enable注解底层原理是使用@Import注解实现Bean的动态加载**
 
