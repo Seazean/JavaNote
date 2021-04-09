@@ -2471,7 +2471,10 @@ URI：统一资源标志符
     | 404     | 客户端错误，请求资源未找到                       |
     | 500     | 服务器错误，服务器运行内部错误                   |
 
-  
+  面试题：
+
+  * 301 redirect: 301 代表永久性转移(Permanently Moved)。
+  * 302 redirect: 302 代表暂时性转移(Temporarily Moved )
 
 * 响应头
   响应头以key:vaue存在, 可能多个value情况。

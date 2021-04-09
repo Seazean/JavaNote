@@ -7397,7 +7397,13 @@ Spring事务一般加到业务层，对应着业务的操作，数据层有自�
 
 事务特征（ACID）：
 
+**程序是否支持事务首先取决于数据库 ，比如使用 MySQL ，如果选择的是 innodb 引擎，那么是可以支持事务的。但是，如果MySQL使用的是 myisam 引擎的话，那从根上就是不支持事务的**
 
+**保证原子性**：
+
+* 要保证事务的原子性，就需要在异常发生时，对已经执行的操作进行**回滚**
+* 在 MySQL 中，恢复机制是通过**回滚日志（undo log）** 实现，所有事务进行的修改都会先先记录到这个回滚日志中，然后再执行相关的操作。如果执行过程中遇到异常的话，直接利用**回滚日志**中的信息将数据回滚到修改之前的样子即可
+* 回滚日志会先于数据持久化到磁盘上，这样保证了即使遇到数据库突然宕机等情况，当用户再次启动数据库的时候，数据库还能够通过查询回滚日志来回滚将之前未完成的事务
 
 
 
@@ -7409,11 +7415,18 @@ Spring事务一般加到业务层，对应着业务的操作，数据层有自�
 
 TransactionDefinition 接口中定义了五个表示隔离级别的常量：
 
-- **TransactionDefinition.ISOLATION_DEFAULT:** 使用后端数据库默认的隔离级别，Mysql 默认采用的 REPEATABLE_READ隔离级别 Oracle 默认采用的 READ_COMMITTED隔离级别.
-- **TransactionDefinition.ISOLATION_READ_UNCOMMITTED:** 最低的隔离级别，允许读取尚未提交的数据变更，可能会导致脏读、幻读或不可重复读
-- **TransactionDefinition.ISOLATION_READ_COMMITTED:** 允许读取并发事务已经提交的数据，可以阻止脏读，但是幻读或不可重复读仍有可能发生
-- **TransactionDefinition.ISOLATION_REPEATABLE_READ:** 对同一字段的多次读取结果都是一致的，除非数据是被本身事务自己所修改，可以阻止脏读和不可重复读，但幻读仍有可能发生。
-- **TransactionDefinition.ISOLATION_SERIALIZABLE:** 最高的隔离级别，完全服从ACID的隔离级别。所有的事务依次逐个执行，这样事务之间就完全不可能产生干扰，也就是说，该级别可以防止脏读、不可重复读以及幻读。但是这将严重影响程序的性能。通常情况下也不会用到该级别
+- **TransactionDefinition.ISOLATION_DEFAULT**：使用后端数据库默认的隔离级别，Mysql 默认采用的 REPEATABLE_READ隔离级别 Oracle 默认采用的 READ_COMMITTED隔离级别.
+- **TransactionDefinition.ISOLATION_READ_UNCOMMITTED**：最低的隔离级别，允许读取尚未提交的数据变更，可能会导致脏读、幻读或不可重复读
+- **TransactionDefinition.ISOLATION_READ_COMMITTED**：允许读取并发事务已经提交的数据，可以阻止脏读，但是幻读或不可重复读仍有可能发生
+- **TransactionDefinition.ISOLATION_REPEATABLE_READ**：对同一字段的多次读取结果都是一致的，除非数据是被本身事务自己所修改，可以阻止脏读和不可重复读，但幻读仍有可能发生。
+- **TransactionDefinition.ISOLATION_SERIALIZABLE**：最高的隔离级别，完全服从ACID的隔离级别。所有的事务依次逐个执行，这样事务之间就完全不可能产生干扰，也就是说，该级别可以防止脏读、不可重复读以及幻读。但是这将严重影响程序的性能。通常情况下也不会用到该级别
+
+MySQL InnoDB 存储引擎的默认支持的隔离级别是 **REPEATABLE-READ（可重读）**
+
+**分布式事务**：允许多个独立的事务资源（transactional resources）参与到一个全局的事务中
+事务资源通常是关系型数据库系统，但也可以是其他类型的资源。全局事务要求在其中的所有参与的事务要么都提交，要么都回滚，这对于事务原有的ACID要求又有了提高
+
+在使用分布式事务时，InnoDB存储引擎的事务隔离级别必须设置为SERIALIZABLE
 
 
 
@@ -7426,6 +7439,27 @@ TransactionDefinition 接口中定义了五个表示隔离级别的常量：
 事务传播行为描述的是事务协调员对事务管理员所携带事务的处理态度
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/事务传播行为.png)
+
+**事务传播行为是为了解决业务层方法之间互相调用的事务问题**：
+
+* 当事务方法被另一个事务方法调用时，必须指定事务应该如何传播。
+
+* 例如：方法可能继续在现有事务中运行，也可能开启一个新事务，并在自己的事务中运行
+
+  ```java
+  //A 类的aMethod（）方法中调用了 B 类的 bMethod() 方法
+  class A {
+      @Transactional(propagation=propagation.xxx)
+      public void aMethod {
+          B b = new B();
+          b.bMethod();
+      }
+  }
+  class B {
+      @Transactional(propagation=propagation.xxx)
+      public void bMethod {}
+  }
+  ```
 
 **支持当前事务的情况：**
 
@@ -7445,11 +7479,48 @@ TransactionDefinition 接口中定义了五个表示隔离级别的常量：
 
 
 
+****
 
 
 
+#### 超时属性
+
+事务超时，就是指一个事务所允许执行的最长时间，如果超过该时间限制但事务还没有完成，则自动回滚事务。在 `TransactionDefinition` 中以 int 的值来表示超时时间，其单位是秒，默认值为-1
 
 
+
+***
+
+
+
+#### 只读属性
+
+对于只有读取数据查询的事务，可以指定事务类型为 readonly，即只读事务；只读事务不涉及数据的修改，数据库会提供一些优化手段，适合用在有多条数据库查询操作的方法中
+
+读操作为什么需要启用事务支持：
+
+* MySQL 默认对每一个新建立的连接都启用了`autocommit`模式，在该模式下，每一个发送到 MySQL 服务器的`sql`语句都会在一个**单独**的事务中进行处理，执行结束后会自动提交事务，并开启一个新的事务
+* 执行多条查询语句，如果方法加上了`Transactional`注解，这个方法执行的所有`sql`会被放在一个事务中，如果声明了只读事务的话，数据库就会去优化它的执行，并不会带来其他的收益。如果不加`Transactional`，每条`sql`会开启一个单独的事务，中间被其它事务修改了数据，比如在前条 SQL 查询之后，后条 SQL 查询之前，数据被其他用户改变，则这次整体的统计查询将会出**现读数据不一致的状态**
+
+
+
+***
+
+
+
+#### 回滚规则
+
+默认情况下，事务只有遇到运行期异常（RuntimeException 的子类）时才会回滚，Error 也会导致事务回滚，但是，在遇到检查型（Checked）异常时不会回滚
+
+可以自定义定哪些异常会导致事务回滚而哪些不会：
+
+```java
+@Transactional(rollbackFor= MyException.class)
+//回滚定义的特定的异常类型的
+//noRollbackFor设置遇到哪些错误不需要回滚
+```
+
+声明式事务部分详解注解
 
 
 
@@ -8294,7 +8365,7 @@ Java启动Spring代码：
 ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.xml");
 ```
 
-* 第一阶段：**获取**`AbstractBeanFactory.doGetBean`
+* **获取**`AbstractBeanFactory.doGetBean`
 
   **第一次查询**：`DefaultSingletonBeanRegistry.getSingleton()`：从缓存池获取，获取不到继续进行
 
@@ -8313,6 +8384,7 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
   * `beforeSingletonCreation(beanName)`：初始化前操作，校验是否 beanName 是否有别的线程在初始化，并记录beanName的初始化状态
   * `singletonObject = singletonFactory.getObject()`：**实例化 bean**，第二阶段详解
     * `singletonObject = singletonFactory.getObject()`：创建bean
+    * 创建完成以后，Bean已经填充好，是一个完整的可使用的Bean
     * `afterSingletonCreation(beanName)`：初始化后的操作，移除初始化状态
     * `addSingleton(beanName, singletonObject)`：添加单例池，从二级三级缓存移除
   * `getTypeConverter().convertIfNecessary()`：检查所需的类型是否与实际bean实例的类型匹配
@@ -8326,7 +8398,7 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
 
   
 
-* 第二阶段：**实例化（创建）**AbstractAutowireCapableBeanFactory类
+* **实例化（创建）**AbstractAutowireCapableBeanFactory类
 
   **前置处理**：`createBean().resolveBeforeInstantiation()`BeanPostProcessor拦截进行前置处理
 
@@ -8340,16 +8412,19 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
   * **创建实例**：`createBeanInstance(beanName, RootBeanDefinition, Object[] args)`
     * 优先级从高到低：工厂方法、有参构造函数、默认构造函数 
     * 将 BeanDifinition 转化成 BeanWrapper，Spring给所有创建的Bean实例包装成BeanWrapper，BeanWrapper是对反射相关API的简单封装，使得上层使用反射完成相关的业务逻辑大大简化
+    
   * 后置处理：`applyMergedBeanDefinitionPostProcessors()`
     * 将所有的后置处理器拿出来，并且把名字叫beanName的类中的变量都封装到InjectionMetadata的injectedElements集合里面，目的是以后从中获取，创建实例，通过反射注入到相应类
     * `AutowiredAnnotationBeanPostProcessor.postProcessMergedBeanDefinition`
+    
   * 添加工厂：`DefaultSingletonBeanRegistry.addSingletonFactory()`
     
     * 允许提前引用才执行，用来解决**循环依赖**
+    
   * **填充属性 (依赖注入)**：`populateBean(beanName, RootBeanDefinition, BeanWrapper)`
     
     * 填充准备：通过awareBeanPostProcessor拦截，判断控制程序是否继续进行属性填充
-    * 获取依赖：根据autowire类型 (Type/Name)提取依赖，存入 PropertyValues，并给bean注册依赖
+    * 获取依赖：根据autowire类型 (Type/Name)提取依赖，存入PropertyValues并给bean注册依赖
     * 后置处理：判断是否需要进行 BeanPostProcessor 和 依赖检查
       
       * `postProcessProperties`：转入**AutowiredAnnotationBeanPostProcessor（注解**）
@@ -8362,6 +8437,7 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
         * `ReflectionUtils.makeAccessible()`：修改访问权限，true代表暴力破解
         * `method.invoke`：利用反射为此对象赋值
     * 填充属性：`applyPropertyValues()`，将所有解析的PropertyValues的属性填充至BeanWrapper 
+    
   * **初始化**：`initializeBean(String, Object, RootBeanDefinition)`
     
     * 填充Aware接口属性：`invokeAwareMethods(beanName,bean)`
@@ -8369,10 +8445,25 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
     * 前置处理：`applyBeanPostProcessorsBeforeInitialization()`
       * 需要在Bean初始化前进行一些自定义的前置处理，让Bean实现BeanPostProcessor接口
     * 自定义init方法调用：`AbstractAutowireCapableBeanFactory.invokeInitMethods()`
-    * 如果Bean实现了InitializingBean接口，执行afeterPropertiesSet()方法
-      * 如果Bean在Spring配置文件中配置了 init-method 属性，则会自动调用其配置的初始化方法
-    * 后置处理：`applyBeanPostProcessorsAfterInitialization()`，**AOP在此完成，跳转注解**
-  * 循环依赖检查：bean 创建后，它所依赖的bean一定是初始化完成，如果没有就报错
+      * 如果Bean实现了InitializingBean接口，执行afeterPropertiesSet()方法
+      * 如果Bean在Spring配置文件中配置了 init-method属性，则会自动调用其配置的初始化方法
+    * 后置处理：`applyBeanPostProcessorsAfterInitialization()`
+      * **AOP，跳转注解**，`AbstractAutoProxyCreatorwrapIfNecessary -> creatProxy`
+      * 如果不存在循环依赖，动态代理在此处完成，否则会提前创建
+    
+  * 循环依赖检查：如果存在循环依赖，在属性填充阶段会生成Bean对象的动态代理，则缓存中放置了提前生成的代理对象，然后使用原始bean继续执行初始化，所以返回最终bean前，把原始bean置换为代理对象返回；
+  
+    存在循环依赖，在初始化的后置处理中不会重新创建代理对象，真正创建动态代理Bean的阶段是在获取提前引用阶段，**循环依赖**详解，看后置处理源码：  
+  
+    ```java
+    public Object postProcessAfterInitialization() {。。。。。
+        //去提前代理引用池中寻找该key，如果存在就不会创建动态代理
+        Object cacheKey = getCacheKey(bean.getClass(), beanName);
+        if (this.earlyProxyReferences.remove(cacheKey) != bean) {//不成立
+            return wrapIfNecessary(bean, beanName, cacheKey);
+    //。。。。。。
+    ```
+  
   * **注册销毁**：`AbstractBeanFactory.registerDisposableBeanIfNecessary`，
     
     * 根据不同的scope进行disposableBean的注册，在销毁对象时调用destory()
@@ -8390,11 +8481,10 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
   循环依赖的三级缓存：
 
   ```java
-  /** Cache of singleton objects: bean name to bean instance. 1*/
-  //缓存所有单实例bean
+  //一级缓存：存放所有初始化完成单实例bean，单例池
   private final Map<String, Object> singletonObjects = new ConcurrentHashMap<>(256);
   
-  /** Cache of early singleton objects: bean name to bean instance. 2*/
+  //二级缓存：存放实例化未进行初始化的Bean，提前引用池
   private final Map<String, Object> earlySingletonObjects = new HashMap<>(16);
   
   /** Cache of singleton factories: bean name to ObjectFactory. 3*/
@@ -8404,10 +8494,16 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
   为什么需要三级缓存？
 
   * 循环依赖解决需要提前引用动态代理对象，AOP动态代理是在Bean初始化后的后置处理中进行，这时的bean已经是成品对象，需要提前进行动态代理，三级缓存的ObjectFactory可以提前产生需要代理的对象
+  * 若存在循环依赖，**后置处理不创建代理对象，真正创建代理对象的过程是在getBean(B)的阶段中**
 
   一定会提前引用吗？
 
   * 出现循环依赖才去使用，不出现就不使用
+
+  wrapIfNecessary一定创建代理对象吗？
+
+  * 存在增强器会创建动态代理，不需要增强就不需要创建动态代理对象
+  * 不创建就会把最原始的实例化的Bean放到二级缓存，因为addSingletonFactory参数中传入了实例化的Bean，在singletonFactory.getObject()中返回给singletonObject，放入二级缓存
 
   什么时候将Bean的引用提前暴露给第三级缓存的ObjectFactory持有？
 
@@ -8457,20 +8553,25 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
   public Object getEarlyBeanReference(Object bean, String beanName) {
       Object cacheKey = getCacheKey(bean.getClass(), beanName);
       this.earlyProxyReferences.put(cacheKey, bean);
+      //提前引用代理池earlyProxyReferences中添加该Bean
       return wrapIfNecessary(bean, beanName, cacheKey);
-  	//创建代理对象，第三阶段的createProxy
+  	//创建代理对象，createProxy
   }
   ```
-
-  所以若存在循环依赖，后置处理不创建代理对象，真正创建代理对象的过程是在getBean(B)的阶段中：
-
-  ```java
-  if (this.earlyProxyReferences.remove(cacheKey) != bean) {//条件不成立
-      return wrapIfNecessary(bean, bN, cacheKey);
-  }
-  ```
-
   
+  wrapIfNecessary
+  
+  ```java
+  // Create proxy if we have advice.获取增强方法
+  Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, null);///
+  if (specificInterceptors != DO_NOT_PROXY) {
+      Object proxy = createProxy(。。。。);。。。
+      return proxy;
+  }
+  this.advisedBeans.put(cacheKey, Boolean.FALSE);
+  return bean;
+  ```
+
 
 
 
@@ -8501,9 +8602,9 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
       return beanDefinitions;
   }
   ```
-
+  
   ClassPathScanningCandidateComponentProvider.findCandidateComponents()
-
+  
   ```java
   public Set<BeanDefinition> findCandidateComponents(String basePackage) {
       if (this.componentsIndex != null && indexSupportsIncludeFilters()) {
@@ -8514,39 +8615,38 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
       }
   }
   ```
-
+  
   ```java
   private Set<BeanDefinition> scanCandidateComponents(String basePackage) {}
   ```
-
-  * `String packageSearchPath = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX resolveBasePackage(basePackage) + '/' + this.resourcePattern` ：将package转化为ClassLoader类资源搜索路径packageSearchPath，例如：`com.wl.spring.boot`转化为`classpath*:com/wl/spring/boot/**/*.class`
-  * `Resource[] resources = getResourcePatternResolver().getResources(packageSearchPath)`：加载搜素路径下的资源
-  * `MetadataReader metadataReader = getMetadataReaderFactory().getMetadataReader(resource)`：获取元数据阅读器
-  * isCandidateComponent：判断是否是备选组件
-  * candidates.add(sbd)：添加到返回结果的list
-
-  isCandidateComponent源码：
-
+    * `String packageSearchPath = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX resolveBasePackage(basePackage) + '/' + this.resourcePattern` ：将package转化为ClassLoader类资源搜索路径packageSearchPath，例如：`com.wl.spring.boot`转化为`classpath*:com/wl/spring/boot/**/*.class`
+    * `Resource[] resources = getResourcePatternResolver().getResources(packageSearchPath)`：加载搜素路径下的资源
+    * `MetadataReader metadataReader = getMetadataReaderFactory().getMetadataReader(resource)`：获取元数据阅读器
+    * isCandidateComponent：判断是否是备选组件
+    * candidates.add(sbd)：添加到返回结果的list
+  
+    isCandidateComponent源码：
+  
   ```java
   protected boolean isCandidateComponent(MetadataReader m) throws IOException {
       //....
       for (TypeFilter tf : this.includeFilters) {
           if (tf.match(m, getMetadataReaderFactory())) {
               return isConditionMatch(metadataReader);
-     //....
-  }
+              //....
+          }
   ```
-
+  
   ```java
   protected void registerDefaultFilters() {
-  	this.includeFilters.add(new AnnotationTypeFilter(Component.class));//...
+      this.includeFilters.add(new AnnotationTypeFilter(Component.class));//...
   }
   ```
-
-  includeFilters由`registerDefaultFilters()`设置初始值，有@Component，没有@Service
-
-  因为@Component是@Service的元注解，Spring在读取@Service，也读取了它的元注解，并将@Service作为@Component处理
-
+  
+   includeFilters由`registerDefaultFilters()`设置初始值，有@Component，没有@Service
+  
+    因为@Component是@Service的元注解，Spring在读取@Service，也读取了它的元注解，并将@Service作为@Component处理
+  
   ```java
   @Target({ElementType.TYPE})
   @Retention(RetentionPolicy.RUNTIME)
@@ -8554,7 +8654,7 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
   @Component
   public @interface Service {}
   ```
-
+  
 * **@Component派生性流程：**
 
   metadataReader本质上：`MetadataReader metadataReader =new SimpleMetadataReader(...);`
@@ -8632,7 +8732,11 @@ AutowiredAnnotationBeanPostProcessor间接实现InstantiationAwareBeanPostProces
 
 **在容器启动，为对象赋值的时候，遇到@Autowired注解，会用后置处理器机制，来创建属性的实例，然后再利用反射机制，将实例化好的属性，赋值给对象上，这就是Autowired的原理**
 
-作用时机：Bean的填充属性阶段 --> 跳转`populateBean(beanName, RootBeanDefinition, BeanWrapper)`
+作用时机：
+
+* Spring容器在每个Bean实例化之后，调用AutowiredAnnotationBeanPostProcessor的`postProcessMergedBeanDefinition`方法，查找该Bean是否有@Autowired注解
+
+* Spring在每个Bean实例化时，调用`populateBean`进行属性注入的时候，即调用`postProcessPropertyValues`方法，查找该Bean是否有@Autowired注解
 
 
 
@@ -8718,7 +8822,9 @@ AnnotationAwareAspectJAutoProxyCreator是这种类型的后置处理器：Instan
 
    创建动态代理：`wrapIfNecessary()`调用`createProxy()`（wrap包装）
 
-   * `getAdvicesAndAdvisorsForBean()`：获取当前bean的所有增强器 (通知方法)
+   注释：Create proxy if we have advice
+
+   * `getAdvicesAndAdvisorsForBean()`：获取当前bean的所有增强器 (通知方法)，**为空就直接返回**
 
      * findEligibleAdvisors()：找到哪些通知方法是需要切入当前bean方法的
      * AopUtils.findAdvisorsThatCanApply()：获取到能在bean使用的增强器

@@ -768,7 +768,7 @@ rm命令用于删除一个文件或者目录。
 命令：rm [options] name...
 
 - -i 删除前逐一询问确认。
-- -f 即使原档案属性设为唯读，亦直接删除，无需逐一确认。
+- -f 即使原档案属性设为唯读，亦直接删除，无需逐一确认
 - -r 将目录及以下之档案亦逐一删除，递归删除
 
 注：文件一旦通过rm命令删除，则无法恢复，所以必须格外小心地使用该命令
@@ -1945,7 +1945,7 @@ mount [-fnrsvw] [-t vfstype] [-o options] device dir
 通过挂载的方式查看Linux CD/DVD光驱，查看 ubuntu-20.04.1-desktop-amd64.iso的文件
 
 * 进入【虚拟机】--【设置】，设置CD/DVD的内容，ubuntu-20.04.1-desktop-amd64.iso
-* 创建挂载点。（注意：一般用户无法挂载cdrom,只有root用户才可以操作）
+* 创建挂载点（注意：一般用户无法挂载cdrom，只有root用户才可以操作）
   `mkdir -p /mnt/cdrom `：切换到root下创建一个挂载点（其实就是创建一个目录）
 * 开始挂载
   `mount -t auto /dev/cdrom /mnt/cdrom`：通过挂载点的方式查看上面的【ISO文件内容】
