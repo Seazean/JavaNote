@@ -1939,9 +1939,9 @@ abstract class Animal{
 答：抽象类作为类一定有构造器，而且必须有构造器，提供给子类继承后调用父类构造器使用的
 
 1、抽象类有构造器，但是抽象类不能创建对象，类的其他成分它都具备
-2、抽象类中存在抽象方法，但不能执行，抽象类中也可没有抽象方法
+2、抽象类中存在抽象方法，但不能执行，**抽象类中也可没有抽象方法**
 
-> 抽象在学术上本身意味着不能实例化。
+> 抽象在学术上本身意味着不能实例化
 
 ```java
 public class AbstractDemo {
@@ -2455,7 +2455,7 @@ new 类名|抽象类|接口(形参){
 * 匿名内部类不能定义静态成员
 * 匿名内部类一旦写出来，就会立即创建一个匿名内部类的对象返回
 * **匿名内部类的对象的类型相当于是当前new的那个的类型的子类类型**
-* 匿名内部类引用局部变量，局部变量必须是final修饰，底层创建为内部类的成员变量（JVM类加载字节码内部类）
+* 匿名内部类引用局部变量，局部变量必须是**final修饰**，底层创建为内部类的成员变量（JVM-->类加载-->编译优化-->内部类）
 
 ```java
 public class Anonymity {
@@ -3167,10 +3167,10 @@ public static void main(String[] args){
 
 ### Calendar
 
-Calendar代表了系统此刻日期对应的日历对象。
-Calendar是一个抽象类，不能直接创建对象。
+Calendar代表了系统此刻日期对应的日历对象
+Calendar是一个抽象类，不能直接创建对象
 Calendar日历类创建日历对象的语法：
-		`Calendar rightNow = Calendar.getInstance();`(**饿汉单例模式**)
+		`Calendar rightNow = Calendar.getInstance()`(**饿汉单例模式**)
 Calendar的方法：
     	`public static Calendar getInstance()`: 返回一个日历类的对象。
     	`public int get(int field)`：取日期中的某个字段信息。
@@ -3903,14 +3903,14 @@ public class RegexDemo {
 #### 概述
 
 什么是数据结构？
-    数据结构指的是数据以什么方式组织在一起。
-    不同的数据结构，增删查的性能是不一样的。
-    不同的集合底层会采用不同的数据结构，了解集合的底层是基于哪种数据结构操作数据才能知道具体场景
+
+* 数据结构指的是数据以什么方式组织在一起，不同的数据结构，增删查的性能是不一样的
+* 不同的集合底层会采用不同的数据结构，了解集合的底层是基于哪种数据结构操作数据才能知道具体场景
 
 Java常见的数据结构有哪些?
 	数据存储的常用结构有：栈、队列、数组、链表和红黑树
 
-* 队列（queue）：先进先出，后进后出。(FIFO)
+* 队列（queue）：先进先出，后进后出。(FIFO first in first out)
   场景：各种排队、叫号系统，有很多集合可以实现队列
 
 * 栈（stack）：后进先出，先进后出 （LIFO）
@@ -5144,6 +5144,8 @@ transient int size;
    	//。。。。。。。。。。。。。。
    }
    ```
+
+   * `(n - 1) & hash`：计算下标位置
 
    ![](https://gitee.com/seazean/images/raw/master/JavaSE/HashMap-putVal哈希运算.png)
 
@@ -7251,7 +7253,7 @@ class User implements Serializable {
 	方法：`public final Object readObject()`
 
 序列化版本号：`private static final long serialVersionUID = 2L`;
-    必须序列化使用的版本号和反序列化使用的版本号一致才可以正常反序列化！否则报错！
+    必须序列化使用的版本号和反序列化使用的版本号一致才可以正常反序列化，否则报错！
 
 ```java
 public class SerializeDemo02 {
@@ -11006,13 +11008,40 @@ JVM的生命周期分为三个阶段，分别为：启动、运行、死亡。
 
 
 
+
 ***
 
 
 
-### 内存结构
+### VM参数
 
-#### 内存概述
+| 参数                                                         | 功能                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| -Xms                                                         | 堆初始大小（默认为物理内存的1/64）                           |
+| -Xmx 或 -XX:MaxHeapSize=size                                 | 堆最大大小（默认为物理内存的1/4）                            |
+| -Xmn 或 -XX:NewSize=size + -XX:MaxNewSize=size               | 新生代大小（初始值及最大值）                                 |
+| -XX:NewRatio                                                 | 新生代与老年代在堆结构的占比                                 |
+| -XX:SurvivorRatio=ratio                                      | 幸存区比例（Eden和S0/S1空间的比例）                          |
+| -XX:InitialSurvivorRatio=ratio 和 -XX:+UseAdaptiveSizePolicy | 幸存区比例（动态）                                           |
+| -XX:MaxTenuringThreshold=threshold                           | 晋升阈值                                                     |
+| -XX:+PrintTenuringDistribution                               | 晋升详情                                                     |
+| -XX:+PrintFlagsInitial                                       | 查看所有的参数的默认初始值                                   |
+| -XX:+PrintFlagsFinal                                         | 查看所有的参数的最终值<br />（可能会存在修改，不再是初始值） |
+| -XX:+PrintGCDetails                                          | GC详情，打印gc简要信息：<br />1. -XX：+PrintGC   2. - verbose:gc |
+| -XX:+ScavengeBeforeFullGC                                    | FullGC 前 MinorGC                                            |
+| -XX:+DisableExplicitGC                                       | 禁用显式垃圾回收，让System.gc无效                            |
+
+说明：参数前面是`+`号说明是开启，如果是`- `号说明是关闭
+
+
+
+***
+
+
+
+## 内存结构
+
+### 内存概述
 
 JVM内存结构是JVM中非常重要的一部分，并且在JDK7和JDK8中也进行了一些改动。内存是非常重要的系统资源，是硬盘和 CPU 的中间仓库及桥梁，承载着操作系统和应用程序的实时运行
 
@@ -11031,7 +11060,7 @@ JVM 内存结构规定了 Java 在运行过程中内存申请、分配、管理�
 
 
 
-#### 虚拟机栈
+### 虚拟机栈
 
 Java 虚拟机栈：Java Virtual Machine Stacks，**每个线程**运行时所需要的内存
 
@@ -11080,7 +11109,7 @@ Java 虚拟机栈：Java Virtual Machine Stacks，**每个线程**运行时所�
 
 
 
-#### 本地方法栈
+### 本地方法栈
 
 本地方法栈是为虚拟机**执行本地方法时提供服务的**
 
@@ -11100,7 +11129,7 @@ Java 虚拟机栈：Java Virtual Machine Stacks，**每个线程**运行时所�
 
 
 
-#### 程序计数器
+### 程序计数器
 
 Program Counter Register 程序计数器（寄存器）
 
@@ -11137,7 +11166,7 @@ Java**反编译**指令：`javap -v Test.class`
 
 
 
-#### 堆
+### 堆
 
 Heap 堆：是JVM内存中最大的一块，由所有线程共享，由垃圾回收器管理的主要区域（"GC 堆"），堆中对象都需要考虑线程安全的问题
 
@@ -11186,7 +11215,7 @@ public static void main(String[] args) throws InterruptedException {
 
 
 
-#### 方法区
+### 方法区
 
 方法区：是各个线程共享的内存区域，用于存储已被虚拟机加载的类信息、常量、静态变量、即时编译器编译后的代码等数据，虽然 Java 虚拟机规范把方法区描述为堆的一个逻辑部分，但是它也叫 Non-Heap（非堆）
 
@@ -11212,9 +11241,9 @@ public static void main(String[] args) throws InterruptedException {
 
 
 
-#### 本地内存
+### 本地内存
 
-##### 本地内存
+#### 本地内存
 
 虚拟机内存：Java虚拟机在执行的时候会把管理的内存分配成不同的区域，受虚拟机内存大小的参数控制，当大小超过参数设置的大小时就会报OOM
 
@@ -11230,7 +11259,7 @@ public static void main(String[] args) throws InterruptedException {
 
 
 
-##### 元空间
+#### 元空间
 
 PermGen 被元空间代替，永久代的**类信息、方法、常量池**等都移动到元空间区
 
@@ -11285,7 +11314,7 @@ public class Demo1_8 extends ClassLoader { // 可以用来加载类的二进制�
 
 
 
-##### 直接内存
+#### 直接内存
 
 Direct Memory特点：
 
@@ -11340,7 +11369,12 @@ public class Demo1_27 {
 
 
 
-#### 变量位置
+### 变量位置
+
+静态内部类和其他内部类：（待考证）
+
+* 静态内部类属于类本身，加载到方法区
+* 其他内部类加载到栈
 
 类变量：
 
@@ -11385,35 +11419,8 @@ public class Demo1_27 {
 
 
 
-***
-
-
-
-### VM参数
-
-| 参数                                                         | 功能                                                         |
-| ------------------------------------------------------------ | ------------------------------------------------------------ |
-| -Xms                                                         | 堆初始大小（默认为物理内存的1/64）                           |
-| -Xmx 或 -XX:MaxHeapSize=size                                 | 堆最大大小（默认为物理内存的1/4）                            |
-| -Xmn 或 -XX:NewSize=size + -XX:MaxNewSize=size               | 新生代大小（初始值及最大值）                                 |
-| -XX:NewRatio                                                 | 新生代与老年代在堆结构的占比                                 |
-| -XX:SurvivorRatio=ratio                                      | 幸存区比例（Eden和S0/S1空间的比例）                          |
-| -XX:InitialSurvivorRatio=ratio 和 -XX:+UseAdaptiveSizePolicy | 幸存区比例（动态）                                           |
-| -XX:MaxTenuringThreshold=threshold                           | 晋升阈值                                                     |
-| -XX:+PrintTenuringDistribution                               | 晋升详情                                                     |
-| -XX:+PrintFlagsInitial                                       | 查看所有的参数的默认初始值                                   |
-| -XX:+PrintFlagsFinal                                         | 查看所有的参数的最终值<br />（可能会存在修改，不再是初始值） |
-| -XX:+PrintGCDetails                                          | GC详情，打印gc简要信息：<br />1. -XX：+PrintGC   2. - verbose:gc |
-| -XX:+ScavengeBeforeFullGC                                    | FullGC 前 MinorGC                                            |
-| -XX:+DisableExplicitGC                                       | 禁用显式垃圾回收，让System.gc无效                            |
-
-说明：参数前面是`+`号说明是开启，如果是`- `号说明是关闭
-
-
 
 ***
-
-
 
 
 
@@ -12994,7 +13001,7 @@ JDK5以后编译阶段自动转换成上述片段
 
 
 
-#### 泛型集合取值
+#### 泛型集合
 
 泛型也是在 JDK 5 开始加入的特性，但 java 在编译泛型代码后会执行**泛型擦除**的动作，即泛型信息
 在编译为字节码之后就丢失了，实际的类型都当做了 Object 类型来处理：
@@ -13429,7 +13436,7 @@ public class Candy11 {
 }
 ```
 
-局部变量必须是 final 的：因为在创建Candy11￥1 对象时，将 x 的值赋值给了 Candy11$1 对象的 val属性，x不应该再发生变化了；如果变化，this.val​x属性没有机会再跟着变化
+局部变量必须是 final 的：因为在创建Candy11￥1 对象时，将 x 的值赋值给了 Candy11$1 对象的 val属性，x不应该再发生变化了，因为发生变化，this.val​x属性没有机会再跟着变化
 
 
 
@@ -14199,7 +14206,7 @@ JDK 自带了监控工具，位于 JDK 的 bin 目录下，其中最常用的是
 
 ### 参数调优
 
-对于JVM调优，主要就是调整年轻代、年老大、元空间的内存空间大小及使用的垃圾回收器类型
+对于JVM调优，主要就是调整年轻代、老年代、元空间的内存空间大小及使用的垃圾回收器类型
 
 * 设置堆的初始大小和最大大小，为了防止垃圾收集器在初始大小、最大大小之间收缩堆而产生额外的时间，通常把最大、初始大小设置为相同的值
 
@@ -14240,12 +14247,18 @@ JDK 自带了监控工具，位于 JDK 的 bin 目录下，其中最常用的是
 
 ## JMM
 
-java 内存模型是 Java MemoryModel（JMM）的意思
+Java 内存模型是 Java MemoryModel（JMM）
 
-JMM 定义了一套在多线程读写共享数据时（成员变量、数组）时，对数据的可见性、有序
-性、和原子性的规则和保障
+JMM主要是为了规定了线程和内存之间的一些关系，根据JMM的设计，系统存在一个主内存(Main Memory)，Java中所有变量都存储在主存中，对于所有线程都是共享的。每条线程都有自己的工作内存(Working Memory)，工作内存中保存的是主存中某些变量的拷贝，线程对所有变量的操作都是在工作内存中进行，线程之间无法相互直接访问，变量传递均需要通过主存完成
 
+![](https://gitee.com/seazean/images/raw/master/JavaSE/JMM内存模型.png)
 
+**jvm和jmm之间的关系**：
+
+* jmm中的主内存、工作内存与jvm中的Java堆、栈、方法区等并不是同一个层次的内存划分
+* 这两者基本上是没有关系的，如果两者一定要勉强对应起来，那从变量、主内存、工作内存的定义来看：
+  * 主内存主要对应于Java堆中的对象实例数据部分，而工作内存则对应于虚拟机栈中的部分区域
+  * 从更低层次上说，主内存就直接对应于物理硬件的内存，而为了获取更好的运行速度，虚拟机（甚至是硬件系统本身的优化措施）可能会让工作内存优先存储于寄存器和高速缓存中，因为程序运行时主要访问读写的是工作内存
 
 
 

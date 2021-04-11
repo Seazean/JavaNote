@@ -342,8 +342,15 @@ MySQL配置：
     | TIMESTAMP | 时间戳类型，包含年月日时分秒：yyyy-MM-dd HH:mm:ss<br />如果不给这个字段赋值或赋值为null，则默认使用当前的系统时间 |
     | VARCHAR   | 字符串<br />name varchar(20):姓名最大20个字符：zhangsan8个字符,张三2个字符 |
 
-  - 例如：
+    `INT(n)`：n代表位数
 
+    * 3：int（9）显示结果为000000010
+    * 3：int（3）显示结果为010
+  
+    `varchar(n)`：n表示的是字符数
+  
+  - 例如：
+  
     ```mysql
     -- 使用db3数据库
     USE db3;

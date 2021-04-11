@@ -736,10 +736,10 @@ Maven的插件用来执行生命周期中的相关事件
       <modules>
           <!--具体的工程名称-->
           <module>../ssm_pojo</module>
-              <module>../ssm_dao</module>
-              <module>../ssm_service</module>
-              <module>../ssm_controller</module>
-          </modules>
+          <module>../ssm_dao</module>
+          <module>../ssm_service</module>
+          <module>../ssm_controller</module>
+      </modules>
   </project>
   ```
 
@@ -5904,27 +5904,29 @@ FactoryBean与BeanFactory区别：
 
 代码实现：
 
-* FactoryBean，实现类一般是SqlSessionFactoryBean
+* FactoryBean，实现类一般是MapperFactoryBean
 
   ```java
   public class EquipmentDaoImplFactoryBean implements FactoryBean {
-      @Override
+      @Override	//获取Bean
       public Object getObject() th  rows Exception {
           return new EquipmentDaoImpl();
       }
-      @Override
+      
+      @Override	//获取bean的类型
       public Class<?> getObjectType() {
           return null;
       }
-      @Override
+      
+      @Override	//是否单例
       public boolean isSingleton() {
           return false;
       }
-  }
+}
   ```
 
   
-
+  
   
 
 ***
@@ -7388,7 +7390,7 @@ Spirng可以通过配置的形式控制使用的代理形式，Spring会先判�
 
 事务：数据库中多个操作合并在一起形成的操作序列
 
-Spring事务一般加到业务层，对应着业务的操作，数据层有自己默认的隔离界别
+Spring事务一般加到业务层，对应着业务的操作，数据层有自己默认的隔离界别。Spring事务的本质其实就是数据库对事务的支持，没有数据库的事务支持，Spring是无法提供事务功能的，Spring只提供统一事务管理接口
 
 作用：
 
@@ -7397,13 +7399,15 @@ Spring事务一般加到业务层，对应着业务的操作，数据层有自�
 
 事务特征（ACID）：
 
-**程序是否支持事务首先取决于数据库 ，比如使用 MySQL ，如果选择的是 innodb 引擎，那么是可以支持事务的。但是，如果MySQL使用的是 myisam 引擎的话，那从根上就是不支持事务的**
+Spring会在事务开始时，根据当前环境中设置的隔离级别，调整数据库隔离级别，由此保持一致。**程序是否支持事务首先取决于数据库 ，比如使用 MySQL ，如果选择的是 innodb 引擎，那么是可以支持事务的。但是，如果MySQL使用的是 myisam 引擎的话，那从根上就是不支持事务的**
 
 **保证原子性**：
 
 * 要保证事务的原子性，就需要在异常发生时，对已经执行的操作进行**回滚**
 * 在 MySQL 中，恢复机制是通过**回滚日志（undo log）** 实现，所有事务进行的修改都会先先记录到这个回滚日志中，然后再执行相关的操作。如果执行过程中遇到异常的话，直接利用**回滚日志**中的信息将数据回滚到修改之前的样子即可
 * 回滚日志会先于数据持久化到磁盘上，这样保证了即使遇到数据库突然宕机等情况，当用户再次启动数据库的时候，数据库还能够通过查询回滚日志来回滚将之前未完成的事务
+
+
 
 
 
@@ -11050,6 +11054,192 @@ ExceptionHandler注解：
 
 
 
+
+
+## Reatful
+
+### Rest概述
+
+Rest（ REpresentational State Transfer） ：一种网络资源的访问风格，定义了网络资源的访问方式
+
+* 传统风格访问路径
+  http://localhost/user/get?id=1
+  http://localhost/deleteUser?id=1
+* Rest风格访问路径
+  http://localhost/user/1
+
+Restful是按照Rest风格访问网络资源
+
+优点：
+
+* 隐藏资源的访问行为，通过地址无法得知做的是何种操作
+* 书写简化
+
+Rest行为约定方式：
+
+* GET（查询） http://localhost/user/1 GET
+
+* POST（保存） http://localhost/user POST
+
+* PUT（更新） http://localhost/user PUT
+
+* DELETE（删除） http://localhost/user DELETE
+
+  注意：上述行为是约定方式，约定不是规范，可以打破，所以称Rest风格，而不是Rest规范
+
+***
+
+
+
+### Restful开发
+
+Restful请求路径简化配置方式：**@RestController = @Controller + @ResponseBody**
+
+* restful.jsp
+  开启SpringMVC对Restful风格的访问支持过滤器，即可**通过页面表单提交PUT**与DELETE请求
+  页面表单使用隐藏域提交请求类型，参数名称固定为_method，必须配合提交类型method=post使用
+
+  * GET请求通过地址栏可以发送，也可以通过设置form的请求方式提交
+  * POST请求必须通过form的请求方式提交
+
+  ```html
+  <%@page pageEncoding="UTF-8" language="java" contentType="text/html;UTF-8" %>
+  <h1>restful风格请求表单</h1>
+  <%--切换请求路径为restful风格--%>
+  <form action="/user/1" method="post">
+      <%--当添加了name为_method的隐藏域时，可以通过设置该隐藏域的值，修改请求的提交方式，切换为PUT请求或DELETE请求，但是form表单的提交方式method属性必须填写post--%>
+      <%--该配置需要配合HiddenHttpMethodFilter过滤器使用，单独使用无效，请注意检查web.xml中是否配置了对应过滤器--%>
+      <input type="text" name="_method" value="PUT"/>
+      <input type="submit"/>
+  </form>
+  ```
+
+
+* java / controller / UserController
+
+  ```java
+  //@Controller
+  //@ResponseBody
+  //设置rest风格的控制器
+  @RestController
+  //设置公共访问路径，配合下方访问路径使用
+  @RequestMapping("/user/")
+  public class UserController {
+  
+      //rest风格访问路径完整书写方式
+      @RequestMapping("/user/{id}")
+      //使用@PathVariable注解获取路径上配置的具名变量，该配置可以使用多次
+      public String restLocation(@PathVariable Integer id){
+          System.out.println("restful is running ....");
+          return "success.jsp";
+      }
+  
+      //rest风格访问路径简化书写方式，配合类注解@RequestMapping使用
+      @RequestMapping("{id}")
+      public String restLocation2(@PathVariable Integer id){
+          System.out.println("restful is running ....get:"+id);
+          return "success.jsp";
+      }
+  
+      //接收GET请求配置方式
+      @RequestMapping(value = "{id}",method = RequestMethod.GET)
+      //接收GET请求简化配置方式
+      @GetMapping("{id}")
+      public String get(@PathVariable Integer id){
+          System.out.println("restful is running ....get:"+id);
+          return "success.jsp";
+      }
+  
+      //接收POST请求配置方式
+      @RequestMapping(value = "{id}",method = RequestMethod.POST)
+      //接收POST请求简化配置方式
+      @PostMapping("{id}")
+      public String post(@PathVariable Integer id){
+          System.out.println("restful is running ....post:"+id);
+          return "success.jsp";
+      }
+  
+      //接收PUT请求简化配置方式
+      @RequestMapping(value = "{id}",method = RequestMethod.PUT)
+      //接收PUT请求简化配置方式
+      @PutMapping("{id}")
+      public String put(@PathVariable Integer id){
+          System.out.println("restful is running ....put:"+id);
+          return "success.jsp";
+      }
+  
+      //接收DELETE请求简化配置方式
+      @RequestMapping(value = "{id}",method = RequestMethod.DELETE)
+      //接收DELETE请求简化配置方式
+      @DeleteMapping("{id}")
+      public String delete(@PathVariable Integer id){
+          System.out.println("restful is running ....delete:"+id);
+          return "success.jsp";
+      }
+  }
+  ```
+
+* 配置拦截器 web.xml
+
+  ```xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  <web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
+           version="3.1">
+      <filter>
+          <filter-name>characterEncodingFilter</filter-name>
+          <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+          <init-param>
+              <param-name>encoding</param-name>
+              <param-value>UTF-8</param-value>
+          </init-param>
+      </filter>
+      <filter-mapping>
+          <filter-name>characterEncodingFilter</filter-name>
+          <url-pattern>/*</url-pattern>
+      </filter-mapping>
+  
+  <!--配置拦截器，解析请求中的参数_method，否则无法发起PUT请求与DELETE请求，配合页面表单使用-->
+      <filter>
+          <filter-name>HiddenHttpMethodFilter</filter-name>
+          <filter-class>org.springframework.web.filter.HiddenHttpMethodFilter</filter-class>
+      </filter>
+      <filter-mapping>
+          <filter-name>HiddenHttpMethodFilter</filter-name>
+          <servlet-name>DispatcherServlet</servlet-name>
+      </filter-mapping>
+  
+      <servlet>
+          <servlet-name>DispatcherServlet</servlet-name>
+          <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+          <init-param>
+              <param-name>contextConfigLocation</param-name>
+              <param-value>classpath*:spring-mvc.xml</param-value>
+          </init-param>
+      </servlet>
+      <servlet-mapping>
+          <servlet-name>DispatcherServlet</servlet-name>
+          <url-pattern>/</url-pattern>
+      </servlet-mapping>
+  </web-app>
+  ```
+
+  
+
+
+### Postman
+
+**postman** 是  一款可以发送Restful风格请求的工具，方便开发调试，首次运行需要联网注册
+
+网址：https://www.postman.com/
+
+
+
+***
+
+
+
 ## 实用技术
 
 ### 文件传输
@@ -11197,190 +11387,6 @@ public class FileUploadController {
     }
 }
 ```
-
-
-
-***
-
-
-
-### Reatful
-
-#### Rest概述
-
-Rest（ REpresentational State Transfer） ：一种网络资源的访问风格，定义了网络资源的访问方式
-
-* 传统风格访问路径
-  http://localhost/user/get?id=1
-  http://localhost/deleteUser?id=1
-* Rest风格访问路径
-  http://localhost/user/1
-
-Restful是按照Rest风格访问网络资源
-
-优点：
-
-* 隐藏资源的访问行为，通过地址无法得知做的是何种操作
-* 书写简化
-
-Rest行为约定方式：
-
-* GET（查询） http://localhost/user/1 GET
-
-* POST（保存） http://localhost/user POST
-
-* PUT（更新） http://localhost/user PUT
-
-* DELETE（删除） http://localhost/user DELETE
-
-  注意：上述行为是约定方式，约定不是规范，可以打破，所以称Rest风格，而不是Rest规范
-
-***
-
-
-
-#### Restful开发
-
-Restful请求路径简化配置方式：**@RestController = @Controller + @ResponseBody**
-
-* restful.jsp
-  开启SpringMVC对Restful风格的访问支持过滤器，即可**通过页面表单提交PUT**与DELETE请求
-  页面表单使用隐藏域提交请求类型，参数名称固定为_method，必须配合提交类型method=post使用
-
-  * GET请求通过地址栏可以发送，也可以通过设置form的请求方式提交
-  * POST请求必须通过form的请求方式提交
-
-  ```html
-  <%@page pageEncoding="UTF-8" language="java" contentType="text/html;UTF-8" %>
-  <h1>restful风格请求表单</h1>
-  <%--切换请求路径为restful风格--%>
-  <form action="/user/1" method="post">
-      <%--当添加了name为_method的隐藏域时，可以通过设置该隐藏域的值，修改请求的提交方式，切换为PUT请求或DELETE请求，但是form表单的提交方式method属性必须填写post--%>
-      <%--该配置需要配合HiddenHttpMethodFilter过滤器使用，单独使用无效，请注意检查web.xml中是否配置了对应过滤器--%>
-      <input type="text" name="_method" value="PUT"/>
-      <input type="submit"/>
-  </form>
-  ```
-
-
-* java / controller / UserController
-
-  ```java
-  //@Controller
-  //@ResponseBody
-  //设置rest风格的控制器
-  @RestController
-  //设置公共访问路径，配合下方访问路径使用
-  @RequestMapping("/user/")
-  public class UserController {
-  
-      //rest风格访问路径完整书写方式
-      @RequestMapping("/user/{id}")
-      //使用@PathVariable注解获取路径上配置的具名变量，该配置可以使用多次
-      public String restLocation(@PathVariable Integer id){
-          System.out.println("restful is running ....");
-          return "success.jsp";
-      }
-  
-      //rest风格访问路径简化书写方式，配合类注解@RequestMapping使用
-      @RequestMapping("{id}")
-      public String restLocation2(@PathVariable Integer id){
-          System.out.println("restful is running ....get:"+id);
-          return "success.jsp";
-      }
-  
-      //接收GET请求配置方式
-      @RequestMapping(value = "{id}",method = RequestMethod.GET)
-      //接收GET请求简化配置方式
-      @GetMapping("{id}")
-      public String get(@PathVariable Integer id){
-          System.out.println("restful is running ....get:"+id);
-          return "success.jsp";
-      }
-  
-      //接收POST请求配置方式
-      @RequestMapping(value = "{id}",method = RequestMethod.POST)
-      //接收POST请求简化配置方式
-      @PostMapping("{id}")
-      public String post(@PathVariable Integer id){
-          System.out.println("restful is running ....post:"+id);
-          return "success.jsp";
-      }
-  
-      //接收PUT请求简化配置方式
-      @RequestMapping(value = "{id}",method = RequestMethod.PUT)
-      //接收PUT请求简化配置方式
-      @PutMapping("{id}")
-      public String put(@PathVariable Integer id){
-          System.out.println("restful is running ....put:"+id);
-          return "success.jsp";
-      }
-  
-      //接收DELETE请求简化配置方式
-      @RequestMapping(value = "{id}",method = RequestMethod.DELETE)
-      //接收DELETE请求简化配置方式
-      @DeleteMapping("{id}")
-      public String delete(@PathVariable Integer id){
-          System.out.println("restful is running ....delete:"+id);
-          return "success.jsp";
-      }
-  }
-  ```
-
-* 配置拦截器 web.xml
-
-  ```xml
-  <?xml version="1.0" encoding="UTF-8"?>
-  <web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
-           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
-           version="3.1">
-      <filter>
-          <filter-name>characterEncodingFilter</filter-name>
-          <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
-          <init-param>
-              <param-name>encoding</param-name>
-              <param-value>UTF-8</param-value>
-          </init-param>
-      </filter>
-      <filter-mapping>
-          <filter-name>characterEncodingFilter</filter-name>
-          <url-pattern>/*</url-pattern>
-      </filter-mapping>
-  
-  <!--配置拦截器，解析请求中的参数_method，否则无法发起PUT请求与DELETE请求，配合页面表单使用-->
-      <filter>
-          <filter-name>HiddenHttpMethodFilter</filter-name>
-          <filter-class>org.springframework.web.filter.HiddenHttpMethodFilter</filter-class>
-      </filter>
-      <filter-mapping>
-          <filter-name>HiddenHttpMethodFilter</filter-name>
-          <servlet-name>DispatcherServlet</servlet-name>
-      </filter-mapping>
-  
-      <servlet>
-          <servlet-name>DispatcherServlet</servlet-name>
-          <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
-          <init-param>
-              <param-name>contextConfigLocation</param-name>
-              <param-value>classpath*:spring-mvc.xml</param-value>
-          </init-param>
-      </servlet>
-      <servlet-mapping>
-          <servlet-name>DispatcherServlet</servlet-name>
-          <url-pattern>/</url-pattern>
-      </servlet-mapping>
-  </web-app>
-  ```
-
-  
-
-
-#### Postman
-
-**postman** 是  一款可以发送Restful风格请求的工具，方便开发调试，首次运行需要联网注册
-
-网址：https://www.postman.com/
 
 
 
