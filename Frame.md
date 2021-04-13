@@ -4484,6 +4484,8 @@ Mybatis核心配置文件消失
 
 业务发起使用spring上下文对象获取对应的bean
 
+**原理**：DAO接口不需要去创建实现类，因为MyBatis-Spring提供了一个动态代理的实现**MapperFactoryBean**，这个类可以让你直接注入数据映射器接口到service层 bean 中，底层将会为你创建JDK代理
+
 * pom.xml，导入坐标
 
   ```xml
@@ -5212,209 +5214,7 @@ public class ClassName {
 
 
 
-### 整合框架
-
-#### Mybatis
-
-**原理**：DAO接口不需要去创建实现类，因为MyBatis-Spring提供了一个动态代理的实现**MapperFactoryBean**，这个类可以让你直接注入数据映射器接口到service层 bean 中，底层将会为你创建JDK代理
-
-![](https://gitee.com/seazean/images/raw/master/Frame/IoC注解整合MyBatis图解.png)
-
-* pom.xml
-
-  ```xml
-  <dependencies>
-      <dependency>
-          <groupId>org.mybatis</groupId>
-          <artifactId>mybatis</artifactId>
-          <version>3.5.3</version>
-      </dependency>
-      <dependency>
-          <groupId>mysql</groupId>
-          <artifactId>mysql-connector-java</artifactId>
-          <version>5.1.47</version>
-      </dependency>
-      <dependency>
-          <groupId>org.springframework</groupId>
-          <artifactId>spring-context</artifactId>
-          <version>5.1.9.RELEASE</version>
-      </dependency>
-      <dependency>
-          <groupId>org.springframework</groupId>
-          <artifactId>spring-jdbc</artifactId>
-          <version>5.1.9.RELEASE</version>
-      </dependency>
-      <dependency>
-          <groupId>com.alibaba</groupId>
-          <artifactId>druid</artifactId>
-          <version>1.1.16</version>
-      </dependency>
-      <dependency>
-          <groupId>org.mybatis</groupId>
-          <artifactId>mybatis-spring</artifactId>
-          <version>1.3.0</version>
-      </dependency>
-  </dependencies>
-  ```
-
-* java / domain
-
-  ```java
-  public class Account implements Serializable {
-      private Integer id;
-      private String name;
-      private Double money;
-      .....
-  }
-  ```
-
-* java / dao / AccountDao
-
-  ```java
-  public interface AccountDao {
-      @Insert("insert into account(name,money) values(#{name},#{money})")
-      void save(Account account);
-  
-      @Delete("delete from account where id = #{id} ")
-      void delete(Integer id);
-  
-      @Update("update account set name = #{name},money = #{money} where id=#{id}")
-      void update(Account account);
-  
-      @Select("select * from account")
-      List<Account> findAll();
-  
-      @Select("select * from account where id = #{id} ")
-      Account findById(Integer id);
-  }
-  ```
-
-* java / service 
-
-  ```java
-  public interface AccountService {
-      void save(Account account);
-      void delete(Integer id);
-      void update(Account account);
-      List<Account> findAll();
-      Account findById(Integer id);
-  }
-  ```
-
-  ```java
-  @Service("accountService")  
-  //@Component("accountService")
-  public class AccountServiceImpl implements AccountService {
-      @Autowired //自动装配
-      private AccountDao accountDao;
-  
-      public void save(Account account) {
-          accountDao.save(account);
-      }
-  
-      public void update(Account account){
-          accountDao.update(account);
-      }
-  
-      public void delete(Integer id) {
-          accountDao.delete(id);
-      }
-  
-      public Account findById(Integer id) {
-          return accountDao.findById(id);
-      }
-  
-      public List<Account> findAll() {
-          return accountDao.findAll();
-      }
-  }
-  ```
-
-* resources / jdbc.properties
-
-  ```properties
-  jdbc.driver=com.mysql.jdbc.Driver
-  jdbc.url=jdbc:mysql://192.168.2.185:3306/spring_db?useSSL=false
-  jdbc.username=root
-  jdbc.password=123456
-  ```
-
-* java / config / SpringConfig   JDBCConfig  MyBatisConfig  
-
-  ```java
-  @Configuration
-  @ComponentScan({"config","dao","domain","service"})
-  @PropertySource("classpath:jdbc.properties")
-  @Import({JDBCConfig.class, MyBatisConfig.class})
-  public class SpringConfig {
-  }
-  ```
-
-  ```java
-  public class JDBCConfig {
-      @Value("${jdbc.driver}")
-      private String driver;
-      @Value("${jdbc.url}")
-      private String url;
-      @Value("${jdbc.username}")
-      private String userName;
-      @Value("${jdbc.password}")
-      private String password;
-  
-      @Bean("dataSource")
-      public DataSource getDataSource(){
-          DruidDataSource ds = new DruidDataSource();
-          ds.setDriverClassName(driver);
-          ds.setUrl(url);
-          ds.setUsername(userName);
-          ds.setPassword(password);
-          return ds;
-      }
-  }
-  ```
-
-  ```java
-  public class MyBatisConfig {
-      @Bean 							    //DataSource使用自动装配
-      public SqlSessionFactoryBean getSSFB(@Autowired DataSource dataSource){
-          SqlSessionFactoryBean ssfb = new SqlSessionFactoryBean();
-          ssfb.setTypeAliasesPackage("domain");
-          ssfb.setDataSource(dataSource);
-          return ssfb;
-      }
-      @Bean
-      public MapperScannerConfigurer getMapperScannerConfigurer(){
-          MapperScannerConfigurer msc = new MapperScannerConfigurer();
-          msc.setBasePackage("dao");
-          return msc;
-      }
-  
-  }
-  ```
-
-* 测试类
-
-  ```java
-  public class App {
-      public static void main(String[] args) {
-          ApplicationContext ctx = new AnnotationConfigApplicationContext(
-              										SpringConfig.class);
-          AccountService as = (AccountService) ctx.getBean("accountService");
-          Account account = as.findById(3);
-          System.out.println(account);
-      }
-  }
-  ```
-
-  
-
-
-
-***
-
-
-
-#### Junit
+##### Junit
 
 Spring接管Junit的运行权，使用Spring专用的Junit类加载器，为Junit测试用例设定对应的spring容器
 
@@ -7424,7 +7224,7 @@ TransactionDefinition 接口中定义了五个表示隔离级别的常量：
 MySQL InnoDB 存储引擎的默认支持的隔离级别是 **REPEATABLE-READ（可重读）**
 
 **分布式事务**：允许多个独立的事务资源（transactional resources）参与到一个全局的事务中
-事务资源通常是关系型数据库系统，但也可以是其他类型的资源。全局事务要求在其中的所有参与的事务要么都提交，要么都回滚，这对于事务原有的ACID要求又有了提高
+事务资源通常是关系型数据库系统，但也可以是其他类型的资源，全局事务要求在其中的所有参与的事务要么都提交，要么都回滚，这对于事务原有的ACID要求又有了提高
 
 在使用分布式事务时，InnoDB存储引擎的事务隔离级别必须设置为SERIALIZABLE
 
@@ -12086,13 +11886,12 @@ SSM（Spring+SpringMVC+MyBatis）
       <!--加载properties文件-->
       <context:property-placeholder location="classpath*:jdbc.properties"/>
   
-      <!--数据源-->
+      <!--加载数据源-->
       <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
           <property name="driverClassName" value="${jdbc.driver}"/>
           <property name="url" value="${jdbc.url}"/>
           <property name="username" value="${jdbc.username}"/>
           <property name="password" value="${jdbc.password}"/>
-  
       </bean>
   
       <!--整合mybatis到Spring-->
@@ -12125,7 +11924,7 @@ SSM（Spring+SpringMVC+MyBatis）
       </bean>
   </beans>
   ```
-
+  
 * 业务层接口开启事务
 
   ```java
@@ -12483,6 +12282,10 @@ public class ProjectExceptionAdivce {
 
 ### UserDao.xml
 
+注解：@Param
+
+作用：当SQL语句需要多个（大于1）参数时，用来指定参数的对应规则
+
 * 注解替代UserDao映射配置文件：dao.UserDao
 
   ```java
@@ -12524,6 +12327,8 @@ public class ProjectExceptionAdivce {
 
 
 ### applicationContext.xml
+
+![](https://gitee.com/seazean/images/raw/master/Frame/IoC注解整合MyBatis图解.png)
 
 * JdbcConfig
 
@@ -12600,7 +12405,6 @@ public class ProjectExceptionAdivce {
   @Configuration
   //等同于<context:component-scan base-package="com.itheima">
   @ComponentScan(value = {"config","dao","service","system"},excludeFilters =
-  //等同于<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
       @ComponentScan.Filter(type= FilterType.ANNOTATION,classes = {Controller.class}))
   //等同于<context:property-placeholder location="classpath*:jdbc.properties"/>
   @PropertySource("classpath:jdbc.properties")
@@ -12619,8 +12423,8 @@ public class ProjectExceptionAdivce {
       }
   }
   ```
-
   
+
 
 ***
 
