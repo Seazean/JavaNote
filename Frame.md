@@ -8237,9 +8237,12 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
 
   **开始创建**：`doCreateBean(beanName, RootBeanDefinition, Object[] args)`
 
+  * 清除缓存：如果bean是单例，就先清除缓存中的bean信息
+  
   * **创建实例**：`createBeanInstance(beanName, RootBeanDefinition, Object[] args)`
-    * 优先级从高到低：工厂方法、有参**构造函数**、默认构造函数 
-    * 将 BeanDifinition 转化成 BeanWrapper，Spring给所有创建的Bean实例包装成BeanWrapper，BeanWrapper是对反射相关API的简单封装，使得上层使用反射完成相关的业务逻辑大大简化
+    
+    * 优先级从高到低：工厂方法、有参**构造函数**、无参构造函数 
+    * Spring给所有创建的Bean实例包装成BeanWrapper，BeanWrapper是对反射相关API的简单封装，使得上层使用反射完成相关的业务逻辑大大简化
     
   * 后置处理：`applyMergedBeanDefinitionPostProcessors()`
     * 将所有的后置处理器拿出来，并且把名字叫beanName的类中的变量都封装到InjectionMetadata的injectedElements集合里面，目的是以后从中获取，创建实例，通过反射注入到相应类
@@ -8295,8 +8298,6 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
   * **注册销毁**：`AbstractBeanFactory.registerDisposableBeanIfNecessary`，
     
     * 根据不同的scope进行disposableBean的注册，在销毁对象时调用destory()
-
-总结：Bean的初始化过程：共仓
 
 
 
@@ -9830,7 +9831,7 @@ ModelAndView 是SpringMVC提供的一个对象，该对象可以用作控制器�
 
 注解：@ResponseBody
 
-作用：将Controller的方法返回的对象通过适当的转换器转换为指定的格式之后，写入到Response的body区。如果返回值是字符串，那么直接将字符串返回客户端；如果是一个对象，会将对象转化为Json，然后返回客户端。
+作用：将Controller的方法返回的对象通过适当的转换器转换为指定的格式之后，写入到Response的body区。如果返回值是字符串，那么直接将字符串返回客户端；如果是一个对象，会**将对象转化为Json**，返回客户端
 
 注意：当方法上面没有写ResponseBody，底层会将方法的返回值封装为ModelAndView对象。
 
@@ -10128,7 +10129,7 @@ ModelAndView 是SpringMVC提供的一个对象，该对象可以用作控制器�
 名称：@RequestBody
 类型：形参注解
 位置：处理器类中的方法形参前方
-作用：将异步提交数据组织成标准请求参数格式，并赋值给形参
+作用：将异步提交数据**转换**成标准请求参数格式，并赋值给形参
 范例：
 
 ```java
@@ -10374,6 +10375,8 @@ public User cross(HttpServletRequest request){
 
 
 
+
+
 ***
 
 
@@ -10488,16 +10491,19 @@ public void afterCompletion(HttpServletRequest request,
 
 ### 拦截配置
 
+拦截路径：
+
+* `/**`：表示拦截所有映射
+* `/* `：表示拦截所有/开头的映射
+* `/user/*`：表示拦截所有/user/开头的映射
+* `/user/add*`：表示拦截所有/user/开头，且具体映射名称以add开头的映射
+* `/user/*All`：表示拦截所有/user/开头，且具体映射名称以All结尾的映射
+
 ```xml
 <mvc:interceptors>
     <!--开启具体的拦截器的使用，可以配置多个-->
     <mvc:interceptor>
-        <!--设置拦截器的拦截路径，支持*通配-->
-        <!--/**         表示拦截所有映射-->
-        <!--/*          表示拦截所有/开头的映射-->
-        <!--/user/*     表示拦截所有/user/开头的映射-->
-        <!--/user/add*  表示拦截所有/user/开头，且具体映射名称以add开头的映射-->
-        <!--/user/*All  表示拦截所有/user/开头，且具体映射名称以All结尾的映射-->
+        <!--设置拦截器的拦截路径，支持*通配-->       
         <mvc:mapping path="/handleRun*"/>
         <!--设置拦截排除的路径，配置/**或/*，达到快速配置的目的-->
         <mvc:exclude-mapping path="/b*"/>
@@ -10886,20 +10892,14 @@ ExceptionHandler注解：
 
 ### Rest概述
 
-Rest（ REpresentational State Transfer） ：一种网络资源的访问风格，定义了网络资源的访问方式
+Rest (Representational State Transfer)：一种网络资源的访问风格，定义了网络资源的访问方式
 
-* 传统风格访问路径
-  http://localhost/user/get?id=1
-  http://localhost/deleteUser?id=1
-* Rest风格访问路径
-  http://localhost/user/1
+* 传统风格访问路径：http://localhost/user/get?id=1
+* Rest风格访问路径：http://localhost/user/1
 
 Restful是按照Rest风格访问网络资源
 
-优点：
-
-* 隐藏资源的访问行为，通过地址无法得知做的是何种操作
-* 书写简化
+优点：隐藏资源的访问行为，通过地址无法得知做的是何种操作，书写简化
 
 Rest行为约定方式：
 
@@ -10913,32 +10913,50 @@ Rest行为约定方式：
 
   注意：上述行为是约定方式，约定不是规范，可以打破，所以称Rest风格，而不是Rest规范
 
+
+
 ***
 
 
 
-### Restful开发
+### Restful
 
-Restful请求路径简化配置方式：**@RestController = @Controller + @ResponseBody**
+Restful请求路径简化配置方式：@RestController = @Controller + @ResponseBody
+
+相关注解：
+
+* `@GetMapping("/poll")` = `@RequestMapping(value = "/poll",method = RequestMethod.GET)`
+
+* `@PostMapping("/push")` = `@RequestMapping(value = "/push",method = RequestMethod.POST)`
+
+* `@GetMapping("{id}")`：Restful开发
+
+  ```java
+  public String getMessage(@PathVariable("id") Integer id){}
+  ```
+  
+  `@PathVariable`注解的参数一般在有多个参数的时候添加
+
+过滤器：HiddenHttpMethodFilter是SpringMVC对Restful风格的访问支持的过滤器，
+
+代码实现：
 
 * restful.jsp
-  开启SpringMVC对Restful风格的访问支持过滤器，即可**通过页面表单提交PUT**与DELETE请求
   页面表单使用隐藏域提交请求类型，参数名称固定为_method，必须配合提交类型method=post使用
-
-  * GET请求通过地址栏可以发送，也可以通过设置form的请求方式提交
+  
+* GET请求通过地址栏可以发送，也可以通过设置form的请求方式提交
   * POST请求必须通过form的请求方式提交
-
-  ```html
+  
+```html
   <%@page pageEncoding="UTF-8" language="java" contentType="text/html;UTF-8" %>
   <h1>restful风格请求表单</h1>
   <%--切换请求路径为restful风格--%>
   <form action="/user/1" method="post">
       <%--当添加了name为_method的隐藏域时，可以通过设置该隐藏域的值，修改请求的提交方式，切换为PUT请求或DELETE请求，但是form表单的提交方式method属性必须填写post--%>
-      <%--该配置需要配合HiddenHttpMethodFilter过滤器使用，单独使用无效，请注意检查web.xml中是否配置了对应过滤器--%>
       <input type="text" name="_method" value="PUT"/>
       <input type="submit"/>
   </form>
-  ```
+```
 
 
 * java / controller / UserController
@@ -11008,49 +11026,17 @@ Restful请求路径简化配置方式：**@RestController = @Controller + @Respo
 * 配置拦截器 web.xml
 
   ```xml
-  <?xml version="1.0" encoding="UTF-8"?>
-  <web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
-           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-           xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
-           version="3.1">
-      <filter>
-          <filter-name>characterEncodingFilter</filter-name>
-          <filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
-          <init-param>
-              <param-name>encoding</param-name>
-              <param-value>UTF-8</param-value>
-          </init-param>
-      </filter>
-      <filter-mapping>
-          <filter-name>characterEncodingFilter</filter-name>
-          <url-pattern>/*</url-pattern>
-      </filter-mapping>
-  
   <!--配置拦截器，解析请求中的参数_method，否则无法发起PUT请求与DELETE请求，配合页面表单使用-->
-      <filter>
-          <filter-name>HiddenHttpMethodFilter</filter-name>
-          <filter-class>org.springframework.web.filter.HiddenHttpMethodFilter</filter-class>
-      </filter>
-      <filter-mapping>
-          <filter-name>HiddenHttpMethodFilter</filter-name>
-          <servlet-name>DispatcherServlet</servlet-name>
-      </filter-mapping>
-  
-      <servlet>
-          <servlet-name>DispatcherServlet</servlet-name>
-          <servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
-          <init-param>
-              <param-name>contextConfigLocation</param-name>
-              <param-value>classpath*:spring-mvc.xml</param-value>
-          </init-param>
-      </servlet>
-      <servlet-mapping>
-          <servlet-name>DispatcherServlet</servlet-name>
-          <url-pattern>/</url-pattern>
-      </servlet-mapping>
-  </web-app>
+  <filter>
+      <filter-name>HiddenHttpMethodFilter</filter-name>
+      <filter-class>org.springframework.web.filter.HiddenHttpMethodFilter</filter-class>
+  </filter>
+  <filter-mapping>
+      <filter-name>HiddenHttpMethodFilter</filter-name>
+      <servlet-name>DispatcherServlet</servlet-name>
+  </filter-mapping>
   ```
-
+  
   
 
 
