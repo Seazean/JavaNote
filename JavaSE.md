@@ -11508,12 +11508,13 @@ Full GC 则相对复杂，**FullGC同时回收新生代和老年代，当前只�
 
 * **长期存活的对象进入老年代**：为对象定义年龄计数器，对象在 Eden 出生并经过 Minor GC 依然存活，将移动到 Survivor 中，年龄就增加 1 岁，增加到一定年龄则移动到老年代中
   * -XX:MaxTenuringThreshold 用来定义年龄的阈值
-* **大对象直接进入老年代**：需要连续内存空间的对象，最典型的大对象是那种很长的字符串以及数组；避免在 Eden 和 Survivor 之间的大量内存复制；经常出现大对象会提前触发垃圾收集以获取足够的连续空间分配给大对象，
-  * -XX:PretenureSizeThreshold，大于此值的对象直接在老年代分配
+* **大对象直接进入老年代**：需要连续内存空间的对象，最典型的大对象是那种很长的字符串以及数组；避免在 Eden 和 Survivor 之间的大量内存复制；经常出现大对象会提前触发垃圾收集以获取足够的连续空间分配给大对象，`-XX:PretenureSizeThreshold`，大于此值的对象直接在老年代分配
 * **动态对象年龄判定**：如果在Survivor区中相同年龄的对象的所有大小之和超过Survivor空间的一半，年龄大于或等于该年龄的对象就可以直接进入老年代
-* **空间分配担保**：
-  * 在发生 Minor GC 之前，虚拟机先检查老年代最大可用的连续空间是否大于新生代所有对象总空间，如果条件成立的话，那么 Minor GC 可以确认是安全的
-  * 如果不成立，虚拟机会查看 HandlePromotionFailure 的值是否允许担保失败，如果允许那么就会继续检查老年代最大可用的连续空间是否大于历次晋升到老年代对象的平均大小，如果大于，将尝试着进行一次 Minor GC；如果小于，或者 HandlePromotionFailure 的值不允许冒险，那么就要进行一次 Full GC。
+
+空间分配担保：
+
+* 在发生 Minor GC 之前，虚拟机先检查老年代最大可用的连续空间是否大于新生代所有对象总空间，如果条件成立的话，那么 Minor GC 可以确认是安全的
+* 如果不成立，虚拟机会查看 HandlePromotionFailure 的值是否允许担保失败，如果允许那么就会继续检查老年代最大可用的连续空间是否大于历次晋升到老年代对象的平均大小，如果大于，将尝试着进行一次 Minor GC；如果小于，或者 HandlePromotionFailure 的值不允许冒险，那么就要进行一次 Full GC。
 
 
 
@@ -11908,11 +11909,11 @@ Java语言提供了对象终止（finalization）机制来允许开发人员提�
 * 按线程数分（垃圾回收线程数），可以分为串行垃圾回收器和并行垃圾回收器
   * 除了 CMS 和 G1 之外，其它垃圾收集器都是以串行的方式执行
 * 按照工作模式分，可以分为并发式垃圾回收器和独占式垃圾回收器
-  * 并发式垃圾回收器与应用程序线程交替工作，以尽可能减少应用程序的停顿时间。
+  * 并发式垃圾回收器与应用程序线程交替工作，以尽可能减少应用程序的停顿时间
   * 独占式垃圾回收器（Stop the world）一旦运行，就停止应用程序中的所有用户线程，直到垃圾回收过程完全结束
-* 按碎片处理方式分，可分为压缩武垃圾回收器和非压缩式垃圾回收器
-  * 压缩式垃圾回收器会在回收完成后，对存活对象进行压缩整理，消除回收后的碎片。
-  * 非压缩式的垃圾回收器不进行这步操作。
+* 按碎片处理方式分，可分为压缩式垃圾回收器和非压缩式垃圾回收器
+  * 压缩式垃圾回收器会在回收完成后，对存活对象进行压缩整理，消除回收后的碎片
+  * 非压缩式的垃圾回收器不进行这步操作
 * 按工作的内存区间分，又可分为年轻代垃圾回收器和老年代垃圾回收器
 
 GC性能指标：
@@ -11963,7 +11964,7 @@ GC性能指标：
 
 开启参数：`-XX:+UseSerialGC == Serial + SerialOld` 等价于新生代用Serial GC且老年代用Serial old GC
 
-![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-Serial 收集器.png)
+![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-Serial收集器.png)
 
 优点：简单而高效（与其他收集器的单线程比），对于限定单个CPU的环境来说，Serial收集器由于没有线程交互的开销，可以获得最高的单线程收集效率。
 
@@ -12050,14 +12051,15 @@ ParNew 是很多JVM运行在Server模式下新生代的默认垃圾收集器
 
 CMS全称 Concurrent Mark Sweep，是一款**并发的、使用标记-清除**算法、针对老年代的垃圾回收器，其最大特点是**让垃圾收集线程与用户线程同时工作**
 
-CMS收集器的关注点是尽可能缩短垃圾收集时用户线程的停顿时间，停顿时间越短（低延迟）越适合与用户交互的程序，良好的响应速度能提升用户体验，目前大部分的Java应用集中在互联网站或者B/S系统的服务端上
+CMS收集器的关注点是尽可能缩短垃圾收集时用户线程的停顿时间，停顿时间越短（**低延迟**）越适合与用户交互的程序，良好的响应速度能提升用户体验，目前大部分的Java应用集中在互联网站或者B/S系统的服务端上
 
 分为以下四个流程：
 
 - 初始标记：使用STW出现短暂停顿，仅标记一下 GC Roots 能直接关联到的对象，速度很快，
-- 并发标记：进行 GC Roots的直接关联对象开始遍历整个对象图，在整个回收过程中耗时最长，不需要STW，可以与垃圾收集线程一起并发运行
+- 并发标记：进行 GC Roots的直接关联对象开始遍历整个对象图，在整个回收过程中耗时最长，不需要STW，可以与用户线程一起并发运行
 - 重新标记：修正并发标记期间因用户程序继续运作而导致标记产生变动的那一部分对象的标记记录，比初始标记时间长但远比并发标记时间短，需要STW
-- 并发清除：清除标记为可以回收对象，由于不需要移动存活对象，所以这个阶段可以与用户线程同时并发的，这同样是不选择标记整理算法的原因
+- 并发清除：清除标记为可以回收对象，**不需要移动存活对象**，所以这个阶段可以与用户线程同时并发的
+  标记-清除算法不需要移动存活对象，在与用户线程并发过程中，防止了线程使用的对象地址改变而影响运行
 
 在整个过程中耗时最长的并发标记和并发清除过程中，收集器线程都可以与用户线程一起工作，不需要进行停顿
 
@@ -12121,12 +12123,12 @@ G1（Garbage-First）是一款面向服务端应用的垃圾收集器，**应用
 * 将整个Java堆划分成约2048个大小相同的独立Region块，每个Region块大小根据堆空间的实际大小而定，整体被控制在1MB到32MB之间且为2**的N次幂**，所有的Region大小相同，且在JVM生命周期内不会被改变
 * G1 把堆划分成多个大小相等的独立区域（Region），从而将原来的一整块内存空间划分成多个的小空间，使得每个小空间可以单独进行垃圾回收；新生代和老年代不再物理隔离，不用担心每个代内存是否足够
 
-* **新的区域Humongous**：本身属于老年代区，当出现了一个巨大的对象，超出了分区容量的一半，则这个对象会进入到该区域。如果一个H区装不下一个巨型对象，那么G1会寻找连续的H分区来存储，为了能找到连续的H区 ，有时候不得不启动Full GC
-* G1 不会对巨型对象进行拷贝，回收时被优先考虑，G1 会跟踪老年代所有 incoming 引用，这样老年代incoming 引用为0 的巨型对象就可以在新生代垃圾回收时处理掉
+* **新的区域Humongous**：本身属于老年代区，当出现了一个巨大的对象，超出了分区容量的一半，则这个对象会进入到该区域。如果一个H区装不下一个巨型对象，那么G1会寻找连续的H分区来存储，为了能找到连续的H区，有时候不得不启动Full GC
+* G1 不会对巨型对象进行拷贝，回收时被优先考虑，G1会跟踪老年代所有 incoming 引用，这样老年代incoming 引用为0 的巨型对象就可以在新生代垃圾回收时处理掉
 
 * Region结构图：
 
-![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-G1 Region区域.png)
+![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-G1-Region区域.png)
 
 **G1对比CMS（其他回收器）优点**：
 
@@ -12138,9 +12140,9 @@ G1（Garbage-First）是一款面向服务端应用的垃圾收集器，**应用
 
 - **可预测的停顿时间模型（即：软实时soft real-time）**：
 
-  - G1可以建立可预测的停顿时间模型，可以指定在一个长度为 M 毫秒的时间片段内，消耗在 GC 上的时间不得超过 N 毫秒
+  - 可以指定在一个长度为 M 毫秒的时间片段内，消耗在 GC 上的时间不得超过 N 毫秒
   - 由于分区的原因，G1可以只选取部分区域进行内存回收，这样缩小了回收的范围，因此对于全局停顿情况的发生也能得到较好的控制
-  - G1跟踪各个Region里面的垃圾堆积的价值大小（回收所获得的空间大小以及回收所需时间的经验值），在后台维护一个**优先列表**，每次根据允许的收集时间，优先回收价值最大的Region，保证了G1收集器在有限的时间内可以获取尽可能高的收集效率
+  - G1跟踪各个Region里面的垃圾堆积的价值大小（回收所获得的空间大小以及回收所需时间，通过过去回收的经验获得），在后台维护一个**优先列表**，每次根据允许的收集时间，优先回收价值最大的Region，保证了G1收集器在有限的时间内可以获取尽可能高的收集效率
 
   * 相比于CMS GC，G1未必能做到CMS在最好情况下的延时停顿，但是最差情况要好很多
 
@@ -12172,61 +12174,57 @@ G1垃圾收集器的缺点：
 
 ##### 记忆集
 
-每个 Region 都有一个 Remembered Set，用来记录该 Region 对象的引用对象所在的 Region
+每个 Region 都有一个 Remembered Set，用来被哪些其他Region里的对象引用（谁引用了我就记录谁）
 
-* Reference类型数据写操作时，都会产生一个Write Barrier暂时中断操作，检查将要写入的引用指向的对象是否和该Reference类型数据在不同的Region（其他收集器：检查老年代对象是否引用了新生代对象），不同便通过 CardTable 把相关引用信息记录到被引用对象所属的 Region 的 Remembered Set 之中
+<img src="https://gitee.com/seazean/images/raw/master/JavaSE/JUC-G1记忆集.png" style="zoom:67%;" />
+
+* 程序对Reference类型数据写操作时，产生一个Write Barrier暂时中断操作，检查该对象是否和Reference类型数据在不同的Region（其他收集器：检查老年代对象是否引用了新生代对象），不同便通过 CardTable 把相关引用信息记录到Reference类型所属的 Region 的 Remembered Set 之中
 * 进行内存回收时，在 GC 根节点的枚举范围中加入 Remembered Set 即可保证不对全堆扫描也不会有遗漏
 
 
 
-##### 回收
+##### 工作原理
 
 G1中提供了三种垃圾回收模式：YoungGC、Mixed GC和FullGC，在不同的条件下被触发
 
-![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-G1回收过程.png)
+<img src="https://gitee.com/seazean/images/raw/master/JavaSE/JVM-G1回收过程.png" style="zoom: 50%;" />
 
-顺时针：young gc -> young gc+concurrent mark -> Mixed GC顺序，进行垃圾回收
+顺时针：Young GC -> Young GC + Concurrent Mark -> Mixed GC顺序，进行垃圾回收
 
-* **Young GC**：发生在年轻代的GC算法，一般对象（除了巨型对象）都是在eden region中分配内存，当所有eden region被耗尽无法申请内存时，就会触发一次young gc，活跃对象会被拷贝到survivor region或者晋升到old region中，空闲的region会被放入空闲列表中，等待下次被使用
-
-  YGC时，G1停止应用程序的执行 (Stop-The-Wor1d)，G1创建回收集 (Collection Set)，回收集是指需要被回收的内存分段的集合，年轻代回收过程的回收集包含年轻代Eden区和Survivor区所有的内存分段
+* **Young GC**：发生在年轻代的GC算法，一般对象（除了巨型对象）都是在eden region中分配内存，当所有eden region被耗尽无法申请内存时，就会触发一次young gc，G1停止应用程序的执行 (Stop-The-World)，把活跃对象放入老年代，垃圾对象回收
 
   **回收过程**：
 
   1. 扫描根：根引用连同RSet记录的外部引用作为扫描存活对象的入口
-
-  2. 更新RSet：处理dirty card queue 中的card，更新RSet；此阶段完成后，RSet可以准确的反映老年代对所在的内存分段中对象的引用
-
+  2. 更新RSet：处理dirty card queue更新RS，在此RSet准确的反映老年代对所在的内存分段中对象的引用
+     * dirty card queue：类似缓存，产生了引用先记录在这里，然后更新到RSet
+     * 产生引用直接更新RSet需要线程同步开销很大，使用队列性能好
   3. 处理RSet：识别被老年代对象指向的Eden中的对象，这些被指向的Eden中的对象被认为是存活的对象
-
-  4. 复制对象：对象树被遍历，Eden区内存段中存活的对象会被复制到Survivor区中空的内存分段，Survivor区内存段中存活的对象如果年龄未达阈值，年龄会加1，达到阀值会被会被复制到old区中空的内存分段，如果Survivor空间不够，Eden空间的部分数据会直接晋升到老年代空间
-
+  4. 复制对象：Eden区内存段中存活的对象会被复制到Survivor区，Survivor区内存段中存活的对象如果年龄未达阈值，年龄会加1，达到阀值会被会被复制到old区中空的内存分段，如果Survivor空间不够，Eden空间的部分数据会直接晋升到老年代空间
   5. 处理引用：处理Soft，Weak，Phantom，JNI Weak 等引用，最终Eden空间的数据为空，GC停止工作
 
-* **Mixed GC**：当越来越多的对象晋升到老年代old region时，为了避免堆内存被耗尽，虚拟机会触发一个混合的垃圾收集器，即**mixed gc**，除了回收整个young region，还会回收一部分的old region，**过程同YGC**
+* **并发标记过程**：
+
+  * 初始标记：标记从根节点直接可达的对象，这个阶段是STW的，并且会触发一次年轻代GC
+  * 根区域扫描 (Root Region Scanning)：G1 GC扫描survivor区直接可达的老年代区域对象，并标记被引用的对象，这一过程必须在Young GC之前完成
+  * 并发标记 (Concurrent Marking)：在整个堆中进行并发标记（应用程序并发执行），可能被YoungGC中断。在并发标记阶段，**若发现区域对象中的所有对象都是垃圾，则这个区域会被立即回收（实时回收）**，同时并发标记过程中，会计算每个区域的对象活性，即区域中存活对象的比例
+  * 最终标记：为了修正在并发标记期间因用户程序继续运作而导致标记产生变动的那一部分标记记录，虚拟机将这段时间对象变化记录在线程的 Remembered Set Logs 里面，最终标记阶段需要把 Remembered Set Logs 的数据合并到 Remembered Set 中，这阶段需要停顿线程，但是可并行执行
+  * 筛选回收：并发清理阶段，首先对各个 Region 中的回收价值和成本进行排序，根据用户所期望的 GC 停顿时间来制定回收计划。此阶段其实也可以做到与用户程序一起并发执行，但是因为只回收一部分 Region，时间是用户可控制的，而且停顿用户线程将大幅度提高收集效率
+
+  ![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-G1收集器.jpg)
+
+* **Mixed GC**：当很多对象晋升到老年代old region时，为了避免堆内存被耗尽，虚拟机会触发一个混合的垃圾收集器，即Mixed GC，除了回收整个young region，还会**回收一部分**的old region，过程同YGC
 
   注意：**是一部分老年代，而不是全部老年代**，可以选择哪些old region收集，对垃圾回收的耗时时间进行控制
 
   在G1中，Mixed GC可以通过`-XX:InitiatingHeapOccupancyPercent`设置阈值
 
-* **Full GC**：如果对象内存分配速度过快，Mixed GC来不及回收，导致老年代被填满，就会触发一次Full GC，G1的Full GC算法就是单线程执行的垃圾回收，会导致异常长时间的暂停时间，需要进行不断的调优，尽可能的避免Full GC
+* **Full GC**：对象内存分配速度过快，Mixed GC来不及回收，导致老年代被填满，就会触发一次Full GC，G1的Full GC算法就是单线程执行的垃圾回收，会导致异常长时间的暂停时间，需要进行不断的调优，尽可能的避免Full GC
 
   产生Full GC的原因：
 
   * 晋升时没有足够的空间存放晋升的对象
   * 并发处理过程完成之前空间耗尽
-  
-  
-
-**G1 收集器的工作过程**：
-
-- **初始标记**：标记从根节点直接可达的对象，这个阶段是STW的，并且会触发一次年轻代GC
-- 根区域扫描 (Root Region Scanning)：G1 GC扫描survivor区直接可达的老年代区域对象，并标记被引用的对象，这一过程必须在Young GC之前完成
-- **并发标记** (Concurrent Marking)：在整个堆中进行并发标记（和应用程序并发执行），可能被YoungGC中断。在并发标记阶段，若发现区域对象中的所有对象都是垃圾，那这个区域会被立即回收，同时并发标记过程中，会计算每个区域的对象活性，即区域中存活对象的比例
-- **最终标记**：为了修正在并发标记期间因用户程序继续运作而导致标记产生变动的那一部分标记记录，虚拟机将这段时间对象变化记录在线程的 Remembered Set Logs 里面，最终标记阶段需要把 Remembered Set Logs 的数据合并到 Remembered Set 中，这阶段需要停顿线程，但是可并行执行
-- **筛选回收**：并发清理阶段，首先对各个 Region 中的回收价值和成本进行排序，根据用户所期望的 GC 停顿时间来制定回收计划。此阶段其实也可以做到与用户程序一起并发执行，但是因为只回收一部分 Region，时间是用户可控制的，而且停顿用户线程将大幅度提高收集效率
-
-![](https://gitee.com/seazean/images/raw/master/JavaSE/JVM-G1收集器.jpg)
 
 
 
@@ -12253,6 +12251,14 @@ G1的设计原则就是简化JVM性能调优，只需要简单的三步即可完
 - 设置了新生代大小相当于放弃了G1为我们做的自动调优，我们需要做的只是设置整个堆内存的大小，剩下的交给G1自己去分配各个代的大小
 
 
+
+***
+
+
+
+#### ZGC
+
+与 CMS 和 G1 类似，ZGC也采用标记-复制算法，不过 ZGC 对该算法做了重大改进，在 ZGC 中出现 Stop The World 的情况会更少
 
 
 
@@ -12901,64 +12907,6 @@ public class Demo3_12_2 {
 14: aload_2
 15: athrow
 ```
-
-
-
-***
-
-
-
-#### synchronized
-
-代码：
-
-```java
-public static void main(String[] args) {
-    Object lock = new Object();
-    synchronized (lock) {
-        System.out.println("ok");
-    }
-}
-```
-
-```java
-0: 	new				#2		// new Object
-3: 	dup
-4: 	invokespecial 	#1 		// invokespecial <init>:()V
-7: 	astore_1 				// lock引用 -> lock
-8: 	aload_1					// lock （synchronized开始）
-9: 	dup						//一份加锁使用，一份解锁使用
-10: astore_2 				// lock引用 -> slot 2
-11: monitorenter 			// monitorenter(lock引用)
-12: getstatic 		#3		// System.out
-15: ldc 			#4		// "ok"
-17: invokevirtual 	#5 		// invokevirtual println:(Ljava/lang/String;)V
-20: aload_2 				// slot 2(lock引用)
-21: monitorexit 			// monitorexit(lock引用)
-22: goto 30
-25: astore_3 				// any -> slot 3
-26: aload_2 				// slot 2(lock引用)
-27: monitorexit 			// monitorexit(lock引用)
-28: aload_3
-29: athrow
-30: return
-Exception table:
-    from to target type
-      12 22 25 		any
-      25 28 25 		any
-LineNumberTable: ...
-LocalVariableTable:
-    Start Length Slot Name Signature
-    	0 	31 		0 args [Ljava/lang/String;
-    	8 	23 		1 lock Ljava/lang/Object;
-```
-
-dup：一个用来初始化，一个用来对象引用
-
-说明：
-
-* 通过异常**try-catch机制**，确保一定会被解锁
-* 方法级别的 synchronized 不会在字节码指令中有所体现
 
 
 
