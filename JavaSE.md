@@ -790,7 +790,7 @@ public class MethodDemo01 {
 * 枚举类默认继承了java.lang.Enum枚举类
 * 枚举类的第一行都是常量，必须是罗列枚举类的实例名称
 * 枚举类相当于是多例设计模式
-* 每个枚举项都是一个实例
+* 每个枚举项都是一个实例，是一个静态成员变量
 
 | 方法名                                            | 说明                                 |
 | ------------------------------------------------- | ------------------------------------ |
@@ -842,27 +842,8 @@ public class MethodDemo01 {
   }
   ```
 
-* 枚举实现单例模式，防止序列化和反射攻击
+  
 
-  ```java
-  public enum Singleton {
-      INSTANCE;
-      public void doSomething() {
-          System.out.println("doSomething");
-      }
-  }
-  
-  public class Main {
-      public static void main(String[] args) {
-          Singleton.INSTANCE.doSomething();
-      }
-  }
-  //直接通过Singleton.INSTANCE.doSomething()的方式调用即可,方便、简洁又安全
-  ```
-  
-  
-  
-  
 
 
 

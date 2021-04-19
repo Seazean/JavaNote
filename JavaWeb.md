@@ -2305,7 +2305,7 @@ Run -> Edit Configurations -> Templates -> Tomcat Server -> Local
 
 ### 协议概述
 
-HTTP：Hyper Text Transfer Protocol，意为超文本传输协议，是建立在TCP/IP协议基础上。它指的是服务器和客户端之间交互必须遵循的一问一答的规则。形容这个规则：问答机制、握手机制。
+HTTP：Hyper Text Transfer Protocol，意为超文本传输协议，是建立在**TCP/IP协议**基础上。它指的是服务器和客户端之间交互必须遵循的一问一答的规则。形容这个规则：问答机制、握手机制。
 
 HTTP作用：用于定义WEB浏览器与WEB服务器之间交换数据的过程和数据本身的内容
 
@@ -2324,7 +2324,7 @@ URI：统一资源标志符
 * 格式：/request/servletDemo01
 
 区别：URL-HOST=URI。URI是抽象的定义。URL用地址定位，URI 用名称定位。
-            **只要能唯一标识资源的是URI，在URI的基础上给出其资源的访问方式的是URL**
+           **只要能唯一标识资源的是URI，在URI的基础上给出其资源的访问方式的是URL**
 
 
 
