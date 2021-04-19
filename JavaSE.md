@@ -4251,14 +4251,15 @@ public static void main(String[] args){
 
 ![ArrayList源码分析](https://gitee.com/seazean/images/raw/master/JavaSE/ArrayList添加元素源码解析.png)
 
+
+
 ****
 
 
 
 ##### LinkedList
 
-LinkedList也是List的实现类：底层是**基于链表**的，增删比较快，查询慢！！
-LinkedList是支持双链表，定位前后的元素是非常快的，增删首尾的元素也是最快的
+LinkedList也是List的实现类：基于**双向链表**实现，使用 Node 存储链表节点信息，增删比较快，查询慢
 
 LinkedList除了拥有List集合的全部功能还多了很多操作首尾元素的特殊功能：
     `public void addFirst(E e)` : 将指定元素插入此列表的开头
@@ -4269,6 +4270,10 @@ LinkedList除了拥有List集合的全部功能还多了很多操作首尾元素
     `public E removeLast()` : 移除并返回此列表的最后一个元素
     `public E pop()` : 从此列表所表示的堆栈处弹出一个元素
     `public void push(E e)` : 将元素推入此列表所表示的堆栈
+	`public int indexOf(Object o)` : 返回此列表中指定元素的第一次出现的索引，如果不包含返回-1
+	`public int lastIndexOf(Object o)` : 从尾遍历找
+	` public boolean remove(Object o)` : 一次只删除一个匹配的对象，如果删除了匹配对象返回true
+	`public E remove(int index)` : 删除指定位置的元素
 
 ```java
 public class ListDemo {
@@ -4307,6 +4312,203 @@ public class ListDemo {
 ***
 
 
+
+##### 源码分析
+
+###### ArrayList
+
+ArrayList 是基于数组实现的，所以支持快速随机访问
+
+```java
+public class ArrayList<E> extends AbstractList<E>
+        implements List<E>, RandomAccess, Cloneable, java.io.Serializable{}
+```
+
+- `RandomAccess` 是一个标志接口，表明实现这个这个接口的 List 集合是支持**快速随机访问**的。在 `ArrayList` 中，我们即可以通过元素的序号快速获取元素对象，这就是快速随机访问。
+- `ArrayList` 实现了 `Cloneable` 接口 ，即覆盖了函数`clone()`，能被克隆
+- `ArrayList` 实现了 `Serializable `接口，这意味着`ArrayList`支持序列化，能通过序列化去传输
+
+核心方法：
+
+* 构造函数：以无参数构造方法创建 ArrayList 时，实际上初始化赋值的是一个空数组。当真正对数组进行添加元素操作时，才真正分配容量，即向数组中添加第一个元素时，**数组容量扩为 10**
+
+* 添加元素：
+
+  ```java
+  //e 插入的元素  elementData底层数组   s 插入的位置
+  private void add(E e, Object[] elementData, int s) {
+      if (s == elementData.length)//插入位置的索引和底层数组长度相同，就代表数组已满
+          elementData = grow();
+      elementData[s] = e;
+      size = s + 1;
+  }
+  ```
+
+  当add 第 1 个元素到 ArrayList，elementData.length 为 0 ，进入`grow(size + 1)`扩容方法
+
+  ```java
+  private Object[] grow(int minCapacity) {
+      return elementData = Arrays.copyOf(elementData, newCapacity(minCapacity));
+  }
+  ```
+
+* 扩容：新容量的大小为 `oldCapacity + (oldCapacity >> 1)`，`oldCapacity >> 1` 需要取整，所以新容量大约是旧容量的 1.5 倍左右，即 oldCapacity+oldCapacity/2
+
+  扩容操作需要调用`Arrays.copyOf()`（底层`System.arraycopy()`）把原数组整个复制到新数组中，这个操作代价很高，因此最好在创建 ArrayList 对象时就指定大概的容量大小，减少扩容操作的次数
+
+  ```java
+  private int newCapacity(int minCapacity) {
+  	// overflow-conscious code
+      int oldCapacity = elementData.length;//旧容量
+      int newCapacity = oldCapacity + (oldCapacity >> 1);
+      if (newCapacity - minCapacity <= 0) {
+          //判断当前数组是否是空数组，如果是就把默认容量 10 当作数组的新容量
+          if (elementData == DEFAULTCAPACITY_EMPTY_ELEMENTDATA)
+              return Math.max(DEFAULT_CAPACITY, minCapacity);
+          if (minCapacity < 0) // overflow
+              throw new OutOfMemoryError();
+          return minCapacity;
+      }
+      //如果minCapacity大于最大容量，则新容量则为Integer.MAX_VALUE
+      return (newCapacity - MAX_ARRAY_SIZE <= 0)
+          ? newCapacity
+          : hugeCapacity(minCapacity);
+  }
+  ```
+
+* 删除元素：需要调用 System.arraycopy() 将 index+1 后面的元素都复制到 index 位置上，该操作的时间复杂度为 O(N)，可以看到 ArrayList 删除元素的代价是非常高的
+
+  ```java
+  private void fastRemove(Object[] es, int i) {
+      modCount++;
+      final int newSize;
+      if ((newSize = size - 1) > i)
+          System.arraycopy(es, i + 1, es, i, newSize - i);
+      es[size = newSize] = null;
+  }
+  ```
+
+* 序列化：ArrayList 基于数组并且具有动态扩容特性，因此保存元素的数组不一定都会被使用，就没必要全部进行序列化。保存元素的数组 elementData 使用 transient 修饰，该关键字声明数组默认不会被序列化
+
+  ```java
+   transient Object[] elementData;
+  ```
+
+* ensureCapacity：增加此实例的容量，以确保它至少可以容纳最小容量参数指定的元素数，减少增量重新分配的次数
+
+  ```java
+   public void ensureCapacity(int minCapacity) {
+       if (minCapacity > elementData.length
+           && !(elementData == DEFAULTCAPACITY_EMPTY_ELEMENTDATA
+                && minCapacity <= DEFAULT_CAPACITY)) {
+           modCount++;
+           grow(minCapacity);
+       }
+   }
+  ```
+
+* Fail-Fast：modCount 用来记录 ArrayList 结构发生变化的次数。结构发生变化是指添加或者删除至少一个元素的所有操作，或者是调整内部数组的大小，仅仅只是设置元素的值不算结构发生变化
+
+  在进行序列化或者迭代等操作时，需要比较操作前后 modCount 是否改变，如果改变了需要抛出 ConcurrentModificationException
+
+
+
+***
+
+
+
+###### Vector
+
+同步：Vector的实现与 ArrayList 类似，但是使用了 synchronized 进行同步
+
+构造：默认长度为10的数组
+
+扩容：Vector 的构造函数可以传入 capacityIncrement 参数，作用是在扩容时使容量 capacity 增长 capacityIncrement，如果这个参数的值小于等于 0（默认0），扩容时每次都令 capacity 为原来的两倍
+
+对比ArrayList
+
+1. Vector 是同步的，开销比 ArrayList 要大，访问速度更慢。最好使用 ArrayList 而不是 Vector，因为同步操作完全可以由程序来控制
+
+2. Vector 每次扩容请求其大小的 2 倍（也可以通过构造函数设置增长的容量），而 ArrayList 是 1.5 倍
+
+3. 底层都是 `Object[]`数组存储
+
+
+
+***
+
+
+
+###### LinkedList
+
+LinkedList是一个实现了List接口和Deque接口的双端链表，支持高效的插入和删除操作，另外它实现了Deque接口，使得LinkedList类也具有队列的特性
+
+![](https://gitee.com/seazean/images/raw/master/JavaSE/LinkedList底层结构.png)
+
+核心方法：
+
+* 使LinkedList变成线程安全的，可以调用静态类Collections类中的synchronizedList方法：
+
+  ```java
+  List list = Collections.synchronizedList(new LinkedList(...));
+  ```
+
+* 私有内部类Node：这个类代表双端链表的节点Node
+
+  ```java
+  private static class Node<E> {
+      E item;
+      Node<E> next;
+      Node<E> prev;
+  
+      Node(Node<E> prev, E element, Node<E> next) {
+          this.item = element;
+          this.next = next;
+          this.prev = prev;
+      }
+  }
+  ```
+
+* 构造方法：只有无参构造和用已有的集合创建链表的构造方法
+
+* 添加元素：默认加到尾部
+
+  ```java
+  public boolean add(E e) {
+      linkLast(e);
+      return true;
+  }
+  ```
+
+* 获取元素：`get(int index)` 根据指定索引返回数据
+
+  * 获取头节点 (index=0)：getFirst()、element()、peek()、peekFirst() 这四个获取头结点方法的区别在于对链表为空时的处理，是抛出异常还是返回null，其中**getFirst() 和element()** 方法将会在链表为空时，抛出异常
+  * 获取尾节点 (index=-1)：getLast() 方法在链表为空时，会抛出NoSuchElementException，而peekLast() 则不会，只会返回 null
+
+* 删除元素：
+
+  * remove()、removeFirst()、pop()：删除头节点
+  * removeLast()、pollLast()：删除尾节点，removeLast()在链表为空时抛出NoSuchElementException，而pollLast()方法返回null
+
+对比ArrayList
+
+1. 是否保证线程安全：ArrayList和LinkedList都是不同步的，也就是不保证线程安全
+2. 底层数据结构： 
+   * Arraylist底层使用的是 `Object` 数组
+   * LinkedList 底层使用的是 双向链表 数据结构（JDK1.6 之前为循环链表，JDK1.7 取消了循环）
+3. 插入和删除是否受元素位置的影响：
+   * ArrayList采用数组存储，所以插入和删除元素受元素位置的影响
+   * LinkedList采用链表存储，所以对于`add(E e)`方法的插入，删除元素不受元素位置的影响
+4. 是否支持快速随机访问：
+   * LinkedList不支持高效的随机元素访问，ArrayList支持
+   * 快速随机访问就是通过元素的序号快速获取元素对象(对应于`get(int index)`方法)。
+5. 内存空间占用：
+   * ArrayList的空 间浪费主要体现在在 list 列表的结尾会预留一定的容量空间
+   * LinkedList的空间花费则体现在它的每一个元素都需要消耗比 ArrayList更多的空间（因为要存放直接后继和直接前驱以及数据）
+
+
+
+***
 
 
 
@@ -4645,25 +4847,21 @@ HashMap基于哈希表的Map接口实现，是以key-value存储形式存在，�
 特点：
 
 * HashMap的实现不是同步的，这意味着它不是线程安全的
-
 * key是唯一不重复的，底层的哈希表结构，依赖hashCode方法和equals方法保证键的唯一
-
 * key、value都可以为null，但是键位置只能是一个null
-
 * HashMap中的映射不是有序的，即存取是无序的
-
 * 如果键要存储的是自定义对象，需要重写hashCode和equals方法
 
+对比Hashtable：
 
-相同点： 实现原理相同，底层实现都是数组+链表结构实现，查询速度快，在很多情况下可以互用 
+* 相同点： 实现原理相同，底层实现都是数组+链表结构实现，查询速度快，在很多情况下可以互用 
 
-不同点： 
-
-1. Hashtable是早期提供的接口，HashMap是新版JDK提供的接口
-2. Hashtable继承Dictionary类，HashMap继承AbstractMap，两者均实现Map接口
-3. HashMap线程非安全，Hashtable线程安全，Hashtable的实现方法都添加了synchronized关键字来确保线程同步
-4. Hashtable不允许null值，HashMap允许null值
-5. HashMap的初始容量为16，Hashtable初始容量为11，两者的填充因子默认都是0.75，HashMap扩容时是当前容量翻倍即：capacity * 2，Hashtable扩容时是容量翻倍+1即：capacity*2 + 1
+* 不同点： 
+  1. Hashtable是早期提供的接口，HashMap是新版JDK提供的接口
+  2. Hashtable继承Dictionary类，HashMap继承AbstractMap，两者均实现Map接口
+  3. HashMap线程非安全，Hashtable线程安全，Hashtable的实现方法都添加了synchronized关键字来确保线程同步
+  4. Hashtable不允许null值，HashMap允许null值
+  5. HashMap的初始容量为16，Hashtable初始容量为11，两者的填充因子默认都是0.75，HashMap扩容时是当前容量翻倍即：capacity * 2，Hashtable扩容时是容量翻倍+1即：capacity*2 + 1
 
 底层数据结构：
 
@@ -4719,7 +4917,7 @@ HashMap基于哈希表的Map接口实现，是以key-value存储形式存在，�
   * 相同：则新的value覆盖之前的value
   * 不相同：则将新的键值对添加到哈希表中
 * 为什么要扩容？
-  在不断的添加数据的过程中，会涉及到扩容问题，当超出临界值 (且要存放的位置非空) 时扩容。默认的扩容方式：**扩容为原来容量的2倍，并将原有的数据复制过来**
+  在不断的添加数据的过程中，会涉及到扩容问题，当超出临界值 (且要存放的位置非空) 时扩容，默认的扩容方式：**扩容为原来容量的2倍，并将原有的数据复制过来**
 * 引入红黑树的原因？
   JDK 1.8 以前 HashMap 的实现是 数组+链表，即使哈希函数取得再好，也很难达到元素百分百均匀分布。当 HashMap 中有大量的元素都存放到同一个桶中时，就相当于一个长的单链表，假如单链表有 n 个元素，遍历的**时间复杂度是 O(n)**，完全失去了它的优势。针对这种情况，JDK 1.8 中引入了 红黑树（查找时**间复杂度为 O(logn)**）来优化这个问题，使得查找效率更高。
 
@@ -4780,20 +4978,7 @@ HashMap继承关系如下图所示：
 
    ```java
    public HashMap(int initialCapacity, float loadFactor) {
-       //判断初始化容量initialCapacity是否小于0
-       if (initialCapacity < 0)
-           //如果小于0，则抛出非法的参数异常IllegalArgumentException
-           throw new IllegalArgumentException("Illegal initial capacity: " +
-                                              initialCapacity);
-       //判断初始化容量initialCapacity是否大于集合的最大容量MAXIMUM_CAPACITY-》2的30次幂
-       if (initialCapacity > MAXIMUM_CAPACITY)
-           //如果超过MAXIMUM_CAPACITY，会将MAXIMUM_CAPACITY赋值给initialCapacity
-           initialCapacity = MAXIMUM_CAPACITY;
-       //判断负载因子loadFactor是否小于等于0或者是否是一个非数值
-       if (loadFactor <= 0 || Float.isNaN(loadFactor))
-           //如果满足上述其中之一，则抛出非法的参数异常IllegalArgumentException
-           throw new IllegalArgumentException("Illegal load factor: " +
-                                              loadFactor);
+       //进行判断
        //将指定的加载因子赋值给HashMap成员变量的负载因子loadFactor
        this.loadFactor = loadFactor;
      	//最后调用了tableSizeFor
@@ -4803,7 +4988,7 @@ HashMap继承关系如下图所示：
 
    * 对于`this.threshold = tableSizeFor(initialCapacity);` 
 
-     tableSizeFor(initialCapacity) 判断指定的初始化容量是否是2的n次幂，如果不是会变为比指定初始化容量大的最小的2的n次幂。但是在tableSizeFor方法体内部将计算后的数据返回到这里，并赋值给threshold边界值。有些人会觉得这里是一个bug应该这样书写：
+     有些人会觉得这里是一个bug应该这样书写：
      `this.threshold = tableSizeFor(initialCapacity) * this.loadFactor;`
      这样才符合threshold的概念（当HashMap的size到达threshold这个阈值时会扩容）。
      但是在jdk8以后的构造方法中，并没有对table这个成员变量进行初始化，table的初始化被推迟到了put方法中，在put方法中会对threshold重新计算
@@ -4850,9 +5035,9 @@ HashMap继承关系如下图所示：
    }
    ```
    
-* `float ft = ((float)s / loadFactor) + 1.0F;`这一行代码中为什么要加1.0F ？
-  
-  s / loadFactor的结果是小数，加1.0F与(int)ft相当于是对小数做一个向上取整以尽可能的保证更大容量，更大的容量能够减少resize的调用次数，这样可以减少数组的扩容
+   `float ft = ((float)s / loadFactor) + 1.0F;`这一行代码中为什么要加1.0F ？
+   
+   s / loadFactor的结果是小数，加1.0F相当于是对小数做一个向上取整以尽可能的保证更大容量，更大的容量能够减少resize的调用次数，这样可以减少数组的扩容
 
 
 
@@ -4886,98 +5071,16 @@ HashMap继承关系如下图所示：
      当向HashMap中添加一个元素时，需要根据key的hash值，去确定其在数组中的具体位置。HashMap为了存取高效，要尽量较少碰撞，把数据尽可能分配均匀，每个链表长度大致相同，实现该方法的算法就是取模，hash%length，计算机中直接求余效率不如位移运算，所以源码中使用 hash&(length-1)，实际上**hash % length == hash & (length-1)的前提是length是2的n次幂**
 
      能均匀分布减少碰撞：2的n次方就是1后面n个0，2的n次方-1  实际是n个1，可以**保证散列的均匀性**
-   
-     说明：**按位与运算：相同的二进制数位上，都是1的时候，结果为1，否则为零**
-     注意： 当然如果不考虑效率直接求余即可（就不需要要求长度必须是2的n次方了）
-     
+
      ```java
      例如长度为8时候，3&(8-1)=3  2&(8-1)=2 ，不同位置上，不碰撞；
      例如长度为9时候，3&(9-1)=0  2&(9-1)=0 ，都在0上，碰撞了；
-     举例：
-     长度length为8时候，8是2的3次幂。二进制是：1000
-     如下所示：
-     hash&(length-1)
-     3   &(8    - 1)=3
-     00000011  3 hash
-     &   00000111  7 length-1
-     ---------------------
-     00000011-----》3 数组下标
-     
-     hash&(length-1)
-     2 &  (8 -    1) = 2
-     00000010  2 hash
-     &   00000111  7 length-1
-     ---------------------
-     00000010-----》2  数组下标
-     说明：上述计算结果是不同位置上，不碰撞；
      ```
      
    * 如果输入值不是2的幂会怎么样？
-   
-     创建HashMap对象时，输入的数组长度是10，不是2的幂，HashMap通过位移运算和或运算得到的肯定是2的幂次数，并且是离那个数最近的数字。
-   
-     ```java
-     //Returns a power of two size for the given target capacity.
-     //返回比指定初始化容量大的最小的2的n次幂
-     static final int tableSizeFor(int cap) {//int cap = 10
-         int n = cap - 1;
-         n |= n >>> 1;
-         n |= n >>> 2;
-         n |= n >>> 4;
-         n |= n >>> 8;
-         n |= n >>> 16;
-         return (n < 0) ? 1 : (n >= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + 1;
-     }
-     ```
-   
-   * 分析算法：
-   
-     1. `int n = cap - 1;`：防止cap已经是2的幂。如果cap已经是2的幂， 不执行减1操作，则执行完后面的无符号右移操作之后，返回的capacity将是这个cap的2倍
-     2. n=0时 (经过了cap-1之后)，则经过后面的几次无符号右移依然是0，返回的capacity是1，最后有n+1
-     3. **|（按位或运算）：相同的二进制数位上，都是0的时候，结果为0，否则为1**
-   
-   * 第一次右移
-   
-     ```java
-     int n = cap - 1;//cap=10  n=9
-     n |= n >>> 1;
-     00000000 00000000 00000000 00001001 //9
-     00000000 00000000 00000000 00000100 //9右移之后变为4
-     --------------------------------------------------
-     00000000 00000000 00000000 00001101 //按位或之后是13
-     //使得n的二进制表示中与最高位的1紧邻的右边一位为1
-     ```
-   
-   * 第二次右移
-   
-     ```java
-     n |= n >>> 2;//n通过第一次右移变为了：n=13
-     00000000 00000000 00000000 00001101  // 13
-     00000000 00000000 00000000 00000011  //13右移之后变为3
-     -------------------------------------------------
-     00000000 00000000 00000000 00001111	 //按位或之后是15
-     //无符号右移两位，会将最高位两个连续的1右移两位，然后再与原来的n做或操作，这样n的二进制表示的高位中会有4个连续的1
-     ```
-   
-   * 第三次右移
-   
-     ```java
-     n |= n >>> 4;//n通过第一、二次右移变为了：n=15
-     00000000 00000000 00000000 00001111  // 15
-     00000000 00000000 00000000 00000000  //15右移之后变为0
-     ----------------------------------------
-     00000000 00000000 00000000 00001111  //按异或之后是15
-     //高位中的连续的4个1，右移4位，再做或操作，这样n的二进制表示的高位中会有8个连续的1
-     ```
-   
-     注意：容量最大是32bit的正数，因此最后n |= n >>> 16，最多也就32个1（但是这已经是负数了）。在执行tableSizeFor之前，对initialCapacity做了判断，如果大于MAXIMUM_CAPACITY(2 ^ 30)，则取MAXIMUM_CAPACITY；如果小于MAXIMUM_CAPACITY(2 ^ 30)，会执行移位操作。所以移位操作之后，最大30个1，加1之后得2 ^ 30
-   
-   * 得到的capacity却被赋值给了threshold
-   
-     ```java
-     this.threshold = tableSizeFor(initialCapacity);//initialCapacity=10
-     ```
-   
+
+     创建HashMap对象时，HashMap通过位移运算和或运算得到的肯定是2的幂次数，并且是大于那个数的最近的数字，底层采用tableSizeFor()方法
+
 3. 默认的负载因子，默认值是0.75 
 
     ```java
@@ -4990,6 +5093,11 @@ HashMap继承关系如下图所示：
     //集合最大容量的上限是：2的30次幂
     static final int MAXIMUM_CAPACITY = 1 << 30;
     ```
+
+    最大容量为什么是2的30次方原因：
+
+    * int类型是32位整型，占4个字节
+    * Java的原始类型里没有无符号类型，所以首位是符号位正数为0，负数为1
 
 5. 当链表的值超过8则会转红黑树(**1.8新增**)
 
@@ -5034,14 +5142,14 @@ HashMap继承关系如下图所示：
     static final int MIN_TREEIFY_CAPACITY = 64;
     ```
 
-8. **table用来初始化(必须是二的n次幂)(重点)**
+8. table用来初始化(必须是二的n次幂)(重点)
 
     ```java
     //存储元素的数组 
     transient Node<K,V>[] table;
     ```
 
-    jdk8之前数组类型是Entry<K,V>类型。从jdk1.8之后是Node<K,V>类型。只是换了个名字，都实现了一样的接口：Map.Entry<K,V>，负责存储键值对数据的
+    jdk8之前数组类型是Entry<K,V>类型，从jdk1.8之后是Node<K,V>类型。只是换了个名字，都实现了一样的接口：Map.Entry<K,V>，负责存储键值对数据的
 
  9. 存放缓存 
 
@@ -5052,47 +5160,47 @@ HashMap继承关系如下图所示：
 
  10. HashMap中存放元素的个数(**重点**)
 
-```java
-//存放元素的个数，HashMap中K-V的实时数量，不是table数组的长度。
-transient int size;
-```
+    ```java
+    //存放元素的个数，HashMap中K-V的实时数量，不是table数组的长度。
+    transient int size;
+    ```
 
 11. 记录HashMap的修改次数 
 
-       ```java
-    //每次扩容和更改map结构的计数器
-    transient int modCount;  
-       ```
+        ```java
+     //每次扩容和更改map结构的计数器
+     transient int modCount;  
+        ```
 
 12. 调整大小下一个容量的值计算方式为(容量*负载因子) 
 
-       ```java
-    //临界值,当实际大小(容量*负载因子)超过临界值时，会进行扩容
-    int threshold;
-       ```
+        ```java
+     //临界值,当实际大小(容量*负载因子)超过临界值时，会进行扩容
+     int threshold;
+        ```
 
 13. **哈希表的加载因子(重点)**
 
-      ```java
-    // 加载因子
-    final float loadFactor;
-      ```
+       ```java
+     // 加载因子
+     final float loadFactor;
+       ```
 
-      * 加载因子的概述
+       * 加载因子的概述
 
-        loadFactor加载因子，是用来衡量 HashMap 满的程度，表示**HashMap的疏密程度**，影响hash操作到同一个数组位置的概率，计算HashMap的实时加载因子的方法为：size/capacity，而不是占用桶的数量去除以capacity，capacity 是桶的数量，也就是 table 的长度length。
+         loadFactor加载因子，是用来衡量 HashMap 满的程度，表示**HashMap的疏密程度**，影响hash操作到同一个数组位置的概率，计算HashMap的实时加载因子的方法为：size/capacity，而不是占用桶的数量去除以capacity，capacity 是桶的数量，也就是 table 的长度length。
 
-        当HashMap里面容纳的元素已经达到HashMap数组长度的75%时，表示HashMap拥挤，需要扩容，而扩容这个过程涉及到 rehash、复制数据等操作，非常消耗性能，所以开发中尽量减少扩容的次数，可以通过创建HashMap集合对象时指定初始容量来尽量避免。
+         当HashMap里面容纳的元素已经达到HashMap数组长度的75%时，表示HashMap拥挤，需要扩容，而扩容这个过程涉及到 rehash、复制数据等操作，非常消耗性能，所以开发中尽量减少扩容的次数，可以通过创建HashMap集合对象时指定初始容量来尽量避免。
 
-        ```java
-        HashMap(int initialCapacity, float loadFactor)//构造指定初始容量和加载因子的空HashMap
-        ```
+         ```java
+         HashMap(int initialCapacity, float loadFactor)//构造指定初始容量和加载因子的空HashMap
+         ```
 
-      * 为什么加载因子设置为0.75，初始化临界值是12？
+       * 为什么加载因子设置为0.75，初始化临界值是12？
 
-        loadFactor太大导致查找元素效率低，存放的数据拥挤，太小导致数组的利用率低，存放的数据会很分散。loadFactor的默认值为**0.75f是官方给出的一个比较好的临界值**。
+         loadFactor太大导致查找元素效率低，存放的数据拥挤，太小导致数组的利用率低，存放的数据会很分散。loadFactor的默认值为**0.75f是官方给出的一个比较好的临界值**。
 
-      * **threshold**计算公式：capacity(数组长度默认16) * loadFactor(负载因子默认0.75)。这个值是当前已占用数组长度的最大值。**当Size>=threshold**的时候，那么就要考虑对数组的resize(扩容)，这就是 **衡量数组是否需要扩增的一个标准**， 扩容后的 HashMap 容量是之前容量的**两倍**.
+       * **threshold**计算公式：capacity(数组长度默认16) * loadFactor(负载因子默认0.75)。这个值是当前已占用数组长度的最大值。**当Size>=threshold**的时候，那么就要考虑对数组的resize(扩容)，这就是 **衡量数组是否需要扩增的一个标准**， 扩容后的 HashMap 容量是之前容量的**两倍**.
 
 
 
@@ -5104,7 +5212,7 @@ transient int size;
 
 1. put
 
-   第一次调用put方法时创建数组Node[] table，散列表耗费内存，为了防止内存浪费，所以**延迟初始化**
+   第一次调用put方法时创建数组Node[] table，因为散列表耗费内存，为了防止内存浪费，所以**延迟初始化**
 
    存储数据步骤（存储过程）：
 
@@ -5170,16 +5278,71 @@ transient int size;
       treeifyBin(tab, hash);
    ```
 
-   1. 如果当前数组为空或者数组的长度小于进行树形化的阈值(MIN_TREEIFY_CAPACITY = 64)，就去扩容。而不是将节点变为红黑树
-   2. 如果是树形化遍历桶中的元素，创建相同个数的树形节点，复制内容，建立起联系。类似单向链表转换为双向链表
+   1. 如果当前数组为空或者数组的长度小于进行树形化的阈值(MIN_TREEIFY_CAPACITY = 64)就去扩容，而不是将节点变为红黑树
+   2. 如果是树形化遍历桶中的元素，创建相同个数的树形节点，复制内容，建立起联系，类似单向链表转换为双向链表
    3. 让桶中的第一个元素即数组中的元素指向新建的红黑树的节点，以后这个桶里的元素就是红黑树而不是链表数据结构了
 
-3. resize
+3. tableSizeFor
+   创建HashMap指定容量时，HashMap通过位移运算和或运算得到比指定初始化容量大的最小的2的n次幂
+
+   ```java
+   static final int tableSizeFor(int cap) {//int cap = 10
+       int n = cap - 1;
+       n |= n >>> 1;
+       n |= n >>> 2;
+       n |= n >>> 4;
+       n |= n >>> 8;
+       n |= n >>> 16;
+       return (n < 0) ? 1 : (n >= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + 1;
+   }
+   ```
+
+   分析算法：
+
+   1. `int n = cap - 1;`：防止cap已经是2的幂。如果cap已经是2的幂， 不执行减1操作，则执行完后面的无符号右移操作之后，返回的capacity将是这个cap的2倍
+   2. n=0 (cap-1之后)，则经过后面的几次无符号右移依然是0，返回的capacity是1，最后有n+1
+   3. |（按位或运算）：相同的二进制数位上，都是0的时候，结果为0，否则为1
+   4. 核心思想：把最高位是1的位以及右边的位全部置 1，结果加 1 后就是最小的2的n次幂
+
+   例如初始化的值为10：
+
+   * 第一次右移
+
+     ```java
+     int n = cap - 1;//cap=10  n=9
+     n |= n >>> 1;
+     00000000 00000000 00000000 00001001 //9
+     00000000 00000000 00000000 00000100 //9右移之后变为4
+     --------------------------------------------------
+     00000000 00000000 00000000 00001101 //按位或之后是13
+     //使得n的二进制表示中与最高位的1紧邻的右边一位为1
+     ```
+
+   * 第二次右移
+
+     ```java
+     n |= n >>> 2;//n通过第一次右移变为了：n=13
+     00000000 00000000 00000000 00001101  // 13
+     00000000 00000000 00000000 00000011  //13右移之后变为3
+     -------------------------------------------------
+     00000000 00000000 00000000 00001111	 //按位或之后是15
+     //无符号右移两位，会将最高位两个连续的1右移两位，然后再与原来的n做或操作，这样n的二进制表示的高位中会有4个连续的1
+     ```
+
+     注意：容量最大是32bit的正数，因此最后`n |= n >>> 16`，最多是32个1（但是这已经是负数了）。在执行tableSizeFor之前，对initialCapacity做了判断，如果大于MAXIMUM_CAPACITY(2 ^ 30)，则取MAXIMUM_CAPACITY；如果小于MAXIMUM_CAPACITY(2 ^ 30)，会执行移位操作，所以移位操作之后，最大30个1，加1之后得2 ^ 30
+
+   * 得到的capacity被赋值给了threshold
+
+     ```java
+     this.threshold = tableSizeFor(initialCapacity);//initialCapacity=10
+     ```
+
+4. resize
 
    当HashMap中的元素个数超过数组大小(数组长度)*loadFactor(负载因子)时，就会进行数组扩容。进行扩容，会伴随着一次重新hash分配，并且会遍历hash表中所有的元素，是非常耗时的，所以要尽量避免resize
 
    HashMap在进行扩容时，使用的rehash方式非常巧妙，因为每次扩容都是翻倍，与原来计算的 (n-1)&hash的结果相比，只是多了一个bit位，节点**要么就在原来的位置，要么就被分配到"原位置+旧容量"的位置**
-   
+
    注意：这里也要求**数组长度2的幂**
 
 ![](https://gitee.com/seazean/images/raw/master/JavaSE/HashMap-resize扩容.png)
