@@ -2071,6 +2071,232 @@ a{
 
 
 
+
+
+# HTTP
+
+## 协议概述
+
+HTTP：Hyper Text Transfer Protocol，意为超文本传输协议，是建立在**TCP/IP协议**基础上，它指的是服务器和客户端之间交互必须遵循的一问一答的规则，形容这个规则：问答机制、握手机制
+
+互联网通信协议 HTTP 协议，是一个**无状态协议**，所有的资源状态都保存在服务器端
+
+HTTP作用：用于定义WEB浏览器与WEB服务器之间交换数据的过程和数据本身的内容
+
+浏览器和服务器交互过程: 浏览器请求, 服务请求响应
+
+* 请求(请求行,请求头,请求体)
+* 响应(响应行,响应头,响应体)
+
+URL：统一资源定位符,
+
+* 格式：http://127.0.0.1:8080/request/servletDemo01
+* 详解：http：协议；127.0.0.1：域名；8080：端口；request/servletDemo01：请求资源路径
+
+URI：统一资源标志符
+
+* 格式：/request/servletDemo01
+
+区别：URL-HOST=URI。URI是抽象的定义。URL用地址定位，URI 用名称定位。
+           **只要能唯一标识资源的是URI，在URI的基础上给出其资源的访问方式的是URL**
+
+
+
+***
+
+
+
+## 版本区别
+
+面试问题：
+
+* HTTP/0.9 仅支持GET请求，不支持请求头。
+* HTTP/1.0 默认短连接（一次请求建议一次TCP连接，请求完就断开），支持GET、POST、 HEAD请求
+* HTTP/1.1 默认长连接（一次TCP连接可以多次请求）；支持PUT、DELETE、PATCH等六种请求；增加host头，支持虚拟主机；支持断点续传功能
+* HTTP/2.0 多路复用，降低开销（一次TCP连接可以处理多个请求）；服务器主动推送（相关资源一个请求全部推送）；解析基于二进制，解析错误少，更高效（HTTP/1.X解析基于文本）；报头压缩，降低开销。
+
+目前HTTP协议主要是1.0版本和1.1版本。这两个版本的区别主要是两个方面
+
+1. HTTP1.1版本比1.0版本多了一些消息头
+
+2. HTTP1.1版本和1.0版本的执行过程不一样
+
+   * HTTP1.0: 创建连接(TCP/IP)-->发送请求-->得到响应-->关闭连接->创建连接(TCP/IP)-->循环
+
+   * HTTP1.1: 创建连接(TCP/IP)-->发送请求1-->得到响应1-->发送请求2-->得到响应2.....-->连接超时或手动关闭连接
+
+
+
+****
+
+
+
+## 请求部分
+
+请求行： 永远位于请求的第一行
+
+请求头： 从第二行开始，到第一个空行结束
+
+请求体： 从第一个空行后开始，到正文的结束（GET没有）
+
+* 请求方式
+
+  * POST
+
+  ![](https://gitee.com/seazean/images/raw/master/JavaWeb/HTTP请求部分.png)
+
+  * Get
+
+    ```html
+    【请求行】
+    GET /myApp/success.html?username=zs&password=123456 HTTP/1.1
+    
+    【请求头】
+    Accept: text/html, application/xhtml+xml, */*; X-HttpWatch-RID: 41723-10011
+    Referer: http://localhost:8080/myApp/login.html
+    Accept-Language: zh-Hans-CN,zh-Hans;q=0.5
+    User-Agent: Mozilla/5.0 (MSIE 9.0; qdesk 2.4.1266.203; Windows NT 6.3; WOW64; Trident/7.0; rv:11.0) like Gecko
+    Accept-Encoding: gzip, deflate
+    Host: localhost:8080
+    Connection: Keep-Alive
+    Cookie: Idea-b77ddca6=4bc282fe-febf-4fd1-b6c9-72e9e0f381e8
+    ```
+
+    
+
+
+
+* 请求行详解
+
+  ```html
+  GET  /myApp/success.html?username=zs&password=123456 HTTP/1.1	
+  POST /myApp/success.html HTTP/1.1
+  ```
+
+  | 内容                | 说明                       |
+  | ------------------- | -------------------------- |
+  | GET/POST            | 请求的方式。               |
+  | /myApp/success.html | 请求的资源。               |
+  | HTTP/1.1            | 使用的协议，及协议的版本。 |
+
+
+
+* 请求头详解
+  从第2行到空行处，都叫请求头,以键值对的形式存在,但存在一个key对应多个值的请求头
+
+  | 内容              | 说明                                                         |
+  | ----------------- | ------------------------------------------------------------ |
+  | Accept            | 告知服务器，客户浏览器支持的MIME类型                         |
+  | User-Agent        | 浏览器相关信息                                               |
+  | Accept-Charset    | 告诉服务器，客户浏览器支持哪种字符集                         |
+  | Accept-Encoding   | 告知服务器，客户浏览器支持的压缩编码格式。常用gzip压缩       |
+  | Accept-Language   | 告知服务器，客户浏览器支持的语言。zh_CN或en_US等             |
+  | Host              | 初始URL中的主机和端口                                        |
+  | Referer           | 告知服务器，当前请求的来源。只有当前请求有来源，才有这个消息头。<br/>作用：1 投放广告  2 防盗链 |
+  | Content-Type      | 告知服务器，请求正文的MIME类型，文件传输的类型,<br/>application/x-www-form-urlencoded |
+  | Content-Length    | 告知服务器，请求正文的长度。                                 |
+  | Connection        | 表示是否需要持久连接。一般是“Keep -Alive”（HTTP 1.1默认进行持久连接 ) |
+  | If-Modified-Since | 告知服务器，客户浏览器缓存文件的最后修改时间                 |
+  | Cookie            | 会话管理相关(非常的重要)                                     |
+
+
+
+* 请求体详解
+
+  * 只有post请求方式，才有请求的正文，get方式的正文是在地址栏中的。
+
+  * 表单的输入域有name属性的才会被提交。不分get和post的请求方式。
+
+  * 表单的enctype属性取值决定了请求正文的体现形式。
+
+    | enctype取值                       | 请求正文体现形式                                   | 示例                                                         |
+    | --------------------------------- | -------------------------------------------------- | ------------------------------------------------------------ |
+    | application/x-www-form-urlencoded | key=value&key=value                                | username=test&password=1234                                  |
+    | multipart/form-data               | 此时变成了多部分表单数据。多部分是靠分隔符分隔的。 | -----------------------------7df23a16c0210<br/>Content-Disposition: form-data; name="username"<br/>test<br/>-----------------------------7df23a16c0210<br/>Content-Disposition: form-data; name="password"<br/>1234<br/>-------------------------------7df23a16c0210 |
+
+
+
+***
+
+
+
+## 响应部分
+
+响应部分图：
+
+![](https://gitee.com/seazean/images/raw/master/JavaWeb/HTTP响应部分.png)
+
+
+
+* 响应行
+
+  HTTP/1.1：使用协议的版本
+  200：响应状态码
+  OK：状态码描述
+
+  * 响应状态码：
+    ![](https://gitee.com/seazean/images/raw/master/JavaWeb/HTTP状态响应码.png)
+
+    | 状态码  | 说明                                             |
+    | ------- | ------------------------------------------------ |
+    | 200     | 一切都OK>，与服务器连接成功，发送请求成功        |
+    | 302/307 | 请求重定向(客户端行为，两次请求，地址栏发生改变) |
+    | 304     | 请求资源未改变，使用缓存                         |
+    | 400     | 客户端错误，请求错误，最常见的就是请求参数有问题 |
+    | 403     | 客户端错误，但forbidden权限不够，拒绝处理        |
+    | 404     | 客户端错误，请求资源未找到                       |
+    | 500     | 服务器错误，服务器运行内部错误                   |
+
+  面试题：
+
+  * 301 redirect: 301 代表永久性转移(Permanently Moved)。
+  * 302 redirect: 302 代表暂时性转移(Temporarily Moved )
+
+* 响应头
+  响应头以key:vaue存在, 可能多个value情况。
+
+  | 消息头                  | 说明                                                         |
+  | ----------------------- | ------------------------------------------------------------ |
+  | Location                | 请求重定向的地址，常与302,307配合使用。                      |
+  | Server                  | 服务器相关信息。                                             |
+  | Content-Type            | 告知客户浏览器，响应正文的MIME类型。                         |
+  | Content-Length          | 告知客户浏览器，响应正文的长度。                             |
+  | Content-Encoding        | 告知客户浏览器，响应正文使用的压缩编码格式。常用的gzip压缩。 |
+  | Content-Language        | 告知客户浏览器，响应正文的语言。zh_CN或en_US等。             |
+  | Content-Disposition     | 告知客户浏览器，以下载的方式打开响应正文。                   |
+  | Refresh                 | 客户端的刷新频率。单位是秒                                   |
+  | Last-Modified           | 服务器资源的最后修改时间。                                   |
+  | Set-Cookie              | 服务器端发送的Cookie，会话管理相关                           |
+  | Expires:-1              | 服务器资源到客户浏览器后的缓存时间                           |
+  | Catch-Control: no-catch | 不要缓存，//针对http协议1.1版本                              |
+  | Pragma:no-catch         | 不要缓存，//针对http协议1.0版本                              |
+
+
+
+* 响应体
+
+  页面展示内容, 类似网页的源码
+
+  ```html
+  <html>
+      <head>
+          <link rel="stylesheet" href="css.css" type="text/css">
+          <script type="text/javascript" src="demo.js"></script>
+      </head>
+      <body>
+          <img src="1.jpg" />
+      </body>
+  </html>
+  ```
+
+  
+
+
+
+***
+
+
+
 # EE
 
 ## JavaEE
@@ -2296,224 +2522,6 @@ Run -> Edit Configurations -> Templates -> Tomcat Server -> Local
 
 
 
-
-****
-
-
-
-## HTTP
-
-### 协议概述
-
-HTTP：Hyper Text Transfer Protocol，意为超文本传输协议，是建立在**TCP/IP协议**基础上。它指的是服务器和客户端之间交互必须遵循的一问一答的规则。形容这个规则：问答机制、握手机制。
-
-HTTP作用：用于定义WEB浏览器与WEB服务器之间交换数据的过程和数据本身的内容
-
-浏览器和服务器交互过程: 浏览器请求, 服务请求响应
-
-* 请求(请求行,请求头,请求体)
-* 响应(响应行,响应头,响应体)
-
-URL：统一资源定位符,
-
-* 格式：http://127.0.0.1:8080/request/servletDemo01
-* 详解：http：协议；127.0.0.1：域名；8080：端口；request/servletDemo01：请求资源路径
-
-URI：统一资源标志符
-
-* 格式：/request/servletDemo01
-
-区别：URL-HOST=URI。URI是抽象的定义。URL用地址定位，URI 用名称定位。
-           **只要能唯一标识资源的是URI，在URI的基础上给出其资源的访问方式的是URL**
-
-
-
-***
-
-
-
-### 版本区别
-
-面试问题：
-
-* HTTP/0.9 仅支持GET请求，不支持请求头。
-* HTTP/1.0 默认短连接（一次请求建议一次TCP连接，请求完就断开），支持GET、POST、 HEAD请求
-* HTTP/1.1 默认长连接（一次TCP连接可以多次请求）；支持PUT、DELETE、PATCH等六种请求；增加host头，支持虚拟主机；支持断点续传功能
-* HTTP/2.0 多路复用，降低开销（一次TCP连接可以处理多个请求）；服务器主动推送（相关资源一个请求全部推送）；解析基于二进制，解析错误少，更高效（HTTP/1.X解析基于文本）；报头压缩，降低开销。
-
-目前HTTP协议主要是1.0版本和1.1版本。这两个版本的区别主要是两个方面
-
-1. HTTP1.1版本比1.0版本多了一些消息头
-
-2. HTTP1.1版本和1.0版本的执行过程不一样
-
-   * HTTP1.0: 创建连接(TCP/IP)-->发送请求-->得到响应-->关闭连接->创建连接(TCP/IP)-->循环
-
-   * HTTP1.1: 创建连接(TCP/IP)-->发送请求1-->得到响应1-->发送请求2-->得到响应2.....-->连接超时或手动关闭连接
-
-
-
-****
-
-
-
-### 请求部分
-
-请求行： 永远位于请求的第一行
-请求头： 从第二行开始，到第一个空行结束
-请求体： 从第一个空行后开始，到正文的结束（GET没有）
-
-* 请求方式
-
-  * POST
-
-  ![](https://gitee.com/seazean/images/raw/master/JavaWeb/HTTP请求部分.png)
-
-  * Get
-
-    ```html
-    【请求行】
-    GET /myApp/success.html?username=zs&password=123456 HTTP/1.1
-    
-    【请求头】
-    Accept: text/html, application/xhtml+xml, */*; X-HttpWatch-RID: 41723-10011
-    Referer: http://localhost:8080/myApp/login.html
-    Accept-Language: zh-Hans-CN,zh-Hans;q=0.5
-    User-Agent: Mozilla/5.0 (MSIE 9.0; qdesk 2.4.1266.203; Windows NT 6.3; WOW64; Trident/7.0; rv:11.0) like Gecko
-    Accept-Encoding: gzip, deflate
-    Host: localhost:8080
-    Connection: Keep-Alive
-    Cookie: Idea-b77ddca6=4bc282fe-febf-4fd1-b6c9-72e9e0f381e8
-    ```
-
-    
-
-
-
-* 请求行详解
-
-  ```html
-  GET  /myApp/success.html?username=zs&password=123456 HTTP/1.1	
-  POST /myApp/success.html HTTP/1.1
-  ```
-
-  | 内容                | 说明                       |
-  | ------------------- | -------------------------- |
-  | GET/POST            | 请求的方式。               |
-  | /myApp/success.html | 请求的资源。               |
-  | HTTP/1.1            | 使用的协议，及协议的版本。 |
-
-
-
-* 请求头详解
-  从第2行到空行处，都叫请求头,以键值对的形式存在,但存在一个key对应多个值的请求头
-
-  | 内容              | 说明                                                         |
-  | ----------------- | ------------------------------------------------------------ |
-  | Accept            | 告知服务器，客户浏览器支持的MIME类型                         |
-  | User-Agent        | 浏览器相关信息                                               |
-  | Accept-Charset    | 告诉服务器，客户浏览器支持哪种字符集                         |
-  | Accept-Encoding   | 告知服务器，客户浏览器支持的压缩编码格式。常用gzip压缩       |
-  | Accept-Language   | 告知服务器，客户浏览器支持的语言。zh_CN或en_US等             |
-  | Host              | 初始URL中的主机和端口                                        |
-  | Referer           | 告知服务器，当前请求的来源。只有当前请求有来源，才有这个消息头。<br/>作用：1 投放广告  2 防盗链 |
-  | Content-Type      | 告知服务器，请求正文的MIME类型，文件传输的类型,<br/>application/x-www-form-urlencoded |
-  | Content-Length    | 告知服务器，请求正文的长度。                                 |
-  | Connection        | 表示是否需要持久连接。一般是“Keep -Alive”（HTTP 1.1默认进行持久连接 ) |
-  | If-Modified-Since | 告知服务器，客户浏览器缓存文件的最后修改时间                 |
-  | Cookie            | 会话管理相关(非常的重要)                                     |
-
-
-
-* 请求体详解
-
-  * 只有post请求方式，才有请求的正文，get方式的正文是在地址栏中的。
-
-  * 表单的输入域有name属性的才会被提交。不分get和post的请求方式。
-
-  * 表单的enctype属性取值决定了请求正文的体现形式。
-
-    | enctype取值                       | 请求正文体现形式                                   | 示例                                                         |
-    | --------------------------------- | -------------------------------------------------- | ------------------------------------------------------------ |
-    | application/x-www-form-urlencoded | key=value&key=value                                | username=test&password=1234                                  |
-    | multipart/form-data               | 此时变成了多部分表单数据。多部分是靠分隔符分隔的。 | -----------------------------7df23a16c0210<br/>Content-Disposition: form-data; name="username"<br/>test<br/>-----------------------------7df23a16c0210<br/>Content-Disposition: form-data; name="password"<br/>1234<br/>-------------------------------7df23a16c0210 |
-
-
-
-***
-
-
-
-### 响应部分
-
-响应部分图：
-
-![](https://gitee.com/seazean/images/raw/master/JavaWeb/HTTP响应部分.png)
-
-
-
-* 响应行
-
-  HTTP/1.1：使用协议的版本
-  200：响应状态码
-  OK：状态码描述
-
-  * 响应状态码：
-    ![](https://gitee.com/seazean/images/raw/master/JavaWeb/HTTP状态响应码.png)
-
-    | 状态码  | 说明                                             |
-    | ------- | ------------------------------------------------ |
-    | 200     | 一切都OK>，与服务器连接成功，发送请求成功        |
-    | 302/307 | 请求重定向(客户端行为，两次请求，地址栏发生改变) |
-    | 304     | 请求资源未改变，使用缓存                         |
-    | 400     | 客户端错误，请求错误，最常见的就是请求参数有问题 |
-    | 403     | 客户端错误，但forbidden权限不够，拒绝处理        |
-    | 404     | 客户端错误，请求资源未找到                       |
-    | 500     | 服务器错误，服务器运行内部错误                   |
-
-  面试题：
-
-  * 301 redirect: 301 代表永久性转移(Permanently Moved)。
-  * 302 redirect: 302 代表暂时性转移(Temporarily Moved )
-
-* 响应头
-  响应头以key:vaue存在, 可能多个value情况。
-
-  | 消息头                  | 说明                                                         |
-  | ----------------------- | ------------------------------------------------------------ |
-  | Location                | 请求重定向的地址，常与302,307配合使用。                      |
-  | Server                  | 服务器相关信息。                                             |
-  | Content-Type            | 告知客户浏览器，响应正文的MIME类型。                         |
-  | Content-Length          | 告知客户浏览器，响应正文的长度。                             |
-  | Content-Encoding        | 告知客户浏览器，响应正文使用的压缩编码格式。常用的gzip压缩。 |
-  | Content-Language        | 告知客户浏览器，响应正文的语言。zh_CN或en_US等。             |
-  | Content-Disposition     | 告知客户浏览器，以下载的方式打开响应正文。                   |
-  | Refresh                 | 客户端的刷新频率。单位是秒                                   |
-  | Last-Modified           | 服务器资源的最后修改时间。                                   |
-  | Set-Cookie              | 服务器端发送的Cookie，会话管理相关                           |
-  | Expires:-1              | 服务器资源到客户浏览器后的缓存时间                           |
-  | Catch-Control: no-catch | 不要缓存，//针对http协议1.1版本                              |
-  | Pragma:no-catch         | 不要缓存，//针对http协议1.0版本                              |
-
-
-
-* 响应体
-
-  页面展示内容, 类似网页的源码
-
-  ```html
-  <html>
-      <head>
-          <link rel="stylesheet" href="css.css" type="text/css">
-          <script type="text/javascript" src="demo.js"></script>
-      </head>
-      <body>
-          <img src="1.jpg" />
-      </body>
-  </html>
-  ```
-
-  
 
 ***
 
@@ -8681,7 +8689,7 @@ v-on：为 HTML 标签绑定事件，有简写方式
 
 ## 安装软件
 
-*Nginx*(engine x) 是一个高性能的HTTP和[反向代理](https://baike.baidu.com/item/反向代理/7793488)web服务器，同时也提供了IMAP/POP3/SMTP服务。
+Nginx(engine x) 是一个高性能的HTTP和[反向代理](https://baike.baidu.com/item/反向代理/7793488)web服务器，同时也提供了IMAP/POP3/SMTP服务。
 
 Nginx两个最核心的功能：高性能的静态web服务器，反向代理
 

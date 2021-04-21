@@ -10892,12 +10892,26 @@ ExceptionHandler注解：
 
 ### Rest概述
 
-Rest (Representational State Transfer)：一种网络资源的访问风格，定义了网络资源的访问方式
+Rest (REpresentational State Transfer)：表现层状态转化，定义了**资源”在网络传输中以某种“表现形式”进行“状态转移**，即网络资源的访问方式
+
+* 资源：把真实的对象数据称为资源，一个资源既可以是一个集合，也可以是单个个体；每一种资源都有特定的 URI（统一资源标识符）与之对应，如果获取这个资源，访问这个 URI 就可以，比如获取特定的班级`/class/12`；资源也可以包含子资源，比如 `/classes/classId/teachers`某个指定班级的所有老师
+* 表现形式："资源"是一种信息实体，它可以有多种外在表现形式，把"资源"具体呈现出来的形式比如 json、xml、image、txt 等等叫做它的"表现层/表现形式"
+* 状态转移：描述的服务器端资源的状态，比如增删改查（通过 HTTP 动词实现）引起资源状态的改变，互联网通信协议 HTTP 协议，是一个**无状态协议**，所有的资源状态都保存在服务器端
+
+
+
+***
+
+
+
+### Restful
+
+#### 风格
+
+Restful是按照Rest风格访问网络资源
 
 * 传统风格访问路径：http://localhost/user/get?id=1
 * Rest风格访问路径：http://localhost/user/1
-
-Restful是按照Rest风格访问网络资源
 
 优点：隐藏资源的访问行为，通过地址无法得知做的是何种操作，书写简化
 
@@ -10915,11 +10929,9 @@ Rest行为约定方式：
 
 
 
-***
 
 
-
-### Restful
+#### 开发
 
 Restful请求路径简化配置方式：@RestController = @Controller + @ResponseBody
 
@@ -10941,29 +10953,28 @@ Restful请求路径简化配置方式：@RestController = @Controller + @Respons
 
 代码实现：
 
-* restful.jsp
-  页面表单使用隐藏域提交请求类型，参数名称固定为_method，必须配合提交类型method=post使用
+* restful.jsp：
   
-* GET请求通过地址栏可以发送，也可以通过设置form的请求方式提交
+  * 页面表单使用隐藏域提交请求类型，参数名称固定为_method，必须配合提交类型method=post使用
+  
+  * GET请求通过地址栏可以发送，也可以通过设置form的请求方式提交
   * POST请求必须通过form的请求方式提交
   
-```html
+  ```html
   <%@page pageEncoding="UTF-8" language="java" contentType="text/html;UTF-8" %>
   <h1>restful风格请求表单</h1>
   <%--切换请求路径为restful风格--%>
   <form action="/user/1" method="post">
-      <%--当添加了name为_method的隐藏域时，可以通过设置该隐藏域的值，修改请求的提交方式，切换为PUT请求或DELETE请求，但是form表单的提交方式method属性必须填写post--%>
-      <input type="text" name="_method" value="PUT"/>
-      <input type="submit"/>
+  	<%--当添加了name为_method的隐藏域时，通过设置该隐藏域的值，修改请求的提交方式--%>
+  	<%--切换为PUT请求或DELETE请求，但是form表单的提交方式method属性必须填写post--%>
+  	<input type="text" name="_method" value="PUT"/>
+  	<input type="submit"/>
   </form>
-```
-
-
+  ```
+  
 * java / controller / UserController
 
   ```java
-  //@Controller
-  //@ResponseBody
   //设置rest风格的控制器
   @RestController
   //设置公共访问路径，配合下方访问路径使用
@@ -11036,7 +11047,7 @@ Restful请求路径简化配置方式：@RestController = @Controller + @Respons
       <servlet-name>DispatcherServlet</servlet-name>
   </filter-mapping>
   ```
-  
+
   
 
 
