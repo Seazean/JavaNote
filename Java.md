@@ -2779,7 +2779,7 @@ public class Student {
 
 #### 概述
 
-**String 被声明为 final，因此它不可被继承 (Integer 等包装类也不能被继承）**
+**String 被声明为 final，因此不可被继承 (Integer 等包装类也不能被继承）**
 
 ```java
 public final class String implements java.io.Serializable, Comparable<String>, CharSequence {
@@ -2790,8 +2790,9 @@ public final class String implements java.io.Serializable, Comparable<String>, C
 }
 ```
 
-在 Java 9 之后，String 类的实现改用 byte 数组存储字符串，同时使用 `coder` 来标识使用了哪种编码。
-value 数组被声明为 final，这意味着 value 数组初始化之后就不能再引用其它数组，并且 String 内部没有改变 value 数组的方法，因此可以**保证 String 不可变**，也保证线程安全
+在 Java 9 之后，String 类的实现改用 byte 数组存储字符串，同时使用 `coder` 来标识使用了哪种编码
+
+value 数组被声明为 final，这意味着 value 数组初始化之后就不能再引用其它数组，并且 String 内部没有改变 value 数组的方法，因此可以**保证 String 不可变，也保证线程安全**
 
 **注意：不能改变的意思是每次更改字符串都会产生新的对象，并不是对原始对象进行改变**
 
@@ -2818,13 +2819,10 @@ s = s + "cd"; //s = abccd 新对象
 
 使用这种方式一共会创建两个字符串对象（前提是 String Pool 中还没有 "abc" 字符串对象）:
 
-- 通过构造方法创建
+- 通过构造方法创建：通过 new 创建的字符串对象，每一次 new 都会申请一个内存空间，虽然内容相同，但是地址值不同
 
-  通过 new 创建的字符串对象，每一次 new 都会申请一个内存空间，虽然内容相同，但是地址值不同
+- 直接赋值方式创建：以“ ”方式给出的字符串，只要字符序列相同(顺序和大小写)，无论在程序代码中出现几次，JVM 都只会在 String Pool 中创建一个字符串对象，并在字符串池中维护
 
-- 直接赋值方式创建
-
-  以“ ”方式给出的字符串，只要字符序列相同(顺序和大小写)，无论在程序代码中出现几次，JVM 都只会在 String Pool 中创建一个字符串对象，并在字符串池中维护
 
 #### 常用API
 
@@ -14595,7 +14593,9 @@ public class MyRunnable implements Runnable{
 	5.把未来任务对象包装成线程对象
 	6.调用线程的start()方法启动线程
 
-`public FutureTask(Callable<V> callable)`：未来任务对象，其实就是一个Runnable对象，这样就被包装成线程对象，未来任务对象可以在线程执行完毕之后去**得到线程的执行结果**
+`public FutureTask(Callable<V> callable)`：未来任务对象，在线程执行完后**得到线程的执行结果**
+
+* 其实就是Runnable对象，这样被包装成未来任务对象
 
 `public V get()`：同步等待 task 执行完毕的结果
 
@@ -18095,6 +18095,93 @@ class MyAtomicInteger {
     }
 }
 ```
+
+
+
+***
+
+
+
+### final
+
+#### 原理
+
+```java
+public class TestFinal {
+	final int a = 20;
+}
+```
+
+字节码：
+
+```java
+0: aload_0
+1: invokespecial #1 // Method java/lang/Object."<init>":()V
+4: aload_0
+5: bipush 20	//将值直接放入栈中
+7: putfield #2 // Field a:I
+<-- 写屏障
+10: return
+```
+
+final 变量的赋值通过 putfield 指令来完成，在这条指令之后也会加入写屏障，保证在其它线程读到它的值时不会出现为 0 的情况
+
+其他线程访问final修饰的变量会复制一份放入栈中，效率更高
+
+
+
+***
+
+
+
+#### 不可变
+
+不可变：如果一个对象不能够修改其内部状态（属性），那么就是不可变对象
+
+不可变对象线程安全的，因为不存在并发修改，是另一种避免竞争的方式
+
+String 类也是不可变的，该类和类中所有属性都是 final 的
+
+* 类用 final 修饰保证了该类中的方法不能被覆盖，防止子类无意间破坏不可变性保
+
+* 属性用 final 修饰保证了该属性是只读的，不能修改
+
+  ```java
+  public final class String
+      implements java.io.Serializable, Comparable<String>, CharSequence {
+      /** The value is used for character storage. */
+      private final char value[];
+      //....
+  }
+  ```
+
+更改String类数据时，会构造新字符串对象，生成新的 char[] value，这种通过创建副本对象来避免共享的方式称之为**保护性拷贝（defensive copy）**
+
+
+
+***
+
+
+
+### 无状态
+
+无状态：因为成员变量保存的数据也可以称为状态信息，因此没有成员变量
+
+Servlet 为了保证其线程安全，一般不为 Servlet 设置成员变量，这种没有任何成员变量的类是线程安全的
+
+
+
+***
+
+
+
+## 线程池
+
+
+
+
+
+
 
 
 

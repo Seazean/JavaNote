@@ -8282,7 +8282,7 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
       * **AOP，跳转注解**，`AbstractAutoProxyCreatorwrapIfNecessary -> creatProxy`
       * 如果不存在循环依赖，动态代理在此处完成，否则会提前创建
     
-  * 循环依赖检查：如果存在循环依赖，在属性填充阶段会生成Bean对象的动态代理，则缓存中放置了提前生成的代理对象，然后使用原始bean继续执行初始化，所以返回最终bean前，把原始bean置换为代理对象返回；
+  * 循环依赖检查：如果存在循环依赖，在属性填充阶段会生成Bean对象的动态代理，则缓存中放置了提前生成的代理对象，然后使用原始bean继续执行初始化，所以返回最终bean前，把原始bean置换为代理对象返回
   
     存在循环依赖，在初始化的后置处理中不会重新创建代理对象，真正创建动态代理Bean的阶段是在获取提前引用阶段，**循环依赖**详解，看后置处理源码：  
   
@@ -8622,21 +8622,20 @@ AnnotationAwareAspectJAutoProxyCreator是这种类型的后置处理器：Instan
    `if(是否实现接口)`为真进入：`applyBeanPostProcessorsBeforeInstantiation`方法
 
    * `this.advisedBeans.containsKey(cacheKey)`：判断当前bean是否在advisedBeans中（保存了所有需要增强bean）
-
-   * `isInfrastructureClass`：判断当前bean是否是基础类型的Advice、Pointcut、Advisor、AopInfrastructureBean，或者（子类中）是否是切面Aspect
-
+* `isInfrastructureClass`：判断当前bean是否是基础类型的Advice、Pointcut、Advisor、AopInfrastructureBean，或者（子类中）是否是切面Aspect
    * 是否需要跳过：子类`AspectJAwareAdvisorAutoProxyCreator.shouldSkip()`
 
      * `findCandidateAdvisors()`：获取候选的增强器（切面里面的通知方法）每一个封装的通知方法的增强器是 InstantiationModelAwarePointcutAdvisor**（AAAPC）**
 
      * `if()`：判断每一个增强器是否是 AspectJPointcutAdvisor 类型的，返回true，否则继续执行
-     * `return super.shouldSkip(beanClass, beanName)`：永远返回false  
-
+  * `return super.shouldSkip(beanClass, beanName)`：永远返回false  
    * `getCustomTargetSource(beanClass, beanName)`：返回为空，doCreateBean()
+   
 
-   **进入applyBeanPostProcessorsAfterInitialization：后置处理器创建AOP**
-
-   ```java
+   
+**进入applyBeanPostProcessorsAfterInitialization：后置处理器创建AOP**
+   
+```java
    //如果Bean被子类标识为要代理的bean，则使用配置的拦截器创建代理
    public Object postProcessAfterInitialization(@Nullable Object bean,String bN){
        if (bean != null) {
@@ -8650,32 +8649,32 @@ AnnotationAwareAspectJAutoProxyCreator是这种类型的后置处理器：Instan
        return bean;
    }
    ```
-
-   创建动态代理：`wrapIfNecessary()`调用`createProxy()`（wrap包装）
-
-   注释：Create proxy if we have advice
-
-   * `getAdvicesAndAdvisorsForBean()`：获取当前bean的所有增强器 (通知方法)，**为空就直接返回**
-
-     * findEligibleAdvisors()：找到哪些通知方法是需要切入当前bean方法的
+   
+创建动态代理：`wrapIfNecessary()`调用`createProxy()`（wrap包装）
+   
+注释：Create proxy if we have advice
+   
+* `getAdvicesAndAdvisorsForBean()`：获取当前bean的所有增强器 (通知方法)，**为空就直接返回**
+   
+  * findEligibleAdvisors()：找到哪些通知方法是需要切入当前bean方法的
      * AopUtils.findAdvisorsThatCanApply()：获取到能在bean使用的增强器
      * sortAdvisors(eligibleAdvisors)：给增强器排序
-
-   * `this.advisedBeans.put(cacheKey, Boolean.TRUE)`：保存当前bean在advisedBeans中
-
-   * `Object proxy = createProxy(...)`：如果增强器不为空就创建代理，创建当前bean的代理对象
-
-     * buildAdvisors(beanName, specificInterceptors)：获取所有增强器（通知方法）
-
-     * 保存到proxyFactory
-
-     * `return proxyFactory.getProxy(getProxyClassLoader())`：返回代理对象
-
-     * ProxyFactory类：`return createAopProxy().getProxy(classLoader)`
-
-     DefaultAopProxyFactory类：给容器中返回当前组件使用增强了的代理对象
-
-     ```java
+   
+* `this.advisedBeans.put(cacheKey, Boolean.TRUE)`：保存当前bean在advisedBeans中
+   
+* `Object proxy = createProxy(...)`：如果增强器不为空就创建代理，创建当前bean的代理对象
+   
+  * buildAdvisors(beanName, specificInterceptors)：获取所有增强器（通知方法）
+   
+  * 保存到proxyFactory
+   
+  * `return proxyFactory.getProxy(getProxyClassLoader())`：返回代理对象
+   
+  * ProxyFactory类：`return createAopProxy().getProxy(classLoader)`
+   
+  DefaultAopProxyFactory类：给容器中返回当前组件使用增强了的代理对象
+   
+  ```java
      @Override
      public AopProxy createAopProxy(AdvisedSupport config) throws AopConfigException {
          if (config.isOptimize() || config.isProxyTargetClass() || hasNoUserSuppliedProxyInterfaces(config)) {
@@ -8691,7 +8690,7 @@ AnnotationAwareAspectJAutoProxyCreator是这种类型的后置处理器：Instan
          }
      }
      ```
-
+   
 4. 给容器中返回使用cglib增强了的代理对象，**初始化完成，加入容器**
 
 5. 以后容器中获取到的就是这个组件的代理对象，执行目标方法的时候，代理对象就会执行通知方法的流程
