@@ -64,7 +64,7 @@ HTML标签可以拥有[属性](https://developer.mozilla.org/zh-CN/docs/Web/HTML
 
 ### 结构
 
-![HTML结构](https://gitee.com/seazean/images/raw/master/JavaWeb/HTML结构.png)
+![HTML结构](https://gitee.com/seazean/images/raw/master/Web/HTML结构.png)
 
 文档结构介绍：
 
@@ -286,7 +286,7 @@ HTML标签可以拥有[属性](https://developer.mozilla.org/zh-CN/docs/Web/HTML
 
 **效果如下**：
 
-![](https://gitee.com/seazean/images/raw/master/JavaWeb/HTML文本标签效果图.png)
+![](https://gitee.com/seazean/images/raw/master/Web/HTML文本标签效果图.png)
 
 
 
@@ -364,7 +364,7 @@ target属性取值:
 
 效果图：
 
-<img src="https://gitee.com/seazean/images/raw/master/JavaWeb/HTML超链接效果图.png" style="zoom: 67%;" />
+<img src="https://gitee.com/seazean/images/raw/master/Web/HTML超链接效果图.png" style="zoom: 67%;" />
 
 ***
 
@@ -499,7 +499,7 @@ button标签：表示按钮
 
 使用方式：以name属性值作为键，value属性值作为值，构成键值对提交到服务器，多个键值对浏览器使用`&`进行分隔。
 
-![](https://gitee.com/seazean/images/raw/master/JavaWeb/HTML标签input属性-name-value.png)
+![](https://gitee.com/seazean/images/raw/master/Web/HTML标签input属性-name-value.png)
 
 
 
@@ -587,7 +587,7 @@ button标签：表示按钮
 </html>
 ```
 
-![](https://gitee.com/seazean/images/raw/master/JavaWeb/HTML标签input属性-type.png)
+![](https://gitee.com/seazean/images/raw/master/Web/HTML标签input属性-type.png)
 
 
 
@@ -645,7 +645,7 @@ button标签：表示按钮
 </body>
 ```
 
-![](https://gitee.com/seazean/images/raw/master/JavaWeb/HTML标签select和文本域属性.png)
+![](https://gitee.com/seazean/images/raw/master/Web/HTML标签select和文本域属性.png)
 
 ***
 
@@ -690,7 +690,7 @@ button标签：表示按钮
 * tr：table row，表示表中单元的行    
 * td：table data，表示表中一个单元格    
 * th：table header，表格单元格的表头，通常字体样式加粗居中
-* ![](https://gitee.com/seazean/images/raw/master/JavaWeb/HTML表格标签.png)
+* ![](https://gitee.com/seazean/images/raw/master/Web/HTML表格标签.png)
 
 
 
@@ -778,7 +778,7 @@ button标签：表示按钮
 
 效果图：
 
-![](https://gitee.com/seazean/images/raw/master/JavaWeb/HTML表格标签跨行跨列效果图.png)
+![](https://gitee.com/seazean/images/raw/master/Web/HTML表格标签跨行跨列效果图.png)
 
 
 
@@ -861,7 +861,7 @@ background属性用来设置背景相关的样式。
   </html>
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/JavaWeb/HTML背景图.png)
+  ![](https://gitee.com/seazean/images/raw/master/Web/HTML背景图.png)
 
 
 
@@ -881,7 +881,7 @@ background属性用来设置背景相关的样式。
   }
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/JavaWeb/HTML背景设计.png)
+  ![](https://gitee.com/seazean/images/raw/master/Web/HTML背景设计.png)
 
 ***
 
@@ -905,7 +905,7 @@ background属性用来设置背景相关的样式。
   <div>right</div>
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/JavaWeb/HTML-div简单布局.png)
+  ![](https://gitee.com/seazean/images/raw/master/Web/HTML-div简单布局.png)
 
 
 
@@ -1013,7 +1013,7 @@ background属性用来设置背景相关的样式。
   </html>
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/JavaWeb/HTML-div基本布局.png)
+  ![](https://gitee.com/seazean/images/raw/master/Web/HTML-div基本布局.png)
 
 
 
@@ -1032,7 +1032,7 @@ background属性用来设置背景相关的样式。
 | **article** | 文章元素 | 表示独立内容区域 | 标签定义的内容本身必须是有意义且必须独立于文档的其他部分 |
 | **footer**  | 页脚元素 | 表示页面的底部   | 块元素，文档中可以定义多个                               |
 
-![](https://gitee.com/seazean/images/raw/master/JavaWeb/语义化标签结构图.jpg)
+![](https://gitee.com/seazean/images/raw/master/Web/语义化标签结构图.jpg)
 
 
 
@@ -1109,7 +1109,7 @@ background属性用来设置背景相关的样式。
 </html>
 ```
 
-![](https://gitee.com/seazean/images/raw/master/JavaWeb/HTML标签video.png)
+![](https://gitee.com/seazean/images/raw/master/Web/HTML标签video.png)
 
 
 
@@ -1194,7 +1194,7 @@ CSS是一门基于规则的语言—你能定义用于你的网页中**特定元
 }
 ```
 
-![](https://gitee.com/seazean/images/raw/master/JavaWeb/CSS的组成.png)
+![](https://gitee.com/seazean/images/raw/master/Web/CSS的组成.png)
 
 
 
@@ -1665,7 +1665,7 @@ h1 {
 </body>
 ```
 
-<img src="https://gitee.com/seazean/images/raw/master/JavaWeb/CSS-边框样式效果图.png" style="zoom:80%;" />
+<img src="https://gitee.com/seazean/images/raw/master/Web/CSS-边框样式效果图.png" style="zoom:80%;" />
 
 
 
@@ -1697,7 +1697,7 @@ h1 {
 </html>
 ```
 
-![](https://gitee.com/seazean/images/raw/master/JavaWeb/CSS边框轮廓效果图.png)
+![](https://gitee.com/seazean/images/raw/master/Web/CSS边框轮廓效果图.png)
 
 ***
 
@@ -1709,7 +1709,7 @@ h1 {
 
 盒子模型是通过设置**元素框**与**元素内容**和**外部元素**的边距，而进行布局的方式。
 
-![](https://gitee.com/seazean/images/raw/master/JavaWeb/CSS盒子模型.png)
+![](https://gitee.com/seazean/images/raw/master/Web/CSS盒子模型.png)
 
 - element : 元素。
 - padding : 内边距，也有资料将其翻译为填充。
@@ -1805,7 +1805,7 @@ h1 {
   </div
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/JavaWeb/CSS盒子模式-效果图1.png)
+  ![](https://gitee.com/seazean/images/raw/master/Web/CSS盒子模式-效果图1.png)
 
 
 
@@ -1828,7 +1828,7 @@ h1 {
   </style>
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/JavaWeb/CSS盒子模式-效果图2.png)
+  ![](https://gitee.com/seazean/images/raw/master/Web/CSS盒子模式-效果图2.png)
 
 
 
@@ -1881,7 +1881,7 @@ span{
 <span>微信</span>
 ```
 
-![](https://gitee.com/seazean/images/raw/master/JavaWeb/CSS-文本样式效果图.png)
+![](https://gitee.com/seazean/images/raw/master/Web/CSS-文本样式效果图.png)
 
 
 
@@ -2061,7 +2061,7 @@ a{
 </html>
 ```
 
-![](https://gitee.com/seazean/images/raw/master/JavaWeb/CSS案例登陆页面.png)
+![](https://gitee.com/seazean/images/raw/master/Web/CSS案例登陆页面.png)
 
 
 
@@ -2143,7 +2143,7 @@ URI：统一资源标志符
 
   * POST
 
-  ![](https://gitee.com/seazean/images/raw/master/JavaWeb/HTTP请求部分.png)
+  ![](https://gitee.com/seazean/images/raw/master/Web/HTTP请求部分.png)
 
   * Get
 
@@ -2224,7 +2224,7 @@ URI：统一资源标志符
 
 响应部分图：
 
-![](https://gitee.com/seazean/images/raw/master/JavaWeb/HTTP响应部分.png)
+![](https://gitee.com/seazean/images/raw/master/Web/HTTP响应部分.png)
 
 
 
@@ -2235,7 +2235,7 @@ URI：统一资源标志符
   OK：状态码描述
 
   * 响应状态码：
-    ![](https://gitee.com/seazean/images/raw/master/JavaWeb/HTTP状态响应码.png)
+    ![](https://gitee.com/seazean/images/raw/master/Web/HTTP状态响应码.png)
 
     | 状态码  | 说明                                             |
     | ------- | ------------------------------------------------ |
@@ -2341,11 +2341,11 @@ Web，在计算机领域指网络。像我们接触的`WWW`，它是由3个单�
 部署方式划分：一体化架构，垂直拆分架构，分布式架构，流动计算架构，微服务架构。
 
 * C/S结构：客户端—服务器的方式。其中C代表Client，S代表服务器。C/S结构的系统设计图如下：
-  <img src="https://gitee.com/seazean/images/raw/master/JavaWeb/JavaEE-CS结构图.jpg" style="zoom:67%;" />
+  <img src="https://gitee.com/seazean/images/raw/master/Web/JavaEE-CS结构图.jpg" style="zoom:67%;" />
 
 * B/S结构是浏览器—服务器的方式。B代表Browser，S代表服务器。B/S结构的系统设计图如下：
 
-  <img src="https://gitee.com/seazean/images/raw/master/JavaWeb/JavaEE-BS结构图.jpg" style="zoom:67%;" />
+  <img src="https://gitee.com/seazean/images/raw/master/Web/JavaEE-BS结构图.jpg" style="zoom:67%;" />
 
 
 
@@ -2397,7 +2397,7 @@ Web，在计算机领域指网络。像我们接触的`WWW`，它是由3个单�
 
 目录结构详解：
 
-![](https://gitee.com/seazean/images/raw/master/JavaWeb/Tomcat目录结构详解.png)
+![](https://gitee.com/seazean/images/raw/master/Web/Tomcat目录结构详解.png)
 
 
 
@@ -2447,7 +2447,7 @@ Tomcat服务器的停止文件也在二进制文件目录bin中：shutdown.bat�
 
   * 进程很重要：修改自己的端口号。修改的是Tomcat目录下`\conf\server.xml`中的配置。
 
-    ![](https://gitee.com/seazean/images/raw/master/JavaWeb/Tomcat-server.xml端口配置.png)
+    ![](https://gitee.com/seazean/images/raw/master/Web/Tomcat-server.xml端口配置.png)
 
 
 
@@ -2455,7 +2455,7 @@ Tomcat服务器的停止文件也在二进制文件目录bin中：shutdown.bat�
 
 Run -> Edit Configurations -> Templates -> Tomcat Server -> Local
 
-![](https://gitee.com/seazean/images/raw/master/JavaWeb/Tomcat-IDEA配置Tomcat.png)
+![](https://gitee.com/seazean/images/raw/master/Web/Tomcat-IDEA配置Tomcat.png)
 
 
 
@@ -2494,10 +2494,10 @@ Run -> Edit Configurations -> Templates -> Tomcat Server -> Local
 #### IDEA部署
 
 * 新建工程
-  <img src="https://gitee.com/seazean/images/raw/master/JavaWeb/Tomcat-IEDA新建工程.png" style="zoom:67%;" />
+  <img src="https://gitee.com/seazean/images/raw/master/Web/Tomcat-IEDA新建工程.png" style="zoom:67%;" />
 
 * 发布工程
-  ![](https://gitee.com/seazean/images/raw/master/JavaWeb/Tomcat-IDEA发布工程.png)
+  ![](https://gitee.com/seazean/images/raw/master/Web/Tomcat-IDEA发布工程.png)
 
 * Run 
 
@@ -2538,7 +2538,7 @@ Socket是使用TCP/IP或者UDP协议在服务器与客户端之间进行传输�
 
 Tomcat和Servlet的关系：
 Servlet的运行环境叫做Web容器或Servlet服务器，**Tomcat 是Web应用服务器，是一个Servlet/JSP容器**。Tomcat 作为Servlet容器，负责处理客户请求，把请求传送给Servlet，并将Servlet的响应传送回给客户。而Servlet是一种运行在支持Java语言的服务器上的组件，Servlet最常见的用途是扩展Java Web服务器功能，提供非常安全的、可移植的、易于使用的CGI替代品
-![](https://gitee.com/seazean/images/raw/master/JavaWeb/Tomcat与Servlet的关系.png)
+![](https://gitee.com/seazean/images/raw/master/Web/Tomcat与Servlet的关系.png)
 
 
 
@@ -2560,7 +2560,7 @@ Servlet是SUN公司提供的一套规范，名称就叫Servlet规范，它也是
 
 4. 支持配置相关功能
 
-   ![](https://gitee.com/seazean/images/raw/master/JavaWeb/Servlet类关系总视图.png)
+   ![](https://gitee.com/seazean/images/raw/master/Web/Servlet类关系总视图.png)
 
 
 
@@ -2572,7 +2572,7 @@ Servlet是SUN公司提供的一套规范，名称就叫Servlet规范，它也是
 
 创建Web工程-->编写普通类继承Servlet相关类-->重写方法
 
-![](https://gitee.com/seazean/images/raw/master/JavaWeb/Servlet入门案例执行.png)
+![](https://gitee.com/seazean/images/raw/master/Web/Servlet入门案例执行.png)
 
 
 
@@ -2580,7 +2580,7 @@ Servlet执行过程分析：
 
 通过浏览器发送请求，请求首先到达Tomcat服务器，由服务器解析请求URL，然后在部署的应用列表中找到应用。然后找到web.xml配置文件，在web.xml中找到FirstServlet的配置（<url-pattern>/<url-pattern>），找到后执行service方法，最后由FirstServlet响应客户浏览器。整个过程如下图所示：
 
-![](https://gitee.com/seazean/images/raw/master/JavaWeb/Servlet执行过程图.jpg)
+![](https://gitee.com/seazean/images/raw/master/Web/Servlet执行过程图.jpg)
 
 
 
@@ -2612,7 +2612,7 @@ Servlet执行过程分析：
 
 Servlet 3.0 中的异步处理指的是允许Servlet重新发起一条新线程去调用 耗时业务方法，这样就可以避免等待
 
-![](https://gitee.com/seazean/images/raw/master/JavaWeb/Servlet3.0的异步处理.png)
+![](https://gitee.com/seazean/images/raw/master/Web/Servlet3.0的异步处理.png)
 
 
 
@@ -2954,7 +2954,7 @@ public class ServletDemo06 extends HttpServlet {
 
 * 效果：
 
-  ![](https://gitee.com/seazean/images/raw/master/JavaWeb/ServletConfig演示.png)
+  ![](https://gitee.com/seazean/images/raw/master/Web/ServletConfig演示.png)
 
 
 
@@ -2986,7 +2986,7 @@ public class ServletDemo06 extends HttpServlet {
 
 **数据共享：**
 
-<img src="https://gitee.com/seazean/images/raw/master/JavaWeb/ServletContext共享数据.png" style="zoom:50%;" />
+<img src="https://gitee.com/seazean/images/raw/master/Web/ServletContext共享数据.png" style="zoom:50%;" />
 
 **获取ServletContext：**
 
@@ -3161,7 +3161,7 @@ Servlet3.0版本！不需要配置web.xml
 
 Web服务器收到客户端的http请求，会针对每一次请求，分别创建一个用于代表请求的request对象、和代表响应的response对象。
 
-![](https://gitee.com/seazean/images/raw/master/JavaWeb/Servlet请求响应图.png)
+![](https://gitee.com/seazean/images/raw/master/Web/Servlet请求响应图.png)
 
 
 
@@ -3182,7 +3182,7 @@ Request作用：
 * 请求转发
 * 作为域对象存数据  
 
-![](https://gitee.com/seazean/images/raw/master/JavaWeb/Request请求对象的类视图.png)
+![](https://gitee.com/seazean/images/raw/master/Web/Request请求对象的类视图.png)
 
 
 
@@ -3632,7 +3632,7 @@ Response的作用：
 
 * 请求重定向
 
-![](https://gitee.com/seazean/images/raw/master/JavaWeb/Response响应类视图.png)
+![](https://gitee.com/seazean/images/raw/master/Web/Response响应类视图.png)
 
 ***
 
@@ -3830,7 +3830,7 @@ public class ServletDemo04 extends HttpServlet {
 
 ```
 
-![](https://gitee.com/seazean/images/raw/master/JavaWeb/Response设置缓存时间.png)
+![](https://gitee.com/seazean/images/raw/master/Web/Response设置缓存时间.png)
 
 
 
@@ -4003,7 +4003,7 @@ public class ServletDemo08 extends HttpServlet {
 3. 请求转发可以和请求域对象共享数据，数据不会丢失
 4. 请求转发浏览器地址栏不变
 
-![](https://gitee.com/seazean/images/raw/master/JavaWeb/重定向和请求转发对比图.jpg)
+![](https://gitee.com/seazean/images/raw/master/Web/重定向和请求转发对比图.jpg)
 
 
 
@@ -4087,7 +4087,7 @@ Cookie：客户端会话管理技术，把要共享的数据保存到了客户�
 
 作用：保存客户浏览器访问网站的相关内容（需要客户端不禁用Cookie），从而在每次访问同一个内容时，先从本地缓存获取，使资源共享，提高效率。
 
-![](https://gitee.com/seazean/images/raw/master/JavaWeb/Cookie类讲解.png)
+![](https://gitee.com/seazean/images/raw/master/Web/Cookie类讲解.png)
 
 
 
@@ -4261,7 +4261,7 @@ HttpServletRequest类获取Session：
 | HttpSession getSession()              | 获取HttpSession对象                       |
 | HttpSession getSession(boolean creat) | 获取HttpSession对象，未获取到是否自动创建 |
 
-<img src="https://gitee.com/seazean/images/raw/master/JavaWeb/Session获取的两个方法.png" style="zoom: 80%;" />
+<img src="https://gitee.com/seazean/images/raw/master/Web/Session获取的两个方法.png" style="zoom: 80%;" />
 
 #### 常用API
 
@@ -4448,7 +4448,7 @@ JSP部署在服务器上，可以处理客户端发送的请求，并根据请�
 
   客户端提交请求——Tomcat服务器解析请求地址——找到JSP页面——Tomcat将JSP页面翻译成Servlet的java文件——将翻译好的.java文件编译成.class文件——返回到客户浏览器上
 
-  ![](https://gitee.com/seazean/images/raw/master/JavaWeb/JSP执行过程.png)
+  ![](https://gitee.com/seazean/images/raw/master/Web/JSP执行过程.png)
 
 * 溯源，打开JSP翻译后的Java文件
 
@@ -4456,7 +4456,7 @@ JSP部署在服务器上，可以处理客户端发送的请求，并根据请�
 
   在文件中找到了输出页面的代码，本质都是用out.write()输出的JSP语句
 
-  ![](https://gitee.com/seazean/images/raw/master/JavaWeb/Jsp的本质说明.png)
+  ![](https://gitee.com/seazean/images/raw/master/Web/Jsp的本质说明.png)
 
 
 
@@ -4652,7 +4652,7 @@ jsp中的隐式对象也并不是未声明，它是在翻译成.java文件时声
 
 * PageContext方法如下，页面域操作的方法定义在了PageContext的父类JspContext中
 
-  ![](https://gitee.com/seazean/images/raw/master/JavaWeb/PageContext方法详解.png)
+  ![](https://gitee.com/seazean/images/raw/master/Web/PageContext方法详解.png)
 
   
 
@@ -4683,7 +4683,7 @@ M : model， 通常用于封装数据，封装的是数据模型
 V :  view，通常用于展示数据。动态展示用jsp页面，静态数据展示用html
 C :  controller，通常用于处理请求和响应，一般指的是Servlet
 
-![](https://gitee.com/seazean/images/raw/master/JavaWeb/MVC模型.png)
+![](https://gitee.com/seazean/images/raw/master/Web/MVC模型.png)
 
 
 
@@ -4852,7 +4852,7 @@ str：
 
 EL表达式中运算符：
 
-* 关系运算符：![](https://gitee.com/seazean/images/raw/master/JavaWeb/EL表达式关系运算符.png)
+* 关系运算符：![](https://gitee.com/seazean/images/raw/master/Web/EL表达式关系运算符.png)
 
 * 逻辑运算符：
 
@@ -4897,7 +4897,7 @@ EL表达式中运算符：
 
 ```
 
-![](https://gitee.com/seazean/images/raw/master/JavaWeb/EL表达式运算符效果图.png)
+![](https://gitee.com/seazean/images/raw/master/Web/EL表达式运算符效果图.png)
 
 
 
@@ -6346,7 +6346,7 @@ DOM(Document Object Model)：文档对象模型。
 
 将 HTML 文档的各个组成部分，封装为对象。借助这些对象，可以对 HTML 文档进行增删改查的动态操作。
 
-![](https://gitee.com/seazean/images/raw/master/JavaWeb/DOM介绍.png)
+![](https://gitee.com/seazean/images/raw/master/Web/DOM介绍.png)
 
 
 
@@ -6515,11 +6515,11 @@ Attribute属性的操作：
 
 * 常用的事件：
 
-  ![](https://gitee.com/seazean/images/raw/master/JavaWeb/JS常用的事件.png)
+  ![](https://gitee.com/seazean/images/raw/master/Web/JS常用的事件.png)
 
 * 更多的事件：
 
-  ![](https://gitee.com/seazean/images/raw/master/JavaWeb/JS更多的事件.png)
+  ![](https://gitee.com/seazean/images/raw/master/Web/JS更多的事件.png)
 
 
 
@@ -6580,7 +6580,7 @@ Attribute属性的操作：
 
 在姓名、年龄、性别三个文本框中填写信息后，添加到“学生信息表”列表（表格），点击删除后，删除该行数据，并且不需刷新
 
-![](https://gitee.com/seazean/images/raw/master/JavaWeb/事件案例效果.png)
+![](https://gitee.com/seazean/images/raw/master/Web/事件案例效果.png)
 
 
 
@@ -6999,7 +6999,7 @@ JSON(JavaScript Object Notation)：是一种轻量级的数据交换格式。
 
 * 创建格式：
   **name是字符串类型**
-  ![](https://gitee.com/seazean/images/raw/master/JavaWeb/JSON创建格式.png)
+  ![](https://gitee.com/seazean/images/raw/master/Web/JSON创建格式.png)
 
 * json常用方法
 
@@ -7169,7 +7169,7 @@ RegExp：
 
 使用onsubmit表单提交事件
 
-![](https://gitee.com/seazean/images/raw/master/JavaWeb/表单校验.png)
+![](https://gitee.com/seazean/images/raw/master/Web/表单校验.png)
 
 ```html
 <form class="login-form" action="#" id="registered" method="get" autocomplete="off">
@@ -7221,7 +7221,7 @@ BOM(Browser Object Model)：浏览器对象模型。
 
 将浏览器的各个组成部分封装成不同的对象，方便我们进行操作。
 
-![](https://gitee.com/seazean/images/raw/master/JavaWeb/BOM介绍.png)
+![](https://gitee.com/seazean/images/raw/master/Web/BOM介绍.png)
 
 
 
@@ -7922,7 +7922,7 @@ $("#btn5").click(function(){
 
 - 一般的网页如果需要更新内容，必需重新加载个页面。而 AJAX 通过浏览器与服务器进行少量数据交换，就可以使网页实现异步更新。也就是在不重新加载整个页 面的情况下，对网页的部分内容进行**局部更新**。
 
-  ![](https://gitee.com/seazean/images/raw/master/JavaWeb/AJAX网页局部更新.png)
+  ![](https://gitee.com/seazean/images/raw/master/Web/AJAX网页局部更新.png)
 
 
 
@@ -8102,7 +8102,7 @@ $("#btn5").click(function(){
 
 ## 分页知识
 
-![分页知识](https://gitee.com/seazean/images/raw/master/JavaWeb/分页知识.png)
+![分页知识](https://gitee.com/seazean/images/raw/master/Web/分页知识.png)
 
 
 
@@ -8202,7 +8202,7 @@ Vue只关注视图层，并且非常容易学习，还可以很方便的与其�
 
 使用方法：通常编写在标签的属性上，值可以使用 JS 的表达式
 
-![](https://gitee.com/seazean/images/raw/master/JavaWeb/Vue指令介绍.png)
+![](https://gitee.com/seazean/images/raw/master/Web/Vue指令介绍.png)
 
 
 
@@ -8401,7 +8401,7 @@ v-on：为 HTML 标签绑定事件，有简写方式
   将Model和View关联起来的就是ViewModel，它是桥梁。
   ViewModel负责把Model的数据同步到View显示出来，还负责把View修改的数据同步回Model。
 
-  ![](https://gitee.com/seazean/images/raw/master/JavaWeb/MVVM模型.png)
+  ![](https://gitee.com/seazean/images/raw/master/Web/MVVM模型.png)
 
 ```html
 <body>
@@ -8575,11 +8575,11 @@ v-on：为 HTML 标签绑定事件，有简写方式
 
 * 生命周期
 
-  ![](https://gitee.com/seazean/images/raw/master/JavaWeb/Vue生命周期.png)
+  ![](https://gitee.com/seazean/images/raw/master/Web/Vue生命周期.png)
 
 * 生命周期八个阶段
 
-  ![](https://gitee.com/seazean/images/raw/master/JavaWeb/Vue生命周期的八个阶段.png)
+  ![](https://gitee.com/seazean/images/raw/master/Web/Vue生命周期的八个阶段.png)
 
 
 
@@ -8775,7 +8775,7 @@ nginx.conf 文件时nginx的主配置文件
 * 提高访问速度：代理服务器都设置一个较大的硬盘缓冲区，会将部分请求的响应保存到缓冲区中，当其他用户再访问相同的信息时， 则直接由缓冲区中取出信息，传给用户，以提高访问速度
 * 隐藏客户端真实IP：隐藏自己的IP，免受攻击
 
-<img src="https://gitee.com/seazean/images/raw/master/JavaWeb/正向代理.png" style="zoom:50%;" />
+<img src="https://gitee.com/seazean/images/raw/master/Web/正向代理.png" style="zoom:50%;" />
 
 
 
@@ -8790,7 +8790,7 @@ nginx.conf 文件时nginx的主配置文件
 * 提高访问速度：反向代理服务器可以对于静态内容及短时间内有大量访问请求的动态内容提供缓存服务
 * 提供安全保障：反向代理服务器可以作为应用层防火墙，为网站提供对基于Web的攻击行为（例如DoS/DDoS）的防护，更容易排查恶意软件等
 
-<img src="https://gitee.com/seazean/images/raw/master/JavaWeb/反向代理.png" style="zoom:50%;" />
+<img src="https://gitee.com/seazean/images/raw/master/Web/反向代理.png" style="zoom:50%;" />
 
 区别：
 
