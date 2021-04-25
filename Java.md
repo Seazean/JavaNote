@@ -1685,10 +1685,11 @@ class Animal{
     子类继承了父类，子类就得到了父类的某个方法，子类重写一个与父类申明一样的方法来**覆盖**父类的该方法。
 
 方法重写的校验注解： @Override
-    方法一旦加了这个注解，那就必须是成功重写父类的方法，否则报错！
-    **@Override优势：可读性好，安全，优雅！！**
 
-为了满足里式替换原则，重写有以下三个限制：
+* 方法加了这个注解，那就必须是成功重写父类的方法，否则报错 
+* **@Override优势：可读性好，安全，优雅！！**
+
+为了满足里式替换原则（子类可以扩展父类的功能，但不能改变父类原有的功能），重写有以下三个限制：
 
 - 子类方法的访问权限必须大于等于父类方法
 - 子类方法的返回类型必须是父类方法返回类型或为其子类型
@@ -3067,6 +3068,8 @@ sb1.append('a'); //value[0] = 'a';
 
 
 ### Arrays
+
+Array的工具类
 
 常用API：
 	`public static String toString(int[] a)` : 返回指定数组的内容的字符串表示形式
@@ -4737,7 +4740,7 @@ public class Student implements Comparable<Student>{
 
 #### Collections
 
-java.utils.Collections：集合工具类。Collections并不属于集合，是用来操作集合的工具类。
+java.utils.Collections：集合**工具类**，Collections并不属于集合，是用来操作集合的工具类。
 Collections有几个常用的API:
 `public static <T> boolean addAll(Collection<? super T> c, T... e)` : 给集合对象批量添加元素
 `public static void shuffle(List<?> list)` : 打乱集合顺序。
@@ -15721,48 +15724,74 @@ public class ThreadDead {
     public static Object resources1 = new Object();
     public static Object resources2 = new Object();
     public static void main(String[] args) {
-        new Thread(new Runnable {
-			@Override
-            public void run() {
-            	 // 线程1：占用资源1 ，请求资源2
-                synchronized(resources1){
-                    System.out.println("线程1已经占用了资源1，开始请求资源2");
-                    try {
-                        Thread.sleep(2000);//休息两秒，防止线程1直接运行完成。
-                        //2秒内线程2肯定可以锁住资源2
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    synchronized (resources2){
-                        System.out.println("线程1已经占用了资源2");
-                    }
+        new Thread(() -> {
+            // 线程1：占用资源1 ，请求资源2
+            synchronized(resources1){
+                System.out.println("线程1已经占用了资源1，开始请求资源2");
+                Thread.sleep(2000);//休息两秒，防止线程1直接运行完成。
+                //2秒内线程2肯定可以锁住资源2
+                synchronized (resources2){
+                    System.out.println("线程1已经占用了资源2");
                 }
-            }
         }).start();
-        new Thread(new Runnable {
-             @Override
-            public void run() {
-            	 // 线程2：占用资源2 ，请求资源1
-                synchronized(resources2){
-                    System.out.println("线程2已经占用了资源2，开始请求资源1");
-                    try {
-                        Thread.sleep(2000);
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                    synchronized (resources1){
-                        System.out.println("线程2已经占用了资源1");
-                    }
+        new Thread(() -> {
+            // 线程2：占用资源2 ，请求资源1
+            synchronized(resources2){
+                System.out.println("线程2已经占用了资源2，开始请求资源1");
+                Thread.sleep(2000);
+                synchronized (resources1){
+                    System.out.println("线程2已经占用了资源1");
                 }
-            }
+            }}
         }).start();
     }
 }
 ```
 
+面向对象写法：
+
+```java
+public class DeadLock {
+    static String lockA = "lockA";
+    static String lockB = "lockB";
+    public static void main(String[] args) {
+        new Thread(new HoldLockThread(lockA, lockB)).start();
+        new Thread(new HoldLockThread(lockB, lockA)).start();
+    }
+}
+class HoldLockThread implements Runnable {
+    private String lockA;
+    private String lockB;
+
+    public HoldLockThread(String lockA, String lockB) {
+        this.lockA = lockA;
+        this.lockB = lockB;
+    }
+
+    @Override
+    public void run() {
+        synchronized (lockA) {
+            System.out.println(Thread.currentThread().getName() + " 持有" + lockA + "，尝试获得" + lockB);
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            synchronized (lockB) {
+                System.out.println(Thread.currentThread().getName() + " 持有" + lockB + "，尝试获得" + lockA);
+            }
+        }
+    }
+}
+```
+
+
+
 **定位死锁**：
 
 * 检测死锁可以使用 jconsole工具，或者使用 jps 定位进程 id，再用 `jstack id`定位死锁
+
+  找到死锁的线程去查看源码，解决优化
 
   ```sh
   "Thread-1" #12 prio=5 os_prio=0 tid=0x000000001eb69000 nid=0xd40 waiting formonitor entry [0x000000001f54f000]
@@ -16032,29 +16061,38 @@ public static void main(String[] args) {
 
 ### Re-Lock
 
-#### 使用锁
+#### 锁对比
 
 ReentrantLock相对于 synchronized 它具备如下特点：
 
-* 可中断
-* 可以设置超时时间
-* 可以设置为公平锁
-* 支持多个条件变量 
+1. 锁的实现：synchronized 是 JVM 实现的，而 ReentrantLock 是 JDK 实现的
 
-与 synchronized 一样，都支持可重入
+2. 性能：新版本 Java 对 synchronized 进行了很多优化，synchronized 与 ReentrantLock 大致相同
+
+3. 可中断：ReentrantLock 可中断，而 synchronized 不行
+
+4. **公平锁**：公平锁是指多个线程在等待同一个锁时，必须按照申请锁的时间顺序来依次获得锁
+   * ReentrantLock 可以设置公平锁，synchronized 中的锁是非公平的
+5. 锁超时：尝试获取锁，超时获取不到直接放弃，不进入阻塞队列
+   * ReentrantLock 可以设置超时时间，synchronized会一直等待
+6. 锁绑定多个条件：一个 ReentrantLock 可以同时绑定多个 Condition 对象 
+7. 两者都是可重入锁
+
+
+
+#### 使用锁
 
 构造方法：`ReentrantLock lock = new ReentrantLock();`
 
 ReentrantLock类API：
 
 * `public void lock()`：获得锁
-
-  * 如果锁没有被另一个线程占用，则将锁定计数设置为1。
-
-  * 如果当前线程已经保持锁定，则保持计数增加1 
-
-  * 如果锁被另一个线程保持，则当前线程被禁用线程调度，并且在锁定已被获取之前处于休眠状态
-
+* 如果锁没有被另一个线程占用，则将锁定计数设置为1。
+  
+* 如果当前线程已经保持锁定，则保持计数增加1 
+  
+* 如果锁被另一个线程保持，则当前线程被禁用线程调度，并且在锁定已被获取之前处于休眠状态
+  
 * `public void unlock()`：尝试释放锁
   * 如果当前线程是该锁的持有者，则保持计数递减
   * 如果保持计数现在为零，则锁定被释放
@@ -16644,6 +16682,83 @@ class AwaitSignal extends ReentrantLock {
 
 
 ### 异步模式
+
+#### 传统版
+
+异步模式之生产者/消费者：
+
+```java
+class ShareData {
+    private int number = 0;
+    private Lock lock = new ReentrantLock();
+    private Condition condition = lock.newCondition();
+
+    public void increment() throws Exception{
+        // 同步代码块，加锁
+        lock.lock();
+        try {
+            // 判断  防止虚假唤醒
+            while(number != 0) {
+                // 等待不能生产
+                condition.await();
+            }
+            // 干活
+            number++;
+            System.out.println(Thread.currentThread().getName() + "\t " + number);
+            // 通知 唤醒
+            condition.signalAll();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public void decrement() throws Exception{
+        // 同步代码块，加锁
+        lock.lock();
+        try {
+            // 判断 防止虚假唤醒
+            while(number == 0) {
+                // 等待不能消费
+                condition.await();
+            }
+            // 干活
+            number--;
+            System.out.println(Thread.currentThread().getName() + "\t " + number);
+            // 通知 唤醒
+            condition.signalAll();
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            lock.unlock();
+        }
+    }
+}
+
+public class TraditionalProducerConsumer {
+	public static void main(String[] args) {
+        ShareData shareData = new ShareData();
+        // t1线程，生产
+        new Thread(() -> {
+            for (int i = 0; i < 5; i++) {
+            	shareData.increment();
+            }
+        }, "t1").start();
+
+        // t2线程，消费
+        new Thread(() -> {
+            for (int i = 0; i < 5; i++) {
+				shareData.decrement();
+            }
+        }, "t2").start(); 
+    }
+}
+```
+
+
+
+#### 改进版
 
 异步模式之生产者/消费者：
 
@@ -18240,6 +18355,822 @@ Servlet 为了保证其线程安全，一般不为 Servlet 设置成员变量，
 
 
 ## 线程池
+
+### 基本概述
+
+线程池：一个容纳多个线程的容器，容器中的线程可以重复使用，省去了频繁创建和销毁线程对象的操作
+
+线程池作用：
+
+1. 降低资源消耗，减少了创建和销毁线程的次数，每个工作线程都可以被重复利用，可执行多个任务
+2. 提高响应速度，当任务到达时，如果有线程可以直接用，不会出现系统僵死
+3. 提高线程的可管理性，如果无限制的创建线程，不仅会消耗系统资源，还会降低系统的稳定性，使用线程池可以进行统一的分配，调优和监控
+
+线程池的核心思想：**线程复用**，同一个线程可以被重复使用，来处理多个任务
+
+
+
+***
+
+
+
+### 阻塞队列
+
+#### 基本介绍
+
+有界队列和无界队列：
+
+* 有界队列：有固定大小的队列，比如设定了固定大小的 LinkedBlockingQueue，又或者大小为 0
+
+* 无界队列：没有设置固定大小的队列，这些队列可以直接入队，直到溢出，一般不会有到这么大的容量（超过 Integer.MAX_VALUE），所以相当于 “无界”
+
+java.util.concurrent.BlockingQueue 接口有以下阻塞队列的实现：**FIFO 队列** 
+
+- ArrayBlockQueue：由数组结构组成的有界阻塞队列
+- LinkedBlockingQueue：由链表结构组成的无界（默认大小 Integer.MAX_VALUE）的阻塞队列
+- PriorityBlockQueue：支持优先级排序的无界阻塞队列
+- DelayQueue：使用优先级队列实现的延迟无界阻塞队列
+- SynchronousQueue：不存储元素的阻塞队列，每一个生产线程会阻塞到有一个put的线程放入元素为止
+- LinkedTransferQueue：由链表结构组成的无界阻塞队列
+- LinkedBlockingDeque：由链表结构组成的双向阻塞队列
+
+与普通队列(LinkedList或ArrayList等)的最大不同点在于阻塞队列中阻塞添加和阻塞删除方法：
+
+* 阻塞添加 take()：当阻塞队列元素已满时，添加队列元素的线程会被阻塞，直到队列元素不满时才重新唤醒线程执行
+* 阻塞删除 put()：在队列元素为空时，删除队列元素的线程将被阻塞，直到队列不为空再执行删除操作(一般都会返回被删除的元素)
+
+
+
+***
+
+
+
+#### 核心方法
+
+| 方法类型         | 抛出异常  | 特殊值   | 阻塞   | 超时               |
+| ---------------- | --------- | -------- | ------ | ------------------ |
+| 插入             | add(e)    | offer(e) | put(e) | offer(e,time,unit) |
+| 移除             | remove()  | poll()   | take() | poll(time,unit)    |
+| 检查（队首元素） | element() | peek()   | 不可用 | 不可用             |
+
+* 抛出异常组：
+  * 当阻塞队列满时：在往队列中add插入元素会抛出 IIIegalStateException: Queue full
+  * 当阻塞队列空时：再往队列中remove移除元素，会抛出NoSuchException
+* 特殊值组：
+  * 插入方法：成功true，失败false
+  * 移除方法：成功返回出队列元素，队列没有就返回null
+* 阻塞组：
+  * 当阻塞队列满时，生产者继续往队列里put元素，队列会一直阻塞生产线程直到put数据or响应中断退出
+  * 当阻塞队列空时，消费者线程试图从队列里take元素，队列会一直阻塞消费者线程直到队列可用
+* 超时退出：当阻塞队列满时，队里会阻塞生产者线程一定时间，超过限时后生产者线程会退出
+
+
+
+***
+
+
+
+#### 同步队列
+
+与其他BlockingQueue不同，SynchronousQueue是一个不存储元素的BlockingQueue
+
+
+
+
+
+***
+
+
+
+### 操作Pool
+
+#### 状态信息
+
+ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位表示线程数量
+
+| 状态       | 高3位 | 接收新任务 | 处理阻塞任务队列 | 说明                                    |
+| ---------- | ----- | ---------- | ---------------- | --------------------------------------- |
+| RUNNING    | 111   | Y          | Y                |                                         |
+| SHUTDOWN   | 000   | N          | Y                | 不接收新任务，但处理阻塞队列剩余任务    |
+| STOP       | 001   | N          | N                | 中断正在执行的任务，并抛弃阻塞队列任务  |
+| TIDYING    | 010   | -          | -                | 任务全执行完毕，活动线程为0即将进入终结 |
+| TERMINATED | 011   | -          | -                | 终止状态                                |
+
+这些信息存储在一个原子变量 ctl 中，目的是将线程池状态与线程个数合二为一，这样就可以用一次 cas 原子操作
+进行赋值
+
+```java
+// c 为旧值， ctlOf 返回结果为新值
+ctl.compareAndSet(c, ctlOf(targetState, workerCountOf(c))));
+// rs 为高 3 位代表线程池状态， wc 为低 29 位代表线程个数，ctl 是合并它们
+private static int ctlOf(int rs, int wc) { return rs | wc; }
+```
+
+![](https://gitee.com/seazean/images/raw/master/Java/JUC-线程池状态转换图.png)
+
+
+
+***
+
+
+
+#### 创建方法
+
+##### Executor
+
+```java
+public ThreadPoolExecutor(  int corePoolSize,
+                            int maximumPoolSize,
+                            long keepAliveTime,
+                            TimeUnit unit,
+                            BlockingQueue<Runnable> workQueue,
+                            ThreadFactory threadFactory,
+                            RejectedExecutionHandler handler)
+```
+
+参数介绍：
+
+* corePoolSize：核心线程数，定义了最小可以同时运行的线程数量
+
+* maximumPoolSize：最大线程数，当队列中存放的任务达到队列容量时，当前可以同时运行的数量变为最大线程数，创建线程并立即执行最新的任务，与核心线程数之间的差值又叫救急线程数
+
+* keepAliveTime：救急线程最大存活时间，当线程池中的线程数量大于 `corePoolSize` 的时候，如果这时没有新的任务提交，核心线程外的线程不会立即销毁，而是会等到`keepAliveTime`时间超过销毁
+
+* unit：`keepAliveTime` 参数的时间单位
+
+* workQueue：阻塞队列，被提交但尚未被执行的任务
+
+* threadFactory：线程工厂，创建新线程时用到，可以为线程创建时起名字
+
+* handler：拒绝策略，线程到达最大线程数仍有新任务时会执行拒绝策略
+
+  RejectedExecutionHandler下有4个实现类：
+
+  * AbortPolicy：让调用者抛出 RejectedExecutionException 异常，默认策略
+  * CallerRunsPolicy："调用者运行"的调节机制，将某些任务回退到调用者，从而降低新任务的流量
+  * DiscardPolicy：直接丢弃任务，不予任何处理也不抛出异常
+  * DiscardOldestPolicy：放弃队列中最早的任务，把当前任务加入队列中尝试再次提交当前任务
+
+  补充：其他框架拒绝策略
+
+  * Dubbo：在抛出 RejectedExecutionException 异常前记录日志，并dump线程栈信息，方便定位问题
+  * Netty：创建一个新线程来执行任务
+  * ActiveMQ：带超时等待（60s）尝试放入队列
+  * PinPoint：它使用了一个拒绝策略链，会逐一尝试策略链中每种拒绝策略
+
+工作原理：
+
+![](https://gitee.com/seazean/images/raw/master/Java/JUC-线程池工作原理.png)
+
+1. 在创建了线程池后，等待提交过来的任务请求。
+
+2. 当调用execute()方法添加一个请求任务时，线程池会做如下判断：
+   * 如果正在运行的线程数量小于corePoolSize，那么马上创建线程运行这个任务
+   * 如果正在运行的线程数量大于或等于corePoolSize，那么将这个任务放入队列
+   * 如果这时队列满了且正在运行的线程数量还小于maximumPoolSize，那么会创建非核心线程**立刻运行**这个任务（对于阻塞队列中的任务不公平）
+   * 如果队列满了且正在运行的线程数量大于或等于maximumPoolSize，那么线程池会启动饱和拒绝策略来执行
+3. 当一个线程完成任务时，会从队列中取下一个任务来执行
+
+4. 当一个线程无事可做超过一定的时间（keepAliveTime）时，线程池会判断：如果当前运行的线程数大于corePoolSize，那么这个线程就被停掉，所以线程池的所有任务完成后最终会收缩到corePoolSize的大小
+
+
+
+
+
+***
+
+
+
+##### Executors
+
+Executors提供了四种线程池的创建：newCachedThreadPool、newFixedThreadPool、newSingleThreadExecutor、newScheduledThreadPool
+
+* newFixedThreadPool：创建一个拥有 n 个线程的线程池
+
+  ```java
+  public static ExecutorService newFixedThreadPool(int nThreads) {
+      return new ThreadPoolExecutor(nThreads, nThreads, 0L, TimeUnit.MILLISECONDS,
+                                    new LinkedBlockingQueue<Runnable>());
+  }
+  ```
+
+  * 核心线程数 == 最大线程数（没有救急线程被创建），因此也无需超时时间
+  * LinkedBlockingQueue是一个单向链表实现的阻塞队列，默认大小为`Integer.MAX_VALUE`，也就是无界队列，可以放任意数量的任务，在任务比较多的时候会导致 OOM（内存溢出）
+  * 适用于任务量已知，相对耗时的长期任务
+
+* newCachedThreadPool：创建一个可扩容的线程池
+
+  ```java
+  public static ExecutorService newCachedThreadPool() {
+      return new ThreadPoolExecutor(0, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS,
+                                    new SynchronousQueue<Runnable>());
+  }
+  ```
+
+  * 核心线程数是 0， 最大线程数是 Integer.MAX_VALUE，全部都是救急线程（60s 后可以回收），可能会创建大量线程，从而导致 **OOM**
+  * SynchronousQueue作为阻塞队列，没有容量，对于每一个take的线程会阻塞直到有一个put的线程放入元素为止（类似一手交钱、一手交货）
+
+  * 适合任务数比较密集，但每个任务执行时间较短的情况
+
+* newSingleThreadExecutor：创建一个只有1个线程的单线程池
+
+  ```java
+  public static ExecutorService newSingleThreadExecutor() {
+      return new FinalizableDelegatedExecutorService
+          (new ThreadPoolExecutor(1, 1,0L, TimeUnit.MILLISECONDS,
+                                  new LinkedBlockingQueue<Runnable>()));
+  }
+  ```
+
+  * 保证所有任务按照**指定顺序执行**，线程数固定为 1，任务数多于 1 时会放入无界队列排队，任务执行完毕，这唯一的线程也不会被释放
+
+  对比：
+
+  * 创建一个单线程串行执行任务，如果任务执行失败而终止那么没有任何补救措施，而线程池还会新建一
+    个线程，保证池的正常工作
+
+  * Executors.newSingleThreadExecutor() 线程个数始终为1，不能修改。F...D..ExecutorService 应用的是装饰器模式，只对外暴露了 ExecutorService 接口，因此不能调用 ThreadPoolExecutor 中特有的方法
+
+    原因：父类不能直接调用子类中的方法，需要反射或者创建对象的方式，可以调用子类静态方法
+
+  * Executors.newFixedThreadPool(1) 初始时为1，可以修改。对外暴露的是 ThreadPoolExecutor 对象，可以强转后调用 setCorePoolSize 等方法进行修改
+
+  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-newSingleThreadExecutor.png)
+
+***
+
+
+
+##### 开发要求
+
+阿里巴巴Java开发手册要求
+
+- **线程资源必须通过线程池提供，不允许在应用中自行显式创建线程**
+
+  - 使用线程池的好处是减少在创建和销毁线程上所消耗的时间以及系统资源的开销，解决资源不足的问题
+  - 如果不使用线程池，有可能造成系统创建大量同类线程而导致消耗完内存或者“过度切换”的问题
+
+- 线程池不允许使用Executors去创建，而是通过 ThreadPoolExecutor 的方式，这样的处理方式更加明确线程池的运行规则，规避资源耗尽的风险
+
+  Executors返回的线程池对象弊端如下：
+
+  - FixedThreadPool和SingleThreadPool：
+    - 运行的请求队列长度为 Integer.MAX_VALUE，可能会堆积大量的请求，从而导致OOM
+  - CacheThreadPool和ScheduledThreadPool：
+    - 允许的创建线程数量为 Integer.MAX_VALUE，可能会创建大量的线程，从而导致 OOM
+
+
+
+
+
+***
+
+
+
+#### 提交任务
+
+ExecutorService类API：
+
+| 方法                                                         | 说明                                                         |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| void execute(Runnable command)                               | 执行任务（Executor类API）                                    |
+| Future<?> submit(Runnable task)                              | 提交任务 task（）                                            |
+| <T> Future<T> submit(Callable<T> task)                       | 提交任务 task，用返回值Future获得任务执行结果                |
+| <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) | 提交 tasks 中所有任务                                        |
+| <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) | 提交 tasks 中所有任务，超时时间针对所有task，超时会取消没有执行完的任务，并抛出超时异常 |
+| <T> T invokeAny(Collection<? extends Callable<T>> tasks)     | 提交 tasks 中所有任务，哪个任务先成功执行完毕，返回此任务执行结果，其它任务取消 |
+
+execute和submit都属于线程池的方法，对比：
+
+* execute只能提交Runnable类型的任务，而submit既能提交Runnable类型任务也能提交Callable类型任务
+
+* execute会直接抛出任务执行时的异常，submit会吞掉异常，可通过Future的get方法将任务执行时的异常重新抛出
+
+
+
+***
+
+
+
+#### 关闭方法
+
+ExecutorService类API：
+
+| 方法                                                  | 说明                                                         |
+| ----------------------------------------------------- | ------------------------------------------------------------ |
+| void shutdown()                                       | 线程池状态变为 SHUTDOWN，等待任务执行完后关闭线程池，不会接收新任务，但已提交任务会执行完 |
+| List<Runnable> shutdownNow()                          | 线程池状态变为 STOP，用 interrupt 中断正在执行的任务，直接关闭线程池，不会接收新任务，会将队列中的任务返回， |
+| boolean isShutdown()                                  | 不在 RUNNING 状态的线程池，此执行者已被关闭，方法返回 true   |
+| boolean isTerminated()                                | 线程池状态是否是 TERMINATED，如果所有任务在关闭后完成，返回true |
+| boolean awaitTermination(long timeout, TimeUnit unit) | 调用 shutdown 后，由于调用线程不会等待所有任务运行结束，如果它想在线程池 TERMINATED 后做些事情，可以利用此方法等待 |
+
+
+
+***
+
+
+
+#### 处理异常
+
+execute会直接抛出任务执行时的异常，submit会吞掉异常，有两种处理方法
+
+方法1：主动捉异常
+
+```java
+ExecutorService executorService = Executors.newFixedThreadPool(1);
+pool.submit(() -> {
+    try {
+        System.out.println("task1");
+        int i = 1 / 0;
+    } catch (Exception e) {
+        e.printStackTrace();
+    }
+});
+```
+
+方法2：使用 Future
+
+```java
+ExecutorService executorService = Executors.newFixedThreadPool(1);
+Future<?> future = pool.submit(() -> {
+    System.out.println("task1");
+    int i = 1 / 0;
+    return true;
+});
+System.out.println(future.get());
+```
+
+
+
+***
+
+
+
+#### 数量设置
+
+创建多大容量的线程池合适？
+
+* 一般来说池中**总线程数是核心池线程数量两倍**，确保当核心池有线程停止时，核心池外有线程进入核心池
+
+* 过小会导致程序不能充分地利用系统资源、容易导致饥饿
+
+* 过大会导致更多的线程上下文切换，占用更多内存
+  上下文切换：当前任务在执行完 CPU 时间片切换到另一个任务之前会先保存自己的状态，以便下次再切换回这个任务时，可以再加载这个任务的状态，任务从保存到再加载的过程就是一次上下文切换
+
+核心线程数常用公式：
+
+- **CPU 密集型任务(N+1)：** 这种任务消耗的是 CPU 资源，可以将核心线程数设置为 N (CPU 核心数)+1，比 CPU 核心数多出来的一个线程是为了防止线程发生缺页中断，或者其它原因导致的任务暂停而带来的影响。一旦任务暂停，CPU 就会处于空闲状态，而在这种情况下多出来的一个线程就可以充分利用 CPU 的空闲时间
+
+  CPU 密集型简单理解就是利用 CPU 计算能力的任务比如你在内存中对大量数据进行分析
+
+- **I/O 密集型任务：** 这种系统 CPU 处于阻塞状态，用大部分的时间来处理 I/O 交互，而线程在处理 I/O 的时间段内不会占用 CPU 来处理，这时就可以将 CPU 交出给其它线程使用，因此在 I/O 密集型任务的应用中，我们可以多配置一些线程，具体的计算方法是 2N 或 CPU核数/ (1-阻塞系数)，阻塞系数在0.8~0.9之间
+
+  IO 密集型就是涉及到网络读取，文件读取此类任务 ，特点是 CPU 计算耗费时间相比于等待 IO 操作完成的时间来说很少，大部分时间都花在了等待 IO 操作完成上
+
+
+
+
+
+***
+
+
+
+### 任务调度
+
+#### Timer
+
+Timer 实现定时功能，Timer 的优点在于简单易用，但由于所有任务都是由同一个线程来调度，因此所有任务都是串行执行的，同一时间只能有一个任务在执行，前一个任务的延迟或异常都将会影响到之后的任务
+
+```java
+private static void method1() {
+    Timer timer = new Timer();
+    TimerTask task1 = new TimerTask() {
+        @Override
+        public void run() {
+            System.out.println("task 1");
+            //int i = 1 / 0;//任务一的出错会导致任务二无法执行
+            Thread.sleep(2000);
+        }
+    };
+    TimerTask task2 = new TimerTask() {
+        @Override
+        public void run() {
+            System.out.println("task 2");
+        }
+    };
+    // 使用 timer 添加两个任务，希望它们都在 1s 后执行
+	// 但由于 timer 内只有一个线程来顺序执行队列中的任务，因此任务1的延时，影响了任务2的执行
+    timer.schedule(task1,1000);//17:45:56 c.ThreadPool [Timer-0] - task 1
+    timer.schedule(task2,1000);//17:45:58 c.ThreadPool [Timer-0] - task 2
+}
+```
+
+
+
+***
+
+
+
+#### Scheduled
+
+任务调度线程池ScheduledThreadPoolExecutor继承ThreadPoolExecutor：
+
+构造方法：`Executors.newScheduledThreadPool(int corePoolSize)`
+
+常用API：
+
+* `ScheduledFuture<?> schedule(Runnable/Callable<V>, long delay, TimeUnit u)`：延迟执行任务
+* `ScheduledFuture<?> scheduleAtFixedRate(Runnable/Callable<V>, long initialDelay, long period, TimeUnit unit)`：定时执行任务，参数为初始延迟时间、间隔时间、单位
+* `ScheduledFuture<?> scheduleWithFixedDelay(Runnable/Callable<V>, long initialDelay, long delay, TimeUnit unit)`：定时执行任务，参数为初始延迟时间、间隔时间、单位
+
+基本使用：
+
+* 延迟任务，但是出现异常并不会在控制台打印，也不会影响其他线程的执行
+
+  ```java
+  public static void main(String[] args){
+      // 线程池大小为1时也是串行执行
+      ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
+      // 添加两个任务，都在 1s 后同时执行
+      executor.schedule(() -> {
+      	System.out.println("任务1，执行时间：" + new Date());
+          //int i = 1 / 0;
+      	try { Thread.sleep(2000); } catch (InterruptedException e) { }
+      }, 1000, TimeUnit.MILLISECONDS);
+      
+      executor.schedule(() -> {
+      	System.out.println("任务2，执行时间：" + new Date());
+      }, 1000, TimeUnit.MILLISECONDS);
+  }
+  ```
+
+* 定时任务 scheduleAtFixedRate：**一个任务的启动到下一个任务的启动**之间只要大于间隔时间，抢占到CPU就会立即执行
+
+  ```java
+  public static void main(String[] args) {
+      ScheduledExecutorService pool = Executors.newScheduledThreadPool(1);
+      System.out.println("start..." + new Date());
+      
+      pool.scheduleAtFixedRate(() -> {
+          System.out.println("running..." + new Date());
+          Thread.sleep(2000);
+      }, 1, 1, TimeUnit.SECONDS);
+  }
+  
+  /*start...Sat Apr 24 18:08:12 CST 2021
+  running...Sat Apr 24 18:08:13 CST 2021
+  running...Sat Apr 24 18:08:15 CST 2021
+  running...Sat Apr 24 18:08:17 CST 2021
+  ```
+
+* 定时任务 scheduleWithFixedDelay：**一个任务的结束到下一个任务的启动之间**等于间隔时间，抢占到CPU就会立即执行，这个方法才是真正的设置两个任务之间的间隔
+
+  ```java
+  public static void main(String[] args){
+      ScheduledExecutorService pool = Executors.newScheduledThreadPool(3);
+      System.out.println("start..." + new Date());
+      
+      pool.scheduleWithFixedDelay(() -> {
+          System.out.println("running..." + new Date());
+          Thread.sleep(2000);
+      }, 1, 1, TimeUnit.SECONDS);
+  }
+  /*start...Sat Apr 24 18:11:41 CST 2021
+  running...Sat Apr 24 18:11:42 CST 2021
+  running...Sat Apr 24 18:11:45 CST 2021
+  running...Sat Apr 24 18:11:48 CST 2021
+  ```
+
+
+
+***
+
+
+
+#### 定时任务
+
+让每周四 18:00:00 定时执行任务
+
+```java
+public class ThreadPoolDemo04 {
+    //每周四 18:00:00 执行定时任务
+    public static void main(String[] args) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime time = now.withHour(18).withMinute(0).withSecond(0).withNano(0).with(DayOfWeek.THURSDAY);
+
+        //如果当前时间 > 本周周四 ，必须找下周周四
+        if (now.compareTo(time) > 0) {
+            time = time.plusWeeks(1);
+        }
+
+        // initialDelay 当前时间和周四的时间差
+        // period 每周的间隔
+        Duration between = Duration.between(now, time);
+        long initialDelay = between.toMillis();
+        long period = 1000 * 60 * 60 * 24 * 7;
+        ScheduledExecutorService pool = Executors.newScheduledThreadPool(1);
+        pool.scheduleAtFixedRate(() -> {
+            System.out.println("running...");
+        },initialDelay,period, TimeUnit.MILLISECONDS);
+    }
+}
+```
+
+
+
+***
+
+
+
+### Tomcat
+
+#### 线程池
+
+Tomcat执行流程：
+
+![](https://gitee.com/seazean/images/raw/master/Java/JUC-Tomcat线程池.png)
+
+* LimitLatch 用来限流，可以控制最大连接个数，类似 J.U.C 中的 Semaphore
+* Acceptor 只负责接收新的 socket 连接，每个连接对应一个 socket channel 
+* Poller 只负责监听 socket channel 是否有可读的 I/O 事件
+* 监听到可读事件，封装一个任务对象（socketProcessor），提交给 Executor 线程池处理
+* Executor 线程池中的工作线程负责最终的处理请求
+
+Tomcat 线程池扩展了 ThreadPoolExecutor：
+
+* 如果总线程数达到 maximumPoolSize，这时不会立刻抛 RejectedExecutionException 异常
+* 会再次尝试将任务放入队列，如果还失败才抛出 RejectedExecutionException 异常
+
+```java
+public void execute(Runnable command, long timeout, TimeUnit unit) {
+    submittedCount.incrementAndGet();
+    try {
+        super.execute(command);
+    } catch (RejectedExecutionException rx) {
+        if (super.getQueue() instanceof TaskQueue) {
+            final TaskQueue queue = (TaskQueue)super.getQueue();
+            try {
+                if (!queue.force(command, timeout, unit)) {
+                    submittedCount.decrementAndGet();
+                    throw new RejectedExecutionException("Queue capacity is full.");
+                }
+            } catch (InterruptedException x) {
+                submittedCount.decrementAndGet();
+                Thread.interrupted();
+                throw new RejectedExecutionException(x);
+            }
+        } else {
+            submittedCount.decrementAndGet();
+            throw rx;
+        }
+    }
+}
+```
+
+```java
+public boolean force(Runnable o, long timeout, TimeUnit unit) {
+    if ( parent.isShutdown() )
+        throw new RejectedExecutionException(
+        "Executor not running, can't force a command into the queue");
+    return super.offer(o,timeout,unit); 
+    //forces the item onto the queue, to be used if the task is rejected
+}
+```
+
+
+
+***
+
+
+
+#### 配置
+
+Connector 配置：
+
+| 配置项              | 默认值 | 说明                                   |
+| ------------------- | ------ | -------------------------------------- |
+| acceptorThreadCount | 1      | acceptor 线程数量                      |
+| pollerThreadCount   | 1      | poller 线程数量                        |
+| minSpareThreads     | 10     | 核心线程数，即 corePoolSize            |
+| maxThreads          | 200    | 最大线程数，即 maximumPoolSize         |
+| executor            | -      | Executor 名称，用来引用下面的 Executor |
+
+* 如果定义了executor属性，会覆盖Connector的核心线程数和最大线程数
+
+Executor 配置：
+
+| 配置项                  | 默认值            | 说明                                      |
+| ----------------------- | ----------------- | ----------------------------------------- |
+| threadPriority          | 5                 | 线程优先级                                |
+| daemon                  | true              | 是否守护线程（是守护线程，tomcat）        |
+| minSpareThreads         | 20                | 核心线程数，即 corePoolSize               |
+| maxThreads              | 400               | 最大线程数，即 maximumPoolSize            |
+| maxIdleTime             | 60000             | 线程生存时间，单位是毫秒，默认值即 1 分钟 |
+| maxQueueSize            | Integer.MAX_VALUE | 队列长度（默认整数最大值，无界队列）      |
+| prestartminSpareThreads | false             | 核心线程是否在服务器启动时启动            |
+
+* Tomcat服务器停止，这些守护线程都会停止
+* maxQueueSize为无界队列当线程数过多时会导致服务器压力太大，任务堆积
+* 核心线程懒惰初始化，服务器启动不会创建，任务提交才创建
+
+
+
+***
+
+
+
+### ForkJoin
+
+Fork/Join：线程池的实现，体现是分治思想，适用于能够进行任务拆分的 cpu 密集型运算，用于**并行计算**
+
+任务拆分：是将一个大任务拆分为算法上相同的小任务，直至不能拆分可以直接求解。跟递归相关的一些计算，如归并排序、斐波那契数列都可以用分治思想进行求解
+
+* Fork/Join 在分治的基础上加入了多线程，把每个任务的分解和合并交给不同的线程来完成，提升了运算效率
+
+* ForkJoin 使用 ForkJoinPool 来启动，是一个特殊的线程池，默认会创建与 cpu 核心数大小相同的线程池
+* 任务有返回值继承 RecursiveTask，没有返回值继承 RecursiveAction
+
+```java
+public static void main(String[] args) {
+    ForkJoinPool pool = new ForkJoinPool(4);
+    System.out.println(pool.invoke(new MyTask(5)));
+    //拆分  5 + MyTask(4) --> 4 + MyTask(3) -->
+}
+
+// 1~ n 之间整数的和
+class MyTask extends RecursiveTask<Integer> {
+    private int n;
+
+    public MyTask(int n) {
+        this.n = n;
+    }
+
+    @Override
+    public String toString() {
+        return "MyTask{" + "n=" + n + '}';
+    }
+
+    @Override
+    protected Integer compute() {
+        // 如果 n 已经为 1，可以求得结果了
+        if (n == 1) {
+            return n;
+        }
+        // 将任务进行拆分(fork)
+        MyTask t1 = new MyTask(n - 1);
+        t1.fork();
+        // 合并(join)结果
+        int result = n + t1.join();
+        return result;
+    }
+}
+```
+
+继续拆分优化：
+
+```java
+class AddTask extends RecursiveTask<Integer> {
+    int begin;
+    int end;
+    public AddTask(int begin, int end) {
+        this.begin = begin;
+        this.end = end;
+    }
+    
+    @Override
+    public String toString() {
+        return "{" + begin + "," + end + '}';
+    }
+    
+    @Override
+    protected Integer compute() {
+        // 5, 5
+        if (begin == end) {
+            return begin;
+        }
+        // 4, 5  防止多余的拆分  提高效率
+        if (end - begin == 1) {
+            return end + begin;
+        }
+        // 1 5
+        int mid = (end + begin) / 2; // 3
+        AddTask t1 = new AddTask(begin, mid); // 1,3
+        t1.fork();
+        AddTask t2 = new AddTask(mid + 1, end); // 4,5
+        t2.fork();
+        int result = t1.join() + t2.join();
+        return result;
+    }
+}
+```
+
+ForkJoinPool 实现了**工作窃取算法**来提高 CPU 的利用率：
+
+* 每个线程都维护了一个双端队列，用来存储需要执行的任务
+* 工作窃取算法允许空闲的线程从其它线程的双端队列中窃取一个任务来执行
+* 窃取的必须是**最晚的任务**，避免和队列所属线程发生竞争，但是队列中只有一个任务时还是会发生竞争
+
+
+
+
+
+***
+
+
+
+### 享元模式
+
+享元模式 (Flyweight pattern)： 用于减少创建对象的数量，以减少内存占用和提高性能，这种类型的设计模式属于结构型模式，它提供了减少对象数量从而改善应用所需的对象结构的方式
+
+异步模式：让有限的工作线程（Worker Thread）来轮流异步处理无限多的任务，也可将其归类为分工模式，典型实现就是线程池
+
+工作机制：享元模式尝试重用现有的同类对象，如果未找到匹配的对象，则创建新对象
+
+自定义连接池：
+
+```java
+public static void main(String[] args) {
+    Pool pool = new Pool(2);
+    for (int i = 0; i < 5; i++) {
+        new Thread(() -> {
+            Connection con = pool.borrow();
+            try {
+                Thread.sleep(new Random().nextInt(1000));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            pool.free(con);
+        }).start();
+    }
+}
+class Pool {
+    //连接池的大小
+    private final int poolSize;
+    //连接对象的数组
+    private Connection[] connections;
+    //连接状态数组 0表示空闲  1表示繁忙
+    private AtomicIntegerArray states;  //int[] -> AtomicIntegerArray
+
+    //构造方法
+    public Pool(int poolSize) {
+        this.poolSize = poolSize;
+        this.connections = new Connection[poolSize];
+        this.states = new AtomicIntegerArray(new int[poolSize]);
+        for (int i = 0; i < poolSize; i++) {
+            connections[i] = new MockConnection("连接" + (i + 1));
+        }
+    }
+
+    //使用连接
+    public Connection borrow() {
+        while (true) {
+            for (int i = 0; i < poolSize; i++) {
+                if (states.get(i) == 0) {
+                    if (states.compareAndSet(i, 0, 1)) {
+                        System.out.println(Thread.currentThread().getName() + " borrow " +  connections[i]);
+                        return connections[i];
+                    }
+                }
+            }
+            //如果没有空闲连接，当前线程等待
+            synchronized (this) {
+                try {
+                    System.out.println(Thread.currentThread().getName() + " wait...");
+                    this.wait();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    //归还连接
+    public void free(Connection con) {
+        for (int i = 0; i < poolSize; i++) {
+            if (connections[i] == con) {//判断是否是同一个对象
+                states.set(i, 0);//不用cas的原因是只会有一个线程使用该连接
+                synchronized (this) {
+                    System.out.println(Thread.currentThread().getName() + " free " + con);
+                    this.notifyAll();
+                }
+                break;
+            }
+        }
+    }
+
+}
+
+class MockConnection implements Connection {
+    private String name;
+    //.....
+}
+```
+
+
+
+
+
+
 
 
 

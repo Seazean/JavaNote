@@ -7886,17 +7886,19 @@ public void addAccount{}
 
   原因：Spring的默认的事务规则是遇到运行异常（RuntimeException）和程序错误（Error）才会回滚。想针对非检测异常进行事务回滚，可以在@Transactional 注解里使用rollbackFor 属性明确指定异常
 
-* 情况5：Spring的事务传播策略在内部方法调用时将不起作用，事务注解加到要调用方法上
+* 情况5：Spring的事务传播策略在**内部方法**调用时将不起作用，事务注解加到要调用方法上
 
+  原因：Spring的事务都是使用AOP代理的模式，仅有外部方法调用过程才会被代理截获，事务才会有效，就是方法调用本对象的另一个方法，没有通过代理类，事务也就无法生效
+  
   ```java
   @Transactional
   public int add(){
       update();
   }
   //注解添加在update方法上无效，需要添加到add()方法上
-  public int update(){}
+public int update(){}
   ```
-
+  
   
 
 
@@ -8630,11 +8632,12 @@ AnnotationAwareAspectJAutoProxyCreator是这种类型的后置处理器：Instan
      * `if()`：判断每一个增强器是否是 AspectJPointcutAdvisor 类型的，返回true，否则继续执行
   * `return super.shouldSkip(beanClass, beanName)`：永远返回false  
    * `getCustomTargetSource(beanClass, beanName)`：返回为空，doCreateBean()
-   
+  
 
-   
+  
+
 **进入applyBeanPostProcessorsAfterInitialization：后置处理器创建AOP**
-   
+
 ```java
    //如果Bean被子类标识为要代理的bean，则使用配置的拦截器创建代理
    public Object postProcessAfterInitialization(@Nullable Object bean,String bN){
@@ -8648,32 +8651,32 @@ AnnotationAwareAspectJAutoProxyCreator是这种类型的后置处理器：Instan
        }
        return bean;
    }
-   ```
-   
+```
+
 创建动态代理：`wrapIfNecessary()`调用`createProxy()`（wrap包装）
-   
+
 注释：Create proxy if we have advice
-   
+
 * `getAdvicesAndAdvisorsForBean()`：获取当前bean的所有增强器 (通知方法)，**为空就直接返回**
-   
+  
   * findEligibleAdvisors()：找到哪些通知方法是需要切入当前bean方法的
      * AopUtils.findAdvisorsThatCanApply()：获取到能在bean使用的增强器
      * sortAdvisors(eligibleAdvisors)：给增强器排序
-   
+  
 * `this.advisedBeans.put(cacheKey, Boolean.TRUE)`：保存当前bean在advisedBeans中
-   
+  
 * `Object proxy = createProxy(...)`：如果增强器不为空就创建代理，创建当前bean的代理对象
-   
+  
   * buildAdvisors(beanName, specificInterceptors)：获取所有增强器（通知方法）
-   
+  
   * 保存到proxyFactory
-   
+  
   * `return proxyFactory.getProxy(getProxyClassLoader())`：返回代理对象
-   
+  
   * ProxyFactory类：`return createAopProxy().getProxy(classLoader)`
-   
+  
   DefaultAopProxyFactory类：给容器中返回当前组件使用增强了的代理对象
-   
+  
   ```java
      @Override
      public AopProxy createAopProxy(AdvisedSupport config) throws AopConfigException {
@@ -8689,8 +8692,8 @@ AnnotationAwareAspectJAutoProxyCreator是这种类型的后置处理器：Instan
              return new JdkDynamicAopProxy(config);
          }
      }
-     ```
-   
+  ```
+  
 4. 给容器中返回使用cglib增强了的代理对象，**初始化完成，加入容器**
 
 5. 以后容器中获取到的就是这个组件的代理对象，执行目标方法的时候，代理对象就会执行通知方法的流程
@@ -10543,7 +10546,7 @@ public void afterCompletion(HttpServletRequest request,
 
 
 
-### 自定义拦截器
+### 自定义
 
 * Contoller层
 
@@ -13221,7 +13224,7 @@ ConditionContext类API：
 
 #### 自定义注解
 
-需求：将类的判断定义为动态的。判断哪个字节码文件存在可以动态指定。
+需求：将类的判断定义为动态的，判断哪个字节码文件存在可以动态指定
 
 * 自定义条件注解类
 
