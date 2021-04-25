@@ -2499,6 +2499,8 @@ new 类名|抽象类|接口(形参){
 * 匿名内部类一旦写出来，就会立即创建一个匿名内部类的对象返回
 * **匿名内部类的对象的类型相当于是当前new的那个的类型的子类类型**
 * 匿名内部类引用局部变量，局部变量必须是**final修饰**，底层创建为内部类的成员变量（JVM-->类加载-->编译优化-->内部类）
+  * 在Java中方法调用是值传递的，在匿名内部类中对变量的操作都是基于原变量的副本，不会影响到原变量的值
+  * 外部变量为final是在编译期以强制手段确保用户不会在内部类中做修改原变量值的操作，也是防止外部操作修改了变量而内部类无法随之变化出现的影响
 
 ```java
 public class Anonymity {
@@ -5226,30 +5228,30 @@ HashMap继承关系如下图所示：
 
  10. HashMap中存放元素的个数(**重点**)
 
-    ```java
-    //存放元素的个数，HashMap中K-V的实时数量，不是table数组的长度。
-    transient int size;
-    ```
+```java
+//存放元素的个数，HashMap中K-V的实时数量，不是table数组的长度。
+transient int size;
+```
 
 11. 记录HashMap的修改次数 
 
-        ```java
-     //每次扩容和更改map结构的计数器
+    ```java
+    //每次扩容和更改map结构的计数器
      transient int modCount;  
-        ```
+    ```
 
 12. 调整大小下一个容量的值计算方式为(容量*负载因子) 
 
         ```java
-     //临界值,当实际大小(容量*负载因子)超过临界值时，会进行扩容
-     int threshold;
+    //临界值,当实际大小(容量*负载因子)超过临界值时，会进行扩容
+    int threshold;
         ```
 
 13. **哈希表的加载因子(重点)**
 
        ```java
-     // 加载因子
-     final float loadFactor;
+    // 加载因子
+    final float loadFactor;
        ```
 
        * 加载因子的概述
@@ -5277,6 +5279,8 @@ HashMap继承关系如下图所示：
 ##### 成员方法
 
 1. put
+
+   jdk1.8之前是头插法，多线程下扩容时出现循环链表，jdk1.8以后是引入红黑树，插入方法变成尾插法
 
    第一次调用put方法时创建数组Node[] table，因为散列表耗费内存，为了防止内存浪费，所以**延迟初始化**
 
@@ -5334,6 +5338,8 @@ HashMap继承关系如下图所示：
 
    * **余数本质是不断做除法，把剩余的数减去，运算效率要比位运算低**
 
+   
+
 2. treeifyBin
 
    节点添加完成之后判断此时节点个数是否大于TREEIFY_THRESHOLD临界值8，如果大于则将链表转换为红黑树，转换红黑树的方法 treeifyBin，整体代码如下：
@@ -5347,6 +5353,8 @@ HashMap继承关系如下图所示：
    1. 如果当前数组为空或者数组的长度小于进行树形化的阈值(MIN_TREEIFY_CAPACITY = 64)就去扩容，而不是将节点变为红黑树
    2. 如果是树形化遍历桶中的元素，创建相同个数的树形节点，复制内容，建立起联系，类似单向链表转换为双向链表
    3. 让桶中的第一个元素即数组中的元素指向新建的红黑树的节点，以后这个桶里的元素就是红黑树而不是链表数据结构了
+
+   
 
 3. tableSizeFor
    创建HashMap指定容量时，HashMap通过位移运算和或运算得到比指定初始化容量大的最小的2的n次幂
@@ -5402,9 +5410,9 @@ HashMap继承关系如下图所示：
      ```java
      this.threshold = tableSizeFor(initialCapacity);//initialCapacity=10
      ```
-   
+
    * JDK11
-   
+
      ```java
      static final int tableSizeFor(int cap) {
          //无符号右移，高位补0
@@ -5426,9 +5434,9 @@ HashMap继承关系如下图所示：
          return n - (i >>> 1);
      }
      ```
-   
+
      
-   
+
 4. resize
 
    当HashMap中的元素个数超过数组大小(数组长度)*loadFactor(负载因子)时，就会进行数组扩容。进行扩容，会伴随着一次重新hash分配，并且会遍历hash表中所有的元素，是非常耗时的，所以要尽量避免resize
@@ -13659,8 +13667,6 @@ public class Candy11 {
 
 
 
-
-
 ***
 
 
@@ -14690,7 +14696,7 @@ Java Virtual Machine Stacks（Java 虚拟机栈）：每个线程启动后，虚
 
 当 Context Switch 发生时，需要由操作系统保存当前线程的状态，并恢复另一个线程的状态，包括程序计数器、虚拟机栈中每个栈帧的信息，如局部变量、操作数栈、返回地址等
 
-**线程的调度是在内核态运行的，而线程中的代码是在用户态运行**，所以线程切换会导致用户与内核态转换，这是非常消耗性能
+Java创建的线程是内核级线程，**线程的调度是在内核态运行的，而线程中的代码是在用户态运行**，所以线程切换（状态改变）会导致用户与内核态转换，这是非常消耗性能
 
 
 
@@ -14749,11 +14755,9 @@ Thread类API：
 sleep：
 
 * 调用 sleep 会让当前线程从 Running 进入 `Timed Waiting` 状态（阻塞）
-
+* sleep()方法的过程中，线程不会释放对象锁
 * 其它线程可以使用 interrupt 方法打断正在睡眠的线程，这时 sleep 方法会抛出 InterruptedException
-
 * 睡眠结束后的线程未必会立刻得到执行
-
 * 建议用 TimeUnit 的 sleep 代替 Thread 的 sleep 来获得更好的可读性
 
 yield：
@@ -15476,6 +15480,8 @@ LocalVariableTable:
 
 一个对象有多个线程要加锁，但加锁的时间是错开的（没有竞争），那么可以使用轻量级锁来优化，轻量级锁对使用者是透明的
 
+可重入锁：**线程可以进入任何一个它已经拥有的锁所同步着的代码块，可重入锁最大的作用是避免死锁**
+
 锁重入实例：
 
 ```java
@@ -15545,9 +15551,68 @@ public static void method2() {
 
 
 
-##### 自旋优化
+##### 自旋锁
 
-**重量级锁竞争**时，可以使用自旋来进行优化，如果当前线程自旋成功（即这时持锁线程已经退出了同步块，释放了锁），这时当前线程就可以避免阻塞
+**重量级锁竞争**时，尝试获取锁的线程不会立即阻塞，可以使用**自旋**来进行优化，采用循环的方式去尝试获取锁
+
+注意：
+
+* 自旋占用 CPU 时间，单核 CPU 自旋就是浪费，多核 CPU 自旋才能发挥优势
+* 自旋失败的线程会进入阻塞状态
+
+优点：不会进入阻塞状态，减少线程上下文切换的消耗
+
+缺点：当自旋的线程越来越多时，会不断的消耗CPU资源
+
+```java
+//手写自旋锁
+public class SpinLock {
+    // 泛型装的是Thread，原子引用线程
+    AtomicReference<Thread> atomicReference = new AtomicReference<>();
+
+    public void lock() {
+        Thread thread = Thread.currentThread();
+        System.out.println(thread.getName() + " come in");
+
+        //开始自旋，期望值为null，更新值是当前线程
+        while (!atomicReference.compareAndSet(null, thread)) {
+            Thread.sleep(1000);
+            System.out.println(thread.getName() + " 正在自旋");
+        }
+        System.out.println(thread.getName() + " 自旋成功");
+    }
+
+    public void unlock() {
+        Thread thread = Thread.currentThread();
+
+        //线程使用完锁把引用变为null
+		atomicReference.compareAndSet(thread, null);
+        System.out.println(thread.getName() + " invoke unlock");
+    }
+
+    public static void main(String[] args) throws InterruptedException {
+        SpinLock lock = new SpinLock();
+        new Thread(() -> {
+            //占有锁
+            lock.lock();
+            Thread.sleep(5000); 
+
+            //释放锁
+            lock.unlock();
+        },"t1").start();
+
+        // 让main线程暂停1秒，使得t1线程，先执行
+        Thread.sleep(1000);
+
+        new Thread(() -> {
+            lock.lock();
+            lock.unlock();
+        },"t2").start();
+    }
+}
+```
+
+自旋锁情况：
 
 * 自旋成功的情况：
       <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-自旋成功.png" style="zoom: 80%;" />
@@ -15558,10 +15623,9 @@ public static void method2() {
 
 自旋锁说明：
 
-* 自旋会占用 CPU 时间，单核 CPU 自旋就是浪费，多核 CPU 自旋才能发挥优势。
 * 在 Java 6 之后自旋锁是自适应的，比如对象刚刚的一次自旋操作成功过，那么认为这次自旋成功的可能性会
-  高，就多自旋几次；反之，就少自旋甚至不自旋，总之，比较智能。
-  Java 7 之后不能控制是否开启自旋功能
+  高，就多自旋几次；反之，就少自旋甚至不自旋，比较智能
+* Java 7 之后不能控制是否开启自旋功能
 
 
 
@@ -15571,6 +15635,8 @@ public static void method2() {
 
 ##### 偏向锁
 
+###### 优化
+
 轻量级锁在没有竞争时（锁重入时），每次重入仍然需要执行 CAS 操作，Java 6 引入偏向锁来优化
 
 偏向锁的思想是偏向于让第一个获取锁对象的线程，这个线程在之后重新获取该锁不再需要同步操作，甚至连CAS 操作也不需要
@@ -15579,7 +15645,7 @@ public static void method2() {
 
 * 当有另外一个线程去尝试获取这个锁对象时，偏向状态就宣告结束，此时撤销偏向（Revoke Bias）后恢复到未锁定状态或轻量级锁状态
 
-![](https://gitee.com/seazean/images/raw/master/Java/JUC-Monitor-MarkWord结构64位.png)
+<img src="https://gitee.com/seazean/images/raw/master/Java/JUC-Monitor-MarkWord结构64位.png" style="zoom: 67%;" />
 
 一个对象创建时：
 
@@ -15588,29 +15654,25 @@ public static void method2() {
 * 偏向锁是默认是延迟的，不会在程序启动时立即生效，如果想避免延迟，可以加VM参数 `-XX:BiasedLockingStartupDelay=0` 来禁用延迟
 * 如果禁用了偏向锁，那么对象创建后，markword 值为 0x01 即最后 3 位为 001，这时它的 hashcode、age 都为 0，第一次用到 hashcode 时才会赋值，添加 VM 参数 `-XX:-UseBiasedLocking` 禁用偏向锁
 
+
+
+###### 撤销
+
 撤销偏向锁的状态：
 
 * 调用对象的hashCode：偏向锁的对象 MarkWord 中存储的是线程 id，调用 hashCode导致偏向锁被撤销
   * 轻量级锁会在锁记录中记录 hashCode
   * 重量级锁会在 Monitor 中记录 hashCode
-
 * 当有其它线程使用偏向锁对象时，会将偏向锁升级为轻量级锁
-
 * 调用wait/notify
 
 
 
-***
+**批量撤销**：如果对象被多个线程访问，但没有竞争，这时偏向了线程 T1 的对象仍有机会重新偏向 T2，重偏向会重置对象的 Thread ID
 
+* 批量重偏向：当撤销偏向锁阈值超过 20 次后，jvm会觉得是不是偏向错了，于是在给这些对象加锁时重新偏向至加锁线程
 
-
-##### 批量撤销
-
-如果对象被多个线程访问，但没有竞争，这时偏向了线程 T1 的对象仍有机会重新偏向 T2，重偏向会重置对象的 Thread ID
-
-批量重偏向：当撤销偏向锁阈值超过 20 次后，jvm会觉得是不是偏向错了，于是在给这些对象加锁时重新偏向至加锁线程
-
-批量撤销：当撤销偏向锁阈值超过 40 次后，jvm会觉得自己确实偏向错了，根本就不该偏向。于是整个类的所有对象都会变为不可偏向的，新建的对象也是不可偏向的
+* 批量撤销：当撤销偏向锁阈值超过 40 次后，jvm会觉得自己确实偏向错了，根本就不该偏向。于是整个类的所有对象都会变为不可偏向的，新建的对象也是不可偏向的
 
 
 
@@ -16066,17 +16128,15 @@ public static void main(String[] args) {
 ReentrantLock相对于 synchronized 它具备如下特点：
 
 1. 锁的实现：synchronized 是 JVM 实现的，而 ReentrantLock 是 JDK 实现的
-
 2. 性能：新版本 Java 对 synchronized 进行了很多优化，synchronized 与 ReentrantLock 大致相同
-
-3. 可中断：ReentrantLock 可中断，而 synchronized 不行
-
-4. **公平锁**：公平锁是指多个线程在等待同一个锁时，必须按照申请锁的时间顺序来依次获得锁
+3. 使用：ReentrantLock 需要手动解锁，synchronized 执行完代码块自动解锁
+4. 可中断：ReentrantLock 可中断，而 synchronized 不行
+5. **公平锁**：公平锁是指多个线程在等待同一个锁时，必须按照申请锁的时间顺序来依次获得锁
    * ReentrantLock 可以设置公平锁，synchronized 中的锁是非公平的
-5. 锁超时：尝试获取锁，超时获取不到直接放弃，不进入阻塞队列
+6. 锁超时：尝试获取锁，超时获取不到直接放弃，不进入阻塞队列
    * ReentrantLock 可以设置超时时间，synchronized会一直等待
-6. 锁绑定多个条件：一个 ReentrantLock 可以同时绑定多个 Condition 对象 
-7. 两者都是可重入锁
+7. 锁绑定多个条件：一个 ReentrantLock 可以同时绑定多个 Condition 对象 
+8. 两者都是可重入锁
 
 
 
@@ -16113,8 +16173,6 @@ try {
 
 
 
-
-
 ***
 
 
@@ -16131,7 +16189,7 @@ public static void main(String[] args) {
 public static void method1() {
     lock.lock();
     try {
-    	log.debug("execute method1");
+        System.out.println(Thread.currentThread().getName() + " execute method1");
     	method2();
     } finally {
     	lock.unlock();
@@ -16140,12 +16198,35 @@ public static void method1() {
 public static void method2() {
     lock.lock();
     try {
-        log.debug("execute method2");
+        System.out.println(Thread.currentThread().getName() + " execute method2");
     } finally {
     	lock.unlock();
     }
 }
 ```
+
+面试题：在Lock方法加两把锁会是什么情况呢？
+
+* 加锁两次解锁两次：正常执行
+* 加锁两次解锁一次：程序直接卡死，线程不能出来，也就说明**申请几把锁，最后需要解除几把锁**
+* 加锁一次解锁两次：运行程序会直接报错
+
+```java
+public void getLock() {
+    lock.lock();
+    lock.lock();
+    try {
+        System.out.println(Thread.currentThread().getName() + "\t get Lock");
+    } finally {
+        lock.unlock();
+        //lock.unlock();
+    }
+}
+```
+
+
+
+
 
 
 
@@ -17015,7 +17096,7 @@ public static void main(String[] args) throws InterruptedException {
 源代码 -> 编译器优化的重排 -> 指令并行的重排 -> 内存系统的重排 -> 最终执行指令
 ```
 
-现代 CPU 支持多级指令流水线，例如支持同时执行 取指令 - 指令译码 - 执行指令 - 内存访问 - 数据写回 的处理器，就可以称之为五级指令流水线。这时 CPU 可以在一个时钟周期内，同时运行五条指令的**不同阶段**（每个线程不同的阶段），本质上流水线技术并不能缩短单条指令的执行时间，但变相地提高了指令地吞吐率
+现代 CPU 支持多级指令流水线，例如支持同时执行 取指令 - 指令译码 - 执行指令 - 内存访问 - 数据写回 的处理器，就可以称之为**五级指令流水线**。这时 CPU 可以在一个时钟周期内，同时运行五条指令的**不同阶段**（每个线程不同的阶段），本质上流水线技术并不能缩短单条指令的执行时间，但变相地提高了指令地吞吐率
 
 处理器在进行重排序时，必须要考虑**指令之间的数据依赖性**
 
@@ -18257,7 +18338,6 @@ class MyAtomicInteger {
     public MyAtomicInteger(int value) {
         this.value = value;
     }
-
     public int getValue() {
         return value;
     }
@@ -18433,6 +18513,21 @@ java.util.concurrent.BlockingQueue 接口有以下阻塞队列的实现：**FIFO
 #### 同步队列
 
 与其他BlockingQueue不同，SynchronousQueue是一个不存储元素的BlockingQueue
+
+
+
+***
+
+
+
+#### 延迟队列
+
+DelayQueue 是一个支持延时获取元素的阻塞队列， 内部采用优先队列 PriorityQueue 存储元素，同时元素必须实现 Delayed 接口；在创建元素时可以指定多久才可以从队列中获取当前元素，只有在延迟期满时才能从队列中提‘取元素
+
+API：
+
+* `getDelay()`：获取元素在队列中的剩余时间，只有当剩余时间为0时元素才可以出队列。
+* `compareTo()`：用于排序，确定元素出队列的顺序
 
 
 
