@@ -1542,7 +1542,6 @@ static 静态修饰的成员（方法和成员变量）属于类本身的。
       }
   }
   ```
-  
 
 
 
@@ -2667,9 +2666,7 @@ Object类常用方法：
   默认是返回当前对象在堆内存中的地址信息：类的全限名@内存地址，例：Student@735b478；
   直接输出对象名称，默认会调用toString()方法，所以省略toString()不写；
   如果输出对象的内容，需要重写toString()方法，toString方法存在的意义是为了被子类重写
-* `public boolean equals(Object o)`：
-  默认是比较两个对象的内容是否相同，如果只是比较两个对象的地址可以用“==”替代equals
-  所以equals存在的意义是为了被子类重写，以便程序员可以自己来定制比较规则
+* `public boolean equals(Object o)`：默认是比较两个对象的引用是否相同
 * `protected Object clone()`：创建并返回此对象的副本 
 
 只要两个对象的内容一样，就认为是相等的：
@@ -2689,8 +2686,15 @@ public boolean equals(Object o) {
 ```
 
 **面试题**：== 和equals的区别
-== 比较的是变量(栈)内存中存放的对象的(堆)内存地址，用来判断两个对象的**地址**是否相同，即是否是**指相**同一个对象。比较的是真正意义上的指针操作。
-equals用来比较的是两个对象的**内容**是否相等，由于所有的类都是继承自java.lang.Object类的，所以适用于所有对象，如果没有对该方法进行覆盖的话，调用的仍然是Object类中的方法，而Object中的equals方法返回的却是==的判断
+
+* == 比较的是变量(栈)内存中存放的对象的(堆)内存地址，用来判断两个对象的**地址**是否相同，即是否是指相同一个对象，比较的是真正意义上的指针操作。
+* 重写equals方法比较的是两个对象的**内容**是否相等，所有的类都是继承自java.lang.Object类，所以适用于所有对象，如果**没有对该方法进行覆盖的话，调用的仍然是Object类中的方法，比较两个对象的引用**
+
+hashCode的作用：
+
+* hashCode的存在主要是用于查找的快捷性，如Hashtable，HashMap等，可以在散列存储结构中确定对象的存储地址
+* 如果两个对象相同，就是适用于equals(java.lang.Object) 方法，那么这两个对象的hashCode一定要相同
+* 哈希值相同的数据不一定内容相同，内容相同的数据哈希值一定相同
 
 
 
@@ -3511,7 +3515,7 @@ public class BigDecimalDemo {
   3. 四则运算中的除法，如果除不尽请使用divide的三个参数的方法。
 
   ```java
-BigDecimal divide = bd1.divide(参与运算的对象,小数点后精确到多少位,舍入模式);
+  BigDecimal divide = bd1.divide(参与运算的对象,小数点后精确到多少位,舍入模式);
   参数1：表示参与运算的BigDecimal 对象。
   参数2：表示小数点后面精确到多少位
   参数3：舍入模式  
@@ -4198,7 +4202,6 @@ Collection集合的遍历方式有三种:
 
 2. 增强for循环
    增强for循环是一种遍历形式，可以遍历集合或者数组，遍历集合实际上是迭代器遍历的简化写法
-   
 ```java
    for(被遍历集合或者数组中元素的类型 变量名称 : 被遍历集合或者数组){
    
@@ -4918,7 +4921,7 @@ HashMap基于哈希表的Map接口实现，是以key-value存储形式存在，�
 * key是唯一不重复的，底层的哈希表结构，依赖hashCode方法和equals方法保证键的唯一
 * key、value都可以为null，但是键位置只能是一个null
 * HashMap中的映射不是有序的，即存取是无序的
-* 如果键要存储的是自定义对象，需要重写hashCode和equals方法
+* **key要存储的是自定义对象，需要重写hashCode和equals方法，防止出现地址不同内容相同的key**
 
 对比Hashtable：
 
@@ -5242,10 +5245,10 @@ transient int size;
 
 12. 调整大小下一个容量的值计算方式为(容量*负载因子) 
 
-        ```java
+    ```java
     //临界值,当实际大小(容量*负载因子)超过临界值时，会进行扩容
     int threshold;
-        ```
+    ```
 
 13. **哈希表的加载因子(重点)**
 
@@ -5439,10 +5442,12 @@ transient int size;
 
 4. resize
 
-   当HashMap中的元素个数超过数组大小(数组长度)*loadFactor(负载因子)时，就会进行数组扩容。进行扩容，会伴随着一次重新hash分配，并且会遍历hash表中所有的元素，是非常耗时的，所以要尽量避免resize
+   当HashMap中的元素个数超过数组大小(数组长度)*loadFactor(负载因子)时，就会进行数组扩容。扩容会伴随着一次重新hash分配，并且会遍历hash表中所有的元素，非常耗时，所以要尽量避免resize
 
    HashMap在进行扩容时，使用的rehash方式非常巧妙，因为每次扩容都是翻倍，与原来计算的 (n-1)&hash的结果相比，只是多了一个bit位，节点**要么就在原来的位置，要么就被分配到"原位置+旧容量"的位置**
 
+   判断：当前数组长度n为1的位为 x，如果key的哈希值 x 位也为1，则扩容后的索引为 now + n
+   
    注意：这里也要求**数组长度2的幂**
 
 ![](https://gitee.com/seazean/images/raw/master/Java/HashMap-resize扩容.png)
@@ -6599,7 +6604,7 @@ class Student{
 
 
 
-#### 收集Stream流
+#### 收集流
 
 收集Stream流的含义：就是把Stream流的数据转回到集合中去。
 
@@ -7780,7 +7785,7 @@ public class CommonsIODemo01 {
 
 ## 网络
 
-### 网络概述
+### 概述
 
 #### 软件结构
 
@@ -7828,27 +7833,27 @@ public class CommonsIODemo01 {
 
 #### 分层和协议
 
-网络通信协议：
-	通信协议是对计算机必须遵守的规则，只有遵守这些规则，计算机之间才能进行通信。
+网络通信协议：对计算机必须遵守的规则，只有遵守这些规则，计算机之间才能进行通信
 
-> 应用层：应用程序（QQ,微信,浏览器）,可能用到的协议（HTTP,FTP,SMTP），通常程序员只需要这一层
+> 应用层：应用程序（QQ,微信,浏览器），可能用到的协议（HTTP,FTP,SMTP）
 >
-> 传输层：TCP/IP协议 - UDP协议，计算机网络工程师需要精通的协议，有些技术我们也需要精通
+> 传输层：TCP/IP协议 - UDP协议
 >
-> 网络层  ：IP协议  封装自己的IP和对方的IP和端口
+> 网络层  ：IP协议，封装自己的IP和对方的IP和端口
 >
 > 数据链路层 ： 进入到硬件（网）
->
 
-TCP/IP协议：传输控制协议 (Transmission Control Protocol)。
-    TCP协议是面向连接的安全的可靠的传输通信协议。
-    1.在通信之前必须确定对方在线并且连接成功才可以通信。
-    2.例如下载文件、浏览网页等(要求可靠传输)
+TCP/IP协议：传输控制协议 (Transmission Control Protocol)
 
-UDP：用户数据报协议(User Datagram Protocol)。
-    UDP协议是一个面向无连接的不可靠传输的协议。
-    1.直接发消息给对方，不管对方是否在线，发消息后也不需要确认。
-    2.无线（视频会议，通话），性能好，可能丢失一些数据！！
+TCP：面向连接的安全的可靠的传输通信协议
+
+* 在通信之前必须确定对方在线并且连接成功才可以通信
+* 例如下载文件、浏览网页等(要求可靠传输)
+
+UDP：用户数据报协议(User Datagram Protocol)，是一个面向无连接的不可靠传输的协议
+
+* 直接发消息给对方，不管对方是否在线，发消息后也不需要确认
+* 无线（视频会议，通话），性能好，可能丢失一些数据
 
 
 
@@ -7856,7 +7861,7 @@ UDP：用户数据报协议(User Datagram Protocol)。
 
 
 
-### 通信模型
+#### 通信模型
 
 相关概念：
 
@@ -7899,13 +7904,11 @@ UDP：用户数据报协议(User Datagram Protocol)。
 
 
 
-
-
 ****
 
 
 
-### InetAddress
+### Inet
 
 一个该InetAddress类的对象就代表一个IP地址对象。
 
@@ -7966,7 +7969,7 @@ UDP协议相关的两个类
 
 **DatagramPacket**：
 
-* DatagramPacket类构造器
+* DatagramPacket类
   * `public new DatagramPacket(byte[] buf, int length, InetAddress address, int port)` : 创建发送端数据包对象
     参数： buf：要发送的内容，字节数组		length：要发送内容的长度，单位是字节
     			address：接收端的IP地址对象		port：接收端的端口号
@@ -7974,7 +7977,7 @@ UDP协议相关的两个类
     参数：buf：用来存储接收到内容		length：能够接收内容的长度
 * DatagramPacket类常用方法
      `public int getLength()` : 获得实际接收到的字节个数
-      `public byte[] getData()` : 返回数据缓冲区
+     `public byte[] getData()` : 返回数据缓冲区
 
 **DatagramSocket**：
 
@@ -8511,58 +8514,6 @@ public class Server {
 		}
 		os.close();
 		System.out.println("服务端接收文件保存成功！");
-    }
-}
-```
-
-
-
-
-
-***
-
-
-
-### BS
-
-客户端：浏览器。（无需开发）
-服务端：自己开发。
-需求：在浏览器中请求本程序，响应一个网页文字给浏览器显示
-
-```java
-public class BSServerDemo {
-    public static void main(String[] args) {
-        try{
-            ServerSocket ss = new ServerSocket(8080);
-            //建一个循环接收多个客户端的请求。
-            while(true){
-                Socket socket = ss.accept();
-                new ServerReaderThread(socket).start();
-            }
-        }catch(Exception e){
-            e.printStackTrace();
-        }
-    }
-}
-class ServerReaderThread extends Thread{
-	private Socket socket;
-    public ServerReaderThread(Socket socket) {this.socket = socket;}
-    @Override
-    public void run() {
-        try{
-            // 响应消息数据给浏览器显示。浏览器是基于HTTP协议通信！
-            // 响应格式必须满足HTTP协议数据格式的要求，浏览器才能够识别，否则响应消息浏览器不认识
-            PrintStream ps = new PrintStream(socket.getOutputStream());
-            ps.println("HTTP/1.1 200 OK"); // 响应数据的响应头数据！
-            ps.println("Content-Type:text/html;charset=UTF-8");//响应数据的类型网页或者文本内容！
-            ps.println(); // 必须换一行
-            // 以下开始响应真实的数据！！
-            ps.println("<span style='color:green;font-size:100px;'>牛逼的128期<span>");
-            Thread.sleep(4000);//防止数据没收到
-			ps.close();
-        }catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 }
 ```
@@ -14429,7 +14380,6 @@ JDK 自带了监控工具，位于 JDK 的 bin 目录下，其中最常用的是
 
 * jconsole：用于对 JVM 中的内存、线程和类等进行监控；
 * jvisualvm：JDK 自带的全能分析工具，可以分析：内存快照、线程快照、程序死锁、监控内存的变化、gc 变化等
-  
 
 
 
@@ -14511,7 +14461,7 @@ JDK 自带了监控工具，位于 JDK 的 bin 目录下，其中最常用的是
 * 需要等待结果返回，才能继续运行就是同步
 * 不需要等待结果返回，就能继续运行就是异步
 
-
+萨克尽快撒娇看啊是卡接口
 
 
 
@@ -15366,6 +15316,10 @@ Monitor 被翻译为监视器或管程
 Mark Word 中就被设置指向 Monitor 对象的指针，这就是重量级锁
 
 * 普通对象（32位系统，64位128位）：
+
+  * 对象头第一部分用于存储对象自身的运行时数据， 如哈希码（HashCode）、GC分代年龄、锁状态标志、线程持有的锁、偏向线程ID、偏向时间戳等等，就是Mark Word
+
+  * 对象头的另外一部分是类型指针，即是对象指向它的类的元数据的指针，虚拟机通过这个指针来确定这个对象是哪个类的实例
 
   ```ruby
   |-----------------------------------------------------|
@@ -19293,12 +19247,7 @@ class MockConnection implements Connection {
 
 单例模式，是一种常用的软件设计模式。通过单例模式可以保证系统中，
 该模式的这个类永远只有一个实例。即**一个类永远只有一个对象实例**。
-单例是为了节约内存，单例在有些业务场景下还必须用到！！
-
-> 单例的应用场景：
-> 在实际开发中，有很多业务对象永远只需要一个，无论启动多少次
-> 我们只需要一个对象，例如任务管理对象，只需要一个对象。节约内存和性能。
-> 因为对象越多内存占用越大，极有可能出现内存溢出！
+单例是为了节约内存，单例在有些业务场景下还必须用到
 
 * 饿汉单例设计模式
       在用类获取对象的时候，对象已经提前创建好了。
@@ -19583,18 +19532,6 @@ public class BufferedInputStrem extends InputStream {
     }
 }
 ```
-
-
-
-
-
-***
-
-
-
-
-
-# Java
 
 
 
