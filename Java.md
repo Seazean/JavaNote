@@ -1629,7 +1629,7 @@ static 静态修饰的成员（方法和成员变量）属于类本身的。
     class Cat extends Animal{
     }
     class Animal{
-        public static String schoolName ="黑马";
+        public static String schoolName ="seazean";
         public static void test(){}
         private void run(){}
     }
@@ -5444,8 +5444,10 @@ transient int size;
 
    当HashMap中的元素个数超过数组大小(数组长度)*loadFactor(负载因子)时，就会进行数组扩容。扩容会伴随着一次重新hash分配，并且会遍历hash表中所有的元素，非常耗时，所以要尽量避免resize
 
-   HashMap在进行扩容时，使用的rehash方式非常巧妙，因为每次扩容都是翻倍，与原来计算的 (n-1)&hash的结果相比，只是多了一个bit位，节点**要么就在原来的位置，要么就被分配到"原位置+旧容量"的位置**
+   扩容时split方法会将树**拆成高位和低位两个链表**，判断长度是否小于等于6，小于则变成非树节点
 
+   HashMap在进行扩容时，使用的rehash方式非常巧妙，因为每次扩容都是翻倍，与原来计算的 (n-1)&hash的结果相比，只是多了一个bit位，节点**要么就在原来的位置，要么就被分配到"原位置+旧容量"的位置**
+   
    判断：当前数组长度n为1的位为 x，如果key的哈希值 x 位也为1，则扩容后的索引为 now + n
    
    注意：这里也要求**数组长度2的幂**
@@ -5455,6 +5457,61 @@ transient int size;
 4. remove
    删除是首先先找到元素的位置，如果是链表就遍历链表找到元素之后删除。如果是用红黑树就遍历树然后找到之后做删除，树小于6的时候要转链表
 
+   ```java
+    final Node<K,V> removeNode(int hash, Object key, Object value,
+                               boolean matchValue, boolean movable) {
+        Node<K,V>[] tab; Node<K,V> p; int n, index;
+        //节点数组tab不为空、数组长度n大于0、根据hash定位到的节点对象p，该节点为树的根节点或链表的首节点）不为空，从该节点p向下遍历，找到那个和key匹配的节点对象
+        if ((tab = table) != null && (n = tab.length) > 0 &&
+            (p = tab[index = (n - 1) & hash]) != null) {
+            Node<K,V> node = null, e; K k; V v;//临时变量，储存要返回的节点信息
+            //key和value都相等，直接返回该节点
+            if (p.hash == hash &&
+                ((k = p.key) == key || (key != null && key.equals(k))))
+                node = p;
+            
+            else if ((e = p.next) != null) {
+                //如果是树节点，调用getTreeNode方法从树结构中查找满足条件的节点
+                if (p instanceof TreeNode)
+                    node = ((TreeNode<K,V>)p).getTreeNode(hash, key);
+                //遍历链表
+                else {
+                    do {
+                        //e节点的键是否和key相等，e节点就是要删除的节点，赋值给node变量
+                        if (e.hash == hash &&
+                            ((k = e.key) == key ||
+                             (key != null && key.equals(k)))) {
+                            node = e;
+                            //跳出循环
+                            break;
+                        }
+                        p = e;//把当前节点p指向e 继续遍历
+                    } while ((e = e.next) != null);
+                }
+            }
+            //如果node不为空，说明根据key匹配到了要删除的节点
+            //如果不需要对比value值或者对比value值但是value值也相等，可以直接删除
+            if (node != null && (!matchValue || (v = node.value) == value ||
+                                 (value != null && value.equals(v)))) {
+                if (node instanceof TreeNode)
+                    ((TreeNode<K,V>)node).removeTreeNode(this, tab, movable);
+                else if (node == p)//node是首节点
+                    tab[index] = node.next;
+                else	//node不是首节点
+                    p.next = node.next;
+                ++modCount;
+                --size;
+                //该方法HashMap没有任何实现逻辑，目的是为了让子类根据需要自行覆盖
+                afterNodeRemoval(node);
+                return node;
+            }
+        }
+        return null;
+    }
+   ```
+   
+   
+   
 5. get
 
    1. 通过hash值获取该key映射到的桶
@@ -6044,7 +6101,7 @@ public class ExceptionDemo{
 
 
 
-### Finally关键字
+### Finally
 
 用在捕获处理的异常格式中的，放在最后面。
 
@@ -6186,7 +6243,7 @@ public class AgeIllegalRuntimeException extends RuntimeException{
 
 
 
-### 异常的作用
+### 异常作用
 
 1、可以处理代码问题，防止程序出现异常后的死亡。
 2、提高了程序的健壮性和安全性。
@@ -6356,7 +6413,7 @@ lists.forEach(System.out::println);
 
 
 
-#### 静态方法的引用
+#### 静态方法
 
 引用格式：类名::静态方法
 
@@ -6383,7 +6440,7 @@ public class Student {
 
 
 
-#### 实例方法的引用
+#### 实例方法
 
 引用格式：对象::实例方法
 
@@ -6409,7 +6466,7 @@ public class MethodDemo {
 
 
 
-#### 特定类型方法的引用
+#### 特定类型
 
 特定类型：String ,任何类型
 
@@ -6444,7 +6501,7 @@ public class MethodDemo{
 
 
 
-#### 构造器引用
+#### 构造器
 
 格式：类名::new。
 注意事项：前后参数一致的情况下，又在创建对象就可以使用构造器引用
@@ -9622,6 +9679,8 @@ public class UserServiceTest {
 
 注意：反射是工作在**运行时**的技术，只有运行之后才会有class类对象
 
+作用：可以在运行时得到一个类的全部成分然后操作，破坏封装性，也可以破坏泛型的约束性。
+
 **反射的优点：**
 
 - 可扩展性：应用程序可以利用全限定名创建可扩展对象的实例，来使用来自外部的用户自定义类
@@ -9960,76 +10019,6 @@ public class ReflectDemo {
         add.invoke(scores,"波仔");
         System.out.println(scores);
     }
-}
-```
-
-
-
-***
-
-
-
-### 作用
-
-可以在运行时得到一个类的全部成分然后操作。
-可以破坏封装性，也可以破坏泛型的约束性。
-
-更重要的用途是适合：做Java高级框架，基本上主流框架都会基于反射设计一些通用技术功能。
-
-Mybatis框架：
-    你给任何一个对象数据我都可以直接帮你解析字段并且把对应数据保存起来。
-    Student (注册，把信息字段都存储起来)
-    Teacher (注册，把信息字段都存储起来)
-    Manager (注册，把信息字段都存储起来)
-
-```java
-//任何对象只要给我，我就可以把信息和字段都解析并存储起来。
-public class ReflectDemo{
-    public static void main(String[] args) throws Exception {
-        Student s = new Student(1,"赵敏",26,'女' ,"光明顶","110");
-        Mybatis.save(s);
-        Pig p = new Pig("佩奇",500.0 , "粉色","小红","母猪");
-        Mybatis.save(p);
-    }
-}
-public class Mybatis {
-    // 提供一个方法：可以保存一切对象数据的字段和具体值
-    public static void save(Object obj) {
-        try(PrintStream ps =new PrintStream(
-            			new FileOutputStream("Day12Demo/src/data.txt",true));
-		){// 解析对象的字段和每个字段的值存储起来！
-            Class c = obj.getClass();
-            ps.println("===="+c.getSimpleName()+"====");
-            // 2.定位它的全部成员变量
-            Field[] fields = c.getDeclaredFields();
-            // 3.遍历这些字段并且取值
-            for(Field field : fields) {
-                String name = field.getName();//字段名称
-                field.setAccessible(true);
-                String value = field.get(obj)+"";
-                ps.println(name+"="+value);
-            }
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-    }
-}
-public class Student {
-    private int id ;
-    private String name ;
-    private int age ;
-    private char sex ;
-    private String address ;
-    private String tel ;
-    //构造方法
-}
-public class Pig {
-    private String name ;
-    private double weight;
-    private String color;
-    private String owner ;
-    private String sex ;
-    //构造方法
 }
 ```
 
@@ -11404,6 +11393,12 @@ Heap 堆：是JVM内存中最大的一块，由所有线程共享，由垃圾回
 2. jmap：查看堆内存占用情况 `jhsdb jmap --heap --pid 进程id`
 3. jconsole：图形界面的，多功能的监测工具，可以连续监测
 
+在Java7中堆内会存在**年轻代、老年代和方法区(永久代)**：
+
+* Young区被划分为三部分，Eden区和两个大小严格相同的Survivor区。Survivor区间，某一时刻只有其中一个是被使用的，另外一个留做垃圾回收时复制对象。在Eden区变满的时候， GC就会将存活的对象移到空闲的Survivor区间中，根据JVM的策略，在经过几次垃圾回收后，仍然存活于Survivor的对象将被移动到Tenured区间
+* Tenured区主要保存生命周期长的对象，一般是一些老的对象，当一些对象在Young复制转移一定的次数以后，对象就会被转移到Tenured区
+* Perm代主要保存**Class、ClassLoader、静态变量、常量、编译后的代码**，在java7中堆内方法区会受到GC的管理
+
 ```java
 public static void main(String[] args) throws InterruptedException {
     System.out.println("1...");
@@ -11417,12 +11412,6 @@ public static void main(String[] args) throws InterruptedException {
     Thread.sleep(1000000L);
 }
 ```
-
-在Java7中堆内会存在**年轻代、老年代和方法区(永久代)**：
-
-* Young区被划分为三部分，Eden区和两个大小严格相同的Survivor区。Survivor区间，某一时刻只有其中一个是被使用的，另外一个留做垃圾回收时复制对象。在Eden区变满的时候， GC就会将存活的对象移到空闲的Survivor区间中，根据JVM的策略，在经过几次垃圾回收后，仍然存活于Survivor的对象将被移动到Tenured区间
-* Tenured区主要保存生命周期长的对象，一般是一些老的对象，当一些对象在Young复制转移一定的次数以后，对象就会被转移到Tenured区
-* Perm代主要保存**Class、ClassLoader、静态变量、常量、编译后的代码**，在java7中堆内方法区会受到GC的管理。
 
 
 
@@ -11631,6 +11620,88 @@ public class Demo1_27 {
 
 
 
+***
+
+
+
+### 对象结构
+
+#### 基本构造
+
+一个Java对象内存中存储为三部分：对象头 (Header)、实例数据 (Instance Data) 和对齐填充 (Padding)
+
+对象头：
+
+* 普通对象（32位系统，64位128位）：分为两部分
+
+  * Mark Word：用于存储对象自身的运行时数据， 如哈希码（HashCode）、GC分代年龄、锁状态标志、线程持有的锁、偏向线程ID、偏向时间戳等等，就是Mark Word
+
+    ```ruby
+    hash(25) + age(4) + lock(3) = 32bit					#32位系统
+    unused(25+1) + hash(31) + age(4) + lock(3) = 64bit	#64位系统
+    ```
+
+  * Klass Word：类型指针，对象指向它的类的元数据的指针，虚拟机通过这个指针来确定这个对象是哪个类的实例；在64位系统中，开启指针压缩(-XX:+UseCompressedOops)或者JVM堆的最大值小于32G，这个指针也是4byte，否则是8byte
+
+  ```ruby
+  |-----------------------------------------------------|
+  | 				  Object Header (64 bits) 			  |
+  |---------------------------|-------------------------|
+  | 	 Mark Word (32 bits)	|  Klass Word (32 bits)   |
+  |---------------------------|-------------------------|
+  ```
+
+* 数组对象：如果对象是一个数组，那在对象头中还有一块数据用于记录数组长度
+
+  ```ruby
+  |-------------------------------------------------------------------------------|
+  | 						  Object Header (96 bits) 							    |
+  |-----------------------|-----------------------------|-------------------------|
+  |  Mark Word(32bits)    | 	  Klass Word(32bits) 	  |   array length(32bits)  |
+  |-----------------------|-----------------------------|-------------------------|
+  ```
+
+实例数据：实例数据部分是对象真正存储的有效信息，也是在程序代码中所定义的各种类型的字段内容。无论是从父类继承下来的，还是在子类中定义的，都需要记录起来
+
+对齐填充：起占位符的作用。由于HotSpot VM的自动内存管理系统要求对象起始地址必须是8字节的整数倍，就是对象的大小必须是8字节的整数倍，而对象头部分正好是8字节的倍数（1倍或者2倍），因此当对象实例数据部分没有对齐时，就需要通过对齐填充来补全
+
+32位系统
+
+* 一个int在java中占据4byte，所以Integer的大小为：
+
+  ```ruby
+  # 需要补位4byte
+  4(Mark Word) + 4(Klass Word) + 4(data) + 4(Padding) = 16byte
+  ```
+
+* `int[] arr = new int[10]`
+
+  ```ruby
+  # 由于需要8位对齐，所以最终大小为`56byte`。
+  4(Mark Word) + 4(Klass Word) + 4(length) + 4*10(10个int大小) + 4(Padding) = 56sbyte 
+  ```
+
+
+
+#### 节约内存
+
+* 尽量使用基本类型
+
+* 满足容量前提下，尽量用小字段
+
+* 尽量用数组，少用集合，数组中是可以使用基本类型的，但是集合中只能放包装类型，如果需要使用集合，推荐比较节约内存的集合工具：fastutil
+
+  一个ArrayList集合，如果里面放了10个数字，占用多少内存：
+
+  ```java
+  private transient Object[] elementData;
+  private int size;
+  ```
+
+  Mark Word 占4byte，Klass Word 占4byte，一个int字段(size)占 4byte，elementData 数组本身占 12(4+4+4)，数组中10个Integer对象占 10×16，所以整个集合空间大小为 184byte
+
+* 时间用long/int表示，不用Date或者String
+
 
 
 
@@ -11678,7 +11749,7 @@ Full GC 则相对复杂，**FullGC同时回收新生代和老年代，当前只�
 * 调用 System.gc()：
 
   * 不建议使用这种方式，应该让虚拟机管理内存，一般情况下，垃圾回收应该是自动进行的，无须手动触发。在一些特殊情况下，如正在编写一个性能基准，可以在运行之间调用System.gc() 
-  * 在默认情况下，通过system.gc（）者Runtime.getRuntime().gc() 的调用，会显式触发FullGC，同时对老年代和新生代进行回收，尝试释放被丢弃对象占用的内存，但是虚拟机不一定真正去执行，无法保证对垃圾收集器的调用
+  * 在默认情况下，通过system.gc() 或 Runtime.getRuntime().gc() 的调用，会显式触发FullGC，同时对老年代和新生代进行回收，尝试释放被丢弃对象占用的内存，但是虚拟机不一定真正去执行，无法保证对垃圾收集器的调用
 
 * 老年代空间不足：
 
@@ -11766,7 +11837,7 @@ JVM是将TLAB作为内存分配的首选，但不是所有的对象实例都能�
 
 
 
-#### 栈上分配
+#### 逃逸分析
 
 即时编译（Just-in-time Compilation，JIT）是一种通过在运行时将字节码翻译为机器码，从而改善字节码编译语言性能的技术，在HotSpot实现中有多种选择：C1、C2和C1+C2，分别对应client、server和分层编译
 
@@ -15314,30 +15385,6 @@ Monitor 被翻译为监视器或管程
 
 每个 Java 对象都可以关联一个 Monitor 对象，如果使用 synchronized 给对象上锁（重量级）之后，该对象头的
 Mark Word 中就被设置指向 Monitor 对象的指针，这就是重量级锁
-
-* 普通对象（32位系统，64位128位）：
-
-  * 对象头第一部分用于存储对象自身的运行时数据， 如哈希码（HashCode）、GC分代年龄、锁状态标志、线程持有的锁、偏向线程ID、偏向时间戳等等，就是Mark Word
-
-  * 对象头的另外一部分是类型指针，即是对象指向它的类的元数据的指针，虚拟机通过这个指针来确定这个对象是哪个类的实例
-
-  ```ruby
-  |-----------------------------------------------------|
-  | 				  Object Header (64 bits) 			  |
-  |---------------------------|-------------------------|
-  | 	 Mark Word (32 bits)	|  Klass Word (32 bits)   |
-  |---------------------------|-------------------------|
-  ```
-
-* 数组对象：
-
-  ```ruby
-  |-------------------------------------------------------------------------------|
-  | 						  Object Header (96 bits) 							    |
-  |-----------------------|-----------------------------|-------------------------|
-  |  Mark Word(32bits)    | 	  Klass Word(32bits) 	  |   array length(32bits)  |
-  |-----------------------|-----------------------------|-------------------------|
-  ```
 
 * Mark Word结构：
 
