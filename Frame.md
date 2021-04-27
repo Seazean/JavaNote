@@ -2329,7 +2329,7 @@ PageInfo相关API：
           "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
   
   <mapper namespace="OneToOneMapper">
-      
+  
       <!--配置字段和实体对象属性的映射关系-->
       <resultMap id="oneToOne" type="card">
           <id column="cid" property="id" />
@@ -2446,11 +2446,6 @@ PageInfo相关API：
 * 映射配置文件
 
   ```xml
-  <?xml version="1.0" encoding="UTF-8" ?>
-  <!DOCTYPE mapper
-          PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
-          "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-  
   <mapper namespace="OneToManyMapper">
       <resultMap id="oneToMany" type="bean.Classes">
           <id column="cid" property="id"/>
@@ -2468,7 +2463,7 @@ PageInfo相关API：
       </select>
   </mapper>
   ```
-
+  
 * 代码实现片段
 
   ```java
@@ -2638,7 +2633,6 @@ PageInfo相关API：
     2. sqlSession.commit()  
     3. **sqlSession.clearCache()**  
     4.  数据发生增删改
-    
 
 
 
@@ -2747,7 +2741,7 @@ PageInfo相关API：
   ```
 
 * 映射配置文件OneToOneMapper.xml 
-一对一映射：
+  一对一映射：
   
   * column属性表示往要调用的其它的select标签中传入参数
   * select属性表示调用其它的select标签
@@ -2827,7 +2821,7 @@ PageInfo相关API：
 同样在一对多关系配置的<collection>结点中配置延迟加载策略。 <collection>结点中也有select属性，column属性。
 
 * 映射配置文件OneToManyMapper.xml
-一对多映射：
+  一对多映射：
   
   * column是用于指定使用哪个字段的值作为条件查询
   * select是用于指定查询账户的唯一标识（账户的dao全限定类名加上方法名称） 
@@ -5008,8 +5002,7 @@ public class ClassName{}
 
 *  @Autowired默认是按照类型装配注入的，默认情况下它要求依赖对象必须存在（可以设置它required属性为false）
 
-* @Resource默认按照名称来装配注入，只有当找不到与名称匹配的bean才会按照类型来装配注入
-  
+*  @Resource默认按照名称来装配注入，只有当找不到与名称匹配的bean才会按照类型来装配注入
 
 
 
@@ -5720,7 +5713,7 @@ FactoryBean与BeanFactory区别：
       public boolean isSingleton() {
           return false;
       }
-}
+  }
   ```
 
   
@@ -7156,7 +7149,6 @@ Spirng可以通过配置的形式控制使用的代理形式，Spring会先判�
   * JDK动态代理只能对实现了接口的类生成代理，没有实现接口的类不能使用。
   * Cglib动态代理即使被代理的类没有实现接口也可以使用，因为Cglib动态代理是使用继承被代理类的方式进行扩展
   * Cglib动态代理是通过继承的方式，覆盖被代理类的方法来进行代理，所以如果方法是被final修饰的话，就不能进行代理。
-    
 
 
 
@@ -7896,7 +7888,7 @@ public void addAccount{}
       update();
   }
   //注解添加在update方法上无效，需要添加到add()方法上
-public int update(){}
+  public int update(){}
   ```
   
   
@@ -7939,7 +7931,7 @@ public int update(){}
   ```
   
   ```java
-public class AccountServiceImpl implements AccountService {
+  public class AccountServiceImpl implements AccountService {
       @Autowired
       private AccountDao accountDao;
       public void transfer(String outName, String inName, Double money) {
@@ -8016,7 +8008,6 @@ TransactionManagementConfigurationSelector类：
 * AutoProxyRegistrar：利用后置处理器机制在对象创建以后包装对象，返回一个代理对象（增强器），代理对象执行方法利用拦截器链进行调用，通过@Transactional作为方法拦截的标记，把有事务管理的类作为目标类，生成代理对象，然后增强@Transactional标记的方法，在使用目标方法的时候，从IOC容器中获取的其实是被增强的代理类，且事务方法会被代理，跟AOP原理一样
 
 * ProxyTransactionManagementConfiguration：向IOC容器中导入事务增强器(BeanFactoryTransactionAttributeSourceAdvisor)，事务注解@Transactional的解析器(AnnotationTransactionAttributeSource)和事务方法拦截器(TransactionInterceptor)
-  
 
 通过AOP动态织入，进行事务开启和提交
 
@@ -8633,8 +8624,7 @@ AnnotationAwareAspectJAutoProxyCreator是这种类型的后置处理器：Instan
   * `return super.shouldSkip(beanClass, beanName)`：永远返回false  
    * `getCustomTargetSource(beanClass, beanName)`：返回为空，doCreateBean()
   
-
-  
+   
 
 **进入applyBeanPostProcessorsAfterInitialization：后置处理器创建AOP**
 
@@ -8693,7 +8683,6 @@ AnnotationAwareAspectJAutoProxyCreator是这种类型的后置处理器：Instan
          }
      }
   ```
-  
 4. 给容器中返回使用cglib增强了的代理对象，**初始化完成，加入容器**
 
 5. 以后容器中获取到的就是这个组件的代理对象，执行目标方法的时候，代理对象就会执行通知方法的流程
@@ -12422,7 +12411,6 @@ public class ProjectExceptionAdivce {
       }
   }
   ```
-  
 
 
 ***

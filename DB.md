@@ -75,7 +75,7 @@ MySQL配置：
   * 登录MySQL：
 
     ```shell
-  mysql -u root -p  敲回车，输入密码
+    mysql -u root -p  敲回车，输入密码
     初始密码查看：cat /var/log/mysqld.log
     在root@localhost:   后面的就是初始密码
     ```
@@ -402,7 +402,7 @@ MySQL配置：
   - 删除列
   
     ```mysql
-  ALTER TABLE 表名 DROP 列名;
+    ALTER TABLE 表名 DROP 列名;
     ```
 
     
@@ -1460,7 +1460,7 @@ CREATE TABLE us_pro(
 1. 查询用户的编号、姓名、年龄、订单编号。
    分析：
    	数据：用户的编号、姓名、年龄在user表，订单编号在orderlist表
-   	条件：user.id=orderlist.uid
+   	条件：user.id = orderlist.uid
 
    ```mysql
    SELECT
@@ -1470,7 +1470,7 @@ CREATE TABLE us_pro(
    	USER u,
    	orderlist o
    WHERE
-   	u.id=o.uid;
+   	u.id = o.uid;
    ```
 
 2. 查询所有的用户，显示用户的编号、姓名、年龄、订单编号。
@@ -1484,7 +1484,7 @@ CREATE TABLE us_pro(
    LEFT OUTER JOIN
    	orderlist o
    ON
-   	u.id=o.uid;
+   	u.id = o.uid;
    ```
 
 3. 查询用户年龄大于23岁的信息，显示用户的编号、姓名、年龄、订单编号。
@@ -1497,7 +1497,7 @@ CREATE TABLE us_pro(
    	USER u,
    	orderlist o
    WHERE
-   	u.id=o.uid
+   	u.id = o.uid
    	AND
    	u.age > 23;
    ```
@@ -1507,10 +1507,10 @@ CREATE TABLE us_pro(
    	u.*,
    	o.number
    FROM
-   	(SELECT * FROM USER WHERE age > 23) u,
+   	(SELECT * FROM USER WHERE age > 23) u,-- 嵌套查询
    	orderlist o
    WHERE
-   	u.id=o.uid;
+   	u.id = o.uid;
    ```
 
 4. 查询张三和李四用户的信息，显示用户的编号、姓名、年龄、订单编号。
@@ -1531,7 +1531,7 @@ CREATE TABLE us_pro(
 5. 查询所有的用户和该用户能查看的所有的商品，显示用户的编号、姓名、年龄、商品名称。
    分析：
    	数据：用户的编号、姓名、年龄在user表，商品名称在product表，中间表 us_pro
-   	条件：us_pro.uid=user.id AND us_pro.pid=product.id
+   	条件：us_pro.uid = user.id AND us_pro.pid = product.id
 
    ```mysql
    SELECT
@@ -1544,7 +1544,7 @@ CREATE TABLE us_pro(
    	product p,
    	us_pro up
    WHERE
-   	up.uid=u.id
+   	up.uid = u.id
    	AND
    	up.pid=p.id;
    ```
@@ -4377,7 +4377,6 @@ Druid连接池
   }
   
   ```
-  
 
 
 
