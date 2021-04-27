@@ -4,11 +4,27 @@
 
 ### 传输层
 
-<img src="https://gitee.com/seazean/images/raw/master/JavaSE/三次握手.png" style="zoom:50%;" />
+<img src="https://gitee.com/seazean/images/raw/master/Java/三次握手.png" style="zoom:50%;" />
 
-<img src="https://gitee.com/seazean/images/raw/master/JavaSE/四次挥手.png" alt="四次挥手" style="zoom: 67%;" />
+<img src="https://gitee.com/seazean/images/raw/master/Java/四次挥手.png" alt="四次挥手" style="zoom: 67%;" />
 
 
+
+* **TCP和UDP的区别？**
+
+  * 用户数据报协议 UDP（User Datagram Protocol）是无连接的，尽最大可能交付，没有拥塞控制，面向报文（对于应用程序传下来的报文不合并也不拆分，只是添加 UDP 首部），支持一对一、一对多、多对一和多对多的交互通信
+
+    传输控制协议 TCP（Transmission Control Protocol）是面向连接的，提供可靠交付，有流量控制，拥塞控制，提供全双工通信，面向字节流（把应用层传下来的报文看成字节流，把字节流组织成大小不等的数据块），每一条 TCP 连接只能是点对点的（一对一）
+
+  高手解答：
+
+  * 从tcp udp报文格式就看出差别：tcp头部比udp头部字节更多，说明相同情况下控制开销更多，在一定时间内，传输数据的时延更大，所以tcp不适合用于即时场景
+
+  * 从TCP报文格式还可以看出，tcp存在多个控制位，意味着会交互更多的控制信息；从控制位字段可以看出，比如syn fin ack，tcp会发送控制消息进行握手，这样一来传输信息更加可靠，是面向连接的；窗口位，意味着tcp有拥塞控制优势
+  * udp报文头部有数据长度字段，而tcp没有，只有头部偏移字段，意味着udp是一包一包数据传输，发端和收端不会分片或者重组，能很快识别这包数据；而tcp是流，每次是个数据块，也就是沾包，这是tcp独有的特性
+  * 任何一个协议的机制有优点肯定有缺点，就像tcp，发送数据前增加了握手，虽然保证了可靠性，但是同样带来了更多的控制开销和数据时延，怎样平衡它们的优缺点就是看应用场景；任何一个协议，它的特点或者想实现什么功能，最终都会体现在报文格式或者底层叫做帧格式上面
+
+  
 
 * **不携带数据的ACK不会超时重传**
 
@@ -51,7 +67,11 @@
 
 * **为什么连接的时候是三次握手，关闭的时候却是四次握手？**
 
-  答：因为当Server端收到Client端的SYN连接请求报文后，可以直接发送SYN+ACK报文。其中ACK报文是用来应答的，SYN报文是用来同步的。但是关闭连接时，当Server端收到FIN报文时，很可能并不会立即关闭SOCKET，所以只能先回复一个ACK报文，告诉Client端，"你发的FIN报文我收到了"。只有等到我Server端所有的报文都发送完了，我才能发送FIN报文，因此不能一起发送。故需要四步握手。
+  答：因为当Server端收到Client端的SYN连接请求报文后，可以直接发送SYN+ACK报文。其中ACK报文是用来应答的，SYN报文是用来同步的。但是关闭连接时，当Server端收到FIN报文时，很可能并不会立即关闭SOCKET，所以只能先回复一个ACK报文，告诉Client端，"你发的FIN报文我收到了"。只有等到我Server端所有的报文都发送完了，我才能发送FIN报文，因此不能一起发送。故需要四步握手
+  
+  
+  
+* TCP 协议如何保证可靠传输？
 
 
 
