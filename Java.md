@@ -13096,7 +13096,7 @@ public static void main(String[] args) {
 
 ```java
     0: 	iconst_0
-    1: 	istore_1 	// 0 -> i
+    1: 	istore_1 	// 0 -> i	->赋值
     2: 	bipush 10 	// try 10 放入操作数栈顶
     4: 	istore_1 	// 10 -> i 将操作数栈顶数据弹出，存入局部变量表的 slot1
     5: 	bipush 30 	// finally 
@@ -13131,6 +13131,8 @@ LocalVariableTable:
 
 ##### return
 
+###### 吞异常
+
 ```java
 public static int test() {
     try {
@@ -13142,21 +13144,24 @@ public static int test() {
 ```
 
 ```java
-0: bipush 10 	// <- 10 放入栈顶
-2: istore_0 	// 10 -> slot 0 (从栈顶移除了)
-3: bipush 20 	// <- 20 放入栈顶
-5: ireturn 		// 返回栈顶 int(20)
-6: astore_1 	// catch any -> slot 1
-7: bipush 20 	// <- 20 放入栈顶
-9: ireturn 		// 返回栈顶 int(20)
+    0: bipush 10 	// 10 放入栈顶
+    2: istore_0 	// 10 -> slot 0 (从栈顶移除了)
+    3: bipush 20 	// 20 放入栈顶
+    5: ireturn 		// 返回栈顶 int(20)
+    6: astore_1 	// catch any -> slot 1 存入局部变量表的 slot1
+    7: bipush 20 	// 20 放入栈顶
+    9: ireturn 		// 返回栈顶 int(20)
+Exception table:
+	from   to 	target 	type
+		0	3		6 	any      
 ```
 
 * 由于 finally 中的 ireturn 被插入了所有可能的流程，因此返回结果肯 finally 的为准
-* 跟上例中的 finally 相比，发现没有 athrow ，这告诉我们：如果在 finally 中出现了 return，会**吞掉异常**
+* 字节码中没有 **athrow** ，表明：如果在 finally 中出现了 return，会**吞掉异常**
 
 
 
-##### 面试题
+###### 不吞异常
 
 ```java
 public class Demo3_12_2 {
@@ -13167,7 +13172,7 @@ public class Demo3_12_2 {
 	public static int test() {
         int i = 10;
         try {
-            return i;
+            return i;//返回10
         } finally {
             i = 20;
         }
@@ -13176,19 +13181,22 @@ public class Demo3_12_2 {
 ```
 
 ```java
-0: 	bipush 10 	// <- 10 放入栈顶
-2: 	istore_0 	// 10 -> i
-3: 	iload_0 	// <- i(10)
-4: 	istore_1 	// 10 -> slot 1，暂存至 slot 1，目的是为了固定返回值
-5: 	bipush 20 	// <- 20 放入栈顶
-7: 	istore_0 	// 20 -> i
-8: 	iload_1 	// <- slot 1(10) 载入 slot 1 暂存的值
-9: 	ireturn 	// 返回栈顶的 int(10)
-10: astore_2
-11: bipush 20
-13: istore_0
-14: aload_2
-15: athrow
+    0: 	bipush 10 	// 10 放入栈顶
+    2: 	istore_0 	// 10 -> i，赋值给i，放入slot 0
+    3: 	iload_0 	// i(10)加载至操作数栈
+    4: 	istore_1 	// 10 -> slot 1，暂存至 slot 1，目的是为了固定返回值
+    5: 	bipush 20 	// 20 放入栈顶
+    7: 	istore_0 	// 20 -> i
+    8: 	iload_1 	// slot 1(10) 载入 slot 1 暂存的值
+    9: 	ireturn 	// 返回栈顶的 int(10)
+    10: astore_2
+    11: bipush 20
+    13: istore_0
+    14: aload_2
+    15: athrow		// 不会吞掉异常
+Exception table:
+	from   to 	target 	type
+	  3	   5		10 	any  
 ```
 
 
