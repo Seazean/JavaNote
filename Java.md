@@ -5331,7 +5331,7 @@ transient int size;
 
    * `(n - 1) & hash`：计算下标位置
 
-   ![](https://gitee.com/seazean/images/raw/master/Java/HashMap-putVal哈希运算.png)
+   <img src="https://gitee.com/seazean/images/raw/master/Java/HashMap-putVal哈希运算.png" style="zoom:80%;" />
 
    总结： hashcode 转化为32位二进制，高16 bit和低16 bit做了一个异或
 
@@ -5442,17 +5442,37 @@ transient int size;
 
 4. resize
 
-   当HashMap中的元素个数超过数组大小(数组长度)*loadFactor(负载因子)时，就会进行数组扩容。扩容会伴随着一次重新hash分配，并且会遍历hash表中所有的元素，非常耗时，所以要尽量避免resize
-
-   扩容时split方法会将树**拆成高位和低位两个链表**，判断长度是否小于等于6，小于则变成非树节点
+   当HashMap中的元素个数超过(数组长度)*loadFactor(负载因子)`时，就会进行数组扩容。扩容会伴随着一次重新hash分配，并且会遍历hash表中所有的元素，非常耗时，所以要尽量避免resize
 
    HashMap在进行扩容时，使用的rehash方式非常巧妙，因为每次扩容都是翻倍，与原来计算的 (n-1)&hash的结果相比，只是多了一个bit位，节点**要么就在原来的位置，要么就被分配到"原位置+旧容量"的位置**
-   
-   判断：当前数组长度n为1的位为 x，如果key的哈希值 x 位也为1，则扩容后的索引为 now + n
-   
+
+   判断：e.hash与oldCap对应的有效高位上的值是1，即当前数组长度n为1的位为 x，如果key的哈希值 x 位也为1，则扩容后的索引为 now + n
+
    注意：这里也要求**数组长度2的幂**
 
-![](https://gitee.com/seazean/images/raw/master/Java/HashMap-resize扩容.png)
+   ![](https://gitee.com/seazean/images/raw/master/Java/HashMap-resize扩容.png)
+
+   红黑树节点：扩容时split方法会将树**拆成高位和低位两个链表**，判断长度是否小于等于6
+
+   ```java
+   //如果低位链表首节点不为null，说明有这个链表存在
+   if (loHead != null) {
+       //如果链表下的元素小于等于6
+       if (lc <= UNTREEIFY_THRESHOLD)
+           //那就从红黑树转链表了，低位链表，迁移到新数组中下标不变，还是等于原数组到下标
+           tab[index] = loHead.untreeify(map);
+       else {
+           //低位链表，迁移到新数组中下标不变，把低位链表整个赋值到这个下标下
+           tab[index] = loHead;
+           //如果高位首节点不为空，说明原来的红黑树已经被拆分成两个链表了
+           if (hiHead != null)
+               //需要构建新的红黑树了
+               loHead.treeify(tab);
+       }
+   }
+   ```
+
+​	
 
 4. remove
    删除是首先先找到元素的位置，如果是链表就遍历链表找到元素之后删除。如果是用红黑树就遍历树然后找到之后做删除，树小于6的时候要转链表
@@ -14872,7 +14892,7 @@ public class Test14 {
 `public static boolean interrupted()`：判断当前线程是否被打断，清除打断标记
 `public boolean isInterrupted()`：判断当前线程是否被打断，不清除打断标记
 
-sleep，wait，join方法都会让线程进入阻塞 (Waiting) 状态，打断进程会**清空打断状态** (false)
+sleep，wait，join方法都会让线程进入阻塞状态，打断进程会**清空打断状态** (false)
 
 ```java
 public static void main(String[] args) throws InterruptedException {
@@ -15780,6 +15800,8 @@ class BigRoom {
 
 ##### 死锁
 
+###### 形成
+
 死锁：多个线程同时被阻塞，它们中的一个或者全部都在等待某个资源被释放，由于线程被无限期地阻塞，因此程序不可能正常终止
 
 java 死锁产生的四个必要条件：
@@ -15791,7 +15813,7 @@ java 死锁产生的四个必要条件：
 四个条件都成立的时候，便形成死锁。死锁情况下打破上述任何一个条件，便可让死锁消失。
 
 ```java
-public class ThreadDead {
+public class Dead {
     public static Object resources1 = new Object();
     public static Object resources2 = new Object();
     public static void main(String[] args) {
@@ -15858,7 +15880,9 @@ class HoldLockThread implements Runnable {
 
 
 
-**定位死锁**：
+###### 定位
+
+定位死锁的方法：
 
 * 检测死锁可以使用 jconsole工具，或者使用 jps 定位进程 id，再用 `jstack id`定位死锁
 
@@ -15898,7 +15922,7 @@ class HoldLockThread implements Runnable {
 
 * linux 下可以通过 top 先定位到CPU 占用高的 Java 进程，再利用 `top -Hp 进程id` 来定位是哪个线程，最后再用 jstack 排查
 
-避免死锁：避免死锁要注意加锁顺序
+* 避免死锁：避免死锁要注意加锁顺序
 
 
 
@@ -16948,11 +16972,18 @@ final class Message {
 
 ### JMM
 
+#### 模型
+
 Java 内存模型是 Java MemoryModel（JMM），本身是一种**抽象的概念**，实际上并不存在，描述的是一组规则或规范，通过这组规范定义了程序中各个变量（包括实例字段，静态字段和构成数组对象的元素）的访问方式
 
 JMM主要是为了规定了线程和内存之间的一些关系，根据JMM的设计，系统存在一个主内存(Main Memory)，Java中所有变量都存储在主存中，对于所有线程都是共享的；每条线程都有自己的工作内存(Working Memory)，工作内存中保存的是主存中某些**变量的拷贝**，线程对所有变量的操作都是先对变量进行拷贝，然后在工作内存中进行，不能直接操作主内存中的变量；线程之间无法相互直接访问，线程间的通信（传递）必须通过主内存来完成
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JMM内存模型.png)
+
+主内存和工作内存：
+
+* 主内存：计算机的内存，也就是经常提到的8G内存，16G内存
+* 工作内存：多个线程同时访问变量时，每个线程都会拷贝一份到各自的工作内存
 
 **jvm和jmm之间的关系**：
 
@@ -16961,10 +16992,30 @@ JMM主要是为了规定了线程和内存之间的一些关系，根据JMM的�
   * 主内存主要对应于Java堆中的对象实例数据部分，而工作内存则对应于虚拟机栈中的部分区域
   * 从更低层次上说，主内存就直接对应于物理硬件的内存，而为了获取更好的运行速度，虚拟机（甚至是硬件系统本身的优化措施）可能会让工作内存优先存储于寄存器和高速缓存中，因为程序运行时主要访问读写的是工作内存
 
-主内存和工作内存：
 
-* 主内存：计算机的内存，也就是经常提到的8G内存，16G内存
-* 工作内存：多个线程同时访问变量时，每个线程都会拷贝一份到各自的工作内存
+
+
+
+#### 交互
+
+Java 内存模型定义了 8 个操作来完成主内存和工作内存的交互操作：
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/JMM内存交互.png" style="zoom: 67%;" />
+
+* read：把一个变量的值从主内存传输到工作内存中
+* load：在 read 之后执行，把 read 得到的值放入工作内存的变量副本中
+* use：把工作内存中一个变量的值传递给执行引擎
+* assign：把一个从执行引擎接收到的值赋给工作内存的变量
+* store：把工作内存的一个变量的值传送到主内存中
+* write：在 store 之后执行，把 store 得到的值放入主内存的变量中
+* lock：作用于主内存的变量
+* unlock
+
+
+
+
+
+#### 特性
 
 **JMM特性**：
 
