@@ -6497,7 +6497,6 @@ Attribute属性的操作：
   ```
 
 * 输入框文本：input元素.value;
-  
 
 
 
@@ -6940,7 +6939,7 @@ String
   | 方法            | 说明                     |
   | --------------- | ------------------------ |
   | push(value)     | 添加元素到数组的末尾     |
-| pop()           | 删除数组末尾的元素       |
+  | pop()           | 删除数组末尾的元素       |
   | shift()         | 删除数组最前面的元素     |
   | includes(value) | 判断数组是否包含给定的值 |
   | reverse()       | 反转数组中的元素         |
@@ -8713,16 +8712,16 @@ Nginx两个最核心的功能：高性能的静态web服务器，反向代理
 
 nginx.conf 文件时nginx的主配置文件
 
-<img src="https://gitee.com/seazean/images/raw/master/Linux/Nginx配置文件conf.jpg" style="zoom:80%;" />
+<img src="https://gitee.com/seazean/images/raw/master/Web/Nginx配置文件conf.jpg" style="zoom:80%;" />
 
 * main部分
-  <img src="https://gitee.com/seazean/images/raw/master/Linux/Nginx配置文件main部分.jpg" style="zoom: 67%;" />
+  <img src="https://gitee.com/seazean/images/raw/master/Web/Nginx配置文件main部分.jpg" style="zoom: 67%;" />
 
 * events部分
-  <img src="https://gitee.com/seazean/images/raw/master/Linux/Nginx配置文件events部分.jpg" style="zoom:67%;" />
+  <img src="https://gitee.com/seazean/images/raw/master/Web/Nginx配置文件events部分.jpg" style="zoom:67%;" />
 
 * server部分
-  <img src="https://gitee.com/seazean/images/raw/master/Linux/Nginx配置文件server部分.jpg" style="zoom:67%;" />
+  <img src="https://gitee.com/seazean/images/raw/master/Web/Nginx配置文件server部分.jpg" style="zoom:67%;" />
 
   root设置的路径会拼接上location的路径，然后去最终路径寻找对应的文件
 
