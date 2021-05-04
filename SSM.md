@@ -7813,7 +7813,7 @@ SpringMVC将传递的参数封装到处理器方法的形参中，达到快速�
 
 @RequestParam的使用：
 
-*  类型： 形参注解
+*  类型：形参注解
 
 * 位置：处理器类中的方法形参前方
 
@@ -7826,7 +7826,7 @@ SpringMVC将传递的参数封装到处理器方法的形参中，达到快速�
   public String requestParam2(@RequestParam(
                               name = "userName",
                               required = true,	//为true代表必须有参数
-                              defaultValue = "itheima") String name){
+                              defaultValue = "s") String name){
       System.out.println("name=" + name);
       return "page.jsp";
   }
@@ -9450,7 +9450,7 @@ Restful请求路径简化配置方式：@RestController = @Controller + @Respons
   
   `@PathVariable`注解的参数一般在有多个参数的时候添加
 
-过滤器：HiddenHttpMethodFilter是SpringMVC对Restful风格的访问支持的过滤器，
+过滤器：HiddenHttpMethodFilter是SpringMVC对Restful风格的访问支持的过滤器
 
 代码实现：
 
@@ -9482,9 +9482,8 @@ Restful请求路径简化配置方式：@RestController = @Controller + @Respons
   @RequestMapping("/user/")
   public class UserController {
   
-      //rest风格访问路径完整书写方式
+      //rest风格访问路径完整书写方式，使用@PathVariable注解获取路径上配置的具名变量
       @RequestMapping("/user/{id}")
-      //使用@PathVariable注解获取路径上配置的具名变量，该配置可以使用多次
       public String restLocation(@PathVariable Integer id){
           System.out.println("restful is running ....");
           return "success.jsp";
@@ -9516,16 +9515,12 @@ Restful请求路径简化配置方式：@RestController = @Controller + @Respons
       }
   
       //接收PUT请求简化配置方式
-      @RequestMapping(value = "{id}",method = RequestMethod.PUT)
-      //接收PUT请求简化配置方式
       @PutMapping("{id}")
       public String put(@PathVariable Integer id){
           System.out.println("restful is running ....put:"+id);
           return "success.jsp";
       }
   
-      //接收DELETE请求简化配置方式
-      @RequestMapping(value = "{id}",method = RequestMethod.DELETE)
       //接收DELETE请求简化配置方式
       @DeleteMapping("{id}")
       public String delete(@PathVariable Integer id){
@@ -9534,7 +9529,7 @@ Restful请求路径简化配置方式：@RestController = @Controller + @Respons
       }
   }
   ```
-
+  
 * 配置拦截器 web.xml
 
   ```xml

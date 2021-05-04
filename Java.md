@@ -15066,7 +15066,7 @@ Thread类API：
 直接调用 run 是在主线程中执行了 run，没有启动新的线程
 使用 start 是启动新的线程，通过新的线程间接执行 run 中的代码
 
-
+说明：**线程控制资源类**
 
 **面试问题**：run()方法中的异常不能抛出，只能try/catch
 
@@ -15224,7 +15224,7 @@ public static void main(String[] args) throws Exception {
 
 ##### 打断park
 
-park作用类似sleep，打断 park 线程，不会清空打断状态
+park作用类似sleep，打断 park 线程，不会清空打断状态（true）
 
 ```java
 public static void main(String[] args) throws Exception {
@@ -16442,350 +16442,6 @@ public static void main(String[] args) {
 
 
 
-### Re-Lock
-
-#### 锁对比
-
-ReentrantLock相对于 synchronized 它具备如下特点：
-
-1. 锁的实现：synchronized 是 JVM 实现的，而 ReentrantLock 是 JDK 实现的
-2. 性能：新版本 Java 对 synchronized 进行了很多优化，synchronized 与 ReentrantLock 大致相同
-3. 使用：ReentrantLock 需要手动解锁，synchronized 执行完代码块自动解锁
-4. 可中断：ReentrantLock 可中断，而 synchronized 不行
-5. **公平锁**：公平锁是指多个线程在等待同一个锁时，必须按照申请锁的时间顺序来依次获得锁
-   * ReentrantLock 可以设置公平锁，synchronized 中的锁是非公平的
-6. 锁超时：尝试获取锁，超时获取不到直接放弃，不进入阻塞队列
-   * ReentrantLock 可以设置超时时间，synchronized会一直等待
-7. 锁绑定多个条件：一个 ReentrantLock 可以同时绑定多个 Condition 对象 
-8. 两者都是可重入锁
-
-
-
-#### 使用锁
-
-构造方法：`ReentrantLock lock = new ReentrantLock();`
-
-ReentrantLock类API：
-
-* `public void lock()`：获得锁
-* 如果锁没有被另一个线程占用，则将锁定计数设置为1。
-  
-* 如果当前线程已经保持锁定，则保持计数增加1 
-  
-* 如果锁被另一个线程保持，则当前线程被禁用线程调度，并且在锁定已被获取之前处于休眠状态
-  
-* `public void unlock()`：尝试释放锁
-  * 如果当前线程是该锁的持有者，则保持计数递减
-  * 如果保持计数现在为零，则锁定被释放
-  * 如果当前线程不是该锁的持有者，则抛出异常
-
-基本语法：
-
-```java
-// 获取锁
-reentrantLock.lock();
-try {
-    // 临界区
-} finally {
-	// 释放锁
-	reentrantLock.unlock();
-}
-```
-
-
-
-***
-
-
-
-#### 可重入
-
-可重入是指同一个线程如果首次获得了这把锁，那么它是这把锁的拥有者，因此有权利再次获取这把锁，如果不可重入锁，那么第二次获得锁时，自己也会被锁挡住
-
-```java
-static ReentrantLock lock = new ReentrantLock();
-public static void main(String[] args) {
-	method1();
-}
-public static void method1() {
-    lock.lock();
-    try {
-        System.out.println(Thread.currentThread().getName() + " execute method1");
-    	method2();
-    } finally {
-    	lock.unlock();
-    }
-}
-public static void method2() {
-    lock.lock();
-    try {
-        System.out.println(Thread.currentThread().getName() + " execute method2");
-    } finally {
-    	lock.unlock();
-    }
-}
-```
-
-面试题：在Lock方法加两把锁会是什么情况呢？
-
-* 加锁两次解锁两次：正常执行
-* 加锁两次解锁一次：程序直接卡死，线程不能出来，也就说明**申请几把锁，最后需要解除几把锁**
-* 加锁一次解锁两次：运行程序会直接报错
-
-```java
-public void getLock() {
-    lock.lock();
-    lock.lock();
-    try {
-        System.out.println(Thread.currentThread().getName() + "\t get Lock");
-    } finally {
-        lock.unlock();
-        //lock.unlock();
-    }
-}
-```
-
-
-
-
-
-
-
-****
-
-
-
-#### 可打断
-
-`public void lockInterruptibly()`：获得可打断的锁
-
-* 如果没有竞争此方法就会获取lock对象锁
-* 如果有竞争就进入阻塞队列，可以被其他线程用interrupt打断
-
-注意：如果是不可中断模式，那么即使使用了 interrupt 也不会让等待中断
-
-```java
-public static void main(String[] args) throws InterruptedException {
-    ReentrantLock lock = new ReentrantLock();
-    Thread t1 = new Thread(() -> {
-        try {
-            System.out.println("尝试获取锁");
-            lock.lockInterruptibly();
-        } catch (InterruptedException e) {
-            System.out.println("没有获取到锁，被打断，直接返回");
-            return;
-        }
-        try {
-            System.out.println("获取到锁");
-        } finally {
-            lock.unlock();
-        }
-    }, "t1");
-
-
-    lock.lock();
-    t1.start();
-
-    Thread.sleep(2000);
-    System.out.println("主线程进行打断锁");
-    t1.interrupt();
-}
-```
-
-
-
-***
-
-
-
-#### 锁超时
-
-`public boolean tryLock()`：尝试获取锁，获取到返回true，获取不到直接放弃，不进入阻塞队列
-
-`public boolean tryLock(long timeout, TimeUnit unit)`：在给定时间内获取锁，获取不到就退出
-
-注意：tryLock期间也可以被打断
-
-```java
-public static void main(String[] args) {
-    ReentrantLock lock = new ReentrantLock();
-    Thread t1 = new Thread(() -> {
-        try {
-            if (!lock.tryLock(2, TimeUnit.SECONDS)) {
-                System.out.println("获取不到锁");
-                return;
-            }
-        } catch (InterruptedException e) {
-            System.out.println("被打断，获取不到锁");
-            return;
-        }
-        try {
-            log.debug("获取到锁");
-        } finally {
-            lock.unlock();
-        }
-    }, "t1");
-    lock.lock();
-    System.out.println("主线程获取到锁");
-    t1.start();
-    
-    Thread.sleep(1000);
-    try {
-        System.out.println("主线程释放了锁");
-    } finally {
-        lock.unlock();
-    }
-}
-```
-
-
-
-哲学家就餐问题：
-
-```java
-public static void main(String[] args) {
-    Chopstick c1 = new Chopstick("1");
-    ....
-    Chopstick c5 = new Chopstick("5");
-    new Philosopher("苏格拉底", c1, c2).start();
-    new Philosopher("柏拉图", c2, c3).start();
-    new Philosopher("亚里士多德", c3, c4).start();
-    new Philosopher("赫拉克利特", c4, c5).start();
-    new Philosopher("阿基米德", c5, c1).start();
-}
-
-class Philosopher extends Thread {
-    Chopstick left;
-    Chopstick right;
-
-    public void run() {
-        while (true) {
-            // 尝试获得左手筷子
-            if (left.tryLock()) {
-                try {
-                    // 尝试获得右手筷子
-                    if (right.tryLock()) {
-                        try {
-							System.out.println("eating...");
-                            Thread.sleep(1000);
-                        } finally {
-                            right.unlock();
-                        }
-                    }
-                } finally {
-                    left.unlock();
-                }
-            }
-        }
-	}
-}
-class Chopstick extends ReentrantLock {
-    String name;
-    public Chopstick(String name) {
-        this.name = name;
-    }
-    @Override
-    public String toString() {
-        return "筷子{" + name + '}';
-    }
-}
-```
-
-
-
-***
-
-
-
-#### 公平锁
-
-构造方法：`ReentrantLock lock = new ReentrantLock(true)`
-
-```java
-public ReentrantLock(boolean fair) {
-    sync = fair ? new FairSync() : new NonfairSync();
-}
-```
-
-ReentrantLock 默认是不公平的：
-
-```java
-public ReentrantLock() {
-    sync = new NonfairSync();
-}
-```
-
-说明：公平锁一般没有必要，会降低并发度
-
-
-
-***
-
-
-
-#### 条件变量
-
-synchronized 中的条件变量，就是当条件不满足时进入 waitSet 等待
-
-ReentrantLock 的条件变量比 synchronized 强大之处在于，它支持多个条件变量
-
-ReentrantLock类获取Condition对象：`public Condition newCondition()`
-
-Condition类API：
-
-* `void await()`：当前线程从运行状态进入等待状态，释放锁
-* `void signal()`：唤醒一个等待在Condition上的线程，但是必须获得与该Condition相关的锁
-
-使用流程：
-
-* await 前需要获得锁
-* await 执行后，会释放锁进入 conditionObject 等待
-* await 的线程被唤醒（打断、超时）去重新竞争 lock 锁
-* 竞争 lock 锁成功后，从 await 后继续执行
-
-```java
-public static void main(String[] args) throws InterruptedException {
-    ReentrantLock lock = new ReentrantLock();
-    //创建一个新的条件变量
-    Condition condition1 = lock.newCondition();
-    Condition condition2 = lock.newCondition();
-
-    new Thread(() -> {
-        try {
-            lock.lock();
-            //进入休息室等待
-            System.out.println("进入等待");
-            condition1.await();
-            System.out.println("被唤醒了");
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } finally {
-            lock.unlock();
-        }
-    }).start();
-
-    Thread.sleep(1000);
-    //叫醒
-    new Thread(() -> {
-        try {
-            lock.lock();
-            //进入休息室等待
-            condition2.signal();
-        } finally {
-            lock.unlock();
-        }
-    }).start();
-}
-```
-
-
-
-
-
-****
-
-
-
 ### 安全分析
 
 成员变量和静态变量：
@@ -16831,8 +16487,6 @@ public static void main(String[] args) throws InterruptedException {
 抽象方法如果有参数，被重写后行为不确定可能造成线程不安全，被称之为外星方法：`public abstract foo(Student s);`
 
 无状态类线程安全
-
-
 
 
 
@@ -17249,6 +16903,42 @@ final class Message {
 	//get set
 }
 ```
+
+
+
+***
+
+
+
+#### 阻塞队列
+
+```java
+public static void main(String[] args) {
+    ExecutorService consumer = Executors.newFixedThreadPool(1);
+    ExecutorService producer = Executors.newFixedThreadPool(1);
+    BlockingQueue<Integer> queue = new SynchronousQueue<>();
+    producer.submit(() -> {
+        try {
+            System.out.println("生产...");
+            Thread.sleep(1000);
+            queue.put(10);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    });
+    consumer.submit(() -> {
+        try {
+            System.out.println("等待消费...");
+            Integer result = queue.take();
+            System.out.println("结果为:" + result);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    });
+}
+```
+
+
 
 
 
@@ -18111,6 +17801,8 @@ CAS与Synchronized总结：
 * `public AtomicInteger()`：初始化一个默认值为0的原子型Integer
 * `public AtomicInteger(int initialValue)`：初始化一个指定值的原子型Integer
 
+常用API：
+
 | 方法                                  | 作用                                                         |
 | ------------------------------------- | ------------------------------------------------------------ |
 | public final int get()                | 获取AtomicInteger的值                                        |
@@ -18772,7 +18464,7 @@ String 类也是不可变的，该类和类中所有属性都是 final 的
 
 ### 无状态
 
-无状态：因为成员变量保存的数据也可以称为状态信息，因此没有成员变量
+无状态：成员变量保存的数据也可以称为状态信息，无状态就是没有成员变量
 
 Servlet 为了保证其线程安全，一般不为 Servlet 设置成员变量，这种没有任何成员变量的类是线程安全的
 
@@ -18822,7 +18514,7 @@ java.util.concurrent.BlockingQueue 接口有以下阻塞队列的实现：**FIFO
 - LinkedTransferQueue：由链表结构组成的无界阻塞队列
 - LinkedBlockingDeque：由链表结构组成的双向阻塞队列
 
-与普通队列(LinkedList或ArrayList等)的最大不同点在于阻塞队列中阻塞添加和阻塞删除方法：
+与普通队列(LinkedList、ArrayList等)的不同点在于阻塞队列中阻塞添加和阻塞删除方法，以及线程安全：
 
 * 阻塞添加 take()：当阻塞队列元素已满时，添加队列元素的线程会被阻塞，直到队列元素不满时才重新唤醒线程执行
 * 阻塞删除 put()：在队列元素为空时，删除队列元素的线程将被阻塞，直到队列不为空再执行删除操作(一般都会返回被删除的元素)
@@ -18848,7 +18540,7 @@ java.util.concurrent.BlockingQueue 接口有以下阻塞队列的实现：**FIFO
   * 插入方法：成功true，失败false
   * 移除方法：成功返回出队列元素，队列没有就返回null
 * 阻塞组：
-  * 当阻塞队列满时，生产者继续往队列里put元素，队列会一直阻塞生产线程直到put数据or响应中断退出
+  * 当阻塞队列满时，生产者继续往队列里put元素，队列会一直阻塞生产线程直到put数据或响应中断退出
   * 当阻塞队列空时，消费者线程试图从队列里take元素，队列会一直阻塞消费者线程直到队列可用
 * 超时退出：当阻塞队列满时，队里会阻塞生产者线程一定时间，超过限时后生产者线程会退出
 
@@ -18870,12 +18562,36 @@ java.util.concurrent.BlockingQueue 接口有以下阻塞队列的实现：**FIFO
 
 #### 延迟队列
 
-DelayQueue 是一个支持延时获取元素的阻塞队列， 内部采用优先队列 PriorityQueue 存储元素，同时元素必须实现 Delayed 接口；在创建元素时可以指定多久才可以从队列中获取当前元素，只有在延迟期满时才能从队列中提‘取元素
+DelayQueue 是一个支持延时获取元素的阻塞队列， 内部采用优先队列 PriorityQueue 存储元素，同时元素必须实现 Delayed 接口；在创建元素时可以指定多久才可以从队列中获取当前元素，只有在延迟期满时才能从队列中提取元素
+
+DelayQueue只能添加(offer/put/add)实现了Delayed接口的对象，不能添加int、String
 
 API：
 
 * `getDelay()`：获取元素在队列中的剩余时间，只有当剩余时间为0时元素才可以出队列。
 * `compareTo()`：用于排序，确定元素出队列的顺序
+
+```java
+class DelayTask implements Delayed {
+    private String name;
+    private long time;
+    private long start = System.currentTimeMillis();
+    // construct set get 
+
+    // 需要实现的接口，获得延迟时间   用过期时间-当前时间
+    @Override
+    public long getDelay(TimeUnit unit) {
+        return unit.convert((start + time) - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+    }
+
+    // 用于延迟队列内部比较排序   当前时间的延迟时间 - 被比较对象的延迟时间
+    @Override
+    public int compareTo(Delayed o) {
+        DelayTask obj = (DelayTask) o;
+        return (int) (this.getDelay(TimeUnit.MILLISECONDS) - o.getDelay(TimeUnit.MILLISECONDS));
+    }
+}
+```
 
 
 
