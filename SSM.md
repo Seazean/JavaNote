@@ -3417,12 +3417,12 @@ public class ClassName{}
 //定义bean的作用域
 @Scope("singleton")
 public class UserServiceImpl implements UserService {
-    //设定bean的生命周期
+    //初始化
     @PostConstruct
     public void init(){
         System.out.println("user service init...");
     }
-
+	//销毁
     @PreDestroy
     public void destroy(){
         System.out.println("user service destroy...");
@@ -5778,7 +5778,7 @@ Spring在事务开始时，根据当前环境中设置的隔离级别，调整�
 * 在 MySQL 中，恢复机制是通过**回滚日志（undo log）** 实现，所有事务进行的修改都会先先记录到这个回滚日志中，然后再执行相关的操作。如果执行过程中遇到异常的话，直接利用回滚日志中的信息将数据回滚到修改之前的样子即可
 * 回滚日志会先于数据持久化到磁盘上，这样保证了即使遇到数据库突然宕机等情况，当用户再次启动数据库的时候，数据库还能够通过查询回滚日志来回滚将之前未完成的事务
 
-事务不生效的问题：-->**Transactional注解**
+事务不生效的问题：--> **Transactional注解**
 
 
 
@@ -5790,7 +5790,7 @@ Spring在事务开始时，根据当前环境中设置的隔离级别，调整�
 
 TransactionDefinition 接口中定义了五个表示隔离级别的常量：
 
-- **TransactionDefinition.ISOLATION_DEFAULT**：使用后端数据库默认的隔离级别，Mysql 默认采用的 REPEATABLE_READ隔离级别 Oracle 默认采用的 READ_COMMITTED隔离级别.
+- **TransactionDefinition.ISOLATION_DEFAULT**：使用后端数据库默认的隔离级别，Mysql 默认采用的 REPEATABLE_READ隔离级别，Oracle 默认采用的 READ_COMMITTED隔离级别.
 - **TransactionDefinition.ISOLATION_READ_UNCOMMITTED**：最低的隔离级别，允许读取尚未提交的数据变更，可能会导致脏读、幻读或不可重复读
 - **TransactionDefinition.ISOLATION_READ_COMMITTED**：允许读取并发事务已经提交的数据，可以阻止脏读，但是幻读或不可重复读仍有可能发生
 - **TransactionDefinition.ISOLATION_REPEATABLE_READ**：对同一字段的多次读取结果都是一致的，除非数据是被本身事务自己所修改，可以阻止脏读和不可重复读，但幻读仍有可能发生。
@@ -6452,16 +6452,31 @@ public void addAccount{}
 * 情况1：确认创建的mysql数据库表引擎是InnoDB，MyISAM不支持事务
 
 * 情况2：注解到protected，private 方法上事务不生效，但不会报错
+  原因：理论上而言，不用public修饰，也可以用aop实现transactional的功能，但是方法私有化让其他业务无法调用
 
-* 情况3：在业务层捕捉异常后未向上抛出，事务不生效
+  AopUtils.canApply：`methodMatcher.matches(method, targetClass) --true--> return true`
+  `TransactionAttributeSourcePointcut.matches()` ，AbstractFallbackTransactionAttributeSource 中 getTransactionAttribute 方法调用了其本身的computeTransactionAttribute 方法，当加了事务注解的方法不是public时，该方法直接返回null
+
+  ```java
+  private TransactionAttribute computeTransactionAttribute(Method method, Class<?> targetClass) {
+      // Don't allow no-public methods as required.
+      if (allowPublicMethodsOnly() && !Modifier.isPublic(method.getModifiers())) {
+          return null;
+      }
+  }
+  ```
+
+* 情况3：注解所在的类没有被加载成Bean
+
+* 情况4：在业务层捕捉异常后未向上抛出，事务不生效
 
   原因：在业务层捕捉并处理了异常（try..catch）等于把异常处理掉了，Spring就不知道这里有错，也不会主动去回滚数据，推荐做法是在业务层统一抛出异常，然后在控制层统一处理
 
-* 情况4：遇到非检测异常时，事务不开启，也无法回滚
+* 情况5：遇到非检测异常时，事务不开启，也无法回滚
 
   原因：Spring的默认的事务规则是遇到运行异常（RuntimeException）和程序错误（Error）才会回滚。想针对非检测异常进行事务回滚，可以在@Transactional 注解里使用rollbackFor 属性明确指定异常
 
-* 情况5：Spring的事务传播策略在**内部方法**调用时将不起作用，事务注解加到要调用方法上
+* 情况6：Spring的事务传播策略在**内部方法**调用时将不起作用，事务注解加到要调用方法上
 
   原因：Spring的事务都是使用AOP代理的模式，仅有外部方法调用过程才会被代理截获，事务才会有效，就是方法调用本对象的另一个方法，没有通过代理类，事务也就无法生效
   

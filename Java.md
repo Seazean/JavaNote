@@ -115,7 +115,7 @@ G-->H[double]
 
 * float 与 double：
 
-  Java 不能隐式执行**向下转型**，因为这会使得精度降低
+  Java 不能隐式执行**向下转型**，因为这会使得精度降低（参考多态）
 
   ```java
   //1.1字面量属于double类型，不能直接将1.1直接赋值给 float 变量，因为这是向下转型
@@ -3180,14 +3180,15 @@ public class MyArraysDemo {
 
 包：java.util.Date。
 构造器：
-         `public Date()`:创建当前系统的此刻日期时间对象。
-         `public Date(long time)`:把时间毫秒值转换成日期对象。
+         `public Date()`：创建当前系统的此刻日期时间对象。
+         `public Date(long time)`：把时间毫秒值转换成日期对象。
 方法：
-        `public long getTime()`:返回自 1970 年 1 月 1 日 00:00:00 GMT 以来总的毫秒数。
+        `public long getTime()`：返回自 1970 年 1 月 1 日 00:00:00 GMT 以来总的毫秒数。
 
 时间记录的两种方式：
-	1.Date日期对象。
-	2.时间毫秒值：从1970-01-01 00:00:00开始走到此刻的总的毫秒值。 1s = 1000ms
+
+1. Date日期对象
+2. 时间毫秒值：从1970-01-01 00:00:00开始走到此刻的总的毫秒值。 1s = 1000ms
 
 ```java
 public class DateDemo {
@@ -13193,7 +13194,7 @@ public class Demo3_6_1 {
   info = "abc";		//Python
   ```
 
-虚方法表：在面向对象编程中，会频繁使用到动态分派，如果在每次动态分派的过程中都要重新在类的方法元数据中搜索合适目标就会影响到执行效率。为了提高性能，JVM采用在类的方法区建立一个虚方法表（virtual method table）来实现，使用索引表来代替查找，每个类中都有一个虚方法表，表中存放着各个方法的实际入口
+虚方法表：在面向对象编程中，会频繁使用到**动态分派**，如果在每次动态分派的过程中都要重新在类的方法元数据中搜索合适目标就会影响到执行效率。为了提高性能，JVM采用在类的方法区建立一个虚方法表（virtual method table）来实现，使用索引表来代替查找，每个类中都有一个虚方法表，表中存放着各个方法的实际入口
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JVM-方法调用动态分配.png)
 
@@ -14752,7 +14753,7 @@ public class GeneratedMethodAccessor1 extends MethodAccessorImpl {
 
 对于一个应用来说通常重点关注的性能指标主要是吞吐量、响应时间、QPS、TPS等、并发用户数等，而这些性能指标又依赖于系统服务器的资源，如：CPU、内存、磁盘IO、网络IO等。对于这些指标数据的收集，通常可以根据Java本身的工具或指令进行查询
 
-JDK 自带了监控工具，位于 JDK 的 bin 目录下，其中最常用的是 jconsole 和 jvisualvm 这两款视图监控工具：
+JDK 自带了**监控工具，位于 JDK 的 bin 目录下**，其中最常用的是 jconsole 和 jvisualvm 这两款视图监控工具：
 
 * jconsole：用于对 JVM 中的内存、线程和类等进行监控；
 * jvisualvm：JDK 自带的全能分析工具，可以分析：内存快照、线程快照、程序死锁、监控内存的变化、gc 变化等
@@ -15063,8 +15064,9 @@ Thread类API：
 
 #### run start
 
-直接调用 run 是在主线程中执行了 run，没有启动新的线程
-使用 start 是启动新的线程，通过新的线程间接执行 run 中的代码
+run：称为线程体，包含了要执行的这个线程的内容，方法运行结束，此线程随即终止。直接调用 run 是在主线程中执行了 run，没有启动新的线程，需要顺序执行
+
+start：使用 start 是启动新的线程，此线程处于就绪（可运行）状态，通过新的线程间接执行 run 中的代码
 
 说明：**线程控制资源类**
 
@@ -15714,6 +15716,7 @@ Mark Word 中就被设置指向 Monitor 对象的指针，这就是重量级锁
 * 开始时 Monitor 中 Owner 为 null
 * 当 Thread-2 执行 synchronized(obj) 就会将 Monitor 的所有者 Owner 置为 Thread-2，Monitor中只能有一
   个 Owner，**obj对象的Mark Word指向Monitor**
+  <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-Monitor工作原理1.png" style="zoom:67%;" />
 * 在 Thread-2 上锁的过程中，Thread-3、Thread-4、Thread-5也来执行 synchronized(obj)，就会进入
   EntryList BLOCKED
 * Thread-2 执行完同步代码块的内容，然后唤醒 EntryList 中等待的线程来竞争锁，竞争是**非公平的**
@@ -15748,7 +15751,7 @@ public static void main(String[] args) {
 ```java
 0: 	new				#2		// new Object
 3: 	dup
-4: 	invokespecial 	#1 		// invokespecial <init>:()V
+4: 	invokespecial 	#1 		// invokespecial <init>:()V，非虚方法
 7: 	astore_1 				// lock引用 -> lock
 8: 	aload_1					// lock （synchronized开始）
 9: 	dup						//一份用来初始化，一份用来引用
@@ -15911,7 +15914,7 @@ public class SpinLock {
         new Thread(() -> {
             //占有锁
             lock.lock();
-            Thread.sleep(5000); 
+            Thread.sleep(10000); 
 
             //释放锁
             lock.unlock();
@@ -15968,7 +15971,7 @@ public class SpinLock {
 * 如果开启了偏向锁（默认开启），那么对象创建后，markword 值为 0x05 即最后 3 位为 101，这时它的
   thread、epoch、age 都为 0
 * 偏向锁是默认是延迟的，不会在程序启动时立即生效，如果想避免延迟，可以加VM参数 `-XX:BiasedLockingStartupDelay=0` 来禁用延迟
-* 如果禁用了偏向锁，那么对象创建后，markword 值为 0x01 即最后 3 位为 001，这时它的 hashcode、age 都为 0，第一次用到 hashcode 时才会赋值，添加 VM 参数 `-XX:-UseBiasedLocking` 禁用偏向锁
+* 如果禁用了偏向锁，那么对象创建后，markword 值为 0x01 即最后 3 位为 001，这时它的 hashcode、age 都为 0，**第一次用到 hashcode 时才会赋值**，添加 VM 参数 `-XX:-UseBiasedLocking` 禁用偏向锁
 
 
 
@@ -16002,26 +16005,6 @@ public class SpinLock {
 
 锁消除主要是通过逃逸分析来支持，如果堆上的共享数据不可能逃逸出去被其它线程访问到，那么就可以把它们当成私有数据对待，也就可以将它们的锁进行消除（同步消除：JVM内存分配）
 
-一些看起来没有加锁的代码，其实隐式的加了很多锁：
-
-```java
-public static String concatString(String s1, String s2, String s3) {
-    return s1 + s2 + s3;
-}
-```
-
-String 是一个不可变的类，编译器会对 String 的拼接自动优化。在 JDK 1.5 之前，转化为StringBuffer对象的连续 append() 操作，每个append() 方法中都有一个同步块
-
-```java
-public static String concatString(String s1, String s2, String s3) {
-    StringBuffer sb = new StringBuffer();
-    sb.append(s1);
-    sb.append(s2);
-    sb.append(s3);
-    return sb.toString();
-}
-```
-
 
 
 ***
@@ -16032,7 +16015,29 @@ public static String concatString(String s1, String s2, String s3) {
 
 对相同对象多次加锁，导致线程发生多次重入，频繁的加锁操作就会导致性能损耗，可以使用锁粗化方式优化
 
-上一节的示例代码中连续的 append() 方法就属于这类情况。如果虚拟机探测到由这样的一串零碎的操作都对同一个对象加锁，将会把加锁的范围扩展（粗化）到整个操作序列的外部。对于上一节的示例代码就是扩展到第一个 append() 操作之前直至最后一个 append() 操作之后，只需要加锁一次就可以
+如果虚拟机探测到一串零碎的操作都对同一个对象加锁，将会把加锁的范围扩展（粗化）到整个操作序列的外部
+
+* 一些看起来没有加锁的代码，其实隐式的加了很多锁：
+
+  ```java
+  public static String concatString(String s1, String s2, String s3) {
+      return s1 + s2 + s3;
+  }
+  ```
+
+* String 是一个不可变的类，编译器会对 String 的拼接自动优化。在 JDK 1.5 之前，转化为StringBuffer对象的连续 append() 操作，每个append() 方法中都有一个同步块
+
+  ```java
+  public static String concatString(String s1, String s2, String s3) {
+      StringBuffer sb = new StringBuffer();
+      sb.append(s1);
+      sb.append(s2);
+      sb.append(s3);
+      return sb.toString();
+  }
+  ```
+
+扩展到第一个 append() 操作之前直至最后一个 append() 操作之后，只需要加锁一次就可以
 
 
 
@@ -16171,9 +16176,7 @@ class HoldLockThread implements Runnable {
 
 定位死锁的方法：
 
-* 检测死锁可以使用 jconsole工具，或者使用 jps 定位进程 id，再用 `jstack id`定位死锁
-
-  找到死锁的线程去查看源码，解决优化
+* 使用 jps 定位进程 id，再用 `jstack id`定位死锁，找到死锁的线程去查看源码，解决优化
 
   ```sh
   "Thread-1" #12 prio=5 os_prio=0 tid=0x000000001eb69000 nid=0xd40 waiting formonitor entry [0x000000001f54f000]
@@ -16206,10 +16209,12 @@ class HoldLockThread implements Runnable {
       - locked <0x000000076b5bf1c0> (a java.lang.Object)
       at thread.TestDeadLock$$Lambda$1/495053715
   ```
-
+  
 * linux 下可以通过 top 先定位到CPU 占用高的 Java 进程，再利用 `top -Hp 进程id` 来定位是哪个线程，最后再用 jstack 排查
 
 * 避免死锁：避免死锁要注意加锁顺序
+
+* 也可以使用 jconsole工具，在jdk\bin目录下
 
 
 
@@ -18637,6 +18642,14 @@ private static int ctlOf(int rs, int wc) { return rs | wc; }
 
 ##### Executor
 
+存放线程的容器：
+
+```java
+private final HashSet<Worker> workers = new HashSet<Worker>();
+```
+
+构造方法：
+
 ```java
 public ThreadPoolExecutor(  int corePoolSize,
                             int maximumPoolSize,
@@ -18681,7 +18694,7 @@ public ThreadPoolExecutor(  int corePoolSize,
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JUC-线程池工作原理.png)
 
-1. 在创建了线程池后，等待提交过来的任务请求。
+1. 创建线程池，这时没有创建线程（**懒惰**），等待提交过来的任务请求，调用execute方法才会创建线程
 
 2. 当调用execute()方法添加一个请求任务时，线程池会做如下判断：
    * 如果正在运行的线程数量小于corePoolSize，那么马上创建线程运行这个任务
@@ -18760,7 +18773,7 @@ Executors提供了四种线程池的创建：newCachedThreadPool、newFixedThrea
 
 
 
-##### 开发要求
+#### 开发要求
 
 阿里巴巴Java开发手册要求
 
@@ -18777,6 +18790,25 @@ Executors提供了四种线程池的创建：newCachedThreadPool、newFixedThrea
     - 运行的请求队列长度为 Integer.MAX_VALUE，可能会堆积大量的请求，从而导致OOM
   - CacheThreadPool和ScheduledThreadPool：
     - 允许的创建线程数量为 Integer.MAX_VALUE，可能会创建大量的线程，从而导致 OOM
+
+创建多大容量的线程池合适？
+
+* 一般来说池中**总线程数是核心池线程数量两倍**，确保当核心池有线程停止时，核心池外有线程进入核心池
+
+* 过小会导致程序不能充分地利用系统资源、容易导致饥饿
+
+* 过大会导致更多的线程上下文切换，占用更多内存
+  上下文切换：当前任务在执行完 CPU 时间片切换到另一个任务之前会先保存自己的状态，以便下次再切换回这个任务时，可以再加载这个任务的状态，任务从保存到再加载的过程就是一次上下文切换
+
+核心线程数常用公式：
+
+- **CPU 密集型任务(N+1)：** 这种任务消耗的是 CPU 资源，可以将核心线程数设置为 N (CPU 核心数)+1，比 CPU 核心数多出来的一个线程是为了防止线程发生缺页中断，或者其它原因导致的任务暂停而带来的影响。一旦任务暂停，CPU 就会处于空闲状态，而在这种情况下多出来的一个线程就可以充分利用 CPU 的空闲时间
+
+  CPU 密集型简单理解就是利用 CPU 计算能力的任务比如你在内存中对大量数据进行分析
+
+- **I/O 密集型任务：** 这种系统 CPU 处于阻塞状态，用大部分的时间来处理 I/O 交互，而线程在处理 I/O 的时间段内不会占用 CPU 来处理，这时就可以将 CPU 交出给其它线程使用，因此在 I/O 密集型任务的应用中，我们可以多配置一些线程，具体的计算方法是 2N 或 CPU核数/ (1-阻塞系数)，阻塞系数在0.8~0.9之间
+
+  IO 密集型就是涉及到网络读取，文件读取此类任务 ，特点是 CPU 计算耗费时间相比于等待 IO 操作完成的时间来说很少，大部分时间都花在了等待 IO 操作完成上
 
 
 
@@ -18861,33 +18893,6 @@ System.out.println(future.get());
 
 
 
-***
-
-
-
-#### 数量设置
-
-创建多大容量的线程池合适？
-
-* 一般来说池中**总线程数是核心池线程数量两倍**，确保当核心池有线程停止时，核心池外有线程进入核心池
-
-* 过小会导致程序不能充分地利用系统资源、容易导致饥饿
-
-* 过大会导致更多的线程上下文切换，占用更多内存
-  上下文切换：当前任务在执行完 CPU 时间片切换到另一个任务之前会先保存自己的状态，以便下次再切换回这个任务时，可以再加载这个任务的状态，任务从保存到再加载的过程就是一次上下文切换
-
-核心线程数常用公式：
-
-- **CPU 密集型任务(N+1)：** 这种任务消耗的是 CPU 资源，可以将核心线程数设置为 N (CPU 核心数)+1，比 CPU 核心数多出来的一个线程是为了防止线程发生缺页中断，或者其它原因导致的任务暂停而带来的影响。一旦任务暂停，CPU 就会处于空闲状态，而在这种情况下多出来的一个线程就可以充分利用 CPU 的空闲时间
-
-  CPU 密集型简单理解就是利用 CPU 计算能力的任务比如你在内存中对大量数据进行分析
-
-- **I/O 密集型任务：** 这种系统 CPU 处于阻塞状态，用大部分的时间来处理 I/O 交互，而线程在处理 I/O 的时间段内不会占用 CPU 来处理，这时就可以将 CPU 交出给其它线程使用，因此在 I/O 密集型任务的应用中，我们可以多配置一些线程，具体的计算方法是 2N 或 CPU核数/ (1-阻塞系数)，阻塞系数在0.8~0.9之间
-
-  IO 密集型就是涉及到网络读取，文件读取此类任务 ，特点是 CPU 计算耗费时间相比于等待 IO 操作完成的时间来说很少，大部分时间都花在了等待 IO 操作完成上
-
-
-
 
 
 ***
@@ -18935,6 +18940,13 @@ private static void method1() {
 任务调度线程池ScheduledThreadPoolExecutor继承ThreadPoolExecutor：
 
 构造方法：`Executors.newScheduledThreadPool(int corePoolSize)`
+
+```java
+public ScheduledThreadPoolExecutor(int corePoolSize) {
+    super(corePoolSize, Integer.MAX_VALUE, 0, NANOSECONDS,
+          new DelayedWorkQueue());
+}
+```
 
 常用API：
 
@@ -19663,4 +19675,4 @@ public class BufferedInputStrem extends InputStream {
 
 
 
- 
+  
