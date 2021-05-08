@@ -350,12 +350,10 @@ public class ScannerDemo {
   > 1、引用数据类型封装了数据和处理该数据的方法，比如Integer.parseInt(String)就是将String字符类型数据转换为Integer整型数据
   >
   > 2、Java中大部分类和方法都是针对引用数据类型，包括泛型和集合
-  >
-  > 3、引用类型在堆里，基本类型在栈里。栈空间小且连续，栈上的数据随时就会被收回
-
+  
 * 引用数据类型那么好，为什么还用基本数据类型？
 
-  > 栈空间小且连续，往往会被放在缓存。引用类型cache miss（缓存未命中）率高且要多一次解引用，对象还要再多储存一个对象头，对基本数据类型来说空间浪费率太高
+  > 引用类型的对象要多储存一个对象头，对基本数据类型来说空间浪费率太高
   > 逻辑上来讲，java只有包装类就够了，为了运行速度，需要用到基本数据类型；优先考虑运行效率的问题，所以二者同时存在是合乎情理的。
 
 * Java集合不能存放基本数据类型，只存放对象的引用？
@@ -551,7 +549,7 @@ public class Test1 {
   switch 不支持 long、float、double，switch 的设计初衷是对那些只有少数几个值的类型进行等值判断，如果值过于复杂，那么用 if 比较合适
   
 * 移位运算
-  计算机里一般用补码表示数字，正数、负数的表示区别就是最高位是0还是1
+  计算机里一般用**补码表示数字**，正数、负数的表示区别就是最高位是0还是1
 
   * 正数的原码反码补码相同
 
@@ -912,8 +910,7 @@ public class MethodDemo01 {
 
 #### 冒泡排序
 
-冒泡排序的作用：
-    可以用于对数组或者对集合的元素进行大小排序！！
+冒泡排序的作用：可以用于对数组或者对集合的元素进行大小排序！
 
 冒泡排序的核心算法思想:
     int[] arr = new int[] {55, 22, 99, 88};
@@ -5331,7 +5328,7 @@ transient int size;
 
 1. put
 
-   jdk1.8之前是头插法，多线程下扩容时出现循环链表，jdk1.8以后是引入红黑树，插入方法变成尾插法
+   jdk1.8前是头插法 (拉链法)，多线程下扩容出现循环链表，jdk1.8以后引入红黑树，插入方法变成尾插法
 
    第一次调用put方法时创建数组Node[] table，因为散列表耗费内存，为了防止内存浪费，所以**延迟初始化**
 
@@ -5490,7 +5487,7 @@ transient int size;
 
 4. resize
 
-   当HashMap中的元素个数超过`(数组长度)*loadFactor(负载因子)`时，就会进行数组扩容。扩容会伴随着一次重新hash分配，并且会遍历hash表中所有的元素，非常耗时，所以要尽量避免resize
+   当HashMap中的元素个数超过`(数组长度)*loadFactor(负载因子)`时，就会进行数组扩容，创建新的数组，伴随一次重新hash分配，并且会遍历hash表中所有的元素，非常耗时，所以要尽量避免resize
 
    扩容机制为扩容为原来容量的2倍：
 
@@ -11750,6 +11747,8 @@ public class Demo1_27 {
 
 ### 变量位置
 
+变量的位置不取决于它是基本数据类型还是引用数据类型，取决于它的声明位置
+
 静态内部类和其他内部类：（待考证）
 
 * 静态内部类属于类本身，加载到方法区
@@ -11770,8 +11769,6 @@ public class Demo1_27 {
 
 * 局部变量是定义在类的方法中的变量
 * 在所在方法被调用时**放入虚拟机栈的栈帧**中，方法执行结束后从虚拟机栈中弹出，
-
-常量：`final`关键字并不影响在内存中的位置
 
 类常量池、运行时常量池、字符串常量池有什么关系？有什么区别？
 
@@ -16342,7 +16339,7 @@ public final native void wait(long timeout):有时限的等待, 到n毫秒后结
 * WAITING 线程会在 Owner 线程调用 notify 或 notifyAll 时唤醒，但唤醒后并不意味者立刻获得锁，仍需进入
   EntryList 重新竞争
 
-![](https://gitee.com/seazean/images/raw/master/Java/JUC-Monitor工作原理.png)
+![](https://gitee.com/seazean/images/raw/master/Java/JUC-Monitor工作原理2.png)
 
 
 
@@ -18408,6 +18405,7 @@ class MyAtomicInteger {
         while (true) {
             int prev = this.value;
             int next = update;
+            //							当前对象  内存偏移量    期望值 更新值
             if (UNSAFE.compareAndSwapInt(this, VALUE_OFFSET, prev, update)) {
                 System.out.println("CAS成功");
                 return true;
@@ -18534,7 +18532,7 @@ java.util.concurrent.BlockingQueue 接口有以下阻塞队列的实现：**FIFO
 - DelayQueue：使用优先级队列实现的延迟无界阻塞队列
 - SynchronousQueue：不存储元素的阻塞队列，每一个生产线程会阻塞到有一个put的线程放入元素为止
 - LinkedTransferQueue：由链表结构组成的无界阻塞队列
-- LinkedBlockingDeque：由链表结构组成的双向阻塞队列
+- LinkedBlockingDeque：由链表结构组成的**双向**阻塞队列
 
 与普通队列(LinkedList、ArrayList等)的不同点在于阻塞队列中阻塞添加和阻塞删除方法，以及线程安全：
 
@@ -19693,7 +19691,10 @@ final void lock() {
 第一个竞争出现：
 
 ```java
-public final void acquire(int arg) {    // 当 tryAcquire 返回为 false 时, 先调用addWaiter, 接着 acquireQueued    if (!tryAcquire(arg) && acquireQueued(addWaiter(Node.EXCLUSIVE), arg))        selfInterrupt();}
+public final void acquire(int arg) {    
+    // 当 tryAcquire 返回为 false 时, 先调用addWaiter, 接着 acquireQueued    
+    if (!tryAcquire(arg) && acquireQueued(addWaiter(Node.EXCLUSIVE), arg))        			selfInterrupt();
+}
 ```
 
 <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantLock-非公平锁1.png" style="zoom:80%;" />
@@ -19705,7 +19706,29 @@ Thread-1执行：
 * 进入 tryAcquire 逻辑，这时 state 已经是1，结果仍然失败（第二次）
 
   ```java
-  protected final boolean tryAcquire(int acquires) {    return nonfairTryAcquire(acquires);}final boolean nonfairTryAcquire(int acquires) {    final Thread current = Thread.currentThread();    int c = getState();    if (c == 0) {        //如果还没有获得锁，尝试用cas获得，这里体现非公平性: 不去检查 AQS 队列        if (compareAndSetState(0, acquires)) {            setExclusiveOwnerThread(current);            return true;        }    }    // 如果已经获得了锁, 线程还是当前线程, 表示发生了锁重入    else if (current == getExclusiveOwnerThread()) {        int nextc = c + acquires;        if (nextc < 0) // overflow            throw new Error("Maximum lock count exceeded");        setState(nextc);        return true;    }    return false;//获取失败}
+  protected final boolean tryAcquire(int acquires) {    
+      return nonfairTryAcquire(acquires);
+  }
+  final boolean nonfairTryAcquire(int acquires) {    
+      final Thread current = Thread.currentThread();    
+      int c = getState();    
+      if (c == 0) {        
+          //如果还没有获得锁，尝试用cas获得，这里体现非公平性: 不去检查 AQS 队列        
+      	if (compareAndSetState(0, acquires)) {            
+              setExclusiveOwnerThread(current);            
+              return true;        
+           }    
+  	}    
+     	// 如果已经获得了锁, 线程还是当前线程, 表示发生了锁重入    
+  	else if (current == getExclusiveOwnerThread()) {        
+          int nextc = c + acquires;        
+          if (nextc < 0) // overflow            
+              throw new Error("Maximum lock count exceeded");        
+          setState(nextc);        
+          return true;    
+      }    
+      return false;//获取失败
+  }
   ```
 
 * 接下来进入 addWaiter 逻辑，构造 Node 队列
@@ -19715,7 +19738,21 @@ Thread-1执行：
   * 其中第一个 Node 称为 Dummy（哑元）或哨兵，用来占位，并不关联线程
 
   ```java
-  private Node addWaiter(Node mode) {    // 将当前线程关联到一个 Node 对象上, 模式为独占模式    Node node = new Node(Thread.currentThread(), mode);    Node pred = tail;    // 如果 tail 不为 null, cas 尝试将 Node 对象加入 AQS 队列尾部    if (pred != null) {        node.prev = pred;        if (compareAndSetTail(pred, node)) {            pred.next = node;// 双向链表            return node;        }    }    enq(node);//添加到尾节点    return node;}
+  private Node addWaiter(Node mode) {    
+      // 将当前线程关联到一个 Node 对象上, 模式为独占模式    
+      Node node = new Node(Thread.currentThread(), mode);    
+      Node pred = tail;    
+      // 如果 tail 不为 null, cas 尝试将 Node 对象加入 AQS 队列尾部    
+      if (pred != null) {        
+          node.prev = pred;        
+          if (compareAndSetTail(pred, node)) {            
+              pred.next = node;// 双向链表            
+              return node;        
+          }    
+      }    
+      enq(node);//添加到尾节点    
+      return node;
+  }
   ```
 
   <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantLock-非公平锁2.png" style="zoom:80%;" />
@@ -19812,11 +19849,32 @@ Thread-0 释放锁，进入 release 流程
 * 当前队列不为 null，并且 head 的 waitStatus = -1，进入 unparkSuccessor 
 
   ```java
-  public final boolean release(int arg) {    if (tryRelease(arg)) {       // 队列头节点 unpark        Node h = head;        if (h != null && h.waitStatus != 0)            unparkSuccessor(h);        return true;    }    return false;}
+  public final boolean release(int arg) {    
+      if (tryRelease(arg)) {       
+          // 队列头节点 unpark        
+          Node h = head;        
+          if (h != null && h.waitStatus != 0)            
+              unparkSuccessor(h);        
+          return true;    
+      }    
+      return false;
+  }
   ```
 
   ```java
-  protected final boolean tryRelease(int releases) {    int c = getState() - releases;    if (Thread.currentThread() != getExclusiveOwnerThread())        throw new IllegalMonitorStateException();    boolean free = false;    // 支持锁重入, 只有 state 减为 0, 才释放成功    if (c == 0) {        free = true;        setExclusiveOwnerThread(null);    }    //     setState(c);    return free;}
+  protected final boolean tryRelease(int releases) {    
+      int c = getState() - releases;    
+      if (Thread.currentThread() != getExclusiveOwnerThread())        
+          throw new IllegalMonitorStateException();    
+      boolean free = false;    
+      // 支持锁重入, 只有 state 减为 0, 才释放成功    
+      if (c == 0) {        
+          free = true;        
+          setExclusiveOwnerThread(null);    
+      }    
+      setState(c);    
+      return free;
+  }
   ```
 
 * 进入unparkSuccessor 方法
@@ -19825,7 +19883,24 @@ Thread-0 释放锁，进入 release 流程
   * 回到 Thread-1 的 acquireQueued 流程
 
   ```java
-  private void unparkSuccessor(Node node) {    int ws = node.waitStatus;    if (ws < 0)        // 尝试重置状态为 0        compareAndSetWaitStatus(node, ws, 0);    // 找到需要 unpark 的节点，头节点的下一个    Node s = node.next;    // 不考虑已取消的节点    if (s == null || s.waitStatus > 0) {        s = null;        // 从 AQS 队列从后至前找到队列需要 unpark 的节点        for (Node t = tail; t != null && t != node; t = t.prev)            if (t.waitStatus <= 0)                s = t;    }    if (s != null)        LockSupport.unpark(s.thread);}
+  private void unparkSuccessor(Node node) {    
+      int ws = node.waitStatus;    
+      if (ws < 0)        
+          // 尝试重置状态为 0        
+          compareAndSetWaitStatus(node, ws, 0);    
+      // 找到需要 unpark 的节点，头节点的下一个    
+      Node s = node.next;    
+      // 不考虑已取消的节点    
+      if (s == null || s.waitStatus > 0) {        
+          s = null;        
+          // 从 AQS 队列从后至前找到队列需要 unpark 的节点        
+          for (Node t = tail; t != null && t != node; t = t.prev)            
+              if (t.waitStatus <= 0)                
+                  s = t;    
+      }    
+      if (s != null)        
+          LockSupport.unpark(s.thread);
+  }
   ```
 
 * 如果加锁成功（没有竞争），会设置
@@ -19878,7 +19953,15 @@ static final class FairSync extends Sync {
 ```
 
 ```java
-public final boolean hasQueuedPredecessors() {    Node t = tail;     Node h = head;    Node s;    //头尾指向一个节点，列表为空，返回false，    return h != t &&        // 头尾之间有节点，判断头节点的下一个是不是空        // 不是空进入最后的判断，第二个节点的线程是否是本线程        ((s = h.next) == null || s.thread != Thread.currentThread());}
+public final boolean hasQueuedPredecessors() {    
+    Node t = tail;     
+    Node h = head;    
+    Node s;    
+    //头尾指向一个节点，列表为空，返回false，    
+    return h != t &&        
+        // 头尾之间有节点，判断头节点的下一个是不是空        
+        // 不是空进入最后的判断，第二个节点的线程是否是本线程        
+        ((s = h.next) == null || s.thread != Thread.currentThread());}
 ```
 
 
@@ -19894,7 +19977,27 @@ public final boolean hasQueuedPredecessors() {    Node t = tail;     Node h = he
 源码解析参考：`nonfairTryAcquire(int acquires)) `和 `tryRelease(int releases)`
 
 ```java
-static ReentrantLock lock = new ReentrantLock();public static void main(String[] args) {	method1();}public static void method1() {    lock.lock();    try {        System.out.println(Thread.currentThread().getName() + " execute method1");    	method2();    } finally {    	lock.unlock();    }}public static void method2() {    lock.lock();    try {        System.out.println(Thread.currentThread().getName() + " execute method2");    } finally {    	lock.unlock();    }}
+static ReentrantLock lock = new ReentrantLock();
+public static void main(String[] args) {	
+    method1();
+}
+public static void method1() {    
+    lock.lock();    
+    try {        
+        System.out.println(Thread.currentThread().getName() + " execute method1");
+        method2();    
+    } finally {    	
+        lock.unlock();    
+    }
+}
+public static void method2() {    
+    lock.lock();    
+    try {        
+        System.out.println(Thread.currentThread().getName() + " execute method2");
+    } finally {    	
+        lock.unlock();    
+    }
+}
 ```
 
 面试题：在Lock方法加两把锁会是什么情况呢？
@@ -19904,10 +20007,17 @@ static ReentrantLock lock = new ReentrantLock();public static void main(String[]
 * 加锁一次解锁两次：运行程序会直接报错
 
 ```java
-public void getLock() {    lock.lock();    lock.lock();    try {        System.out.println(Thread.currentThread().getName() + "\t get Lock");    } finally {        lock.unlock();        //lock.unlock();    }}
+public void getLock() {    
+    lock.lock();    
+    lock.lock();    
+    try {        
+        System.out.println(Thread.currentThread().getName() + "\t get Lock");
+    } finally {
+        lock.unlock();        
+        //lock.unlock();    
+    }
+}
 ```
-
-
 
 
 
@@ -19927,7 +20037,28 @@ public void getLock() {    lock.lock();    lock.lock();    try {        System.o
 注意：如果是不可中断模式，那么即使使用了 interrupt 也不会让等待中断
 
 ```java
-public static void main(String[] args) throws InterruptedException {    ReentrantLock lock = new ReentrantLock();    Thread t1 = new Thread(() -> {        try {            System.out.println("尝试获取锁");            lock.lockInterruptibly();        } catch (InterruptedException e) {            System.out.println("没有获取到锁，被打断，直接返回");            return;        }        try {            System.out.println("获取到锁");        } finally {            lock.unlock();        }    }, "t1");    lock.lock();    t1.start();    Thread.sleep(2000);    System.out.println("主线程进行打断锁");    t1.interrupt();}
+public static void main(String[] args) throws InterruptedException {    
+    ReentrantLock lock = new ReentrantLock();    
+    Thread t1 = new Thread(() -> {        
+        try {            
+            System.out.println("尝试获取锁");            
+            lock.lockInterruptibly();        
+        } catch (InterruptedException e) {            
+            System.out.println("没有获取到锁，被打断，直接返回");            
+            return;        
+        }        
+        try {            
+            System.out.println("获取到锁");        
+        } finally {            
+            lock.unlock();        
+        }    
+    }, "t1");    
+    lock.lock();    
+    t1.start();    
+    Thread.sleep(2000);    
+    System.out.println("主线程进行打断锁");    
+    t1.interrupt();
+}
 ```
 
 
@@ -19937,21 +20068,73 @@ public static void main(String[] args) throws InterruptedException {    Reentran
 * 不可打断模式：即使它被打断，仍会驻留在 AQS 队列中，一直要等到获得锁后方能得知自己被打断了
 
   ```java
-  public final void acquire(int arg) {    if (!tryAcquire(arg) &&        acquireQueued(addWaiter(Node.EXCLUSIVE), arg))//阻塞等待        // 如果acquireQueued返回true，打断状态interrupted = true        selfInterrupt();}static void selfInterrupt() {    // 知道自己被打断了，需要重新产生一次中断完成中断效果    Thread.currentThread().interrupt();}
+  public final void acquire(int arg) {    
+      if (!tryAcquire(arg) &&        
+          acquireQueued(addWaiter(Node.EXCLUSIVE), arg))//阻塞等待        
+          // 如果acquireQueued返回true，打断状态interrupted = true        
+          selfInterrupt();
+  }
+  static void selfInterrupt() {    
+      // 知道自己被打断了，需要重新产生一次中断完成中断效果    
+      Thread.currentThread().interrupt();
+  }
   ```
 
   ```java
-  final boolean acquireQueued(final Node node, int arg) {    try {        boolean interrupted = false;        for (;;) {            final Node p = node.predecessor();            if (p == head && tryAcquire(arg)) {                setHead(node);                p.next = null; // help GC                failed = false;                // 还是需要获得锁后, 才能返回打断状态                return interrupted;            }            if (shouldParkAfterFailedAcquire(p, node) &&                parkAndCheckInterrupt())//被打断 返回true                interrupted = true;        }}private final boolean parkAndCheckInterrupt() {    // 阻塞当前线程，如果打断标记已经是 true, 则 park 会失效    LockSupport.park(this);    // 判断当前线程是否被打断，清除打断标记，被打断返回true    return Thread.interrupted();}
+  final boolean acquireQueued(final Node node, int arg) {    
+      try {        
+          boolean interrupted = false;        
+          for (;;) {            
+              final Node p = node.predecessor();            
+              if (p == head && tryAcquire(arg)) {                
+                  setHead(node);                
+                  p.next = null; // help GC                
+                  failed = false;                
+                  // 还是需要获得锁后, 才能返回打断状态                
+                  return interrupted;            
+              }            
+              if (shouldParkAfterFailedAcquire(p, node) &&                
+                  parkAndCheckInterrupt())//被打断 返回true                
+                  interrupted = true;        
+          }
+      }
+      private final boolean parkAndCheckInterrupt() {    
+          // 阻塞当前线程，如果打断标记已经是 true, 则 park 会失效    
+          LockSupport.park(this);    
+          // 判断当前线程是否被打断，清除打断标记，被打断返回true    
+          return Thread.interrupted();
+      }
+  }
   ```
 
 * 可打断模式：
 
   ```java
-  public void lockInterruptibly() throws InterruptedException {    sync.acquireInterruptibly(1);}public final void acquireInterruptibly(int arg) {    if (Thread.interrupted())//被其他线程打断了        throw new InterruptedException();    if (!tryAcquire(arg))        // 没获取到锁，进入这里        doAcquireInterruptibly(arg);}
+  public void lockInterruptibly() throws InterruptedException {    
+      sync.acquireInterruptibly(1);
+  }
+  public final void acquireInterruptibly(int arg) {    
+      if (Thread.interrupted())//被其他线程打断了       
+  		throw new InterruptedException();    
+      if (!tryAcquire(arg))        
+          // 没获取到锁，进入这里        
+          doAcquireInterruptibly(arg);
+  }
   ```
-
+  
   ```java
-  private void doAcquireInterruptibly(int arg) {    final Node node = addWaiter(Node.EXCLUSIVE);    boolean failed = true;    try {        for (;;) {            //...            if (shouldParkAfterFailedAcquire(p, node) &&                parkAndCheckInterrupt())                throw new InterruptedException();				// 在 park 过程中如果被 interrupt 会抛出异常, 而不会再次进入循环        }    }}
+  private void doAcquireInterruptibly(int arg) {    
+      final Node node = addWaiter(Node.EXCLUSIVE);    
+      boolean failed = true;    
+      try {        
+          for (;;) {            
+              //...            
+              if (shouldParkAfterFailedAcquire(p, node)&&parkAndCheckInterrupt())
+                  throw new InterruptedException();				
+              // 在 park 过程中如果被 interrupt 会抛出异常, 而不会再次进入循环        
+          }    
+      }
+  }
   ```
 
 
@@ -20009,17 +20192,45 @@ public static void main(String[] args) {
 * tryLock()
 
   ```java
-  public boolean tryLock() {    return sync.nonfairTryAcquire(1);//只尝试一次}
+  public boolean tryLock() {    
+      return sync.nonfairTryAcquire(1);//只尝试一次
+  }
   ```
 
 * tryLock(long timeout, TimeUnit unit)
 
   ```java
-  public final boolean tryAcquireNanos(int arg, long nanosTimeout) {    if (Thread.interrupted())        throw new InterruptedException();    //tryAcquire 尝试一次    return tryAcquire(arg) ||        doAcquireNanos(arg, nanosTimeout);}protected final boolean tryAcquire(int acquires) {    return nonfairTryAcquire(acquires);}
+  public final boolean tryAcquireNanos(int arg, long nanosTimeout) {    
+      if (Thread.interrupted())        
+          throw new InterruptedException();    
+      //tryAcquire 尝试一次    
+      return tryAcquire(arg) || doAcquireNanos(arg, nanosTimeout);
+  }
+  protected final boolean tryAcquire(int acquires) {    
+      return nonfairTryAcquire(acquires);
+  }
   ```
-
+  
   ```java
-  private boolean doAcquireNanos(int arg, long nanosTimeout) {    if (nanosTimeout <= 0L)        return false;    final long deadline = System.nanoTime() + nanosTimeout;    //...    try {        for (;;) {            //            nanosTimeout = deadline - System.nanoTime();            if (nanosTimeout <= 0L)	//时间已到                return false;            if (shouldParkAfterFailedAcquire(p, node) &&                nanosTimeout > spinForTimeoutThreshold)                LockSupport.parkNanos(this, nanosTimeout);            if (Thread.interrupted())                throw new InterruptedException();        }    }}
+  private boolean doAcquireNanos(int arg, long nanosTimeout) {    
+      if (nanosTimeout <= 0L)        
+          return false;    
+      final long deadline = System.nanoTime() + nanosTimeout;    
+      //...    
+      try {        
+          for (;;) {   
+              //...
+              nanosTimeout = deadline - System.nanoTime();            
+              if (nanosTimeout <= 0L)	//时间已到                
+                  return false;            
+              if (shouldParkAfterFailedAcquire(p, node) &&                
+                  nanosTimeout > spinForTimeoutThreshold)                
+                  LockSupport.parkNanos(this, nanosTimeout);            
+              if (Thread.interrupted())                
+                  throw new InterruptedException();        
+          }    
+      }
+  }
   ```
 
 
@@ -20027,7 +20238,49 @@ public static void main(String[] args) {
 ##### 哲学家就餐
 
 ```java
-public static void main(String[] args) {    Chopstick c1 = new Chopstick("1");    ....    Chopstick c5 = new Chopstick("5");    new Philosopher("苏格拉底", c1, c2).start();    new Philosopher("柏拉图", c2, c3).start();    new Philosopher("亚里士多德", c3, c4).start();    new Philosopher("赫拉克利特", c4, c5).start();    new Philosopher("阿基米德", c5, c1).start();}class Philosopher extends Thread {    Chopstick left;    Chopstick right;    public void run() {        while (true) {            // 尝试获得左手筷子            if (left.tryLock()) {                try {                    // 尝试获得右手筷子                    if (right.tryLock()) {                        try {							System.out.println("eating...");                            Thread.sleep(1000);                        } finally {                            right.unlock();                        }                    }                } finally {                    left.unlock();                }            }        }	}}class Chopstick extends ReentrantLock {    String name;    public Chopstick(String name) {        this.name = name;    }    @Override    public String toString() {        return "筷子{" + name + '}';    }}
+public static void main(String[] args) {    
+    Chopstick c1 = new Chopstick("1");//...  
+    Chopstick c5 = new Chopstick("5");    
+    new Philosopher("苏格拉底", c1, c2).start();    
+    new Philosopher("柏拉图", c2, c3).start();    
+    new Philosopher("亚里士多德", c3, c4).start();    
+    new Philosopher("赫拉克利特", c4, c5).start();    
+    new Philosopher("阿基米德", c5, c1).start();
+}
+class Philosopher extends Thread {    
+    Chopstick left;    
+    Chopstick right;    
+    public void run() {        
+        while (true) {            
+            // 尝试获得左手筷子            
+            if (left.tryLock()) {                
+                try {                    
+                    // 尝试获得右手筷子                    
+                    if (right.tryLock()) {                        
+                        try {							
+                            System.out.println("eating...");       
+                            Thread.sleep(1000);                        
+                        } finally {                            
+                            right.unlock();                        
+                        }                    
+                    }                
+                } finally {                    
+                    left.unlock();                
+                }            
+            }        
+        }	
+    }
+}
+class Chopstick extends ReentrantLock {    
+    String name;    
+    public Chopstick(String name) {        
+        this.name = name;    
+    }    
+    @Override    
+    public String toString() {        
+        return "筷子{" + name + '}';    
+    }
+}
 ```
 
 
@@ -20058,7 +20311,36 @@ Condition类API：
 * 竞争 lock 锁成功后，从 await 后继续执行
 
 ```java
-public static void main(String[] args) throws InterruptedException {    ReentrantLock lock = new ReentrantLock();    //创建一个新的条件变量    Condition condition1 = lock.newCondition();    Condition condition2 = lock.newCondition();    new Thread(() -> {        try {            lock.lock();            //进入休息室等待            System.out.println("进入等待");            condition1.await();            System.out.println("被唤醒了");        } catch (InterruptedException e) {            e.printStackTrace();        } finally {            lock.unlock();        }    }).start();    Thread.sleep(1000);    //叫醒    new Thread(() -> {        try {            lock.lock();            //进入休息室等待            condition2.signal();        } finally {            lock.unlock();        }    }).start();}
+public static void main(String[] args) throws InterruptedException {    
+    ReentrantLock lock = new ReentrantLock();    
+    //创建一个新的条件变量    
+    Condition condition1 = lock.newCondition();    
+    Condition condition2 = lock.newCondition();    
+    new Thread(() -> {        
+        try {            
+            lock.lock();                      
+            System.out.println("进入等待");     
+            //进入休息室等待  
+            condition1.await();            
+            System.out.println("被唤醒了");        
+        } catch (InterruptedException e) {            
+            e.printStackTrace();        
+        } finally {            
+            lock.unlock();        
+        }    
+    }).start();    
+    Thread.sleep(1000);    
+    //叫醒    
+    new Thread(() -> {        
+        try {            
+            lock.lock();            
+            //唤醒           
+            condition2.signal();        
+        } finally {            
+            lock.unlock();        
+        }    
+    }).start();
+}
 ```
 
 
@@ -20128,7 +20410,29 @@ await流程：
   ```
 
   ```java
-  private void unlinkCancelledWaiters() {    Node t = firstWaiter;    Node trail = null;    while (t != null) {        Node next = t.nextWaiter;        // 判断 t 节点不是 CONDITION 节点        if (t.waitStatus != Node.CONDITION) {            // t 与下一个节点断开            t.nextWaiter = null;            // 如果第一次循环就进入if语句，说明 t 是首节点            if (trail == null)                firstWaiter = next;            else                // t 的前节点和后节点相连，删除 t                trail.nextWaiter = next;            // t 是尾节点了            if (next == null)                lastWaiter = trail;        }        else            trail = t;        t = next; // 把 t.next 赋值给 t     }}
+  private void unlinkCancelledWaiters() {    
+      Node t = firstWaiter;   
+      Node trail = null;    
+      while (t != null) {        
+          Node next = t.nextWaiter;        
+          // 判断 t 节点不是 CONDITION 节点        
+          if (t.waitStatus != Node.CONDITION) {            
+              // t 与下一个节点断开            
+              t.nextWaiter = null;            
+              // 如果第一次循环就进入if语句，说明 t 是首节点            
+              if (trail == null)                
+                  firstWaiter = next;            
+              else                
+                  // t 的前节点和后节点相连，删除 t                
+                  trail.nextWaiter = next;            
+              // t 是尾节点了            
+              if (next == null)                
+                  lastWaiter = trail;        
+          } else           
+              trail = t;        
+          t = next; // 把 t.next 赋值给 t     
+      }
+  }
   ```
 
 * 接下来进入 AQS 的 fullyRelease 流程，释放同步器上的锁
@@ -20136,7 +20440,24 @@ await流程：
   ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantLock-条件变量1.png)
 
   ```java
-  // 线程可能重入，需要将 state 全部释放final int fullyRelease(Node node) {    boolean failed = true;    try {        int savedState = getState();        // release -> tryRelease 公平锁解锁，会解锁重入锁        if (release(savedState)) {            failed = false;            return savedState;        } else {            throw new IllegalMonitorStateException();        }    } finally {        // 没有释放成功，设置为取消状态        if (failed)            node.waitStatus = Node.CANCELLED;    }}
+  // 线程可能重入，需要将 state 全部释放
+  final int fullyRelease(Node node) {    
+      boolean failed = true;    
+      try {        
+          int savedState = getState();        
+          // release -> tryRelease 公平锁解锁，会解锁重入锁        
+          if (release(savedState)) {            
+              failed = false;            
+              return savedState;        
+          } else {            
+              throw new IllegalMonitorStateException();        
+          }    
+      } finally {        
+          // 没有释放成功，设置为取消状态        
+          if (failed)            
+              node.waitStatus = Node.CANCELLED;    
+      }
+  }
   ```
 
 * unpark AQS 队列中的下一个节点，竞争锁，假设没有其他竞争线程，那么 Thread-1 竞争成功
@@ -20152,7 +20473,16 @@ signal 流程：
 * 假设 Thread-1 要来唤醒 Thread-0，进入 ConditionObject 的 doSignal 流程，取得等待队列中第一个 Node，即 Thread-0 所在 Node
 
   ```java
-  // 唤醒 - 必须持有锁才能唤醒, 因此 doSignal 内无需考虑加锁public final void signal() {    // 调用方法的线程是否是资源的持有线程    if (!isHeldExclusively())        throw new IllegalMonitorStateException();    // 取得等待队列中第一个 Node    Node first = firstWaiter;    if (first != null)        doSignal(first);}
+  // 唤醒 - 必须持有锁才能唤醒, 因此 doSignal 内无需考虑加锁
+  public final void signal() {    
+      // 调用方法的线程是否是资源的持有线程    
+      if (!isHeldExclusively())        
+          throw new IllegalMonitorStateException();    
+      // 取得等待队列中第一个 Node   
+      Node first = firstWaiter;    
+      if (first != null)        
+          doSignal(first);
+  }
   ```
 
   ```java
