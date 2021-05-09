@@ -4296,7 +4296,7 @@ Collection集合的遍历方式有三种:
 
 #### List
 
-##### List概述
+##### 概述
 
 List集合继承了Collection集合全部的功能。
 
@@ -4315,6 +4315,8 @@ List系列集合：添加的元素是有序，可重复，有索引。
 
 
 ##### ArrayList
+
+###### 介绍
 
 ArrayList添加的元素，是有序，可重复，有索引的。
 ArrayList实现类集合底层**基于数组存储数据**的，查询快，增删慢！
@@ -4343,69 +4345,7 @@ public static void main(String[] args){
 
 
 
-****
-
-
-
-##### LinkedList
-
-LinkedList也是List的实现类：基于**双向链表**实现，使用 Node 存储链表节点信息，增删比较快，查询慢
-
-LinkedList除了拥有List集合的全部功能还多了很多操作首尾元素的特殊功能：
-    `public void addFirst(E e)` : 将指定元素插入此列表的开头
-    `public void addLast(E e)` : 将指定元素添加到此列表的结尾
-    `public E getFirst()` : 返回此列表的第一个元素
-    `public E getLast()` : 返回此列表的最后一个元素
-    `public E removeFirst()` : 移除并返回此列表的第一个元素
-    `public E removeLast()` : 移除并返回此列表的最后一个元素
-    `public E pop()` : 从此列表所表示的堆栈处弹出一个元素
-    `public void push(E e)` : 将元素推入此列表所表示的堆栈
-	`public int indexOf(Object o)` : 返回此列表中指定元素的第一次出现的索引，如果不包含返回-1
-	`public int lastIndexOf(Object o)` : 从尾遍历找
-	` public boolean remove(Object o)` : 一次只删除一个匹配的对象，如果删除了匹配对象返回true
-	`public E remove(int index)` : 删除指定位置的元素
-
-```java
-public class ListDemo {
-    public static void main(String[] args) {
-        // 1.用LinkedList做一个队列:先进先出，后进后出。
-        LinkedList<String> queue = new LinkedList<>();
-        // 入队
-        queue.addLast("1号");
-        queue.addLast("2号");
-        queue.addLast("3号");
-        System.out.println(queue); // [1号, 2号, 3号]
-        // 出队
-        System.out.println(queue.removeFirst());//1号
-        System.out.println(queue.removeFirst());//2号
-        System.out.println(queue);//[3号]
-
-        // 做一个栈 先进后出
-        LinkedList<String> stack = new LinkedList<>();
-        // 压栈
-        stack.push("第1颗子弹");//addFirst(e);
-        stack.push("第2颗子弹");
-        stack.push("第3颗子弹");
-        System.out.println(stack); // [ 第3颗子弹, 第2颗子弹, 第1颗子弹]
-        // 弹栈
-        System.out.println(stack.pop());//removeFirst(); 第3颗子弹
-        System.out.println(stack.pop());
-        System.out.println(stack);// [第1颗子弹]
-    }
-}
-```
-
-![](https://gitee.com/seazean/images/raw/master/Java/LinkedList添加元素源码解析.png)
-
-
-
-***
-
-
-
-##### 源码分析
-
-###### ArrayList
+###### 源码
 
 ArrayList 是基于数组实现的，所以支持快速随机访问
 
@@ -4530,7 +4470,7 @@ public class ArrayList<E> extends AbstractList<E>
 
 
 
-###### Vector
+##### Vector
 
 同步：Vector的实现与 ArrayList 类似，但是使用了 synchronized 进行同步
 
@@ -4548,11 +4488,67 @@ public class ArrayList<E> extends AbstractList<E>
 
 
 
-***
+****
 
 
 
-###### LinkedList
+##### LinkedList
+
+###### 介绍
+
+LinkedList也是List的实现类：基于**双向链表**实现，使用 Node 存储链表节点信息，增删比较快，查询慢
+
+LinkedList除了拥有List集合的全部功能还多了很多操作首尾元素的特殊功能：
+    `public void addFirst(E e)` : 将指定元素插入此列表的开头
+    `public void addLast(E e)` : 将指定元素添加到此列表的结尾
+    `public E getFirst()` : 返回此列表的第一个元素
+    `public E getLast()` : 返回此列表的最后一个元素
+    `public E removeFirst()` : 移除并返回此列表的第一个元素
+    `public E removeLast()` : 移除并返回此列表的最后一个元素
+    `public E pop()` : 从此列表所表示的堆栈处弹出一个元素
+    `public void push(E e)` : 将元素推入此列表所表示的堆栈
+	`public int indexOf(Object o)` : 返回此列表中指定元素的第一次出现的索引，如果不包含返回-1
+	`public int lastIndexOf(Object o)` : 从尾遍历找
+	` public boolean remove(Object o)` : 一次只删除一个匹配的对象，如果删除了匹配对象返回true
+	`public E remove(int index)` : 删除指定位置的元素
+
+```java
+public class ListDemo {
+    public static void main(String[] args) {
+        // 1.用LinkedList做一个队列:先进先出，后进后出。
+        LinkedList<String> queue = new LinkedList<>();
+        // 入队
+        queue.addLast("1号");
+        queue.addLast("2号");
+        queue.addLast("3号");
+        System.out.println(queue); // [1号, 2号, 3号]
+        // 出队
+        System.out.println(queue.removeFirst());//1号
+        System.out.println(queue.removeFirst());//2号
+        System.out.println(queue);//[3号]
+
+        // 做一个栈 先进后出
+        LinkedList<String> stack = new LinkedList<>();
+        // 压栈
+        stack.push("第1颗子弹");//addFirst(e);
+        stack.push("第2颗子弹");
+        stack.push("第3颗子弹");
+        System.out.println(stack); // [ 第3颗子弹, 第2颗子弹, 第1颗子弹]
+        // 弹栈
+        System.out.println(stack.pop());//removeFirst(); 第3颗子弹
+        System.out.println(stack.pop());
+        System.out.println(stack);// [第1颗子弹]
+    }
+}
+```
+
+![](https://gitee.com/seazean/images/raw/master/Java/LinkedList添加元素源码解析.png)
+
+
+
+
+
+###### 源码
 
 LinkedList是一个实现了List接口的**双端链表**，支持高效的插入和删除操作，另外也实现了Deque接口，使得LinkedList类也具有队列的特性
 
@@ -4627,7 +4623,7 @@ LinkedList是一个实现了List接口的**双端链表**，支持高效的插�
 
 #### Set
 
-##### Set概述
+##### 概述
 
 Set系列集合：添加的元素是无序，不重复，无索引的。
 
@@ -4703,7 +4699,7 @@ Set集合添加的元素是无序，不重复的。
 
 **LinkedHashSet**为什么是有序的？
 
-LinkedHashSet底层依然是使用哈希表存储元素的，但是每个元素都额外带一个链来维护添加顺序。不光增删查快，还有序。缺点是多了一个存储顺序的链会占内存空间!!而且不允许重复，无索引。
+LinkedHashSet底层依然是使用哈希表存储元素的，但是每个元素都额外带一个链来维护添加顺序，不光增删查快，还有序，缺点是多了一个存储顺序的链会**占内存空间**，而且不允许重复，无索引
 
 
 
@@ -4839,7 +4835,7 @@ public class Student{
 >Collection是单值集合体系。
 >Map集合是一种双列集合，每个元素包含两个值。
 
-Map集合的每个元素的格式：key=value(键值对元素)。Map集合也被称为“键值对集合”。
+Map集合的每个元素的格式：key=value(键值对元素)。Map集合也被称为“键值对集合”
 
 Map集合的完整格式：`{key1=value1 , key2=value2 , key3=value3 , ...}`
 
@@ -5601,13 +5597,178 @@ transient int size;
 
 #### LinkedMap
 
-LinkedHashMap是HashMap的子类，添加的元素按照键有序，不重复的
+##### 原理分析
 
-HashSet集合相当于是HashMap集合的键，不带值
-LinkedHashSet集合相当于是LinkedHashMap集合的键，不带值
+LinkedHashMap是HashMap的子类
 
-> 底层原理完全一样，都是基于哈希表按照键存储数据的，
-> 只是HashMap或者LinkedHashMap的键都多一个附属值
+* 优点：添加的元素按照键有序不重复的，有序的原因是底层维护了一个双向链表
+
+* 缺点：会占用一些内存空间
+
+对比Set：
+
+* HashSet集合相当于是HashMap集合的键，不带值
+* LinkedHashSet集合相当于是LinkedHashMap集合的键，不带值
+* 底层原理完全一样，都是基于哈希表按照键存储数据的，只是Map多了一个键的值
+
+源码解析：
+
+* 内部维护了一个双向链表，用来维护插入顺序或者 LRU 顺序
+
+  ```java
+  transient LinkedHashMap.Entry<K,V> head;
+  transient LinkedHashMap.Entry<K,V> tail;
+  ```
+
+* accessOrder 决定了顺序，默认为 false 维护的是插入顺序，true为访问顺序（LRU顺序）
+
+  ```java
+  final boolean accessOrder;
+  ```
+
+* 维护顺序的函数
+
+  ```java
+  void afterNodeAccess(Node<K,V> p) {}
+  void afterNodeInsertion(boolean evict) {}
+  ```
+
+* get方法
+
+  当一个节点被访问时，如果 accessOrder 为 true，则会将该节点移到链表尾部。也就是说指定为 LRU 顺序之后，在每次访问一个节点时会将这个节点移到链表尾部，那么链表首部就是最近最久未使用的节点
+
+  ```java
+  public V get(Object key) {
+      Node<K,V> e;
+      if ((e = getNode(hash(key), key)) == null)
+          return null;
+      if (accessOrder)
+          afterNodeAccess(e);
+      return e.value;
+  }
+  ```
+
+  ```java
+  void afterNodeAccess(Node<K,V> e) {
+      LinkedHashMap.Entry<K,V> last;
+      if (accessOrder && (last = tail) != e) {
+          // 向下转型
+          LinkedHashMap.Entry<K,V> p =
+              (LinkedHashMap.Entry<K,V>)e, b = p.before, a = p.after;
+          p.after = null;
+          // 判断 p 是否是首节点
+          if (b == null)
+              //是头节点 让p后继节点成为头节点
+              head = a;
+          else
+              //不是头节点 让p的前驱节点的next指向p的后继节点，维护链表的连接
+              b.after = a;
+          // 判断p是否是尾节点
+          if (a != null)
+              // 不是尾节点 让p后继节点指向p的前驱节点
+              a.before = b;
+          else
+              // 是尾节点 让last指向p的前驱节点
+              last = b;
+          // 判断last是否是空
+          if (last == null)
+              // last为空说明p是尾节点或者只有p一个节点
+              head = p;
+          else {
+              // last和p相互连接
+              p.before = last;
+              last.after = p;
+          }
+          tail = p;
+          ++modCount;
+      }
+  }
+  ```
+
+* afterNodeInsertion方法
+  当 removeEldestEntry() 方法返回 true 时会移除最近最久未使用的节点，也就是链表首部节点 first
+
+  ```java
+  void afterNodeInsertion(boolean evict) {
+      LinkedHashMap.Entry<K,V> first;
+      // evict 只有在构建 Map 的时候才为 false，在这里为 true
+      if (evict && (first = head) != null && removeEldestEntry(first)) {
+          K key = first.key;
+          removeNode(hash(key), key, null, false, true);
+      }
+  }
+  ```
+
+  removeEldestEntry() 默认为 false，如果需要让它为 true，需要继承 LinkedHashMap 并且覆盖这个方法的实现，在实现 LRU 的缓存中特别有用，通过移除最近最久未使用的节点，从而保证缓存空间足够，并且缓存的数据都是热点数据
+
+  ```java
+  protected boolean removeEldestEntry(Map.Entry<K,V> eldest) {
+      return false;
+  }
+  ```
+
+* afterNodeRemoval方法
+
+  当HashMap删除一个键值对时调用，会把在HashMap中删除的那个键值对一并从链表中删除，保证了哈希表和链表的一致性
+
+  ```java
+  void afterNodeRemoval(Node<K,V> e) {
+      LinkedHashMap.Entry<K,V> p =
+          (LinkedHashMap.Entry<K,V>)e, b = p.before, a = p.after;
+      // 让p节点与前驱节点和后继节点断开链接
+      p.before = p.after = null;
+      // 判断p是否是头节点
+      if (b == null)
+          // p是头节点 让head指向p的后继节点
+          head = a;
+      else
+          // p不是头节点 让p的前驱节点的next指向p的后继节点，维护链表的连接
+          b.after = a;
+      // 判断p是否是尾节点，是就让tail指向p的前驱节点，不是就让p.after指向前驱节点，双向
+      if (a == null)
+          tail = b;
+      else
+          a.before = b;
+  }
+  ```
+
+
+
+***
+
+
+
+##### LRU
+
+使用 LinkedHashMap 实现的一个 LRU 缓存：
+
+- 设定最大缓存空间 MAX_ENTRIES 为 3
+- 使用 LinkedHashMap 的构造函数将 accessOrder 设置为 true，开启 LRU 顺序
+- 覆盖 removeEldestEntry() 方法实现，在节点多于 MAX_ENTRIES 就会将最近最久未使用的数据移除
+
+```java
+public static void main(String[] args) {
+    LRUCache<Integer, String> cache = new LRUCache<>();
+    cache.put(1, "a");
+    cache.put(2, "b");
+    cache.put(3, "c");
+    cache.get(1);//把1放入尾部
+    cache.put(4, "d");
+    System.out.println(cache.keySet());//[3, 1, 4]只能存3个
+}
+
+class LRUCache<K, V> extends LinkedHashMap<K, V> {
+    private static final int MAX_ENTRIES = 3;
+
+    protected boolean removeEldestEntry(Map.Entry eldest) {
+        return size() > MAX_ENTRIES;
+    }
+
+    LRUCache() {
+        super(MAX_ENTRIES, 0.75f, true);
+    }
+}
+```
 
 
 
@@ -5624,6 +5785,76 @@ TreeSet集合的底层是基于TreeMap，只是键没有附属值而已
 TreeMap集合指定大小规则有2种方式：
      a.直接为对象的类实现比较器规则接口Comparable，重写比较方法（拓展方式）
      b.直接为集合设置比较器Comparator对象,重写比较方法
+
+
+
+***
+
+
+
+#### WeakMap
+
+WeakHashMap 是基于弱引用的
+
+内部的 Entry 继承 WeakReference，被弱引用关联的对象在下一次垃圾回收时会被回收，并且构造方法传入引用队列，用来在清理对象完成以后清理引用
+
+```java
+private static class Entry<K,V> extends WeakReference<Object> implements Map.Entry<K,V> {
+    Entry(Object key, V value,
+          ReferenceQueue<Object> queue,
+          int hash, Entry<K,V> next) {
+        super(key, queue);
+        this.value = value;
+        this.hash  = hash;
+        this.next  = next;
+    }
+}
+```
+
+WeakHashMap 主要用来实现缓存，使用 WeakHashMap 来引用缓存对象，由 JVM 对这部分缓存进行回收
+
+Tomcat 中的 ConcurrentCache 使用了 WeakHashMap 来实现缓存功能，ConcurrentCache 采取分代缓存：
+
+* 经常使用的对象放入 eden 中，eden 使用 ConcurrentHashMap 实现，不用担心会被回收（伊甸园）
+
+* 不常用的对象放入 longterm，longterm 使用 WeakHashMap 实现，这些老对象会被垃圾收集器回收
+
+* 当调用 get() 方法时，会先从 eden 区获取，如果没有找到的话再到 longterm 获取，当从 longterm 获取到就把对象放入 eden 中，从而保证经常被访问的节点不容易被回收
+
+* 当调用 put() 方法时，如果 eden 的大小超过了 size，那么就将 eden 中的所有对象都放入 longterm 中，利用虚拟机回收掉一部分不经常使用的对象
+
+  ```java
+  public final class ConcurrentCache<K, V> {
+      private final int size;
+      private final Map<K, V> eden;
+      private final Map<K, V> longterm;
+  
+      public ConcurrentCache(int size) {
+          this.size = size;
+          this.eden = new ConcurrentHashMap<>(size);
+          this.longterm = new WeakHashMap<>(size);
+      }
+  
+      public V get(K k) {
+          V v = this.eden.get(k);
+          if (v == null) {
+              v = this.longterm.get(k);
+              if (v != null)
+                  this.eden.put(k, v);
+          }
+          return v;
+      }
+  
+      public void put(K k, V v) {
+          if (this.eden.size() >= size) {
+              this.longterm.putAll(this.eden);
+              this.eden.clear();
+          }
+          this.eden.put(k, v);
+      }
+  }
+
+
 
 
 
