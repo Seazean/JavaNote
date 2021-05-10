@@ -337,6 +337,8 @@ git tag：列出所有tag
 
 git show tag-name：查看tag详细信息
 
+标签作用：在开发的一些关键时期，使用标签来记录这些关键时刻，保存快照，例如发布版本、有重大修改、升级的时候、会使用标签记录这些时刻，来永久标记项目中的关键历史时刻
+
 
 
 ### 新建标签
@@ -383,7 +385,7 @@ File→Settings打开设置窗口，找到Version Control下的git选项
 
 ### 创建本地仓库
 
-1、VCS->Import into Version Control->Create Git Repository
+1、VCS -> Import into Version Control -> Create Git Repository
 
 2、选择工程所在的目录,这样就创建好本地仓库了
 
@@ -395,9 +397,7 @@ File→Settings打开设置窗口，找到Version Control下的git选项
 
 ### 文件操作
 
-右键项目名打开菜单Git->Add
-
-commit
+右键项目名打开菜单Git -> Add -> commit
 
 
 

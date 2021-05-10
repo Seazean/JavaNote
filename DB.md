@@ -4887,7 +4887,7 @@ Redis (REmote DIctionary Server) ：用 C 语言开发的一个开源的高性�
 
 2. 创建配置文件副本放入 conf 目录
 
-   Ubuntu系统配置文件 redis.conf 在目录 /etc/redis 中
+   Ubuntu系统配置文件 redis.conf 在目录 `/etc/redis` 中
 
    ```sh
    cat redis.conf | grep -v "#" | grep -v "^$" -> /conf/redis-6379.conf
