@@ -7030,7 +7030,7 @@ public class FileDemo{
         //      -- a.使用正斜杠： /
         //      -- b.使用反斜杠： \\
         //      -- c.使用分隔符API:File.separator
-        //File f1 = new File("D:"+File.separator+"itcast"+File.separator
+        //File f1 = new File("D:"+File.separator+"it"+File.separator
 		//+"图片资源"+File.separator+"beautiful.jpg");
         File f1 = new File("D:\\itcast\\图片资源\\beautiful.jpg");
         System.out.println(f1.length()); // 获取文件的大小，字节大小
@@ -7040,7 +7040,7 @@ public class FileDemo{
         System.out.println(f2.length());
 
         // 3.创建文件对象：代表文件夹。
-        File f3 = new File("D:\\itcast\\图片资源");
+        File f3 = new File("D:\\it\\图片资源");
         System.out.println(f3.exists());// 判断路径是否存在！！
     }
 }
@@ -7130,7 +7130,7 @@ public class FileDemo {
         // b.删除文件或者空文件夹
         System.out.println(f.delete());
         // 不能删除非空文件夹，只能删除空文件夹
-        File f1 = new File("E:/itcast/aaaaa");
+        File f1 = new File("E:/it/aaaaa");
         System.out.println(f1.delete());
 
         // c.创建一级目录
@@ -7138,7 +7138,7 @@ public class FileDemo {
         System.out.println(f2.mkdir());
 
         // d.创建多级目录
-        File f3 = new File("D:/itcast/e/a/d/ds/fas/fas/fas/fas/fas/fas");
+        File f3 = new File("D:/it/e/a/d/ds/fas/fas/fas/fas/fas/fas");
         System.out.println(f3.mkdirs());
     }
 }
@@ -7175,7 +7175,7 @@ public class FileDemo {
         }
 
         // c
-        File f1 = new File("D:\\itcast\\图片资源\\beautiful.jpg");
+        File f1 = new File("D:\\it\\图片资源\\beautiful.jpg");
         long time = f1.lastModified(); // 最后修改时间！
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         System.out.println(sdf.format(time));
@@ -8113,9 +8113,9 @@ public class CommonsIODemo01 {
                      new FileOutputStream("Day13Demo/new.xml"));
         // 2.完成文件复制到某个文件夹下！
         FileUtils.copyFileToDirectory(new File("Day13Demo/src/books.xml"),
-                                      new File("D:/itcast"));
+                                      new File("D:/it"));
         // 3.完成文件夹复制到某个文件夹下！
-        FileUtils.copyDirectoryToDirectory(new File("D:\\itcast\\约吧图片服务器") ,
+        FileUtils.copyDirectoryToDirectory(new File("D:\\it\\图片服务器") ,
                                            new File("D:\\"));
 
         //  Java从1.7开始提供了一些nio, 自己也有一行代码完成复制的技术。
@@ -9026,7 +9026,7 @@ NIO的实现框架：
 public class TestBuffer {
 	@Test
     public void test(){
-		String str = "itheima";
+		String str = "seazean";
 		//1. 分配一个指定大小的缓冲区
 		ByteBuffer buffer = ByteBuffer.allocate(1024);
 		System.out.println("-----------------allocate()----------------");
@@ -11971,8 +11971,10 @@ public class Demo1_27 {
 
 静态内部类和其他内部类：（待考证）
 
+* **一个class文件只能对应一个public类型的类**，这个类可以有内部类，但不会生成新的class文件
+
 * 静态内部类属于类本身，加载到方法区
-* 其他内部类加载到栈
+* 其他内部类属于内部类的属性，加载到栈
 
 类变量：
 
@@ -13059,7 +13061,7 @@ Serial GC、Parallel GC、Concurrent Mark Sweep GC这三个GC不同：
 
 #### 类结构
 
-class文件是编译器编译之后供虚拟机解释执行的二进制字节码文件
+class文件是编译器编译之后供虚拟机解释执行的二进制字节码文件，一个class文件对应一个public类型的类
 
 根据 JVM 规范，类文件结构如下：
 
@@ -13467,7 +13469,7 @@ public class Demo {
 几种不同的方法调用对应的字节码指令：
 
 ```java
-0: 	new 			#2 // class cn/itcast/jvm/t3/bytecode/Demo
+0: 	new 			#2 // class cn/jvm/t3/bytecode/Demo
 3: 	dup
 4: 	invokespecial 	#3 // Method "<init>":()V
 7: 	astore_1
@@ -14497,7 +14499,7 @@ public class Load2 {
     public static void main(String[] args) throws Exception{
     ClassLoader classloader = Load2.class.getClassLoader();
     // cloadClass 加载类方法不会导致类的解析和初始化，也不会加载D
-    Class<?> c = classloader.loadClass("cn.itcast.jvm.t3.load.C");
+    Class<?> c = classloader.loadClass("cn.jvm.t3.load.C");
         
     // new C();会导致类的解析和初始化，从而解析初始化D
     System.in.read();
@@ -14802,7 +14804,7 @@ public class MyClassLoader extends ClassLoader{
 public class ClassLoaderTest {
     public static void main(String[] args) throws Exception {
         MyClassLoader classLoader = new MyClassLoader("D:\\workspace\\course\\java97\\redisLock\\src\\main\\java");
-        Class clazz = classLoader.loadClass("com.itheima.demo.User");
+        Class clazz = classLoader.loadClass("com.demo.User");
         System.out.println(clazz.getClassLoader().getClass().getName());
     }
 }//当存在.java文件时，根据双亲委派机制，显示当前类加载器为AppClassLoader，而当将.java文件删除时，则显示使用的是自定义的类加载器

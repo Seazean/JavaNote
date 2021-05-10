@@ -68,7 +68,7 @@ pom.xml：Maven需要一个pom.xml文件，Maven通过加载这个配置文件�
     * https://mvnrepository.com：查询maven某一个资源的坐标，输入资源名称进行检索，
 
    * 依赖设置：
-     * groupId：定义当前资源隶属组织名称（通常是域名反写，如：org.mybatis；com.itheima）
+     * groupId：定义当前资源隶属组织名称（通常是域名反写，如：org.mybatis；com.seazean）
    * artifactId：定义当前资源的名称（通常是项目或模块名称，如：crm，sms）
      * version：定义当前资源的版本号
 
@@ -768,7 +768,7 @@ Maven的插件用来执行生命周期中的相关事件
   ```xml
   <!--定义该工程的父工程-->
   <parent>
-      <groupId>com.itheima</groupId>
+      <groupId>com.seazean</groupId>
       <artifactId>ssm</artifactId>
       <version>1.0-SNAPSHOT</version>
       <!--填写父工程的pom文件-->
@@ -2324,7 +2324,7 @@ public class CuratorTest {
             .sessionTimeoutMs(60 * 1000)
             .connectionTimeoutMs(15 * 1000)
             .retryPolicy(retryPolicy)
-            .namespace("itheima")//名称空间
+            .namespace("seazean")//名称空间
             .build();
 
         //开启连接
@@ -4046,12 +4046,12 @@ public class ProducerTest {
                                password="${rabbitmq.password}"
                                virtual-host="${rabbitmq.virtual-host}"/>
 
-    <bean id="springQueueListener" class="com.itheima.rabbitmq.listener.SpringQueueListener"/>
-    <bean id="fanoutListener1" class="com.itheima.rabbitmq.listener.FanoutListener1"/>
-    <bean id="fanoutListener2" class="com.itheima.rabbitmq.listener.FanoutListener2"/>
-    <bean id="topicListenerStar" class="com.itheima.rabbitmq.listener.TopicListenerStar"/>
-    <bean id="topicListenerWell" class="com.itheima.rabbitmq.listener.TopicListenerWell"/>
-    <bean id="topicListenerWell2" class="com.itheima.rabbitmq.listener.TopicListenerWell2"/>
+    <bean id="springQueueListener" class="com.seazean.rabbitmq.listener.SpringQueueListener"/>
+    <bean id="fanoutListener1" class="com.seazean.rabbitmq.listener.FanoutListener1"/>
+    <bean id="fanoutListener2" class="com.seazean.rabbitmq.listener.FanoutListener2"/>
+    <bean id="topicListenerStar" class="com.seazean.rabbitmq.listener.TopicListenerStar"/>
+    <bean id="topicListenerWell" class="com.seazean.rabbitmq.listener.TopicListenerWell"/>
+    <bean id="topicListenerWell2" class="com.seazean.rabbitmq.listener.TopicListenerWell2"/>
 
     <rabbit:listener-container connection-factory="connectionFactory" auto-declare="true">
         <rabbit:listener ref="springQueueListener" queue-names="spring_queue"/>
@@ -4580,7 +4580,7 @@ Consumer ACK机制：
                              password="${rabbitmq.password}"
                              virtual-host="${rabbitmq.virtual-host}"/>
   
-  <context:component-scan base-package="com.itheima.listener" />
+  <context:component-scan base-package="com.seazean.listener" />
   
   <!--定义监听器容器-->
   <rabbit:listener-container connection-factory="connectionFactory" acknowledge="manual" >
@@ -4589,7 +4589,7 @@ Consumer ACK机制：
   </rabbit:listener-container>
   ```
 
-* 监听器：com.itheima.listener.AckListener
+* 监听器：com.seazean.listener.AckListener
 
   ```java
   @Component
@@ -4645,7 +4645,7 @@ Consumer 限流机制：
   </rabbit:listener-container>
   ```
 
-* 监听器：com.itheima.listener.QosListener
+* 监听器：com.seazean.listener.QosListener
 
   ```java
   @Component
@@ -4844,7 +4844,7 @@ TTL 全称 Time To Live（存活时间/过期时间）
 
 消费者代码实现：
 
-* 监听器：com.itheima.listener.DlxListener
+* 监听器：com.seazean.listener.DlxListener
 
   ```java
   @Component
@@ -4956,7 +4956,7 @@ RabbitMQ中并未提供延迟队列功能，可以使用：**TTL+死信队列**�
   </rabbit:listener-container>
   ```
 
-* 监听器：com.itheima.listener.OrderListener
+* 监听器：com.seazean.listener.OrderListener
 
   ```java
   @Component

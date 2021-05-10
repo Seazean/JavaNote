@@ -186,7 +186,7 @@ org.apache.ibatis.session.SqlSession : 构建者对象接口。用于执行 SQL�
     <!--起别名-->
     <typeAliases>
     <typeAlias type="bean.Student" alias="student"/>
-    <!--<package name="com.itheima.bean"/>-->
+    <!--<package name="com.seazean.bean"/>-->
     </typeAliase>
     ```
 
@@ -2706,7 +2706,7 @@ IoC和DI的关系：IoC与DI是同一件事站在不同角度看待问题
       </property>
       <property name="hm">
           <map>
-              <entry key="name" value="itheima66666"/>
+              <entry key="name" value="seazean66666"/>
               <entry key="value" value="6666666666"/>
           </map>
       </property>
@@ -2777,7 +2777,7 @@ Spring提供了对EL表达式的支持，统一属性注入格式
 
 所有格式统一使用  value=“#{}”
 
-- 常量  #{10}  #{3.14}  #{2e5}  #{‘itcast’}
+- 常量  #{10}  #{3.14}  #{2e5}  #{‘it’}
 
 - 引用bean  #{beanId}    
 
@@ -2983,7 +2983,7 @@ Spring容器加载多个配置文件：
   <import resource="applicationContext-user.xml"/>
   <import resource="applicationContext-book.xml"/>
   
-  <bean id="bookDao" class="com.itheima.dao.impl.BookDaoImpl">
+  <bean id="bookDao" class="com.seazean.dao.impl.BookDaoImpl">
       <property name="num" value="2"/>
   </bean>
   ```
@@ -4620,8 +4620,8 @@ execution(public User service.UserService.findById(int))
 * *：单个独立的任意符号，可以独立出现，也可以作为前缀或者后缀的匹配符出现
 
   ```java
-  execution(public * com.itheima.*.UserService.find*(*)
-  //匹配com.itheima包下的任意包中的UserService类或接口中所有find开头的带有一个任意参数的方法
+  execution(public * com.seazean.*.UserService.find*(*)
+  //匹配com.seazean包下的任意包中的UserService类或接口中所有find开头的带有一个任意参数的方法
   ```
 
 * .. ：多个连续的任意符号，可以独立出现，常用于简化包名与参数
@@ -4655,18 +4655,18 @@ execution(public int *..*.*(..))
 execution(public void *..*.*(..))
 execution(public void com..*.*(..)) 
 execution(public void com..service.*.*(..))
-execution(public void com.itheima.service.*.*(..))
-execution(public void com.itheima.service.User*.*(..))
-execution(public void com.itheima.service.*Service.*(..))
-execution(public void com.itheima.service.UserService.*(..))
-execution(public User com.itheima.service.UserService.find*(..))
-execution(public User com.itheima.service.UserService.*Id(..))
-execution(public User com.itheima.service.UserService.findById(..))
-execution(public User com.itheima.service.UserService.findById(int))
-execution(public User com.itheima.service.UserService.findById(int,int))
-execution(public User com.itheima.service.UserService.findById(int,*))
-execution(public User com.itheima.service.UserService.findById())
-execution(List com.itheima.service.*Service+.findAll(..))
+execution(public void com.seazean.service.*.*(..))
+execution(public void com.seazean.service.User*.*(..))
+execution(public void com.seazean.service.*Service.*(..))
+execution(public void com.seazean.service.UserService.*(..))
+execution(public User com.seazean.service.UserService.find*(..))
+execution(public User com.seazean.service.UserService.*Id(..))
+execution(public User com.seazean.service.UserService.findById(..))
+execution(public User com.seazean.service.UserService.findById(int))
+execution(public User com.seazean.service.UserService.findById(int,int))
+execution(public User com.seazean.service.UserService.findById(int,*))
+execution(public User com.seazean.service.UserService.findById())
+execution(List com.seazean.service.*Service+.findAll(..))
 ```
 
 
@@ -5349,7 +5349,7 @@ AOP注解简化xml：
 
 ```java
 @Configuration
-@ComponentScan("com.itheima")
+@ComponentScan("com.seazean")
 @EnableAspectJAutoProxy
 public class SpringConfig {
 }
@@ -5550,7 +5550,7 @@ AOP使用XML配置情况下，通知的执行顺序由配置顺序决定，在�
 
 - 通知方法名由3部分组成，分别是前缀、顺序编码、功能描述
 
-- 前缀为固定字符串，例如baidu、itheima等，无实际意义
+- 前缀为固定字符串，例如baidu、seazean等，无实际意义
 
 - 顺序编码为6位以内的整数，通常3位即可，不足位补0
 
@@ -6398,7 +6398,7 @@ TransactionStatus 此接口定义了事务在执行过程中某个时间点上�
 
 ```java
 @Configuration
-@ComponentScan("com.itheima")
+@ComponentScan("com.seazean")
 @PropertySource("classpath:jdbc.properties")
 @Import({JDBCConfig.class,MyBatisConfig.class,TransactionManagerConfig.class})
 @EnableTransactionManagement
@@ -7594,7 +7594,7 @@ Controller加载控制：SpringMVC的处理器对应的bean必须按照规范格
 * resources / spring-mvc.xml配置
 
   ```xml
-  <context:component-scan base-package="com.itheima">
+  <context:component-scan base-package="com.seazean">
       <context:include-filter 
   						type="annotation" 
   						expression="org.springframework.stereotype.Controller"/>
@@ -7645,7 +7645,7 @@ Controller加载控制：SpringMVC的处理器对应的bean必须按照规范格
 
   ```java
   @Configuration
-  @ComponentScan(value = "com.itheima", includeFilters = @ComponentScan.Filter(
+  @ComponentScan(value = "com.seazean", includeFilters = @ComponentScan.Filter(
       								type=FilterType.ANNOTATION,
       								classes = {Controller.class} )
       )
@@ -8309,7 +8309,7 @@ ModelAndView 是SpringMVC提供的一个对象，该对象可以用作控制器�
   public class BookController {
       @RequestMapping("/showPageAndData1")
       public String showPageAndData1(HttpServletRequest request) {
-          request.setAttribute("name","itheima");
+          request.setAttribute("name","seazean");
           return "page";
       }
   }
@@ -8320,7 +8320,7 @@ ModelAndView 是SpringMVC提供的一个对象，该对象可以用作控制器�
   ```java
   @RequestMapping("/showPageAndData2")
   public String showPageAndData2(Model model) {
-      model.addAttribute("name","itheima");
+      model.addAttribute("name","seazean");
       Book book = new Book();
       book.setName("SpringMVC入门实战");
       book.setPrice(66.6d);
@@ -8525,7 +8525,7 @@ ModelAndView 是SpringMVC提供的一个对象，该对象可以用作控制器�
           http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
   
-      <context:component-scan base-package="com.itheima"/>
+      <context:component-scan base-package="com.seazean"/>
       <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
           <property name="prefix" value="/WEB-INF/page/"/>
           <property name="suffix" value=".jsp"/>
@@ -8543,7 +8543,7 @@ ModelAndView 是SpringMVC提供的一个对象，该对象可以用作控制器�
       System.out.println(request);
       System.out.println(response);
       System.out.println(session);
-      request.setAttribute("name","itheima");
+      request.setAttribute("name","seazean");
       System.out.println(request.getAttribute("name"));
       return "page.jsp";
   }
@@ -8595,7 +8595,7 @@ ModelAndView 是SpringMVC提供的一个对象，该对象可以用作控制器�
   //用于在session中放入数据
   @RequestMapping("/setSessionData")
   public String setSessionData(HttpSession session){
-      session.setAttribute("name","itheima");
+      session.setAttribute("name","seazean");
       return "page";
   }
   ```
@@ -9321,7 +9321,7 @@ ExceptionHandler注解：
 
   ```xml
   <mvc:annotation-driven/>
-  <context:component-scan base-package="com.itheima"/>
+  <context:component-scan base-package="com.seazean"/>
   <mvc:resources mapping="/js/**" location="/js/"/>
   ```
 
@@ -9628,7 +9628,7 @@ MultipartResolver接口：
 
   ```xml
   <mvc:annotation-driven/>
-  <context:component-scan base-package="com.itheima"/
+  <context:component-scan base-package="com.seazean"/
   <!--配置文件上传处理器-->
   <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
       <property name="maxUploadSize" value="10240000000"/>
@@ -10944,7 +10944,7 @@ public class ProjectExceptionAdivce {
 
   ```java
   @Configuration
-  //等同于<context:component-scan base-package="com.itheima.controller"/>
+  //等同于<context:component-scan base-package="com.seazean.controller"/>
   @ComponentScan("controller")
   //等同于<mvc:annotation-driven/>，还不完全相同
   @EnableWebMvc
@@ -11564,7 +11564,7 @@ Profile的配置：
    ```xml
    <?xml version="1.0" encoding="UTF-8" ?>
    <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-   <mapper namespace="com.itheima.springbootmybatis.mapper.UserXmlMapper">
+   <mapper namespace="com.seazean.springbootmybatis.mapper.UserXmlMapper">
        <select id="findAll" resultType="user">
            select * from t_user
        </select>
@@ -11804,7 +11804,7 @@ ConditionalOnProperty：判断**配置文件**中是否有对应属性和值才�
 @Configuration
 public class UserConfig {
     @Bean
-    @ConditionalOnProperty(name = "itcast",havingValue = "itheima")
+    @ConditionalOnProperty(name = "it",havingValue = "seazean")
     public User user() {
         return new User();
     }
@@ -11812,7 +11812,7 @@ public class UserConfig {
 ```
 
 ```properties
-itcast=itheima
+it=itheima
 ```
 
 ConditionalOnClass：判断环境中是否有对应字节码文件才初始化Bean

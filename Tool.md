@@ -3796,7 +3796,7 @@ Dockerfile是一个文本文件，包含一条条的指令，每一条指令构�
 
 1. 定义父镜像：FROM java:8
 
-2. 定义作者信息：MAINTAINER  itheima <itheima@itcast.cn>
+2. 定义作者信息：MAINTAINER seazean < zhyzhyang@sina.com>
 
 3. 将jar包添加到容器： ADD springboot.jar app.jar
 

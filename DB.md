@@ -5498,7 +5498,7 @@ Jedis用于Java语言连接redis服务，并提供对应的操作API
    API文档：http://xetorthio.github.io/jedis/
 
    连接redis：`Jedis jedis = new Jedis("192.168..185", 6379);`
-   操作redis：`jedis.set("name", "itheima");  jedis.get("name");`
+   操作redis：`jedis.set("name", "seazean");  jedis.get("name");`
    关闭redis：`jedis.close();`
 
 代码实现：
