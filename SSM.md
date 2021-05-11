@@ -11985,9 +11985,9 @@ public @interface EnableUser {
 
 注意：@Scheduled不能修饰私有方法
 
-参数：cron，cron表达式有7个域，每个域之间用空格隔开，7个域分别是：秒 分钟 小时 日 月 星期 年
+参数：cron，cron表达式有7个域，每个域之间用空格隔开，7个域分别是：秒 分钟 小时 日 月 星期
 
-注：[年]不是必须的域，可以省略[年]，则一共6个域
+
 
 <img src="https://gitee.com/seazean/images/raw/master/Frame/SpringBoot-Scheduled注解cron参数.jpg" style="zoom:150%;" />
 

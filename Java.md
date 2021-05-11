@@ -11,11 +11,11 @@
 | 定义位置 | 在类中，方法外 |    方法中或者方法的形参    |    在类中，方法外    |
 | 初始化值 | 有默认初始化值 | 无，先定义，复制后才能使用 |    有默认初始化值    |
 | 调用方法 |    对象调用    |                            |  对象调用，类名调用  |
-| 存储位置 |      堆中      |            栈中            |    方法区（jdk6）    |
+| 存储位置 |      堆中      |            栈中            |        方法区        |
 | 生命周期 |  与对象共存亡  |        与方法共存亡        |      与类共存亡      |
 |   别名   |    实例变量    |                            | 类变量，静态成员变量 |
 
-静态变量只有一个！ 
+**静态变量只有一个，成员变量是类中的变量，局部变量是方法中的变量**
 
 
 
@@ -1427,9 +1427,11 @@ public class ClassDemo {
 
 封装的哲学思维：合理隐藏，合理暴露。
 封装最初的目的：提高代码的安全性和复用性,组件化。
+
 封装的步骤：
-		**1.成员变量应该私有。用private修饰，只能在本类中直接访问。**
-		**2.提供成套的getter和setter方法暴露成员变量的取值和赋值。**
+
+1. **成员变量应该私有。用private修饰，只能在本类中直接访问。**
+2. **提供成套的getter和setter方法暴露成员变量的取值和赋值。**
 
 为什么使用private修饰成员变量：实现数据封装，不想让别人使用修改你的数据，比较安全。
 
@@ -2527,7 +2529,7 @@ abstract class Animal{
 
 
 
-### 权限修饰符
+### 权限符
 
 权限修饰符：有四种**（private -> 缺省 -> protected - > public ）**
 可以修饰成员变量，修饰方法，修饰构造器，内部类，不同修饰符修饰的成员能够被访问的权限将受到限制!
@@ -2987,7 +2989,7 @@ public static void main(String[] args) {
 
 ##### 内存位置
 
-Java 7之前，String Pool 被放在运行时常量池中，属于永久代；**Java 7以后，String Pool 被移到堆中**，这是因为永久代的空间有限，在大量使用字符串的场景下会导致OutOfMemoryError 错误
+Java 7之前，String Pool 被放在运行时常量池中，它属于永久代；Java 7以后，String Pool 被移到堆中，这是因为永久代的空间有限，在大量使用字符串的场景下会导致OutOfMemoryError 错误
 
 演示 StringTable 位置：
 
@@ -4460,9 +4462,11 @@ public class ArrayList<E> extends AbstractList<E>
    }
   ```
 
-* Fail-Fast：modCount 用来记录 ArrayList 结构发生变化的次数，结构发生变化是指添加或者删除至少一个元素的所有操作，或者是调整内部数组的大小，仅仅只是设置元素的值不算结构发生变化
+* **Fail-Fast**：快速失败，modCount 用来记录 ArrayList **结构发生变化**的次数，结构发生变化是指添加或者删除至少一个元素的所有操作，或者是调整内部数组的大小，仅仅只是设置元素的值不算结构发生变化
 
-  在进行序列化或者迭代等操作时，需要比较操作前后 modCount 是否改变，如果改变了需要抛出 ConcurrentModificationException
+  在进行序列化或者迭代等操作时，需要比较操作前后 modCount 是否改变，如果改变了抛出 ConcurrentModificationException异常
+  
+  
 
 
 
@@ -9889,8 +9893,8 @@ Junit常用注解(Junit5.xxxx版本)
     	@AfterAll：用来静态修饰方法，该方法会在所有测试方法之后只执行一次。
 
 作用：
-	开始执行的方法：初始化资源。
-	执行完之后的方法：释放资源。
+	开始执行的方法：初始化资源
+	执行完之后的方法：释放资源
 
 ```java
 public class UserService {
@@ -9956,7 +9960,7 @@ public class UserServiceTest {
 
 
 
-### 反射
+### 介绍反射
 
 反射是指对于任何一个类，在"运行的时候"都可以直接得到这个类全部成分
 
@@ -10330,26 +10334,17 @@ public class ReflectDemo {
 
 ### 概念
 
-注解：
-       用在类上，方法上，成员变量，构造器，...上对成分进行编译约束，标记等操作的。
-       注解是JDK1.5的新特性。
-       注解相当一种标记，是类的组成部分，可以给类携带一些额外的信息。
-       注解是给编译器或JVM看的，编译器或JVM可以根据注解来完成对应的功能。
+注解：类的组成部分，可以给类携带一些额外的信息，提供一种安全的类似注释标记的机制，用来将任何信息或元数据（metadata）与程序元素（类、方法、成员变量等）进行关联
+
+* 注解是JDK1.5的新特性
+* 注解是给编译器或JVM看的，编译器或JVM可以根据注解来完成对应的功能
+* 注解类似修饰符，应用于包、类型、构造方法、方法、成员变量、参数及本地变量的声明语句中
 
 注解作用：
-       1.标记。
-       2.方法重写约束 @Override
-       3.函数式接口约束 @FunctionalInterface.
-       4.现今流行的框架技术多半都是在使用注解和反射。都是属于框架的底层基础技术。
 
-```java
-public class AnnotationDemo01 {}
-
-@FunctionalInterface
-interface A{
-    void test();
-}
-```
+* 标记
+* 框架技术多半都是在使用注解和反射，都是属于框架的底层基础技术
+* 在编译时进行格式检查，比如方法重写约束 @Override、函数式接口约束 @FunctionalInterface.
 
 
 
@@ -10357,15 +10352,15 @@ interface A{
 
 
 
-### 自定义
+### 注解格式
+
+定义格式：自定义注解用@interface关键字，注解默认可以标记很多地方
 
 ```java
 修饰符 @interface 注解名{
      // 注解属性
 }
 ```
-
-自定义注解用@interface关键字，注解默认可以标记很多地方。
 
 使用注解的格式：@注解名
 
@@ -10392,18 +10387,17 @@ public class MyBook {
 
 #### 普通属性
 
-属性的格式
-	格式1：数据类型 属性名();
-	格式2：数据类型 属性名() default 默认值;
+注解可以有属性，**属性名必须带()**，在用注解的时候，属性必须赋值，除非属性有默认值
+
+属性的格式：
+
+* 格式1：数据类型 属性名();
+* 格式2：数据类型 属性名() default 默认值;
 
 属性适用的数据类型:
-       八种数据数据类型(int，short，long，double，byte，char，boolean，float)
-       String，Class
-       以上类型的数组形式都支持
 
-小结：
-   注解可以有属性，**属性名必须带()**
-   在用注解的时候，属性必须赋值，除非这个属性有默认值！
+* 八种数据数据类型(int，short，long，double，byte，char，boolean，float) 和 String、Class
+* 以上类型的数组形式都支持
 
 ```java
 @MyBook(name="《精通Java基础》",authors = {"播仔","Dlei","播妞"} , price = 99.9 )
@@ -10428,12 +10422,13 @@ public class AnnotationDemo01 {
 #### 特殊属性
 
 注解的特殊属性名称：value
-    value属性，如果只有一个value属性的情况下，使用value属性的时候可以省略value名称不写!
-	但是如果有多个属性,且多个属性没有默认值，那么value是不能省略的。
+
+* 如果只有一个value属性的情况下，使用value属性的时候可以省略value名称不写
+* 如果有多个属性，且多个属性没有默认值，那么value是不能省略的
 
 ```java
 //@Book("/deleteBook.action")
-//@Book(value = "/deleteBook.action" , age = 12)
+@Book(value = "/deleteBook.action" , age = 12)
 public class AnnotationDemo01{
 }
 
@@ -10451,36 +10446,33 @@ public class AnnotationDemo01{
 
 ### 元注解
 
-元注解是sun公司提供的，用在自定义注解上的注解。元注解是用来注解自定义注解的。
+元注解是sun公司提供的，用来注解自定义注解
 
-元注解有两个：
-    @Target : 约束自定义注解可以标记的范围，
-       		但是默认的注解可以在类，方法，构造器，成员变量，... 使用。
-    @Retention : 标识注解的生命周期
-				申明注解的作用范围：编译时，运行时。
-	@Inherited : 表示修饰的自定义注解可以被子类继承
-	@Documented : 表示该自定义注解，会出现在API文档里面。
+元注解有四个：
 
-**成员变量是类中的变量，不是方法中的变量**
+* @Target：约束自定义注解可以标记的范围，默认值为任何元素，表示该注解用于什么地方
 
-```java
-@Target
-	作用：用来标识注解使用的位置，如果没有使用该注解标识，则自定义的注解可以使用在任意位置。
-	可使用的值定义在ElementType枚举类中，常用值如下
-		TYPE，类，接口
-        FIELD, 成员变量
-        METHOD, 成员方法
-        PARAMETER, 方法参数
-        CONSTRUCTOR, 构造器
-        LOCAL_VARIABLE, 局部变量
+  可使用的值定义在ElementType枚举类中：
 
-@Retention
-	作用：用来标识注解的生命周期(有效存活范围)
-	可使用的值定义在RetentionPolicy枚举类中，常用值如下
-    	SOURCE：注解只作用在源码阶段，生成的字节码文件中不存在
-    	CLASS：注解作用在源码阶段，字节码文件阶段，运行阶段不存在，默认值.
-		RUNTIME：注解作用在源码阶段，字节码文件阶段，运行阶段（开发常用）
-```
+  - `ElementType.CONSTRUCTOR`：用于描述构造器
+  - `ElementType.FIELD`：成员变量、对象、属性（包括enum实例）
+  - `ElementType.LOCAL_VARIABLE`：用于描述局部变量
+  - `ElementType.METHOD`：用于描述方法
+  - `ElementType.PACKAGE`：用于描述包
+  - `ElementType.PARAMETER`：用于描述参数
+  - `ElementType.TYPE`：用于描述类、接口(包括注解类型) 或enum声明
+
+* @Retention：定义该注解的生命周期，申明注解的作用范围：编译时，运行时
+
+  可使用的值定义在RetentionPolicy枚举类中：
+
+  - `RetentionPolicy.SOURCE`：在编译阶段丢弃，这些注解在编译结束之后就不再有任何意义，只作用在源码阶段，生成的字节码文件中不存在。`@Override`, `@SuppressWarnings`都属于这类注解
+  - `RetentionPolicy.CLASS`：在类加载时丢弃，在字节码文件的处理中有用，运行阶段不存在，默认值
+  - `RetentionPolicy.RUNTIME` : 始终不会丢弃，运行期也保留该注解，因此可以使用反射机制读取该注解的信息，自定义的注解通常使用这种方式
+
+* @Inherited：表示修饰的自定义注解可以被子类继承
+
+* @Documented：表示是否将自定义的注解信息添加在 java 文档中
 
 ```java
 public class AnnotationDemo01{
@@ -10510,21 +10502,19 @@ public class AnnotationDemo01{
 
 注解解析相关的接口：
 
-* Annotation : 注解类型，该类是所有注解的父类，注解都是一个Annotation的对象
-* AnnotatedElement : 该接口定义了与注解解析相关的方法
-* 类成分Class, Method , Field , Constructor : 实现了AnnotatedElement接口，都拥有解析注解的能力
+* Annotation：注解类型，该类是所有注解的父类，注解都是一个Annotation的对象
+* AnnotatedElement：该接口定义了与注解解‘析相关的方法
+* Class、Method、Field、Constructor类成分：实现AnnotatedElement接口，拥有解析注解的能力
 
 API ：
-`Annotation[] getDeclaredAnnotations()` : 获得当前对象上使用的所有注解，返回注解数组。
-`T getDeclaredAnnotation(Class<T> annotationClass)` : 根据注解类型获得对应注解对象
-`T getAnnotation(Class<T> annotationClass)` : 根据注解类型获得对应注解对象
-`boolean isAnnotationPresent(Class<Annotation> annotationClass)` : 判断对象是否使用了指定的注解
+  `Annotation[] getDeclaredAnnotations()` : 获得当前对象上使用的所有注解，返回注解数组
+  `T getDeclaredAnnotation(Class<T> annotationClass)` : 根据注解类型获得对应注解对象
+  `T getAnnotation(Class<T> annotationClass)` : 根据注解类型获得对应注解对象
+  `boolean isAnnotationPresent(Class<Annotation> class)` : 判断对象是否使用了指定的注解
 
-解析注解数据的原理：
-    注解在哪个成分上，我们就先拿哪个成分对象。
-    比如注解作用成员方法，则要获得该成员方法对应的Method对象，再来拿上面的注解
-    比如注解作用在类上，则要该类的Class对象，再来拿上面的注解
-    比如注解作用在成员变量上，则要获得该成员变量对应的Field对象，再来拿上面的注解
+注解原理：注解本质是一个继承了`Annotation` 的特殊接口，其具体实现类是Java 运行时生成的**动态代理类**，通过反射获取注解时，返回的是Java 运行时生成的动态代理对象`$Proxy1`，通过代理对象调用自定义注解（接口）的方法，会最终调用`AnnotationInvocationHandler` 的`invoke`方法，该方法会从`memberValues` 这个Map 中找出对应的值，而`memberValues` 的来源是Java 常量池
+
+解析注解数据的原理：注解在哪个成分上，就先拿哪个成分对象，比如注解作用在类上，则要该类的Class对象，再来拿上面的注解
 
 ```java
 public class AnnotationDemo{
@@ -10575,14 +10565,10 @@ class BookStore{
 
 ### 注解模拟
 
-注解模拟写一个Junit框架的基本使用。
+注解模拟写一个Junit框架的基本使用
 
-分析：
-    （1）定义一个自定义注解MyTest.
-				只能注解方法。
-				存活范围一直都在。
-    （2）定义若干个方法，只要有@MyTest注解的方法就能被触发执行！！
-				没有这个注解的方法不能执行！！
+1. 定义一个自定义注解MyTest，只能注解方法，存活范围一直都在。
+2. 定义若干个方法，只要有@MyTest注解的方法就能被触发执行，没有这个注解的方法不能执行！！
 
 ```java
 public class TestDemo{
@@ -11970,12 +11956,11 @@ public class Demo1_27 {
 
 变量的位置不取决于它是基本数据类型还是引用数据类型，取决于它的声明位置
 
-静态内部类和其他内部类：（待考证）
+静态内部类和其他内部类：
 
 * **一个class文件只能对应一个public类型的类**，这个类可以有内部类，但不会生成新的class文件
 
-* 静态内部类属于类本身，加载到方法区
-* 其他内部类属于内部类的属性，加载到栈
+* 静态内部类属于类本身，加载到方法区，其他内部类属于内部类的属性，加载到栈（待考证）
 
 类变量：
 
@@ -12078,6 +12063,10 @@ public class Demo1_27 {
 
 
 
+***
+
+
+
 #### 节约内存
 
 * 尽量使用基本类型
@@ -12099,15 +12088,25 @@ public class Demo1_27 {
 
 
 
+***
+
+
+
 #### 对象访问
 
 JVM是通过栈帧中的对象引用访问到其内部的对象实例：（内部结构查看类加载部分）
 
 * 句柄访问
+  使用该方式，Java堆中会划分出一块内存来作为句柄池，reference中存储的就是对象的句柄地址，而句柄中包含了对象实例数据和类型数据各自的具体地址信息
+  优点：reference中存储的是稳定的句柄地址，在对象被移动（垃圾收集）时只会改变句柄中的实例数据指针，而reference本身不需要被修改。
+  
   <img src="https://gitee.com/seazean/images/raw/master/Java/JVM-对象访问-句柄访问.png" style="zoom: 50%;" />
-
+  
 * 直接指针(HotSpot采用)
-  <img src="https://gitee.com/seazean/images/raw/master/Java/JVM-对象访问-直接指针.png" style="zoom:50%;" />
+  使用该方式，Java堆对象的布局必须考虑如何放置访问类型数据的相关信息，reference中直接存储的就是对象地址
+  优点：速度更快，**节省了一次指针定位的时间开销**
+  
+  <img src="https://gitee.com/seazean/images/raw/master/Java/JVM-对象访问-直接指针.png" style="zoom: 67%;" />
 
 
 
@@ -12177,8 +12176,9 @@ JVM是通过栈帧中的对象引用访问到其内部的对象实例：（内�
 晋升到老年代：
 
 * **长期存活的对象进入老年代**：为对象定义年龄计数器，对象在 Eden 出生并经过 Minor GC 依然存活，将移动到 Survivor 中，年龄就增加 1 岁，增加到一定年龄则移动到老年代中
-  * -XX:MaxTenuringThreshold：用来定义年龄的阈值，在JVM中用4个bit存储（放在对象头中），所以其最大值是15，默认也是15
-* **大对象直接进入老年代**：需要连续内存空间的对象，最典型的大对象是很长的字符串以及数组；避免在 Eden 和 Survivor 之间的大量复制；经常出现大对象会提前触发GC以获取足够的连续空间分配给大对象，`-XX:PretenureSizeThreshold`，大于此值的对象直接在老年代分配
+  `-XX:MaxTenuringThreshold`：定义年龄的阈值，在JVM中用4个bit存储（放在对象头中），所以其最大值是15，默认也是15
+* **大对象直接进入老年代**：需要连续内存空间的对象，最典型的大对象是很长的字符串以及数组；避免在 Eden 和 Survivor 之间的大量复制；经常出现大对象会提前触发GC以获取足够的连续空间分配给大对象
+  `-XX:PretenureSizeThreshold`：大于此值的对象直接在老年代分配
 * **动态对象年龄判定**：如果在Survivor区中相同年龄的对象的所有大小之和超过Survivor空间的一半，年龄大于或等于该年龄的对象就可以直接进入老年代
 
 空间分配担保：
@@ -12236,8 +12236,7 @@ JVM是将TLAB作为内存分配的首选，但不是所有的对象实例都能�
 **逃逸分析**：并不是直接的优化手段，而是一个代码分析，通过动态分析对象的作用域，为其它优化手段如栈上分配、标量替换和同步消除等提供依据，发生逃逸行为的情况有两种：方法逃逸和线程逃逸
 
 * 方法逃逸：当一个对象在方法中定义之后，被外部方法引用
-  * 全局逃逸：一个对象的作用范围逃出了当前方法或者当前线程
-    * 比如对象是一个静态变量、全局变量赋值、已经发生逃逸的对象、作为当前方法的返回值
+  * 全局逃逸：一个对象的作用范围逃出了当前方法或者当前线程，比如对象是一个静态变量、全局变量赋值、已经发生逃逸的对象、作为当前方法的返回值
   * 参数逃逸：一个对象被作为方法参数传递或者被参数引用
 * 线程逃逸：如类变量或实例变量，可能被其它线程访问到
 
@@ -14802,7 +14801,7 @@ public class MyClassLoader extends ClassLoader{
 ```java
 public class ClassLoaderTest {
     public static void main(String[] args) throws Exception {
-        MyClassLoader classLoader = new MyClassLoader("D:\\workspace\\course\\java97\\redisLock\\src\\main\\java");
+        MyClassLoader classLoader = new MyClassLoader("D:\\workspace\\project\\src\\main\\java");
         Class clazz = classLoader.loadClass("com.demo.User");
         System.out.println(clazz.getClassLoader().getClass().getName());
     }
@@ -21850,7 +21849,7 @@ class ThreadB extends Thread{
 
 
 
-### Concurrent
+### ConHashMap
 
 #### Map背景
 
@@ -22236,7 +22235,7 @@ public ConcurrentHashMap(int initialCapacity,float loadFactor,int concurrencyLev
 
 ConcurrentHashMap 对锁粒度进行了优化，**分段锁技术**，将整张表分成了多个数组（Segment），每个数组元素又是一个类似 HashMap 数组的结构，当需要并发时，锁住的是每个Segment，其他Segment还是可以操作的，这样不同Segment之间就可以实现并发，大大提高效率
 
-底层结构： **Segment 数组 + HashEntry 数组 + 链表**
+底层结构： **Segment 数组 + HashEntry 数组 + 链表**（数组+链表是HashMap的结构）
 
 * 优点：如果多个线程访问不同的 segment，实际是没有冲突的，这与 jdk8 中是类似的
 
@@ -22712,6 +22711,21 @@ public static void main(String[] args) throws InterruptedException {
 
 
 
+#### 安全失败
+
+**在 java.util 包的集合类就都是快速失败的，而 java.util.concurrent 包下的类都是安全失败**
+
+* 快速失败：在 A 线程使用迭代器对集合进行遍历的过程中，此时 B 线程对集合进行修改（增删改），或者 A 线程在遍历过程中对集合进行修改，都会导致 A 线程抛出 ConcurrentModificationException 异常
+  * AbstractList 类中的成员变量 modCount，用来记录 List 结构发生变化的次数，**结构发生变化**是指添加或者删除至少一个元素的操作，或者是调整内部数组的大小，仅仅设置元素的值不算结构发生变化
+  * 在进行序列化或者迭代等操作时，需要比较操作前后 modCount 是否改变，如果改变了抛出 CME 异常
+* 安全失败：采用安全失败机制的集合容器，在遍历时不是直接在集合内容上访问的，而是先复制原有集合内容，在拷贝的集合上进行遍历。由于迭代时是对原集合的拷贝进行遍历，所以在遍历过程中对原集合所作的修改并不能被迭代器检测到，故不会抛 ConcurrentModificationException 异常
+
+
+
+***
+
+
+
 ### Collections
 
 Collections类是用来操作集合的工具类，提供了集合转换成线程安全的方法：
@@ -22722,7 +22736,7 @@ Collections类是用来操作集合的工具类，提供了集合转换成线程
  }
 ```
 
-源码：
+源码：底层也是对方法进行加锁
 
 ```java
 public boolean add(E e) {
@@ -22730,7 +22744,7 @@ public boolean add(E e) {
 }
 ```
 
-底层也是对方法进行加锁
+
 
 
 
