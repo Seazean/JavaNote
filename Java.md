@@ -132,6 +132,14 @@ G-->H[double]
   float f2 = (float) d2;//向下转型需要强转
   ```
 
+  ```java
+  int i1 = 1245;
+  long l1 = i1;
+  
+  long l2 = 1234;
+  int i2 = (int) l2;
+  ```
+
 * 隐式类型转换：
 
   字面量 1 是 int 类型，它比 short 类型精度要高，因此不能隐式地将 int 类型向下转型为 short 类型
@@ -144,14 +152,6 @@ G-->H[double]
   s1 = (short) (s1 + 1);
   ```
 
-  ```java
-  int i1 = 1245;
-  long l1 = i1;
-  
-  long l2 = 1234;
-  int i2 = (int) l2;
-  ```
-  
   
   
   
@@ -4956,7 +4956,7 @@ public static void main(String[] args){
 
 #### HashMap
 
-##### 集合概述
+##### 基本介绍
 
 HashMap基于哈希表的Map接口实现，是以key-value存储形式存在，主要用来存放键值对
 
@@ -4967,6 +4967,13 @@ HashMap基于哈希表的Map接口实现，是以key-value存储形式存在，�
 * key、value都可以为null，但是键位置只能是一个null
 * HashMap中的映射不是有序的，即存取是无序的
 * **key要存储的是自定义对象，需要重写hashCode和equals方法，防止出现地址不同内容相同的key**
+
+JDK7对比JDK8：
+
+* 7 = 数组 + 链表，8 = 数组 + 链表 + 红黑树
+* 7中是头插法，多线程容易造成环，8中是尾插法
+* 7的扩容是全部数据重新定位，8中是位置不变或者当前位置 + 旧size大小来实现
+* 7是先判断是否要扩容再插入，8中是先插入再看是否要扩容
 
 底层数据结构：
 
@@ -12604,7 +12611,7 @@ Java语言提供了对象终止（finalization）机制来允许开发人员提�
 
 ### 垃圾回收器
 
-#### GC概述
+#### 概述
 
 垃圾收集器分类：
 
@@ -12784,7 +12791,8 @@ CMS收集器的关注点是尽可能缩短垃圾收集时用户线程的停顿�
 
 * `-XX:CMSInitiatingoccupanyFraction`：设置堆内存使用率的阈值，一旦达到该阈值，便开始进行回收
 
-  * JDK5及以前版本的默认值为68，即当老年代的空间使用率达到68%时，会执行一次CMS回收，JDK6及以上版本默认值为92%
+  * JDK5及以前版本的默认值为68，即当老年代的空间使用率达到68%时，会执行一次CMS回收
+  * JDK6及以上版本默认值为92%
 
 * `-XX:+UseCMSCompactAtFullCollection`：用于指定在执行完Full GC后对内存空间进行压缩整理，以此避免内存碎片的产生，由于内存压缩整理过程无法并发执行，所带来的问题就是停顿时间变得更长
 
@@ -12846,7 +12854,7 @@ G1对比其他处理器的优点：
 
 G1垃圾收集器的缺点：
 
-* 相较于CMS，G1还不具备全方位、压倒性优势。比如在用户程序运行过程中，G1无论是为了垃圾收集产生的内存占用（Footprint）还是程序运行时的额外执行负载（overload）都要比CMS要高
+* 相较于CMS，G1还不具备全方位、压倒性优势。比如在用户程序运行过程中，G1无论是为了垃圾收集产生的内存占用还是程序运行时的额外执行负载都要比CMS要高
 * 从经验上来说，在小内存应用上CMS的表现大概率会优于G1，而G1在大内存应用上则发挥其优势。平衡点在6-8GB之间
 
 应用场景：
@@ -19834,9 +19842,9 @@ AQS 核心思想：
 
 state设计：
 
-* state **使用 volatile 配合 cas** 保证其修改时的原子性
 * state 使用了 32bit int 来维护同步状态
-* state 表示允许的进入的线程数
+* state **使用 volatile 修饰配合 cas** 保证其修改时的原子性
+* state 表示已经进入的线程数或者许可进入的线程数
 * state API：
   `protected final int getState()`：获取 state 状态
   `protected final void setState(int newState)`：设置 state 状态
@@ -19844,9 +19852,9 @@ state设计：
 
 waitstate设计：
 
-* 使用**volatile 配合 cas**保证其修改时的原子性
+* 使用**volatile 修饰配合 cas**保证其修改时的原子性
 
-* Node 节点的几种状态：
+* 表示Node节点的状态，有以下几种状态：
 
   ```java
   //由于超时或中断，此节点被取消，不会再改变状态
@@ -21817,7 +21825,7 @@ class ThreadA extends Thread{
     public void run() {
         try{
             sout("线程A，做好了礼物A，等待线程B送来的礼物B");
-            //如果等待了5s还没有交换它就去死（抛出异常）！
+            //如果等待了5s还没有交换就死亡（抛出异常）！
             String s = exchanger.exchange("礼物A",5,TimeUnit.SECONDS);
             sout("线程A收到线程B的礼物：" + s);
         } catch (Exception e) {
@@ -21833,7 +21841,7 @@ class ThreadB extends Thread{
     @Override
     public void run() {
         try {
-            System.out.println("线程B,做好了礼物B,等待线程A送来的礼物A.....");
+            sout("线程B,做好了礼物B,等待线程A送来的礼物A.....");
             // 开始交换礼物。参数是送给其他线程的礼物!
             sout("线程B收到线程A的礼物：" + exchanger.exchange("礼物B"));
         } catch (Exception e) {
@@ -22580,13 +22588,16 @@ ConcurrentHashMap 对锁粒度进行了优化，**分段锁技术**，将整张�
 
 
 
-### LinkedQueue 
+### LinkedQueue
+
+（待更新）
 
 ConcurrentLinkedQueue 的设计与 LinkedBlockingQueue 相似：
 
 * 两把锁，同一时刻，可以允许两个线程同时（一个生产者与一个消费者）执行
 * dummy 节点的引入让两把锁将来锁住的是不同对象，避免竞争
-* 只是这锁使用了 cas 来实现
+* 锁使用了 cas 来实现
+* 此队列不允许使用 null 元素
 
 
 

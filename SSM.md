@@ -1305,9 +1305,9 @@ PageInfo相关API：
 
 
 
-### Assocation实现延迟加载
+### Assocation
 
-一对多,多对多
+一对多，多对多
 
 * 核心配置文件
 
@@ -1399,7 +1399,7 @@ PageInfo相关API：
 
 
 
-### Collection实现延迟加载
+### Collection
 
 同样在一对多关系配置的<collection>结点中配置延迟加载策略。 <collection>结点中也有select属性，column属性。
 
