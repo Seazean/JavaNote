@@ -3707,9 +3707,9 @@ public class JDBCDemo01 {
       }
   }
   ```
-```
+
   
-  
+
 
 
 
@@ -3732,7 +3732,6 @@ public class JDBCDemo01 {
       private Integer age;
       private Date birthday;
       ........
-```
 
 - 数据准备
 

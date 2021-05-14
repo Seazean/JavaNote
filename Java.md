@@ -111,7 +111,7 @@ G[float]
 G-->H[double]
 ```
 
-##### 上下转型
+上下转型
 
 * float 与 double：
 
@@ -189,7 +189,7 @@ Java为包装类做了一些特殊功能，具体来看特殊功能主要有：
   2. 调用Integer.toString(基本数据类型的值)得到字符串
   3. 直接把基本数据类型+空字符串就得到了字符串（推荐使用）
 
-* 把字符串类型的数值转换成对应的基本数据类型的值。（**重要**）
+* 把字符串类型的数值转换成对应的基本数据类型的值（**重要**）
 
   1. Xxx.parseXxx("字符串类型的数值")  ---->Integer.parseInt(numStr)
   2. Xxx.valueOf("字符串类型的数值")    ---->Integer.valueOf(numStr) （推荐使用）
@@ -231,8 +231,9 @@ Java为包装类做了一些特殊功能，具体来看特殊功能主要有：
 
 #### 装箱拆箱
 
-* **自动装箱**：可以直接把基本数据类型的值或者变量赋值给包装类
-* **自动拆箱**：可以把包装类的变量直接赋值给基本数据类型
+**自动装箱**：可以直接把基本数据类型的值或者变量赋值给包装类
+
+**自动拆箱**：可以把包装类的变量直接赋值给基本数据类型
 
 ```java
 public class PackegeClass {
@@ -240,10 +241,6 @@ public class PackegeClass {
         int a = 12 ;
         Integer a1 = 12 ;  // 自动装箱
         Integer a2 = a ;   // 自动装箱
-
-        double b = 99.9;
-        Double b1 = 99.9; // 自动装箱
-        Double b2 = b ;   // 自动装箱
 
         Integer c = 100 ;
         int c1 = c ;      // 自动拆箱
@@ -408,11 +405,7 @@ public class ScannerDemo {
 
 #### 内存分配
 
-##### 概念
-
 内存是计算机中的重要原件，临时存储区域，作用是运行程序。我们编写的程序是存放在硬盘中的，在硬盘中的程序是不会运行的。必须放进内存中才能运行，运行完毕后会清空内存。 Java虚拟机要运行程序，必须要对内存进行空间的分配和管理。 
-
-目前我们只需要记住两个内存，分别是：栈内存和堆内存
 
 | 区域名称   | 作用                                                     |
 | ---------- | -------------------------------------------------------- |
@@ -422,9 +415,7 @@ public class ScannerDemo {
 | 堆内存     | 存储对象或者数组，new来创建的，都存储在堆内存            |
 | 方法栈     | 方法运行时使用的内存，比如main方法运行，进入方法栈中执行 |
 
-
-
-##### 内存图
+**内存分配图**：
 
 * Java内存分配-一个数组内存图
 
@@ -442,7 +433,7 @@ public class ScannerDemo {
 
 
 
-#### 异常
+#### 数组异常
 
 * 索引越界异常：ArrayIndexOutOfBoundsException 
 
@@ -1384,11 +1375,12 @@ public class ClassDemo {
 
 #### 构造器
 
+构造器：格式：
+
 ```java
-构造器：
-    格式：修饰符 类名(形参列表){
-    
-         }
+修饰符 类名(形参列表){
+
+}
 ```
 
 作用：初始化类的一个对象返回
@@ -1409,13 +1401,13 @@ public class ClassDemo {
 
 ### 包
 
-* 包：
-      分门别类的管理各种不同的技术。
-      企业的代码必须用包区分。便于管理技术，扩展技术，阅读技术。
-* 定义包的格式：package 包名; 必须放在类名的最上面。
-* 注意：
-  相同包下的类可以直接访问；不同包下的类必须导包,才可以使用！
-  导包格式：import 包名.类名;
+包：分门别类的管理各种不同的技术，便于管理技术，扩展技术，阅读技术。
+
+定义包的格式：`package 包名; `，必须放在类名的最上面。
+
+导包格式：`import 包名.类名;`
+
+相同包下的类可以直接访问；不同包下的类必须导包才可以使用
 
 
 
@@ -1444,28 +1436,11 @@ public class ClassDemo {
 ### this
 
 this关键字的作用：
-	this关键字代表了当前对象的引用。
-	this出现在方法中：**哪个对象调用这个方法this就代表谁。**
-	this可以出现在构造器中：代表构造器正在初始化的那个对象。
-	this可以区分变量是访问的成员变量还是局部变量。
 
-```java
-public class ThisDemo{
-	public static void main(String[] args){
-		Animal a = new Animal();
-        a.setName("狗子");
-	}
-}
-class Aniaml{
-    private String name;
-    private int age ;
-    .....
-    public void setName(String name) {
-        // 谁调用这个方法，this就代表谁!!!
-		this.name = name; //  a.name = 狗子
-    }
-}
-```
+* this关键字代表了当前对象的引用
+* this出现在方法中：**哪个对象调用这个方法this就代表谁**
+* this可以出现在构造器中：代表构造器正在初始化的那个对象
+* this可以区分变量是访问的成员变量还是局部变量
 
 
 
@@ -1778,29 +1753,22 @@ class Animal{
 
 继承后super调用父类构造器，父类构造器初始化继承自父类的数据。
 
-super(...)：可以根据参数选择调用父类的某个构造器。
-
 
 总结与拓展：
 
-> this代表了当前对象的引用（继承中指代子类对象）：
-> 	this.子类成员变量。
-> 	this.子类成员方法。
->    	this(...):可以根据参数匹配访问本类其他构造器。
-> super代表了父类对象的引用（继承中指代了父类对象空间）
->    	super.父类成员变量。
->    	super.父类的成员方法。
->    	super(...):可以根据参数匹配访问父类的构造器。
+* this代表了当前对象的引用（继承中指代子类对象）：this.子类成员变量、this.子类成员方法、**this(...)**可以根据参数匹配访问本类其他构造器。
+* super代表了父类对象的引用（继承中指代了父类对象空间）：super.父类成员变量、super.父类的成员方法、super(...)可以根据参数匹配访问父类的构造器
 
 **注意：**
-    this(...)借用本类其他构造器，super(...)调用父类的构造器。
-    this(...)和super(...)必须放在构造器的第一行，否则报错!
-    this(...)和super(...)不能同时出现在构造器中，因为构造函数必须出现在第一行上，只能选择一个。
+
+* this(...)借用本类其他构造器，super(...)调用父类的构造器。
+* this(...)或super(...)必须放在构造器的第一行，否则报错!
+* this(...)和super(...)不能同时出现在构造器中，因为构造函数必须出现在第一行上，只能选择一个。
 
 ```java
 public class ThisDemo {
     public static void main(String[] args) {
-        // 需求：希望如果不写学校默认就是”黑马“！
+        // 需求：希望如果不写学校默认就是”张三“！
         Student s1 = new Student("天蓬元帅", 1000 );
         Student s2 = new Student("齐天大圣", 2000, "清华大学" );
     }
@@ -1821,7 +1789,7 @@ class Student{
     }
     public Student(String name , int age){
         // 借用兄弟构造器的功能！
-        this(name , age , "黑马");
+        this(name , age , "张三");
     }
 	public Student(String name, int age, String schoolName) {
         this.name = name;
@@ -1859,16 +1827,6 @@ final用于修饰：类，方法，变量
 
 #### 修饰变量
 
-代码块的相关知识
-
->* 成员变量
->      * 静态成员变量：有static修饰，属于类，只加载一份
->      *  实例成员变量：无static修饰，属于每个对象,与对象一起加载
->* 局部变量
->      * 只能方法中，构造器中，代码块中，for循环中，用完作用范围就消失了。 
->* final修饰局部变量：
->      * 让值被固定或者说保护起来，执行的过程中防止被修改。
-
 ##### 静态成员变量
 
 final修饰静态成员变量，变量变成了常量
@@ -1884,13 +1842,13 @@ final修饰静态成员变量可以在哪些地方赋值：
 ```java
 public class FinalDemo {
 //常量：public static final修饰，名称字母全部大写，下划线连接。
-    public static final String SCHOOL_NAME = "黑马" ;
+    public static final String SCHOOL_NAME = "张三" ;
     public static final String SCHOOL_NAME1;
 
     static{
         //SCHOOL_NAME = "java";//报错
-        SCHOOL_NAME1 = "黑马1";
-        //SCHOOL_NAME1 = "黑马2"; // 报错，第二次赋值！
+        SCHOOL_NAME1 = "张三1";
+        //SCHOOL_NAME1 = "张三2"; // 报错，第二次赋值！
     }
 }
 ```
@@ -1909,24 +1867,24 @@ final修饰实例成员变量可以在哪些地方赋值1次：
 
 ```java
 public class FinalDemo {
-    private final String name = "黑马" ;
+    private final String name = "张三" ;
     private final String name1;
     private final String name2;
     {
         // 可以在实例代码块中赋值一次。
-        name1 = "黑马1";
+        name1 = "张三1";
     }
 	//构造器赋值一次
     public FinalDemo(){
-        name2 = "黑马2";
+        name2 = "张三2";
     }
     public FinalDemo(String a){
-        name2 = "黑马2";
+        name2 = "张三2";
     }
 
     public static void main(String[] args) {
         FinalDemo f1 = new FinalDemo();
-        //f1.name = "黑马1"; // 第二次赋值 报错！
+        //f1.name = "张三1"; // 第二次赋值 报错！
     }
 }
 ```
@@ -1993,7 +1951,7 @@ public class AbstractDemo {
 }
 abstract class Animal{
     private String name;
-    public static String schoolName = "黑马";
+    public static String schoolName = "张三";
     public Animal(){ }
 
     public abstract void run();
@@ -2078,8 +2036,8 @@ abstract class Template{
 
   ```java
   public interface InterfaceDemo{
-      //public static final String SCHOOL_NAME = "黑马";
-  	String SCHOOL_NAME = "黑马";
+      //public static final String SCHOOL_NAME = "张三";
+  	String SCHOOL_NAME = "张三";
       
       //public abstract void run();
       void run();//默认补充
@@ -2155,7 +2113,7 @@ abstract class Template{
 
 
 
-#### JDK1.8以后
+#### JDK8以后
 
 jdk1.8以后新增的功能，实际开发中很少使用
 
@@ -2218,7 +2176,7 @@ interface InterfaceJDK8{
 
 
 
-#### 抽象类对比
+#### 对比抽象类
 
 | **参数**           | **抽象类**                                                   | **接口**                                                     |
 | ------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
@@ -2497,7 +2455,7 @@ new 类名|抽象类|接口(形参){
 * 匿名内部类一旦写出来，就会立即创建一个匿名内部类的对象返回
 * **匿名内部类的对象的类型相当于是当前new的那个的类型的子类类型**
 * 匿名内部类引用局部变量，局部变量必须是**常量**，底层创建为内部类的成员变量（JVM-->类加载-->编译优化-->内部类）
-  * 在Java中方法调用是值传递的，在匿名内部类中对变量的操作都是基于原变量的副本，不会影响到原变量的值
+  * 在Java中方法调用是值传递的，在匿名内部类中对变量的操作都是基于原变量的副本，不会影响到原变量的值，所以原变量的值的改变也无法同步到副本中
   * 外部变量为final是在编译期以强制手段确保用户不会在内部类中做修改原变量值的操作，也是防止外部操作修改了变量而内部类无法随之变化出现的影响
 
 ```java
@@ -2580,7 +2538,7 @@ public class CodeDemo {
     static {
         System.out.println("静态代码块被触发执行~~~~~~~");
         // 在静态代码块中进行静态资源的初始化操作
-        schoolName = "黑马";
+        schoolName = "张三";
         lists.add("3");
         lists.add("4");
         lists.add("5");
@@ -2593,7 +2551,7 @@ public class CodeDemo {
 }
 /*静态代码块被触发执行~~~~~~~
 main方法被执行
-黑马
+张三
 [3, 4, 5] */
 ```
 
@@ -4465,8 +4423,6 @@ public class ArrayList<E> extends AbstractList<E>
 * **Fail-Fast**：快速失败，modCount 用来记录 ArrayList **结构发生变化**的次数，结构发生变化是指添加或者删除至少一个元素的所有操作，或者是调整内部数组的大小，仅仅只是设置元素的值不算结构发生变化
 
   在进行序列化或者迭代等操作时，需要比较操作前后 modCount 是否改变，如果改变了抛出 ConcurrentModificationException异常
-  
-  
 
 
 
@@ -5089,9 +5045,9 @@ HashMap继承关系如下图所示：
 
    * 为什么必须是2的n次幂？
 
-     当向HashMap中添加一个元素时，需要根据key的hash值，去确定其在数组中的具体位置。HashMap为了存取高效，要尽量较少碰撞，把数据尽可能分配均匀，每个链表长度大致相同，实现该方法的算法就是取模，hash%length，计算机中直接求余效率不如位移运算，所以源码中使用 hash&(length-1)，实际上**hash % length == hash & (length-1)的前提是length是2的n次幂**
+     向HashMap中添加元素时，需要根据key的hash值，确定在数组中的具体位置。HashMap为了存取高效，要尽量较少碰撞，把数据尽可能分配均匀，每个链表长度大致相同，实现该方法的算法就是取模，hash%length，计算机中直接求余效率不如位移运算，所以源码中使用 hash&(length-1)，实际上**hash % length == hash & (length-1)的前提是length是2的n次幂**
 
-     能均匀分布减少碰撞：2的n次方就是1后面n个0，2的n次方-1  实际是n个1，可以**保证散列的均匀性**
+     散列平均分布：2的n次方是1后面n个0，2的n次方-1 是n个1，可以**保证散列的均匀性**，减少碰撞
 
      ```java
      例如长度为8时候，3&(8-1)=3  2&(8-1)=2 ，不同位置上，不碰撞；
@@ -6929,8 +6885,8 @@ public class StreamDemo {
 		//跳过前两个
 		list.stream().filter(s -> s.length == 3).skip(2).forEach(...);
 
-		// 需求：把名称都加上“黑马的:+xxx”
-		list.stream().map(s -> "黑马的"+s).forEach(System.out::println);
+		// 需求：把名称都加上“张三的:+xxx”
+		list.stream().map(s -> "张三的"+s).forEach(System.out::println);
 		// 需求：把名称都加工厂学生对象放上去!!
 		// list.stream().map(name -> new Student(name));
 		list.stream.map(Student::new).forEach(System.out::println);
@@ -12201,7 +12157,7 @@ JVM是通过栈帧中的对象引用访问到其内部的对象实例：（内�
 
 #### TLAB
 
-TLAB：Thread Local Allocation Buffer，为每个线程在**堆内**单独分配了一个缓冲区，多线程分配内存时，使用TLAB可以避免线程安全问题，同时还能够提升内存分配的吞吐量，这种内存分配方式叫做**快速分配策略**
+TLAB：Thread Local Allocation Buffer，为每个线程在堆内单独分配了一个缓冲区，多线程分配内存时，使用TLAB可以避免线程安全问题，同时还能够提升内存分配的吞吐量，这种内存分配方式叫做**快速分配策略**
 
 - 栈上分配使用的是栈来进行对象内存的分配
 - TLAB 分配使用的是 Eden 区域进行内存分配，属于堆内存
@@ -12348,9 +12304,9 @@ Full GC 则相对复杂，**FullGC同时回收新生代和老年代，当前只�
 
 垃圾：**如果一个或多个对象没有任何的引用指向它了，那么这个对象现在就是垃圾**
 
-垃圾收集主要是针对堆和方法区进行。程序计数器、虚拟机栈和本地方法栈这三个区域属于线程私有的，只存在于线程的生命周期内，线程结束之后就会消失，因此不需要对这三个区域进行垃圾回收
+垃圾收集主要是针对堆和方法区进行，程序计数器、虚拟机栈和本地方法栈这三个区域属于线程私有的，只存在于线程的生命周期内，线程结束之后就会消失，因此不需要对这三个区域进行垃圾回收
 
-在堆里存放着几乎所有的Java对象实例，在GC执行垃圾回收之前，首先需要区分出内存中哪些是存活对象，哪些是已经死亡的对象。只有被标记为己经死亡的对象，GC才会在执行垃圾回收时，释放掉其所占用的内存空间，因此这个过程我们可以称为**垃圾标记阶段**，判断对象存活一般有两种方式：**引用计数算法**和**可达性分析算法**
+在堆里存放着几乎所有的Java对象实例，在GC执行垃圾回收之前，首先需要区分出内存中哪些是存活对象，哪些是已经死亡的对象。只有被标记为己经死亡的对象，GC才会在执行垃圾回收时，释放掉其所占用的内存空间，因此这个过程我们可以称为垃圾标记阶段，判断对象存活一般有两种方式：**引用计数算法**和**可达性分析算法**
 
 
 
@@ -18710,11 +18666,434 @@ String 类也是不可变的，该类和类中所有属性都是 final 的
 
 
 
-### 无状态
+### State
 
 无状态：成员变量保存的数据也可以称为状态信息，无状态就是没有成员变量
 
 Servlet 为了保证其线程安全，一般不为 Servlet 设置成员变量，这种没有任何成员变量的类是线程安全的
+
+
+
+***
+
+
+
+### Local
+
+#### 基本介绍
+
+ThreadLocal类用来提供线程内部的局部变量，这种变量在多线程环境下访问（通过get和set方法访问）时能保证各个线程的变量相对独立于其他线程内的变量，ThreadLocal实例通常来说都是private static类型的，用于关联线程和线程上下文
+
+作用：
+
+* 线程并发：应用在多线程并发的场景下
+
+* 传递数据：通过ThreadLocal实现在同一线程不同函数或组件中传递公共变量，减少传递复杂度
+
+* 线程隔离：每个线程的变量都是独立的，不会互相影响
+
+对比synchronized：
+
+|        | synchronized                                                 | ThreadLocal                                                  |
+| ------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| 原理   | 同步机制采用**以时间换空间**的方式，只提供了一份变量，让不同的线程排队访问 | ThreadLocal采用**以空间换时间**的方式，为每个线程都提供了一份变量的副本，从而实现同时访问而相不干扰 |
+| 侧重点 | 多个线程之间访问资源的同步                                   | 多线程中让每个线程之间的数据相互隔离                         |
+
+
+
+***
+
+
+
+#### 基本使用
+
+##### 常用方法
+
+| 方法                       | 描述                         |
+| -------------------------- | ---------------------------- |
+| ThreadLocal<>()            | 创建ThreadLocal对象          |
+| protected T initialValue() | 返回当前线程局部变量的初始值 |
+| public void set( T value)  | 设置当前线程绑定的局部变量   |
+| public T get()             | 获取当前线程绑定的局部变量   |
+| public void remove()       | 移除当前线程绑定的局部变量   |
+
+```java
+public class MyDemo {
+
+    private static ThreadLocal<String> tl = new ThreadLocal<>();
+
+    private String content;
+
+    private String getContent() {
+        // 获取当前线程绑定的变量
+        return tl.get();
+    }
+
+    private void setContent(String content) {
+        // 变量content绑定到当前线程
+        tl.set(content);
+    }
+
+    public static void main(String[] args) {
+        MyDemo demo = new MyDemo();
+        for (int i = 0; i < 5; i++) {
+            Thread thread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    // 设置数据
+                    demo.setContent(Thread.currentThread().getName() + "的数据");
+                    System.out.println("-----------------------");
+                    System.out.println(Thread.currentThread().getName() + "--->" + demo.getContent());
+                }
+            });
+            thread.setName("线程" + i);
+            thread.start();
+        }
+    }
+}
+```
+
+
+
+***
+
+
+
+##### 应用场景
+
+解决事务问题，ThreadLocal方案有两个突出的优势： 
+
+1. 传递数据：保存每个线程绑定的数据，在需要的地方可以直接获取，避免参数直接传递带来的代码耦合问题
+
+2. 线程隔离：各线程之间的数据相互隔离却又具备并发性，避免同步方式带来的性能损失
+
+```java
+public class JdbcUtils {
+    // ThreadLocal对象，将connection绑定在当前线程中
+    private static final ThreadLocal<Connection> tl = new ThreadLocal();
+    // c3p0 数据库连接池对象属性
+    private static final ComboPooledDataSource ds = new ComboPooledDataSource();
+    // 获取连接
+    public static Connection getConnection() throws SQLException {
+        //取出当前线程绑定的connection对象
+        Connection conn = tl.get();
+        if (conn == null) {
+            //如果没有，则从连接池中取出
+            conn = ds.getConnection();
+            //再将connection对象绑定到当前线程中，非常重要的操作
+            tl.set(conn);
+        }
+        return conn;
+    }
+	// ...
+}
+```
+
+
+
+****
+
+
+
+#### 底层结构
+
+JDK8以前：每个ThreadLocal都创建一个Map，然后用线程作为Map的key，要存储的局部变量作为Map的value，这样就能达到各个线程的局部变量隔离的效果
+
+![](https://gitee.com/seazean/images/raw/master/Java/JUC-ThreadLocal数据结构JDK8前.png)
+
+JDK8以后：每个Thread维护一个ThreadLocalMap，这个Map的key是ThreadLocal实例本身，value才是真正要存储的值Object
+
+* 每个Thread线程内部都有一个Map (ThreadLocalMap)
+* Map里面存储ThreadLocal对象（key）和线程的变量副本（value）
+* Thread内部的Map是由ThreadLocal维护的，由ThreadLocal负责向map获取和设置线程的变量值。
+* 对于不同的线程，每次获取副本值时，别的线程并不能获取到当前线程的副本值，形成副本的隔离，互不干扰
+
+![](https://gitee.com/seazean/images/raw/master/Java/JUC-ThreadLocal数据结构JDK8后.png)
+
+JDK8前后对比：
+
+* 每个Map存储的Entry数量会变少，因为之前的存储数量由Thread的数量决定，现在由ThreadLocal的数量决定，在实际编程当中，往往ThreadLocal的数量要少于Thread的数量
+*  当Thread销毁之后，对应的ThreadLocalMap也会随之销毁，能减少内存的使用
+
+
+
+***
+
+
+
+#### 成员方法
+
+* set()
+
+  * 获取当前线程，并根据当前线程获取一个Map
+  * 获取的Map不为空，则将参数设置到Map中（当前ThreadLocal的引用作为key）
+  * 如果Map为空，则给该线程创建 Map，并设置初始值
+
+  ```java
+  // 设置当前线程对应的ThreadLocal的值
+  public void set(T value) {
+      // 获取当前线程对象
+      Thread t = Thread.currentThread();
+      // 获取此线程对象中维护的ThreadLocalMap对象
+      ThreadLocalMap map = getMap(t);
+      // 判断map是否存在
+      if (map != null)
+          // 存在则调用map.set设置此实体entry
+          map.set(this, value);
+      else
+          // 调用createMap进行ThreadLocalMap对象的初始化
+          createMap(t, value);
+  }
+  
+  // 获取当前线程Thread对应维护的ThreadLocalMap 
+  ThreadLocalMap getMap(Thread t) {
+      return t.threadLocals;
+  }
+  // 创建当前线程Thread对应维护的ThreadLocalMap 
+  void createMap(Thread t, T firstValue) {
+      //这里的this是调用此方法的threadLocal
+      t.threadLocals = new ThreadLocalMap(this, firstValue);
+  }
+  ```
+
+* get()
+
+  ```java
+  // 获取当前线程的 ThreadLocalMap 变量，如果存在则返回值，不存在则创建并返回初始值
+  public T get() {
+      // 获取当前线程对象
+      Thread t = Thread.currentThread();
+      // 获取此线程对象中维护的ThreadLocalMap对象
+      ThreadLocalMap map = getMap(t);
+      // 如果此map存在
+      if (map != null) {
+          // 以当前的ThreadLocal 为 key，调用getEntry获取对应的存储实体e
+          ThreadLocalMap.Entry e = map.getEntry(this);
+          // 对e进行判空 
+          if (e != null) {
+              @SuppressWarnings("unchecked")
+              // 获取存储实体 e 对应的 value值
+              T result = (T)e.value;
+              return result;
+          }
+      }
+      /*初始化 : 有两种情况有执行当前代码
+        第一种情况: map不存在，表示此线程没有维护的ThreadLocalMap对象
+        第二种情况: map存在, 但是没有与当前ThreadLocal关联的entry*/
+      return setInitialValue();
+  }
+  
+  // 初始化
+  private T setInitialValue() {
+      // 调用initialValue获取初始化的值，此方法可以被子类重写, 如果不重写默认返回null
+      T value = initialValue();
+      Thread t = Thread.currentThread();
+      ThreadLocalMap map = getMap(t);
+      // 判断map是否存在
+      if (map != null)
+          // 存在则调用map.set设置此实体entry
+          map.set(this, value);
+      else
+          // 调用createMap进行ThreadLocalMap对象的初始化中
+          createMap(t, value);
+      // 返回设置的值value
+      return value;
+  }
+  ```
+
+* remove()
+
+  ```java
+  // 删除当前线程中保存的ThreadLocal对应的实体entry
+  public void remove() {
+      // 获取当前线程对象中维护的ThreadLocalMap对象
+      ThreadLocalMap m = getMap(Thread.currentThread());
+      // 如果此map存在
+      if (m != null)
+          // 存在则调用map.remove，以当前ThreadLocal为key删除对应的实体entry
+          m.remove(this);
+  }
+  ```
+
+* initialValue()
+
+  作用：返回该线程局部变量的初始值。
+
+  * 延迟调用的方法，在set方法还未调用而先调用了get方法时才执行，并且仅执行1次
+
+  * 该方法缺省（默认）实现直接返回一个``null``
+
+  * 如果想要一个初始值，可以重写此方法， 该方法是一个``protected``的方法，为了让子类覆盖而设计的
+
+  ```java
+  protected T initialValue() {
+      return null;
+  }
+  ```
+
+  
+
+***
+
+
+
+#### LocalMap
+
+##### 成员属性
+
+ThreadLocalMap是ThreadLocal的内部类，没有实现Map接口，用独立的方式实现了Map的功能，其内部Entry也是独立实现
+
+```java
+// 初始容量 —— 2的整次幂
+private static final int INITIAL_CAPACITY = 16;
+
+// 存放数据的table，Entry类的定义在下面分析，同样，数组长度必须是2的整次幂。
+private Entry[] table;
+
+//数组里面entrys的个数，可以用于判断table当前使用量是否超过阈值
+private int size = 0;
+
+// 进行扩容的阈值，表使用量大于它的时候进行扩容。
+private int threshold; // Default to 0
+```
+
+存储结构 Entry：
+
+* Entry继承WeakReference，key是弱引用，目的是将ThreadLocal对象的生命周期和线程生命周期解绑
+* Entry限制只能用ThreadLocal作为key，key为null (entry.get() == null) 意味着key不再被引用，entry也可以从table中清除
+
+```java
+static class Entry extends WeakReference<ThreadLocal<?>> {
+    Object value;
+    Entry(ThreadLocal<?> k, Object v) {
+        super(k);
+        value = v;
+    }
+}
+```
+
+
+
+***
+
+
+
+##### 成员方法
+
+* 构造方法
+
+  ```java
+  ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
+      // 初始化table，创建一个长度为16的Entry数组
+      table = new Entry[INITIAL_CAPACITY];
+      // 计算索引
+      int i = firstKey.threadLocalHashCode & (INITIAL_CAPACITY - 1);
+      // 设置值
+      table[i] = new Entry(firstKey, firstValue);
+      size = 1;
+      // 设置阈值
+      setThreshold(INITIAL_CAPACITY);
+  }
+  ```
+
+* hashcode
+
+  ```java
+  private final int threadLocalHashCode = nextHashCode();
+  // 通过线程安全的方式操作加减，适合多线程情况下的使用
+  private static AtomicInteger nextHashCode =  new AtomicInteger();
+  //特殊的hash值
+  private static final int HASH_INCREMENT = 0x61c88647;
+  
+  private static int nextHashCode() {
+      return nextHashCode.getAndAdd(HASH_INCREMENT);
+  }
+  ```
+
+  这里定义了一个AtomicInteger，每次获取当前值并加上HASH_INCREMENT，这个值跟斐波那契数列（黄金分割数）有关，这样做可以尽量避免hash冲突，让哈希码能均匀的分布在2的n次方的数组里
+
+* set()
+
+  ```java
+  private void set(ThreadLocal<?> key, Object value) {
+      ThreadLocal.ThreadLocalMap.Entry[] tab = table;
+      int len = tab.length;
+      // 计算索引
+      int i = key.threadLocalHashCode & (len-1);
+      // 使用线性探测法查找元素
+      for (ThreadLocal.ThreadLocalMap.Entry e = tab[i];
+           e != null;
+           e = tab[i = nextIndex(i, len)]) {
+          ThreadLocal<?> k = e.get();
+          // ThreadLocal 对应的 key 存在，直接覆盖之前的值
+          if (k == key) {
+              e.value = value;
+              return;
+          }
+          // key为 null，但是值不为 null，说明之前的 ThreadLocal 对象已经被回收了，
+          // 当前数组中的 Entry 是一个陈旧（stale）的元素
+          if (k == null) {
+              //用新元素替换陈旧的元素，这个方法进行了不少的垃圾清理动作，防止内存泄漏
+              replaceStaleEntry(key, value, i);
+              return;
+          }
+      }
+  
+      //ThreadLocal对应的key不存在并且没有找到陈旧的元素，则在空元素的位置创建一个新的Entry。
+      tab[i] = new Entry(key, value);
+      int sz = ++size;
+      
+      // 清除e.get()==null的元素，
+      // 如果没有清除任何entry并且当前使用量达到了负载因子所定义，那么进行 rehash
+      if (!cleanSomeSlots(i, sz) && sz >= threshold)
+          rehash();
+  }
+  
+  // 获取环形数组的下一个索引
+  private static int nextIndex(int i, int len) {
+      return ((i + 1 < len) ? i + 1 : 0);
+  }
+  
+  // 扩容阈值时长度的2/3
+  private void setThreshold(int len) {
+      threshold = len * 2 / 3;
+  }
+  ```
+
+  ThreadLocalMap使用**线性探测法**来解决哈希冲突：
+
+  * 该方法一次探测下一个地址，直到有空的地址后插入，若整个空间都找不到空余的地址，则产生溢出
+  * 假设当前table长度为16，计算出来key的hash值为14，如果table[14]上已经有值，并且其key与当前key不一致，那么就发生了hash冲突，这个时候将14加1得到15，取table[15]进行判断，如果还是冲突会回到0，取table[0]，以此类推，直到可以插入，可以把Entry[]  table看成一个**环形数组**
+
+
+
+***
+
+
+
+##### 内存泄漏
+
+Memory leak：内存泄漏是指程序中动态分配的堆内存由于某种原因未释放或无法释放，造成系统内存的浪费，导致程序运行速度减慢甚至系统崩溃等严重后果，内存泄漏的堆积终将导致内存溢出
+
+*  如果key使用强引用：
+
+  使用完ThreadLocal ，threadLocal Ref被回收，但是因为threadLocalMap的Entry强引用了threadLocal，造成threadLocal无法被回收，无法完全避免内存泄漏
+
+  <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-ThreadLocal内存泄漏强引用.png" style="zoom:67%;" />
+
+* 如果key使用弱引用：
+
+  使用完ThreadLocal ，threadLocal Ref被回收，ThreadLocalMap只持有ThreadLocal的弱引用，所以threadlocal也可以被gc回收，此时Entry中的key=null。但没有手动删除这个Entry以及CurrentThread依然运行，依然存在强引用链，value不会被回收，而这块value永远不会被访问到，导致value内存泄漏
+
+  <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-ThreadLocal内存泄漏弱引用.png" style="zoom:67%;" />
+
+* 两个主要原因：
+  * 没有手动删除这个Entry
+  * CurrentThread依然运行
+
+根本原因：ThreadLocalMap是Thread的一个属性，生命周期跟Thread一样长，如果没有手动删除对应key就会导致内存泄漏
+
+使用弱引用的原因：在ThreadLocalMap中的set/getEntry方法中，会对key为null（ThreadLocal为null）进行判断，如果为null的话，那么会对Entry进行垃圾回收。所以**弱引用比强引用多一层保障**，就算不调用remove，也有机会进行GC。
 
 
 
@@ -21887,9 +22266,8 @@ class ThreadB extends Thread{
 3. put，如果该 bin 尚未创建，只需要使用 cas 创建 bin；如果已经有了，锁住链表头进行后续 put 操作，元素
    添加至 bin 的尾部
 4. get，无锁操作仅需要保证可见性，扩容过程中 get 操作拿到的是 ForwardingNode 会让 get 操作在新 table 进行搜索
-5. 扩容，扩容时以 bin 为单位进行，需要对 bin 进行 synchronized，但这时妙的是其它竞争线程也不是无事可
-   做，它们会帮助把其它 bin 进行扩容，扩容时平均只有 1/6 的节点会把复制到新 table 中
-6. size，元素个数保存在 baseCount 中，并发时的个数变动保存在 CounterCell[] 当中。最后统计数量时累加
+5. 扩容，扩容时以 bin 为单位进行，需要对 bin 进行 synchronized，但这时其它竞争线程也不是无事可做，它们会帮助把其它 bin 进行扩容
+6. size，元素个数保存在 baseCount 中，并发时的个数变动保存在 CounterCell[] 当中，最后统计数量时累加
 
 ```java
 //需求：多个线程同时往HashMap容器中存入数据会出现安全问题
@@ -22154,6 +22532,7 @@ public ConcurrentHashMap(int initialCapacity,float loadFactor,int concurrencyLev
        Node<K,V>[] tab; int sc;
        while ((tab = table) == null || tab.length == 0) {
            if ((sc = sizeCtl) < 0)
+               // 只允许一个线程对表进行初始化，让掉当前线程 CPU 的时间片，
                Thread.yield();
            // 尝试将 sizeCtl 设置为 -1（表示初始化 table）
            else if (U.compareAndSwapInt(this, SIZECTL, sc, -1)) {
@@ -22241,7 +22620,9 @@ public ConcurrentHashMap(int initialCapacity,float loadFactor,int concurrencyLev
 
 #### JDK7源码
 
-ConcurrentHashMap 对锁粒度进行了优化，**分段锁技术**，将整张表分成了多个数组（Segment），每个数组元素又是一个类似 HashMap 数组的结构，当需要并发时，锁住的是每个Segment，其他Segment还是可以操作的，这样不同Segment之间就可以实现并发，大大提高效率
+##### 分段锁
+
+ConcurrentHashMap 对锁粒度进行了优化，**分段锁技术**，将整张表分成了多个数组（Segment），每个数组又是一个类似 HashMap 数组的结构。`ConcurrentHashMap`允许多个修改操作并发进行，并发时锁住的是每个Segment，其他Segment还是可以操作的，这样不同Segment之间就可以实现并发，大大提高效率
 
 底层结构： **Segment 数组 + HashEntry 数组 + 链表**（数组+链表是HashMap的结构）
 
@@ -22251,9 +22632,21 @@ ConcurrentHashMap 对锁粒度进行了优化，**分段锁技术**，将整张�
 
   ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ConcurrentHashMap 1.7底层结构.png)
 
-相关方法
 
-1. 构造方法
+
+
+
+##### 成员方法
+
+1. segment：是一种可重入锁，继承ReentrantLock 
+
+   ```java
+   static final class Segment<K,V> extends ReentrantLock implements Serializable {
+        transient volatile HashEntry<K,V>[] table; //可以理解为包含一个HashMap
+   }
+   ```
+   
+2. 构造方法
 
    无参构造：
 
@@ -22266,13 +22659,13 @@ ConcurrentHashMap 对锁粒度进行了优化，**分段锁技术**，将整张�
    ```java
    // 默认初始化容量
    static final int DEFAULT_INITIAL_CAPACITY = 16;
-   
    // 默认负载因子
    static final float DEFAULT_LOAD_FACTOR = 0.75f;
-   
    // 默认并发级别
    static final int DEFAULT_CONCURRENCY_LEVEL = 16;
    ```
+
+   说明：并发度就是程序运行时能够**同时更新**ConccurentHashMap且不产生锁竞争的最大线程数，实际上就是ConcurrentHashMap中的分段锁个数。如果并发度设置的过小，会带来严重的锁竞争问题；如果并发度设置的过大，原本位于同一个Segment内的访问会扩散到不同的Segment中，**CPU cache命中率**会下降
 
    ```java
    public ConcurrentHashMap(int initialCapacity, float loadFactor, int concurrencyLevel) {
@@ -22300,13 +22693,13 @@ ConcurrentHashMap 对锁粒度进行了优化，**分段锁技术**，将整张�
        // c = 容量/ssize ，默认16/16 = 1，计算每个Segment中的类似于HashMap的容量
        int c = initialCapacity / ssize;
        if (c * ssize < initialCapacity)
-           ++c;
+           ++c; //确保向上取值
        int cap = MIN_SEGMENT_TABLE_CAPACITY;
        // Segment 中的类似于 HashMap 的容量至少是2或者2的倍数
        while (cap < c)
            cap <<= 1;
    	// 创建 segment数组，设置segments[0]
-       Segment<K,V> s0 =new Segment<K,V>(loadFactor, (int)(cap * loadFactor),
+       Segment<K,V> s0 = new Segment<K,V>(loadFactor, (int)(cap * loadFactor),
                        (HashEntry<K,V>[])new HashEntry[cap]);
        // 默认大小为 2，负载因子 0.75，扩容阀值是 2*0.75=1.5，插入第二个值时才会进行扩容
        Segment<K,V>[] ss = (Segment<K,V>[])new Segment[ssize];
@@ -22315,7 +22708,7 @@ ConcurrentHashMap 对锁粒度进行了优化，**分段锁技术**，将整张�
    }
    ```
 
-2. put：头插法
+3. put：头插法
 
    segmentShift 和 segmentMask 的作用是决定将 key 的 hash 结果匹配到哪个 segment，将 hash 值 高位向低位移动 segmentShift 位，结果再与 segmentMask 做位于运算
 
@@ -22359,7 +22752,7 @@ ConcurrentHashMap 对锁粒度进行了优化，**分段锁技术**，将整张�
                // 初始化 Segment
                Segment<K,V> s = new Segment<K,V>(lf, threshold, tab);
                // 自旋检查 u 位置的 Segment 是否为null
-               while ((seg = (Segment<K,V>)UNSAFE.getObjectVolatile(ss, u))== null) {
+               while ((seg = (Segment<K,V>)UNSAFE.getObjectVolatile(ss, u))==null) {
                    // 使用CAS 赋值，只会成功一次
                    if (UNSAFE.compareAndSwapObject(ss, u, null, seg = s))
                        break;
@@ -22438,7 +22831,8 @@ ConcurrentHashMap 对锁粒度进行了优化，**分段锁技术**，将整张�
    }
    ```
 
-3. rehash
+4. rehash
+
    发生在 put 中，因为此时已经获得了锁，因此 rehash 时不需要考虑线程安全
 
    扩容扩容到原来的两倍，老数组里的数据移动到新的数组时，位置要么不变，要么变为 index+ oldSize，参数里的 node 会在扩容之后使用链表**头插法**插入到指定位置
@@ -22508,9 +22902,11 @@ ConcurrentHashMap 对锁粒度进行了优化，**分段锁技术**，将整张�
    * 第一个 for 是为了寻找一个节点，该节点后面的所有 next 节点的新位置都是相同的，然后把这个作为一个链表搬迁到新位置
    * 第二个 for 循环是为了把剩余的元素通过头插法插入到指定位置链表
 
-4. get
+5. get
 
    计算得到 key 的存放位置、遍历指定位置查找相同 key 的 value 值
+
+   用于存储键值对数据的`HashEntry`，它的成员变量value跟`next`都是`volatile`类型的，这样就保证别的线程对value值的修改，get方法可以马上看到
 
    ```java
    public V get(Object key) {
@@ -22535,7 +22931,7 @@ ConcurrentHashMap 对锁粒度进行了优化，**分段锁技术**，将整张�
    }
    ```
 
-5. size
+6. size
 
    * 计算元素个数前，先不加锁计算两次，如果前后两次结果如一样，认为个数正确返回
    * 如果不一样，进行重试，重试次数超过 3，将所有 segment 锁住，重新计算个数返回
@@ -22671,7 +23067,7 @@ public CopyOnWriteArraySet() {
 
 ##### get方法
 
-数据一致性就是读到最新更新的数据
+数据一致性就是读到最新更新的数据：
 
 * 强一致性：当更新操作完成之后，任何多个后续进程或者线程的访问都会返回最新的更新过的值
 
