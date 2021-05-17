@@ -10749,7 +10749,7 @@ SSM（Spring+SpringMVC+MyBatis）
 
 
 
-#### 返回消息兼容异常信息
+#### 兼容异常
 
 java.controller.interceptor
 
@@ -11271,9 +11271,6 @@ yml文件优势：
       @Value("${person.name}")
       private String name2;
   
-      @Value("${person.age}")
-      private String age;
-  
       @Value("${address[0]}")
       private String address1;
   
@@ -11290,7 +11287,7 @@ yml文件优势：
       }
   }
   ```
-
+  
 * Evironment对象
 
   ```java
@@ -11307,7 +11304,7 @@ yml文件优势：
 
 * 注解@ConfigurationProperties 
 
-  **注意**：prefix一定要写
+  **注意**：参数prefix一定要指定
 
   ```java
   @Component
@@ -11351,13 +11348,11 @@ Profile的配置：
 
 2. **profile配置方式**
 
-   多profile文件方式：提供多个配置文件，每个代表一种环境。
+   多profile文件方式：提供多个配置文件，每个代表一种环境
 
-   ​		application-dev.properties/yml 开发环境
-
-   ​		application-test.properties/yml 测试环境
-
-   ​		application-pro.properties/yml 生产环境
+   * application-dev.properties/yml 开发环境
+   * application-test.properties/yml 测试环境
+   * sapplication-pro.properties/yml 生产环境
 
    yml多文档方式：在yml中使用  --- 分隔不同配置
 
@@ -11460,16 +11455,14 @@ Profile的配置：
 2. 导入坐标
 
    ```xml
-    <dependencies>
-   	<!--不加可能Runwith无法使用-->
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.12</version>
-        </dependency>
-   </dependencies>
+   <!--不加可能Runwith无法使用-->
+   <dependency>
+       <groupId>junit</groupId>
+       <artifactId>junit</artifactId>
+       <version>4.12</version>
+   </dependency>
    ```
-
+   
 3. 测试类
 
    ```java
