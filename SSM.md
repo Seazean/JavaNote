@@ -1264,13 +1264,13 @@ PageInfo相关API：
 
 3. 配置statement上面的useCache属性
 
-   映射文件中的<select>标签中设置`useCache=”true”`代表当前statement要使用二级缓存。 
+   映射文件中的`<select>`标签中设置`useCache=”true”`代表当前statement要使用二级缓存。 
    注意：针对每次查询都需要最新的数据sql，要设置成useCache=false，禁用二级缓存。
 
    ```xml
-   	<select id="findAll" resultType="user" useCache="true">
-           select * from user
-       </select>
+   <select id="findAll" resultType="user" useCache="true">
+       select * from user
+   </select>
    ```
 
 4. 要进行二级缓存的类必须实现java.io.Serializable 接口，可以使用序列化方式来保存对象。 
