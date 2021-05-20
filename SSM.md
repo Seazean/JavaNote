@@ -5601,7 +5601,7 @@ public class UserServiceDecorator implements UserService{
 
 #### Proxy
 
-JDKProxy动态代理是针对对象做代理，要求原始对象具有接口实现，并对接口方法进行增强，因为代理类继承Proxy
+JDKProxy动态代理是针对对象做代理，要求原始对象具有接口实现，并对接口方法进行增强，因为**代理类继承Proxy**
 
 静态代理和动态代理的区别：
 
@@ -5811,11 +5811,7 @@ MySQL InnoDB 存储引擎的默认支持的隔离级别是 **REPEATABLE-READ（�
 
 #### 传播行为
 
-事务传播行为描述的是事务协调员对事务管理员所携带事务的处理态度
-
-![](https://gitee.com/seazean/images/raw/master/Frame/事务传播行为.png)
-
-**事务传播行为是为了解决业务层方法之间互相调用的事务问题**：
+事务传播行为是为了解决业务层方法之间互相调用的事务问题：
 
 * 当事务方法被另一个事务方法调用时，必须指定事务应该如何传播。
 
@@ -6444,7 +6440,6 @@ public void addAccount{}
 * `@Transactional` 注解只有作用到 public 方法上事务才生效
 * 不推荐在接口上使用`@Transactional` 注解
   原因：在接口上使用注解，只有**在使用基于接口的代理时才会生效**，因为注解是不能继承的，这就意味着如果正在使用基于类的代理时，那么事务的设置将不能被基于类的代理所识别
-* 避免同一个类中调用 `@Transactional` 注解的方法，这样会导致事务失效
 * 正确的设置 `@Transactional` 的 rollbackFor 和 propagation 属性，否则事务可能会回滚失败
 
 面试题：**事务不生效的问题**
@@ -6476,10 +6471,10 @@ public void addAccount{}
 
   原因：Spring的默认的事务规则是遇到运行异常（RuntimeException）和程序错误（Error）才会回滚。想针对非检测异常进行事务回滚，可以在@Transactional 注解里使用rollbackFor 属性明确指定异常
 
-* 情况6：Spring的事务传播策略在**内部方法**调用时将不起作用，事务注解加到要调用方法上
+* 情况6：Spring的事务传播策略在**内部方法**调用时将不起作用，在一个Service内部，事务方法之间的嵌套调用，普通方法和事务方法之间的嵌套调用，都不会开启新的事务。事务注解要加到调用方法上才生效
 
-  原因：Spring的事务都是使用AOP代理的模式，仅有外部方法调用过程才会被代理截获，事务才会有效，就是方法调用本对象的另一个方法，没有通过代理类，事务也就无法生效
-  
+  原因：Spring的事务都是使用AOP代理的模式，动态代理最终是要调用原始对象，而原始对象在去调用方法时是不会再触发代理，就是方法调用**本对象**的另一个方法，没有通过代理类直接调用，而且事务也就无法生效
+
   ```java
   @Transactional
   public int add(){
@@ -6488,7 +6483,7 @@ public void addAccount{}
   //注解添加在update方法上无效，需要添加到add()方法上
   public int update(){}
   ```
-  
+
   
 
 
@@ -6560,19 +6555,7 @@ public void addAccount{}
 
 ### 模板对象
 
-* Spring模板对象：
-  * TransactionTemplate
-  * JdbcTemplate
-
-  * RedisTemplate
-
-  * RabbitTemplate
-
-  * JmsTemplate
-
-  * HibernateTemplate
-
-  * RestTemplate
+Spring模板对象：TransactionTemplate、JdbcTemplate、RedisTemplate、RabbitTemplate、JmsTemplate、HibernateTemplate、RestTemplate
 
 * JdbcTemplate：提供标准的sql语句操作API
 * NamedParameterJdbcTemplate：提供标准的具名sql语句操作API
