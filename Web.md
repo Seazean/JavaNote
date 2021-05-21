@@ -5169,9 +5169,9 @@ Filter：过滤器，是JavaWeb三大组件之一，另外两个是Servlet和Lis
 
 ### 相关类
 
-#### Filter类
+#### Filter
 
-* **Filter是一个接口，如果想实现过滤器的功能，必须实现该接口**
+**Filter是一个接口，如果想实现过滤器的功能，必须实现该接口**
 
 * 核心方法
 
@@ -5205,7 +5205,7 @@ Filter：过滤器，是JavaWeb三大组件之一，另外两个是Servlet和Lis
 
     
 
-#### FilterChain类
+#### FilterChain
 
 * FilterChain是一个接口，代表过滤器对象。由Servlet容器提供实现类对象，直接使用即可。
 
@@ -5219,7 +5219,7 @@ Filter：过滤器，是JavaWeb三大组件之一，另外两个是Servlet和Lis
 
 
 
-#### FilterConfig类
+#### FilterConfig
 
 * FilterConfig 是一个接口，代表过滤器的配置对象，可以加载一些初始化参数
 
@@ -5486,7 +5486,7 @@ Filter初始化函数init的参数是FilterConfig 对象
 
 ### Filter案例
 
-在我们访问html，js，image时，不需要每次都重新发送请求读取资源，就可以通过设置响应消息头的方式，设置缓存时间。但是如果每个Servlet都编写相同的代码，显然不符合我们统一调用和维护的理念。
+在访问html，js，image时，不需要每次都重新发送请求读取资源，就可以通过设置响应消息头的方式，设置缓存时间。但是如果每个Servlet都编写相同的代码，显然不符合我们统一调用和维护的理念。
 
 静态资源设置缓存时间：html设置为1小时，js设置为2小时，css设置为3小时
 

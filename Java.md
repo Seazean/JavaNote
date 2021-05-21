@@ -6813,10 +6813,13 @@ public class ConstructorDemo {
 
 #### 概述
 
-Stream流能解决什么问题?
-    可以解决已有集合类库或者数组API的弊端。
-    Stream认为集合和数组操作的API很不好用，所以采用了Stream流简化集合和数组的操作。
-	Stream流其实就是一根传送带，元素在上面可以被Stream流操作。
+Stream流其实就是一根传送带，元素在上面可以被Stream流操作
+
+作用：
+
+* 可以解决已有集合类库或者数组API的弊端。
+* Stream流简化集合和数组的操作
+* 链式编程
 
 ```java
 list.stream().filter(new Predicate<String>() {
@@ -6870,8 +6873,6 @@ Stream<String> arrStream2 = Stream.of(arr);
 | static <T> Stream<T> concat(Stream a, Stream b)           | 合并a和b两个流为一个.  调用: `Stream.concat(s1,s2);`     |
 | Stream<T> distinct()                                      | 返回由该流的不同元素(根据Object.equals(Object) )组成的流 |
 
-
-
 ```java
 public class StreamDemo {
     public static void main(String[] args) {
@@ -6914,7 +6915,7 @@ class Student{
 
 #### 终结方法
 
-终结方法：Stream调用了终结方法，流的操作就全部终结，不能继续使用。foreach , count。
+终结方法：Stream调用了终结方法，流的操作就全部终结，不能继续使用，如foreach , count方法等
 
 非终结方法：每次调用完成以后返回一个新的流对象，可以继续使用，支持**链式编程**！
 

@@ -122,7 +122,41 @@ MySQL配置：
 
   
 
-  
+
+***
+
+
+
+### 备份
+
+#### 命令行
+
+* 备份命令：mysqldump -u root -p 数据库名称 > 文件保存路径
+
+* 恢复
+  1. 登录MySQL数据库：`mysql -u root p`
+  2. 删除已经备份的数据库
+  3. 重新创建与备份数据库名称相同的数据库
+  4. 使用该数据库
+  5. 导入文件执行：`source 备份文件全路径`
+
+
+
+#### 图形化
+
+* 备份
+
+  ![图形化界面备份](https://gitee.com/seazean/images/raw/master/DB/图形化界面备份.png)
+
+* 恢复
+
+  ![图形化界面恢复](https://gitee.com/seazean/images/raw/master/DB/图形化界面恢复.png)
+
+
+
+
+
+
 
 ***
 
@@ -1261,12 +1295,9 @@ WHERE
 	条件...
 ```
 
-笛卡儿积查询：
 
-```mysql
--- 标准语法
-SELECT 列名 FROM 表名1,表名2,...;
-```
+
+***
 
 
 
@@ -1286,7 +1317,12 @@ SELECT 列名 FROM 表名1,表名2,...;
   SELECT 列名 FROM 表名1,表名2 WHERE 条件;
   ```
 
-  
+
+
+
+***
+
+
 
 #### 外连接查询
 
@@ -1302,7 +1338,12 @@ SELECT 列名 FROM 表名1,表名2,...;
   SELECT 列名 FROM 表名1 RIGHT [OUTER] JOIN 表名2 ON 条件;
   ```
 
-  
+
+
+
+***
+
+
 
 #### 子查询
 
@@ -1335,7 +1376,12 @@ SELECT 列名 FROM 表名1,表名2,...;
   	u.id=o.uid;
   ```
 
-  
+
+
+
+***
+
+
 
 #### 自关联查询
 
@@ -1579,6 +1625,8 @@ CREATE TABLE us_pro(
 
    
 
+
+
 ***
 
 
@@ -1755,6 +1803,7 @@ CREATE TABLE us_pro(
 * 提高代码的复用性
 * 减少数据在数据库和应用服务器之间的传输，提高传输效率
 * 减少代码层面的业务处理
+* **一次编译永久有效**
 
 存储过程和函数的区别：
 
@@ -2777,14 +2826,14 @@ LOOP 实现简单的循环，退出循环的条件需要使用其他的语句定
 
 整个MySQL Server由以下组成
 
-- Connection Pool : 连接池组件
-- Management Services & Utilities : 管理服务和工具组件
-- SQL Interface : SQL接口组件
-- Parser : 查询分析器组件
-- Optimizer : 优化器组件
-- Caches & Buffers : 缓冲池组件
-- Pluggable Storage Engines : 存储引擎
-- File System : 文件系统
+- Connection Pool：连接池组件
+- Management Services & Utilities：管理服务和工具组件
+- SQL Interface：SQL接口组件
+- Parse：查询分析器组件
+- Optimizer：优化器组件
+- Caches & Buffers：缓冲池组件
+- Pluggable Storage Engines：存储引擎
+- File System：文件系统
 
 
 
@@ -2940,7 +2989,7 @@ MERGE存储引擎
 
 ### 索引概述
 
-#### 基本介绍
+
 
 MySQL官方对索引的定义为：索引（index）是帮助MySQL高效获取数据的一种数据结构。在表数据之外，数据库系统还维护着满足特定查找算法的数据结构，这些数据结构以某种方式指向数据， 这样就可以在这些数据结构上实现高级查找算法，这种数据结构就是索引。
 
@@ -2965,7 +3014,7 @@ MySQL官方对索引的定义为：索引（index）是帮助MySQL高效获取�
 
 
 
-#### 索引分类
+### 索引分类
 
 索引一般的分类如下：
 
@@ -2988,6 +3037,12 @@ MySQL官方对索引的定义为：索引（index）是帮助MySQL高效获取�
   | HASH 索引   | 不支持          | 不支持     | 支持       |
   | R-tree 索引 | 不支持          | 支持       | 不支持     |
   | Full-text   | 5.6版本之后支持 | 支持       | 不支持     |
+
+组合索引图示：根据身高年龄建立的组合索引（height,age）
+
+![](https://gitee.com/seazean/images/raw/master/DB/MySQL-组合索引图.png)
+
+
 
 
 
@@ -3105,6 +3160,8 @@ MySql索引数据结构对经典的B+Tree进行了优化，在原B+Tree的基础
 - 有范围：对于主键的范围查找和分页查找
 - 有顺序：从根节点开始，进行随机查找
 
+InnoDB存储引擎中页的大小为16KB，一般表的主键类型为INT（4字节）或BIGINT（8字节），指针类型也一般为4或8个字节，也就是说一个页（B+Tree中的一个节点）中大概存储16KB/(8B+8B)=1K个键值（估值）。则一个深度为3的B+Tree索引可以维护10^3 * 10^3 * 10^3 = 10亿 条记录
+
 实际情况中每个节点可能不能填充满，因此在数据库中，B+Tree的高度一般都在2-4层。MySQL的InnoDB存储引擎在设计时是将根节点常驻内存的，也就是说查找某一键值的行记录时最多只需要1~3次磁盘I/O操作
 
 B+Tree优点：提高查询速度，减少磁盘的IO次数，树形结构较小
@@ -3119,7 +3176,7 @@ B+Tree优点：提高查询速度，减少磁盘的IO次数，树形结构较小
 
 索引在创建表的时候可以同时创建， 也可以随时增加新的索引
 
-* 创建索引：如果一个表中有一列是主键，那么会默认为其创建主键索引（主键列不需要单独创建索引）
+* 创建索引：如果一个表中有一列是主键，那么会**默认为其创建主键索引**（主键列不需要单独创建索引）
   
   ```mysql
   CREATE [UNIQUE|FULLTEXT] INDEX 索引名称
@@ -3136,7 +3193,7 @@ B+Tree优点：提高查询速度，减少磁盘的IO次数，树形结构较小
 * 添加索引
 
   ```mysql
-  -- 普通索引
+  -- 单列索引
   ALTER TABLE 表名 ADD INDEX 索引名称(列名);
   
   -- 组合索引
@@ -3218,6 +3275,930 @@ B+Tree优点：提高查询速度，减少磁盘的IO次数，树形结构较小
   -- 如果联合索引中最左边的列不包含在条件查询中，SQL语句就不会命中索引，比如：
   SELECT * FROM user WHERE address = '北京' AND phone = '12345'; 
   ```
+
+
+
+
+
+***
+
+
+
+## 优化
+
+### 优化步骤
+
+#### 执行频率
+
+随着生产数据量的急剧增长，很多 SQL 语句逐渐显露出性能问题，对生产的影响也越来越大，此时有问题的 SQL 语句就成为整个系统性能的瓶颈，因此必须要进行优化
+
+MySQL 客户端连接成功后，查询服务器状态信息：
+
+```mysql
+SHOW [SESSION|GLOBAL] STATUS LIKE '';
+-- SESSION: 显示当前会话连接的统计结果，默认参数
+-- GLOBAL: 显示自数据库上次启动至今的统计结果
+```
+
+* 查看SQL执行频率：
+
+  ```mysql
+  SHOW STATUS LIKE 'Com_____';
+  ```
+
+  Com_xxx 表示每种语句执行的次数
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-SQL语句执行频率.png)
+
+* 查询SQL语句影响的行数：
+
+  ```mysql
+  SHOW STATUS LIKE 'Innodb_rows_%';
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-SQL语句影响的行数.png)
+
+Com_xxxx：这些参数对于所有存储引擎的表操作都会进行累计
+
+Innodb_xxxx：这几个参数只是针对InnoDB 存储引擎的，累加的算法也略有不同
+
+| 参数                 | 含义                                                         |
+| :------------------- | ------------------------------------------------------------ |
+| Com_select           | 执行 SELECT 操作的次数，一次查询只累加 1                     |
+| Com_insert           | 执行 INSERT 操作的次数，对于批量插入的 INSERT 操作，只累加一次 |
+| Com_update           | 执行 UPDATE 操作的次数                                       |
+| Com_delete           | 执行 DELETE 操作的次数                                       |
+| Innodb_rows_read     | 执行 SELECT 查询返回的行数                                   |
+| Innodb_rows_inserted | 执行 INSERT 操作插入的行数                                   |
+| Innodb_rows_updated  | 执行 UPDATE 操作更新的行数                                   |
+| Innodb_rows_deleted  | 执行 DELETE 操作删除的行数                                   |
+| Connections          | 试图连接 MySQL 服务器的次数                                  |
+| Uptime               | 服务器工作时间                                               |
+| Slow_queries         | 慢查询的次数                                                 |
+
+
+
+****
+
+
+
+#### 定位低效
+
+通过以下两种方式定位执行效率较低的 SQL 语句
+
+* 慢日志查询： 慢查询日志在查询结束以后才纪录，执行效率出现问题时查询日志并不能定位问题
+
+  配置文件修改：修改.cnf文件`vim /etc/mysql/my.cnf`，重启MySQL服务器
+
+  ```sh
+  slow_query_log=ON
+  slow_query_log_file=/usr/local/mysql/var/localhost-slow.log
+  long_query_time=1	#记录超过long_query_time秒的SQL语句的日志
+  log-queries-not-using-indexes = 1
+  ```
+
+  使用命令配置：
+
+  ```mysql
+  mysql> SET slow_query_log=ON;
+  mysql> SET GLOBAL slow_query_log=ON;
+  ```
+
+  查看是否配置成功：
+
+  ```mysql
+  SHOW VARIABLES LIKE '%query%'
+  ```
+
+* SHOW PROCESSLIST：查看当前MySQL在进行的线程，包括线程的状态、是否锁表等，可以实时地查看 SQL 的执行情况，同时对一些锁表操作进行优化
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-SHOW PROCESSLIST命令.png)
+
+  | 参数    | 含义                                                         |
+  | ------- | ------------------------------------------------------------ |
+  | ID      | 用户登录mysql时系统分配的"connection_id"，可以使用函数connection_id()查看 |
+  | User    | 显示当前用户，如果不是root，这个命令就只显示用户权限范围的sql语句 |
+  | Host    | 显示这个语句是从哪个ip的哪个端口上发的，可以用来跟踪出现问题语句的用户 |
+  | db      | 显示这个进程目前连接的是哪个数据库                           |
+  | Command | 显示当前连接的执行的命令，一般取值为休眠Sleep、查询Query、连接Connect等 |
+  | Time    | 显示这个状态持续的时间，单位是秒                             |
+  | State   | 显示使用当前连接的sql语句的状态，以查询为例，需要经过copying to tmp table、sorting result、sending data等状态才可以完成 |
+  | Info    | 显示执行的sql语句，是判断问题语句的一个重要依据              |
+
+
+
+
+
+***
+
+
+
+#### EXPLAIN
+
+##### 执行计划
+
+通过 EXPLAIN 命令获取执行 SQL 语句的信息，包括在 SELECT 语句执行过程中如何连接和连接的顺序
+
+查询SQL语句的执行计划：
+
+```mysql
+EXPLAIN SELECT * FROM table_1 WHERE id = 1;
+```
+
+![](https://gitee.com/seazean/images/raw/master/DB/MySQL-explain查询SQL语句的执行计划.png)
+
+| 字段          | 含义                                                         |
+| ------------- | ------------------------------------------------------------ |
+| id            | select查询的序列号，表示查询中执行select子句或操作表的顺序   |
+| select_type   | 表示 SELECT 的类型                                           |
+| table         | 输出结果集的表                                               |
+| type          | 表示表的连接类型                                             |
+| possible_keys | 表示查询时，可能使用的索引                                   |
+| key           | 表示实际使用的索引                                           |
+| key_len       | 索引字段的长度                                               |
+| ref           | 列与索引的比较，表示表的连接匹配条件，即哪些列或常量被用于查找索引列上的值 |
+| rows          | 扫描出的行数，表示MySQL根据表统计信息及索引选用情况，估算的找到所需的记录所需要读取的行数 |
+| filtered      | 按表条件过滤的行百分比                                       |
+| extra         | 执行情况的说明和描述                                         |
+
+MySQL执行计划的局限：
+
+* EXPLAIN不会告诉你关于触发器、存储过程的信息或用户自定义函数对查询的影响情况
+
+* EXPLAIN不考虑各种Cache
+
+* EXPLAIN不能显示MySQL在执行查询时所作的优化工作
+
+* 部分统计信息是估算的，并非精确值
+
+* EXPALIN只能解释SELECT操作，其他操作要重写为SELECT后查看执行计划
+
+环境准备：
+
+![](https://gitee.com/seazean/images/raw/master/DB/MySQL-执行计划环境准备.png)
+
+
+
+
+
+***
+
+
+
+##### id
+
+SQL执行的顺序的标识，SQL从大到小的执行
+
+* id 相同时，执行顺序由上至下
+
+  ```mysql
+  EXPLAIN SELECT * FROM t_role r, t_user u, user_role ur WHERE r.id = ur.role_id AND u.id = ur.user_id ;
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-explain之id相同.png)
+
+* id 不同时，id值越大优先级越高，越先被执行
+
+  ```mysql
+  EXPLAIN SELECT * FROM t_role WHERE id = (SELECT role_id FROM user_role WHERE user_id = (SELECT id FROM t_user WHERE username = 'stu1'))
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-explain之id不同.png)
+
+* id 有相同也有不同时，id相同的可以认为是一组，从上往下顺序执行；在所有的组中，id的值越大，优先级越高，越先执行
+
+  ```mysql
+  EXPLAIN SELECT * FROM t_role r , (SELECT * FROM user_role ur WHERE ur.`user_id` = '2') a WHERE r.id = a.role_id ; 
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-explain之id相同和不同.png)
+
+
+
+***
+
+
+
+##### select_type
+
+表示查询中每个select子句的类型（简单 OR复杂）
+
+| select_type        | 含义                                                         |
+| ------------------ | ------------------------------------------------------------ |
+| SIMPLE             | 简单的 SELECT 查询，查询中不包含子查询或者 UNION             |
+| PRIMARY            | 查询中若包含任何复杂的子查询，最外层查询标记为该标识         |
+| SUBQUERY           | 在 SELECT 或 WHERE 中包含子查询，该子查询被标记为：SUBQUERY  |
+| DEPENDENT SUBQUERY | 在 SUBQUERY 基础上，子查询中的第一个SELECT，取决于外部的查询 |
+| DERIVED            | 在 FROM 列表中包含的子查询，被标记为 DERIVED（衍生），MYSQL会递归执行这些子查询，把结果放在临时表中 |
+| UNION              | UNION 中的第二个或后面的 SELECT 语句，则标记为UNION ； 若 UNION 包含在 FROM 子句的子查询中，外层 SELECT 将被标记为：DERIVED |
+| DEPENDENT UNION    | UNION 中的第二个或后面的SELECT语句，取决于外面的查询         |
+| UNION RESULT       | UNION 的结果，UNION 语句中第二个 SELECT 开始后面所有 SELECT  |
+
+
+
+****
+
+
+
+##### table
+
+输出结果集的表，显示这一步所访问数据库中表名称，有时不是真实的表名字，可能是简称，也可能是第几步执行的结果的简称
+
+
+
+***
+
+
+
+##### type
+
+对表的访问方式，表示MySQL在表中找到所需行的方式，又称“访问类型”
+
+| type   | 含义                                                         |
+| ------ | ------------------------------------------------------------ |
+| ALL    | Full Table Scan，MySQL将遍历全表以找到匹配的行，全表扫描     |
+| index  | Full Index Scan，index 与 ALL 区别为 index 类型只遍历索引树  |
+| range  | 索引范围扫描，常见于between、<、>等的查询                    |
+| ref    | 非唯一性索引扫描，返回匹配某个单独值的所有，本质上也是一种索引访问，常见于使用非唯一索引即唯一索引的非唯一前缀进行的查找 |
+| eq_ref | 唯一性索引扫描，对于每个索引键，表中只有一条记录与之匹配，常见于主键或唯一索引扫描 |
+| const  | 当 MySQL 对查询某部分进行优化，并转换为一个常量时，使用该类型访问，如将主键置于where列表中，MySQL就能将该查询转换为一个常量 |
+| system | system 是 const 类型的特例，当查询的表只有一行的情况下，使用system |
+| NULL   | MySQL在优化过程中分解语句，执行时甚至不用访问表或索引        |
+
+从上到下，性能从差到好，一般来说需要保证查询至少达到 range 级别， 最好达到ref 
+
+
+
+***
+
+
+
+##### key
+
+possible_keys：
+
+* 指出MySQL能使用哪个索引在表中找到记录，查询涉及到的字段上若存在索引，则该索引将被列出，但不一定被查询使用
+* 如果该列是NULL，则没有相关的索引
+
+key：
+
+* 显示MySQL在查询中实际使用的索引，若没有使用索引，显示为NULL
+* 查询中若使用了**覆盖索引**，则该索引仅出现在key列表中
+
+key_len：
+
+* 表示索引中使用的字节数，可通过该列计算查询中使用的索引的长度
+* key_len 显示的值为索引字段的最大可能长度，并非实际使用长度，即key_len是根据表定义计算而得，不是通过表内检索出的
+* 在不损失精确性的前提下，长度越短越好 
+
+
+
+***
+
+
+
+##### Extra
+
+其他的额外的执行计划信息，在该列展示：
+
+* Using index：该值表示相应的 SELECT 操作中使用了覆盖索引（Covering Index）
+  * MySQL 可以利用索引返回 SELECT 列表中的字段，而不必根据索引再次读取数据文件，包含所有满足查询需要的数据的索引称为**覆盖索引**
+  * 使用覆盖索引，要注意 SELECT 列表中只取出需要的列，不可用 SELECT *，因为如果将所有字段一起做索引会导致索引文件过大，查询性能下降
+* Using index condition：搜索条件中虽然出现了索引列，但是有部分条件无法使用索引，会根据能用索引的条件先搜索一遍再匹配无法使用索引的条件，**回表查询**数据
+* Using where：表示存储引擎收到记录后进行“后过滤”（Post-filter），如果查询未能使用索引，Using where的作用是提醒我们 MySQL 将用 WHERE 子句来过滤结果集，即需要回表查询
+* Using temporary：表示 MySQL 需要使用临时表来存储结果集，常见于排序和分组查询
+* Using filesort：当 Query 中包含 order by 操作，而且无法利用索引完成的排序操作称为文件排序
+* Using join buffer：说明在获取连接条件时没有使用索引，并且需要连接缓冲区来存储中间结果
+* Impossible where：说明 WHERE 语句会导致没有符合条件的行，通过收集统计信息不可能存在结果
+* Select tables optimized away：说明仅通过使用索引，优化器可能仅从聚合函数结果中返回一行
+
+* No tables used：Query 语句中使用from dual 或不含任何 from 子句
+
+
+
+参考文章：https://www.cnblogs.com/ggjucheng/archive/2012/11/11/2765237.html
+
+
+
+****
+
+
+
+#### PROFILES
+
+SHOW PROFILES 能够在做SQL优化时帮助了解时间的耗费
+
+* 通过 have_profiling 参数，能够看到当前MySQL是否支持profile：
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL- have_profiling.png)
+
+* 默认 profiling 是关闭的，可以通过set语句在Session级别开启profiling：
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL- profiling.png)
+
+  ```mysql
+  SET profiling=1; //开启profiling 开关；
+  ```
+
+* 执行show profiles 指令， 来查看SQL语句执行的耗时:
+
+  ```mysql
+  SHOW PROFILES;
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL- 查看SQL语句执行耗时.png)
+
+* 查看到该SQL执行过程中每个线程的状态和消耗的时间：
+
+  ```mysql
+  SHOW PROFILE FOR QUERY query_id;
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-SQL执行每个状态消耗的时间.png)
+
+  Sending data 状态表示MySQL线程开始访问数据行并把结果返回给客户端，而不仅仅是返回给客户端。由于在Sending data状态下，MySQL线程需要做大量磁盘读取操作，所以是整个查询中耗时最长的状态。
+
+* 在获取到最消耗时间的线程状态后，MySQL支持选择all、cpu、block io 、context switch、page faults等类型查看MySQL在使用什么资源上耗费了过高的时间。例如，选择查看CPU的耗费时间：
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-SQL执行每个状态消耗的CPU.png)
+
+  Status：SQL 语句执行的状态
+  Durationsql：执行过程中每一个步骤的耗时
+  CPU_user：当前用户占有的cpu
+  CPU_system：系统占有的cpu
+
+
+
+***
+
+
+
+#### trace
+
+MySQL 提供了对SQL的跟踪， 通过trace文件能够进一步了解执行过程。
+
+* 打开trace，设置格式为 JSON，并设置trace最大能够使用的内存大小，避免解析过程中因为默认内存过小而不能够完整展示
+
+  ```mysql
+  SET optimizer_trace="enabled=on",end_markers_in_json=ON;
+  SET optimizer_trace_max_mem_size=1000000;
+  ```
+
+* 执行SQL语句：
+
+  ```mysql
+  SELECT * FROM tb_item WHERE id < 4;
+  ```
+
+* 检查information_schema.optimizer_trace：
+
+  ```mysql
+  SELECT * FROM information_schema.optimizer_trace \G; -- \G代表竖列展示
+  ```
+
+
+
+
+
+****
+
+
+
+### 索引失效
+
+#### 创建索引
+
+索引是数据库优化最重要的手段之一，通过索引通常可以帮助用户解决大多数的MySQL的性能优化问题
+
+```mysql
+CREATE TABLE `tb_seller` (
+	`sellerid` varchar (100),
+	`name` varchar (100),
+	`nickname` varchar (50),
+	`password` varchar (60),
+	`status` varchar (1),
+	`address` varchar (100),
+	`createtime` datetime,
+    PRIMARY KEY(`sellerid`)
+)ENGINE=INNODB DEFAULT CHARSET=utf8mb4;
+INSERT INTO `tb_seller` (`sellerid`, `name`, `nickname`, `password`, `status`, `address`, `createtime`) values('xiaomi','小米科技','小米官方旗舰店','e10adc3949ba59abbe56e057f20f883e','1','西安市','2088-01-01 12:00:00');
+CREATE INDEX idx_seller_name_sta_addr ON tb_seller(name,status,address);
+```
+
+![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引环境准备.png)
+
+
+
+****
+
+
+
+#### 避免失效
+
+索引失效的情况：
+
+* 全值匹配：对索引中所有列都指定具体值，这种情况索引生效，执行效率高
+
+  ```mysql
+  EXPLAIN SELECT * FROM tb_seller WHERE name='小米科技' AND status='1' AND address='西安市';
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引1.png)
+
+* 最左前缀法则：联合索引遵守最左前缀法则
+
+  匹配最左前缀法则，走索引：
+
+  ```mysql
+  EXPLAIN SELECT * FROM tb_seller WHERE name='小米科技';
+  EXPLAIN SELECT * FROM tb_seller WHERE name='小米科技' AND status='1';
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引2.png)
+
+  违法最左前缀法则 ， 索引失效：
+
+  ```mysql
+  EXPLAIN SELECT * FROM tb_seller WHERE status='1';
+  EXPLAIN SELECT * FROM tb_seller WHERE status='1' AND address='西安市';
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引3.png)
+
+  如果符合最左法则，但是出现跳跃某一列，只有最左列索引生效：
+
+  ```mysql
+  EXPLAIN SELECT * FROM tb_seller WHERE name='小米科技' AND address='西安市';
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引4.png)
+
+* 范围查询右边的列，不能使用索引：
+
+  ```mysql
+  EXPLAIN SELECT * FROM tb_seller WHERE name='小米科技' AND status>'1' AND address='西安市';
+  ```
+
+  根据前面的两个字段name ， status 查询是走索引的， 但是最后一个条件address 没有用到索引
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引5.png)
+
+* 在索引列上进行运算操作， 索引将失效：
+
+  ```mysql
+  EXPLAIN SELECT * FROM tb_seller WHERE SUBSTRING(name,3,2) = '科技';
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引6.png)
+
+* 字符串不加单引号，造成索引失效：
+
+  在查询时，没有对字符串加单引号，MySQL的查询优化器，会自动的进行类型转换，造成索引失效
+
+  ```mysql
+  EXPLAIN SELECT * FROM tb_seller WHERE name='小米科技' AND status=1;
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引7.png)
+
+* 用 OR 分割的条件，索引失效的情况：
+
+  * 第一种：OR 前的条件中的列有索引而后面的列中没有索引
+
+  * 第二种：如果 OR 前后两个列是同一个复合索引
+
+  ```mysql
+  EXPLAIN SELECT * FROM tb_seller WHERE name='阿里巴巴' OR createtime = '2088-01-01 12:00:00';
+  EXPLAIN SELECT * FROM tb_seller WHERE name='小米科技' OR status='1';
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引10.png)
+
+  AND 分割的条件不影响：
+
+  ```mysql
+  EXPLAIN SELECT * FROM tb_seller WHERE name='阿里巴巴' AND createtime = '2088-01-01 12:00:00';
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引11.png)
+
+*  以%开头的Like模糊查询，索引失效：
+
+  如果是尾部模糊匹配，索引不会失效；如果是头部模糊匹配，索引失效。
+
+  ```mysql
+  EXPLAIN SELECT * FROM tb_seller WHERE name like '%科技%';
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引12.png)
+
+  解决方案：通过覆盖索引来解决 
+
+  ```mysql
+  EXPLAIN SELECT sellerid,name,status FROM tb_seller WHERE name like '%科技%';
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引13.png)
+
+* 如果 MySQL 评估使用索引比全表更慢，则不使用索引，索引失效：
+
+  ```mysql
+  CREATE INDEX idx_address ON tb_seller(address);
+  EXPLAIN SELECT * FROM tb_seller WHERE address='西安市';
+  EXPLAIN SELECT * FROM tb_seller WHERE address='北京市';
+  ```
+
+  北京市的键值占9/10，所以优化为全表扫描，type = ALL
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引14.png)
+
+* IS  NULL、IS NOT NULL  **有时**索引失效：
+
+  ```mysql
+  EXPLAIN SELECT * FROM tb_seller WHERE name IS NULL;
+  EXPLAIN SELECT * FROM tb_seller WHERE name IS NOT NULL;
+  ```
+
+  NOT NULL 失效的原因是 name 列全部不是null，优化为全表扫描，当 NULL 过多时，IS NULL失效
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引15.png)
+
+* IN肯定会走索引，但是当IN的取值范围较大时会导致索引失效，走全表扫描：
+
+  ```mysql
+  EXPLAIN SELECT * FROM tb_seller WHERE sellerId IN ('alibaba','huawei');-- 都走索引
+  EXPLAIN SELECT * FROM tb_seller WHERE sellerId NOT IN ('alibaba','huawei');
+  ```
+
+SQL优化建议：
+
+* 尽量使用复合索引，而少使用单列索引，数据库会选择一个最优的索引（辨识度最高索引）来使用，并不会使用全部索引
+
+* 尽量使用覆盖索引，避免select *：
+
+  ```mysql
+  EXPLAIN SELECT name,status,address FROM tb_seller WHERE name='小米科技' AND status='1' AND address='西安市';
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引8.png)
+
+  如果查询列，超出索引列，也会降低性能：
+
+  ```mysql
+  EXPLAIN SELECT name,status,address,password FROM tb_seller WHERE name='小米科技' AND status='1' AND address='西安市';
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引9.png)
+
+
+
+***
+
+
+
+#### 查看索引
+
+```mysql
+SHOW STATUS LIKE 'Handler_read%';	
+SHOW GLOBAL STATUS LIKE 'Handler_read%';
+```
+
+![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL查看索引使用情况.png)
+
+* Handler_read_first：索引中第一条被读的次数。如果较高，表示服务器正执行大量全索引扫描（这个值越低越好）
+
+* Handler_read_key：如果索引正在工作，这个值代表一个行被索引值读的次数，如果值越低，表示索引不经常使用，性能改善不好（这个值越高越好）。
+
+* Handler_read_next：按照键顺序读下一行的请求数，如果范围约束或执行索引扫描来查询索引列，值增加
+
+* Handler_read_prev：按照键顺序读前一行的请求数，该读方法主要用于优化ORDER BY ... DESC
+
+* Handler_read_rnd：根据固定位置读一行的请求数，如果执行大量查询并对结果进行排序则该值较高，可能是使用了大量需要MySQL扫描整个表的查询或连接，这个值较高意味着运行效率低，应该建立索引来解决
+
+* Handler_read_rnd_next：在数据文件中读下一行的请求数。如果你正进行大量的表扫描，该值较高。通常说明你的表索引不正确或写入的查询没有利用索引。
+
+
+
+
+
+***
+
+
+
+### 优化功能
+
+#### 批量插入
+
+当使用load 命令导入数据的时候，适当的设置可以提高导入的效率：
+
+![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL load data.png)
+
+```mysql
+LOAD DATA LOCAL INFILE = '/home/seazean/sql1.log' INTO TABLE `tb_user_1` FIELD TERMINATED BY ',' LINES TERMINATED BY '\n'; -- 文件格式如上图
+```
+
+对于 InnoDB 类型的表，有以下几种方式可以提高导入的效率：
+
+1. 主键顺序插入：因为InnoDB类型的表是按照主键的顺序保存的，所以将导入的数据按照主键的顺序排列，可以有效的提高导入数据的效率，如果InnoDB表没有主键，那么系统会自动默认创建一个内部列作为主键。
+
+   * 插入ID顺序排列数据：
+
+   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL插入ID顺序排列数据.png)
+
+   * 插入ID无序排列数据：
+
+   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL插入ID无序排列数据.png)
+
+2. 关闭唯一性校验：在导入数据前执行`SET UNIQUE_CHECKS=0`，关闭唯一性校验；导入结束后执行SET UNIQUE_CHECKS=1，恢复唯一性校验，可以提高导入的效率。
+
+   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL插入数据关闭唯一性校验.png)
+
+3. 手动提交事务：如果应用使用自动提交的方式，建议在导入前执行`SET AUTOCOMMIT=0`，关闭自动提交；导入结束后再执行 SET AUTOCOMMIT=1，打开自动提交，可以提高导入的效率。
+
+   事务需要控制大小，事务太大可能会影响执行的效率。MySQL有innodb_log_buffer_size配置项，超过这个值的日志会使用磁盘数据，效率会下降。所以在事务大小达到配置项数据级前进行事务提交可以提高效率
+
+   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL插入数据手动提交事务.png)
+
+
+
+***
+
+
+
+#### INSERT
+
+当进行数据的insert操作的时候，可以考虑采用以下几种优化方案：
+
+* 如果需要同时对一张表插入很多行数据时，优化为一条插入语句，这种方式将大大的缩减客户端与数据库之间的连接、关闭等消耗
+
+  ```mysql
+  INSERT INTO tb_test VALUES(1,'Tom');
+  INSERT INTO tb_test VALUES(2,'Cat');
+  INSERT INTO tb_test VALUES(3,'Jerry');	-- 连接三次数据库
+  -- 优化为
+  INSERT INTO tb_test VALUES(1,'Tom'),(2,'Cat')，(3,'Jerry');	-- 连接一次
+  ```
+
+* 在事务中进行数据插入：
+
+  ```mysql
+  start transaction;
+  insert into tb_test values(1,'Tom');
+  insert into tb_test values(2,'Cat');
+  insert into tb_test values(3,'Jerry');
+  commit;	-- 手动提交，分段提交
+  ```
+
+* 数据有序插入：
+
+  ```mysql
+  INSERT INTO tb_test VALUES(1,'Tom');
+  INSERT INTO tb_test VALUES(2,'Cat');
+  INSERT INTO tb_test VALUES(3,'Jerry');
+  ```
+
+
+
+****
+
+
+
+#### ORDER BY
+
+数据准备：
+
+```mysql
+CREATE TABLE `emp` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(100) NOT NULL,
+  `age` INT(3) NOT NULL,
+  `salary` INT(11) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=INNODB DEFAULT CHARSET=utf8mb4;
+INSERT INTO `emp` (`id`, `name`, `age`, `salary`) VALUES('1','Tom','25','2300');-- ...
+CREATE INDEX idx_emp_age_salary ON emp(age,salary);
+```
+
+* 第一种是通过对返回数据进行排序，所有不是通过索引直接返回排序结果的排序都叫 FileSort 排序
+
+  ```mysql
+  EXPLAIN SELECT * FROM emp ORDER BY age DESC;	-- 年龄降序
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL ORDER BY排序1.png)
+
+* 第二种通过有序索引顺序扫描直接返回有序数据，这种情况为 Using index，不需要额外排序，操作效率高
+
+  ```mysql
+  EXPLAIN SELECT id,age,salary FROM emp ORDER BY age DESC;
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL ORDER BY排序2.png)
+
+* 多字段排序：
+
+  ```mysql
+  EXPLAIN SELECT id,age,salary FROM emp ORDER BY age DESC, salary DESC;
+  EXPLAIN SELECT id,age,salary FROM emp ORDER BY salary DESC, age DESC;
+  EXPLAIN SELECT id,age,salary FROM emp ORDER BY age DESC, salary ASC;
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL ORDER BY排序3.png)
+
+  尽量减少额外的排序，通过索引直接返回有序数据。需要满足 Order by 使用相同的索引、Order By 的顺序和索引顺序相同、Order  by 的字段都是升序或都是降序，否则肯定需要额外的操作，就会出现FileSort
+
+Filesort 的优化：通过创建合适的索引，能够减少 Filesort 的出现，但是在某些情况，条件限制不能让Filesort消失，就需要加快 Filesort的排序操作。
+
+对于Filesort ， MySQL 有两种排序算法：
+
+* 两次扫描算法：MySQL4.1 之前，使用该方式排序。首先根据条件取出排序字段和行指针信息，然后在排序区 sort buffer 中排序，如果 sort buffer 不够，则在临时表 temporary table 中存储排序结果。完成排序后，再根据行指针回表读取记录，该操作可能会导致大量随机I/O操作
+* 一次扫描算法：一次性取出满足条件的所有字段，然后在排序区 sort  buffer 中排序后直接输出结果集。排序时内存开销较大，但是排序效率比两次扫描算法高
+
+MySQL 通过比较系统变量 max_length_for_sort_data 的大小和 Query 语句取出的字段的大小，来判定使用哪种排序算法。如果前者大，则说明 sort  buffer 空间足够，使用第二种优化之后的算法，否则使用第一种。
+
+可以适当提高 sort_buffer_size  和 max_length_for_sort_data 系统变量，来增大排序区的大小，提高排序的效率
+
+```mysql
+SET @@max_length_for_sort_data = 10000; 		-- 设置全局变量
+SET max_length_for_sort_data = 10240; 			-- 设置会话变量
+SHOW VARIABLES LIKE 'max_length_for_sort_data';	-- 默认1024
+SHOW VARIABLES LIKE 'sort_buffer_size';			-- 默认262114
+```
+
+
+
+***
+
+
+
+#### GROUP BY
+
+GROUP BY 也会进行排序操作，与 ORDER BY 相比，GROUP BY 主要只是多了排序之后的分组操作，所以在GROUP BY 的实现过程中，与 ORDER BY 一样也可以利用到索引
+
+* 分组查询：
+
+  ```mysql
+  DROP INDEX idx_emp_age_salary ON emp;
+  EXPLAIN SELECT age,COUNT(*) FROM emp GROUP BY age;
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL GROUP BY排序1.png)
+
+* 查询包含 GROUP BY 但是用户想要避免排序结果的消耗， 则可以执行 ORDER BY NULL 禁止排序：
+
+  ```mysql
+  EXPLAIN SELECT age,COUNT(*) FROM emp GROUP BY age ORDER BY NULL;
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL GROUP BY排序2.png)
+
+* 创建索引：
+
+  ```mysql
+  CREATE INDEX idx_emp_age_salary ON emp(age,salary);
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL GROUP BY排序3.png)
+
+
+
+***
+
+
+
+#### 嵌套查询
+
+MySQL 4.1版本之后，开始支持SQL的子查询
+
+* 可以使用SELECT语句来创建一个单列的查询结果，然后把结果作为过滤条件用在另一个查询中
+* 使用子查询可以一次性的完成逻辑上需要多个步骤才能完成的SQL操作，同时也可以避免事务或者表锁死
+* 在有些情况下，子查询是可以被更高效的连接（JOIN）替代
+
+例如查找有角色的所有的用户信息：
+
+* 执行计划：
+
+  ```mysql
+  EXPLAIN SELECT * FROM t_user WHERE id IN (SELECT user_id FROM user_role);
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL嵌套查询1.png)
+
+* 优化后：
+
+  ```mysql
+  EXPLAIN SELECT * FROM t_user u , user_role ur WHERE u.id = ur.user_id;
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL嵌套查询2.png)
+
+  连接查询之所以效率更高 ，是因为不需要在内存中创建临时表来完成逻辑上需要两个步骤的查询工作
+
+
+
+***
+
+
+
+#### OR
+
+对于包含OR的查询子句，如果要利用索引，则OR之间的每个条件列都必须用到索引，而且不能使用到复合索引，如果没有索引，则应该考虑增加索引
+
+* 执行查询语句：
+
+  ```mysql
+  EXPLAIN SELECT * FROM emp WHERE id = 1 OR age = 30;
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL OR条件查询1.png)
+
+  ```sh
+  Extra: Using sort_union(idx_emp_age_salary,PRIMARY); Using where
+  ```
+
+* 建议使用 UNION 替换 OR：
+  注意：该建议只针对多个索引列有效，如果有column没有被索引，查询效率可能会因为没有选择OR而降低
+
+  ```mysql
+  EXPLAIN SELECT * FROM emp WHERE id = 1 UNION SELECT * FROM emp WHERE age = 30;
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL OR条件查询2.png)
+
+* UNION 要优于 OR 的原因：
+
+  * UNION 语句的 type 值为 ref，OR 语句的 type 值为 range
+  * UNION 语句的 ref 值为 const，OR 语句的 type 值为 null，const 表示是常量值引用，非常快
+
+
+
+***
+
+
+
+#### 分页
+
+一般分页查询时，通过创建覆盖索引能够比较好地提高性能
+
+一个常见的问题是 `LIMIT 200000,10`，此时需要MySQL扫描前 200010 记录，仅仅返回200000 - 200010 之间的记录，其他记录丢弃，查询排序的代价非常大
+
+* 分页查询：
+
+  ```mysql
+  EXPLAIN SELECT * FROM tb_user_1 LIMIT 200000,10;
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL分页查询1.png)
+
+* 优化方式一：在索引上完成排序分页操作，最后根据主键关联回原表查询所需要的其他列内容
+
+  ```mysql
+  EXPLAIN SELECT * FROM tb_user_1 t,(SELECT id FROM tb_user_1 ORDER BY id LIMIT 200000,10) a WHERE t.id = a.id;
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL分页查询2.png)
+
+* 优化方式二：方案适用于主键自增的表，可以把 LIMIT 查询转换成某个位置的查询
+
+  ```mysql
+  EXPLAIN SELECT * FROM tb_user_1 WHERE id > 200000 LIMIT 10;
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL分页查询3.png)
+
+
+
+****
+
+
+
+#### 使用提示
+
+SQL提示，是优化数据库的一个重要手段，就是在SQL语句中加入一些人为的提示来达到优化操作的目的
+
+* USE INDEX：在查询语句中表名的后面，添加 USE INDEX 来提供 MySQL 去参考的索引列表，可以让MySQL不再考虑其他可用的索引
+
+  ```mysql
+  CREATE INDEX idx_seller_name ON tb_seller(name);
+  EXPLAIN SELECT * FROM tb_seller USE INDEX(idx_seller_name) WHERE name='小米科技';
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用提示1.png)
+
+* IGNORE INDEX：让MySQL忽略一个或者多个索引，则可以使用 IGNORE INDEX 作为提示
+
+  ```mysql
+  EXPLAIN SELECT * FROM tb_seller IGNORE INDEX(idx_seller_name) WHERE name = '小米科技';
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用提示2.png)
+
+* FORCE INDEX：为强制MySQL使用一个特定的索引，可在查询中使用 FORCE INDEX 作为提示
+
+  ```mysql
+  EXPLAIN SELECT * FROM tb_seller FORCE INDEX(idx_seller_name_sta_addr) WHERE NAME='小米科技';
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用提示3.png)
 
 
 
@@ -3489,42 +4470,7 @@ B+Tree优点：提高查询速度，减少磁盘的IO次数，树形结构较小
 
 
 
-## 备份
-
-### 命令行方式
-
-* 备份命令：mysqldump -u root -p 数据库名称 > 文件保存路径
-
-* 恢复
-  1. 登录MySQL数据库：`mysql -u root p`
-  2. 删除已经备份的数据库
-  3. 重新创建与备份数据库名称相同的数据库
-  4. 使用该数据库
-  5. 导入文件执行：`source 备份文件全路径`
-
-
-
-### 图形化界面
-
-* 备份
-
-  ![图形化界面备份](https://gitee.com/seazean/images/raw/master/DB/图形化界面备份.png)
-
-* 恢复
-
-  ![图形化界面恢复](https://gitee.com/seazean/images/raw/master/DB/图形化界面恢复.png)
-
-
-
-
-
-
-
-***
-
-
-
-## NF
+## 范式
 
 建立科学的，规范的数据库就需要满足一些规则来优化数据的设计和存储，这些规则就称为范式。
 
