@@ -2,3 +2,12 @@
 
 注：所有的知识不保证权威性，如果各位朋友发现错误，非常欢迎与我讨论。
 
+内容说明：
+
+* DB：MySQL、JDBC、Redis
+* Frame：Maven
+* Java：JavaSE、JVM、JUC、Design
+* SSM：MyBatis、Spring、SpringMVC、SpringBoot
+* Tool：Git、Linux、Docker
+* Web：HTML、CSS、Servlet、JavaScript
+
