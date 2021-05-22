@@ -162,7 +162,7 @@ MySQL配置：
 
 
 
-## 单表
+## 单表操作
 
 ### SQL
 
@@ -557,14 +557,49 @@ MySQL配置：
 数据库查询遵循条件在前的原则
 
 ```mysql
-SELECT:字段列表
-FROM:表名列表
-WHERE:条件列表
-GROUP BY:分组字段
-HAVING:分组之后的条件
-ORDER BY:排序
-LIMIT:分页限定
+SELECT DISTINCT
+	<select list>
+FROM
+	<left_table> <join_type>
+JOIN
+	<right_table> ON <join_condition>
+WHERE
+	<where_condition>
+GROUP BY
+	<group_by_list>
+HAVING
+	<having_condition>
+ORDER BY
+	<order_by_condition>
+LIMIT
+	<limit_params>
 ```
+
+执行顺序：
+
+```mysql
+FROM	<left_table>
+
+ON 		<join_condition>
+
+<join_type>		JOIN	<right_table>
+
+WHERE		<where_condition>
+
+GROUP BY 	<group_by_list>
+
+HAVING		<having_condition>
+
+SELECT DISTINCT		<select list>
+
+ORDER BY	<order_by_condition>
+
+LIMIT		<limit_params>
+```
+
+
+
+***
 
 
 
@@ -587,7 +622,7 @@ LIMIT:分页限定
   ```
 
 * 去除重复查询
-  注意：只有全部重复的才可以去除
+  注意：只有值全部重复的才可以去除
 
   ```mysql
   SELECT DISTINCT 列名1,列名2,... FROM 表名;
@@ -628,14 +663,8 @@ LIMIT:分页限定
   SELECT NAME,IFNULL(stock,0)+10 getsum FROM product;
   ```
 
-* **CONCAT()**：用于连接两个字段
 
-  ```sql
-  SELECT CONCAT(TRIM(col1), '(', TRIM(col2), ')') AS concat_col FROM mytable
-  -- 许多数据库会使用空格把一个值填充为列宽，连接的结果出现一些不必要的空格，使用TRIM()可以去除首尾空格
-  ```
 
-  
 
 ***
 
@@ -713,7 +742,7 @@ LIMIT:分页限定
 
 ##### 聚合函数
 
-* 聚合函数：将一列数据作为一个整体，进行纵向的计算
+聚合函数：将一列数据作为一个整体，进行纵向的计算
 
 * 聚合函数语法
 
@@ -755,18 +784,123 @@ LIMIT:分页限定
 
 
 
-##### 文本处理
+***
 
-| 函数名    | 功能               |
-| --------- | ------------------ |
-| LEFT()    | 左边的字符         |
-| RIGHT()   | 右边的字符         |
-| LOWER()   | 转换为小写字符     |
-| UPPER()   | 转换为大写字符     |
-| LTRIM()   | 去除左边的空格     |
-| RTRIM()   | 去除右边的空格     |
-| LENGTH()  | 长度去除右边的空格 |
-| SOUNDEX() | 转换为语音值       |
+
+
+##### 文本函数
+
+CONCAT()：用于连接两个字段
+
+```sql
+SELECT CONCAT(TRIM(col1), '(', TRIM(col2), ')') AS concat_col FROM mytable
+-- 许多数据库会使用空格把一个值填充为列宽，连接的结果出现一些不必要的空格，使用TRIM()可以去除首尾空格
+```
+
+| 函数名称  | 作 用                                                        |
+| --------- | ------------------------------------------------------------ |
+| LENGTH    | 计算字符串长度函数，返回字符串的字节长度                     |
+| CONCAT    | 合并字符串函数，返回结果为连接参数产生的字符串，参数可以使一个或多个 |
+| INSERT    | 替换字符串函数                                               |
+| LOWER     | 将字符串中的字母转换为小写                                   |
+| UPPER     | 将字符串中的字母转换为大写                                   |
+| LEFT      | 从左侧字截取符串，返回字符串左边的若干个字符                 |
+| RIGHT     | 从右侧字截取符串，返回字符串右边的若干个字符                 |
+| TRIM      | 删除字符串左右两侧的空格                                     |
+| REPLACE   | 字符串替换函数，返回替换后的新字符串                         |
+| SUBSTRING | 截取字符串，返回从指定位置开始的指定长度的字符换             |
+| REVERSE   | 字符串反转（逆序）函数，返回与原始字符串顺序相反的字符串     |
+
+
+
+***
+
+
+
+##### 数字函数
+
+| 函数名称        | 作 用                                                      |
+| --------------- | ---------------------------------------------------------- |
+| ABS             | 求绝对值                                                   |
+| SQRT            | 求二次方根                                                 |
+| MOD             | 求余数                                                     |
+| CEIL 和 CEILING | 两个函数功能相同，都是返回不小于参数的最小整数，即向上取整 |
+| FLOOR           | 向下取整，返回值转化为一个BIGINT                           |
+| RAND            | 生成一个0~1之间的随机数，传入整数参数是，用来产生重复序列  |
+| ROUND           | 对所传参数进行四舍五入                                     |
+| SIGN            | 返回参数的符号                                             |
+| POW 和 POWER    | 两个函数的功能相同，都是所传参数的次方的结果值             |
+| SIN             | 求正弦值                                                   |
+| ASIN            | 求反正弦值，与函数 SIN 互为反函数                          |
+| COS             | 求余弦值                                                   |
+| ACOS            | 求反余弦值，与函数 COS 互为反函数                          |
+| TAN             | 求正切值                                                   |
+| ATAN            | 求反正切值，与函数 TAN 互为反函数                          |
+| COT             | 求余切值                                                   |
+
+
+
+***
+
+
+
+##### 日期函数
+
+| 函数名称                | 作 用                                                        |
+| ----------------------- | ------------------------------------------------------------ |
+| CURDATE 和 CURRENT_DATE | 两个函数作用相同，返回当前系统的日期值                       |
+| CURTIME 和 CURRENT_TIME | 两个函数作用相同，返回当前系统的时间值                       |
+| NOW 和  SYSDATE         | 两个函数作用相同，返回当前系统的日期和时间值                 |
+| MONTH                   | 获取指定日期中的月份                                         |
+| MONTHNAME               | 获取指定日期中的月份英文名称                                 |
+| DAYNAME                 | 获取指定曰期对应的星期几的英文名称                           |
+| DAYOFWEEK               | 获取指定日期对应的一周的索引位置值                           |
+| WEEK                    | 获取指定日期是一年中的第几周，返回值的范围是否为 0〜52 或 1〜53 |
+| DAYOFYEAR               | 获取指定曰期是一年中的第几天，返回值范围是1~366              |
+| DAYOFMONTH              | 获取指定日期是一个月中是第几天，返回值范围是1~31             |
+| YEAR                    | 获取年份，返回值范围是 1970〜2069                            |
+| TIME_TO_SEC             | 将时间参数转换为秒数                                         |
+| SEC_TO_TIME             | 将秒数转换为时间，与TIME_TO_SEC 互为反函数                   |
+| DATE_ADD 和 ADDDATE     | 两个函数功能相同，都是向日期添加指定的时间间隔               |
+| DATE_SUB 和 SUBDATE     | 两个函数功能相同，都是向日期减去指定的时间间隔               |
+| ADDTIME                 | 时间加法运算，在原始时间上添加指定的时间                     |
+| SUBTIME                 | 时间减法运算，在原始时间上减去指定的时间                     |
+| DATEDIFF                | 获取两个日期之间间隔，返回参数 1 减去参数 2 的值             |
+| DATE_FORMAT             | 格式化指定的日期，根据参数返回指定格式的值                   |
+| WEEKDAY                 | 获取指定日期在一周内的对应的工作日索引                       |
+
+
+
+****
+
+
+
+#### 正则查询
+
+正则表达式（Regular Expression）是指一个用来描述或者匹配一系列符合某个句法规则的字符串的单个字符串
+
+```mysql
+SELECT * FROM emp WHERE name REGEXP '^T';	-- 匹配以T开头的name值
+SELECT * FROM emp WHERE name REGEXP '2$';	-- 匹配以2结尾的name值
+SELECT * FROM emp WHERE name REGEXP '[uvw]';-- 匹配包含 uvw 的name值
+```
+
+| 符号   | 含义                          |
+| ------ | ----------------------------- |
+| ^      | 在字符串开始处进行匹配        |
+| $      | 在字符串末尾处进行匹配        |
+| .      | 匹配任意单个字符, 包括换行符  |
+| [...]  | 匹配出括号内的任意字符        |
+| [^...] | 匹配不出括号内的任意字符      |
+| a*     | 匹配零个或者多个a(包括空串)   |
+| a+     | 匹配一个或者多个a(不包括空串) |
+| a?     | 匹配零个或者一个a             |
+| a1\|a2 | 匹配a1或a2                    |
+| a(m)   | 匹配m个a                      |
+| a(m,)  | 至少匹配m个a                  |
+| a(m,n) | 匹配m个a 到 n个a              |
+| a(,n)  | 匹配0到n个a                   |
+| (...)  | 将模式元素组成单一元素        |
 
 
 
@@ -881,7 +1015,7 @@ LIMIT:分页限定
 
 
 
-## 约束
+## 约束操作
 
 ### 约束分类
 
@@ -1160,7 +1294,7 @@ LIMIT:分页限定
 
 
 
-## 多表
+## 多表操作
 
 ### 多表设计
 
@@ -1623,166 +1757,6 @@ CREATE TABLE us_pro(
    	u.name IN ('张三','李四');
    ```
 
-   
-
-
-
-***
-
-
-
-## 视图
-
-### 视图概述
-
-视图概念：视图是一种虚拟存在的数据表，这个虚拟的表并不在数据库中实际存在
-
-本质：将一条SELECT查询语句的结果封装到了一个虚拟表中，所以在创建视图的时候，工作重心要放在这条SELECT查询语句上
-
-作用：将一些比较复杂的查询语句的结果，封装到一个虚拟表中，再有相同查询需求时，直接查询该虚拟表
-
-优点：
-
-* 简单：使用视图的用户不需要关心表的结构、关联条件和筛选条件，因为虚拟表中已经是过滤好的结果集
-* 安全：使用视图的用户只能访问查询的结果集，对表的权限管理并不能限制到某个行某个列
-
-* 数据独立，一旦视图的结构确定，可以屏蔽表结构变化对用户的影响，源表增加列对视图没有影响；源表修改列名，则可以通过修改视图来解决，不会造成对访问者的影响
-
-
-
-***
-
-
-
-### 视图创建
-
-* 创建视图
-
-  ```mysql
-  CREATE [OR REPLACE] 
-  VIEW 视图名称 [(列名列表)] 
-  AS 查询语句
-  [WITH [CASCADED | LOCAL] CHECK OPTION];
-  ```
-
-  `WITH [CASCADED | LOCAL] CHECK OPTION` 决定了是否允许更新数据使记录不再满足视图的条件：
-
-  * LOCAL：只要满足本视图的条件就可以更新
-  * CASCADED：必须满足所有针对该视图的所有视图的条件才可以更新， 默认值
-
-* 例如
-
-  ```mysql
-  -- 数据准备 city
-  id	NAME	cid
-  1	深圳	 	1
-  2	上海		1
-  3	纽约		2
-  4	莫斯科	    3
-  
-  -- 数据准备 country
-  id	NAME
-  1	中国
-  2	美国
-  3	俄罗斯
-  
-  -- 创建city_country视图，保存城市和国家的信息(使用指定列名)
-  CREATE 
-  VIEW 
-  	city_country (city_id,city_name,country_name)
-  AS
-      SELECT
-          c1.id,
-          c1.name,
-          c2.name
-      FROM
-          city c1,
-          country c2
-      WHERE
-          c1.cid=c2.id;
-  ```
-
-  
-
-***
-
-
-
-### 视图查询
-
-* 查询所有数据表，视图也会查询出来
-
-  ```mysql
-  SHOW TABLES;
-  SHOW TABLE STATUS [\G];
-  ```
-
-* 查询视图
-
-  ```mysql
-  SELECT * FROM 视图名称;
-  ```
-
-* 查询某个视图创建
-
-  ```mysql
-  SHOW CREATE VIEW 视图名称;
-  ```
-
-
-
-### 视图修改
-
-视图表数据修改，会**自动修改源表中的数据**，因为更新的是视图中的基表中的数据
-
-* 修改视图表中的数据
-
-  ```mysql
-  UPDATE 视图名称 SET 列名 = 值 WHERE 条件;
-  ```
-
-* 修改视图的结构
-
-  ```mysql
-  ALTER [ALGORITHM = {UNDEFINED | MERGE | TEMPTABLE}]
-  VIEW 视图名称 [(列名列表)] 
-  AS 查询语句
-  [WITH [CASCADED | LOCAL] CHECK OPTION]
-  
-  -- 将视图中的country_name修改为name
-  ALTER 
-  VIEW 
-  	city_country (city_id,city_name,name) 
-  AS
-      SELECT
-          c1.id,
-          c1.name,
-          c2.name
-      FROM
-          city c1,
-          country c2
-      WHERE
-          c1.cid=c2.id;
-  ```
-
-
-
-
-
-### 视图删除
-
-* 删除视图
-
-  ```mysql
-  DROP VIEW 视图名称;
-  ```
-
-* 如果存在则删除
-
-  ```mysql
-  DROP VIEW IF EXISTS 视图名称;
-  ```
-
 
 
 
@@ -1792,836 +1766,7 @@ CREATE TABLE us_pro(
 
 
 
-## 过程
-
-### 存储过程
-
-存储过程和函数：存储过程和函数是事先经过编译并存储在数据库中的一段 SQL 语句的集合
-
-存储过程和函数的好处：
-
-* 提高代码的复用性
-* 减少数据在数据库和应用服务器之间的传输，提高传输效率
-* 减少代码层面的业务处理
-* **一次编译永久有效**
-
-存储过程和函数的区别：
-
-* 存储函数必须有返回值
-* 存储过程可以没有返回值
-
-
-
-***
-
-
-
-### 基本操作
-
-DELIMITER：
-
-* DELIMITER关键字用来声明sql语句的分隔符，告诉MySQL该段命令已经结束
-
-* MySQL语句默认的分隔符是分号，但是有时需要一条功能sql语句中包含分号，但是并不作为结束标识，这时使用DELIMITER来指定分隔符：
-
-  ```mysql
-  DELIMITER 分隔符
-  ```
-
-存储过程的创建调用查看和删除：
-
-* 创建存储过程
-
-  ```mysql
-  -- 修改分隔符为$
-  DELIMITER $
-  
-  -- 标准语法
-  CREATE PROCEDURE 存储过程名称(参数...)
-  BEGIN
-  	sql语句;
-  END$
-  
-  -- 修改分隔符为分号
-  DELIMITER ;
-  ```
-
-* 调用存储过程
-
-  ```mysql
-  CALL 存储过程名称(实际参数);
-  ```
-
-* 查看存储过程
-
-  ```mysql
-  SELECT * FROM mysql.proc WHERE db='数据库名称';
-  ```
-
-* 删除存储过程
-
-  ```mysql
-  DROP PROCEDURE [IF EXISTS] 存储过程名称;
-  ```
-
-练习：
-
-* 数据准备
-
-  ```mysql
-  id	NAME	age		gender	score
-  1	张三		23		男		95
-  2	李四		24		男		98
-  3	王五		25		女		100
-  4	赵六		26		女		90
-  ```
-
-* 创建stu_group()存储过程，封装分组查询总成绩，并按照总成绩升序排序的功能
-
-  ```mysql
-  DELIMITER $
-  
-  CREATE PROCEDURE stu_group()
-  BEGIN
-  	SELECT gender,SUM(score) getSum FROM student GROUP BY gender ORDER BY getSum ASC; 
-  END$
-  
-  DELIMITER ;
-  
-  -- 调用存储过程
-  CALL stu_group();
-  -- 删除存储过程
-  DROP PROCEDURE IF EXISTS stu_group;
-  ```
-
-  
-
-***
-
-
-
-### 存储语法
-
-#### 变量使用
-
-存储过程是可以进行编程的，意味着可以使用变量、表达式、条件控制语句等，来完成比较复杂的功能
-
-* 定义变量：DECLARE定义的是局部变量，只能用在BEGIN END范围之内
-  
-  ```mysql
-  DECLARE 变量名 数据类型 [DEFAULT 默认值];
-  ```
-  
-* 变量的赋值
-
-  ```mysql
-  SET 变量名 = 变量值;
-  SELECT 列名 INTO 变量名 FROM 表名 [WHERE 条件];
-  ```
-
-* 数据准备：表student
-
-  ```mysql
-  id	NAME	age		gender	score
-  1	张三		23		男		95
-  2	李四		24		男		98
-  3	王五		25		女		100
-  4	赵六		26		女		90
-  ```
-
-* 定义两个int变量，用于存储男女同学的总分数
-
-  ```mysql
-  DELIMITER $
-  CREATE PROCEDURE pro_test3()
-  BEGIN
-  	-- 定义两个变量
-  	DECLARE men,women INT;
-  	-- 查询男同学的总分数，为men赋值
-  	SELECT SUM(score) INTO men FROM student WHERE gender='男';
-  	-- 查询女同学的总分数，为women赋值
-  	SELECT SUM(score) INTO women FROM student WHERE gender='女';
-  	-- 使用变量
-  	SELECT men,women;
-  END$
-  DELIMITER ;
-  -- 调用存储过程
-  CALL pro_test3();
-  ```
-
-
-
-***
-
-
-
-#### IF语句
-
-* if语句标准语法
-
-  ```mysql
-  IF 判断条件1 THEN 执行的sql语句1;
-  [ELSEIF 判断条件2 THEN 执行的sql语句2;]
-  ...
-  [ELSE 执行的sql语句n;]
-  END IF;
-  ```
-
-* 数据准备：表student
-
-  ```mysql
-  id	NAME	age		gender	score
-  1	张三		23		男		95
-  2	李四		24		男		98
-  3	王五		25		女		100
-  4	赵六		26		女		90
-  ```
-  
-* 根据总成绩判断：全班380分及以上学习优秀、320 ~ 380学习良好、320以下学习一般
-
-  ```mysql
-  DELIMITER $
-  CREATE PROCEDURE pro_test4()
-  BEGIN
-  	DECLARE total INT;							-- 定义总分数变量
-  	DECLARE description VARCHAR(10);			-- 定义分数描述变量
-  	SELECT SUM(score) INTO total FROM student; 	-- 为总分数变量赋值
-  	-- 判断总分数
-  	IF total >= 380 THEN
-  		SET description = '学习优秀';
-  	ELSEIF total >=320 AND total < 380 THEN
-  		SET description = '学习良好';
-  	ELSE
-  		SET description = '学习一般';
-  	END IF;
-  END$
-  DELIMITER ;
-  -- 调用pro_test4存储过程
-  CALL pro_test4();
-  ```
-
-
-
-
-***
-
-
-
-#### 参数传递
-
-* 参数传递的语法
-
-  IN：代表输入参数，需要由调用者传递实际数据。默认的
-  OUT：代表输出参数，该参数可以作为返回值
-  INOUT：代表既可以作为输入参数，也可以作为输出参数
-
-  ```mysql
-  DELIMITER $
-  
-  -- 标准语法
-  CREATE PROCEDURE 存储过程名称([IN|OUT|INOUT] 参数名 数据类型)
-  BEGIN
-  	执行的sql语句;
-  END$
-  
-  DELIMITER ;
-  ```
-
-* 输入总成绩变量，代表学生总成绩，输出分数描述变量，代表学生总成绩的描述
-
-  ```mysql
-  DELIMITER $
-  
-  CREATE PROCEDURE pro_test6(IN total INT, OUT description VARCHAR(10))
-  BEGIN
-  	-- 判断总分数
-  	IF total >= 380 THEN 
-  		SET description = '学习优秀';
-  	ELSEIF total >= 320 AND total < 380 THEN 
-  		SET description = '学习不错';
-  	ELSE 
-  		SET description = '学习一般';
-  	END IF;
-  END$
-  
-  DELIMITER ;
-  -- 调用pro_test6存储过程
-  CALL pro_test6(310,@description);
-  CALL pro_test6((SELECT SUM(score) FROM student), @description);
-  -- 查询总成绩描述
-  SELECT @description;
-  ```
-
-* 查看参数方法
-
-  * @变量名 : 这种变量要在变量名称前面加上“@”符号，叫做用户会话变量，代表整个会话过程他都是有作用的，类似于全局变量
-  * @@变量名 : 这种在变量前加上 "@@" 符号, 叫做系统变量 
-
- 
-
-***
-
-
-
-#### CASE语句
-
-* 标准语法1
-
-  ```mysql
-  CASE 表达式
-      WHEN 值1 THEN 执行sql语句1;
-      [WHEN 值2 THEN 执行sql语句2;]
-      ...
-      [ELSE 执行sql语句n;]
-  END CASE;
-  ```
-
-* 标准语法2
-
-  ```mysql
-  sCASE
-      WHEN 判断条件1 THEN 执行sql语句1;
-      [WHEN 判断条件2 THEN 执行sql语句2;]
-      ...
-      [ELSE 执行sql语句n;]
-  END CASE;
-  ```
-
-* 演示
-
-  ```mysql
-  DELIMITER $
-  CREATE PROCEDURE pro_test7(IN total INT)
-  BEGIN
-  	-- 定义变量
-  	DECLARE description VARCHAR(10);
-  	-- 使用case判断
-  	CASE
-  	WHEN total >= 380 THEN
-  		SET description = '学习优秀';
-  	WHEN total >= 320 AND total < 380 THEN
-  		SET description = '学习不错';
-  	ELSE 
-  		SET description = '学习一般';
-  	END CASE;
-  	
-  	-- 查询分数描述信息
-  	SELECT description;
-  END$
-  DELIMITER ;
-  -- 调用pro_test7存储过程
-  CALL pro_test7(390);
-  CALL pro_test7((SELECT SUM(score) FROM student));
-  ```
-
-
-
-***
-
-
-
-#### WHILE循环
-
-* while循环语法
-
-  ```mysql
-  WHILE 条件判断语句 DO
-  	循环体语句;
-  	条件控制语句;
-  END WHILE;
-  ```
-  
-* 计算1~100之间的偶数和
-
-  ```mysql
-  DELIMITER $
-  CREATE PROCEDURE pro_test6()
-  BEGIN
-  	-- 定义求和变量
-  	DECLARE result INT DEFAULT 0;
-  	-- 定义初始化变量
-  	DECLARE num INT DEFAULT 1;
-  	-- while循环
-  	WHILE num <= 100 DO
-  		IF num % 2 = 0 THEN
-  			SET result = result + num;
-  		END IF;
-  		SET num = num + 1;
-  	END WHILE;
-  	-- 查询求和结果
-  	SELECT result;
-  END$
-  DELIMITER ;
-  
-  -- 调用pro_test6存储过程
-  CALL pro_test6();
-  ```
-
-
-
-***
-
-
-
-#### REPEAT循环
-
-* repeat循环标准语法
-
-  ```mysql
-  初始化语句;
-  REPEAT
-  	循环体语句;
-  	条件控制语句;
-  	UNTIL 条件判断语句
-  END REPEAT;
-  ```
-
-* 计算1~10之间的和
-
-  ```mysql
-  DELIMITER $
-  CREATE PROCEDURE pro_test9()
-  BEGIN
-  	-- 定义求和变量
-  	DECLARE result INT DEFAULT 0;
-  	-- 定义初始化变量
-  	DECLARE num INT DEFAULT 1;
-  	-- repeat循环
-  	REPEAT
-  		-- 累加
-  		SET result = result + num;
-  		-- 让num+1
-  		SET num = num + 1;
-  		-- 停止循环
-  		UNTIL num > 10
-  	END REPEAT;
-  	-- 查询求和结果
-  	SELECT result;
-  END$
-  
-  DELIMITER ;
-  -- 调用pro_test9存储过程
-  CALL pro_test9();
-  ```
-
-
-
-
-***
-
-
-
-#### LOOP循环
-
-LOOP 实现简单的循环，退出循环的条件需要使用其他的语句定义，通常可以使用 LEAVE 语句实现，如果不加退出循环的语句，那么就变成了死循环
-
-* loop循环标准语法
-
-  ```mysql
-  [循环名称:] LOOP
-  	条件判断语句
-  		[LEAVE 循环名称;]
-  	循环体语句;
-  	条件控制语句;
-  END LOOP 循环名称;
-  ```
-  
-* 计算1~10之间的和
-
-  ```mysql
-  DELIMITER $
-  CREATE PROCEDURE pro_test10()
-  BEGIN
-  	-- 定义求和变量
-  	DECLARE result INT DEFAULT 0;
-  	-- 定义初始化变量
-  	DECLARE num INT DEFAULT 1;
-  	-- loop循环
-  	l:LOOP
-  		-- 条件成立，停止循环
-  		IF num > 10 THEN
-  			LEAVE l;
-  		END IF;
-  		-- 累加
-  		SET result = result + num;
-  		-- 让num+1
-  		SET num = num + 1;
-  	END LOOP l;
-  	-- 查询求和结果
-  	SELECT result;
-  END$
-  DELIMITER ;
-  -- 调用pro_test10存储过程
-  CALL pro_test10();
-  ```
-
-
-
-***
-
-
-
-#### 游标
-
-游标是用来存储查询结果集的数据类型，在存储过程和函数中可以使用光标对结果集进行循环的处理
-* 游标可以遍历返回的多行结果，每次拿到一整行数据
-* 简单来说游标就类似于集合的迭代器遍历
-* MySQL中的游标只能用在存储过程和函数中
-
-游标的语法
-
-* 创建游标
-
-  ```mysql
-  DECLARE 游标名称 CURSOR FOR 查询sql语句;
-  ```
-
-* 打开游标
-
-  ```mysql
-  OPEN 游标名称;
-  ```
-
-* 使用游标获取数据
-
-  ```mysql
-  FETCH 游标名称 INTO 变量名1,变量名2,...;
-  ```
-
-* 关闭游标
-
-  ```mysql
-  CLOSE 游标名称;
-  ```
-
-* Mysql通过一个Error handler声明来判断指针是否到尾部，并且必须和创建游标的SQL语句声明在一起：
-
-   ```mysql
-   DECLARE EXIT HANDLER FOR NOT FOUND (do some action，一般是设置标志变量)
-   ```
-
-  
-
-游标的基本使用
-
-* 数据准备：表student
-
-  ```mysql
-  id	NAME	age		gender	score
-  1	张三		23		男		95
-  2	李四		24		男		98
-  3	王五		25		女		100
-  4	赵六		26		女		90
-  ```
-
-* 创建stu_score表
-
-  ```mysql
-  CREATE TABLE stu_score(
-  	id INT PRIMARY KEY AUTO_INCREMENT,
-  	score INT
-  );
-  ```
-
-* 将student表中所有的成绩保存到stu_score表中
-
-  ```mysql
-  DELIMITER $
-  
-  CREATE PROCEDURE pro_test12()
-  BEGIN
-  	-- 定义成绩变量
-  	DECLARE s_score INT;
-  	-- 定义标记变量
-  	DECLARE flag INT DEFAULT 0;
-  	
-  	-- 创建游标，查询所有学生成绩数据
-  	DECLARE stu_result CURSOR FOR SELECT score FROM student;
-  	-- 游标结束后，将标记变量改为1  这两个必须声明在一起
-  	DECLARE EXIT HANDLER FOR NOT FOUND SET flag = 1;
-  	
-  	-- 开启游标
-  	OPEN stu_result;
-  	-- 循环使用游标
-  	REPEAT
-  		-- 使用游标，遍历结果,拿到数据
-  		FETCH stu_result INTO s_score;
-  		-- 将数据保存到stu_score表中
-  		INSERT INTO stu_score VALUES (NULL,s_score);
-  	UNTIL flag=1
-  	END REPEAT;
-  	-- 关闭游标
-  	CLOSE stu_result;
-  END$
-  
-  DELIMITER ;
-  
-  -- 调用pro_test12存储过程
-  CALL pro_test12();
-  -- 查询stu_score表
-  SELECT * FROM stu_score;
-  ```
-  
-  
-
-
-
-***
-
-
-
-### 存储函数
-
-存储函数和存储过程是非常相似的。存储函数可以做的事情，存储过程也可以做到！
-
-存储函数有返回值，存储过程没有返回值(参数的out其实也相当于是返回数据了)
-
-* 创建存储函数
-
-  ```mysql
-  DELIMITER $
-  -- 标准语法
-  CREATE FUNCTION 函数名称(参数 数据类型)
-  RETURNS 返回值类型
-  BEGIN
-  	执行的sql语句;
-  	RETURN 结果;
-  END$
-  
-  DELIMITER ;
-  ```
-
-* 调用存储函数，因为有返回值，所以使用 SELECT 调用
-
-  ```mysql
-  SELECT 函数名称(实际参数);
-  ```
-
-* 删除存储函数
-
-  ```mysql
-  DROP FUNCTION 函数名称;
-  ```
-
-* 定义存储函数，获取学生表中成绩大于95分的学生数量
-
-  ```mysql
-  DELIMITER $
-  CREATE FUNCTION fun_test()
-  RETURN INT
-  BEGIN
-  	-- 定义统计变量
-  	DECLARE result INT;
-  	-- 查询成绩大于95分的学生数量，给统计变量赋值
-  	SELECT COUNT(score) INTO result FROM student WHERE score > 95;
-  	-- 返回统计结果
-  	SELECT result;
-  END
-  DELIMITER ;
-  -- 调用fun_test存储函数
-  SELECT fun_test();
-  ```
-
-
-
-
-
-***
-
-
-
-## 触发
-
-### 触发器
-
-触发器是与表有关的数据库对象，在insert/update/delete 之前或之后触发并执行触发器中定义的SQL语句
-
-* 触发器的这种特性可以协助应用在数据库端确保数据的完整性 、日志记录 、数据校验等操作
-
-- 使用别名 NEW 和 OLD 来引用触发器中发生变化的记录内容，这与其他的数据库是相似的
-- 现在触发器还只支持行级触发，不支持语句级触发
-
-| 触发器类型      | OLD的含义                      | NEW的含义                      |
-| --------------- | ------------------------------ | ------------------------------ |
-| INSERT 型触发器 | 无 (因为插入前状态无数据)      | NEW 表示将要或者已经新增的数据 |
-| UPDATE 型触发器 | OLD 表示修改之前的数据         | NEW 表示将要或已经修改后的数据 |
-| DELETE 型触发器 | OLD 表示将要或者已经删除的数据 | 无 (因为删除后状态无数据)      |
-
-
-
-***
-
-
-
-### 基本操作
-
-* 创建触发器
-
-  ```mysql
-  DELIMITER $
-  
-  CREATE TRIGGER 触发器名称
-  BEFORE|AFTER  INSERT|UPDATE|DELETE
-  ON 表名
-  [FOR EACH ROW]  -- 行级触发器
-  BEGIN
-  	触发器要执行的功能;
-  END$
-  
-  DELIMITER ;
-  ```
-
-* 查看触发器的状态、语法等信息
-
-  ```mysql
-  SHOW TRIGGERS;
-  ```
-
-* 删除触发器，如果没有指定 schema_name，默认为当前数据库
-
-  ```mysql
-  DROP TRIGGER [schema_name.]trigger_name;
-  ```
-
-  
-
-***
-
-
-
-### 触发演示
-
-通过触发器记录账户表的数据变更日志。包含：增加、修改、删除
-
-* 数据准备
-
-  ```mysql
-  -- 创建db9数据库
-  CREATE DATABASE db9;
-  -- 使用db9数据库
-  USE db9;
-  ```
-
-  ```mysql
-  -- 创建账户表account
-  CREATE TABLE account(
-  	id INT PRIMARY KEY AUTO_INCREMENT,	-- 账户id
-  	NAME VARCHAR(20),					-- 姓名
-  	money DOUBLE						-- 余额
-  );
-  -- 添加数据
-  INSERT INTO account VALUES (NULL,'张三',1000),(NULL,'李四',2000);
-  ```
-
-  ```mysql
-  -- 创建日志表account_log
-  CREATE TABLE account_log(
-  	id INT PRIMARY KEY AUTO_INCREMENT,	-- 日志id
-  	operation VARCHAR(20),				-- 操作类型 (insert update delete)
-  	operation_time DATETIME,			-- 操作时间
-  	operation_id INT,					-- 操作表的id
-  	operation_params VARCHAR(200)       -- 操作参数
-  );
-  ```
-
-* 创建INSERT型触发器
-
-  ```mysql
-  DELIMITER $
-  
-  CREATE TRIGGER account_insert
-  AFTER INSERT
-  ON account
-  FOR EACH ROW
-  BEGIN
-  	INSERT INTO account_log VALUES (NULL,'INSERT',NOW(),new.id,CONCAT('插入后{id=',new.id,',name=',new.name,',money=',new.money,'}'));
-  END$
-  
-  DELIMITER ;
-  ```
-
-  ```mysql
-  -- 向account表添加记录
-  INSERT INTO account VALUES (NULL,'王五',3000);
-  
-  -- 查询日志表
-  SELECT * FROM account_log;
-  /*
-  id	operation	operation_time		operation_id	operation_params
-  1	INSERT	   	2021-01-26 19:51:11		3	     插入后{id=3,name=王五money=2000}
-  */
-  ```
-
-  
-
-* 创建UPDATE型触发器
-
-  ```mysql
-  DELIMITER $
-  
-  CREATE TRIGGER account_update
-  AFTER UPDATE
-  ON account
-  FOR EACH ROW
-  BEGIN
-  	INSERT INTO account_log VALUES (NULL,'UPDATE',NOW(),new.id,CONCAT('修改前{id=',old.id,',name=',old.name,',money=',old.money,'}','修改后{id=',new.id,',name=',new.name,',money=',new.money,'}'));
-  END$
-  
-  DELIMITER ;
-  ```
-
-  ```mysql
-  -- 修改account表
-  UPDATE account SET money=3500 WHERE id=3;
-  
-  -- 查询日志表
-  SELECT * FROM account_log;
-  /*
-  id	operation	operation_time		operation_id	  operation_params
-  2	UPDATE	   	2021-01-26 19:58:54		2		 更新前{id=2,name=李四money=1000}
-  												 更新后{id=2,name=李四money=200}
-  */
-  ```
-
-  
-
-* 创建DELETE型触发器
-
-  ```mysql
-  DELIMITER $
-  
-  CREATE TRIGGER account_delete
-  AFTER DELETE
-  ON account
-  FOR EACH ROW
-  BEGIN
-  	INSERT INTO account_log VALUES (NULL,'DELETE',NOW(),old.id,CONCAT('删除前{id=',old.id,',name=',old.name,',money=',old.money,'}'));
-  END$
-  
-  DELIMITER ;
-  ```
-
-  ```mysql
-  -- 删除account表数据
-  DELETE FROM account WHERE id=3;
-  
-  -- 查询日志表
-  SELECT * FROM account_log;
-  /*
-  id	operation	operation_time		operation_id	operation_params
-  3	DELETE		2021-01-26 20:02:48		3	    删除前{id=3,name=王五money=2000}
-  */
-  ```
-
-
-
-
-
-***
-
-
-
-## 事务
+## 事务机制
 
 ### 事务概述
 
@@ -2795,11 +1940,1009 @@ LOOP 实现简单的循环，退出循环的条件需要使用其他的语句定
 
 
 
-****
+***
 
 
 
-## 引擎
+## 存储结构
+
+### 视图
+
+#### 视图概述
+
+视图概念：视图是一种虚拟存在的数据表，这个虚拟的表并不在数据库中实际存在
+
+本质：将一条SELECT查询语句的结果封装到了一个虚拟表中，所以在创建视图的时候，工作重心要放在这条SELECT查询语句上
+
+作用：将一些比较复杂的查询语句的结果，封装到一个虚拟表中，再有相同查询需求时，直接查询该虚拟表
+
+优点：
+
+* 简单：使用视图的用户不需要关心表的结构、关联条件和筛选条件，因为虚拟表中已经是过滤好的结果集
+* 安全：使用视图的用户只能访问查询的结果集，对表的权限管理并不能限制到某个行某个列
+
+* 数据独立，一旦视图的结构确定，可以屏蔽表结构变化对用户的影响，源表增加列对视图没有影响；源表修改列名，则可以通过修改视图来解决，不会造成对访问者的影响
+
+
+
+***
+
+
+
+#### 视图创建
+
+* 创建视图
+
+  ```mysql
+  CREATE [OR REPLACE] 
+  VIEW 视图名称 [(列名列表)] 
+  AS 查询语句
+  [WITH [CASCADED | LOCAL] CHECK OPTION];
+  ```
+
+  `WITH [CASCADED | LOCAL] CHECK OPTION` 决定了是否允许更新数据使记录不再满足视图的条件：
+
+  * LOCAL：只要满足本视图的条件就可以更新
+  * CASCADED：必须满足所有针对该视图的所有视图的条件才可以更新， 默认值
+
+* 例如
+
+  ```mysql
+  -- 数据准备 city
+  id	NAME	cid
+  1	深圳	 	1
+  2	上海		1
+  3	纽约		2
+  4	莫斯科	    3
+  
+  -- 数据准备 country
+  id	NAME
+  1	中国
+  2	美国
+  3	俄罗斯
+  
+  -- 创建city_country视图，保存城市和国家的信息(使用指定列名)
+  CREATE 
+  VIEW 
+  	city_country (city_id,city_name,country_name)
+  AS
+      SELECT
+          c1.id,
+          c1.name,
+          c2.name
+      FROM
+          city c1,
+          country c2
+      WHERE
+          c1.cid=c2.id;
+  ```
+
+  
+
+***
+
+
+
+#### 视图查询
+
+* 查询所有数据表，视图也会查询出来
+
+  ```mysql
+  SHOW TABLES;
+  SHOW TABLE STATUS [\G];
+  ```
+
+* 查询视图
+
+  ```mysql
+  SELECT * FROM 视图名称;
+  ```
+
+* 查询某个视图创建
+
+  ```mysql
+  SHOW CREATE VIEW 视图名称;
+  ```
+
+
+
+***
+
+
+
+#### 视图修改
+
+视图表数据修改，会**自动修改源表中的数据**，因为更新的是视图中的基表中的数据
+
+* 修改视图表中的数据
+
+  ```mysql
+  UPDATE 视图名称 SET 列名 = 值 WHERE 条件;
+  ```
+
+* 修改视图的结构
+
+  ```mysql
+  ALTER [ALGORITHM = {UNDEFINED | MERGE | TEMPTABLE}]
+  VIEW 视图名称 [(列名列表)] 
+  AS 查询语句
+  [WITH [CASCADED | LOCAL] CHECK OPTION]
+  
+  -- 将视图中的country_name修改为name
+  ALTER 
+  VIEW 
+  	city_country (city_id,city_name,name) 
+  AS
+      SELECT
+          c1.id,
+          c1.name,
+          c2.name
+      FROM
+          city c1,
+          country c2
+      WHERE
+          c1.cid=c2.id;
+  ```
+
+
+
+***
+
+
+
+#### 视图删除
+
+* 删除视图
+
+  ```mysql
+  DROP VIEW 视图名称;
+  ```
+
+* 如果存在则删除
+
+  ```mysql
+  DROP VIEW IF EXISTS 视图名称;
+  ```
+
+
+
+
+
+
+***
+
+
+
+### 存储过程
+
+#### 基本介绍
+
+存储过程和函数：存储过程和函数是事先经过编译并存储在数据库中的一段 SQL 语句的集合
+
+存储过程和函数的好处：
+
+* 提高代码的复用性
+* 减少数据在数据库和应用服务器之间的传输，提高传输效率
+* 减少代码层面的业务处理
+* **一次编译永久有效**
+
+存储过程和函数的区别：
+
+* 存储函数必须有返回值
+* 存储过程可以没有返回值
+
+
+
+***
+
+
+
+#### 基本操作
+
+DELIMITER：
+
+* DELIMITER关键字用来声明sql语句的分隔符，告诉MySQL该段命令已经结束
+
+* MySQL语句默认的分隔符是分号，但是有时需要一条功能sql语句中包含分号，但是并不作为结束标识，这时使用DELIMITER来指定分隔符：
+
+  ```mysql
+  DELIMITER 分隔符
+  ```
+
+存储过程的创建调用查看和删除：
+
+* 创建存储过程
+
+  ```mysql
+  -- 修改分隔符为$
+  DELIMITER $
+  
+  -- 标准语法
+  CREATE PROCEDURE 存储过程名称(参数...)
+  BEGIN
+  	sql语句;
+  END$
+  
+  -- 修改分隔符为分号
+  DELIMITER ;
+  ```
+
+* 调用存储过程
+
+  ```mysql
+  CALL 存储过程名称(实际参数);
+  ```
+
+* 查看存储过程
+
+  ```mysql
+  SELECT * FROM mysql.proc WHERE db='数据库名称';
+  ```
+
+* 删除存储过程
+
+  ```mysql
+  DROP PROCEDURE [IF EXISTS] 存储过程名称;
+  ```
+
+练习：
+
+* 数据准备
+
+  ```mysql
+  id	NAME	age		gender	score
+  1	张三		23		男		95
+  2	李四		24		男		98
+  3	王五		25		女		100
+  4	赵六		26		女		90
+  ```
+
+* 创建stu_group()存储过程，封装分组查询总成绩，并按照总成绩升序排序的功能
+
+  ```mysql
+  DELIMITER $
+  
+  CREATE PROCEDURE stu_group()
+  BEGIN
+  	SELECT gender,SUM(score) getSum FROM student GROUP BY gender ORDER BY getSum ASC; 
+  END$
+  
+  DELIMITER ;
+  
+  -- 调用存储过程
+  CALL stu_group();
+  -- 删除存储过程
+  DROP PROCEDURE IF EXISTS stu_group;
+  ```
+
+  
+
+***
+
+
+
+#### 存储语法
+
+##### 变量使用
+
+存储过程是可以进行编程的，意味着可以使用变量、表达式、条件控制语句等，来完成比较复杂的功能
+
+* 定义变量：DECLARE定义的是局部变量，只能用在BEGIN END范围之内
+  
+  ```mysql
+  DECLARE 变量名 数据类型 [DEFAULT 默认值];
+  ```
+  
+* 变量的赋值
+
+  ```mysql
+  SET 变量名 = 变量值;
+  SELECT 列名 INTO 变量名 FROM 表名 [WHERE 条件];
+  ```
+
+* 数据准备：表student
+
+  ```mysql
+  id	NAME	age		gender	score
+  1	张三		23		男		95
+  2	李四		24		男		98
+  3	王五		25		女		100
+  4	赵六		26		女		90
+  ```
+
+* 定义两个int变量，用于存储男女同学的总分数
+
+  ```mysql
+  DELIMITER $
+  CREATE PROCEDURE pro_test3()
+  BEGIN
+  	-- 定义两个变量
+  	DECLARE men,women INT;
+  	-- 查询男同学的总分数，为men赋值
+  	SELECT SUM(score) INTO men FROM student WHERE gender='男';
+  	-- 查询女同学的总分数，为women赋值
+  	SELECT SUM(score) INTO women FROM student WHERE gender='女';
+  	-- 使用变量
+  	SELECT men,women;
+  END$
+  DELIMITER ;
+  -- 调用存储过程
+  CALL pro_test3();
+  ```
+
+
+
+***
+
+
+
+##### IF语句
+
+* if语句标准语法
+
+  ```mysql
+  IF 判断条件1 THEN 执行的sql语句1;
+  [ELSEIF 判断条件2 THEN 执行的sql语句2;]
+  ...
+  [ELSE 执行的sql语句n;]
+  END IF;
+  ```
+
+* 数据准备：表student
+
+  ```mysql
+  id	NAME	age		gender	score
+  1	张三		23		男		95
+  2	李四		24		男		98
+  3	王五		25		女		100
+  4	赵六		26		女		90
+  ```
+  
+* 根据总成绩判断：全班380分及以上学习优秀、320 ~ 380学习良好、320以下学习一般
+
+  ```mysql
+  DELIMITER $
+  CREATE PROCEDURE pro_test4()
+  BEGIN
+  	DECLARE total INT;							-- 定义总分数变量
+  	DECLARE description VARCHAR(10);			-- 定义分数描述变量
+  	SELECT SUM(score) INTO total FROM student; 	-- 为总分数变量赋值
+  	-- 判断总分数
+  	IF total >= 380 THEN
+  		SET description = '学习优秀';
+  	ELSEIF total >=320 AND total < 380 THEN
+  		SET description = '学习良好';
+  	ELSE
+  		SET description = '学习一般';
+  	END IF;
+  END$
+  DELIMITER ;
+  -- 调用pro_test4存储过程
+  CALL pro_test4();
+  ```
+
+
+
+
+***
+
+
+
+##### 参数传递
+
+* 参数传递的语法
+
+  IN：代表输入参数，需要由调用者传递实际数据。默认的
+  OUT：代表输出参数，该参数可以作为返回值
+  INOUT：代表既可以作为输入参数，也可以作为输出参数
+
+  ```mysql
+  DELIMITER $
+  
+  -- 标准语法
+  CREATE PROCEDURE 存储过程名称([IN|OUT|INOUT] 参数名 数据类型)
+  BEGIN
+  	执行的sql语句;
+  END$
+  
+  DELIMITER ;
+  ```
+
+* 输入总成绩变量，代表学生总成绩，输出分数描述变量，代表学生总成绩的描述
+
+  ```mysql
+  DELIMITER $
+  
+  CREATE PROCEDURE pro_test6(IN total INT, OUT description VARCHAR(10))
+  BEGIN
+  	-- 判断总分数
+  	IF total >= 380 THEN 
+  		SET description = '学习优秀';
+  	ELSEIF total >= 320 AND total < 380 THEN 
+  		SET description = '学习不错';
+  	ELSE 
+  		SET description = '学习一般';
+  	END IF;
+  END$
+  
+  DELIMITER ;
+  -- 调用pro_test6存储过程
+  CALL pro_test6(310,@description);
+  CALL pro_test6((SELECT SUM(score) FROM student), @description);
+  -- 查询总成绩描述
+  SELECT @description;
+  ```
+
+* 查看参数方法
+
+  * @变量名 : 这种变量要在变量名称前面加上“@”符号，叫做用户会话变量，代表整个会话过程他都是有作用的，类似于全局变量
+  * @@变量名 : 这种在变量前加上 "@@" 符号, 叫做系统变量 
+
+ 
+
+***
+
+
+
+##### CASE
+
+* 标准语法1
+
+  ```mysql
+  CASE 表达式
+      WHEN 值1 THEN 执行sql语句1;
+      [WHEN 值2 THEN 执行sql语句2;]
+      ...
+      [ELSE 执行sql语句n;]
+  END CASE;
+  ```
+
+* 标准语法2
+
+  ```mysql
+  sCASE
+      WHEN 判断条件1 THEN 执行sql语句1;
+      [WHEN 判断条件2 THEN 执行sql语句2;]
+      ...
+      [ELSE 执行sql语句n;]
+  END CASE;
+  ```
+
+* 演示
+
+  ```mysql
+  DELIMITER $
+  CREATE PROCEDURE pro_test7(IN total INT)
+  BEGIN
+  	-- 定义变量
+  	DECLARE description VARCHAR(10);
+  	-- 使用case判断
+  	CASE
+  	WHEN total >= 380 THEN
+  		SET description = '学习优秀';
+  	WHEN total >= 320 AND total < 380 THEN
+  		SET description = '学习不错';
+  	ELSE 
+  		SET description = '学习一般';
+  	END CASE;
+  	
+  	-- 查询分数描述信息
+  	SELECT description;
+  END$
+  DELIMITER ;
+  -- 调用pro_test7存储过程
+  CALL pro_test7(390);
+  CALL pro_test7((SELECT SUM(score) FROM student));
+  ```
+
+
+
+***
+
+
+
+##### WHILE
+
+* while循环语法
+
+  ```mysql
+  WHILE 条件判断语句 DO
+  	循环体语句;
+  	条件控制语句;
+  END WHILE;
+  ```
+  
+* 计算1~100之间的偶数和
+
+  ```mysql
+  DELIMITER $
+  CREATE PROCEDURE pro_test6()
+  BEGIN
+  	-- 定义求和变量
+  	DECLARE result INT DEFAULT 0;
+  	-- 定义初始化变量
+  	DECLARE num INT DEFAULT 1;
+  	-- while循环
+  	WHILE num <= 100 DO
+  		IF num % 2 = 0 THEN
+  			SET result = result + num;
+  		END IF;
+  		SET num = num + 1;
+  	END WHILE;
+  	-- 查询求和结果
+  	SELECT result;
+  END$
+  DELIMITER ;
+  
+  -- 调用pro_test6存储过程
+  CALL pro_test6();
+  ```
+
+
+
+***
+
+
+
+##### REPEAT
+
+* repeat循环标准语法
+
+  ```mysql
+  初始化语句;
+  REPEAT
+  	循环体语句;
+  	条件控制语句;
+  	UNTIL 条件判断语句
+  END REPEAT;
+  ```
+
+* 计算1~10之间的和
+
+  ```mysql
+  DELIMITER $
+  CREATE PROCEDURE pro_test9()
+  BEGIN
+  	-- 定义求和变量
+  	DECLARE result INT DEFAULT 0;
+  	-- 定义初始化变量
+  	DECLARE num INT DEFAULT 1;
+  	-- repeat循环
+  	REPEAT
+  		-- 累加
+  		SET result = result + num;
+  		-- 让num+1
+  		SET num = num + 1;
+  		-- 停止循环
+  		UNTIL num > 10
+  	END REPEAT;
+  	-- 查询求和结果
+  	SELECT result;
+  END$
+  
+  DELIMITER ;
+  -- 调用pro_test9存储过程
+  CALL pro_test9();
+  ```
+
+
+
+
+***
+
+
+
+##### LOOP
+
+LOOP 实现简单的循环，退出循环的条件需要使用其他的语句定义，通常可以使用 LEAVE 语句实现，如果不加退出循环的语句，那么就变成了死循环
+
+* loop循环标准语法
+
+  ```mysql
+  [循环名称:] LOOP
+  	条件判断语句
+  		[LEAVE 循环名称;]
+  	循环体语句;
+  	条件控制语句;
+  END LOOP 循环名称;
+  ```
+  
+* 计算1~10之间的和
+
+  ```mysql
+  DELIMITER $
+  CREATE PROCEDURE pro_test10()
+  BEGIN
+  	-- 定义求和变量
+  	DECLARE result INT DEFAULT 0;
+  	-- 定义初始化变量
+  	DECLARE num INT DEFAULT 1;
+  	-- loop循环
+  	l:LOOP
+  		-- 条件成立，停止循环
+  		IF num > 10 THEN
+  			LEAVE l;
+  		END IF;
+  		-- 累加
+  		SET result = result + num;
+  		-- 让num+1
+  		SET num = num + 1;
+  	END LOOP l;
+  	-- 查询求和结果
+  	SELECT result;
+  END$
+  DELIMITER ;
+  -- 调用pro_test10存储过程
+  CALL pro_test10();
+  ```
+
+
+
+***
+
+
+
+##### 游标
+
+游标是用来存储查询结果集的数据类型，在存储过程和函数中可以使用光标对结果集进行循环的处理
+* 游标可以遍历返回的多行结果，每次拿到一整行数据
+* 简单来说游标就类似于集合的迭代器遍历
+* MySQL中的游标只能用在存储过程和函数中
+
+游标的语法
+
+* 创建游标
+
+  ```mysql
+  DECLARE 游标名称 CURSOR FOR 查询sql语句;
+  ```
+
+* 打开游标
+
+  ```mysql
+  OPEN 游标名称;
+  ```
+
+* 使用游标获取数据
+
+  ```mysql
+  FETCH 游标名称 INTO 变量名1,变量名2,...;
+  ```
+
+* 关闭游标
+
+  ```mysql
+  CLOSE 游标名称;
+  ```
+
+* Mysql通过一个Error handler声明来判断指针是否到尾部，并且必须和创建游标的SQL语句声明在一起：
+
+   ```mysql
+   DECLARE EXIT HANDLER FOR NOT FOUND (do some action，一般是设置标志变量)
+   ```
+
+  
+
+游标的基本使用
+
+* 数据准备：表student
+
+  ```mysql
+  id	NAME	age		gender	score
+  1	张三		23		男		95
+  2	李四		24		男		98
+  3	王五		25		女		100
+  4	赵六		26		女		90
+  ```
+
+* 创建stu_score表
+
+  ```mysql
+  CREATE TABLE stu_score(
+  	id INT PRIMARY KEY AUTO_INCREMENT,
+  	score INT
+  );
+  ```
+
+* 将student表中所有的成绩保存到stu_score表中
+
+  ```mysql
+  DELIMITER $
+  
+  CREATE PROCEDURE pro_test12()
+  BEGIN
+  	-- 定义成绩变量
+  	DECLARE s_score INT;
+  	-- 定义标记变量
+  	DECLARE flag INT DEFAULT 0;
+  	
+  	-- 创建游标，查询所有学生成绩数据
+  	DECLARE stu_result CURSOR FOR SELECT score FROM student;
+  	-- 游标结束后，将标记变量改为1  这两个必须声明在一起
+  	DECLARE EXIT HANDLER FOR NOT FOUND SET flag = 1;
+  	
+  	-- 开启游标
+  	OPEN stu_result;
+  	-- 循环使用游标
+  	REPEAT
+  		-- 使用游标，遍历结果,拿到数据
+  		FETCH stu_result INTO s_score;
+  		-- 将数据保存到stu_score表中
+  		INSERT INTO stu_score VALUES (NULL,s_score);
+  	UNTIL flag=1
+  	END REPEAT;
+  	-- 关闭游标
+  	CLOSE stu_result;
+  END$
+  
+  DELIMITER ;
+  
+  -- 调用pro_test12存储过程
+  CALL pro_test12();
+  -- 查询stu_score表
+  SELECT * FROM stu_score;
+  ```
+  
+  
+
+
+
+***
+
+
+
+#### 存储函数
+
+存储函数和存储过程是非常相似的。存储函数可以做的事情，存储过程也可以做到！
+
+存储函数有返回值，存储过程没有返回值(参数的out其实也相当于是返回数据了)
+
+* 创建存储函数
+
+  ```mysql
+  DELIMITER $
+  -- 标准语法
+  CREATE FUNCTION 函数名称(参数 数据类型)
+  RETURNS 返回值类型
+  BEGIN
+  	执行的sql语句;
+  	RETURN 结果;
+  END$
+  
+  DELIMITER ;
+  ```
+
+* 调用存储函数，因为有返回值，所以使用 SELECT 调用
+
+  ```mysql
+  SELECT 函数名称(实际参数);
+  ```
+
+* 删除存储函数
+
+  ```mysql
+  DROP FUNCTION 函数名称;
+  ```
+
+* 定义存储函数，获取学生表中成绩大于95分的学生数量
+
+  ```mysql
+  DELIMITER $
+  CREATE FUNCTION fun_test()
+  RETURN INT
+  BEGIN
+  	-- 定义统计变量
+  	DECLARE result INT;
+  	-- 查询成绩大于95分的学生数量，给统计变量赋值
+  	SELECT COUNT(score) INTO result FROM student WHERE score > 95;
+  	-- 返回统计结果
+  	SELECT result;
+  END
+  DELIMITER ;
+  -- 调用fun_test存储函数
+  SELECT fun_test();
+  ```
+
+
+
+
+
+***
+
+
+
+### 触发器
+
+#### 基本介绍
+
+触发器是与表有关的数据库对象，在insert/update/delete 之前或之后触发并执行触发器中定义的SQL语句
+
+* 触发器的这种特性可以协助应用在数据库端确保数据的完整性 、日志记录 、数据校验等操作
+
+- 使用别名 NEW 和 OLD 来引用触发器中发生变化的记录内容，这与其他的数据库是相似的
+- 现在触发器还只支持行级触发，不支持语句级触发
+
+| 触发器类型      | OLD的含义                      | NEW的含义                      |
+| --------------- | ------------------------------ | ------------------------------ |
+| INSERT 型触发器 | 无 (因为插入前状态无数据)      | NEW 表示将要或者已经新增的数据 |
+| UPDATE 型触发器 | OLD 表示修改之前的数据         | NEW 表示将要或已经修改后的数据 |
+| DELETE 型触发器 | OLD 表示将要或者已经删除的数据 | 无 (因为删除后状态无数据)      |
+
+
+
+***
+
+
+
+#### 基本操作
+
+* 创建触发器
+
+  ```mysql
+  DELIMITER $
+  
+  CREATE TRIGGER 触发器名称
+  BEFORE|AFTER  INSERT|UPDATE|DELETE
+  ON 表名
+  [FOR EACH ROW]  -- 行级触发器
+  BEGIN
+  	触发器要执行的功能;
+  END$
+  
+  DELIMITER ;
+  ```
+
+* 查看触发器的状态、语法等信息
+
+  ```mysql
+  SHOW TRIGGERS;
+  ```
+
+* 删除触发器，如果没有指定 schema_name，默认为当前数据库
+
+  ```mysql
+  DROP TRIGGER [schema_name.]trigger_name;
+  ```
+
+  
+
+***
+
+
+
+#### 触发演示
+
+通过触发器记录账户表的数据变更日志。包含：增加、修改、删除
+
+* 数据准备
+
+  ```mysql
+  -- 创建db9数据库
+  CREATE DATABASE db9;
+  -- 使用db9数据库
+  USE db9;
+  ```
+
+  ```mysql
+  -- 创建账户表account
+  CREATE TABLE account(
+  	id INT PRIMARY KEY AUTO_INCREMENT,	-- 账户id
+  	NAME VARCHAR(20),					-- 姓名
+  	money DOUBLE						-- 余额
+  );
+  -- 添加数据
+  INSERT INTO account VALUES (NULL,'张三',1000),(NULL,'李四',2000);
+  ```
+
+  ```mysql
+  -- 创建日志表account_log
+  CREATE TABLE account_log(
+  	id INT PRIMARY KEY AUTO_INCREMENT,	-- 日志id
+  	operation VARCHAR(20),				-- 操作类型 (insert update delete)
+  	operation_time DATETIME,			-- 操作时间
+  	operation_id INT,					-- 操作表的id
+  	operation_params VARCHAR(200)       -- 操作参数
+  );
+  ```
+
+* 创建INSERT型触发器
+
+  ```mysql
+  DELIMITER $
+  
+  CREATE TRIGGER account_insert
+  AFTER INSERT
+  ON account
+  FOR EACH ROW
+  BEGIN
+  	INSERT INTO account_log VALUES (NULL,'INSERT',NOW(),new.id,CONCAT('插入后{id=',new.id,',name=',new.name,',money=',new.money,'}'));
+  END$
+  
+  DELIMITER ;
+  ```
+
+  ```mysql
+  -- 向account表添加记录
+  INSERT INTO account VALUES (NULL,'王五',3000);
+  
+  -- 查询日志表
+  SELECT * FROM account_log;
+  /*
+  id	operation	operation_time		operation_id	operation_params
+  1	INSERT	   	2021-01-26 19:51:11		3	     插入后{id=3,name=王五money=2000}
+  */
+  ```
+
+  
+
+* 创建UPDATE型触发器
+
+  ```mysql
+  DELIMITER $
+  
+  CREATE TRIGGER account_update
+  AFTER UPDATE
+  ON account
+  FOR EACH ROW
+  BEGIN
+  	INSERT INTO account_log VALUES (NULL,'UPDATE',NOW(),new.id,CONCAT('修改前{id=',old.id,',name=',old.name,',money=',old.money,'}','修改后{id=',new.id,',name=',new.name,',money=',new.money,'}'));
+  END$
+  
+  DELIMITER ;
+  ```
+
+  ```mysql
+  -- 修改account表
+  UPDATE account SET money=3500 WHERE id=3;
+  
+  -- 查询日志表
+  SELECT * FROM account_log;
+  /*
+  id	operation	operation_time		operation_id	  operation_params
+  2	UPDATE	   	2021-01-26 19:58:54		2		 更新前{id=2,name=李四money=1000}
+  												 更新后{id=2,name=李四money=200}
+  */
+  ```
+
+  
+
+* 创建DELETE型触发器
+
+  ```mysql
+  DELIMITER $
+  
+  CREATE TRIGGER account_delete
+  AFTER DELETE
+  ON account
+  FOR EACH ROW
+  BEGIN
+  	INSERT INTO account_log VALUES (NULL,'DELETE',NOW(),old.id,CONCAT('删除前{id=',old.id,',name=',old.name,',money=',old.money,'}'));
+  END$
+  
+  DELIMITER ;
+  ```
+
+  ```mysql
+  -- 删除account表数据
+  DELETE FROM account WHERE id=3;
+  
+  -- 查询日志表
+  SELECT * FROM account_log;
+  /*
+  id	operation	operation_time		operation_id	operation_params
+  3	DELETE		2021-01-26 20:02:48		3	    删除前{id=3,name=王五money=2000}
+  */
+  ```
+
+
+
+
+
+***
+
+
+
+## 存储引擎
 
 ### 体系结构
 
@@ -2875,7 +3018,7 @@ MyISAM存储引擎
 
 InnoDB存储引擎：(MySQL5.5版本后默认的存储引擎)
 
-- 特点：支持事务和外键操作，支持并发控制。对比MyISAM的存储引擎，InnoDB写的处理效率差一些，并且会占用更多的磁盘空间以保留数据和索引
+- 特点：**支持事务**和外键操作，支持并发控制。对比MyISAM的存储引擎，InnoDB写的处理效率差一些，并且会占用更多的磁盘空间以保留数据和索引
 - 应用场景：对事务的完整性有比较高的要求，在并发条件下要求数据的一致性，读写频繁的操作
 - 存储方式：
   - 使用共享表空间存储， 这种方式创建的表的表结构保存在.frm文件中， 数据和索引保存在 innodb_data_home_dir 和 innodb_data_file_path定义的表空间中，可以是多个文件
@@ -2985,11 +3128,9 @@ MERGE存储引擎
 
 
 
-## 索引
+## 索引优化
 
 ### 索引概述
-
-
 
 MySQL官方对索引的定义为：索引（index）是帮助MySQL高效获取数据的一种数据结构。在表数据之外，数据库系统还维护着满足特定查找算法的数据结构，这些数据结构以某种方式指向数据， 这样就可以在这些数据结构上实现高级查找算法，这种数据结构就是索引。
 
@@ -3254,7 +3395,7 @@ B+Tree优点：提高查询速度，减少磁盘的IO次数，树形结构较小
 - 使用唯一索引，区分度越高，使用索引的效率越高。
 - 索引字段的选择，最佳候选列应当从where子句的条件中提取，如果where子句中的组合比较多，那么应当挑选最常用、过滤效果最好的列的组合。
 - 使用短索引，索引创建之后也是使用硬盘来存储的，因此提升索引访问的I/O效率，也可以提升总体的访问效率。假如构成索引的字段总长度比较短，那么在给定大小的存储块内可以存储更多的索引值，相应的可以有效的提升MySQL访问索引的I/O效率。
-- 索引可以有效的提升查询数据的效率，但索引数量不是多多益善，索引越多，维护索引的代价越高。对于插入、更新、删除等DML操作比较频繁的表来说，索引过多，会引入相当高的维护代价，降低DML操作的效率，增加相应操作的时间消耗。另外索引过多的话，MySQL也会犯选择困难病，虽然最终仍然会找到一个可用的索引，但无疑提高了选择的代价。
+- 索引可以有效的提升查询数据的效率，但索引数量不是多多益善，索引越多，维护索引的代价越高。对于插入、更新、删除等DML操作比较频繁的表来说，索引过多，会引入相当高的维护代价，降低DML操作的效率，增加相应操作的时间消耗。另外索引过多的话，MySQL也会犯选择困难病，虽然最终仍然会找到一个可用的索引，但提高了选择的代价。
 
 * MySQL建立联合索引时会遵守最左前缀匹配原则，即最左优先，在检索数据时从联合索引的最左边开始匹配
   N个列组合而成的组合索引，相当于创建了N个索引，如果查询时where句中使用了组成该索引的**前**几个字段，那么这条查询SQL可以利用组合索引来提升查询效率
@@ -3284,7 +3425,7 @@ B+Tree优点：提高查询速度，减少磁盘的IO次数，树形结构较小
 
 
 
-## 优化
+## SQL优化
 
 ### 优化步骤
 
@@ -3424,14 +3565,11 @@ EXPLAIN SELECT * FROM table_1 WHERE id = 1;
 MySQL执行计划的局限：
 
 * EXPLAIN不会告诉你关于触发器、存储过程的信息或用户自定义函数对查询的影响情况
-
 * EXPLAIN不考虑各种Cache
-
-* EXPLAIN不能显示MySQL在执行查询时所作的优化工作
-
+* EXPLAIN不能显示MySQL在执行查询时所作的优化工作，因为执行计划在执行查询之前生成
 * 部分统计信息是估算的，并非精确值
-
 * EXPALIN只能解释SELECT操作，其他操作要重写为SELECT后查看执行计划
+* 执行计划可以随着底层优化器输入的更改而更改。EXPLAIN PLAN 显示的是在解释语句时数据库将如何运行SQL语句，由于执行环境和 EXPLAIN PLAN 环境的不同，此计划可能与SQL语句实际的执行计划不同
 
 环境准备：
 
@@ -3884,7 +4022,7 @@ SHOW GLOBAL STATUS LIKE 'Handler_read%';
 
 
 
-### 优化功能
+### 优化语句
 
 #### 批量插入
 
@@ -4208,7 +4346,7 @@ SQL提示，是优化数据库的一个重要手段，就是在SQL语句中加�
 
 
 
-## 锁
+## 锁机制
 
 ### 锁的概述
 

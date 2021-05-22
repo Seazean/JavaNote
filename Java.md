@@ -3706,7 +3706,7 @@ java.util.regex 包主要包括以下三个类：
 
 捕获组是把多个字符当一个单独单元进行处理的方法，它通过对括号内的字符分组来创建。
 
-在表达式( ( A ) ( B ( C ) ) )，有四个这样的组：((A)(B(C)))、(A)、(B(C))、(C)（按照括号从左到右）
+在表达式( ( A ) ( B ( C ) ) )，有四个这样的组：((A)(B(C)))、(A)、(B(C))、(C)（按照括号从左到右为 group(1)）
 
 * 调用 matcher 对象的groupCount 方法返回一个 int值，表示matcher对象当前有多个捕获组。
 * 特殊的组group(0)、group()，它代表整个表达式，该组不包括在 groupCount 的返回值中。 
@@ -6576,10 +6576,11 @@ public class Demo{
 
 ### lambda
 
-#### 概述
+#### 基本介绍
 
-Lambda表达式是JDK1.8开始之后的新技术，是一种代码的新语法，一种特殊写法，
-作用：为了简化匿名内部类的代码写法。
+Lambda表达式是JDK1.8开始之后的新技术，是一种代码的新语法，一种特殊写法
+
+作用：为了简化匿名内部类的代码写法
 
 Lambda表达式的格式:
 
@@ -6591,74 +6592,23 @@ Lambda表达式的格式:
 
 Lambda表达式并不能简化所有匿名内部类的写法，只能简化**函数式接口的匿名内部类**
 
-条件：首先必须是接口，接口中只能有一个抽象方法
+简化条件：首先必须是接口，接口中只能有一个抽象方法
 
 @FunctionalInterface函数式接口注解：一旦某个接口加上了这个注解，这个接口只能有且仅有一个抽象方法
 
 
 
-#### 简化Runnable
-
-```java
-//1.
-Thread t = new Thread(new Runnable() {
-    @Override
-    public void run() {
-        sout(Thread.currentThread().getName()+":执行~~~");
-    }
-});
-t.start();
-
-//2.
-Thread t1 = new Thread(() -> {
-    sout(Thread.currentThread().getName()+":执行~~~");
-});
-t1.start();
-//3.
-new Thread(() -> {
-    sout(Thread.currentThread().getName()+":执行~~~");
-}).start();
-
-//4.一行代码
-new Thread(() -> sout(Thread.currentThread().getName()+":执行~~~")).start();
-```
-
-
-
-#### 简化Comparator
-
-```java
-public class CollectionsDemo {
-    public static void main(String[] args) {
-        List<Student> lists = new ArrayList<>();//...s1 s2 s3
-        Collections.addAll(lists , s1 , s2 , s3);
-        Collections.sort(lists, new Comparator<Student>() {
-            @Override
-            public int compare(Student s1, Student s2) {
-                return s1.getAge() - s2.getAge();
-            }
-        });
-        
-        // 简化写法
-        Collections.sort(lists ,(Student t1, Student t2) -> {
-                return t1.getAge() - t2.getAge();
-        });
-        // 参数类型可以省略,最简单的
-        Collections.sort(lists ,(t1,t2) -> t1.getAge()-t2.getAge());
-    }
-}
-```
+***
 
 
 
 #### 简化方法
 
 Lambda表达式的省略写法（进一步在Lambda表达式的基础上继续简化）
-   （1）如果Lambda表达式的方法体代码只有一行代码。可以省略大括号不写,同时要省略分号！
-   （2）如果Lambda表达式的方法体代码只有一行代码。可以省略大括号不写。
-       	  此时，如果这行代码是return语句，必须省略return不写，同时也必须省略";"不写
-   （3）参数类型可以省略不写。
-   （4）如果只有一个参数，参数类型可以省略，同时()也可以省略。
+
+* 如果Lambda表达式的方法体代码只有一行代码，可以省略大括号不写，同时要省略分号；如果这行代码是return语句，必须省略return不写
+* 参数类型可以省略不写
+* 如果只有一个参数，参数类型可以省略，同时()也可以省略
 
 ```java
 List<String> names = new ArrayList<>();
@@ -6694,13 +6644,77 @@ names.forEach(s -> System.out.println(s) );
 
 
 
+#### 常用简化
+
+##### Runnable
+
+```java
+//1.
+Thread t = new Thread(new Runnable() {
+    @Override
+    public void run() {
+        System.out.println(Thread.currentThread().getName()+":执行~~~");
+    }
+});
+t.start();
+
+//2.
+Thread t1 = new Thread(() -> {
+    System.out.println(Thread.currentThread().getName()+":执行~~~");
+});
+t1.start();
+//3.
+new Thread(() -> {
+    System.out.println(Thread.currentThread().getName()+":执行~~~");
+}).start();
+
+//4.一行代码
+new Thread(() -> System.out.println(Thread.currentThread().getName()+":执行~~~")).start();
+```
+
+
+
+##### Comparator
+
+```java
+public class CollectionsDemo {
+    public static void main(String[] args) {
+        List<Student> lists = new ArrayList<>();//...s1 s2 s3
+        Collections.addAll(lists , s1 , s2 , s3);
+        Collections.sort(lists, new Comparator<Student>() {
+            @Override
+            public int compare(Student s1, Student s2) {
+                return s1.getAge() - s2.getAge();
+            }
+        });
+        
+        // 简化写法
+        Collections.sort(lists ,(Student t1, Student t2) -> {
+                return t1.getAge() - t2.getAge();
+        });
+        // 参数类型可以省略,最简单的
+        Collections.sort(lists ,(t1,t2) -> t1.getAge()-t2.getAge());
+    }
+}
+```
+
+
+
+
+
+***
+
+
+
 ### 方法引用
 
-#### 概述
+#### 基本介绍
 
-方法引用：方法引用是为了进一步简化Lambda表达式的写法。
-方法引用的格式：类型或者对象::引用的方法。
-关键语法是：“::”
+方法引用：方法引用是为了进一步简化Lambda表达式的写法
+
+方法引用的格式：类型或者对象::引用的方法
+
+关键语法是：`::`
 
 ```java
 lists.forEach( s -> System.out.println(s));
@@ -6710,9 +6724,13 @@ lists.forEach(System.out::println);
 
 
 
+***
+
+
+
 #### 静态方法
 
-引用格式：类名::静态方法
+引用格式：`类名::静态方法`
 
 简化步骤：定义一个静态方法，把需要简化的代码放到一个静态方法中去
 
@@ -6720,10 +6738,10 @@ lists.forEach(System.out::println);
 
 ```java
 //定义集合加入几个Student元素
-	// 使用静态方法进行简化！
-    Collections.sort(lists, (o1, o2) -> Student.compareByAge(o1 , o2));
-    // 如果前后参数是一样的，而且方法是静态方法，既可以使用静态方法引用
-    Collections.sort(lists, Student::compareByAge);
+// 使用静态方法进行简化！
+Collections.sort(lists, (o1, o2) -> Student.compareByAge(o1 , o2));
+// 如果前后参数是一样的，而且方法是静态方法，既可以使用静态方法引用
+Collections.sort(lists, Student::compareByAge);
 
 public class Student {
     private String name ;
@@ -6737,9 +6755,13 @@ public class Student {
 
 
 
+***
+
+
+
 #### 实例方法
 
-引用格式：对象::实例方法
+引用格式：`对象::实例方法`
 
 简化步骤：定义一个实例方法，把需要的代码放到实例方法中去
 
@@ -6763,13 +6785,17 @@ public class MethodDemo {
 
 
 
+***
+
+
+
 #### 特定类型
 
-特定类型：String ,任何类型
+特定类型：String，任何类型
 
-引用格式：特定类型::方法
+引用格式：`特定类型::方法`
 
-注意事项：如果第一个参数列表中的形参中的第一个参数作为了后面的方法的调用者，并且其余参数作为后面方法的形参，那么就可以用特定类型方法引用了。
+注意事项：如果第一个参数列表中的形参中的第一个参数作为了后面的方法的调用者，并且其余参数作为后面方法的形参，那么就可以用特定类型方法引用了
 
 ```java
 public class MethodDemo{
@@ -6798,11 +6824,15 @@ public class MethodDemo{
 
 
 
+***
+
+
+
 #### 构造器
 
-格式：类名::new。
-注意事项：前后参数一致的情况下，又在创建对象就可以使用构造器引用
-  				 s -> new Student(s) => Student::new
+格式：`类名::new`
+
+注意事项：前后参数一致的情况下，又在创建对象，就可以使用构造器引用
 
 ```java
 public class ConstructorDemo {
@@ -6816,14 +6846,13 @@ public class ConstructorDemo {
         Object[] objs = lists.toArray();
 
         // 我们想指定转换成字符串类型的数组！最新的写法可以结合构造器引用实现 
-        // default <T> T[] toArray(IntFunction<T[]> generator)
         String[] strs = lists.toArray(new IntFunction<String[]>() {
             @Override
             public String[] apply(int value) {
                 return new String[value];
             }
         });
-        String[] strs1 = lists.toArray(s -> new String[s] );
+        String[] strs1 = lists.toArray(s -> new String[s]);
         String[] strs2 = lists.toArray(String[]::new);
 
         System.out.println("String类型的数组："+ Arrays.toString(strs2));
@@ -14029,11 +14058,11 @@ HotSpot VM采用的热点探测方式是基于计数器的热点探测，为每�
 
 在HotSpot VM中内嵌有两个JIT编译器，分别为Client Compiler和Server Compiler，简称为C1编译器和C2编译器
 
-C1编译器会对字节码进行简单可靠的优化，耗时短，以达到更快的编译速度。C1编译器的优化方法：
+C1编译器会对字节码进行简单可靠的优化，耗时短，以达到更快的编译速度，C1编译器的优化方法：
 
 * 方法内联：将引用的函数代码编译到引用点处，这样可以减少栈帧的生成，减少参数传递以及跳转过程
 
-  方法内联能够消除方法调用的固定开销。任何方法调用除非被内联，否则都会有固定开销，来源于保存程序在该方法中的执行位置，以及新建、压入和弹出新方法所使用的栈帧。
+  方法内联能够消除方法调用的固定开销。任何方法除非被内联，否则调用都会有固定开销，来源于保存程序在该方法中的执行位置，以及新建、压入和弹出新方法所使用的栈帧。
 
   ```java
   private static int square(final int i) {
@@ -14058,9 +14087,11 @@ C1编译器会对字节码进行简单可靠的优化，耗时短，以达到更
 
 * 冗余消除：在运行期间把一些不会执行的代码折叠掉
 
-C2编译器进行耗时较长的优化以及激进优化，优化的代码执行效率更高。C2的优化主要是在全局层面，逃逸分析是优化的基础：标量替换、栈上分配、同步消除
+* 内联缓存：是一种加快动态绑定的优化技术
 
-参数设置：
+C2编译器进行耗时较长的优化以及激进优化，优化的代码执行效率更高，C2的优化主要是在全局层面，逃逸分析是优化的基础：标量替换、栈上分配、同步消除
+
+VM 参数设置：
 
 - -client：指定Java虚拟机运行在Client模式下，并使用C1编译器
 - -server：指定Java虚拟机运行在Server模式下，并使用C2编译器
@@ -14416,6 +14447,8 @@ Passenger 类的方法表包括两个方法，分别对应 0 号和 1 号。方�
 
 
 ### 字节码
+
+（字节码部分笔记待优化）
 
 #### 类结构
 
@@ -15510,6 +15543,8 @@ public class GeneratedMethodAccessor1 extends MethodAccessorImpl {
 ## JVM调优
 
 ### 服务器性能
+
+（调优部分笔记待优化）
 
 对于一个系统要部署上线时，则一定会对JVM进行调整，不经过任何调整直接上线，容易出现线上系统频繁FullGC造成系统卡顿、CPU使用频率过高、系统无反应等问题
 
@@ -23916,7 +23951,7 @@ final void updateHead(Node<E> h, Node<E> p) {
 
 
 
-# Pattern
+# Design
 
 ## 单例模式
 
