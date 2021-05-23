@@ -689,8 +689,8 @@ LIMIT		<limit_params>
   | =                   | 等于                                                         |
   | <> 或 !=            | 不等于                                                       |
   | BETWEEN ... AND ... | 在某个范围之内(都包含)                                       |
-  | **IN(...)**         | 多选一                                                       |
-  | **LIKE 占位符**     | 模糊查询：_单个任意字符、%任意个字符、[] 匹配集合内的字符<br/>`LIKE '[^AB]%' `：不以 A 和 B 开头的任意文本 |
+  | IN(...)             | 多选一                                                       |
+  | LIKE                | **模糊查询**：_单个任意字符、%任意个字符、[] 匹配集合内的字符<br/>`LIKE '[^AB]%' `：不以 A 和 B 开头的任意文本 |
   | IS NULL             | 是NULL                                                       |
   | IS NOT NULL         | 不是NULL                                                     |
   | AND 或 &&           | 并且                                                         |
@@ -1849,7 +1849,7 @@ CREATE TABLE us_pro(
 
 提交方式：
 
-- 自动提交(MySQL默认为自动提交)
+- 自动提交（MySQL默认为自动提交）
 - 手动提交
 
 提交方式语法：
@@ -1863,9 +1863,10 @@ CREATE TABLE us_pro(
 - 修改事务提交方式
 
   ```mysql
-  SET @@AUTOCOMMIT=数字;
+  SET @@AUTOCOMMIT=数字;	-- 系统
+  SET AUTOCOMMIT=数字;		-- 会话
   ```
-
+  
   
 
 ***
@@ -1898,29 +1899,24 @@ CREATE TABLE us_pro(
 
 ### 隔离界别
 
-事务的隔离级别相关概述：
+事务的隔离级别：多个客户端操作时，各个客户端的事务之间应该是隔离的，**不同的事务之间不该互相影响**，而如果多个事务操作同一批数据时，则需要设置不同的隔离级别 , 否则就会产生问题 。
 
-* 事务的隔离级别
-  多个客户端操作时，各个客户端的事务之间应该是隔离的，**不同的事务之间不该互相影响**。而如果多个事务操作同一批数据时，则需要设置不同的隔离级别 , 否则就会产生问题 。
+隔离级别分类：
 
-* 隔离级别分类
+| 隔离级别         | 名称     | 类型     | 会引发的问题           | 数据库默认隔离级别  |
+| ---------------- | -------- | -------- | ---------------------- | ------------------- |
+| read uncommitted | 读未提交 |          | 脏读、不可重复读、幻读 |                     |
+| read committed   | 读已提交 | 表级读锁 | 不可重复读、幻读       | Oracle / SQL Server |
+| repeatable read  | 可重复读 | 行级写锁 | 幻读                   | MySQL               |
+| serializable     | 串行化   | 表级写锁 | 无                     |                     |
 
-  | 隔离级别         | 名称     | 类型     | 会引发的问题           | 数据库默认隔离级别  |
-  | ---------------- | -------- | -------- | ---------------------- | ------------------- |
-  | read uncommitted | 读未提交 |          | 脏读、不可重复读、幻读 |                     |
-  | read committed   | 读已提交 | 表级读锁 | 不可重复读、幻读       | Oracle / SQL Server |
-  | repeatable read  | 可重复读 | 行级写锁 | 幻读                   | MySQL               |
-  | serializable     | 串行化   | 表级写锁 | 无                     |                     |
+* 丢失更新 (Lost Update)：当两个或多个事务选择同一行，最初的事务修改的值，被后面事务修改的值覆盖，所有的隔离级别都可以避免丢失更新
 
-* 问题解释
+* 脏读 (Dirty Reads)：在一个事务处理过程中读取了另一个未提交的事务中的数据 , 导致两次查询结果不一致
 
-  | 问题       | 现象                                                         |
-  | ---------- | ------------------------------------------------------------ |
-  | 脏读       | 是指在一个事务处理过程中读取了另一个未提交的事务中的数据 , 导致两次查询结果不一致 |
-  | 不可重复读 | 是指在一个事务处理过程中读取了另一个事务中修改并已提交的数据，导致两次查询结果不一致 |
-  | 幻读       | 读取过程中数据条目发生了变化，查询某数据不存在，准备插入此记录，但执行插入时发现此记录已存在，无法插入；或查询某数据不存在，执行delete删除，却发现删除成功 |
+* 不可重复读 (Non-Repeatable Reads)：是指在一个事务处理过程中读取了另一个事务中修改并已提交的数据，导致两次查询结果不一致
 
-
+* 幻读 (Phantom Reads)：读取过程中数据条目发生了变化，查询某数据不存在，准备插入此记录，但执行插入时发现此记录已存在，无法插入；或查询某数据不存在，执行delete删除，却发现删除成功
 
 **隔离级别操作语法：**
 
@@ -1928,6 +1924,7 @@ CREATE TABLE us_pro(
 
   ```mysql
   SELECT @@TX_ISOLATION;
+  SHOW VARIABLES LIKE 'tx_isolation';
   ```
 
 * 修改数据库隔离级别
@@ -3425,7 +3422,7 @@ B+Tree优点：提高查询速度，减少磁盘的IO次数，树形结构较小
 
 
 
-## SQL优化
+## 优化语句
 
 ### 优化步骤
 
@@ -4022,7 +4019,7 @@ SHOW GLOBAL STATUS LIKE 'Handler_read%';
 
 
 
-### 优化语句
+### 优化功能
 
 #### 批量插入
 
@@ -4052,7 +4049,7 @@ LOAD DATA LOCAL INFILE = '/home/seazean/sql1.log' INTO TABLE `tb_user_1` FIELD T
 
 3. 手动提交事务：如果应用使用自动提交的方式，建议在导入前执行`SET AUTOCOMMIT=0`，关闭自动提交；导入结束后再执行 SET AUTOCOMMIT=1，打开自动提交，可以提高导入的效率。
 
-   事务需要控制大小，事务太大可能会影响执行的效率。MySQL有innodb_log_buffer_size配置项，超过这个值的日志会使用磁盘数据，效率会下降。所以在事务大小达到配置项数据级前进行事务提交可以提高效率
+   事务需要控制大小，事务太大可能会影响执行的效率。MySQL有 innodb_log_buffer_size 配置项，超过这个值的日志会写入磁盘数据，效率会下降。所以在事务大小达到配置项数据级前进行事务提交可以提高效率
 
    ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL插入数据手动提交事务.png)
 
@@ -4340,15 +4337,317 @@ SQL提示，是优化数据库的一个重要手段，就是在SQL语句中加�
 
 
 
+***
+
+
+
+## 优化系统
+
+### 应用优化
+
+#### 连接池
+
+在实际生产环境中，由于数据库本身的性能局限，就必须要对前台的应用进行一些优化，来降低数据库的访问压力
+
+池化技术：对于访问数据库来说，建立连接的代价是比较昂贵的，频繁的创建关闭连接比较耗费资源，有必要建立数据库连接池，以提高访问的性能
+
 
 
 ***
 
 
 
+#### 减少访问
+
+避免对数据进行重复检索：能够一次连接就获取到结果的，就不用两次连接，这样可以大大减少对数据库无用的重复请求
+
+* 查询数据：
+
+  ```mysql
+  SELECT id,name FROM tb_book;
+  SELECT id,status FROM tb_book; -- 向数据库提交两次请求，数据库就要做两次查询操作
+  -- > 优化为:
+  SELECT id,name,statu FROM tb_book;
+  ```
+
+* 插入数据：
+
+  ```mysql
+  INSERT INTO tb_test VALUES(1,'Tom');
+  INSERT INTO tb_test VALUES(2,'Cat');
+  INSERT INTO tb_test VALUES(3,'Jerry');	-- 连接三次数据库
+  -- >优化为
+  INSERT INTO tb_test VALUES(1,'Tom'),(2,'Cat')，(3,'Jerry');	-- 连接一次
+  ```
+
+增加cache层：在应用中增加缓存层来达到减轻数据库负担的目的。可以部分数据从数据库中抽取出来放到应用端以文本方式存储， 或者使用框架（Mybatis）提供的一级缓存 / 二级缓存，或者使用Redis数据库来缓存数据 
+
+
+
+***
+
+
+
+#### 负载均衡
+
+负载均衡是应用中使用非常普遍的一种优化方法，机制就是利用某种均衡算法，将固定的负载量分布到不同的服务器上， 以此来降低单台服务器的负载，达到优化的效果
+
+* 分流查询：通过MySQL的主从复制，实现读写分离，使增删改操作走主节点，查询操作走从节点，从而可以降低单台服务器的读写压力
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-负载均衡主从复制.jpg)
+
+* 分布式数据库架构：适合大数据量、负载高的情况，具有良好的拓展性和高可用性。通过在多台服务器之间分布数据，可以实现在多台服务器之间的负载均衡，提高访问效率
+
+
+
+***
+
+
+
+### 缓存优化
+
+#### 工作流程
+
+开启Mysql的查询缓存，当执行完全相同的SQL语句的时候，服务器就会直接从缓存中读取结果，当数据被修改，之前的缓存会失效，修改比较频繁的表不适合做查询缓存
+
+查询过程：
+
+1. 客户端发送一条查询给服务器
+2. 服务器先会检查查询缓存，如果命中了缓存，则立即返回存储在缓存中的结果，否则进入下一阶段
+3. 服务器端进行 SQL 解析、预处理，再由优化器生成对应的执行计划
+4. MySQL 根据优化器生成的执行计划，调用存储引擎的 API 来执行查询
+5. 将结果返回给客户端
+
+<img src="https://gitee.com/seazean/images/raw/master/DB/MySQL-查询的执行过程.jpg" style="zoom: 80%;" />
+
+
+
+***
+
+
+
+#### 缓存配置
+
+1. 查看当前的MySQL数据库是否支持查询缓存：
+
+   ```mysql
+   SHOW VARIABLES LIKE 'have_query_cache';	-- YES
+   ```
+
+2. 查看当前MySQL是否开启了查询缓存：
+
+   ```mysql
+   SHOW VARIABLES LIKE 'query_cache_type';	-- OFF
+   ```
+
+   参数说明：
+
+   * OFF 或 0：查询缓存功能关闭
+
+   * ON 或 1：查询缓存功能打开，查询结果符合缓存条件即会缓存，否则不予缓存；可以显式指定 SQL_NO_CACHE 不予缓存
+
+   * DEMAND 或 2：查询缓存功能按需进行，显式指定 SQL_CACHE 的 SELECT 语句才缓存，其它不予缓存
+
+     ```mysql
+     SELECT SQL_CACHE id, name FROM customer; -- SQL_CACHE:查询结果可缓存
+     SELECT SQL_NO_CACHE id, name FROM customer;-- SQL_NO_CACHE:不使用查询缓存
+     ```
+
+3. 查看查询缓存的占用大小：
+
+   ```mysql
+   SHOW VARIABLES LIKE 'query_cache_size';-- 单位是字节 1048576 / 1024 = 1024 = 1KB
+   ```
+
+4. 查看查询缓存的状态变量：
+
+   ```mysql
+   SHOW STATUS LIKE 'Qcache%';
+   ```
+
+   <img src="https://gitee.com/seazean/images/raw/master/DB/MySQL-查询缓存的状态变量.png" style="zoom:67%;" />
+
+   | 参数                    | 含义                                                         |
+   | ----------------------- | ------------------------------------------------------------ |
+   | Qcache_free_blocks      | 查询缓存中的可用内存块数                                     |
+   | Qcache_free_memory      | 查询缓存的可用内存量                                         |
+   | Qcache_hits             | 查询缓存命中数                                               |
+   | Qcache_inserts          | 添加到查询缓存的查询数                                       |
+   | Qcache_lowmen_prunes    | 由于内存不足而从查询缓存中删除的查询数                       |
+   | Qcache_not_cached       | 非缓存查询的数量（由于 query_cache_type 设置而无法缓存或未缓存） |
+   | Qcache_queries_in_cache | 查询缓存中注册的查询数                                       |
+   | Qcache_total_blocks     | 查询缓存中的块总数                                           |
+
+5. 配置 my.cnf：
+
+   ```sh
+   sudo chmod 666 /etc/mysql/my.cnf
+   vim my.cnf
+   # mysqld中配置缓存
+   query_cache_type=1
+   ```
+
+   重启服务既可生效，执行SQL语句进行验证 ，执行一条比较耗时的SQL语句，然后再多执行几次，查看后面几次的执行时间；获取通过查看查询缓存的缓存命中数，来判定是否走查询缓存
+
+
+
+***
+
+
+
+#### 缓存失效
+
+查询缓存失效的情况：
+
+* SQL 语句不一致的情况，要想命中查询缓存，查询的 SQL 语句必须一致
+
+  ```mysql
+  select count(*) from tb_item;
+  Select count(*) from tb_item;	-- 不走缓存，首字母不一致
+  ```
+
+* 当查询语句中有一些不确定查询时，则不会缓存，比如：now()、current_date()、curdate()、curtime()、rand()、uuid()、user()、database() 
+
+  ```mysql
+  SELECT * FROM tb_item WHERE updatetime < NOW() LIMIT 1;
+  SELECT USER();
+  SELECT DATABASE();
+  ```
+
+*  不使用任何表查询语句：
+
+  ```mysql
+  SELECT 'A';
+  ```
+
+* 查询 mysql、information_schema、performance_schema 等系统表时，不走查询缓存：
+
+  ```mysql
+  SELECT * FROM information_schema.engines;
+  ```
+
+* 在存储过程、触发器或存储函数的主体内执行的查询，缓存失效
+
+* 如果表更改，则使用该表的所有高速缓存查询都将变为无效并从高速缓存中删除，包括使用 MERGE 映射到已更改表的表的查询。比如：INSERT、UPDATE、DELETE、ALTER TABLE、DROP TABLE、DROP DATABASE 
+
+  
+
+***
+
+
+
+### 内存优化
+
+#### 优化原则
+
+三个原则：
+
+* 将尽量多的内存分配给 MySQL 做缓存，但也要给操作系统和其他程序预留足够内存
+* MyISAM 存储引擎的数据文件读取依赖于操作系统自身的 IO 缓存，如果有MyISAM表，就要预留更多的内存给操作系统做 IO 缓存
+* 排序区、连接区等缓存是分配给每个数据库会话（Session）专用的，值的设置要根据最大连接数合理分配，如果设置太大，不但浪费资源，而且在并发数较高时会导致物理内存耗尽
+
+
+
+***
+
+
+
+#### MyISAM
+
+MyISAM 存储引擎使用 key_buffer 缓存索引块，加速 MyISAM 索引的读写速度。对于 MyISAM 表的数据块没有特别的缓存机制，完全依赖于操作系统的 IO 缓存。
+
+* key_buffer_size：该变量决定 MyISAM 索引块缓存区的大小，直接影响到 MyISAM 表的存取效率
+
+  ```mysql
+  SHOW VARIABLES LIKE 'key_buffer_size';	-- 单位是字节
+  ```
+
+  在 MySQL 配置文件中设置该值，建议至少将1/4可用内存分配给 key_buffer_size：
+
+  ```sh
+  vim /etc/mysql/my.cnf
+  key_buffer_size=1024M
+  ```
+
+* read_buffer_size：如果需要经常顺序扫描 MyISAM 表，可以通过增大 read_buffer_size 的值来改善性能。但 read_buffer_size 是每个 Session 独占的，如果默认值设置太大，并发环境就会造成内存浪费
+
+* read_rnd_buffer_size：对于需要做排序的 MyISAM 表的查询，如带有 ORDER BY 子句的语句，适当增加该的值，可以改善此类的 SQL 的性能。但是 read_rnd_buffer_size 是每个 Session 独占的，如果默认值设置太大，就会造成内存浪费
+
+
+
+***
+
+
+
+#### InnoDB
+
+Innodb 用一块内存区做 IO 缓存池，该缓存池不仅用来缓存 Innodb 的索引块，也用来缓存 Innodb 的数据块
+
+* innodb_buffer_pool_size：该变量决定了 Innodb 存储引擎表数据和索引数据的最大缓存区大小
+
+  ```mysql
+  SHOW VARIABLES LIKE 'innodb_buffer_pool_size';
+  ```
+
+  在保证操作系统及其他程序有足够内存可用的情况下，innodb_buffer_pool_size 的值越大，缓存命中率越高，访问InnoDB表需要的磁盘I/O 就越少，性能也就越高。通过配置文件修改：
+
+  ```sh
+  innodb_buffer_pool_size=512M
+  ```
+
+* innodb_log_buffer_size：该值决定了 Innodb 日志缓冲区的大小，保存要写入磁盘上的日志文件数据
+
+  对于可能产生大量更新记录的大事务，增加 innodb_log_buffer_size 的大小，可以避免 Innodb 在事务提交前就执行不必要的日志写入磁盘操作，影响执行效率。通过配置文件修改：
+
+  ```sh
+  innodb_log_buffer_size=10M
+  ```
+
+
+
+***
+
+
+
+### 并发参数
+
+MySQL Server 是多线程结构，包括后台线程和客户服务线程。多线程可以有效利用服务器资源，提高数据库的并发性能。在 MySQL 中，控制并发连接和线程的主要参数：
+
+* max_connections：控制允许连接到MySQL数据库的最大连接数，默认值是 151
+
+  如果状态变量 connection_errors_max_connections 不为零，并且一直增长，则说明不断有连接请求因数据库连接数已达到允许最大值而失败，这时可以考虑增大max_connections 的值
+
+  Mysql 最大可支持的连接数取决于很多因素，包括操作系统平台的线程库的质量、内存大小、每个连接的负荷、CPU的处理速度、期望的响应时间等。在 Linux 平台下，性能好的服务器，可以支持 500-1000 个连接，需要根据服务器性能进行评估设定
+
+* back_log：控制 MySQL 监听 TCP 端口时的积压请求栈的大小
+
+  如果 Mysql 的连接数达到 max_connections 时，新来的请求将会被存在堆栈中，以等待某一连接释放资源，该堆栈的数量即 back_log。如果等待连接的数量超过 back_log，将不被授予连接资源直接报错
+
+  5.6.6 版本之前默认值为 50，之后的版本默认为 `50 + (max_connections/5)`，但最大不超过900，如果需要数据库在较短的时间内处理大量连接请求， 可以考虑适当增大 back_log 的值
+
+* table_open_cache：控制所有 SQL 语句执行线程可打开表缓存的数量
+
+  在执行 SQL 语句时，每个执行线程至少要打开1个表缓存，该参数的值应该根据设置的最大连接数以及每个连接执行关联查询中涉及的表的最大数量来设定：`max_connections * N`
+
+* thread_cache_size：可控制 MySQL 缓存客户服务线程的数量
+
+  为了加快连接数据库的速度，MySQL 会缓存一定数量的客户服务线程以备重用，池化思想
+
+* innodb_lock_wait_timeout：设置 InnoDB 事务等待行锁的时间，默认值是50ms
+
+  对于需要快速反馈的业务系统，可以将行锁的等待时间调小，以避免事务被长时间挂起； 对于后台运行的批量处理程序来说，可以将行锁的等待时间调大，以避免发生大的回滚操作
+
+
+
+
+
+****
+
+
+
 ## 锁机制
 
-### 锁的概述
+### 基本介绍
 
 锁机制：数据库为了保证数据的一致性，在共享的资源被并发访问时变得安全有序所设计的一种规则
 
@@ -4360,11 +4659,11 @@ SQL提示，是优化数据库的一个重要手段，就是在SQL语句中加�
   - 共享锁：也叫读锁。对同一份数据，多个事务读操作可以同时加锁而不互相影响 ，但不能修改数据
   - 排他锁：也叫写锁。当前的操作没有完成前，会阻断其他操作的读取和写入
 - 按粒度分类：
-  - 表级锁：会锁定整个表。开销小，加锁快；不会出现死锁；锁定力度大，发生锁冲突概率高，并发度最低。偏向于MyISAM存储引擎！
-  - 行级锁：会锁定当前操作行。开销大，加锁慢；会出现死锁；锁定力度小，发生锁冲突概率低，并发度高。偏向于InnoDB存储引擎！
-  - 页级锁：锁的力度、发生冲突的概率和加锁开销介于表锁和行锁之间，会出现死锁，并发性能一般。
+  - 表级锁：会锁定整个表，开销小，加锁快；不会出现死锁；锁定力度大，发生锁冲突概率高，并发度最低，偏向MyISAM 存储引擎
+  - 行级锁：会锁定当前操作行，开销大，加锁慢；会出现死锁；锁定力度小，发生锁冲突概率低，并发度高，偏向InnoDB 存储引擎
+  - 页级锁：锁的力度、发生冲突的概率和加锁开销介于表锁和行锁之间，会出现死锁，并发性能一般
 - 按使用方式分类：
-  - 悲观锁：每次查询数据时都认为别人会修改，很悲观，所以查询时加锁。
+  - 悲观锁：每次查询数据时都认为别人会修改，很悲观，所以查询时加锁
   - 乐观锁：每次查询数据时都认为别人不会修改，很乐观，但是更新时会判断一下在此期间别人有没有去更新这个数据
 
 * 不同存储引擎支持的锁
@@ -4376,6 +4675,174 @@ SQL提示，是优化数据库的一个重要手段，就是在SQL语句中加�
   | MEMORY   | 支持   | 不支持 | 不支持 |
   | BDB      | 支持   | 不支持 | 支持   |
 
+从锁的角度来说：表级锁更适合于以查询为主，只有少量按索引条件更新数据的应用，如 Web 应用；而行级锁则更适合于有大量按索引条件并发更新少量不同数据，同时又有并查询的应用，如一些在线事务处理系统
+
+
+
+***
+
+
+
+### MyISAM
+
+#### 表级锁
+
+MyISAM 存储引擎只支持表锁，这也是MySQL开始几个版本中唯一支持的锁类型
+
+MyISAM 在执行查询语句前，会自动给涉及的所有表加读锁，在执行更新操作前，会自动给涉及的表加写锁，这个过程并不需要用户干预，所以用户一般不需要直接用 LOCK TABLE 命令给 MyISAM 表显式加锁
+
+* 加锁命令：
+
+  读锁：**所有**连接只能读取数据，不能修改
+
+  写锁：**其他**连接不能查询和修改数据
+
+  ```mysql
+  -- 读锁
+  LOCK TABLE table_name READ;
+  
+  -- 写锁
+  LOCK TABLE table_name WRITE;
+  ```
+
+* 解锁命令：
+
+  ```mysql
+  -- 将当前会话所有的表进行解锁
+  UNLOCK TABLES;
+  ```
+
+锁的兼容性：
+
+* 对MyISAM 表的读操作，不会阻塞其他用户对同一表的读请求，但会阻塞对同一表的写请求
+* 对MyISAM 表的写操作，则会阻塞其他用户对同一表的读和写操作
+
+![](https://gitee.com/seazean/images/raw/master/DB/MySQL-MyISAM 锁的兼容性.png)
+
+MyISAM 的读写锁调度是写优先，因为写锁后其他线程不能做任何操作，大量的更新会使查询很难得到锁，从而造成永远阻塞，所以 MyISAM 不适合做写为主的表的存储引擎
+
+
+
+***
+
+
+
+#### 读锁操作
+
+两个客户端操作 Client 1和 Client 2，简化为 C1、C2
+
+* 数据准备：
+
+  ```mysql
+  CREATE TABLE `tb_book` (
+    `id` INT(11) AUTO_INCREMENT,
+    `name` VARCHAR(50) DEFAULT NULL,
+    `publish_time` DATE DEFAULT NULL,
+    `status` CHAR(1) DEFAULT NULL,
+    PRIMARY KEY (`id`)
+  ) ENGINE=MYISAM DEFAULT CHARSET=utf8 ;
+  
+  INSERT INTO tb_book (id, NAME, publish_time, STATUS) VALUES(NULL,'java编程思想','2088-08-01','1');
+  INSERT INTO tb_book (id, NAME, publish_time, STATUS) VALUES(NULL,'mysql编程思想','2088-08-08','0');
+  ```
+
+* C1、C2 加读锁，同时查询可以正常查询出数据
+
+  ```mysql
+  LOCK TABLE tb_book READ;	-- C1、C2
+  SELECT * FROM tb_book;		-- C1、C2
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-MyISAM 读锁1.png)
+
+* C1 加读锁，C1、C2查询未锁定的表，C1 报错，C2 正常查询
+
+  ```mysql
+  LOCK TABLE tb_book READ;	-- C1
+  SELECT * FROM tb_user;		-- C1、C2
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-MyISAM 读锁2.png)
+
+  C1、C2 执行插入操作，C1 报错，C2 等待获取
+
+  ```mysql
+  INSERT INTO tb_book VALUES(NULL,'Spring高级','2088-01-01','1');	-- C1、C2
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-MyISAM 读锁3.png)
+
+  当在 C1 中释放锁指令 UNLOCK TABLES，C2 中的 INSERT 语句立即执行
+
+
+
+***
+
+
+
+#### 写锁操作
+
+两个客户端操作 Client 1和 Client 2，简化为 C1、C2
+
+* C1 加写锁，C1、C2查询表，C1 正常查询，C2 需要等待
+
+  ```mysql
+  LOCK TABLE tb_book WRITE;	-- C1
+  SELECT * FROM tb_book;		-- C1、C2
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-MyISAM 写锁1.png)
+
+  当在 C1 中释放锁指令 UNLOCK TABLES，C2 中的 SELECT 语句立即执行
+
+* C1、C2 同时加写锁
+
+  ```mysql
+  LOCK TABLE tb_book WRITE;
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-MyISAM 写锁2.png)
+
+* C1 加写锁，C1、C2查询未锁定的表，C1 报错，C2 正常查询
+
+
+
+***
+
+
+
+#### 锁争用
+
+* 查看锁争用：
+
+  ```mysql
+  SHOW OPEN TABLES;
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-锁争用情况查看1.png)
+
+  In_user：表当前被查询使用的次数，如果该数为零，则表是打开的，但是当前没有被使用
+
+  Name_locked：表名称是否被锁定，名称锁定用于取消表或对表进行重命名等操作
+
+  ```mysql
+  LOCK TABLE tb_book READ;	-- 执行命令
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-锁争用情况查看2.png)
+
+* 查看锁状态：
+
+  ```mysql
+  SHOW STATUS LIKE 'Table_locks%';
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-MyISAM 锁状态.png)
+
+  Table_locks_immediate：指的是能立即获得表级锁的次数，每立即获取锁，值加1
+
+  Table_locks_waited：指的是不能立即获取表级锁而需要等待的次数，每等待一次，该值加1，此值高说明存在着较为严重的表级锁争用情况
+
 
 
 ***
@@ -4384,169 +4851,243 @@ SQL提示，是优化数据库的一个重要手段，就是在SQL语句中加�
 
 ### InnoDB
 
-#### 共享锁
+#### 行级锁
 
-共享锁：数据可以被多个事务查询，但是不能修改
+InnoDB 与 MyISAM 的最大不同有两点：一是支持事务；二是 采用了行级锁
 
-* 加入共享锁
+InnoDB  实现了以下两种类型的行锁：
 
-  ```mysql
-  SELECT语句 LOCK IN SHARE MODE;
-  -- InnoDB引擎默认是行锁
-  -- InnoDB引擎如果不采用带索引的列。则会提升为表锁
-  ```
+- 共享锁 (S)：又称为读锁，简称S锁，就是多个事务对于同一数据可以共享一把锁，都能访问到数据，但是只能读不能修改
+- 排他锁 (X)：又称为写锁，简称X锁，就是不能与其他锁并存，如一个事务获取了一个数据行的排他锁，其他事务就不能再获取该行的其他锁，包括共享锁和排他锁，只有获取排他锁的事务是可以对数据读取和修改
 
-* 数据准备
+对于UPDATE、DELETE和INSERT语句，InnoDB会自动给涉及数据集加排他锁；对于普通SELECT语句，InnoDB不会加任何锁
 
-  ```mysql
-  -- 创建db13数据库
-  CREATE DATABASE db13;
-  
-  -- 使用db13数据库
-  USE db13;
-  
-  -- 创建student表
-  CREATE TABLE student(
-  	id INT PRIMARY KEY AUTO_INCREMENT,
-  	NAME VARCHAR(10),
-  	age INT,
-  	score INT
-  );
-  -- 添加数据
-  INSERT INTO student VALUES (NULL,'张三',23,99),(NULL,'李四',24,95),
-  (NULL,'王五',25,98),(NULL,'赵六',26,97);
-  ```
-
-* 共享锁演示
-
-  ```mysql
-  -- 开启事务
-  START TRANSACTION;
-  
-  -- 查询id为1的数据记录。加入共享锁
-  SELECT * FROM student WHERE id=1 LOCK IN SHARE MODE;
-  
-  -- 查询分数为99分的数据记录。加入共享锁,不采用带索引的列，提升为表锁
-  SELECT * FROM student WHERE score=99 LOCK IN SHARE MODE;
-  
-  -- 提交事务
-  COMMIT;
-  ```
-
-  ```mysql
-  -- 窗口2
-  -- 开启事务
-  START TRANSACTION;
-  
-  -- 查询id为1的数据记录(普通查询，可以查询)
-  SELECT * FROM student WHERE id=1;
-  
-  -- 查询id为1的数据记录，并加入共享锁(可以查询。共享锁和共享锁兼容)
-  SELECT * FROM student WHERE id=1 LOCK IN SHARE MODE;
-  
-  -- 修改id为1的姓名为张三三(不能修改，会出现锁的情况。只有窗口1提交事务后，才能修改成功)
-  UPDATE student SET NAME='张三三' WHERE id = 1;
-  
-  -- 修改id为2的姓名为李四四(修改成功，InnoDB引擎默认是行锁)
-  UPDATE student SET NAME='李四四' WHERE id = 2;
-  
-  -- 修改id为3的姓名为王五五(注意：InnoDB引擎如果不采用带索引的列。则会提升为表锁)
-  UPDATE student SET NAME='王五五' WHERE id = 3;
-  
-  -- 提交事务
-  COMMIT;
-  ```
-
-
-
-#### 排他锁
-
-排他锁：加锁的数据，不能被其他事务加锁查询或修改
-
-* 加入排他锁
-
-  ```mysql
-  SELECT语句 FOR UPDATE;
-  ```
-
-* 排他锁演示
-
-  ```mysql
-  -- 窗口1
-  -- 开启事务
-  START TRANSACTION;
-  
-  -- 查询id为1的数据记录，并加入排他锁
-  SELECT * FROM student WHERE id=1 FOR UPDATE;
-  
-  -- 提交事务
-  COMMIT;
-  ```
-
-  ```mysql
-  -- 窗口2
-  -- 开启事务
-  START TRANSACTION;
-  
-  -- 查询id为1的数据记录(普通查询没问题)
-  SELECT * FROM student WHERE id=1;
-  
-  -- 查询id为1的数据记录，并加入共享锁(不能查询。因为排他锁不能和其他锁共存)
-  SELECT * FROM student WHERE id=1 LOCK IN SHARE MODE;
-  
-  -- 查询id为1的数据记录，并加入排他锁(不能查询。因为排他锁不能和其他锁共存)
-  SELECT * FROM student WHERE id=1 FOR UPDATE;
-  
-  -- 修改id为1的姓名为张三(不能修改，会出现锁的情况。只有窗口1提交事务后，才能修改成功)
-  UPDATE student SET NAME='张三' WHERE id=1;
-  
-  -- 提交事务
-  COMMIT;
-  ```
-
-  
-
-
-
-#### 兼容性
-
-锁的兼容性
+锁的兼容性：
 
 - 共享锁和共享锁     兼容
 - 共享锁和排他锁     冲突
 - 排他锁和排他锁     冲突
 - 排他锁和共享锁     冲突
 
+可以通过以下语句显示给数据集加共享锁或排他锁：
+
+```mysql
+SELECT * FROM table_name WHERE ... LOCK IN SHARE MODE	-- 共享锁
+SELECT * FROM table_name WHERE ... FOR UPDATE			-- 排他锁
+```
 
 
-****
+
+***
 
 
 
-### MyISAM
+#### 锁操作
 
-读锁：**所有**连接只能读取数据，不能修改
+两个客户端操作 Client 1和 Client 2，简化为 C1、C2
 
-写锁：**其他**连接不能查询和修改数据
-
-* 加锁
-
-  ```mysql
-  -- 读锁
-  LOCK TABLE 表名 READ;
-  
-  -- 写锁
-  LOCK TABLE 表名 WRITE;
-  ```
-
-* 解锁
+* 环境准备
 
   ```mysql
-  -- 将当前会话所有的表进行解锁
-  UNLOCK TABLES;
+  CREATE TABLE test_innodb_lock(
+  	id INT(11),
+  	name VARCHAR(16),
+  	sex VARCHAR(1)
+  )ENGINE = INNODB DEFAULT CHARSET=utf8;
+  
+  INSERT INTO test_innodb_lock VALUES(1,'100','1');
+  -- ..........
+  
+  CREATE INDEX idx_test_innodb_lock_id ON test_innodb_lock(id);
+  CREATE INDEX idx_test_innodb_lock_name ON test_innodb_lock(name);
   ```
 
-  
+* 关闭自动提交功能：
+
+  ```mysql
+  SET AUTOCOMMIT=0;	-- C1、C2
+  ```
+
+  正常查询数据：
+
+  ```mysql
+  SELECT * FROM test_innodb_lock;	-- C1、C2
+  ```
+
+* 查询 id 为 3 的数据，正常查询：
+
+  ```mysql
+  SELECT * FROM test_innodb_lock WHERE id=3;	-- C1、C2
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-InnoDB 锁操作1.png)
+
+* C1 更新 id 为 3 的数据，但不提交：
+
+  ```mysql
+  UPDATE test_innodb_lock SET name='300' WHERE id=3;	-- C1
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-InnoDB 锁操作2.png)
+
+  C2 查询不到 C1 修改的数据，因为隔离界别为 REPEATABLE READ，C1 提交事务，C2 查询：
+
+  ```mysql
+  COMMIT;	-- C1
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-InnoDB 锁操作3.png)
+
+  提交后仍然查询不到 C1 修改的数据，因为隔离级别可以防止脏读、不可重复读，所以 C2 需要提交才可以查询到其他事务对数据的修改：
+
+  ```mysql
+  COMMIT;	-- C2
+  SELECT * FROM test_innodb_lock WHERE id=3;	-- C2
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-InnoDB 锁操作4.png)
+
+* C1 更新 id 为 3 的数据，但不提交，C2 也更新 id 为 3 的数据：
+
+  ```mysql
+  UPDATE test_innodb_lock SET name='3' WHERE id=3;	-- C1
+  UPDATE test_innodb_lock SET name='30' WHERE id=3;	-- C2
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-InnoDB 锁操作5.png)
+
+  当 C1 提交，C2 直接解除阻塞，直接更新
+
+* 操作不同行的数据：
+
+  ```mysql
+  UPDATE test_innodb_lock SET name='10' WHERE id=1;	-- C1
+  UPDATE test_innodb_lock SET name='30' WHERE id=3;	-- C2
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-InnoDB 锁操作6.png)
+
+  由于C1、C2 操作的不同行，获取不同的行锁，所以都可以正常获取行锁
+
+
+
+***
+
+
+
+#### 锁升级
+
+五索引行锁升级为表锁：不通过索引检索数据，那么 InnoDB 将对表中的所有记录加锁，实际效果和加表锁一样
+
+索引失效会造成锁升级，实际开发过程应避免出现索引失效的状况
+
+* 查看当前表的索引：
+
+  ```mysql
+   SHOW INDEX FROM test_innodb_lock;
+  ```
+
+* 关闭自动提交功能：
+
+  ```mysql
+  SET AUTOCOMMIT=0;	-- C1、C2
+  ```
+
+* 执行更新语句：
+
+  ```mysql
+  UPDATE test_innodb_lock SET sex='2' WHERE name=10;	-- C1
+  UPDATE test_innodb_lock SET sex='2' WHERE id=3;		-- C2
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-InnoDB 锁升级.png)
+
+  索引失效：执行更新时 name 字段为 varchar 类型，造成索引失效，最终行锁变为表锁 
+
+​	
+
+***
+
+
+
+#### 间隙锁
+
+当使用范围条件检索数据，并请求共享或排他锁时，InnoDB会给符合条件的已有数据进行加锁，对于键值在条件范围内但并不存在的记录，叫做间隙 (GAP) ， InnoDB会对间隙进行加锁，这种锁机制就是间隙锁 (Next-Key锁)
+
+* 关闭自动提交功能：
+
+  ```mysql
+  SET AUTOCOMMIT=0;	-- C1、C2
+  ```
+
+* 查询数据表：
+
+  ```mysql
+  SELECT * FROM test_innodb_lock;
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-InnoDB 间隙锁1.png)
+
+* C1 根据 id 范围更新数据，C2 插入数据：
+
+  ```mysql
+  UPDATE test_innodb_lock SET name='8888' WHERE id < 4;	-- C1
+  INSERT INTO test_innodb_lock VALUES(2,'200','2');		-- C2
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-InnoDB 间隙锁2.png)
+
+  出现间隙锁，C2 被阻塞，等待C1 提交事务后才能更新
+
+
+
+***
+
+
+
+#### 锁争用
+
+```mysql
+SHOW  STATUS LIKE 'innodb_row_lock%';
+```
+
+<img src="https://gitee.com/seazean/images/raw/master/DB/MySQL-InnoDB 锁争用.png" style="zoom: 80%;" />
+
+参数说明：
+
+* Innodb_row_lock_current_waits：当前正在等待锁定的数量
+
+* Innodb_row_lock_time：从系统启动到现在锁定总时间长度
+
+* Innodb_row_lock_time_avg：每次等待所花平均时长
+
+* Innodb_row_lock_time_max：从系统启动到现在等待最长的一次所花的时间
+
+* Innodb_row_lock_waits：系统启动后到现在总共等待的次数
+
+当等待的次数很高，而且每次等待的时长也不短的时候，我们就需要分析系统中为什么会有如此多的等待，然后根据分析结果制定优化计划
+
+
+
+***
+
+
+
+#### 锁优化
+
+InnoDB 存储引擎实现了行级锁定，虽然在锁定机制的实现方面带来了性能损耗可能比表锁会更高，但是在整体并发处理能力方面要远远优于 MyISAM 的表锁，当系统并发量较高的时候，InnoDB 的整体性能远远好于 MyISAM 
+
+InnoDB 的行级锁，如果使用不当可能会让InnoDB 的整体性能表现不仅不能比 MyISAM 高，甚至可能会更差
+
+优化建议：
+
+- 尽可能让所有数据检索都能通过索引来完成，避免无索引行锁升级为表锁
+- 合理设计索引，尽量缩小锁的范围
+- 尽可能减少索引条件及索引范围，避免间隙锁
+- 尽量控制事务大小，减少锁定资源量和时间长度
+- 尽可使用低级别事务隔离（需要业务层面满足需求）
+
+
 
 ***
 
@@ -4556,12 +5097,10 @@ SQL提示，是优化数据库的一个重要手段，就是在SQL语句中加�
 
 悲观锁和乐观锁使用前提：
 
-- 对于读的操作远多于写的操作的时候，一个更新操作加锁会阻塞所有的读取操作，降低了吞吐量。最后需要释放锁，锁是需要一些开销的，这时候可以选择乐观锁。
-- 如果是读写比例差距不是非常大或者系统没有响应不及时，吞吐量瓶颈的问题，那就不要去使用乐观锁，它增加了复杂度，也带来了业务额外的风险，这时候可以选择悲观锁。
+- 对于读的操作远多于写的操作的时候，一个更新操作加锁会阻塞所有的读取操作，降低了吞吐量，最后需要释放锁，锁是需要一些开销的，这时候可以选择乐观锁
+- 如果是读写比例差距不是非常大或者系统没有响应不及时，吞吐量瓶颈的问题，那就不要去使用乐观锁，它增加了复杂度，也带来了业务额外的风险，这时候可以选择悲观锁
 
-
-
-乐观锁的实现方式：
+乐观锁的现方式：
 
 * 版本号
 
@@ -4591,14 +5130,12 @@ SQL提示，是优化数据库的一个重要手段，就是在SQL语句中加�
      UPDATE city SET NAME='北京市',VERSION=VERSION+1 WHERE NAME='北京' AND VERSION=1;
      ```
 
-     
-
 * 时间戳
 
   - 和版本号方式基本一样，给数据表中添加一个列，名称无所谓，数据类型需要是**timestamp**
-  - 每次更新后都将最新时间插入到此列。
-  - 读取数据时，将时间读取出来，在执行更新的时候，比较时间。
-  - 如果相同则执行更新，如果不相同，说明此条数据已经发生了变化。
+  - 每次更新后都将最新时间插入到此列
+  - 读取数据时，将时间读取出来，在执行更新的时候，比较时间
+  - 如果相同则执行更新，如果不相同，说明此条数据已经发生了变化
 
 
 

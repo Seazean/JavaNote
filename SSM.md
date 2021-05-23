@@ -1451,12 +1451,16 @@ PageInfo相关API：
 
 注解可以简化开发操作，省略映射配置文件的编写。
 
- 常用注解：
+常用注解：
 
 * @Select(“查询的SQL 语句”)：执行查询操作注解
 * @Insert(“插入的SQL 语句”)：执行新增操作注解
 * @Update(“修改的SQL 语句”)：执行修改操作注解
 * @Delete(“删除的SQL 语句”)：执行删除操作注解
+
+参数注解：
+
+* @Param：当SQL语句需要多个（大于1）参数时，用来指定参数的对应规则
 
 核心配置文件配置映射关系：
 
@@ -1469,8 +1473,6 @@ PageInfo相关API：
  	<mapper class="包名.Mapper名"></mapper>
 </mappers>
 ```
-
-
 
 基本增删改查：
 
@@ -3061,7 +3063,7 @@ Mybatis核心配置文件消失
 
 业务发起使用spring上下文对象获取对应的bean
 
-**原理**：DAO接口不需要去创建实现类，因为MyBatis-Spring提供了一个动态代理的实现**MapperFactoryBean**，这个类可以让你直接注入数据映射器接口到service层 bean 中，底层将会为你创建JDK代理
+**原理**：DAO接口不需要去创建实现类，因为MyBatis-Spring提供了一个动态代理的实现**MapperFactoryBean**，这个类可以让你直接注入数据映射器接口到service层 bean 中，底层将会动态代理创建类
 
 * pom.xml，导入坐标
 
@@ -5731,7 +5733,7 @@ Spirng可以通过配置的形式控制使用的代理形式，Spring会先判�
 
   * JDK动态代理只能对实现了接口的类生成代理，没有实现接口的类不能使用。
   * Cglib动态代理即使被代理的类没有实现接口也可以使用，因为Cglib动态代理是使用继承被代理类的方式进行扩展
-  * Cglib动态代理是通过继承的方式，覆盖被代理类的方法来进行代理，所以如果方法是被final修饰的话，就不能进行代理。
+  * Cglib动态代理是通过继承的方式，覆盖被代理类的方法来进行代理，所以如果方法是被final修饰的话，就不能进行代理
 
 
 
@@ -6747,6 +6749,8 @@ public AnnotationConfigApplicationContext(Class<?>... annotatedClasses) {
 
 ### Bean
 
+#### 生命周期
+
 单实例：在容器启动时创建对象
 
 多实例：在每次获取的时候创建对象
@@ -6758,6 +6762,14 @@ Bean的生命周期：实例化instantiation，填充属性populate，初始化i
 ![](https://gitee.com/seazean/images/raw/master/Frame/Spring-getBean.png)
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/Sprin-AOP+循环依赖.png)
+
+
+
+***
+
+
+
+#### 源码解析
 
 Java启动Spring代码：
 
@@ -6881,9 +6893,9 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
 
 ### 循环依赖
 
-* 解决循环依赖：提前引用，提前暴露创建中的Bean
+解决循环依赖：提前引用，提前暴露创建中的Bean
 
-  循环依赖的三级缓存：
+* 循环依赖的三级缓存：
 
   ```java
   //一级缓存：存放所有初始化完成单实例bean，单例池
@@ -6895,12 +6907,12 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
   /** Cache of singleton factories: bean name to ObjectFactory. 3*/
   private final Map<String, ObjectFactory<?>> singletonFactories = new HashMap<>(16);
   ```
-
+  
   为什么需要三级缓存？
 
   * 循环依赖解决需要提前引用动态代理对象，AOP动态代理是在Bean初始化后的后置处理中进行，这时的bean已经是成品对象，需要提前进行动态代理，三级缓存的ObjectFactory可以提前产生需要代理的对象
   * 若存在循环依赖，**后置处理不创建代理对象，真正创建代理对象的过程是在getBean(B)的阶段中**
-
+  
   一定会提前引用吗？
 
   * 出现循环依赖才去使用，不出现就不使用
@@ -6909,7 +6921,7 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
 
   * 存在增强器会创建动态代理，不需要增强就不需要创建动态代理对象
   * 不创建就会把最原始的实例化的Bean放到二级缓存，因为addSingletonFactory参数中传入了实例化的Bean，在singletonFactory.getObject()中返回给singletonObject，放入二级缓存
-
+  
   什么时候将Bean的引用提前暴露给第三级缓存的ObjectFactory持有？
 
   * 实例化之后，依赖注入之前
@@ -6918,9 +6930,11 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
     createBeanInstance --> addSingletonFactory --> populateBean
     ```
 
-* 解决循环依赖，源码解析（A依赖B，B依赖A）
+解决循环依赖，源码解析：
 
-  第二阶段当A创建实例后填充属性前，执行`addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, mbd, bean));`方法，注意lambda表达式，getObject()时调用
+* 假如A依赖B，B依赖A
+
+  当A创建实例后填充属性前，执行`addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, mbd, bean));`方法，注意lambda表达式，getObject()时调用
 
   ````java
   //添加给定的单例工厂以构建指定的单例
@@ -7313,6 +7327,8 @@ AnnotationAwareAspectJAutoProxyCreator是这种类型的后置处理器：Instan
 
 
 #### Transactional
+
+（源码解析待更新）
 
 如果一个类或者一个类中的 public 方法上被标注@Transactional 注解的话，Spring 容器就会在启动的时候为其创建一个代理类，在调用被@Transactional注解的 public 方法的时候，实际调用的是TransactionInterceptor类中的 invoke()方法。这个方法的作用就是在目标方法之前开启事务，方法执行过程中如果遇到异常的时候回滚事务，方法调用完成之后提交事务
 
@@ -9984,11 +10000,9 @@ jsp：
 
 SSM（Spring+SpringMVC+MyBatis）
 
-* Spring
-  * 框架基础
+* Spring：框架基础
 
-* MyBatis
-  * mysql+druid+pagehelper
+* MyBatis：mysql+druid+pagehelper
 
 * Spring整合MyBatis
 
@@ -10040,11 +10054,11 @@ SSM（Spring+SpringMVC+MyBatis）
   ```xml
   <dependencies>
       <!--spring环境-->
-      <!--<dependency>
-              <groupId>org.springframework</groupId>
-              <artifactId>spring-context</artifactId>
-              <version>5.1.9.RELEASE</version>
-          </dependency>-->
+      <<dependency>
+          <groupId>org.springframework</groupId>
+          <artifactId>spring-context</artifactId>
+          <version>5.1.9.RELEASE</version>
+      </dependency>
   
       <!--mybatis环境-->
       <dependency>
@@ -10102,16 +10116,16 @@ SSM（Spring+SpringMVC+MyBatis）
           <artifactId>jackson-databind</artifactId>
           <version>2.9.0</version>
       </dependency>
-      <!--<dependency>
-              <groupId>com.fasterxml.jackson.core</groupId>
-              <artifactId>jackson-core</artifactId>
-              <version>2.9.0</version>
-          </dependency>
-          <dependency>
-              <groupId>com.fasterxml.jackson.core</groupId>
-              <artifactId>jackson-annotations</artifactId>
-              <version>2.9.0</version>
-          </dependency>-->
+      <dependency>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-core</artifactId>
+          <version>2.9.0</version>
+      </dependency>
+      <dependency>
+          <groupId>com.fasterxml.jackson.core</groupId>
+          <artifactId>jackson-annotations</artifactId>
+          <version>2.9.0</version>
+      </dependency>
   
       <!--servlet环境-->
       <dependency>
@@ -10201,7 +10215,7 @@ SSM（Spring+SpringMVC+MyBatis）
        * @param password 密码信息
        * @return
        */
-  //注意：数据层操作不要和业务层操作的名称混淆，通常数据层仅反映与数据库间的信息交换，不体现业务逻辑
+  	//数据层操作不要和业务层操作的名称混淆，通常数据层仅反映与数据库间的信息交换，不体现业务逻辑
       public User getByUserNameAndPassword(@Param("userName") String userName,
                                            @Param("password") String password);
   }
