@@ -122,14 +122,125 @@ MySQL配置：
 
   
 
+***
+
+
+
+### 常用工具
+
+#### mysql
+
+mysql 不是指 mysql 服务，而是指 mysql 的客户端工具
+
+```sh
+mysql [options] [database]
+```
+
+* -u  --user=name：指定用户名
+* -p  --password[=name]：指定密码
+* -h  --host=name：指定服务器IP或域名
+* -P  --port=#：指定连接端口
+* -e  --execute=name：执行SQL语句并退出，在控制台执行SQL语句，而不用连接到数据库执行
+
+示例：
+
+```sh
+mysql -h 127.0.0.1 -P 3306 -u root -p
+mysql -uroot -p2143 db01 -e "select * from tb_book";
+```
+
+
 
 ***
 
 
 
-### 备份
+#### admin
 
-#### 命令行
+mysqladmin 是一个执行管理操作的客户端程序，用来检查服务器的配置和当前状态、创建并删除数据库等
+
+通过 `mysqladmin --help` 指令查看帮助文档
+
+```sh
+mysqladmin -uroot -p2143 create 'test01';
+```
+
+
+
+***
+
+
+
+#### binlog
+
+服务器生成的日志文件以二进制格式保存，如果需要检查这些文本，就要使用 mysqlbinlog 日志管理工具
+
+```sh
+mysqlbinlog [options]  log-files1 log-files2 ...
+```
+
+* -d  --database=name：指定数据库名称，只列出指定的数据库相关操作
+
+* -o  --offset=#：忽略掉日志中的前n行命令。
+
+* -r  --result-file=name：将输出的文本格式日志输出到指定文件。
+
+* -s  --short-form：显示简单格式， 省略掉一些信息。
+
+* --start-datatime=date1  --stop-datetime=date2：指定日期间隔内的所有日志。
+
+* --start-position=pos1 --stop-position=pos2：指定位置间隔内的所有日志。
+
+
+
+***
+
+
+
+#### dump
+
+##### 命令介绍
+
+mysqldump 客户端工具用来备份数据库或在不同数据库之间进行数据迁移，备份内容包含创建表，及插入表的SQL语句
+
+```sh
+mysqldump [options] db_name [tables]
+mysqldump [options] --database/-B db1 [db2 db3...]
+mysqldump [options] --all-databases/-A
+```
+
+连接选项：
+
+* -u  --user=name：指定用户名
+* -p  --password[=name]：指定密码
+* -h  --host=name：指定服务器IP或域名
+* -P  --port=#：指定连接端口
+
+输出内容选项：
+
+* --add-drop-database：在每个数据库创建语句前加上 Drop database 语句
+* --add-drop-table：在每个表创建语句前加上 Drop table 语句 , 默认开启 ; 不开启 (--skip-add-drop-table)
+* -n  --no-create-db：不包含数据库的创建语句
+* -t  --no-create-info：不包含数据表的创建语句
+* -d --no-data：不包含数据
+* -T, --tab=name：自动生成两个文件：一个.sql文件，创建表结构的语句；一个.txt文件，数据文件，相当于select into outfile  
+
+示例：
+
+```sh
+mysqldump -uroot -p2143 db01 tb_book --add-drop-database --add-drop-table > a
+mysqldump -uroot -p2143 -T /tmp test city
+```
+
+
+
+***
+
+
+
+##### 数据备份
+
+命令行方式：
 
 * 备份命令：mysqldump -u root -p 数据库名称 > 文件保存路径
 
@@ -142,7 +253,7 @@ MySQL配置：
 
 
 
-#### 图形化
+图形化界面：
 
 * 备份
 
@@ -153,6 +264,103 @@ MySQL配置：
   ![图形化界面恢复](https://gitee.com/seazean/images/raw/master/DB/图形化界面恢复.png)
 
 
+
+
+
+***
+
+
+
+#### import
+
+mysqlimport 是客户端数据导入工具，用来导入mysqldump 加 -T 参数后导出的文本文件
+
+```sh
+mysqlimport [options]  db_name  textfile1  [textfile2...]
+```
+
+示例：
+
+```sh
+mysqlimport -uroot -p2143 test /tmp/city.txt
+```
+
+导入 sql 文件，可以使用 MySQL 中的 source 指令 : 
+
+```mysql
+source 文件全路径
+```
+
+
+
+***
+
+
+
+#### show
+
+mysqlshow 客户端对象查找工具，用来很快地查找存在哪些数据库、数据库中的表、表中的列或者索引
+
+```sh
+mysqlshow [options] [db_name [table_name [col_name]]]
+```
+
+* --count：显示数据库及表的统计信息（数据库，表 均可以不指定）
+
+* -i：显示指定数据库或者指定表的状态信息
+
+示例：
+
+```sh
+#查询每个数据库的表的数量及表中记录的数量
+mysqlshow -uroot -p1234 --count
+#查询test库中每个表中的字段书，及行数
+mysqlshow -uroot -p1234 test --count
+#查询test库中book表的详细情况
+mysqlshow -uroot -p1234 test book --count
+```
+
+
+
+
+
+***
+
+
+
+## 体系结构
+
+体系结构详解：
+
+* 第一层：网络连接层
+  * 一些客户端和链接服务，包含本地socket 通信和大多数基于客户端/服务端工具实现的 TCP/IP 通信，主要完成一些类似于连接处理、授权认证、及相关的安全方案
+  * 在该层上引入了线程池的概念，为通过认证安全接入的客户端提供线程
+  * 在该层上实现基于SSL的安全链接，服务器也会为安全接入的每个客户端验证它所具有的操作权限
+
+- 第二层：核心服务层
+  * 完成大多数的核心服务功能，如SQL接口，并完成缓存的查询，SQL的分析和优化，部分内置函数的执行
+  * 所有**跨存储引擎**的功能在这一层实现，如存储过程、触发器、视图等
+  * 在该层服务器会解析查询并创建相应的内部解析树，并对其完成相应的优化如确定表的查询顺序，是否利用索引等， 最后生成相应的执行操作
+  * 服务器还会查询内部的缓存，如果缓存空间足够大，可以在大量读操作的环境中提升系统的性能
+- 第三层：存储引擎层
+  - 存储引擎真正的负责了MySQL中数据的存储和提取，服务器通过API和存储引擎进行通信
+  - 不同的存储引擎具有不同的功能，这样我们可以根据自己的需要，来选取合适的存储引擎
+- 第四层：系统文件层
+  - 数据存储层，主要是将数据存储在文件系统之上，并完成与存储引擎的交互
+  - 文件系统：配置文件、数据文件、日志文件、错误文件、二进制文件等等的保存
+
+![](https://gitee.com/seazean/images/raw/master/DB/MySQL-体系结构.png)
+
+整个MySQL Server由以下组成
+
+- Connection Pool：连接池组件
+- Management Services & Utilities：管理服务和工具组件
+- SQL Interface：SQL接口组件
+- Parse：查询分析器组件
+- Optimizer：优化器组件
+- Caches & Buffers：缓冲池组件
+- Pluggable Storage Engines：存储引擎
+- File System：文件系统
 
 
 
@@ -696,6 +904,8 @@ LIMIT		<limit_params>
   | AND 或 &&           | 并且                                                         |
   | OR 或 \|\|          | 或者                                                         |
   | NOT 或 !            | 非，不是                                                     |
+  | UNION               | 对两个结果集进行并集操作，不包括重复行，同时进行默认规则的排序 |
+  | UNION ALL           | 对两个结果集进行并集操作，包括重复行，不进行排序             |
 
 * 例如：
 
@@ -1768,7 +1978,7 @@ CREATE TABLE us_pro(
 
 ## 事务机制
 
-### 事务概述
+### 事务介绍
 
 事务：一条或多条 SQL 语句组成一个执行单元，其特点是这个单元要么同时成功要么同时失败
 
@@ -1945,7 +2155,7 @@ CREATE TABLE us_pro(
 
 ### 视图
 
-#### 视图概述
+#### 基本介绍
 
 视图概念：视图是一种虚拟存在的数据表，这个虚拟的表并不在数据库中实际存在
 
@@ -2941,47 +3151,7 @@ LOOP 实现简单的循环，退出循环的条件需要使用其他的语句定
 
 ## 存储引擎
 
-### 体系结构
-
-体系结构详解：
-
-* 第一层：网络连接层
-  * 一些客户端和链接服务，包含本地socket 通信和大多数基于客户端/服务端工具实现的 TCP/IP 通信，主要完成一些类似于连接处理、授权认证、及相关的安全方案
-  * 在该层上引入了线程池的概念，为通过认证安全接入的客户端提供线程
-  * 在该层上实现基于SSL的安全链接，服务器也会为安全接入的每个客户端验证它所具有的操作权限
-
-- 第二层：核心服务层
-  * 完成大多数的核心服务功能，如SQL接口，并完成缓存的查询，SQL的分析和优化，部分内置函数的执行
-  * 所有跨存储引擎的功能在这一层实现，如过程、函数等
-  * 在该层服务器会解析查询并创建相应的内部解析树，并对其完成相应的优化如确定表的查询顺序，是否利用索引等， 最后生成相应的执行操作
-  * 服务器还会查询内部的缓存，如果缓存空间足够大，可以在大量读操作的环境中提升系统的性能
-- 第三层：存储引擎层
-  - 存储引擎真正的负责了MySQL中数据的存储和提取，服务器通过API和存储引擎进行通信
-  - 不同的存储引擎具有不同的功能，这样我们可以根据自己的需要，来选取合适的存储引擎
-- 第四层：系统文件层
-  - 数据存储层，主要是将数据存储在文件系统之上，并完成与存储引擎的交互
-  - 文件系统：配置文件、数据文件、日志文件、错误文件、二进制文件等等的保存
-
-![](https://gitee.com/seazean/images/raw/master/DB/MySQL-体系结构.png)
-
-整个MySQL Server由以下组成
-
-- Connection Pool：连接池组件
-- Management Services & Utilities：管理服务和工具组件
-- SQL Interface：SQL接口组件
-- Parse：查询分析器组件
-- Optimizer：优化器组件
-- Caches & Buffers：缓冲池组件
-- Pluggable Storage Engines：存储引擎
-- File System：文件系统
-
-
-
-***
-
-
-
-### 存储引擎
+### 基本介绍
 
 对比其他数据库，MySQL的架构可以在不同场景应用并发挥良好作用，主要体现在存储引擎，插件式的存储引擎架构将查询处理和其他的系统任务以及数据的存储提取分离，可以针对不同的存储需求可以选择最优的存储引擎
 
@@ -3019,7 +3189,7 @@ InnoDB存储引擎：(MySQL5.5版本后默认的存储引擎)
 - 应用场景：对事务的完整性有比较高的要求，在并发条件下要求数据的一致性，读写频繁的操作
 - 存储方式：
   - 使用共享表空间存储， 这种方式创建的表的表结构保存在.frm文件中， 数据和索引保存在 innodb_data_home_dir 和 innodb_data_file_path定义的表空间中，可以是多个文件
-  - 使用多表空间存储， 这种方式创建的表的表结构存在 .frm 文件中，但每个表的数据和索引单独保存在 .ibd 中
+  - 使用多表空间存储，创建的表的表结构存在 .frm 文件中，每个表的数据和索引单独保存在 .ibd 中
 
 MEMORY存储引擎：
 
@@ -3127,7 +3297,9 @@ MERGE存储引擎
 
 ## 索引优化
 
-### 索引概述
+### 索引介绍
+
+#### 基本介绍
 
 MySQL官方对索引的定义为：索引（index）是帮助MySQL高效获取数据的一种数据结构。在表数据之外，数据库系统还维护着满足特定查找算法的数据结构，这些数据结构以某种方式指向数据， 这样就可以在这些数据结构上实现高级查找算法，这种数据结构就是索引。
 
@@ -3152,21 +3324,21 @@ MySQL官方对索引的定义为：索引（index）是帮助MySQL高效获取�
 
 
 
-### 索引分类
+#### 索引分类
 
 索引一般的分类如下：
 
 - 功能分类 
-  - 单列索引：一个索引只包含单个列，一个表可以有多个单列索引
-  - 组合索引：顾名思义，就是将单列索引进行组合
-  - 唯一索引：索引列的值必须唯一，允许有空值。如果是组合索引，则列值组合必须唯一
+  - 单列索引：一个索引只包含单个列，一个表可以有多个单列索引（普通索引）
+  - 联合索引：顾名思义，就是将单列索引进行组合
+  - 唯一索引：索引列的值必须唯一，允许有空值。如果是联合索引，则列值组合必须唯一
   - 主键索引：一种特殊的唯一索引，不允许有空值，一般在建表时同时创建主键索引
-  - 外键索引：只有InnoDB引擎支持外键索引，用来保证数据的一致性、完整性和实现级联操作
-  
+  - 外键索引：只有 InnoDB 引擎支持外键索引，用来保证数据的一致性、完整性和实现级联操作
+
 - 结构分类
   - BTree索引：MySQL使用最频繁的一个索引数据结构，是InnoDB和MyISAM存储引擎默认的索引类型，底层基于B+Tree 数据结构
-  - Hash索引：MySQL中Memory存储引擎默认支持的索引类型
-  - R-tree 索引（空间索引）：空间索引是MyISAM引擎的一个特殊索引类型，主要用于地理空间数据类型
+  - Hash索引：MySQL中 Memory 存储引擎默认支持的索引类型
+  - R-tree 索引（空间索引）：空间索引是 MyISAM 引擎的一个特殊索引类型，主要用于地理空间数据类型
   - Full-text （全文索引） ：快速匹配全部文档的方式。InnoDB引擎5.6版本后才支持全文索引，MEMORY引擎不支持
   
   | 索引        | InnoDB引擎      | MyISAM引擎 | Memory引擎 |
@@ -3179,6 +3351,131 @@ MySQL官方对索引的定义为：索引（index）是帮助MySQL高效获取�
 组合索引图示：根据身高年龄建立的组合索引（height,age）
 
 ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-组合索引图.png)
+
+
+
+
+
+***
+
+
+
+### 聚簇索引
+
+#### 索引对比
+
+聚簇索引是一种数据存储方式，并不是一种单独的索引类型
+
+* 聚簇索引的叶子节点存放的是主键值和数据行，支持覆盖索引
+
+* 非聚簇索引的叶子节点存放的是主键值或指向数据行的指针
+
+在 Innodb 下主键索引是聚簇索引，在 Myisam 下主键索引是非聚簇索引
+
+
+
+***
+
+
+
+#### Innodb
+
+##### 聚簇索引
+
+在 Innodb 存储引擎，B+树索引可以分为聚簇索引（也称聚集索引、clustered index）和辅助索引（也称非聚簇索引或二级索引、secondary index、non-clustered index）
+
+InnoDB中，聚簇索引是按照每张表的主键构造一颗B+树，同时叶子节点中存放的就是整张表的行记录数据，也将聚集索引的叶子节点称为数据页
+
+* 这个特性决定了数据也是索引的一部分，所以一张表只能有一个聚簇索引
+* 辅助索引的存在不影响聚簇索引中数据的组织，所以一张表可以有多个辅助索引
+
+聚簇索引的优点：
+
+* 数据访问更快，聚簇索引将索引和数据保存在同一个B+树中，因此从聚簇索引中获取数据比非聚簇索引更快
+* 聚簇索引对于主键的排序查找和范围查找速度非常快
+
+聚簇索引的缺点：
+
+* 插入速度严重依赖于插入顺序，按照主键的顺序插入是最快的方式，否则将会出现页分裂，严重影响性能，所以对于 InnoDB 表，一般都会定义一个自增的ID列为主键
+
+* 更新主键的代价很高，将会导致被更新的行移动，所以对于InnoDB表，一般定义主键为不可更新
+
+* 二级索引访问需要两次索引查找，第一次找到主键值，第二次根据主键值找到行数据
+
+
+
+***
+
+
+
+##### 辅助索引
+
+在聚簇索引之上创建的索引称之为辅助索引，非聚簇索引都是辅助索引，像复合索引、前缀索引、唯一索引等
+
+辅助索引叶子节点存储的是主键值，而不是行的物理地址，所以访问数据需要二次查找
+
+检索过程：辅助索引找到主键值，再通过聚簇索引找到数据页，最后通过数据页中的 Page Directory 找到数据行
+
+
+
+***
+
+
+
+##### 索引实现
+
+InnoDB 使用B+Tree作为索引结构
+
+**主键索引：**
+
+* 在 InnoDB 中，表数据文件本身就是按 B+Tree 组织的一个索引结构，这个索引的 key 是数据表的主键，叶子节点 data 域保存了完整的数据记录
+
+* Innodb 的表数据文件**通过主键聚集数据**，如果没有定义主键，会选择非空唯一索引代替，如果也没有这样的列，MySQL 会自动为 InnoDB 表生成一个隐含字段作为主键，这个字段长度为 6 个字节，类型为长整形
+
+**辅助索引：**
+
+InnoDB 的所有辅助索引（二级索引）都引用主键作为 data 域
+
+InnoDB 表是基于聚簇索引建立的，因此 InnoDB 的索引能提供一种非常快速的主键查找性能。不过辅助索引也会包含主键列，所以不建议使用过长的字段作为主键，过长的主索引会令辅助索引变得过大
+
+![](https://gitee.com/seazean/images/raw/master/DB/MySQL-InnoDB聚簇和辅助索引结构.png)
+
+
+
+***
+
+
+
+#### MyISAM
+
+##### 非聚簇
+
+MyISAM 的主键索引使用的是非聚簇索引，索引文件和数据文件是分离的，索引文件仅保存数据记录的**地址**
+
+* 主键索引B+树的节点存储了主键，辅助键索引B+树存储了辅助键，表数据存储在独立的地方，这两颗B+树的叶子节点都使用一个地址指向真正的表数据，对于表数据来说，这两个键没有任何差别。
+* 由于索引树是独立的，通过辅助索引检索无需访问主键的索引树
+
+![](https://gitee.com/seazean/images/raw/master/DB/MySQL-聚簇索引和辅助索引检锁数据图.jpg)
+
+
+
+***
+
+
+
+##### 索引实现
+
+MyISAM 的索引方式也叫做非聚集的，之所以这么称呼是为了与 InnoDB 的聚集索引区分
+
+**主键索引：**MyISAM 引擎使用 B+Tree 作为索引结构，叶节点的data域存放的是数据记录的地址
+
+**辅助索引：**MyISAM 中主索引和辅助索引（Secondary key）在结构上没有任何区别，只是主索引要求key是唯一的，而辅助索引的key可以重复
+
+![](https://gitee.com/seazean/images/raw/master/DB/MySQL-MyISAM主键和辅助索引结构.png)
+
+
+
+参考文章：https://blog.csdn.net/lm1060891265/article/details/81482136
 
 
 
@@ -3257,8 +3554,6 @@ BTree又叫多路平衡搜索树，一颗m叉的BTree特性如下：
 
 BTREE树就已经构建完成了，BTREE树和二叉树相比， 查询数据的效率更高， 因为对于相同的数据量来说，**BTREE的层级结构比二叉树小**，所以搜索速度快
 
-
-
 BTree结构的数据可以让系统高效的找到数据所在的磁盘块，定义一条记录为一个二元组[key, data] ，key为记录的键值，对应表中的主键值，data为一行记录中除主键外的数据。对于不同的记录，key值互不相同，BTree中的每个节点根据实际情况可以包含大量的关键字信息和分支
 ![](https://gitee.com/seazean/images/raw/master/DB/索引的原理-BTree.png)
 
@@ -3287,7 +3582,7 @@ B+Tree为BTree的变种，B+Tree与BTree的区别为：
 
 BTree数据结构中每个节点中不仅包含数据的key值，还有data值。每一页的存储空间是有限的，如果data数据较大时将会导致每个节点（即一个页）能存储的key的数量很小，当存储的数据量很大时同样会导致B-Tree的深度较大，增大查询时的磁盘I/O次数，进而影响查询效率
 
-MySql索引数据结构对经典的B+Tree进行了优化，在原B+Tree的基础上，增加一个指向相邻叶子节点的链表指针，就形成了带有顺序指针的B+Tree，提高**区间访问**的性能
+MySQL 索引数据结构对经典的B+Tree进行了优化，在原B+Tree的基础上，增加一个指向相邻叶子节点的链表指针，就形成了带有顺序指针的B+Tree，提高**区间访问**的性能
 
 区间访问的意思是访问索引为 5 - 15 的数据，这样就可以直接根据相邻节点的指针遍历
 
@@ -3298,9 +3593,9 @@ MySql索引数据结构对经典的B+Tree进行了优化，在原B+Tree的基础
 - 有范围：对于主键的范围查找和分页查找
 - 有顺序：从根节点开始，进行随机查找
 
-InnoDB存储引擎中页的大小为16KB，一般表的主键类型为INT（4字节）或BIGINT（8字节），指针类型也一般为4或8个字节，也就是说一个页（B+Tree中的一个节点）中大概存储16KB/(8B+8B)=1K个键值（估值）。则一个深度为3的B+Tree索引可以维护10^3 * 10^3 * 10^3 = 10亿 条记录
+InnoDB存储引擎中页的大小为16KB，一般表的主键类型为INT（4字节）或BIGINT（8字节），指针类型也一般为4或8个字节，也就是说一个页（B+Tree中的一个节点）中大概存储16KB/(8B+8B)=1K个键值（估值）。则一个深度为3的B+Tree索引可以维护 `10^3 * 10^3 * 10^3 = 10亿` 条记录
 
-实际情况中每个节点可能不能填充满，因此在数据库中，B+Tree的高度一般都在2-4层。MySQL的InnoDB存储引擎在设计时是将根节点常驻内存的，也就是说查找某一键值的行记录时最多只需要1~3次磁盘I/O操作
+实际情况中每个节点可能不能填充满，因此在数据库中，B+Tree的高度一般都在2-4层。MySQL的InnoDB存储引擎在设计时是将根节点常驻内存的，也就是说查找某一键值的行记录时最多只需要1~3次磁盘 I/O 操作
 
 B+Tree优点：提高查询速度，减少磁盘的IO次数，树形结构较小
 
@@ -3416,6 +3711,115 @@ B+Tree优点：提高查询速度，减少磁盘的IO次数，树形结构较小
 
 
 
+***
+
+
+
+### 优化方式
+
+#### 覆盖索引
+
+覆盖索引：包含所有满足查询需要的数据的索引（SELECT 后面的字段刚好是索引字段），可以利用该索引返回 SELECT 列表的字段，而不必根据索引再次读取数据文件
+
+回表查询：要查找的字段不在非主键索引树上时，需要通过叶子节点的主键值去主键索引上获取对应的行数据
+
+使用覆盖索引，要注意 SELECT 列表中只取出需要的列，不可用 SELECT *，因为如果将所有字段一起做索引会导致索引文件过大，查询性能下降
+
+使用覆盖索引，防止回表查询：
+
+* 表 user 主键为 id，普通索引为 age，查询语句：
+
+  ```mysql
+  SELECT * FROM user WHERE age = 30;
+  ```
+
+  查询过程：先通过普通索引 age=30 定位到主键值 id=1，再通过聚集索引 id=1 定位到行记录数据，需要两次扫描 B+ 树，这就是回表查询
+
+* 使用覆盖索引：
+
+  ```mysql
+  DROP INDEX idx_age ON user;
+  CREATE INDEX idx_age_name ON user(age,name);
+  SELECT id,age FROM user WHERE age = 30;
+  ```
+
+  在一棵索引树上就能获取查询所需的数据，无需回表速度更快
+
+
+
+***
+
+
+
+#### 索引下推
+
+索引条件下推优化（Index Condition Pushdown）是 MySQL5.6 添加，用于优化数据查询，减少回表操作
+
+索引下推充分利用了索引中的数据，在查询出整行数据之前过滤掉无效的数据，再去主键索引树上查找
+
+* 不使用索引下推优化时存储引擎通过索引检索到数据返回给 MySQL 服务器，服务器判断数据是否符合条件
+* 使用索引下推优化时，如果存在某些被索引的列的判断条件时，MySQL 服务器将这一部分**判断条件传递给存储引擎**，然后由存储引擎通过判断索引是否符合MySQL服务器传递的条件，只有当索引符合条件时才会将数据检索出来返回给MySQL服务器，由此减少 IO次数
+
+适用条件：
+
+* 需要存储引擎将索引中的数据与条件进行判断，所以优化是基于存储引擎的，只有特定引擎可以使用，适用于InnoDB 和 MyISAM引擎
+* 存储引擎没有调用存储过程的能力，跨存储引擎的功能有存储过程、触发器、视图，所以调用这些功能的不可以进行索引下推优化
+* 对于 InnoDB 引擎只适用于二级索引，InnoDB 的聚簇索引会将整行数据读到缓冲区，因为数据已经在内存中了，不再需要去读取了，索引下推的目的减少IO次数也就失去了意义
+
+工作过程：
+
+用户表 user，(name,sex) 是联合索引
+
+```mysql
+SELECT * FROM user WHERE name LIKE '王%' AND　sex=1;	-- 头部模糊匹配会造成索引失效
+```
+
+* 优化前：在非主键索引树上找到满足第一个条件的行，然后通过叶子节点记录的主键值再回到主键索引树上查找到对应的行数据，最后再对比 AND 后的条件是否符合，符合返回数据
+
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-索引下推优化1.png)
+
+* 优化后：检查索引中存储的列信息是否符合索引条件，如果符合将整行数据读取出来，然后用剩余的判断条件判断此行数据是否符合要求，符合要求就根据主键值进行回表查询
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-索引下推优化2.png)
+
+当使用EXPLAIN进行分析时，如果使用了索引条件下推，Extra 会显示 Using index condition
+
+
+
+参考文章：https://blog.csdn.net/sinat_29774479/article/details/103470244
+参考文章：https://blog.csdn.net/linuxguitu/article/details/113649245
+
+
+
+***
+
+
+
+#### 前缀索引
+
+当要索引的列字符很多时，索引会变大变慢，可以只索引列开始的部分字符串，节约索引空间，提高索引效率
+
+优化原则：降低重复的索引值
+
+比如地区表：
+
+```mysql
+area			gdp		code
+chinaShanghai	100		aaa
+chinaDalian		200		bbb
+usaNewYork		300		ccc
+chinaFuxin		400		ddd
+chinaBeijing	500		eee
+```
+
+发现 area 字段很多都是以 china 开头的，那么如果以前1-5位字符做前缀索引就会出现大量索引值重复的情况，索引值重复性越低，查询效率也就越高，所以需要建立前 6 位字符的索引：
+
+```mysql
+CREATE INDEX idx_area ON table_name(area(7));
+```
+
+
+
 
 
 ***
@@ -3448,7 +3852,7 @@ SHOW [SESSION|GLOBAL] STATUS LIKE '';
 
   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-SQL语句执行频率.png)
 
-* 查询SQL语句影响的行数：
+* 查询 SQL 语句影响的行数：
 
   ```mysql
   SHOW STATUS LIKE 'Innodb_rows_%';
@@ -3696,10 +4100,8 @@ key_len：
 
 其他的额外的执行计划信息，在该列展示：
 
-* Using index：该值表示相应的 SELECT 操作中使用了覆盖索引（Covering Index）
-  * MySQL 可以利用索引返回 SELECT 列表中的字段，而不必根据索引再次读取数据文件，包含所有满足查询需要的数据的索引称为**覆盖索引**
-  * 使用覆盖索引，要注意 SELECT 列表中只取出需要的列，不可用 SELECT *，因为如果将所有字段一起做索引会导致索引文件过大，查询性能下降
-* Using index condition：搜索条件中虽然出现了索引列，但是有部分条件无法使用索引，会根据能用索引的条件先搜索一遍再匹配无法使用索引的条件，**回表查询**数据
+* Using index：该值表示相应的 SELECT 操作中使用了**覆盖索引**（Covering Index）
+* Using index condition：第一种情况是搜索条件中虽然出现了索引列，但是有部分条件无法使用索引，会根据能用索引的条件先搜索一遍再匹配无法使用索引的条件，回表查询数据；第二种是使用了索引下推
 * Using where：表示存储引擎收到记录后进行“后过滤”（Post-filter），如果查询未能使用索引，Using where的作用是提醒我们 MySQL 将用 WHERE 子句来过滤结果集，即需要回表查询
 * Using temporary：表示 MySQL 需要使用临时表来存储结果集，常见于排序和分组查询
 * Using filesort：当 Query 中包含 order by 操作，而且无法利用索引完成的排序操作称为文件排序
@@ -3895,11 +4297,9 @@ CREATE INDEX idx_seller_name_sta_addr ON tb_seller(name,status,address);
 
   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引7.png)
 
-* 用 OR 分割的条件，索引失效的情况：
+* 用 OR 分割条件，索引失效，导致全表查询：
 
-  * 第一种：OR 前的条件中的列有索引而后面的列中没有索引
-
-  * 第二种：如果 OR 前后两个列是同一个复合索引
+  OR 前的条件中的列有索引而后面的列中没有索引或 OR 前后两个列是同一个复合索引，都造成索引失效
 
   ```mysql
   EXPLAIN SELECT * FROM tb_seller WHERE name='阿里巴巴' OR createtime = '2088-01-01 12:00:00';
@@ -4019,7 +4419,7 @@ SHOW GLOBAL STATUS LIKE 'Handler_read%';
 
 
 
-### 优化功能
+### 优化SQL
 
 #### 批量插入
 
@@ -4284,7 +4684,7 @@ MySQL 4.1版本之后，开始支持SQL的子查询
 
   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL分页查询1.png)
 
-* 优化方式一：在索引上完成排序分页操作，最后根据主键关联回原表查询所需要的其他列内容
+* 优化方式一：子查询，在索引上完成排序分页操作，最后根据主键关联回原表查询所需要的其他列内容
 
   ```mysql
   EXPLAIN SELECT * FROM tb_user_1 t,(SELECT id FROM tb_user_1 ORDER BY id LIMIT 200000,10) a WHERE t.id = a.id;
@@ -4308,7 +4708,7 @@ MySQL 4.1版本之后，开始支持SQL的子查询
 
 #### 使用提示
 
-SQL提示，是优化数据库的一个重要手段，就是在SQL语句中加入一些人为的提示来达到优化操作的目的
+SQL提示，是优化数据库的一个重要手段，就是在SQL语句中加入一些提示来达到优化操作的目的
 
 * USE INDEX：在查询语句中表名的后面，添加 USE INDEX 来提供 MySQL 去参考的索引列表，可以让MySQL不再考虑其他可用的索引
 
@@ -4636,6 +5036,183 @@ MySQL Server 是多线程结构，包括后台线程和客户服务线程。多�
 * innodb_lock_wait_timeout：设置 InnoDB 事务等待行锁的时间，默认值是50ms
 
   对于需要快速反馈的业务系统，可以将行锁的等待时间调小，以避免事务被长时间挂起； 对于后台运行的批量处理程序来说，可以将行锁的等待时间调大，以避免发生大的回滚操作
+
+
+
+***
+
+
+
+### 主从复制
+
+#### 基本介绍
+
+复制是指将主数据库的 DDL 和 DML 操作通过二进制日志传到从库服务器中，然后在从库上对这些日志重新执行（也叫重做），从而使得从库和主库的数据保持同步。
+
+MySQL支持一台主库同时向多台从库进行复制，从库同时也可以作为其他从服务器的主库，实现链状复制
+
+MySQL 复制的优点主要包含以下三个方面：
+
+- 主库出现问题，可以快速切换到从库提供服务
+
+- 可以在从库上执行查询操作，从主库中更新，实现**读写分离**，降低主库的访问压力
+
+- 可以在从库中执行备份，以避免备份期间影响主库的服务
+
+
+
+***
+
+
+
+#### 复制原理
+
+MySQL 的主从复制原理图：
+
+![](https://gitee.com/seazean/images/raw/master/DB/MySQL-主从复制原理图.jpg)
+
+从上层来看，复制分成三步：
+
+- Master 主库在事务提交时，会把数据变更作为事件 Events 记录在二进制日志文件 Binlog 中
+- 主库推送二进制日志文件 Binlog 中的日志事件到从库的中继日志 Relay Log 
+
+- Slave 重做中继日志中的事件
+
+
+
+****
+
+
+
+#### 搭建流程
+
+##### master
+
+1. 在master 的配置文件（/etc/mysql/my.cnf）中，配置如下内容：
+
+   ```sh
+   #mysql 服务ID,保证整个集群环境中唯一
+   server-id=1
+   
+   #mysql binlog 日志的存储路径和文件名
+   log-bin=/var/lib/mysql/mysqlbin
+   
+   #错误日志,默认已经开启
+   #log-err
+   
+   #mysql的安装目录
+   #basedir
+   
+   #mysql的临时目录
+   #tmpdir
+   
+   #mysql的数据存放目录
+   #datadir
+   
+   #是否只读,1 代表只读, 0 代表读写
+   read-only=0
+   
+   #忽略的数据, 指不需要同步的数据库
+   binlog-ignore-db=mysql
+   
+   #指定同步的数据库
+   #binlog-do-db=db01
+   ```
+
+2. 执行完毕之后，需要重启 MySQL
+
+3. 创建同步数据的账户，并且进行授权操作：
+
+   ```mysql
+   GRANT REPLICATION SLAVE ON *.* TO 'seazean'@'192.168.0.137' IDENTIFIED BY '123456';
+   FLUSH PRIVILEGES;
+   ```
+
+4. 查看 master 状态：
+
+   ```mysql
+   SHOW MASTER STATUS;
+   ```
+
+   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-查看master状态.jpg)
+
+   * File：从哪个日志文件开始推送日志文件 
+   * Position：从哪个位置开始推送日志
+   * Binlog_Ignore_DB：指定不需要同步的数据库
+
+
+
+***
+
+
+
+##### slave
+
+1. 在 slave 端配置文件中，配置如下内容：
+
+   ```sh
+   #mysql服务端ID,唯一
+   server-id=2
+   
+   #指定binlog日志
+   log-bin=/var/lib/mysql/mysqlbin
+   ```
+
+2. 执行完毕之后，需要重启MySQL
+
+3. 指定当前从库对应的主库的IP地址、用户名、密码，从哪个日志文件开始的那个位置开始同步推送日志
+
+   ```mysql
+   CHANGE MASTER TO MASTER_HOST= '192.168.0.138', MASTER_USER='seazean', MASTER_PASSWORD='seazean', MASTER_LOG_FILE='mysqlbin.000001', MASTER_LOG_POS=413;
+   ```
+
+4. 开启同步操作：
+
+   ```mysql
+   START SLAVE;
+   SHOW SLAVE STATUS;
+   ```
+
+5. 停止同步操作：
+
+   ```mysql
+   STOP SLAVE;
+   ```
+
+
+
+***
+
+
+
+##### 验证
+
+1. 在主库中创建数据库，创建表并插入数据：
+
+   ```mysql
+   CREATE DATABASE db01;
+   USE db01;
+   CREATE TABLE user(
+   	id INT(11) NOT NULL AUTO_INCREMENT,
+   	name VARCHAR(50) NOT NULL,
+   	sex VARCHAR(1),
+   	PRIMARY KEY (id)
+   )ENGINE=INNODB DEFAULT CHARSET=utf8;
+   
+   INSERT INTO user(id,NAME,sex) VALUES(NULL,'Tom','1');
+   INSERT INTO user(id,NAME,sex) VALUES(NULL,'Trigger','0');
+   INSERT INTO user(id,NAME,sex) VALUES(NULL,'Dawn','1');
+   ```
+
+2. 在从库中查询数据，进行验证：
+
+   在从库中，可以查看到刚才创建的数据库：
+
+   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-主从复制验证1.jpg)
+
+   在该数据库中，查询表中的数据：
+
+   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-主从复制验证2.jpg)
 
 
 
@@ -5136,6 +5713,244 @@ InnoDB 的行级锁，如果使用不当可能会让InnoDB 的整体性能表现
   - 每次更新后都将最新时间插入到此列
   - 读取数据时，将时间读取出来，在执行更新的时候，比较时间
   - 如果相同则执行更新，如果不相同，说明此条数据已经发生了变化
+
+
+
+
+
+***
+
+
+
+## 日志
+
+### 日志分类
+
+在任何一种数据库中，都会有各种各样的日志，记录着数据库工作的过程，可以帮助数据库管理员追踪数据库曾经发生过的各种事件。在 MySQL 中有 4 种不同的日志，分别是：错误日志、二进制日志（BINLOG 日志）、查询日志和慢查询日志
+
+
+
+***
+
+
+
+### 错误日志
+
+错误日志是 MySQL 中最重要的日志之一，它记录了当 mysqld 启动和停止时，以及服务器在运行过程中发生任何严重错误时的相关信息。当数据库出现任何故障导致无法正常使用时，可以首先查看此日志
+
+该日志是默认开启的，默认位置是：`/var/log/mysql/error.log`
+
+查看指令：
+
+```mysql
+SHOW VARIABLES LIKE 'log_error%';
+```
+
+查看日志内容：
+
+```sh
+tail -f /var/log/mysql/error.log
+```
+
+
+
+***
+
+
+
+### 二进制日志
+
+#### 基本介绍
+
+二进制日志（BINLOG）记录了所有的 DDL（数据定义语言）语句和 DML（数据操作语言）语句，但不包括数据查询语句。此日志对灾难时的数据恢复有重要作用，MySQL的主从复制， 也是通过该binlog实现
+
+二进制日志，默认情况下是没有开启的，需要在 MySQL 配置文件中开启，并配置MySQL日志的格式：
+
+```sh
+cd /etc/mysql
+vim my.cnf
+
+# 配置开启binlog日志， 日志的文件前缀为 mysqlbin -----> 生成的文件名如: mysqlbin.000001
+log_bin=mysqlbin
+# 配置二进制日志的格式
+binlog_format=STATEMENT
+```
+
+日志存放位置：配置时给定了文件名但是没有指定路径，日志默认写入Mysql的数据目录
+
+日志格式：
+
+* STATEMENT：该日志格式在日志文件中记录的都是 SQL 语句 (statement)，每一条对数据进行修改的 SQL都会记录在日志文件中，通过 mysqlbinlog 工具，可以查看到每条语句的文本。主从复制时，从库 (slave) 会将日志解析为原语句，并在从库重新执行一
+* ROW：该日志格式在日志文件中记录的是每一行的数据变更，而不是记录SQL语句。比如执行SQL语句`update tb_book set status='1'`，如果是 STATEMENT，在日志中会记录一行 SQL 语句； 如果是ROW，由于是对全表进行更新，就是每一行记录都会发生变更，ROW 格式的日志中会记录每一行的数据变更
+
+* MIXED：这是 MySQL 默认的日志格式，混合了STATEMENT 和 ROW两种格式。MIXED 格式能尽量利用两种模式的优点，而避开他们的缺点
+
+
+
+***
+
+
+
+#### 日志读取
+
+日志文件存储位置：/var/lib/mysql
+
+由于日志以二进制方式存储，不能直接读取，需要用 mysqlbinlog 工具来查看，语法如下：
+
+```sh
+mysqlbinlog log-file;
+```
+
+查看 STATEMENT 格式日志：
+
+* 执行插入语句：
+
+  ```mysql
+  INSERT INTO tb_book VALUES(NULL,'Lucene','2088-05-01','0');
+  ```
+
+* `cd /var/lib/mysql`：
+
+  ```sh
+  -rw-r-----  1 mysql mysql      177 5月  23 21:08 mysqlbin.000001
+  -rw-r-----  1 mysql mysql       18 5月  23 21:04 mysqlbin.index
+  ```
+
+  mysqlbin.index：该文件是日志索引文件 ， 记录日志的文件名；
+
+  mysqlbing.000001：日志文件
+
+* 查看日志内容：
+
+  ```sh
+  mysqlbinlog mysqlbing.000001;
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-日志读取1.png)
+
+查看 ROW 格式日志：
+
+* 修改配置：
+
+  ```sh
+  # 配置二进制日志的格式
+  binlog_format=ROW
+  ```
+
+* 插入数据：
+
+  ```mysql
+  INSERT INTO tb_book VALUES(NULL,'SpringCloud实战','2088-05-05','0');
+  ```
+
+* 查看日志内容：日志格式 ROW，直接查看数据是乱码，可以在 mysqlbinlog 后面加上参数 -vv 
+
+  ```mysql
+  mysqlbinlog -vv mysqlbin.000002
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-日志读取2.png)
+
+
+
+***
+
+
+
+#### 日志删除
+
+对于比较繁忙的系统，生成日志量大，这些日志如果长时间不清除，将会占用大量的磁盘空间，需要删除日志
+
+* Reset Master 指令删除全部 binlog 日志，删除之后，日志编号将从 xxxx.000001重新开始
+
+  ```mysql
+  Reset Master	-- MySQL指令
+  ```
+
+* 执行指令 `PURGE MASTER LOGS TO 'mysqlbin.***`，该命令将删除 ` ***` 编号之前的所有日志
+
+* 执行指令 `PURGE MASTER LOGS BEFORE 'yyyy-mm-dd hh:mm:ss'` ，该命令将删除日志为 `yyyy-mm-dd hh:mm:ss` 之前产生的所有日志
+
+* 设置参数 `--expire_logs_days=#`，此参数的含义是设置日志的过期天数，过了指定的天数后日志将会被自动删除，这样做有利于减少管理日志的工作量，配置 my.cnf 文件：
+
+  ```sh
+  log_bin=mysqlbin
+  binlog_format=ROW
+  --expire_logs_days=3
+  ```
+
+
+
+***
+
+
+
+### 查询日志
+
+查询日志中记录了客户端的所有操作语句，而二进制日志不包含查询数据的 SQL 语句
+
+默认情况下， 查询日志是未开启的。如果需要开启查询日志，配置 my.cnf：
+
+```sh
+# 该选项用来开启查询日志，可选值0或者1，0代表关闭，1代表开启 
+general_log=1
+# 设置日志的文件名，如果没有指定，默认的文件名为host_name.log，存放在/var/lib/mysql
+general_log_file=file_name
+```
+
+配置完毕之后，在数据库执行以下操作：
+
+```mysql
+SELECT * FROM tb_book;
+SELECT * FROM tb_book WHERE id = 1;
+UPDATE tb_book SET name = 'lucene入门指南' WHERE id = 5;
+SELECT * FROM tb_book WHERE id < 8
+```
+
+执行完毕之后， 再次来查询日志文件：
+
+![](https://gitee.com/seazean/images/raw/master/DB/MySQL-查询日志.png)
+
+
+
+***
+
+
+
+### 慢日志
+
+慢查询日志记录所有执行时间超过 long_query_time 并且扫描记录数不小于 min_examined_row_limit 的所有的 SQL 语句的日志。long_query_time 默认为 10 秒，最小为 0， 精度到微秒
+
+慢查询日志默认是关闭的，可以通过两个参数来控制慢查询日志，配置文件`/etc/mysql/my.cnf`：
+
+```sh
+# 该参数用来控制慢查询日志是否开启，可选值0或者1，0代表关闭，1代表开启 
+slow_query_log=1 
+
+# 该参数用来指定慢查询日志的文件名，存放在 /var/lib/mysql
+slow_query_log_file=slow_query.log
+
+# 该选项用来配置查询的时间限制，超过这个时间将认为值慢查询，将需要进行日志记录，默认10s
+long_query_time=10
+```
+
+日志读取：
+
+* 直接通过 cat 指令查询该日志文件：
+
+  ```sh
+  cat slow_query.log
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-慢日志读取1.png)
+
+* 如果慢查询日志内容很多，直接查看文件比较繁琐， 可以借助于mysql 自带的 mysqldumpslow 工具， 来对慢查询日志进行分类汇总：
+
+  ```sh
+  mysqldumpslow slow_query.log
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-慢日志读取2.png)
 
 
 

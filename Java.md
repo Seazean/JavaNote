@@ -14924,9 +14924,9 @@ Exception table:
 LineNumberTable: ...
 LocalVariableTable:
 	Start Length Slot Name Signature
-	12 		3 		2 	e 	Ljava/lang/Exception;
-	0 		28 		0 args 	[Ljava/lang/String;
-	2 		26 		1 	i 	I
+	  12 	3 		2 	e 	Ljava/lang/Exception;
+	  0 	28 		0 args 	[Ljava/lang/String;
+	  2 	26 		1 	i 	I
 ```
 
 
