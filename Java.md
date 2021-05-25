@@ -25,13 +25,13 @@
 
 #### 数据类型
 
-##### 基本数据类型
+##### 基本类型
 
 Java语言提供了八种基本类型。六种数字类型（四个整数型，两个浮点型），一种字符类型，还有一种布尔型。
 
 **byte：**
 
-- byte 数据类型是8位、有符号的，以二进制补码表示的整数；**8位一个字节**
+- byte 数据类型是8位、有符号的，以**二进制补码**表示的整数；**8位一个字节**
 - 最小值是 **-128（-2^7）**
 - 最大值是 **127（2^7-1）**
 - 默认值是 **`0`**
@@ -160,7 +160,7 @@ G-->H[double]
 
 
 
-##### 引用数据类型
+##### 引用类型
 
 引用数据类型：类，接口，数组都是引用数据类型，又叫包装类
 
@@ -2876,7 +2876,7 @@ s = s + "cd"; //s = abccd 新对象
 `public String[] split(String regex)` : 将字符串按给定的正则表达式分割成字符串数组 
 `public char charAt(int index)` : 取索引处的值
 `public char[] toCharArray()` : 将字符串拆分为字符数组后返回
-`public boolean startsWith(String prefix)`测试此字符串是否以指定的前缀开头
+`public boolean startsWith(String prefix)` : 测试此字符串是否以指定的前缀开头
 `public int lastIndexOf(String str)` : 返回字符串最后一次出现str的索引，没有返回-1
 `public String substring(int beginIndex)` : 返回子字符串，以原字符串指定索引处到结尾
 `public String substring(int beginIndex, int endIndex)` : 返回原字符串指定索引处的字符串
@@ -22926,7 +22926,7 @@ JDK 8 虽然将扩容算法做了调整，改用了尾插法，但仍不意味�
    private transient volatile Node<K,V>[] nextTable; //扩容时的新 hash 表
    ```
 
-4. 扩容时如果某个 bin 迁移完毕, 用 ForwardingNode 作为旧 table bin 的头结点
+4. 扩容时如果某个 bin 迁移完毕，用 ForwardingNode 作为旧 table bin 的头结点
 
    ```java
    static final class ForwardingNode<K,V> extends Node<K,V> {
@@ -23661,10 +23661,7 @@ public static void main(String[] args) throws InterruptedException {
 
 * 快速失败：在 A 线程使用迭代器对集合进行遍历的过程中，此时 B 线程对集合进行修改（增删改），或者 A 线程在遍历过程中对集合进行修改，都会导致 A 线程抛出 ConcurrentModificationException 异常
   * AbstractList 类中的成员变量 modCount，用来记录 List 结构发生变化的次数，**结构发生变化**是指添加或者删除至少一个元素的操作，或者是调整内部数组的大小，仅仅设置元素的值不算结构发生变化
-  
   * 在进行序列化或者迭代等操作时，需要比较操作前后 modCount 是否改变，如果改变了抛出 CME 异常
-  
-    
 * 安全失败：采用安全失败机制的集合容器，在遍历时不是直接在集合内容上访问的，而是先复制原有集合内容，在拷贝的集合上进行遍历。由于迭代时是对原集合的拷贝进行遍历，所以在遍历过程中对原集合所作的修改并不能被迭代器检测到，故不会抛 ConcurrentModificationException 异常
 
 
