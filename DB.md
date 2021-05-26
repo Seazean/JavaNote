@@ -40,9 +40,11 @@
 
 ### MySQL
 
-MySQL数据库是一个最流行的关系型数据库管理系统之一。
+MySQL数据库是一个最流行的关系型数据库管理系统之一
 
-关系型数据库是将数据保存在不同的数据表中，而且表与表之间还可以有关联关系，这样就提高了访问速度以及提高了灵活性。
+关系型数据库是将数据保存在不同的数据表中，而且表与表之间可以有关联关系，提高了灵活性。
+
+缺点：数据存储在磁盘中，导致读写性能差，而且数据关系复杂，扩展性差
 
 MySQL所使用的SQL语句是用于访问数据库最常用的标准化语言。
 
@@ -2084,7 +2086,6 @@ CREATE TABLE us_pro(
   SET @@AUTOCOMMIT=数字;	-- 系统
   SET AUTOCOMMIT=数字;		-- 会话
   ```
-  
 
 
 
@@ -2118,9 +2119,11 @@ InnoDB 存储引擎提供了两种事务日志：redo log (重做日志) 和 und
 * redo log 用于保证事务持久性
 * undo log 用于保证事务原子性和隔离性
 
-InnoDB 实现回滚依靠 undo log，该日志属于逻辑日志，记录 SQL 执行相关的信息。当事务对数据库进行修改时，InnoDB 会生成对应的 undo log，如果事务执行失败或调用了 rollback 导致事务回滚，InnoDB 会根据 undo log 的内容做与之前相反的操作：
+undo log 属于逻辑日志，根据每行操作进行记录，记录了 SQL 执行相关的信息，用来回滚行记录到某个版本
 
-* 对于每个 insert，回滚时会执行 delete（undo log 记录的是这条delete语句，而不是执行的 insert 语句）
+当事务对数据库进行修改时，InnoDB 会生成对应的 undo log，如果事务执行失败或调用了 rollback 导致事务回滚，InnoDB 会根据 undo log 的内容做与之前相反的操作：
+
+* 对于每个 insert，回滚时会执行 delete
 
 * 对于每个 delete，回滚时会执行 insert
 
@@ -2128,7 +2131,7 @@ InnoDB 实现回滚依靠 undo log，该日志属于逻辑日志，记录 SQL �
 
 undo log 是采用段 (segment) 的方式来记录的，每个 undo 操作在记录的时候占用一个 undo log segment
 
-rollback segmen 称为回滚段，每个回滚段中有1024个 undo log segment
+rollback segment 称为回滚段，每个回滚段中有1024个 undo log segment
 
 * 在以前老版本，只支持1个rollback segment，只能记录1024个 undo log segment
 * MySQL5.5 开始支持128个 rollback segment，支持128*1024个 undo 操作
@@ -2161,14 +2164,14 @@ rollback segmen 称为回滚段，每个回滚段中有1024个 undo log segment
 
 隔离性是指，事务内部的操作与其他事务是隔离的，多个并发事务之间要相互隔离，不能互相干扰
 
-* 严格的隔离性，对应了事务隔离级别中的Serializable，实际应用中对性能考虑很少使用可串行化
+* 严格的隔离性，对应了事务隔离级别中的 serializable，实际应用中对性能考虑很少使用可串行化
 
 * 与原子性、持久性侧重于研究事务本身不同，隔离性研究的是不同事务之间的相互影响
 
-隔离性追求的是并发情形下事务之间互不干扰，考虑最简单的读操作和写操作：
+隔离性让并发情形下的事务之间互不干扰：
 
-- 一个事务的写操作对另一个事务的写操作：锁机制保证隔离性
-- 一个事务的写操作对另一个事务的读操作：MVCC保证隔离性
+- 一个事务的写操作对另一个事务的写操作（写写）：锁机制保证隔离性
+- 一个事务的写操作对另一个事务的读操作（读写）：MVCC保证隔离性
 
 锁机制：事务在修改数据之前，需要先获得相应的锁，获得锁之后，事务便可以修改数据；该事务操作期间，这部分数据是锁定的，其他事务如果需要修改数据，需要等待当前事务提交或回滚后释放锁（详解见锁机制）
 
@@ -2184,7 +2187,7 @@ rollback segmen 称为回滚段，每个回滚段中有1024个 undo log segment
 
 持久性是指一个事务一旦被提交了，那么对数据库中数据的改变就是永久性的，接下来的其他操作或故障不应该对其有任何影响。
 
-实现原理：redo log
+redo log，记录数据页的物理修改，而不是某一行或某几行的修改，用来恢复提交后的物理数据页，且只能恢复到最后一次提交的位置
 
 InnoDB 作为存储引擎，数据是存放在磁盘中，每次读写数据都需要磁盘 IO，效率会很低。InnoDB 提供了缓存 Buffer Pool，Buffer Pool 中包含了磁盘中部分数据页的映射，作为访问数据库的缓冲：
 
@@ -2221,13 +2224,13 @@ redo log 也需要在事务提交时将日志写入磁盘，但是比将 Buffer 
 
 MySQL中还存在 binlog(二进制日志) 也可以记录写操作并用于数据的恢复，二者的区别是：
 
-* 作用不同：redo log 是用于 crash recovery 的，保证MySQL宕机也不会影响持久性；binlog是用于 point-in-time recovery 的，保证服务器可以基于时间点恢复数据，此外 binlog 还用于主从复制
+* 作用不同：redo log 是用于 crash recovery （故障恢复），保证MySQL宕机也不会影响持久性；binlog是用于 point-in-time recovery 的，保证服务器可以基于时间点恢复数据，此外 binlog 还用于主从复制
 
-* 层次不同：redo log 是 InnoDB 存储引擎实现的，而 binlog 是MySQL的服务器层实现的，同时支持InnoDB和其他存储引擎
+* 层次不同：redo log 是 InnoDB 存储引擎实现的，而 binlog 是MySQL的服务器层实现的，同时支持InnoDB和其他存储引擎，并且二进制日志先于 redo log 被记录。
 
 * 内容不同：redo log 是物理日志，内容基于磁盘的 Page；binlog的内容是二进制的，根据 binlog_format 参数的不同，可能基于SQL 语句、基于数据本身或者二者的混合（日志部分详解）
 
-* 写入时机不同：binlog 在事务提交时写入；redo log 的写入时机相对多元
+* 写入时机不同：binlog 在事务提交时一次写入；redo log 的写入时机相对多元
 
 
 
@@ -2302,11 +2305,11 @@ MVCC 处理读写请求，可以做到在发生读写请求冲突时不用加锁
 
 * 读-写：有线程安全问题，可能会造成事务隔离性问题，可能遇到脏读，幻读，不可重复读
 
-* 写-写：有线程安全问题，可能会存在更新丢失问题，比如第一类更新丢失，第二类更新丢失
+* 写-写：有线程安全问题，可能会存在更新丢失问题
 
 MVCC 的优点：
 
-* 在并发读写数据库时，可以做到在读操作时不用阻塞写操作，写操作也不用阻塞读操作，提高了数据库并发读写的性能
+* 在并发读写数据库时，做到在读操作时不用阻塞写操作，写操作也不用阻塞读操作，提高了并发读写的性能
 * 可以解决脏读，幻读，不可重复读等事务隔离问题（加锁也能解决），但不能解决更新丢失问题
 
 提高读写和写写的并发性能：
@@ -2326,9 +2329,9 @@ MVCC 的优点：
 
 #### 原理
 
-##### 版本链
+##### 隐藏字段
 
-实现原理主要是版本链，undo日志，Read View来实现的
+实现原理主要是隐藏字段，undo日志，Read View来实现的
 
 数据库中的每行数据，除了自定义的字段，还有数据库隐式定义的字段：
 
@@ -2359,11 +2362,11 @@ undo log 是逻辑日志，保存修改行的数据的拷贝副本
 undo log 的作用：
 
 * 保证事务进行 rollback 时的原子性和一致性，当事务进行回滚的时候可以用 undo log 的数据进行恢复。
-* 用于MVCC快照读的数据，在MVCC多版本控制中，通过读取undo log的历史版本数据可以实现不同事务版本号都拥有自己独立的快照数据版本。
+* 用于MVCC快照读的数据，在MVCC多版本控制中，通过读取 undo log 的历史版本数据可以实现不同事务版本号都拥有自己独立的快照数据版本。
 
 undo log主要分为两种：
 
-* insert undo log：代表事务在 insert 新记录时产生的undo log，只在事务回滚时需要，并且在事务提交后可以被立即丢弃
+* insert undo log：事务在 insert 新记录时产生的 undo log，只在事务回滚时需要，并且在事务提交后可以被立即丢弃
 
 * update undo log：事务在进行 update 或 delete 时产生的 undo log，在事务回滚时需要，在快照读时也需要。不能随意删除，只有在快速读或事务回滚不涉及该日志时，对应的日志才会被 purge 线程统一清除
 
@@ -3966,9 +3969,8 @@ B+Tree优点：提高查询速度，减少磁盘的IO次数，树形结构较小
 * 创建索引：如果一个表中有一列是主键，那么会**默认为其创建主键索引**（主键列不需要单独创建索引）
   
   ```mysql
-  CREATE [UNIQUE|FULLTEXT] INDEX 索引名称
-  [USING 索引类型]  -- 默认是B+TREE
-  ON 表名(列名...);
+  CREATE [UNIQUE|FULLTEXT] INDEX 索引名称 [USING 索引类型] ON 表名(列名...);
+  -- 索引类型默认是 B+TREE
   ```
   
 * 查看索引
@@ -4112,7 +4114,7 @@ B+Tree优点：提高查询速度，减少磁盘的IO次数，树形结构较小
 索引下推充分利用了索引中的数据，在查询出整行数据之前过滤掉无效的数据，再去主键索引树上查找
 
 * 不使用索引下推优化时存储引擎通过索引检索到数据返回给 MySQL 服务器，服务器判断数据是否符合条件
-* 使用索引下推优化时，如果存在某些被索引的列的判断条件时，MySQL 服务器将这一部分**判断条件传递给存储引擎**，然后由存储引擎通过判断索引是否符合MySQL服务器传递的条件，只有当索引符合条件时才会将数据检索出来返回给MySQL服务器，由此减少 IO次数
+* 使用索引下推优化时，如果存在某些被索引的列的判断条件时，MySQL 服务器将这一部分**判断条件传递给存储引擎**，然后由存储引擎在索引内部判断索引是否符合传递的条件，只有当索引符合条件时才会将数据检索出来返回给MySQL服务器，由此减少 IO次数
 
 适用条件：
 
@@ -4120,20 +4122,17 @@ B+Tree优点：提高查询速度，减少磁盘的IO次数，树形结构较小
 * 存储引擎没有调用存储过程的能力，跨存储引擎的功能有存储过程、触发器、视图，所以调用这些功能的不可以进行索引下推优化
 * 对于 InnoDB 引擎只适用于二级索引，InnoDB 的聚簇索引会将整行数据读到缓冲区，因为数据已经在内存中了，不再需要去读取了，索引下推的目的减少IO次数也就失去了意义
 
-工作过程：
-
-用户表 user，(name,sex) 是联合索引
+工作过程：用户表 user，(name,sex) 是联合索引
 
 ```mysql
 SELECT * FROM user WHERE name LIKE '王%' AND　sex=1;	-- 头部模糊匹配会造成索引失效
 ```
 
-* 优化前：在非主键索引树上找到满足第一个条件的行，然后通过叶子节点记录的主键值再回到主键索引树上查找到对应的行数据，最后再对比 AND 后的条件是否符合，符合返回数据
+* 优化前：在非主键索引树上找到满足第一个条件的行，然后通过叶子节点记录的主键值再回到主键索引树上查找到对应的行数据，再对比 AND 后的条件是否符合，符合返回数据，需要 4 次回表
 
+<img src="https://gitee.com/seazean/images/raw/master/DB/MySQL-索引下推优化1.png" style="zoom: 80%;" />
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-索引下推优化1.png)
-
-* 优化后：检查索引中存储的列信息是否符合索引条件，如果符合将整行数据读取出来，然后用剩余的判断条件判断此行数据是否符合要求，符合要求就根据主键值进行回表查询
+* 优化后：检查索引中存储的列信息是否符合索引条件，如果符合将整行数据读取出来，然后用剩余的判断条件判断此行数据是否符合要求，符合要求就根据主键值进行回表查询，2 次回表
   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-索引下推优化2.png)
 
 当使用EXPLAIN进行分析时，如果使用了索引条件下推，Extra 会显示 Using index condition
@@ -6170,7 +6169,7 @@ tail -f /var/log/mysql/error.log
 
 #### 基本介绍
 
-归档日志（BINLOG）记录了所有的 DDL（数据定义语言）语句和 DML（数据操作语言）语句，但不包括数据查询语句。归档日志也叫二进制日志，是因为采用二进制进行存储，在事务提交时写入
+归档日志（BINLOG）记录了所有的 DDL（数据定义语言）语句和 DML（数据操作语言）语句，但不包括数据查询语句，在事务提交时写入。归档日志也叫二进制日志，是因为采用二进制进行存储
 
 作用：**灾难时的数据恢复和 MySQL 的主从复制**
 
@@ -6462,7 +6461,7 @@ long_query_time=10
 
 ## 概述
 
-JDBC（Java DataBase Connectivity,java数据库连接）是一种用于执行SQL语句的Java API，可以为多种关系型数据库提供统一访问，它是由一组用Java语言编写的类和接口组成的。
+JDBC（Java DataBase Connectivity，java数据库连接）是一种用于执行SQL语句的Java API，可以为多种关系型数据库提供统一访问，是由一组用Java语言编写的类和接口组成的。
 
 JDBC其实就是java官方提供的一套规范(接口)，用于帮助开发人员快速实现不同关系型数据库的连接
 
@@ -6509,6 +6508,10 @@ DriverManager：驱动管理对象
 
 
 
+***
+
+
+
 ### Connection
 
 Connection：数据库连接对象
@@ -6522,6 +6525,10 @@ Connection：数据库连接对象
   - 回滚事务：`void rollback()`
 - 释放资源
   - 释放此Connection对象的数据库和JDBC资源：`void close()`
+
+
+
+***
 
 
 
@@ -6540,9 +6547,13 @@ Statement：执行sql语句的对象
 
 
 
+***
+
+
+
 ### ResultSet
 
-ResultSet：结果集对象。ResultSet对象维护了一个游标，指向当前的数据行，初始在第一行
+ResultSet：结果集对象，ResultSet对象维护了一个游标，指向当前的数据行，初始在第一行
 
 - 判断结果集中是否有数据：`boolean next()`
   - 有数据返回true，并将索引**向下移动一行**
@@ -6552,6 +6563,10 @@ ResultSet：结果集对象。ResultSet对象维护了一个游标，指向当�
   - 例如：String getString("name");       int getInt("age");
 - 释放资源
   - 释放ResultSet对象的数据库和JDBC资源：`void close()`
+
+
+
+***
 
 
 
@@ -6718,8 +6733,6 @@ public class JDBCDemo01 {
   
 
 
-
-
 ****
 
 
@@ -6861,7 +6874,12 @@ SQL注入攻击演示
   SELECT * FROM user WHERE loginname='aaa' AND password='aaa' OR '1'='1';
   ```
 
-  
+
+
+
+***
+
+
 
 ### 攻击解决
 
@@ -7479,218 +7497,6 @@ public class DataSourceUtils {
 
 
 
-****
-
-
-
-## JDBC框架
-
-### 数据库源信息
-
-DataBaseMetaData：数据库的源信息
-
-- java.sql.DataBaseMetaData：封装了整个数据库的综合信息
-- 获取方式：Connection对象执行`DatabaseMetaData getMetaData() `
-- 常用方法
-  - String getDatabaseProductName()：获取数据库产品的名称
-  - int getDatabaseProductVersion()：获取数据库产品的版本号
-
-
-
-ParameterMetaData：参数的源信息
-
-* java.sql.ParameterMetaData：封装的是预编译执行者对象中每个参数的类型和属性
-* 获取方式：PreparedStatement对象执行`ParameterMetaData getParameterMetaData()`
-* 常用方法：
-  * int getParameterCount()：获取sql语句中参数的个数
-
-
-
-ResultSetMetaData：结果集的源信息
-
-- java.sql.ResultSetMetaData：封装的是结果集对象中列的类型和属性
-- 获取方式：ResultSet对象执行`ResultSetMetaData getMetaData() `
-- 核心功能：
-  - int getColumnCount()：获取列的总数
-  - String getColumnName(int i)：获取列名
-
-
-
-
-
-### 代码实现
-
-* update
-
-  ```java
-  public class JDBCTemplate {
-      private DataSource dataSource;
-      private Connection con;
-      private PreparedStatement pst;
-      private ResultSet rs;
-  
-      public JDBCTemplate(DataSource dataSource) {
-          this.dataSource = dataSource;
-      }
-  
-      //专用于执行增删改sql语句的方法
-      public int update(String sql,Object...objs) {
-          int result = 0;
-  
-          try{
-              con = dataSource.getConnection();
-              pst = con.prepareStatement(sql);
-  
-              //获取sql语句中的参数源信息
-              ParameterMetaData pData = pst.getParameterMetaData();
-              //获取sql语句中参数的个数
-              int parameterCount = pData.getParameterCount();
-  
-              //判断参数个数是否一致
-              if(parameterCount != objs.length) {
-                  throw new RuntimeException("参数个数不匹配");
-              }
-  
-              //为sql语句中的?占位符赋值
-              for (int i = 0; i < objs.length; i++) {
-                  pst.setObject(i+1,objs[i]);
-              }
-  
-              //执行sql语句
-              result = pst.executeUpdate();
-  
-          } catch(Exception e) {
-              e.printStackTrace();
-          } finally {
-              //释放资源
-              DataSourceUtils.close(con,pst);
-          }
-          //返回结果
-          return result;
-      }
-  }
-  
-  ```
-  
-* query
-
-  用于处理结果集的接口
-
-  ```java
-  public interface ResultSetHandler<T> {
-      //处理结果集的抽象方法。
-      <T> T handler(ResultSet rs);
-  }
-  
-  ```
-
-  BeanHandler实现类：用于完成将查询出来的一条记录，封装到Student对象中
-
-  ```java
-  public class BeanHandler<T> implements ResultSetHandler<T> {
-      //1.声明对象类型变量
-      private Class<T> beanClass;
-  
-      //2.有参构造对变量赋值
-      public BeanHandler(Class<T> beanClass) {
-          this.beanClass = beanClass;
-      }
-  
-      //将ResultSet结果集中的数据封装到beanClass类型对象
-      @Override
-      public T handler(ResultSet rs) {
-          //3.声明对象
-          T bean = null;
-          try{
-              //4.创建传递参数的对象
-              bean = beanClass.newInstance();
-  
-              //5.判断是否有结果集
-              if(rs.next()) {
-                  //6.得到所有的列名
-                  //6.1先得到结果集的源信息
-                  ResultSetMetaData rsmd = rs.getMetaData();
-                  //6.2还要得到有多少列
-                  int columnCount = rsmd.getColumnCount();
-                  //6.3遍历列数
-                  for(int i = 1; i <= columnCount; i++) {
-                      //6.4得到每列的列名
-                      String columnName = rsmd.getColumnName(i);
-                      //6.5通过列名获取数据
-                      Object columnValue = rs.getObject(columnName);
-  
-                      //6.6列名其实就是对象中成员变量的名称。于是就可以使用列名得到对象中属性的描述器(get和set方法)
-                      PropertyDescriptor pd = new PropertyDescriptor(columnName.toLowerCase(),beanClass);
-                      //6.7获取set方法
-                      Method writeMethod = pd.getWriteMethod();
-                      //6.8执行set方法，给成员变量赋值
-                      writeMethod.invoke(bean,columnValue);
-                  }
-              }
-          } catch (Exception e) {
-              e.printStackTrace();
-          }
-  
-          //7.将对象返回
-          return bean;
-      }
-  }
-  ```
-  
-* 学生类
-
-  ```java
-  public class Student {
-      private Integer sid;
-      private String name;
-      private Integer age;
-      private Date birthday;
-      ......
-  }
-  ```
-
-  
-
-* 测试类
-
-  ```java
-  public class JDBCTemplateTest {
-      private JDBCTemplate template = new JDBCTemplate(DataSourceUtils.getDataSource());
-      
-      @Test
-      public void insert() {
-          //新增数据的测试
-          String sql = "INSERT INTO student VALUES (?,?,?,?)";
-          Object[] params = {5,"周七",27,"1997-07-07"};
-          int result = template.update(sql, params);
-          if(result != 0) {
-              System.out.println("添加成功");
-          }else {
-              System.out.println("添加失败");
-          }
-      }
-      
-      @Test
-      public void delete() {
-          //删除数据的测试
-          String sql = "DELETE FROM student WHERE name=?";
-          int result = template.update(sql, "周七");
-          System.out.println(result);
-      }
-  
-      @Test
-      public void queryForObject() {
-          //查询一条记录并封装自定义对象的测试
-          String sql = "SELECT * FROM student WHERE sid=?";
-          Student stu = template.queryForObject(sql,new BeanHandler<>(Student.class),1);
-          System.out.println(stu);
-      }  
-  }
-  
-  ```
-
-
-
 
 
 
@@ -7716,10 +7522,10 @@ MySQL支持ACID特性，保证可靠性和持久性，读取性能不高，因�
 
 特征：
 
-* 可扩容，可伸缩。SQL数据关系过于复杂，Nosql不存关系，只存数据
-* 大数据量下高性能。数据不存取在磁盘IO，存取在内存
-* 灵活的数据模型。它设计了一些数据存储格式，能保证效率上的提高
-* 高可用。集群
+* 可扩容，可伸缩，SQL数据关系过于复杂，Nosql 不存关系，只存数据
+* 大数据量下高性能，数据不存取在磁盘IO，存取在内存
+* 灵活的数据模型，设计了一些数据存储格式，能保证效率上的提高
+* 高可用，集群
 
 常见的Nosql：Redis、memcache、HBase、MongoDB
 
@@ -7737,41 +7543,34 @@ Redis (REmote DIctionary Server) ：用 C 语言开发的一个开源的高性�
 
 特征：
 
-* 数据间没有必然的关联关系
-
+* 数据间没有必然的关联关系，**不存关系，只存数据**
+* 数据存储在内存，存取速度快，解决了磁盘 IO 速度慢的问题
 * 内部采用**单线程**机制进行工作
-
-* 高性能。官方测试数据，50个并发执行100000 个请求,读的速度是110000 次/s,写的速度是81000次/s
-
+* 高性能，官方测试数据，50个并发执行100000 个请求,读的速度是110000 次/s,写的速度是81000次/s
 * 多数据类型支持
-  * 字符串类型：string  
-  * 列表类型：list  
-  * 散列类型：hash
-  * 集合类型：set
-  * 有序集合类型：zset/sorted_set
-
+  * 字符串类型：string（String）
+  * 列表类型：list（LinkedList）
+  * 散列类型：hash（HashMap）
+  * 集合类型：set（HashSet）
+  * 有序集合类型：zset/sorted_set（TreeSet）
 * 支持持久化，可以进行数据灾难恢复
 
 应用：
 
-* 为热点数据加速查询（主要场景）。如热点商品、热点新闻、热点资讯、推广类等高访问量信息等
+* 为热点数据加速查询（主要场景），如热点商品、热点新闻、热点资讯、推广类等高访问量信息等
 
-* 即时信息查询。如排行榜、网站访问统计、公交到站信息、在线人数（聊天室、网站）、设备信号等
+* 即时信息查询，如排行榜、网站访问统计、公交到站信息、在线人数（聊天室、网站）、设备信号等
 
-* 时效性信息控制。如验证码控制、投票控制等
+* 时效性信息控制，如验证码控制、投票控制等
 
-* 分布式数据共享。如分布式集群架构中的 session 分离
-* 消息队列.
-
-
-
-****
+* 分布式数据共享，如分布式集群架构中的 session 分离
+* 消息队列
 
 
 
+***
 
 
-## 配置操作
 
 ### 下载安装
 
@@ -7816,6 +7615,10 @@ Redis (REmote DIctionary Server) ：用 C 语言开发的一个开源的高性�
    redis-check-dump，AOF文件修复工具
 
    redis-check-aof
+
+
+
+***
 
 
 
@@ -7979,420 +7782,68 @@ dbfilename "dump-6379.rdb"
 
 
 
-***
-
-
-
-### 基本操作
-
-#### 读写数据
-
-设置 key，value 数据：
-
-```sh
-set key value
-#set name seazean
-```
-
-根据 key 查询对应的 value，如果**不存在，返回空（nil）**：
-
-```sh
-get key
-#get name
-```
-
-
-
-#### 帮助信息
-
-获取命令帮助文档
-
-```sh
-help [command]
-#help set
-```
-
-获取组中所有命令信息名称
-
-```bash
-help [@group-name]
-#help @string
-```
-
-
-
-
-
-#### 退出服务
-
-退出客户端：
-
-```sh
-quit
-exit
-```
-
-退出客户端服务器快捷键：
-
-```sh
-Ctrl+C
-```
-
 
 
 ***
 
 
 
+## 基本指令
 
+### 操作指令
 
-## 数据类型
+读写数据：
 
-### string
-
-#### 简介
-
-**存储的数据**：单个数据，最简单的数据存储类型，也是最常用的数据存储类型。实质上是存一个字符串，注意是value是一个字符串，它是redis中最基本、最简单的存储数据的格式。
-
-**存储数据的格式**：一个存储空间保存一个数据。每一个空间中只能保存一个字符串信息，这个信息里边如果是存的纯数字，也能当数字使用
-
-**存储内容**：通常使用字符串，如果字符串以整数的形式展示，可以作为数字操作使用.
-
-![](https://gitee.com/seazean/images/raw/master/DB/Redis存储空间-string.png)
-
-
-
-#### 操作
-
-* 数据操作：
+* 设置 key，value 数据：
 
   ```sh
-  set key value			#添加/修改数据添加/修改数据
-  del key					#删除数据
-  setnx key value			#判定性添加数据，键值为空则设置
-  mset k1 v1 k2 v2...		#添加/修改多个数据，m：Multiple
-  append key value		#追加信息到原始信息后部（如果原始信息存在就追加，否则新建）
+  set key value
+  #set name seazean
   ```
 
-* 查询操作
+* 根据 key 查询对应的 value，如果**不存在，返回空（nil）**：
 
   ```sh
-  get key					#获取数据
-  mget key1 key2...		#获取多个数据
-  strlen key				#获取数据字符个数（字符串长度）
+  get key
+  #get name
   ```
 
-  ![string单数据与多数据操作](https://gitee.com/seazean/images/raw/master/DB/string单数据与多数据操作.png)
+帮助信息：
 
-* 设置数值数据增加/减少指定范围的值
+* 获取命令帮助文档
 
   ```sh
-  incr key					#key++
-  incrby key increment		#key+increment
-  incrbyfloat key increment	#对小数操作
-  decr key					#key--
-  decrby key increment		#key-increment
+  help [command]
+  #help set
   ```
 
-* 设置数据具有指定的生命周期
+* 获取组中所有命令信息名称
 
   ```sh
-  setex key seconds value  		#设置key-value存活时间，seconds单位是秒
-  psetex key milliseconds value	#毫秒级
+  help [@group-name]
+  #help @string
   ```
 
-* 注意事项
+退出服务
 
-  1. 数据操作不成功的反馈与数据正常操作之间的差异
-
-     * 表示运行结果是否成功
-       (integer) 0  → false                 失败
-
-       (integer) 1  → true                  成功
-
-     * 表示运行结果值
-       (integer) 3  → 3                        3个
-
-       (integer) 1  → 1                         1个
-
-  2. 数据未获取到时，对应的数据为（nil），等同于null
-  3. 数据最大存储量：512MB
-  4. string在redis内部存储默认就是一个字符串，当遇到增减类操作incr，decr时会转成数值型进行计算
-  5. 按数值进行操作的数据，如果原始数据不能转成数值，或超越了redis 数值上限范围，将报错
-     9223372036854775807（java中Long型数据最大值，Long.MAX_VALUE）
-  6. Redis所有操作都是**原子性**的，采用**单线程**处理所有业务，命令是单个顺序执行，无需考虑并发带来影响
-
-
-
-#### 应用
-
-主页高频访问信息显示控制，例如新浪微博大V主页显示粉丝数与微博数量。
-
-* 在Redis中为大V用户设定用户信息，以用户主键和属性值作为key，后台设定定时刷新策略
+* 退出客户端：
 
   ```sh
-  set user:id:3506728370:fans 12210947
-  set user:id:3506728370:blogs 6164
-  set user:id:3506728370:focuses 83
+  quit
+  exit
   ```
 
-* 使用JSON格式保存数据
+* 退出客户端服务器快捷键：
 
   ```sh
-  user:id:3506728370 → {"fans":12210947,"blogs":6164,"focuses":83}
+  Ctrl+C
   ```
 
-* key的设置约定：表名 : 主键名 : 主键值 : 字段名
-
-  | 表名  | 主键名 | 主键值    | 字段名 |
-  | ----- | ------ | --------- | ------ |
-  | order | id     | 29437595  | name   |
-  | equip | id     | 390472345 | type   |
-  | news  | id     | 202004150 | title  |
-
-
+  
 
 ***
 
 
-
-### hash
-
-#### 简介
-
-数据存储需求：对一系列存储的数据进行编组，方便管理，典型应用存储对象信息
-
-数据存储结构：一个存储空间保存多个键值对数据
-
-hash类型：底层使用哈希表结构实现数据存储
-
-<img src="https://gitee.com/seazean/images/raw/master/DB/hash结构图.png" style="zoom:50%;" />
-
-这种结构叫做hash，类似Map的结构，左边是key，右边是对应的值，中间叫field字段，本质上**hash存了一个key-value的存储空间**，hash是指的一个数据类型，并不是一个数据。底层使用哈希表结构实现
-
-* 如果field数量较少，存储结构优化为类数组结构
-* 如果field数量较多，存储结构使用HashMap结构
-
-
-
-#### 操作
-
-* 数据操作
-
-  ```sh
-  hset key field value		#添加/修改数据
-  hdel key field1 [field2]	#删除数据，[]代表可选
-  hsetnx key field value		#设置field的值，如果该field存在则不做任何操作
-  hmset key f1 v1 f2 v2...	#添加/修改多个数据
-  ```
-
-* 查询操作
-
-  ```sh
-  hget key field				#获取指定field对应数据
-  hgetall key					#获取指定key对应数据
-  hmget key field1 field2...	#获取多个数据
-  hlen key					#获取哈希表中字段的数量
-  hexists key field			#获取哈希表中是否存在指定的字段
-  ```
-
-* 获取哈希表中所有的字段名或字段值
-
-  ```sh
-  hkeys key					#获取所有的field	
-  hvals key					#获取所有的value
-  ```
-
-* 设置指定字段的数值数据增加指定范围的值
-
-  ```sh
-  hincrby key field increment		#指定字段的数值数据增加指定的值，increment为负数则减少
-  hincrbyfloat key field increment#操作小数
-  ```
-
-* 注意事项
-  1. hash类型中value只能存储字符串，不允许存储其他数据类型，不存在嵌套现象，如果数据未获取到，对应的值为（nil）
-  2. 每个hash可以存储2^32 - 1个键值对。hash类型和对象的数据存储形式相似，并且可以灵活添加删除对象属性。但hash设计初衷不是为了存储大量对象而设计的，不可滥用，不可将hash作为对象列表使用
-  3. hgetall 操作可以获取全部属性，如果内部field过多，遍历整体数据效率就很会低，有可能成为数据访问瓶颈
-
-
-
-#### 应用
-
-```sh
-user:id:3506728370 → {"name":"春晚","fans":12210862,"blogs":83}
-```
-
-对于以上数据，使用单条去存的话，它存的条数会很多。但如果我们用json格式，它存一条数据就够了。问题是，如果说现在粉丝数量发生了变化，你要把整个值都改变。但是用单条存就不存在这个问题，只需要改其中一个就可以。有没有一种新的存储结构，能帮我们解决这个问题？
-
-![](https://gitee.com/seazean/images/raw/master/DB/hash应用场景结构图.png)
-
-
-
-***
-
-
-
-### list
-
-#### 简介
-
-数据存储需求：存储多个数据，并对数据进入存储空间的顺序进行区分
-
-数据存储结构：一个存储空间保存多个数据，且通过数据可以体现进入顺序，允许重复元素
-
-list类型：保存多个数据，底层使用**双向链表**存储结构实现
-
-![](https://gitee.com/seazean/images/raw/master/DB/list结构图.png)
-
-如果两端都能存取数据的话，这就是双端队列。如果只能从一端进一端出，这个模型叫栈
-
-
-
-#### 操作
-
-* 数据操作
-
-  ```sh
-  lpush key value1 [value2]...#从左边添加/修改数据
-  rpush key value1 [value2]...#从右边添加/修改数据
-  lpop key					#从左边获取并移除第一个数据，类似于出栈/出队
-  rpop key					#从右边获取并移除第一个数据
-  lrem key count value		#删除指定数据，count=2删除2个，该value可能有多个(重复数据)
-  ```
-
-* 查询操作
-
-  ```sh
-  lrange key start stop	#从左边遍历数据并指定开始和结束索引，0是第一个索引，-1是终索引
-  lindex key index		#获取指定索引数据，没有则为nil，没有索引越界
-  llen key				#list中数据长度/个数
-  ```
-
-* 规定时间内获取并移除数据
-
-  ```sh
-  b							#代表阻塞
-  blpop key1 [key2] timeout	#在指定时间内获取指定key(可以多个)的数据，超时则为(nil)
-  							#可以从其他客户端写数据，当前客户端阻塞读取数据
-  brpop key1 [key2] timeout	#从右边操作
-  brpoplpush source destination timeout	#从source获取数据放入destination
-  #假如在指定时间内没有任何元素被弹出，则返回一个nil和等待时长。反之，返回一个含有两个元素的列表，第一个元素是被弹出元素的值，第二个元素是等待时长
-  ```
-
-* 注意事项
-
-  1. list中保存的数据都是string类型的，数据总容量是有限的，最多2^32 - 1 个元素(4294967295)
-  2. list具有索引的概念，但操作数据时通常以队列的形式进行入队出队，或以栈的形式进行入栈出栈
-  3. 获取全部数据操作结束索引设置为-1
-  4. list可以对数据进行分页操作，通常第一页的信息来自于list，第2页及更多的信息通过数据库的形式加载
-
-
-
-
-
-#### 应用
-
-企业运营过程中，系统将产生出大量的运营数据，如何保障多台服务器操作日志的统一顺序输出？
-
-解决方案：
-	依赖list的数据具有顺序的特征对信息进行管理，右进左查或者左近左查
-	使用队列模型解决多路信息汇总合并的问题
-	使用栈模型解决最新消息的问题
-
-
-
-***
-
-
-
-### set
-
-#### 简介
-
-数据存储需求：存储大量的数据，在查询方面提供更高的效率
-
-数据存储结构：能够保存大量的数据，高效的内部存储机制，便于查询
-
-set类型：与hash存储结构完全相同，仅存储键，不存储值（nil），并且值是不允许重复的，类似Java Set
-
-<img src="https://gitee.com/seazean/images/raw/master/DB/set结构图.png" style="zoom:50%;" />
-
-
-
-#### 操作
-
-* 数据操作
-
-  ```sh
-  sadd key member1 [member2]	#添加数据
-  srem key member1 [member2]	#删除数据
-  spop key [count]			#随机获取集中的某个数据并将该数据移除集合
-  ```
-
-* 查询操作
-
-  ```sh
-  smembers key				#获取全部数据
-  scard key					#获取集合数据总量
-  sismember key member		#判断集合中是否包含指定数据
-  srandmember key [count]		#随机获取集合中指定(数量)的数据
-  ```
-
-* 集合的交、并、差
-
-  ```sh
-  sinter key1 [key2...]  					#两个集合的交集，不存在为(empty list or set)
-  sunion key1 [key2...]  					#两个集合的并集
-  sdiff key1 [key2...]					#两个集合的差集
-  sinterstore destination key1 [key2...]	#两个集合的交集并存储到指定集合中
-  sunionstore destination key1 [key2...]	#两个集合的并集并存储到指定集合中
-  sdiffstore destination key1 [key2...]	#两个集合的差集并存储到指定集合中
-  ```
-
-* 复制
-
-  ```sh
-  smove source destination member	#将指定数据从原始集合中移动到目标集合中
-  ```
-
-* 注意事项
-
-  1. set 类型不允许数据重复，如果添加的数据在 set 中已经存在，将只保留一份
-  2. set 虽然与hash的存储结构相同，但是无法启用hash中存储值的空间
-
-
-
-#### 应用
-
-应用场景：
-
-1. 黑名单
-
-   资讯类信息类网站追求高访问量，但是由于其信息的价值，往往容易被不法分子利用，通过爬虫技术，快速获取信息，个别特种行业网站信息通过爬虫获取分析后，可以转换成商业机密进行出售。例如第三方火车票、酒店刷票代购软件，电商评论。同时爬虫带来的伪流量也会给经营者带来错觉，产生错误的决策，有效避免网站被爬虫反复爬取成为每个网站都要考虑的基本问题。在基于技术层面区分出爬虫用户后，需要将此类用户进行有效的屏蔽，这就是黑名单的典型应用。
-
-   注意：爬虫不一定做摧毁性的工作，有些小型网站需要爬虫为其带来一些流量。
-
-2. 白名单
-
-   对于安全性更高的应用访问，仅仅靠黑名单是不能解决安全问题的，此时需要设定可访问的用户群体， 依赖白名单做更为苛刻的访问验证
-
-解决方案：
-
-设定用户鉴别规则，周期性更新满足规则的用户黑名单，加入set集合，用户行为信息达到后与黑名单进行对比。
-黑名单过滤IP地址：应用于开放游客访问权限的信息源
-黑名单过滤设备信息：应用于限定访问设备的信息源
-黑名单过滤用户：应用于基于访问权限的信息源
-
-
-
-****
-
-
-
-
-
-## 常用指令
 
 ### key指令
 
@@ -8404,7 +7855,7 @@ key是一个字符串，通过key获取redis中保存的数据
   del key				#删除指定key
   exists key			#获取key是否存在
   type key			#获取key的类型
-  sort key [ASC/DESC]	#对key中数据排序，默认对数字排序，并不更改集合中的数据，只是查询操作
+  sort key [ASC/DESC]	#对key中数据排序，默认对数字排序，并不更改集合中的数据位置，只是查询
   sort key alpha		#对key中字母排序
   rename key newkey	#改名
   renamenx key newkey	#改名
@@ -8450,7 +7901,7 @@ key是一个字符串，通过key获取redis中保存的数据
 
 ### DB指令
 
-key是由程序员定义，Redis在使用过程中，伴随着操作数据量的增加，会出现大量的数据以及对应的key，数据不区分种类、类别混在一起，容易引起重复或者冲突
+Redis在使用过程中，伴随着操作数据量的增加，会出现大量的数据以及对应的key，数据不区分种类、类别混在一起，容易引起重复或者冲突
 
 Redis为每个服务提供16个数据库，编码0-15，每个数据库之间的数据相互独立，**共用**Redis内存，不区分大小
 
@@ -8459,6 +7910,7 @@ Redis为每个服务提供16个数据库，编码0-15，每个数据库之间的
   ```sh
   select index	#切换数据库，index从0-15取值
   ping			#测试数据库是否连接正常，返回PONG
+  echo message	#控制台输出信息
   ```
 
 * 扩展操作
@@ -8474,9 +7926,502 @@ Redis为每个服务提供16个数据库，编码0-15，每个数据库之间的
 
 
 
+***
+
+
+
+## 数据类型
+
+### string
+
+#### 简介
+
+redis 自身是一个 Map，其中所有的数据都是采用 key : value 的形式存储
+
+数据类型指的是存储的数据的类型，也就是 value 部分的类型，**key 部分永远都是字符串**
+
+string类型的数据：
+
+存储的数据：单个数据，最简单的数据存储类型，也是最常用的数据存储类型，实质上是存一个字符串
+
+存储数据的格式：一个存储空间保存一个数据，每一个空间中只能保存一个字符串信息
+
+存储内容：通常使用字符串，如果字符串以整数的形式展示，可以作为数字操作使用
+
+<img src="https://gitee.com/seazean/images/raw/master/DB/Redis存储空间-string.png" style="zoom:50%;" />
+
+
+
+***
+
+
+
+#### 操作
+
+指令操作：
+
+* 数据操作：
+
+  ```sh
+  set key value			#添加/修改数据添加/修改数据
+  del key					#删除数据
+  setnx key value			#判定性添加数据，键值为空则设添加
+  mset k1 v1 k2 v2...		#添加/修改多个数据，m：Multiple
+  append key value		#追加信息到原始信息后部（如果原始信息存在就追加，否则新建）
+  ```
+
+* 查询操作
+
+  ```sh
+  get key					#获取数据
+  mget key1 key2...		#获取多个数据
+  strlen key				#获取数据字符个数（字符串长度）
+  ```
+
+* 设置数值数据增加/减少指定范围的值
+
+  ```sh
+  incr key					#key++
+  incrby key increment		#key+increment
+  incrbyfloat key increment	#对小数操作
+  decr key					#key--
+  decrby key increment		#key-increment
+  ```
+
+* 设置数据具有指定的生命周期
+
+  ```sh
+  setex key seconds value  		#设置key-value存活时间，seconds单位是秒
+  psetex key milliseconds value	#毫秒级
+  ```
+
+注意事项：
+
+1. 数据操作不成功的反馈与数据正常操作之间的差异
+
+   * 表示运行结果是否成功
+     (integer) 0  → false                 失败
+
+     (integer) 1  → true                  成功
+
+   * 表示运行结果值
+     (integer) 3  → 3                        3个
+
+     (integer) 1  → 1                         1个
+
+2. 数据未获取到时，对应的数据为（nil），等同于null
+
+3. 数据最大存储量：512MB
+
+4. string在redis内部存储默认就是一个字符串，当遇到增减类操作incr，decr时**会转成数值型**进行计算
+
+5. 按数值进行操作的数据，如果原始数据不能转成数值，或超越了redis 数值上限范围，将报错
+   9223372036854775807（java中Long型数据最大值，Long.MAX_VALUE）
+
+6. redis 可用于控制数据库表主键id，为数据库表主键提供生成策略，保障数据库表的主键唯一性
+
+7. Redis 所有操作都是**原子性**的，采用**单线程**机制，命令是单个顺序执行，无需考虑并发带来影响
+
+单数据和多数据的选择：
+
+* 单数据执行3条指令的过程：3 次发送 + 3 次处理 + 3次返回
+* 多数据执行1条指令的过程：1 次发送 + 3 次处理 + 1次返回（发送和返回的事件略高于单数据）
+
+<img src="https://gitee.com/seazean/images/raw/master/DB/string单数据与多数据操作.png" style="zoom: 33%;" />
+
+
+
+
+
+***
+
+
+
+#### 应用
+
+主页高频访问信息显示控制，例如新浪微博大V主页显示粉丝数与微博数量
+
+* 在Redis中为大V用户设定用户信息，以用户主键和属性值作为key，后台设定定时刷新策略
+
+  ```sh
+  set user:id:3506728370:fans 12210947
+  set user:id:3506728370:blogs 6164
+  set user:id:3506728370:focuses 83
+  ```
+
+* 使用JSON格式保存数据
+
+  ```sh
+  user:id:3506728370 → {"fans":12210947,"blogs":6164,"focuses":83}
+  ```
+
+* key的设置约定：表名 : 主键名 : 主键值 : 字段名
+
+  | 表名  | 主键名 | 主键值    | 字段名 |
+  | ----- | ------ | --------- | ------ |
+  | order | id     | 29437595  | name   |
+  | equip | id     | 390472345 | type   |
+  | news  | id     | 202004150 | title  |
+
+
+
+***
+
+
+
+### hash
+
+#### 简介
+
+数据存储需求：对一系列存储的数据进行编组，方便管理，典型应用存储对象信息
+
+数据存储结构：一个存储空间保存多个键值对数据
+
+hash类型：底层使用**哈希表**结构实现数据存储
+
+<img src="https://gitee.com/seazean/images/raw/master/DB/hash结构图.png" style="zoom: 33%;" />
+
+类似Map结构，左边是key，右边是值，中间叫field字段，本质上**hash存了一个key-value的存储空间**
+
+hash是指的一个数据类型，并不是一个数据
+
+* 如果field数量较少，存储结构优化为**类数组结构**（有序）
+* 如果field数量较多，存储结构使用HashMap结构（无序）
+
+
+
+***
+
+
+
+#### 操作
+
+指令操作：
+
+* 数据操作
+
+  ```sh
+  hset key field value		#添加/修改数据
+  hdel key field1 [field2]	#删除数据，[]代表可选
+  hsetnx key field value		#设置field的值，如果该field存在则不做任何操作
+  hmset key f1 v1 f2 v2...	#添加/修改多个数据
+  ```
+
+* 查询操作
+
+  ```sh
+  hget key field				#获取指定field对应数据
+  hgetall key					#获取指定key所有数据
+  hmget key field1 field2...	#获取多个数据
+  hexists key field			#获取哈希表中是否存在指定的字段
+  hlen key					#获取哈希表中字段的数量
+  ```
+
+* 获取哈希表中所有的字段名或字段值
+
+  ```sh
+  hkeys key					#获取所有的field	
+  hvals key					#获取所有的value
+  ```
+
+* 设置指定字段的数值数据增加指定范围的值
+
+  ```sh
+  hincrby key field increment		#指定字段的数值数据增加指定的值，increment为负数则减少
+  hincrbyfloat key field increment#操作小数
+  ```
+
+
+注意事项
+
+1. hash类型中value只能存储字符串，不允许存储其他数据类型，不存在嵌套现象，如果数据未获取到，对应的值为（nil）
+2. 每个hash可以存储2^32 - 1个键值对
+3. hash类型和对象的数据存储形式相似，并且可以灵活添加删除对象属性。但hash设计初衷不是为了存储大量对象而设计的，不可滥用，不可将hash作为对象列表使用
+4. hgetall 操作可以获取全部属性，如果内部field过多，遍历整体数据效率就很会低，有可能成为数据访问瓶颈
+
+
+
+***
+
+
+
+#### 应用
+
+```sh
+user:id:3506728370 → {"name":"春晚","fans":12210862,"blogs":83}
+```
+
+对于以上数据，使用单条去存的话，存的条数会很多。但如果用json格式，存一条数据就够了。
+
+假如现在粉丝数量发生了变化，要把整个值都改变，但是用单条存就不存在这个问题，只需要改其中一个就可以
+
+![](https://gitee.com/seazean/images/raw/master/DB/hash应用场景结构图.png)
+
+
+
+***
+
+
+
+### list
+
+#### 简介
+
+数据存储需求：存储多个数据，并对数据进入存储空间的顺序进行区分
+
+数据存储结构：一个存储空间保存多个数据，且通过数据可以体现进入顺序，允许重复元素
+
+list类型：保存多个数据，底层使用**双向链表**存储结构实现，类似于 LinkedList
+
+<img src="https://gitee.com/seazean/images/raw/master/DB/list结构图.png" style="zoom:33%;" />
+
+如果两端都能存取数据的话，这就是双端队列，如果只能从一端进一端出，这个模型叫栈
+
+
+
+***
+
+
+
+#### 操作
+
+指令操作：
+
+* 数据操作
+
+  ```sh
+  lpush key value1 [value2]...#从左边添加/修改数据
+  rpush key value1 [value2]...#从右边添加/修改数据
+  lpop key					#从左边获取并移除第一个数据，类似于出栈/出队
+  rpop key					#从右边获取并移除第一个数据
+  lrem key count value		#删除指定数据，count=2删除2个，该value可能有多个(重复数据)
+  ```
+
+* 查询操作
+
+  ```sh
+  lrange key start stop	#从左边遍历数据并指定开始和结束索引，0是第一个索引，-1是终索引
+  lindex key index		#获取指定索引数据，没有则为nil，没有索引越界
+  llen key				#list中数据长度/个数
+  ```
+
+* 规定时间内获取并移除数据
+
+  ```sh
+  b							#代表阻塞
+  blpop key1 [key2] timeout	#在指定时间内获取指定key(可以多个)的数据，超时则为(nil)
+  							#可以从其他客户端写数据，当前客户端阻塞读取数据
+  brpop key1 [key2] timeout	#从右边操作
+  ```
+  
+* 复制操作
+
+  ```sh
+  brpoplpush source destination timeout	#从source获取数据放入destination，假如在指定时间内没有任何元素被弹出，则返回一个nil和等待时长。反之，返回一个含有两个元素的列表，第一个元素是被弹出元素的值，第二个元素是等待时长
+  ```
+
+注意事项
+
+1. list中保存的数据都是string类型的，数据总容量是有限的，最多2^32 - 1 个元素（4294967295）
+2. list具有索引的概念，但操作数据时通常以队列的形式进行入队出队，或以栈的形式进行入栈出栈
+3. 获取全部数据操作结束索引设置为 -1
+4. list可以对数据进行分页操作，通常第一页的信息来自于list，第2页及更多的信息通过数据库的形式加载
+
+
+
+***
+
+
+
+#### 应用
+
+企业运营过程中，系统将产生出大量的运营数据，如何保障多台服务器操作日志的统一顺序输出？
+
+* 依赖list的数据具有顺序的特征对信息进行管理，右进左查或者左近左查
+* 使用队列模型解决多路信息汇总合并的问题
+* 使用栈模型解决最新消息的问题
+
+
+
+***
+
+
+
+### set
+
+#### 简介
+
+数据存储需求：存储大量的数据，在查询方面提供更高的效率
+
+数据存储结构：能够保存大量的数据，高效的内部存储机制，便于查询
+
+set类型：与hash存储结构完全相同，仅存储键不存储值（nil），并且值是不允许重复且无序的，类似于HashSet
+
+<img src="https://gitee.com/seazean/images/raw/master/DB/set结构图.png" style="zoom: 33%;" />
+
+
+
+***
+
+
+
+#### 操作
+
+指令操作：
+
+* 数据操作
+
+  ```sh
+  sadd key member1 [member2]	#添加数据
+  srem key member1 [member2]	#删除数据
+  ```
+  
+* 查询操作
+
+  ```sh
+  smembers key				#获取全部数据
+  scard key					#获取集合数据总量
+  sismember key member		#判断集合中是否包含指定数据
+  ```
+
+* 随机操作
+
+  ```sh
+  spop key [count]			#随机获取集中的某个数据并将该数据移除集合
+  srandmember key [count]		#随机获取集合中指定(数量)的数据
+
+* 集合的交、并、差
+
+  ```sh
+  sinter key1 [key2...]  					#两个集合的交集，不存在为(empty list or set)
+  sunion key1 [key2...]  					#两个集合的并集
+  sdiff key1 [key2...]					#两个集合的差集
+  
+  sinterstore destination key1 [key2...]	#两个集合的交集并存储到指定集合中
+  sunionstore destination key1 [key2...]	#两个集合的并集并存储到指定集合中
+  sdiffstore destination key1 [key2...]	#两个集合的差集并存储到指定集合中
+  ```
+
+* 复制
+
+  ```sh
+  smove source destination member	#将指定数据从原始集合中移动到目标集合中
+  ```
+
+
+注意事项
+
+1. set 类型不允许数据重复，如果添加的数据在 set 中已经存在，将只保留一份
+2. set 虽然与hash的存储结构相同，但是无法启用hash中存储值的空间
+
+
+
+***
+
+
+
+#### 应用
+
+应用场景：
+
+1. 黑名单：资讯类信息类网站追求高访问量，但是由于其信息的价值，往往容易被不法分子利用，通过爬虫技术，快速获取信息，个别特种行业网站信息通过爬虫获取分析后，可以转换成商业机密。
+
+   注意：爬虫不一定做摧毁性的工作，有些小型网站需要爬虫为其带来一些流量。
+
+2. 白名单：对于安全性更高的应用访问，仅仅靠黑名单是不能解决安全问题的，此时需要设定可访问的用户群体， 依赖白名单做更为苛刻的访问验证
+
+
+解决方案：
+
+* 设定用户鉴别规则，周期性更新满足规则的黑名单加入set集合，用户行为信息达到后与黑名单进行对比
+* 黑名单过滤IP地址：应用于开放游客访问权限的信息源
+* 黑名单过滤设备信息：应用于限定访问设备的信息源
+* 黑名单过滤用户：应用于基于访问权限的信息源
+
+
+
+***
+
+
+
+### sorted
+
+#### 简介
+
+数据存储需求：数据排序有利于数据的有效展示，需要提供一种可以根据自身特征进行排序的方式
+
+数据存储结构：新的存储模型，可以保存可排序的数据
+
+sorted_set类型：在set的存储结构基础上添加可排序字段，类似于 TreeSet
+
+<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-sorted_set结构图.png" style="zoom: 80%;" />
+
+
+
 ****
 
 
+
+#### 操作
+
+指令操作：
+
+* 数据操作
+
+  ```sh
+  zadd key score1 member1 [score2 member2]	#添加数据
+  zrem key member [member ...]				#删除数据
+  zremrangebyrank key start stop 				#删除指定索引的数据
+  zremrangebyscore key min max				#删除指定分数区间内的数据
+  zscore key member							#获取指定值的分数
+  zincrby key increment member				#指定值的分数增加increment
+  ```
+
+* 查询操作
+
+  ```sh
+  zrange key start stop [WITHSCORES]		#获取全部数据，升序，WITHSCORES代表显示分数
+  zrevrange key start stop [WITHSCORES]	#获取全部数据，降序
+  zrangebyscore key min max [WITHSCORES] [LIMIT]	#按条件获取数据
+  zrevrangebyscore key max min [WITHSCORES]		#按条件获取数据
+  zcard key										#获取集合数据的总量
+  zcount key min max								#获取指定分数区间内的数据总量
+  zrank key member								#获取数据对应的索引（排名）升序
+  zrevrank key member								#获取数据对应的索引（排名）降序
+  ```
+
+  * min与max用于限定搜索查询的条件
+  * start与stop用于限定查询范围，作用于索引，表示开始和结束索引
+  * offset与count用于限定查询范围，作用于查询结果，表示开始位置和数据总量
+
+* 集合的交、并操作
+
+  ```sh
+  zinterstore destination numkeys key [key ...]	#两个集合的交集并存储到指定集合中
+  zunionstore destination numkeys key [key ...]	#两个集合的并集并存储到指定集合中
+  ```
+
+注意事项：
+
+1. score保存的数据存储空间是64位，如果是整数范围是-9007199254740992~9007199254740992
+2. score保存的数据也可以是一个双精度的double值，基于双精度浮点数的特征可能会丢失精度，慎重使用
+3. sorted_set 底层存储还是基于 set 结构的，因此数据不能重复，如果重复添加相同的数据，score值将被反复覆盖，保留最后一次修改的结果
+
+
+
+***
+
+
+
+#### 应用
+
+* 排行榜
+* 对于基于时间线限定的任务处理，将处理时间记录为score值，利用排序功能区分处理的先后顺序
+* 当任务或者消息待处理，形成了任务队列或消息队列时，对于高优先级的任务要保障对其优先处理，采用score记录权重
+
+
+
+****
 
 
 
@@ -8503,7 +8448,7 @@ Jedis用于Java语言连接redis服务，并提供对应的操作API
 2. 客户端连接redis
    API文档：http://xetorthio.github.io/jedis/
 
-   连接redis：`Jedis jedis = new Jedis("192.168..185", 6379);`
+   连接redis：`Jedis jedis = new Jedis("192.168.0.185", 6379);`
    操作redis：`jedis.set("name", "seazean");  jedis.get("name");`
    关闭redis：`jedis.close();`
 
@@ -9699,7 +9644,7 @@ sentinel在通知阶段要不断的去获取master/slave的信息，然后在各
 
 
 
-## 集群cluster
+## 集群模式
 
 ### 集群概述
 
