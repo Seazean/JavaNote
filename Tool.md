@@ -141,6 +141,7 @@ GitLab （地址： https://about.gitlab.com/ ）是一个用于仓库管理系�
 | git status              | 查看 git 状态 （文件是否进行了添加、提交操作）               |
 | git add filename        | 添加，将指定文件添加到暂存区                                 |
 | git commit -m 'message' | 提交，将暂存区文件提交到本地仓库，删除暂存区的该文件         |
+| git commit --amend      | 修改 commit 的 message                                       |
 | git rm filename         | 删除，删除工作区的文件，不是仓库，需要提交                   |
 | git mv filename         | 移动或重命名工作区文件                                       |
 | git reset filename      | 使用当前分支上的修改覆盖暂存区，**将暂存区的文件取消暂存**   |
@@ -152,6 +153,10 @@ GitLab （地址： https://about.gitlab.com/ ）是一个用于仓库管理系�
 
 * git commit -a 直接把所有文件的修改添加到暂存区然后执行提交
 * git checkout HEAD -- files 取出最后一次修改，可以用来进行回滚操作
+
+
+
+***
 
 
 
@@ -169,11 +174,17 @@ GitLab （地址： https://about.gitlab.com/ ）是一个用于仓库管理系�
   * git status 查看文件状态
   * git status –s 查看更简洁的文件状态
 
+
+
+***
+
+
+
 ### 文件忽略
 
 一般我们总会有些文件无需纳入Git 的管理，也不希望它们总出现在未跟踪文件列表。 通常都是些自动生成的文件，比如日志文件，或者编译过程中创建的临时文件等。 在这种情况下，我们可以在工作目录中创建一个名为 .gitignore 的文件（文件名称固定），列出要忽略的文件模式。下面是一个示例：
 
-```
+```sh
 # no .a files
 *.a
 # but do track lib.a, even though you're ignoring .a files above
@@ -544,13 +555,17 @@ Linux 文件系统目录结构和熟知的 windows 系统有较大区别，没�
 
 
 
+
+
 ***
 
 
 
-## 静态IP
+## 远程连接
 
-### NAT模式设置
+### 设置IP
+
+#### NAT
 
 首先设置虚拟机中NAT模式的选项，打开VMware，点击“编辑”下的“虚拟网络编辑器”，设置NAT参数
 	![](https://gitee.com/seazean/images/raw/master/Tool/配置NAT.jpg)
@@ -559,15 +574,16 @@ Linux 文件系统目录结构和熟知的 windows 系统有较大区别，没�
 
 ​	![](https://gitee.com/seazean/images/raw/master/Tool/本地主机网络连接.jpg)
 
-### 设置静态IP
+#### 静态IP
 
 在普通用户下不能修改网卡的配置信息；所以我们要切换到root用户进行ip配置：su root/su
 
 * 修改网卡配置文件：
-   vi /etc/sysconfig/network-scripts/ifcfg-ens33
+  vi /etc/sysconfig/network-scripts/ifcfg-ens33
   或者命令前加sudo
 
 * 修改文件内容
+
   ```
   TYPE=Ethernet
   PROXY_METHOD=none
@@ -616,7 +632,7 @@ Linux 文件系统目录结构和熟知的 windows 系统有较大区别，没�
 
 
 
-## 远程登陆
+### 远程登陆
 
 **服务器维护工作** 都是在 远程 通过SSH客户端 来完成的， 并没有图形界面， 所有的维护工作都需要通过命令来完成，Linux 服务器需要安装SSH 相关服务。
 首先执行 sudo apt-get install openssh-server 指令。接下来用 xshell 连接。
@@ -626,19 +642,6 @@ Linux 文件系统目录结构和熟知的 windows 系统有较大区别，没�
 先用普通用户登录，然后转成root
 
 
-
-***
-
-
-
-## 命令帮助
-
-在控制台输入：命令名 -h/  -help/   --h  /空
-
-可以看到命令的帮助文档
-
-**man** [指令名称]    查看帮助文档
-比如 man ls。退出方式 q
 
 
 
@@ -840,6 +843,21 @@ gpasswd 是 Linux 工作组文件 /etc/group 和 /etc/gshadow 管理工具，用
 
 ## 系统管理
 
+### man
+
+在控制台输入：命令名 -h/  -help/   --h  /空
+
+可以看到命令的帮助文档
+
+**man** [指令名称]    查看帮助文档
+比如 man ls。退出方式 q
+
+
+
+***
+
+
+
 ### date
 
 date 可以用来显示或设定系统的日期与时间
@@ -855,6 +873,10 @@ date 可以用来显示或设定系统的日期与时间
 查看时间：**date**    ------->2020年 11月 30日 星期一 17:10:54 CST
 查看指定格式时间：**date "+%Y-%m-%d %H:%M:%S"**   -----> 2020-11-30 17:11:44
 设置日期指令：**date -s “2019-12-23 19:21:00”**
+
+
+
+***
 
 
 
@@ -874,6 +896,10 @@ id会显示用户以及所属群组的实际与有效ID。若两个ID相同，�
 
 
 
+***
+
+
+
 ### sudo
 
 sudo：控制用户对系统命令的使用权限,root允许的操作。通过sudo可以提高普通用户的操作权限
@@ -890,6 +916,10 @@ sudo：控制用户对系统命令的使用权限,root允许的操作。通过su
 - -H 将环境变数中的 HOME 指定为要变更身份的使用者HOME目录（如不加 -u 参数就是系统管理者 root ）
 - -command 要以系统管理者身份（或以 -u 更改为其他人）执行的指令
   **sudo -u root command  -l**：指定root用户执行指令command  
+
+
+
+***
 
 
 
@@ -925,6 +955,10 @@ top：用于实时显示 process 的动态
 
 
 
+***
+
+
+
 ### ps
 
 Linux 系统中查看进程使用情况的命令是 **ps** 指令
@@ -956,6 +990,10 @@ Linux 系统中查看进程使用情况的命令是 **ps** 指令
 
 
 
+***
+
+
+
 ### kill
 
 Linux kill命令用于删除执行中的程序或工作(可强制中断)
@@ -977,6 +1015,8 @@ Linux kill命令用于删除执行中的程序或工作(可强制中断)
 2.直接杀死：`kill -u user`
 
 
+
+***
 
 
 
@@ -1007,6 +1047,10 @@ shutdown命令可以用来进行关闭系统，并且在关机以前传送讯息
 
 
 
+***
+
+
+
 ### reboot
 
 reboot命令用于用来重新启动计算机
@@ -1018,6 +1062,10 @@ reboot命令用于用来重新启动计算机
 - -d : 不把记录写到 /var/log/wtmp 档案里（-n 这个参数包含了 -d）
 - -f : 强迫重开机，不呼叫 shutdown 这个指令
 - -i : 在重开机之前先把所有网络相关的装置先停止
+
+
+
+***
 
 
 
@@ -1035,6 +1083,10 @@ who命令用于显示系统中有哪些使用者正在上面，显示的资料�
 - -w 或-T或--mesg或--message或--writable：显示用户的信息状态栏；
 - --help：在线帮助；
 - --version：显示版本信息
+
+
+
+***
 
 
 
@@ -1071,6 +1123,8 @@ who命令用于显示系统中有哪些使用者正在上面，显示的资料�
 
 
 
+***
+
 
 
 ### timedatectl
@@ -1095,11 +1149,19 @@ NTP即Network Time Protocol（网络时间协议），是一个互联网协议�
 
 
 
+***
+
+
+
 ### clear
 
 clear命令用于清除屏幕
 
 通过执行clear命令，就可以把缓冲区的命令全部清理干净了
+
+
+
+****
 
 
 
@@ -1120,6 +1182,8 @@ exit命令用于退出目前的shell。执行exit可使shell以指定的状态�
 * 126表示不是可执行的（Not an executable）
 
 * 大于等于128 信号产生
+
+
 
 
 
@@ -2208,6 +2272,10 @@ pid_t waitpid(pid_t pid, int *status, int options)
 
 
 
+***
+
+
+
 ### ifconfig
 
 ifconfig是Linux中用于显示或配置网络设备的命令，英文全称是network interfaces configuring
@@ -2231,6 +2299,10 @@ ifconfig [网络设备][down up -allmulti -arp -promisc][add<地址>][del<地址
 
 
 
+***
+
+
+
 ### ping
 
 ping命令用于检测主机。
@@ -2251,6 +2323,10 @@ ping [-dfnqrRv][-c<完成次数>][-i<间隔秒数>][-I<网络界面>][-l<前置�
   ttl：IP生存时间值
 
   time：响应时间,数值越小，联通速度越快
+
+
+
+***
 
 
 

@@ -945,9 +945,11 @@ LIMIT		<limit_params>
   SELECT * FROM product WHERE NAME LIKE '%电脑%';
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/DQL数据准备.png)
+  <img src="https://gitee.com/seazean/images/raw/master/DB/MySQL-DQL数据准备.png" style="zoom: 80%;" />
 
 
+
+***
 
 
 
@@ -1217,7 +1219,7 @@ SELECT * FROM emp WHERE name REGEXP '[uvw]';-- 匹配包含 uvw 的name值
   SELECT * FROM product LIMIT 6,2;  -- 第四页 开始索引=(4-1) * 2
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/DQL分页查询图解.png)
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-DQL分页查询图解.png)
 
 
 
@@ -2211,7 +2213,7 @@ redo log 也需要在事务提交时将日志写入磁盘，但是比将 Buffer 
 刷盘策略，通过修改参数 `innodb_flush_log_at_trx_commit` 设置：
 
 * 0：表示当提交事务时，并不将缓冲区的 redo 日志写入磁盘，而是等待主线程每秒刷新一次
-* 1：在事务提交时将缓冲区的 redo 日志同步写入到磁盘，保证一定会写入成功
+* 1：在事务提交时将缓冲区的 redo 日志**同步写入**到磁盘，保证一定会写入成功
 * 2：在事务提交时将缓冲区的 redo 日志异步写入到磁盘，不能保证提交时肯定会写入，只是有这个动作
 
 
@@ -7672,7 +7674,7 @@ Redis (REmote DIctionary Server) ：用 C 语言开发的一个开源的高性�
 
 ### 基本配置
 
-#### 文件结构
+#### 系统目录
 
 1. 创建文件结构
 
@@ -7706,7 +7708,11 @@ Redis (REmote DIctionary Server) ：用 C 语言开发的一个开源的高性�
 
 
 
-#### 服务器配置
+***
+
+
+
+#### 服务器
 
 * 设置服务器以守护进程的方式运行，开启后服务器控制台中将打印服务器运行信息（同日志内容相同）：
 
@@ -7732,9 +7738,27 @@ Redis (REmote DIctionary Server) ：用 C 语言开发的一个开源的高性�
   dir path
   ```
 
+* 设置数据库的数量：
+
+  ```sh
+  databases 16
+  ```
+
+* 多服务器快捷配置：
+
+  导入并加载指定配置文件信息，用于快速创建 redis 公共配置较多的 redis实例配置文件，便于维护
+
+  ```sh
+  include /path/conf_name.conf
+  ```
+
+  
+
+***
 
 
-#### 客户端配置
+
+#### 客户端
 
 * 服务器允许客户端连接最大数量，默认0，表示无限制，当客户端连接到达上限后，Redis会拒绝新的连接：
 
@@ -7747,6 +7771,10 @@ Redis (REmote DIctionary Server) ：用 C 语言开发的一个开源的高性�
   ```sh
   timeout seconds
   ```
+
+
+
+***
 
 
 
@@ -7948,7 +7976,7 @@ string类型的数据：
 
 存储内容：通常使用字符串，如果字符串以整数的形式展示，可以作为数字操作使用
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/Redis存储空间-string.png" style="zoom:50%;" />
+<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-string结构图.png" style="zoom:50%;" />
 
 
 
@@ -8354,7 +8382,7 @@ set类型：与hash存储结构完全相同，仅存储键不存储值（nil）�
 
 sorted_set类型：在set的存储结构基础上添加可排序字段，类似于 TreeSet
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-sorted_set结构图.png" style="zoom: 80%;" />
+<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-sorted_set结构图.png" style="zoom: 67%;" />
 
 
 
@@ -8555,15 +8583,13 @@ public JedisPool(GenericObjectPoolConfig poolConfig, String host, int port) {
 
 Redis Desktop Manager
 
-![](https://gitee.com/seazean/images/raw/master/DB/Redis可视化工具.png)
+<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-可视化工具.png" style="zoom:80%;" />
 
 
 
 
 
 ****
-
-
 
 
 
@@ -8576,7 +8602,7 @@ Redis Desktop Manager
 作用：持久化用于防止数据的意外丢失，确保数据安全性
 
 计算机中的数据全部都是二进制，保存一组数据有两种方式
-<img src="https://gitee.com/seazean/images/raw/master/DB/持久化的两种方式.png" style="zoom:50%;" />
+<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-持久化的两种方式.png" style="zoom: 33%;" />
 
 第一种：将当前数据状态进行保存，快照形式，存储数据结果，存储格式简单
 
@@ -8592,24 +8618,21 @@ Redis Desktop Manager
 
 #### save
 
-指令：save
+save指令：手动执行一次保存操作
 
 配置redis.conf：
 
 ```sh
 dir path				#设置存储.rdb文件的路径，通常设置成存储空间较大的目录中，目录名称data
-dbfilename x.rdb		#设置本地数据库文件名，默认值为dump.rdb，通常设置为dump-端口号.rdb
-rdbcompression yes|no	#设置存储至本地数据库时是否压缩数据，默认yes，设置为no节省CPU运行时间，
-						#但存储文件变大
+dbfilename "x.rdb"		#设置本地数据库文件名，默认值为dump.rdb，通常设置为dump-端口号.rdb
+rdbcompression yes|no	#设置存储至本地数据库时是否压缩数据，默认yes，设置为no节省CPU运行时间
 rdbchecksum yes|no		#设置读写文件过程是否进行RDB格式校验，默认yes，设置为no，节约读写10%时间
-						#消耗，单存在数据损坏的风险
+						#消耗，但存在数据损坏的风险
 ```
 
-save指令工作原理：
+工作原理：redis 是个单线程的工作模式，会创建一个任务队列，所有的命令都会进到这个队列排队执行。当某个指令在执行的时候，队列后面的指令都要等待，所以这种执行方式会非常耗时。
 
-![](https://gitee.com/seazean/images/raw/master/DB/save指令工作原理.png)
-
-redis是个单线程的工作模式，它会创建一个任务队列，所有的命令都会进到这个队列，排队执行。当某个指令在执行的时候，队列后面的指令都要等待，所以这种执行方式会非常耗时。当cpu执行的时候会阻塞redis服务器，直到它执行完毕。
+save 指令的执行会阻塞当前 Redis 服务器，直到当前 RDB 过程完成为止，有可能会造成长时间阻塞，线上环境不建议使用
 
 
 
@@ -8633,11 +8656,13 @@ rdbchecksum yes|no
 
 bgsave指令工作原理：
 
-![](https://gitee.com/seazean/images/raw/master/DB/bgsave指令工作原理.png)
+![](https://gitee.com/seazean/images/raw/master/DB/Redis-bgsave工作原理.png)
 
-流程：当执行bgsave的时候，客户端发出bgsave指令给到redis服务器。这时服务器返回信息告诉客户端后台已经开始执行指令，与此同时它使用Linux的fork函数创建一个子进程，让这个子进程去执行save相关的操作
+流程：当执行 bgsave 的时候，客户端发出 bgsave 指令给到 redis 服务器，服务器返回后台已经开始执行的信息给客户端，同时使用 fork函数 创建一个子进程，让这个子进程去执行save相关的操作，创建RDB文件保存起来，操作完以后把结果返回。
 
-子进程开始执行之后，就会创建RDB文件保存起来，操作完以后把结果返回。本质上bgsave的过程分成两个过程，第一个是服务端收到指令直接告诉客户端开始执行；另外一个过程是一个子进程在完成后台的保存操作，操作完以后返回消息。两个进程不相互影响。
+本质上bgsave的过程分成两个过程：第一个是服务端收到指令直接告诉客户端开始执行；另外一个过程是一个子进程在完成后台的保存操作，操作完以后返回消息，两个进程不相互影响
+
+注意：bgsave命令是针对save阻塞问题做的优化，Redis内部所有涉及到RDB操作都采用bgsave的方式，save命令可以放弃使用
 
 
 
@@ -8645,12 +8670,14 @@ bgsave指令工作原理：
 
 
 
-#### 自动RDB
+#### 自动
 
-配置redis.conf
+配置文件自动RDB，无需显式调用相关指令，save配置启动后底层执行的是 bgsave 操作
+
+配置redis.conf：
 
 ```sh
-save second changes#设置自动持久化的条件，满足限定时间范围内key的变化数量就进行持久化(底层bgsave)
+save second changes#设置自动持久化条件，满足限定时间范围内key的变化数量就进行持久化(bgsave)
 ```
 
 参数：
@@ -8658,14 +8685,29 @@ save second changes#设置自动持久化的条件，满足限定时间范围内
 * second：监控时间范围
 * changes：监控key的变化量
 
+说明： save 配置中对于 second 与 changes 设置通常具有互补对应关系，尽量不要设置成包含性关系
+
 示例：
 
 ```sh
 save 300 10	#300s内10个key发生变化就进行持久化
 ```
 
-原理：
-![](https://gitee.com/seazean/images/raw/master/DB/RDB自动执行原理.png)
+判定 key 变化的原理：
+
+* 对数据产生了影响
+* 不进行数据比对，比如 name 键存在，重新 set name seazean 也算一次变化
+
+save配置要根据实际业务情况进行设置，频度过高或过低都会出现性能问题，结果可能是灾难性的
+
+RDB三种启动方式对比：
+
+| 方式           | save指令 | bgsave指令 |
+| -------------- | -------- | ---------- |
+| 读写           | 同步     | 异步       |
+| 阻塞客户端指令 | 是       | 否         |
+| 额外内存消耗   | 否       | 是         |
+| 启动新进程     | 否       | 是         |
 
 
 
@@ -8673,16 +8715,7 @@ save 300 10	#300s内10个key发生变化就进行持久化
 
 
 
-#### 方式对比
-
-* RDB三种启动方式对比
-
-  | 方式           | save指令 | bgsave指令 |
-  | -------------- | -------- | ---------- |
-  | 读写           | 同步     | 异步       |
-  | 阻塞客户端指令 | 是       | 否         |
-  | 额外内存消耗   | 否       | 是         |
-  | 启动新进程     | 否       | 是         |
+#### 总结
 
 * RDB特殊启动形式的指令（客户端输入）
 
@@ -8698,18 +8731,20 @@ save 300 10	#300s内10个key发生变化就进行持久化
     shutdown save
     ```
 
-  * 全量复制
+    默认情况下执行 shutdown 命令时，自动执行 bgsave（如果没有开启AOF持久化功能）
+
+  * 全量复制：主从复制部分详解
 
 * RDB优点：
-  - RDB是一个紧凑压缩的二进制文件，存储效率较高
-  - RDB内部存储的是redis在某个时间点的数据快照，非常适合用于数据备份，全量复制等场景
-  - RDB恢复数据的速度要比AOF快很多
-  - 应用：服务器中每X小时执行bgsave备份，并将RDB文件拷贝到远程机器中，用于灾难恢复
+  - RDB 是一个紧凑压缩的二进制文件，存储效率较高，但存储数据量较大时，存储效率较低
+  - RDB 内部存储的是 redis 在某个时间点的数据快照，非常适合用于数据备份，全量复制等场景
+  - RDB 恢复数据的速度要比 AOF 快很多，因为是快照，直接恢复
+  - 应用：服务器中每X小时执行 bgsave 备份，并将 RDB 文件拷贝到远程机器中，用于灾难恢复
 
 * RDB缺点：
-  - RDB方式无论是执行指令还是利用配置，无法做到实时持久化，具有较大的可能性丢失数据
-  - bgsave指令每次运行要执行fork操作创建子进程，会牺牲一些性能
-  - Redis的众多版本中未进行RDB文件格式的版本统一，有可能出现各版本服务之间数据格式无法兼容现象
+  - RDB 方式无论是执行指令还是利用配置，无法做到实时持久化，具有较大的可能性丢失数据
+  - bgsave 指令每次运行要执行 fork 操作创建子进程，会牺牲一些性能
+  - Redis 的众多版本中未进行 RDB 文件格式的版本统一，可能出现各版本之间数据格式无法兼容
 
 
 
@@ -8721,14 +8756,12 @@ save 300 10	#300s内10个key发生变化就进行持久化
 
 #### 概述
 
-**AOF**(append only file)持久化：以独立日志的方式记录每次写命令，重启时再重新执行AOF文件中命令 达到恢复数据的目的。**与RDB相比可以简单理解为由记录数据改为记录数据产生的变化**
+AOF (append only file) 持久化：以独立日志的方式记录每次写命令，重启时再重新执行AOF文件中命令达到恢复数据的目的，**与RDB相比可以简单理解为由记录数据改为记录数据的变化**
 
-AOF的主要作用是解决了数据持久化的实时性，目前已经是Redis持久化的主流方式
+AOF 的主要作用是解决了数据持久化的实时性，目前已经是 Redis 持久化的主流方式
 
-写数据过程：
-<img src="https://gitee.com/seazean/images/raw/master/DB/AOF写数据过程.png" style="zoom: 67%;" />
-
-
+AOF写数据过程：
+<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-AOF工作原理.png" style="zoom: 80%;" />
 
 
 
@@ -8736,7 +8769,7 @@ AOF的主要作用是解决了数据持久化的实时性，目前已经是Redis
 
 
 
-#### 基本配置
+#### 配置
 
 启动AOF基本配置：
 
@@ -8752,13 +8785,19 @@ appendfsync always|everysec|no	#AOF写数据策略：默认为everysec
 
 AOF写数据三种策略(appendfsync)
 
-- **always** (每次)：每次写入操作均同步到AOF文件中，**数据零误差，性能较低**，不建议使用。
+- always (每次)：每次写入操作均同步到AOF文件中，**数据零误差，性能较低**，不建议使用。
 
 
-- **everysec** (每秒)：每秒将缓冲区中的指令同步到AOF文件中，在系统突然宕机的情况下丢失1秒内的数据 数据**准确性较高，性能较高**，建议使用，也是默认配置
+- everysec (每秒)：每秒将缓冲区中的指令同步到AOF文件中，在系统突然宕机的情况下丢失1秒内的数据 数据**准确性较高，性能较高**，建议使用，也是默认配置
 
 
-- **no** (系统控制)：由操作系统控制每次同步到AOF文件的周期，整体过程**不可控**
+- no (系统控制)：由操作系统控制每次同步到AOF文件的周期，整体过程**不可控**
+
+**AOF缓冲区同步文件策略**，系统调用 write 和 fsync：
+
+* write 操作会触发延迟写（delayed write）机制，Linux 在内核提供页缓冲区用来提高硬盘IO性能，write 操作在写入系统缓冲区后直接返回
+* 同步硬盘操作依赖于系统调度机制，比如缓冲区页空间写满或达到特定时间周期。同步文件之前，如果此时系统故障宕机，缓冲区内数据将丢失
+* fsync 针对单个文件操作（比如AOF文件）做强制硬盘同步，fsync 将阻塞到写入硬盘完成后返回，保证了数据持久化
 
 
 
@@ -8766,19 +8805,19 @@ AOF写数据三种策略(appendfsync)
 
 
 
-#### AOF重写
+#### 重写
 
-##### 重写介绍
+##### 介绍
 
-场景：AOF写数据时，多条指令设置同一个key
+随着命令不断写入 AOF，文件会越来越大，为了解决这个问题 Redis 引入了 AOF 重写机制压缩文件体积
 
-AOF重写：将Redis进程内的数据转化为写命令同步到新AOF文件的过程，简单说就是将对同一个数据的若干个条命令执行结果转化成最终结果数据对应的指令进行记录
+AOF 重写：将Redis进程内的数据转化为写命令同步到**新** AOF 文件的过程，简单说就是将对同一个数据的若干个条命令执行结果转化成最终结果数据对应的指令进行记录
 
 AOF重写作用：
 
 - 降低磁盘占用量，提高磁盘利用率
 - 提高持久化效率，降低持久化写时间，提高IO性能
-- 降低数据恢复用时，提高数据恢复效率
+- 降低数据恢复的用时，提高数据恢复效率
 
 AOF重写规则：
 
@@ -8787,19 +8826,21 @@ AOF重写规则：
 
 - 非写入类的无效指令将被忽略，只保留最终数据的写入命令
 
-  如del key1、 hdel key2、srem key3、set key4 111、set key4 222等
-
-  如select指令虽然不更改数据，但是更改了数据的存储位置，此类命令同样需要记录
+  如del key1、 hdel key2、srem key3、set key4 111、set key4 222等，select 指令虽然不更改数据，但是更改了数据的存储位置，此类命令同样需要记录
 
 - 对同一数据的多条写命令合并为一条命令
 
-  如lpushlist1 a、lpush list1 b、lpush list1 c可以转化为：lpush list1 a b c。
+  如lpushlist1 a、lpush list1 b、lpush list1 c 可以转化为：lpush list1 a b c。
 
   为防止数据量过大造成客户端缓冲区溢出，对list、set、hash、zset等类型，每条指令最多写入64个元素
 
 
 
-##### 重写方式
+***
+
+
+
+##### 方式
 
 * 手动重写
 
@@ -8809,9 +8850,7 @@ AOF重写规则：
 
   原理分析：
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/AOF手动重写原理.png)
-
-
+  ![](https://gitee.com/seazean/images/raw/master/DB/Redis-AOF手动重写原理.png)
 
 * 自动重写
 
@@ -8820,7 +8859,7 @@ AOF重写规则：
   auto-aof-rewrite-percentage percent	#触发AOF文件执行重写的增长率，当前AOF文件大小超过上一次重写的AOF文件大小的百分之多少才会重写
   ```
 
-  自动重写触发比对参数（ 运行指令info Persistence获取具体信息 ）：
+  自动重写触发比对参数（ 运行指令 `info Persistence` 获取具体信息 ）：
 
   ```sh
   aof_current_size	#AOF文件当前尺寸大小（单位:字节）
@@ -8840,13 +8879,15 @@ AOF重写规则：
 
 
 
-#### 工作流程
+#### 流程
 
-![](https://gitee.com/seazean/images/raw/master/DB/AOF重写流程1.png)
+持久化流程：
 
-![](https://gitee.com/seazean/images/raw/master/DB/AOF重写流程2.png)
+![](https://gitee.com/seazean/images/raw/master/DB/Redis-AOF重写流程1.png)
 
+重写流程：
 
+<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-AOF重写流程2.png" style="zoom:80%;" />
 
 
 
@@ -8854,34 +8895,32 @@ AOF重写规则：
 
 
 
-### RA对比
+#### 对比
 
  RDB与AOF对比：
 
 | 持久化方式   | RDB                | AOF                |
 | ------------ | ------------------ | ------------------ |
 | 占用存储空间 | 小（数据级：压缩） | 大（指令级：重写） |
-| 存储速度     | 慢                 | 快                 |
-| 恢复速度     | 快                 | 慢                 |
+| **存储速度** | 慢                 | 快                 |
+| **恢复速度** | 快                 | 慢                 |
 | 数据安全性   | 会丢失数据         | 依据策略决定       |
 | 资源消耗     | 高/重量级          | 低/轻量级          |
 | 启动优先级   | 低                 | 高                 |
 
-
-
 应用场景：
 
-- 对数据非常敏感，建议使用默认的AOF持久化方案
+- 对数据非常敏感，建议使用默认的 AOF 持久化方案
 
-  AOF持久化策略使用everysecond，每秒钟fsync一次。该策略redis仍可以保持很好的处理性能，当出现问题时，最多丢失0-1秒内的数据。
+  AOF 持久化策略使用 everysecond，每秒钟 fsync 一次，该策略 redis 仍可以保持很好的处理性能，当出现问题时，最多丢失0-1秒内的数据。
 
-  注意：AOF文件存储体积较大，恢复速度较慢
+  注意：AOF文件存储体积较大，恢复速度较慢，因为要执行每条指令
 
-- 数据呈现阶段有效性，建议使用RDB持久化方案
+- 数据呈现阶段有效性，建议使用 RDB 持久化方案
 
   数据可以良好的做到阶段内无丢失，且恢复速度较快，阶段内数据恢复通常采用RDB方案
 
-  注意：利用RDB实现紧凑的数据持久化会使Redis降的很低
+  注意：利用 RDB 实现紧凑的数据持久化会使 Redis 降的很低
 
 综合对比：
 
@@ -8893,9 +8932,149 @@ AOF重写规则：
 
 
 
+***
+
+
+
+### fork
+
+（待整理）
+
+fork函数讲解文章：https://blog.csdn.net/love_gaohz/article/details/41727415
+
+
+
 
 
 ****
+
+
+
+## 事务机制
+
+### 基本操作
+
+redis事务就是一个命令执行的队列，将一系列预定义命令包装成一个整体（一个队列）。当执行时按照添加顺序依次执行，中间不会被打断或者干扰
+
+* 开启事务
+
+  ```sh
+  multi	#设定事务的开启位置，此指令执行后，后续的所有指令均加入到事务中
+  ```
+
+* 执行事务
+
+  ```sh
+  exec	#设定事务的结束位置，同时执行事务，与multi成对出现，成对使用
+  ```
+
+  加入事务的命令暂时进入到任务队列中，并没有立即执行，只有执行 exec 命令才开始执行
+
+* 取消事务
+
+  ```sh
+  discard	#终止当前事务的定义，发生在multi之后，exec之前
+  ```
+
+  一般用于事务执行过程中输入了错误的指令，直接取消这次事务
+
+
+
+***
+
+
+
+### 工作流程
+
+事务机制整体工作流程：
+
+![](https://gitee.com/seazean/images/raw/master/DB/Redis-事务的工作流程.png)
+
+几种常见错误：
+
+* 定义事务的过程中，命令格式输入错误，出现语法错误造成，整体事务中所有命令均不会执行，包括那些语法正确的命令，事务直接消失
+
+  <img src="https://gitee.com/seazean/images/raw/master/DB/Redis-事务中出现语法错误.png" style="zoom:80%;" />
+
+* 定义事务的过程中，命令执行出现错误，例如对字符串进行 incr 操作，能够正确运行的命令会执行，运行错误的命令不会被执行
+
+  <img src="https://gitee.com/seazean/images/raw/master/DB/Redis-事务中出现执行错误.png" style="zoom:80%;" />
+
+* 已经执行完毕的命令对应的数据不会自动回滚，需要程序员在代码中实现回滚，应该尽可能避免：
+
+  事务操作之前记录数据的状态
+
+  * 单数据：string
+  * 多数据：hash、list、set、zset
+
+  设置指令恢复所有的被修改的项
+
+  * 单数据：直接set（注意周边属性，例如时效）
+  * 多数据：修改对应值或整体克隆复制
+
+
+
+***
+
+
+
+### 监控锁
+
+对 key 添加监视锁，在执行 exec 前如果其他客户端的操作导致 key 发生了变化，执行结果为 nil
+
+* 添加监控锁
+
+  ```sh
+  watch key1 [key2……]	#可以监控一个或者多个key
+  ```
+
+* 取消对所有 key 的监视
+
+  ```sh
+  unwatch
+  ```
+
+应用：基于状态控制的批量任务执行，防止其他线程对变量的修改
+
+
+
+***
+
+
+
+### 分布式锁
+
+Redis 分布式锁的基本使用
+
+* 使用 setnx 设置一个公共锁
+
+  ```sh
+  setnx lock-key value	# value任意数，返回为1设置成功，返回为0设置失败
+  ```
+
+  * 对于返回设置成功的，拥有控制权，进行下一步的具体业务操作
+  * 对于返回设置失败的，不具有控制权，排队或等待
+
+* 操作完毕通过del操作释放锁
+
+  ```sh
+  del lock-key 
+  ```
+
+* 使用 expire 为锁 key 添加存活（持有）时间，过期自动删除（放弃）锁
+
+  ```sh
+  expire lock-key second 
+  pexpire lock-key milliseconds
+  ```
+
+应用：解决抢购时出现超卖现象
+
+
+
+
+
+***
 
 
 
@@ -8907,15 +9086,15 @@ Redis是一种内存级数据库，所有数据均存放在内存中，内存中
 
 TTL返回的值有三种情况：正数，-1，-2
 
-- **正数**：代表该数据在内存中还能存活的时间
-- **-1**：永久有效的数据
-- **2** ：已经过期的数据或被删除的数据或未定义的数据
+- 正数：代表该数据在内存中还能存活的时间
+- -1：永久有效的数据
+- 2 ：已经过期的数据或被删除的数据或未定义的数据
 
 删除策略：**删除策略就是针对已过期数据的处理策略**，已过期的数据不一定被立即删除，在不同的场景下使用不同的删除方式会有不同效果，这就是删除策略的问题
 
 过期数据是一块独立的存储空间，Hash结构，field是内存地址，value是过期时间，保存了所有key的过期描述，在最终进行过期处理的时候，对该空间的数据进行检测， 当时间到期之后通过field找到内存该地址处的数据，然后进行相关操作
 
-![](https://gitee.com/seazean/images/raw/master/DB/Redis-时效性数据的存储结构.png)
+<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-时效性数据的存储结构.png" style="zoom:67%;" />
 
 
 
@@ -8949,8 +9128,6 @@ TTL返回的值有三种情况：正数，-1，-2
 - 缺点：CPU压力很大，无论CPU此时负载量多高，均占用CPU，会影响redis服务器响应时间和指令吞吐量
 - 总结：用处理器性能换取存储空间（拿时间换空间）
 
-![](https://gitee.com/seazean/images/raw/master/DB/Redis-定时删除.png)
-
 
 
 ***
@@ -8964,6 +9141,8 @@ TTL返回的值有三种情况：正数，-1，-2
 * 如果未过期，返回数据
 * 如果已过期，删除，返回不存在
 
+在任何 get 操作之前都要执行 **expireIfNeeded()**，相当于绑定在一起
+
 特点：
 
 * 优点：节约CPU性能，发现必须删除的时候才删除
@@ -8976,36 +9155,43 @@ TTL返回的值有三种情况：正数，-1，-2
 
 
 
-#### 定期删除
+#### 定期删除 
 
 定时删除和惰性删除这两种方案都是走的极端，定期删除就是折中方案
 
+定期删除是周期性轮询 redis 库中的时效性数据，采用随机抽取的策略，利用过期数据占比的方式控制删除频度
+
 定期删除方案：
 
-- Redis启动服务器初始化时，读取配置server.hz的值，默认为10
+- Redis启动服务器初始化时，读取配置 server.hz 的值，默认为10。执行指令可以查看：info server
 
-- 每秒钟执行server.hz次**serverCron()--->databasesCron()--->activeExpireCycle()**
+- 每秒钟执行 server.hz 次 serverCron() --> databasesCron() --> activeExpireCycle() 
 
-- activeExpireCycle()对每个expires[*]逐一进行检测，每次执行耗时：250ms/server.hz
+- databasesCron()操作是轮询每个数据库
 
-- 对某个expires[*]检测时，随机挑选W个key检测
-  - 如果key超时，删除key
-  - 如果一轮中删除的key的数量>W*25%，循环该过程
-  - 如果一轮中删除的key的数量≤W*25%，检查下一个expires[]，0-15循环
-  - W取值=ACTIVE_EXPIRE_CYCLE_LOOKUPS_PER_LOOP属性值
+- activeExpireCycle() 对某个数据库中的每个 expires 进行检测，每次执行耗时：250ms/server.hz
 
-* 参数current_db用于记录activeExpireCycle() 进入哪个expires[*] 执行
-* 如果activeExpireCycle()执行时间到期，下次从current_db继续向下执行
+  对某个 expires[*] 检测时，随机挑选 W 个 key 检测
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-定期删除.png" style="zoom: 80%;" />
+  - 如果 key 超时，删除 key
+  - 如果一轮中删除的 key 的数量 > W*25%，循环该过程
+  - 如果一轮中删除的 key 的数量 ≤ W*25%，检查下一个expires[]，0-15循环
+  - W取值 = ACTIVE_EXPIRE_CYCLE_LOOKUPS_PER_LOOP 属性值，自定义值
 
-总结：定期删除就是周期性轮询redis库中的时效性数据，采用随机抽取的策略，利用过期数据占比的方式控制删除频度
+* 参数 current_db 用于记录 activeExpireCycle() 进入哪个expires[*] 执行
+* 如果 activeExpireCycle() 执行时间到期，下次从 current_db 继续向下执行
+
+<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-定期删除.png" style="zoom: 67%;" />
+
+定期删除特点：
 
 - CPU性能占用设置有峰值，检测频度可自定义设置
 - 内存压力不是很大，长期占用内存的冷数据会被持续清理
 - 周期性抽查存储空间（随机抽查，重点抽查）
 
 
+
+***
 
 
 
@@ -9027,9 +9213,9 @@ TTL返回的值有三种情况：正数，-1，-2
 
 #### 逐出算法
 
-**数据淘汰策略**：当新数据进入redis时，在执行每一个命令前，会调用**freeMemoryIfNeeded()**检测内存是否充足。如果内存不满足新加入数据的最低存储要求，redis要临时删除一些数据为当前指令清理存储空间，清理数据的策略称为**逐出算法**
+数据淘汰策略：当新数据进入redis时，在执行每一个命令前，会调用 **freeMemoryIfNeeded()** 检测内存是否充足。如果内存不满足新加入数据的最低存储要求，redis要临时删除一些数据为当前指令清理存储空间，清理数据的策略称为**逐出算法**
 
-注意：逐出数据的过程不是100%能够清理出足够的可使用的内存空间，如果不成功则反复执行。当对所有数据尝试完毕，如不能达到内存清理的要求，将出现错误信息如下：
+注意：逐出数据的过程不是 100% 能够清理出足够的可使用的内存空间，如果不成功则反复执行，当对所有数据尝试完毕，如不能达到内存清理的要求，将出现错误信息如下：
 
 ```shell
 (error) OOM command not allowed when used memory >'maxmemory'
@@ -9043,38 +9229,38 @@ TTL返回的值有三种情况：正数，-1，-2
 
 #### 策略配置
 
-影响数据淘汰的相关配置如下，配置conf文件：
+影响数据淘汰的相关配置如下，配置 conf 文件：
 
 * 最大可使用内存，即占用物理内存的比例，默认值为0，表示不限制。生产环境中根据需求设定，通常设置在50%以上
 
-  ```properties
+  ```sh
   maxmemory ?mb
   ```
 
-* 每次选取待删除数据的个数，采用随机获取数据的方式作为待检测删除数据
+* 每次选取待删除数据的个数，采用随机获取数据的方式作为待检测删除数据，防止全库扫描，导致严重的性能消耗，降低读写性能
 
-  ```properties
+  ```sh
   maxmemory-samples count
   ```
 
-* 对数据进行删除的选择策略
+* 达到最大内存后的，对被挑选出来的数据进行删除的策略
 
-  ```properties
+  ```sh
   maxmemory-policy policy
   ```
 
   数据删除的策略policy：3类8种
 
-  **第一类**：检测易失数据（可能会过期的数据集server.db[i].expires ）：
+  第一类：检测易失数据（可能会过期的数据集server.db[i].expires ）：
 
   ```sh
-  volatile-lru	#挑选最近最少使用的数据淘汰
+  volatile-lru	#挑选最近最久未使用使用的数据淘汰
   volatile-lfu	#挑选最近使用次数最少的数据淘汰
   volatile-ttl	#挑选将要过期的数据淘汰
   volatile-random	#任意选择数据淘汰
   ```
 
-  **第二类**：检测全库数据（所有数据集server.db[i].dict ）：
+  第二类：检测全库数据（所有数据集server.db[i].dict ）：
 
   ```sh
   allkeys-lru		#挑选最近最少使用的数据淘汰
@@ -9082,13 +9268,13 @@ TTL返回的值有三种情况：正数，-1，-2
   allkeys-random	#任意选择数据淘汰，相当于随机
   ```
 
-  **第三类**：放弃数据驱逐
+  第三类：放弃数据驱逐
 
   ```sh
   no-enviction	#禁止驱逐数据(redis4.0中默认策略)，会引发OOM(Out Of Memory)
   ```
 
-**数据淘汰策略配置依据**：
+数据淘汰策略配置依据：
 
  使用INFO命令输出监控信息，查询缓存 hit 和 miss 的次数，根据业务需求调优Redis配置
 
@@ -9990,7 +10176,7 @@ sentinel在通知阶段要不断的去获取master/slave的信息，然后在各
 
 1. 缓存null：对查询结果为null的数据进行缓存 (长期使用，定期清理) ，设定短时限，例如30-60秒，最高5分钟
 
-2. 白名单策略：提前预热各种分类数据id对应的bitmaps，id作为bitmaps的offset，相当于设置了数据白名单。当加载正常数据时放行，加载异常数据时直接拦截（效率偏低），使用布隆过滤器（有关布隆过滤器的命中问题对当前状况可以忽略）
+2. 白名单策略：提前预热各种分类数据id对应的**bitmaps**，id作为bitmaps的offset，相当于设置了数据白名单。当加载正常数据时放行，加载异常数据时直接拦截（效率偏低），使用布隆过滤器（有关布隆过滤器的命中问题对当前状况可以忽略）
 
 3. 实施监控：实时监控redis命中率（业务正常范围时，通常会有一个波动值）与null数据的占比
 
@@ -10002,6 +10188,10 @@ sentinel在通知阶段要不断的去获取master/slave的信息，然后在各
 4. key加密：临时启动防灾业务key，对key进行业务层传输加密服务，设定校验程序，过来的key校验；例如每天随机分配60个加密串，挑选2到3个，混淆到页面数据id中，发现访问key不满足规则，驳回数据访问
 
 **总的来说**：缓存击穿是指访问了不存在的数据，跳过了合法数据的redis数据缓存阶段，每次访问数据库，导致对数据库服务器造成压力。通常此类数据的出现量是一个较低的值，当出现此类情况以毒攻毒，并及时报警。无论是黑名单还是白名单，都是对整体系统的压力，警报解除后尽快移除
+
+https://www.bilibili.com/video/BV15y4y1r7X3
+
+
 
 
 

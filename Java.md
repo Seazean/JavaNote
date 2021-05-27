@@ -12046,116 +12046,6 @@ public class Demo1_27 {
 
 
 
-***
-
-
-
-### 对象结构
-
-#### 基本构造
-
-一个Java对象内存中存储为三部分：对象头 (Header)、实例数据 (Instance Data) 和对齐填充 (Padding)
-
-对象头：
-
-* 普通对象（32位系统，64位128位）：分为两部分
-
-  * Mark Word：用于存储对象自身的运行时数据， 如哈希码（HashCode）、GC分代年龄、锁状态标志、线程持有的锁、偏向线程ID、偏向时间戳等等，就是Mark Word
-
-    ```ruby
-    hash(25) + age(4) + lock(3) = 32bit					#32位系统
-    unused(25+1) + hash(31) + age(4) + lock(3) = 64bit	#64位系统
-    ```
-
-  * Klass Word：类型指针，对象指向它的类的元数据的指针，虚拟机通过这个指针来确定这个对象是哪个类的实例；在64位系统中，开启指针压缩(-XX:+UseCompressedOops)或者JVM堆的最大值小于32G，这个指针也是4byte，否则是8byte
-
-  ```ruby
-  |-----------------------------------------------------|
-  | 				  Object Header (64 bits) 			  |
-  |---------------------------|-------------------------|
-  | 	 Mark Word (32 bits)	|  Klass Word (32 bits)   |
-  |---------------------------|-------------------------|
-  ```
-
-* 数组对象：如果对象是一个数组，那在对象头中还有一块数据用于记录数组长度
-
-  ```ruby
-  |-------------------------------------------------------------------------------|
-  | 						  Object Header (96 bits) 							    |
-  |-----------------------|-----------------------------|-------------------------|
-  |  Mark Word(32bits)    | 	  Klass Word(32bits) 	  |   array length(32bits)  |
-  |-----------------------|-----------------------------|-------------------------|
-  ```
-
-实例数据：实例数据部分是对象真正存储的有效信息，也是在程序代码中所定义的各种类型的字段内容。无论是从父类继承下来的，还是在子类中定义的，都需要记录起来
-
-对齐填充：起占位符的作用。由于HotSpot VM的自动内存管理系统要求对象起始地址必须是8字节的整数倍，就是对象的大小必须是8字节的整数倍，而对象头部分正好是8字节的倍数（1倍或者2倍），因此当对象实例数据部分没有对齐时，就需要通过对齐填充来补全
-
-32位系统
-
-* 一个int在java中占据4byte，所以Integer的大小为：
-
-  ```ruby
-  # 需要补位4byte
-  4(Mark Word) + 4(Klass Word) + 4(data) + 4(Padding) = 16byte
-  ```
-
-* `int[] arr = new int[10]`
-
-  ```ruby
-  # 由于需要8位对齐，所以最终大小为`56byte`。
-  4(Mark Word) + 4(Klass Word) + 4(length) + 4*10(10个int大小) + 4(Padding) = 56sbyte 
-  ```
-
-
-
-***
-
-
-
-#### 节约内存
-
-* 尽量使用基本类型
-
-* 满足容量前提下，尽量用小字段
-
-* 尽量用数组，少用集合，数组中是可以使用基本类型的，但是集合中只能放包装类型，如果需要使用集合，推荐比较节约内存的集合工具：fastutil
-
-  一个ArrayList集合，如果里面放了10个数字，占用多少内存：
-
-  ```java
-  private transient Object[] elementData;
-  private int size;
-  ```
-
-  Mark Word 占4byte，Klass Word 占4byte，一个int字段(size)占 4byte，elementData 数组本身占 12(4+4+4)，数组中10个Integer对象占 10×16，所以整个集合空间大小为 184byte
-
-* 时间用long/int表示，不用Date或者String
-
-
-
-***
-
-
-
-#### 对象访问
-
-JVM是通过栈帧中的对象引用访问到其内部的对象实例：（内部结构查看类加载部分）
-
-* 句柄访问
-  使用该方式，Java堆中会划分出一块内存来作为句柄池，reference中存储的就是对象的句柄地址，而句柄中包含了对象实例数据和类型数据各自的具体地址信息
-  优点：reference中存储的是稳定的句柄地址，在对象被移动（垃圾收集）时只会改变句柄中的实例数据指针，而reference本身不需要被修改。
-  
-  <img src="https://gitee.com/seazean/images/raw/master/Java/JVM-对象访问-句柄访问.png" style="zoom: 50%;" />
-  
-* 直接指针(HotSpot采用)
-  使用该方式，Java堆对象的布局必须考虑如何放置访问类型数据的相关信息，reference中直接存储的就是对象地址
-  优点：速度更快，**节省了一次指针定位的时间开销**
-  
-  <img src="https://gitee.com/seazean/images/raw/master/Java/JVM-对象访问-直接指针.png" style="zoom: 67%;" />
-
-
-
 
 
 ***
@@ -13264,7 +13154,141 @@ Serial GC、Parallel GC、Concurrent Mark Sweep GC这三个GC不同：
 
 ## 类加载
 
+### 对象结构
+
+#### 基本构造
+
+一个Java对象内存中存储为三部分：对象头 (Header)、实例数据 (Instance Data) 和对齐填充 (Padding)
+
+对象头：
+
+* 普通对象（32位系统，64位128位）：分为两部分
+
+  * Mark Word：用于存储对象自身的运行时数据， 如哈希码（HashCode）、GC分代年龄、锁状态标志、线程持有的锁、偏向线程ID、偏向时间戳等等，就是Mark Word
+
+    ```ruby
+    hash(25) + age(4) + lock(3) = 32bit					#32位系统
+    unused(25+1) + hash(31) + age(4) + lock(3) = 64bit	#64位系统
+    ```
+
+  * Klass Word：类型指针，对象指向它的类的元数据的指针，虚拟机通过这个指针来确定这个对象是哪个类的实例；在64位系统中，开启指针压缩(-XX:+UseCompressedOops)或者JVM堆的最大值小于32G，这个指针也是4byte，否则是8byte
+
+  ```ruby
+  |-----------------------------------------------------|
+  | 				  Object Header (64 bits) 			  |
+  |---------------------------|-------------------------|
+  | 	 Mark Word (32 bits)	|  Klass Word (32 bits)   |
+  |---------------------------|-------------------------|
+  ```
+
+* 数组对象：如果对象是一个数组，那在对象头中还有一块数据用于记录数组长度
+
+  ```ruby
+  |-------------------------------------------------------------------------------|
+  | 						  Object Header (96 bits) 							    |
+  |-----------------------|-----------------------------|-------------------------|
+  |  Mark Word(32bits)    | 	  Klass Word(32bits) 	  |   array length(32bits)  |
+  |-----------------------|-----------------------------|-------------------------|
+  ```
+
+实例数据：实例数据部分是对象真正存储的有效信息，也是在程序代码中所定义的各种类型的字段内容。无论是从父类继承下来的，还是在子类中定义的，都需要记录起来
+
+对齐填充：起占位符的作用。由于HotSpot VM的自动内存管理系统要求对象起始地址必须是8字节的整数倍，就是对象的大小必须是8字节的整数倍，而对象头部分正好是8字节的倍数（1倍或者2倍），因此当对象实例数据部分没有对齐时，就需要通过对齐填充来补全
+
+32位系统
+
+* 一个int在java中占据4byte，所以Integer的大小为：
+
+  ```ruby
+  # 需要补位4byte
+  4(Mark Word) + 4(Klass Word) + 4(data) + 4(Padding) = 16byte
+  ```
+
+* `int[] arr = new int[10]`
+
+  ```ruby
+  # 由于需要8位对齐，所以最终大小为`56byte`。
+  4(Mark Word) + 4(Klass Word) + 4(length) + 4*10(10个int大小) + 4(Padding) = 56sbyte 
+  ```
+
+
+
+***
+
+
+
+#### 节约内存
+
+* 尽量使用基本类型
+
+* 满足容量前提下，尽量用小字段
+
+* 尽量用数组，少用集合，数组中是可以使用基本类型的，但是集合中只能放包装类型，如果需要使用集合，推荐比较节约内存的集合工具：fastutil
+
+  一个ArrayList集合，如果里面放了10个数字，占用多少内存：
+
+  ```java
+  private transient Object[] elementData;
+  private int size;
+  ```
+
+  Mark Word 占4byte，Klass Word 占4byte，一个int字段(size)占 4byte，elementData 数组本身占 12(4+4+4)，数组中10个Integer对象占 10×16，所以整个集合空间大小为 184byte
+
+* 时间用long/int表示，不用Date或者String
+
+
+
+***
+
+
+
+#### 对象访问
+
+JVM是通过栈帧中的对象引用访问到其内部的对象实例：（内部结构查看类加载部分）
+
+* 句柄访问
+  使用该方式，Java堆中会划分出一块内存来作为句柄池，reference中存储的就是对象的句柄地址，而句柄中包含了对象实例数据和类型数据各自的具体地址信息
+  优点：reference中存储的是稳定的句柄地址，在对象被移动（垃圾收集）时只会改变句柄中的实例数据指针，而reference本身不需要被修改。
+
+  <img src="https://gitee.com/seazean/images/raw/master/Java/JVM-对象访问-句柄访问.png" style="zoom: 50%;" />
+
+* 直接指针(HotSpot采用)
+  使用该方式，Java堆对象的布局必须考虑如何放置访问类型数据的相关信息，reference中直接存储的就是对象地址
+  优点：速度更快，**节省了一次指针定位的时间开销**
+
+  <img src="https://gitee.com/seazean/images/raw/master/Java/JVM-对象访问-直接指针.png" style="zoom: 67%;" />
+
+
+
+
+
+***
+
+
+
 ### 对象创建
+
+#### 生命周期
+
+在Java中，对象的生命周期包括以下几个阶段：
+
+1.      创建阶段(Created)：
+2.      应用阶段(In Use)：对象至少被一个强引用持有着
+3.      不可见阶段(Invisible)：程序的执行已经超出了该对象的作用域，不再持有该对象的任何强引用
+4.      不可达阶段(Unreachable)：该对象不再被任何强引用所持有，包括GC Root的强引用
+5.      收集阶段(Collected)：垃圾回收器已经对该对象的内存空间重新分配做好准备，该对象如果重写了finalize()方法，则会去执行该方法
+6.      终结阶段(Finalized)：等待垃圾回收器对该对象空间进行回收，当对象执行完finalize()方法后仍然处于不可达状态时进入该阶段
+7.      对象空间重分配阶段(De-allocated)：垃圾回收器对该对象的所占用的内存空间进行回收或者再分配
+
+
+
+参考文章：https://blog.csdn.net/sodino/article/details/38387049
+
+
+
+***
+
+
 
 #### 创建时机
 
@@ -13712,7 +13736,7 @@ init指的是实例构造器，主要作用是在类实例化过程中执行，�
 * **应用程序类加载器（Application ClassLoader）**：
   * 由AppClassLoader(sun.misc.Launcher$AppClassLoader)实现，上级为 Extension
   * 负责加载环境变量classpath或系统属性 `java.class.path` 指定路径下的类库
-  * 这个类加载器是ClassLoader中的getSystemClassLoader() 方法的返回值，因此称为系统类加载器
+  * 这个类加载器是ClassLoader中的 getSystemClassLoader() 方法的返回值，因此称为系统类加载器
   * 可以直接使用这个类加载器，如果应用程序中没有自定义类加载器，这个就是程序中默认的类加载器
 * 自定义类加载器：由开发人员自定义的类加载器，上级是Application
 
@@ -16261,7 +16285,7 @@ windows：
 
 linux：
 
-* ps -fe 查看所有进程
+* ps -ef 查看所有进程
 * ps -fT -p <PID> 查看某个进程（PID）的所有线程
 * kill 杀死进程
 * top 按大写 H 切换是否显示线程
@@ -17980,7 +18004,7 @@ Linux查看CPU缓存行：cat /sys/devices/system/cpu/cpu0/cache/index0/coherenc
 
 解决方法：各个处理器访问缓存时都遵循一些协议，在读写时要根据协议进行操作，协议主要有MSI、MESI等
 
-* MESI：当写数据时，如果发现操作的变量是共享变量，即在其它处理器中也存在该变量的副本，会发出信号通知其它处理器将该内存变量的缓存行设置为无效，因此当其它处理器读取这个变量，发现该变量是无效的，那么就会从内存中重新读取
+* MESI：缓存一致性协议，当写数据时，如果发现操作的变量是共享变量，即在其它处理器中也存在该变量的副本，会发出信号通知其它处理器将该内存变量的缓存行设置为无效，因此当其它处理器读取这个变量，发现该变量是无效的，那么就会从内存中重新读取
 * 总线嗅探：每个处理器通过嗅探在总线上传播的数据来检查自己缓存值是否过期了，当处理器发现自己的缓存对应的内存地址被修改，就将当前处理器的缓存行设置为无效状态，当处理器对这个数据进行操作时，会重新从内存中把数据读取到处理器缓存中
 * 总线风暴：由于Volatile的MESI缓存一致性协议，需要不断的从主内存嗅探和CAS循环，无效的交互会导致总线带宽达到峰值；因此不要大量使用volatile关键字，至于什么时候使用volatile、syschonized都是需要根据实际场景
 
@@ -19294,7 +19318,9 @@ Servlet 为了保证其线程安全，一般不为 Servlet 设置成员变量，
 
 #### 基本介绍
 
-ThreadLocal类用来提供线程内部的局部变量，这种变量在多线程环境下访问（通过get和set方法访问）时能保证各个线程的变量相对独立于其他线程内的变量，ThreadLocal实例通常来说都是private static类型的，用于关联线程和线程上下文
+ThreadLocal类用来提供线程内部的局部变量，这种变量在多线程环境下访问（通过get和set方法访问）时能保证各个线程的变量相对独立于其他线程内的变量
+
+ThreadLocal实例通常来说都是`private static`类型的，属于一个线程的本地变量，用于关联线程和线程上下文。每个线程都会在 ThreadLocal 中保存一份该线程独有的数据，所以是线程安全的
 
 ThreadLocal 作用：
 
@@ -19373,7 +19399,12 @@ public class MyDemo {
 
 ##### 应用场景
 
-解决事务问题，ThreadLocal方案有两个突出的优势： 
+ThreadLocal 适用于如下两种场景
+
+- 每个线程需要有自己单独的实例
+- 实例需要在多个方法中共享，但不希望被多线程共享
+
+**事务管理**，ThreadLocal方案有两个突出的优势： 
 
 1. 传递数据：保存每个线程绑定的数据，在需要的地方可以直接获取，避免参数直接传递带来的代码耦合问题
 
@@ -19622,7 +19653,7 @@ static class Entry extends WeakReference<ThreadLocal<?>> {
   }
   ```
 
-  这里定义了一个AtomicInteger，每次获取当前值并加上HASH_INCREMENT，这个值跟斐波那契数列（黄金分割数）有关，这样做可以尽量避免hash冲突，让哈希码能均匀的分布在2的n次方的数组里
+  ThreadLocal 的散列方式称之为 **斐波那契散列**。这里定义了一个AtomicInteger，每次获取当前值并加上HASH_INCREMENT，这个值跟斐波那契数列（黄金分割数）有关，这样做可以尽量避免hash冲突，让哈希码能均匀的分布在2的n次方的数组里
 
 * set()
 
@@ -19666,16 +19697,38 @@ static class Entry extends WeakReference<ThreadLocal<?>> {
       return ((i + 1 < len) ? i + 1 : 0);
   }
   
-  // 扩容阈值时长度的2/3
+  ```
+  
+  ThreadLocalMap使用**线性探测法**来解决哈希冲突：
+  
+  * 该方法一次探测下一个地址，直到有空的地址后插入，若整个空间都找不到空余的地址，则产生溢出
+* 在探测过程中 ThreadLocal 会释放 key 为 NULL，value 不为 NULL 的脏 Entry对象，防止内存泄漏
+  * 假设当前table长度为16，计算出来key的hash值为14，如果table[14]上已经有值，并且其key与当前key不一致，那么就发生了hash冲突，这个时候将14加1得到15，取table[15]进行判断，如果还是冲突会回到0，取table[0]，以此类推，直到可以插入，可以把Entry[]  table看成一个**环形数组**
+
+* 扩容：
+
+  rehash 会触发一次全量清理，如果数组长度大于等于长度的(2/3 * 3/4 = 1/2)，则进行 resize
+
+  ```java
+  // rehash 条件
   private void setThreshold(int len) {
-      threshold = len * 2 / 3;
+    threshold = len * 2 / 3;
+  }
+  // 扩容条件
+  private void rehash() {
+    expungeStaleEntries();
+    if (size >= threshold - threshold / 4)
+      resize();
   }
   ```
 
-  ThreadLocalMap使用**线性探测法**来解决哈希冲突：
+  Entry 数组为扩容为 原来的2倍 ，重新计算 key 的散列值，如果遇到 key 为 NULL 的情况，会将其 value 也置为 NULL，帮助虚拟机进行GC
 
-  * 该方法一次探测下一个地址，直到有空的地址后插入，若整个空间都找不到空余的地址，则产生溢出
-  * 假设当前table长度为16，计算出来key的hash值为14，如果table[14]上已经有值，并且其key与当前key不一致，那么就发生了hash冲突，这个时候将14加1得到15，取table[15]进行判断，如果还是冲突会回到0，取table[0]，以此类推，直到可以插入，可以把Entry[]  table看成一个**环形数组**
+  ```java
+  // 具体的扩容函数
+  private void resize() {
+  }
+  ```
 
 
 
@@ -19683,29 +19736,133 @@ static class Entry extends WeakReference<ThreadLocal<?>> {
 
 
 
-##### 内存泄漏
+#### 内存泄漏
 
 Memory leak：内存泄漏是指程序中动态分配的堆内存由于某种原因未释放或无法释放，造成系统内存的浪费，导致程序运行速度减慢甚至系统崩溃等严重后果，内存泄漏的堆积终将导致内存溢出
 
 *  如果key使用强引用：
 
-  使用完ThreadLocal ，threadLocal Ref被回收，但是因为threadLocalMap的Entry强引用了threadLocal，造成threadLocal无法被回收，无法完全避免内存泄漏
+  使用完 ThreadLocal ，threadLocal Ref 被回收，但是 threadLocalMap 的 Entry 强引用了 threadLocal，造成 threadLocal 无法被回收，无法完全避免内存泄漏
 
   <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-ThreadLocal内存泄漏强引用.png" style="zoom:67%;" />
 
 * 如果key使用弱引用：
 
-  使用完ThreadLocal ，threadLocal Ref被回收，ThreadLocalMap只持有ThreadLocal的弱引用，所以threadlocal也可以被gc回收，此时Entry中的key=null。但没有手动删除这个Entry以及CurrentThread依然运行，依然存在强引用链，value不会被回收，而这块value永远不会被访问到，导致value内存泄漏
+  使用完 ThreadLocal ，threadLocal Ref 被回收，ThreadLocalMap 只持有 ThreadLocal 的弱引用，所以threadlocal 也可以被回收，此时Entry中的 key=null。但没有手动删除这个Entry或者 CurrentThread 依然运行，依然存在强引用链，value不会被回收，而这块value永远不会被访问到，导致value内存泄漏
 
   <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-ThreadLocal内存泄漏弱引用.png" style="zoom:67%;" />
 
 * 两个主要原因：
-  * 没有手动删除这个Entry
-  * CurrentThread依然运行
+  * 没有手动删除这个 Entry
+  * CurrentThread 依然运行
 
-根本原因：ThreadLocalMap是Thread的一个属性，生命周期跟Thread一样长，如果没有手动删除对应key就会导致内存泄漏
+根本原因：ThreadLocalMap 是 Thread的一个属性，生命周期跟 Thread 一样长，如果没有手动删除对应 Entry 就会导致内存泄漏
 
-使用弱引用的原因：在ThreadLocalMap中的set/getEntry方法中，会对key为null（ThreadLocal为null）进行判断，如果为null的话，那么会对Entry进行垃圾回收。所以**弱引用比强引用多一层保障**，就算不调用remove，也有机会进行GC。
+解决方法：使用完 ThreadLocal 中存储的内容后将它 **remove** 掉就可以
+
+ThreadLocal 内部解决方法：在 ThreadLocalMap 中的 set/getEntry 方法中，会对 key 进行判断，如果为null (ThreadLocal 为 null) 的话，那么会对Entry进行垃圾回收。所以**使用弱引用比强引用多一层保障**，就算不调用remove，也有机会进行GC
+
+
+
+***
+
+
+
+#### 变量传递
+
+##### 基本使用
+
+父子线程：创建子线程的线程是父线程，比如实例中的 main 线程就是父线程
+
+ThreadLocal 中存储的是线程的局部变量，如果想实现线程间局部变量传递可以使用 InheritableThreadLocal 类
+
+```java
+public static void main(String[] args) {
+    ThreadLocal<String> threadLocal = new InheritableThreadLocal<>();
+    threadLocal.set("父线程设置的值");
+
+    new Thread(() -> System.out.println("子线程输出：" + threadLocal.get())).start();
+}
+// 子线程输出：父线程设置的值
+```
+
+
+
+***
+
+
+
+##### 实现原理
+
+InheritableThreadLocal 源码：
+
+```java
+public class InheritableThreadLocal<T> extends ThreadLocal<T> {
+    protected T childValue(T parentValue) {
+        return parentValue;
+    }
+    ThreadLocalMap getMap(Thread t) {
+       return t.inheritableThreadLocals;
+    }
+    void createMap(Thread t, T firstValue) {
+        t.inheritableThreadLocals = new ThreadLocalMap(this, firstValue);
+    }
+}
+```
+
+实现父子线程间的局部变量共享需要追溯到 Thread 对象的构造方法：
+
+```java
+private void init(ThreadGroup g, Runnable target, String name,
+                  long stackSize, AccessControlContext acc,
+                  // 该参数默认是 true
+                  boolean inheritThreadLocals) {
+  // ...
+    Thread parent = currentThread();
+
+    //判断父线程（创建子线程的线程）的 inheritableThreadLocals 属性不为 NULL
+    if (inheritThreadLocals && parent.inheritableThreadLocals != null) {
+        //复制父线程的 inheritableThreadLocals 属性，实现父子线程局部变量共享
+        this.inheritableThreadLocals =
+            ThreadLocal.createInheritedMap(parent.inheritableThreadLocals); 
+    }
+    // ..
+}
+static ThreadLocalMap createInheritedMap(ThreadLocalMap parentMap) {
+    return new ThreadLocalMap(parentMap);
+}
+```
+
+```java
+private ThreadLocalMap(ThreadLocalMap parentMap) {
+    Entry[] parentTable = parentMap.table;
+    int len = parentTable.length;
+    setThreshold(len);
+    table = new Entry[len];
+	// 逐个复制父线程 ThreadLocalMap 中的数据
+    for (int j = 0; j < len; j++) {
+        Entry e = parentTable[j];
+        if (e != null) {
+            @SuppressWarnings("unchecked")
+            ThreadLocal<Object> key = (ThreadLocal<Object>) e.get();
+            if (key != null) {
+                // 调用的是 InheritableThreadLocal#childValue(T parentValue)
+                Object value = key.childValue(e.value);
+                Entry c = new Entry(key, value);
+                int h = key.threadLocalHashCode & (len - 1);
+                while (table[h] != null)
+                    h = nextIndex(h, len);
+                table[h] = c;
+                size++;
+            }
+        }
+    }
+}
+```
+
+
+
+参考文章：https://blog.csdn.net/feichitianxia/article/details/110495764
 
 
 
