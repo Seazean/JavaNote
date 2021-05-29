@@ -2294,7 +2294,7 @@ MySQL中还存在 binlog(二进制日志) 也可以记录写操作并用于数�
 
 #### MVCC
 
-MVCC 全称 Multi-Version Concurrency Control，即多版本并发控制，是一种用来解决读写冲突的无锁并发控制
+MVCC 全称 Multi-Version Concurrency Control，即多版本并发控制，用来解决**读写冲突**的无锁并发控制
 
 MVCC 处理读写请求，可以做到在发生读写请求冲突时不用加锁，这个读是指的快照读，而不是当前读
 
@@ -3773,8 +3773,6 @@ InnoDB中，聚簇索引是按照每张表的主键构造一颗B+树，同时叶
 
 
 
-
-
 ***
 
 
@@ -3810,7 +3808,7 @@ InnoDB 表是基于聚簇索引建立的，因此 InnoDB 的索引能提供一�
 MyISAM 的主键索引使用的是非聚簇索引，索引文件和数据文件是分离的，索引文件仅保存数据记录的**地址**
 
 * 主键索引B+树的节点存储了主键，辅助键索引B+树存储了辅助键，表数据存储在独立的地方，这两颗B+树的叶子节点都使用一个地址指向真正的表数据，对于表数据来说，这两个键没有任何差别。
-* 由于索引树是独立的，通过辅助索引检索无需访问主键的索引树
+* 由于索引树是独立的，通过辅助索引检索无需访问主键的索引树回表查询
 
 ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-聚簇索引和辅助索引检锁数据图.jpg)
 
@@ -4320,11 +4318,12 @@ EXPLAIN SELECT * FROM table_1 WHERE id = 1;
 
 MySQL执行计划的局限：
 
-* EXPLAIN不会告诉你关于触发器、存储过程的信息或用户自定义函数对查询的影响情况
-* EXPLAIN不考虑各种Cache
-* EXPLAIN不能显示MySQL在执行查询时所作的优化工作，因为执行计划在执行查询之前生成
-* 部分统计信息是估算的，并非精确值
-* EXPALIN只能解释SELECT操作，其他操作要重写为SELECT后查看执行计划
+* EXPLAIN 不会告诉显示关于触发器、存储过程的信息或用户自定义函数对查询的影响情况
+* EXPLAIN 不考虑各种Cache
+* EXPLAIN 不能显示MySQL在执行查询时所作的优化工作，因为执行计划在执行查询之前生成
+* EXPALIN 部分统计信息是估算的，并非精确值
+* EXPALIN 只能解释SELECT操作，其他操作要重写为SELECT后查看执行计划
+* 执行计划在优化器之后、执行器之前生成，然后执行器调用存储引擎检索数据
 * 执行计划可以随着底层优化器输入的更改而更改。EXPLAIN PLAN 显示的是在解释语句时数据库将如何运行SQL语句，由于执行环境和 EXPLAIN PLAN 环境的不同，此计划可能与SQL语句实际的执行计划不同
 
 环境准备：
@@ -7546,7 +7545,7 @@ Redis (REmote DIctionary Server) ：用 C 语言开发的一个开源的高性�
 特征：
 
 * 数据间没有必然的关联关系，**不存关系，只存数据**
-* 数据存储在内存，存取速度快，解决了磁盘 IO 速度慢的问题
+* 数据**存储在内存**，存取速度快，解决了磁盘 IO 速度慢的问题
 * 内部采用**单线程**机制进行工作
 * 高性能，官方测试数据，50个并发执行100000 个请求,读的速度是110000 次/s,写的速度是81000次/s
 * 多数据类型支持
@@ -7714,7 +7713,7 @@ Redis (REmote DIctionary Server) ：用 C 语言开发的一个开源的高性�
 
 #### 服务器
 
-* 设置服务器以守护进程的方式运行，开启后服务器控制台中将打印服务器运行信息（同日志内容相同）：
+* 设置服务器以守护进程的方式运行，关闭后服务器控制台中将打印服务器运行信息（同日志内容相同）：
 
   ```sh
   daemonize yes|no
@@ -7813,6 +7812,54 @@ dbfilename "dump-6379.rdb"
 
 
 ***
+
+
+
+## 结构模型
+
+Redis 基于 Reactor 模式开发了网络事件处理器，这个处理器被称为文件事件处理器（file event handler），这个文件事件处理器是单线程的，所以Redis叫做单线程的模型
+
+文件事件处理器以单线程方式运行，但是使用 I/O 多路复用程序来监听多个套接字，既实现了高性能的网络通信模型，又很好地与 Redis 服务器中其他同样以单线程方式运行的模块进行对接，保持了 Redis 单线程设计的简单性
+
+工作原理：
+
+* 文件事件处理器使用 I/O 多路复用（multiplexing）程序来同时监听多个套接字，并根据套接字目前执行的任务来为套接字关联不同的事件处理器
+
+* 当被监听的套接字准备好执行连接应答 (accept)、读取 (read)、写入 (write)、关闭 (close)等操作时，与操作相对应的文件事件就会产生，这时文件事件处理器会调用套接字之前关联好的事件处理器来处理事件
+
+Redis单线程也能高效的原因：
+
+* 纯内存操作
+
+* 核心是基于非阻塞的IO多路复用机制
+
+* 底层使用C语言实现，C 语言实现的程序距离操作系统更近，执行速度相对会更快
+
+* 单线程同时也避免了多线程的上下文频繁切换问题，预防了多线程可能产生的竞争问题
+
+Redis6.0 引入多线程主要是为了提高网络 IO 读写性能，因为这是 Redis 中的一个性能瓶颈（Redis 的瓶颈主要受限于内存和网络），Redis 的多线程只是在网络数据的读写这类耗时操作上使用了， 执行命令仍然是单线程顺序执行，因此不需要担心线程安全问题。
+
+Redis6.0 的多线程默认是禁用的，只使用主线程。如需开启需要修改 redis 配置文件 `redis.conf` ：
+
+```sh
+io-threads-do-reads yesCopy to clipboardErrorCopied
+```
+
+开启多线程后，还需要设置线程数，否则是不生效的。同样需要修改 redis 配置文件 :
+
+```sh
+io-threads 4 #官网建议4核的机器建议设置为2或3个线程，8核的建议设置为6个线程
+```
+
+
+
+参考文章：https://blog.csdn.net/xp_xpxp/article/details/100999825
+
+
+
+***
+
+
 
 
 
@@ -8449,6 +8496,269 @@ sorted_set类型：在set的存储结构基础上添加可排序字段，类似�
 
 
 
+***
+
+
+
+### Bitmaps
+
+#### 布隆过滤
+
+##### 基本介绍
+
+布隆过滤器：一种数据结构，是一个很长的二进制向量（位数组）和一系列随机映射函数（哈希函数），既然是二进制，每个空间存放的不是0就是1，但是初始默认值都是0
+
+<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-Bitmaps数据结构.png" style="zoom: 80%;" />
+
+这种数据结构是高效且性能很好的，但缺点是具有一定的错误识别率和删除难度。并且，理论情况下，添加到集合中的元素越多，误报的可能性就越大
+
+
+
+***
+
+
+
+##### 工作流程
+
+向布隆过滤器中添加一个元素key时，会通过多个hash函数得到多个哈希值，在位数组中把对应下标的值置为 1
+
+![](https://gitee.com/seazean/images/raw/master/DB/Redis-布隆过滤器添加数据.png)
+
+布隆过滤器查询一个数据，是否在二进制的集合中，查询过程如下：
+
+- 通过 K 个哈希函数计算该数据，对应计算出的 K 个hash值
+- 通过 hash 值找到对应的二进制的数组下标
+- 判断方法：如果存在一处位置的二进制数据是0，那么该数据不存在。如果都是1，该数据存在集合中
+
+布隆过滤器优缺点：
+
+* 优点：
+  * 二进制组成的数组，占用内存极少，并且插入和查询速度都足够快
+  * 去重方便：当字符串第一次存储时对应的位数组下标设置为 1，当第二次存储相同字符串时，因为对应位置已设置为 1，所以很容易知道此值已经存在
+* 缺点：
+  * 随着数据的增加，误判率会增加：添加数据是通过计算数据的hash值，不同的字符串可能哈希出来的位置相同，导致无法确定到底是哪个数据存在，**这种情况可以适当增加位数组大小或者调整哈希函数**
+  * 无法删除数据：可能存在几个数据占据相同的位置，所以删除一位会导致很多数据失效
+
+* 总结：**布隆过滤器判断某个元素存在，小概率会误判。如果判断某个元素不在，那这个元素一定不在**
+
+
+
+参考文章：https://www.cnblogs.com/ysocean/p/12594982.html
+
+
+
+***
+
+
+
+##### Guava
+
+引入 Guava 的依赖：
+
+```xml
+<dependency>
+    <groupId>com.google.guava</groupId>
+    <artifactId>guava</artifactId>
+    <version>28.0-jre</version>
+</dependency>
+```
+
+指定误判率为（0.01）：
+
+```java
+public static void main(String[] args) {
+    // 创建布隆过滤器对象
+    BloomFilter<Integer> filter = BloomFilter.create(
+        Funnels.integerFunnel(),
+        1500,
+        0.01);
+    // 判断指定元素是否存在
+    System.out.println(filter.mightContain(1));
+    System.out.println(filter.mightContain(2));
+    // 将元素添加进布隆过滤器
+    filter.put(1);
+    filter.put(2);
+    System.out.println(filter.mightContain(1));
+    System.out.println(filter.mightContain(2));
+}
+```
+
+
+
+***
+
+
+
+##### 实现布隆
+
+```java
+class MyBloomFilter {
+    //布隆过滤器容量
+    private static final int DEFAULT_SIZE = 2 << 28;
+    //bit数组，用来存放key
+    private static BitSet bitSet = new BitSet(DEFAULT_SIZE);
+    //后面hash函数会用到，用来生成不同的hash值，随意设置
+    private static final int[] ints = {1, 6, 16, 38, 58, 68};
+
+    //add方法，计算出key的hash值，并将对应下标置为true
+    public void add(Object key) {
+        Arrays.stream(ints).forEach(i -> bitSet.set(hash(key, i)));
+    }
+
+    //判断key是否存在，true不一定说明key存在，但是false一定说明不存在
+    public boolean isContain(Object key) {
+        boolean result = true;
+        for (int i : ints) {
+            //短路与，只要有一个bit位为false，则返回false
+            result = result && bitSet.get(hash(key, i));
+        }
+        return result;
+    }
+
+    //hash函数，借鉴了hashmap的扰动算法
+    private int hash(Object key, int i) {
+        int h;
+        return key == null ? 0 : (i * (DEFAULT_SIZE - 1) & ((h = key.hashCode()) ^ (h >>> 16)));
+    }
+}
+
+```
+
+
+
+***
+
+
+
+#### 基本操作
+
+指令操作：
+
+* 获取指定 key 对应偏移量上的 bit 值
+
+  ```sh
+  getbit key offset
+  ```
+
+* 设置指定 key 对应偏移量上的 bit 值，value 只能是1或0
+
+  ```sh
+  setbit key offset value
+  ```
+
+* 对指定 key 按位进行交、并、非、异或操作，并将结果保存到 destKey 中
+
+  ```sh
+  bitop option destKey key1 [key2...]
+  ```
+
+  option：and 交、or 并、not 非、xor 异或
+
+* 统计指定 key 中1的数量
+
+  ```sh
+  bitcount key [start end]
+  ```
+
+
+
+***
+
+
+
+#### 应用场景
+
+- 解决Redis缓存穿透，判断给定数据是否存在， 防止缓存穿透
+
+  <img src="https://gitee.com/seazean/images/raw/master/DB/Redis-Bitmaps应用之缓存穿透.png" style="zoom: 67%;" />
+
+- 垃圾邮件过滤，对每一个发送邮件的地址进行判断是否在布隆的黑名单中，如果在就判断为垃圾邮件
+
+- 爬虫去重，爬给定网址的时候对已经爬取过的 URL 去重
+
+- 信息状态统计
+
+
+
+***
+
+
+
+### Hyper
+
+基数是数据集去重后元素个数，HyperLogLog 是用来做基数统计的，运用了LogLog的算法
+
+```java
+{1, 3, 5, 7, 5, 7, 8} 	基数集： {1, 3, 5 ,7, 8} 	基数：5
+{1, 1, 1, 1, 1, 7, 1} 	基数集： {1,7} 				基数：2
+```
+
+相关指令：
+
+* 添加数据
+
+  ```sh
+  pfadd key element [element ...]
+  ```
+
+* 统计数据
+
+  ```sh
+  pfcount key [key ...]
+  ```
+
+* 合并数据
+
+  ```sh
+  pfmerge destkey sourcekey [sourcekey...]
+  ```
+
+应用场景：
+
+* 用于进行基数统计，不是集合不保存数据，只记录数量而不是具体数据
+* 核心是基数估算算法，最终数值存在一定误差
+* 误差范围：基数估计的结果是一个带有 0.81% 标准错误的近似值
+* 耗空间极小，每个 hyperloglog key 占用了12K的内存用于标记基数
+* pfadd 命令不是一次性分配12K内存使用，会随着基数的增加内存逐渐增大
+* Pfmerge 命令合并后占用的存储空间为12K，无论合并之前数据量多少
+
+
+
+***
+
+
+
+### GEO
+
+GeoHash是一种地址编码方法，把二维的空间经纬度数据编码成一个字符串
+
+* 添加坐标点
+
+  ```sh
+  geoadd key longitude latitude member [longitude latitude member ...]
+  georadius key longitude latitude radius m|km|ft|mi [withcoord] [withdist] [withhash] [count count]
+  ```
+
+* 获取坐标点
+
+  ```sh
+  geopos key member [member ...]
+  georadiusbymember key member radius m|km|ft|mi [withcoord] [withdist] [withhash] [count count]
+  ```
+
+* 计算距离
+
+  ```sh
+  geodist key member1 member2 [unit]	#计算坐标点距离
+  geohash key member [member ...]		#计算经纬度
+  ```
+
+redis 应用于地理位置计算
+
+
+
+
+
 ****
 
 
@@ -8599,7 +8909,7 @@ Redis Desktop Manager
 
 持久化：利用永久性存储介质将数据进行保存，在特定的时间将保存的数据进行恢复的工作机制称为持久化 
 
-作用：持久化用于防止数据的意外丢失，确保数据安全性
+作用：持久化用于防止数据的意外丢失，确保数据安全性，因为 Redis 是内存级，所以需要持久化到磁盘
 
 计算机中的数据全部都是二进制，保存一组数据有两种方式
 <img src="https://gitee.com/seazean/images/raw/master/DB/Redis-持久化的两种方式.png" style="zoom: 33%;" />
@@ -8938,9 +9248,139 @@ AOF重写规则：
 
 ### fork
 
-（待整理）
+#### 函数介绍
 
-fork函数讲解文章：https://blog.csdn.net/love_gaohz/article/details/41727415
+fork() 函数创建一个子进程，子进程与父进程几乎是完全相同的进程，系统先给子进程分配资源，然后把原来的进程的所有数据都复制到子进程中，只有少数值与父进程的值不同，相当于克隆了一个进程
+
+在完成对其调用之后，会产生2个进程，且每个进程都会**从fork()的返回处开始执行**，这两个进程将执行相同的程序段，但是拥有各自不同的堆段，栈段，数据段，每个子进程都可修改各自的数据段，堆段，和栈段
+
+```c
+#include<unistd.h>
+pid_t fork(void);
+// 父进程返回子进程的pid，子进程返回0，错误返回负值
+```
+
+fork 调用一次，却能够**返回两次**，可能有三种不同的返回值：
+
+* 在父进程中，fork返回新创建子进程的进程ID
+* 在子进程中，fork返回0
+* 如果出现错误，fork返回一个负值，错误原因：
+  * 当前的进程数已经达到了系统规定的上限，这时errno的值被设置为EAGAIN
+  * 系统内存不足，这时errno的值被设置为ENOMEM
+
+fpid 的值在父子进程中不同：进程形成了链表，父进程的 fpid 指向子进程的进程 id，因为子进程没有子进程，所以其 fpid 为0
+
+创建新进程成功后，系统中出现两个基本完全相同的进程，这两个进程执行没有固定的先后顺序，哪个进程先执行要看系统的进程调度策略
+
+每个进程都有一个独特（互不相同）的进程标识符 process ID，可以通过 getpid() 函数获得；还有一个记录父进程 pid 的变量，可以通过 getppid() 函数获得变量的值
+
+
+
+***
+
+
+
+#### 函数使用
+
+基本使用：
+
+```c
+#include <unistd.h>  
+#include <stdio.h>   
+int main ()   
+{   
+    pid_t fpid; // fpid表示fork函数返回的值  
+    int count=0;  
+    fpid=fork();   
+    if (fpid < 0)   
+        printf("error in fork!");   
+    else if (fpid == 0) {  
+        printf("i am the child process, my process id is %d/n", getpid());    
+        count++;  
+    }  
+    else {  
+        printf("i am the parent process, my process id is %d/n", getpid());   
+        count++;  
+    }  
+    printf("count: %d/n",count);// 1  
+    return 0;  
+}  
+/*输出内容：
+    i am the child process, my process id is 5574
+    count: 1
+    i am the parent process, my process id is 5573
+    count: 1
+*/
+```
+
+进阶使用：
+
+```c
+#include <unistd.h>  
+#include <stdio.h>  
+int main(void)  
+{  
+   int i=0;  
+   // ppid 指当前进程的父进程pid  
+   // pid 指当前进程的pid,  
+   // fpid 指fork返回给当前进程的值，在这可以表示子进程
+   for(i=0; i<2; i++){  
+       pid_t fpid = fork();  
+       if(fpid == 0)  
+           printf("%d child  %4d %4d %4d/n",i,getppid(),getpid(),fpid);  
+       else  
+           printf("%d parent %4d %4d %4d/n",i,getppid(),getpid(),fpid);  
+   }  
+   return 0;  
+} 
+/*输出内容：
+	i        父id  id  子id
+	0 parent 2043 3224 3225
+    0 child  3224 3225    0
+    1 parent 2043 3224 3226
+    1 parent 3224 3225 3227
+    1 child     1 3227    0
+    1 child     1 3226    0 
+*/
+```
+
+<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-fork函数使用演示.png" style="zoom: 80%;" />
+
+在 p3224 和 p3225 执行完第二个循环后，main函数退出，进程死亡。所以 p3226，p3227 就没有父进程了，成为孤儿进程，所以 p3226 和 p3227 的父进程就被置为 ID 为 1的 init 进程（笔记 Tool -> Linux -> 进程管理详解）
+
+参考文章：https://blog.csdn.net/love_gaohz/article/details/41727415
+
+
+
+***
+
+
+
+#### 内存关系
+
+fork()调用之后父子进程的内存关系
+
+早期 Linux 的fork()实现时，就是全部复制，这种方法效率太低，而且造成了很大的内存浪费，现在 Linux 实现采用了两种方法来规避这种浪费：
+
+* 父子进程的代码段是相同的，所以代码段是没必要复制的，只需内核将代码段标记为只读，父子进程就共享此代码段。fork() 之后在进程创建代码段时，子进程的进程级页表项都指向和父进程相同的物理页帧
+
+  <img src="https://gitee.com/seazean/images/raw/master/DB/Redis-fork以后内存关系1.png" style="zoom: 67%;" />
+
+* 对于父进程的数据段，堆段，栈段中的各页，由于父子进程要相互独立，采用**写时复制**的技术，来最大化的提高内存以及内核的利用率
+
+  在fork之后两个进程用的是相同的物理空间（内存区），子进程的代码段、数据段、堆栈都是指向父进程的物理空间，**两者的虚拟空间不同，但其对应的物理空间是同一个**。当父子进程中有更改相应段的行为发生时，再为子进程相应的段分配物理空间，而代码段继续共享父进程的物理空间（两者的代码完全相同）；而如果两者执行的代码不同，子进程的代码段也会分配单独的物理空间。   
+
+  fork之后内核会将子进程放在队列的前面，让子进程先执行，以免父进程执行导致写时复制，而后子进程再执行，因无意义的复制而造成效率的下降
+
+  <img src="https://gitee.com/seazean/images/raw/master/DB/Redis-fork以后内存关系2.png" style="zoom:67%;" />
+
+补充知识：
+
+vfork（虚拟内存fork virtual memory fork）：调用 vfork() 父进程被挂起，子进程使用父进程的地址空间。不采用写时复制，如果子进程修改父地址空间的任何页面，这些修改过的页面对于恢复的父进程是可见的
+
+
+
+参考文章：https://blog.csdn.net/Shreck66/article/details/47039937
 
 
 
@@ -9288,7 +9728,7 @@ TTL返回的值有三种情况：正数，-1，-2
 
 ## 主从复制
 
-### 基本概述
+### 基本介绍
 
 **三高**架构：
 
@@ -9298,38 +9738,39 @@ TTL返回的值有三种情况：正数，-1，-2
 
 - 高可用：
   - 可用性：应用服务在全年宕机的时间加在一起就是全年应用服务不可用的时间
-  - 业界可用性目标**5个9，即99.999%**，即服务器年宕机时长低于315秒，约5.25分钟
+  - 业界可用性目标5个9，即99.999%，即服务器年宕机时长低于315秒，约5.25分钟
 
-**主从复制**：
+主从复制：
 
-* **概念：将master中的数据即时、有效的复制到slave中**
-* **特征**：一个master可以拥有多个slave，一个slave只对应一个master
-* **职责**：master和slave各自的职责不一样
-  * master：
-    * 写数据
-    * 执行写操作时，将出现变化的数据自动同步到slave
-    * 读数据（可忽略）
-  * slave
-    * 读数据
-    * 写数据（禁止）
+* 概念：将master中的数据即时、有效的复制到slave中
+* 特征：一个master可以拥有多个slave，一个slave只对应一个master
+* 职责：master和slave各自的职责不一样
+
+  master：
+  * **写数据**，执行写操作时，将出现变化的数据自动同步到slave
+  * 读数据（可忽略）
+
+  slave
+  * **读数据**
+  * 写数据（禁止）
 
 主从复制的作用：
 
-- 读写分离：master写、slave读，提高服务器的读写负载能力
-- 负载均衡：基于主从结构，配合读写分离，由slave分担master负载，并根据需求的变化，改变slave的数 量，通过多个从节点分担数据读取负载，大大提高Redis服务器并发量与数据吞吐量
-- 故障恢复：当master出现问题时，由slave提供服务，实现快速的故障恢复
+- 读写分离：master 写、slave 读，提高服务器的读写负载能力
+- 负载均衡：基于主从结构，配合读写分离，由slave分担master负载，并根据需求的变化，改变slave的数量，通过多个从节点分担数据读取负载，大大提高Redis服务器并发量与数据吞吐量
+- 故障恢复：当 master 出现问题时，由 slave 提供服务，实现快速的故障恢复
 - 数据冗余：实现数据热备份，是持久化之外的一种数据冗余方式
-- 高可用基石：基于主从复制，构建哨兵模式与集群，实现Redis的高可用方案
+- 高可用基石：基于主从复制，构建哨兵模式与集群，实现 Redis 的高可用方案
 
 主从复制的应用场景：
 
 * 机器故障：硬盘故障、系统崩溃，造成数据丢失，对业务形成灾难性打击，基本上会放弃使用redis
 
-* 容量瓶颈：内存不足，放弃使用redis
+* 容量瓶颈：内存不足，放弃使用 redis
 
-* 解决方案：为了避免单点Redis服务器故障，准备多台服务器，互相连通。将数据复制多个副本保存在不同的服务器上，连接在一起，并保证数据是同步的。即使有其中一台服务器宕机，其他服务器依然可以继续提供服务，实现Redis的高可用，同时实现数据冗余备份
+* 解决方案：为了避免单点 Redis 服务器故障，准备多台服务器，互相连通。将数据复制多个副本保存在不同的服务器上连接在一起，并保证数据是同步的。即使有其中一台服务器宕机，其他服务器依然可以继续提供服务，实现Redis的高可用，同时实现数据冗余备份
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/Redis-主从复制多台服务器连接方案.png)
+  <img src="https://gitee.com/seazean/images/raw/master/DB/Redis-主从复制多台服务器连接方案.png" style="zoom: 80%;" />
 
 
 
@@ -9337,108 +9778,130 @@ TTL返回的值有三种情况：正数，-1，-2
 
 
 
-
-
 ### 工作流程
 
-#### 建立连接
+主从复制过程大体可以分为3个阶段
 
-建立slave到master的连接，使master能够识别slave，并保存slave端口号
+* 建立连接阶段（即准备阶段）
+* 数据同步阶段
+* 命令传播阶段
+
+![](https://gitee.com/seazean/images/raw/master/DB/Redis-主从复制工作流程.png)
+
+
+
+***
+
+
+
+### 建立连接
+
+#### 建立流程
+
+建立连接阶段：建立 slave 到 master 的连接，使 master 能够识别 slave，并保存 slave 端口号
 
 流程如下：
 
-1. 设置master的地址和端口，保存master信息
-2. 建立socket连接
-3. 发送ping命令（定时器任务）
-4. 身份验证
-5. 发送slave端口信息
+1. 设置 master 的地址和端口，保存 master 信息
+2. 建立 socket 连接
+3. 发送 ping 命令（定时器任务）
+4. 身份验证（可能没有）
+5. 发送 slave 端口信息
 6. 主从连接成功
 
-当前状态：
+连接成功的状态：
 
-* slave：保存master的地址与端口
+* slave：保存 master 的地址与端口
 
-* master：保存slave的端口
+* master：保存 slave 的端口
 
-主从之间创建了连接的socket
+* 主从之间创建了连接的socket
 
 <img src="https://gitee.com/seazean/images/raw/master/DB/Redis-主从复制建立连接.png" style="zoom: 80%;" />
 
-* **master和slave互联**
+
+
+***
+
+
+
+#### 相关指令
+
+* master和slave互联
 
   方式一：客户端发送命令
 
-  ```properties
+  ```sh
   slaveof masterip masterport
   ```
 
   方式二：服务器带参启动
 
-  ```properties
+  ```sh
   redis-server --slaveof masterip masterport
   ```
 
   方式三：服务器配置（主流方式）
 
-  ```properties
+  ```sh
   slaveof masterip masterport
   ```
 
-  * slave系统信息：info指令
+  * slave 系统信息：info 指令
 
-    ```properties
+    ```sh
     master_link_down_since_seconds
     masterhost & masterport
     ```
 
-  * master系统信息：
+  * master 系统信息：
 
-    ```properties
+    ```sh
     uslave_listening_port(多个)
     ```
 
-* **主从断开连接**
+* 主从断开连接
 
-  断开slave与master的连接，slave断开连接后，不会删除已有数据，只是不再接受master发送的数据
+  断开 slave 与 master 的连接，slave 断开连接后，不会删除已有数据，只是不再接受 master 发送的数据
 
   slave客户端执行命令：
 
-  ```properties
+  ```sh
   slaveof no one	
   ```
 
-* **授权访问**
+* 授权访问
 
-  注意：master有服务端和客户端，slave也有服务端和客户端，不仅服务端之间可以发命令，客户端也可以
+  master 有服务端和客户端，slave 也有服务端和客户端，不仅服务端之间可以发命令，客户端也可以
 
-  master客户端发送命令设置密码
+  master 客户端发送命令设置密码：
 
-  ```properties
+  ```sh
   requirepass password
   ```
 
-  master配置文件设置密码
+  master 配置文件设置密码：
 
-  ```properties
+  ```sh
   config set requirepass password
   config get requirepass
   ```
 
-  slave客户端发送命令设置密码
+  slave 客户端发送命令设置密码：
 
-  ```properties
+  ```sh
   auth password
   ```
 
-  slave配置文件设置密码
+  slave 配置文件设置密码：
 
-  ```properties
+  ```sh
   masterauth password
   ```
 
-  slave启动服务器设置密码
+  slave 启动服务器设置密码：
 
-  ```properties
+  ```sh
   redis-server –a password
   ```
 
@@ -9448,12 +9911,14 @@ TTL返回的值有三种情况：正数，-1，-2
 
 
 
-#### 数据同步
+### 数据同步
+
+#### 同步流程
 
 数据同步需求：
 
-- 在slave初次连接master后，复制master中的所有数据到slave
-- 将slave的数据库状态更新成master当前的数据库状态
+- 在 slave 初次连接 master 后，复制 master 中的所有数据到 slave
+- 将 slave 的数据库状态更新成 master 当前的数据库状态
 
 同步过程如下：
 
@@ -9464,41 +9929,15 @@ TTL返回的值有三种情况：正数，-1，-2
 5. 恢复部分同步数据
 6. 数据同步工作完成
 
-当前状态：
+同步完成的状态：
 
-* slave：具有master端全部数据，包含RDB过程接收的数据
+* slave：具有 master 端全部数据，包含 RDB 过程接收的数据
 
-* master：保存slave当前数据同步的位置
+* master：保存 slave 当前数据同步的位置
 
-主从之间完成了数据克隆
+* 主从之间完成了数据克隆
 
 <img src="https://gitee.com/seazean/images/raw/master/DB/Redis-主从复制数据同步.png" style="zoom:80%;" />
-
-* **数据同步阶段master说明**
-
-  1. master数据量巨大，数据同步阶段应避开流量高峰期，避免造成master阻塞，影响业务正常执行
-
-  2. 复制缓冲区大小设定不合理，会导致数据溢出。比如进行全量复制周期太长，进行部分复制时发现数据已经存在丢失的情况，必须进行第二次全量复制，致使slave陷入死循环状态
-
-     ```properties
-     repl-backlog-size ?mb
-     ```
-
-  3. master单机内存占用主机内存的比例不应过大，建议使用50%-70%的内存，留下30%-50%的内存用于执 行bgsave命令和创建复制缓冲区
-
-* **数据同步阶段slave说明**
-
-  1. 为避免slave进行全量复制、部分复制时服务器响应阻塞或数据不同步，建议关闭此期间的对外服务
-
-     ```properties
-     slave-serve-stale-data yes|no
-     ```
-
-  2. 数据同步阶段，master发送给slave信息可以理解master是slave的一个客户端，主动向slave发送命令
-
-  3. 多个slave同时对master请求数据同步，master发送的RDB文件增多，会对带宽造成巨大冲击，如果master带宽不足，因此数据同步需要根据业务需求，适量错峰
-
-  4. slave过多时，建议调整拓扑结构，由一主多从结构变为树状结构，中间的节点既是master，也是slave。注意使用树状结构时，由于层级深度，导致深度越高的slave与最顶层master间数据同步延迟较大，数据一致性变差，应谨慎选择
 
 
 
@@ -9506,13 +9945,55 @@ TTL返回的值有三种情况：正数，-1，-2
 
 
 
-#### 命令传播
+#### 同步优化
 
-命令传播：当master数据库状态被修改后，导致主从服务器数据库状态不一致，此时需要让主从数据同步到一致的状态，同步的动作称为命令传播
+* 数据同步阶段 master 说明
 
-命令传播的过程：master将接收到的数据变更命令发送给slave，slave接收命令后执行命令
+  1. master 数据量巨大，数据同步阶段应避开流量高峰期，避免造成 master 阻塞，影响业务正常执行
 
-命令传播阶段的部分复制：命令传播阶段出现了断网现象
+  2. 复制缓冲区大小设定不合理，会导致**数据溢出**。比如进行全量复制周期太长，进行部分复制时发现数据已经存在丢失的情况，必须进行第二次全量复制，致使slave陷入死循环状态
+
+     ```sh
+     repl-backlog-size ?mb
+     ```
+
+     建议设置如下：
+
+     * 测算从 master 到 slave 的重连平均时长 second
+     * 获取 master 平均每秒产生写命令数据总量 write_size_per_second
+     * 最优复制缓冲区空间 = 2 * second * write_size_per_second
+
+  3. master单机内存占用主机内存的比例不应过大，建议使用50%-70%的内存，留下30%-50%的内存用于执 行bgsave命令和创建复制缓冲区
+
+* 数据同步阶段slave说明
+
+  1. 为避免slave进行全量复制、部分复制时服务器响应阻塞或数据不同步，建议关闭此期间的对外服务
+
+     ```sh
+     slave-serve-stale-data yes|no
+     ```
+
+  2. 数据同步阶段，master 发给 slave 信息可以理解 master是 slave 的一个客户端，主动向 slave 发送命令
+
+  3. 多个 slave 同时对 master 请求数据同步，master 发送的 RDB 文件增多，会对带宽造成巨大冲击，如果master 带宽不足，因此数据同步需要根据业务需求，适量错峰
+
+  4. slave 过多时，建议调整拓扑结构，由一主多从结构变为树状结构，中间的节点既是 master，也是slave。注意使用树状结构时，由于层级深度，导致深度越高的slave与最顶层master间数据同步延迟较大，数据一致性变差，应谨慎选择
+
+
+
+***
+
+
+
+### 命令传播
+
+#### 传播原理
+
+命令传播：当 master 数据库状态被修改后，导致主从服务器数据库状态不一致，此时需要让主从数据同步到一致的状态，同步的动作称为命令传播
+
+命令传播的过程：master 将接收到的数据变更命令发送给 slave，slave 接收命令后执行命令
+
+命令传播阶段出现了断网现象：
 
 * 网络闪断闪连：忽略
 * 短时间网络中断：部分复制
@@ -9520,55 +10001,37 @@ TTL返回的值有三种情况：正数，-1，-2
 
 部分复制的三个核心要素：服务器的运行 id（run id）、主服务器的复制积压缓冲区、主从服务器的复制偏移量
 
-* 服务器运行ID（runid）
+* 服务器运行ID（runid）：服务器运行ID是每一台服务器每次运行的身份识别码，一台服务器多次运行可以生成多个运行id，由40位字符组成，是一个随机的十六进制字符
 
-  概念：服务器运行ID是每一台服务器每次运行的身份识别码，一台服务器多次运行可以生成多个运行id
+  作用：用于在服务器间进行传输识别身份，如果想两次操作均对同一台服务器进行，必须每次操作携带对应的运行id，用于对方识别
 
-  组成：运行id由40位字符组成，是一个随机的十六进制字符
+  实现：运行id在每台服务器启动时自动生成，master 在首次连接 slave 时，将运行ID发送给 slave，slave保存此ID，通过 info Server 命令，可以查看节点的 runid
 
-  作用：运行id被用于在服务器间进行传输识别身份，如果想两次操作均对同一台服务器进行，
-  			必须每次操作携带对应的运行id，用于对方识别
+* 复制缓冲区：复制积压缓冲区，是一个先进先出（FIFO）的队列，用于存储服务器执行过的命令
 
-  实现：运行id在每台服务器启动时自动生成，master在首次连接slave时，将自己的运行ID发送给slave，
-  			slave保存此ID，通过info Server命令，可以查看节点的runid
+  作用：用于保存 master 收到的所有指令（仅影响数据变更的指令，例如 set，select）
 
-* 复制缓冲区
+  实现方式：每次传播命令，master 都会将传播的命令记录下来，并存储在复制缓冲区，复制缓冲区默认数据存储空间大小是 1M，当入队元素的数量大于队列长度时，最先入队的元素被弹出，新元素会被放入队列
 
-  概念：复制缓冲区，又名复制积压缓冲区，是一个先进先出（FIFO）的队列，用于存储服务器执行过的命令
+* 复制偏移量：一个数字，描述复制缓冲区中的指令字节位置
 
-  作用：用于保存master收到的所有指令（仅影响数据变更的指令，例如set，select）
+  - master复制偏移量：记录发送给所有slave的指令字节对应的位置（多个）
+- slave复制偏移量：记录slave接收master发送过来的指令字节对应的位置（一个）
+  
+  作用：同步信息，比对 master 与 slave 的差异，当 slave 断线后，恢复数据使用
 
-  数据来源：当master接收到主客户端的指令时，除了将指令执行，会将该指令存储到缓冲区中
+  数据来源：
 
-  实现方式：每次传播命令，master都会将传播的命令记录下来，并存储在复制缓冲区，复制缓冲区默认数据存储空间大小是**1M**，当入队元素的数量大于队列长度时，最先入队的元素被弹出，新元素会被放入队列
+  - master 端：发送一次记录一次
+- slave 端：接收一次记录一次
 
-  **组成**：
+**工作原理**：
 
-  * 偏移量
+- 通过 offset 区分不同的 slave 当前数据传播的差异
+- master 记录已发送的信息对应的 offset
+- slave 记录已接收的信息对应的 offset
 
-    概念：一个数字，描述复制缓冲区中的指令字节位置
-
-    分类：
-
-    - master复制偏移量：记录发送给所有slave的指令字节对应的位置（多个）
-    - slave复制偏移量：记录slave接收master发送过来的指令字节对应的位置（一个）
-
-    作用：同步信息，比对master与slave的差异，当slave断线后，恢复数据使用
-
-    数据来源：
-
-    - master端：发送一次记录一次
-    - slave端：接收一次记录一次
-
-  * 字节值
-
-  **工作原理**：
-
-  - 通过offset区分不同的slave当前数据传播的差异
-  - master记录已发送的信息对应的offset
-  - slave记录已接收的信息对应的offset
-
-  <img src="https://gitee.com/seazean/images/raw/master/DB/Redis-主从复制复制缓冲区原理.png" style="zoom: 67%;" />
+<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-主从复制复制缓冲区原理.png" style="zoom:67%;" />
 
 
 
@@ -9592,41 +10055,125 @@ TTL返回的值有三种情况：正数，-1，-2
 
 #### 心跳机制
 
-心跳机制：进入命令传播阶段，master与slave间需要信息交换，使用心跳机制维护，实现双方连接保持在线
+心跳机制：进入命令传播阶段，master 与 slave 间需要信息交换，使用心跳机制维护，实现双方连接保持在线
 
 master心跳任务：
 
 - 内部指令：PING
-- 周期：由repl-ping-slave-period决定，默认10秒
-- 作用：判断slave是否在线
-- 查询：INFO replication  获取slave最后一次连接时间间隔，lag项维持在0或1视为正常
+- 周期：由 `repl-ping-slave-period` 决定，默认10秒
+- 作用：判断 slave 是否在线
+- 查询：INFO replication  获取 slave 最后一次连接时间间隔，lag 项维持在0或1视为正常
 
 slave心跳任务
 
 - 内部指令：REPLCONF ACK {offset}
 - 周期：1秒
-- 作用1：汇报slave自己的复制偏移量，获取最新的数据变更指令
-- 作用2：判断master是否在线
+- 作用：汇报 slave 自己的复制偏移量，获取最新的数据变更指令；判断master是否在线
 
 心跳阶段注意事项：
 
-* 当slave多数掉线，或延迟过高时，master为保障数据稳定性，将拒绝所有信息同步
+* 当 slave 多数掉线，或延迟过高时，master 为保障数据稳定性，将拒绝所有信息同步
 
-  slave数量少于2个，或者所有slave的延迟都大于等于8秒时，强制关闭master写功能，停止数据同步
+  slave 数量少于2个，或者所有 slave 的延迟都大于等于8秒时，强制关闭 master 写功能，停止数据同步
 
-  ```properties
+  ```sh
   min-slaves-to-write 2
   min-slaves-max-lag 8
   ```
 
-* slave数量由slave发送REPLCONF ACK命令做确认
+* slave 数量由 slave 发送 REPLCONF ACK 命令做确认
 
 
-- slave延迟由slave发送REPLCONF ACK命令做确认
+- slave 延迟由 slave 发送 REPLCONF ACK 命令做确认
 
-完整的主从复制流程：
 
-![](https://gitee.com/seazean/images/raw/master/DB/Redis-主从复制完整流程.png)
+
+****
+
+
+
+### 常见问题
+
+#### 全量复制
+
+系统不断运行，master 的数据量会越来越大，一旦 master 重启，runid 将发生变化，会导致全部 slave 的全量复制操作
+
+解决方法：本机保存上次 runid，重启后恢复该值，使所有 slave 认为还是之前的 master
+
+优化方案：
+
+* master 内部创建 master_replid 变量，使用 runid 相同的策略生成，长度41位，并发送给所有 slave
+
+* 在master关闭时执行命令 `shutdown save`，进行RDB持久化，将 runid 与 offset 保存到RDB文件中
+
+  `redis-check-rdb dump.rdb` 命令可以查看该信息，保存为 repl-id 和 repl-offset
+
+* master 重启后加载 RDB 文件，恢复数据
+
+  重启后，将RDB文件中保存的repl-id与repl-offset加载到内存中
+
+  * master_repl_id = repl-id，master_repl_offset = repl-offset
+  * 通过info命令可以查看该信息
+
+
+
+***
+
+
+
+#### 网络中断
+
+master 的 CPU 占用过高或 slave 频繁断开连接
+
+* 出现的原因：
+  * slave 每1秒发送 REPLCONF ACK 命令到 master
+  * 当slave接到了慢查询时（keys * ，hgetall等），会大量占用CPU性能
+  * master每1秒调用复制定时函数replicationCron()，比对slave发现长时间没有进行响应
+
+  最终导致 master 各种资源（输出缓冲区、带宽、连接等）被严重占用
+
+* 解决方法：通过设置合理的超时时间，确认是否释放slave
+
+  ```sh
+  repl-timeout	# 该参数定义了超时时间的阈值（默认60秒），超过该值，释放slave
+  ```
+
+slave 与 master 连接断开
+
+* 出现的原因：
+  * master 发送 ping 指令频度较低
+  * master 设定超时时间较短
+  * ping 指令在网络中存在丢包
+
+* 解决方法：提高ping指令发送的频度
+
+  ```sh
+  repl-ping-slave-period	
+  ```
+
+  超时时间 repl-time 的时间至少是 ping 指令频度的5到10倍，否则 slave 很容易判定超时
+
+
+
+****
+
+
+
+#### 缓存不一致
+
+网络信息不同步，数据发送有延迟，导致多个 slave 获取相同数据不同步
+
+解决方案：
+
+* 优化主从间的网络环境，通常放置在同一个机房部署，如使用阿里云等云服务器时要注意此现象
+
+* 监控主从节点延迟（通过offset）判断，如果 slave 延迟过大，暂时屏蔽程序对该 slave 的数据访问
+
+  ```sh
+  slave-serve-stale-data yes|no
+  ```
+
+  开启后仅响应info、slaveof等少数命令（慎用，除非对数据一致性要求很高）
 
 
 
@@ -9640,22 +10187,20 @@ slave心跳任务
 
 ### 哨兵概述
 
-引入：如果redis的master宕机了，需要从slave中重新选出一个master，要实现这些功能就需要redis的哨兵
+如果 redis 的 master 宕机了，需要从 slave 中重新选出一个 master，要实现这些功能就需要 redis 的哨兵
 
-哨兵(sentinel) 是一个分布式系统，用于对主从结构中的每台服务器进行**监控**，当出现故障时通过**投票机制选择**新的master并将所有slave连接到新的master
+哨兵 (sentinel) 是一个分布式系统，用于对主从结构中的每台服务器进行**监控**，当出现故障时通过**投票机制选择**新的 master 并将所有 slave 连接到新的 master
 
-![](https://gitee.com/seazean/images/raw/master/DB/Redis-哨兵模式.png)
+<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-哨兵模式.png" style="zoom:67%;" />
 
 哨兵的作用：
 
 - 监控：监控master和slave，不断的检查master和slave是否正常运行，master存活检测、master与slave运行情况检测
 
-
-
 - 通知 (提醒)：当被监控的服务器出现问题时，向其他（哨兵间，客户端）发送通知
 
 
-- 自动故障转移：断开master与slave连接，选取一个slave作为master，将其他slave连接新的master，并告知客户端新的服务器地址
+- 自动故障转移：断开 master 与 slave 连接，选取一个 slave 作为 master，将其他 slave 连接新的 master，并告知客户端新的服务器地址
 
 注意：哨兵也是一台redis服务器，只是不提供数据相关服务，通常哨兵的数量配置为单数（投票）
 
@@ -9670,51 +10215,50 @@ slave心跳任务
 配置哨兵：
 
 * 配置一拖二的主从结构
+
 * 配置三个哨兵（配置相同，端口不同），sentinel.conf
 
-```sh
-port 26401
-dir "/redis/data"
-sentinel monitor mymaster 127.0.0.1 6401 2
-sentinel down-after-milliseconds mymaster 5000
-sentinel failover-timeout mymaster 20000
-sentinel parallel-sync mymaster 1
-sentinel deny-scripts-reconfig yes
-```
-
-配置说明：
-
-* 设置哨兵监听的主服务器信息， sentinel_number表示参与投票的哨兵数量
-
-  ```properties
-  sentinel monitor master_name master_host master_port sentinel_number
+  ```sh
+  port 26401
+  dir "/redis/data"
+  sentinel monitor mymaster 127.0.0.1 6401 2
+  sentinel down-after-milliseconds mymaster 5000
+  sentinel failover-timeout mymaster 20000
+  sentinel parallel-sync mymaster 1
+  sentinel deny-scripts-reconfig yes
   ```
 
-* 设置判定服务器宕机时长，该设置控制是否进行主从切换
+  配置说明：
 
-  ```properties
-  sentinel down-after-milliseconds master_name million_seconds
-  ```
+  * 设置哨兵监听的主服务器信息， sentinel_number 表示参与投票的哨兵数量
 
-* 设置故障切换的最大超时时间
+    ```sh
+    sentinel monitor master_name master_host master_port sentinel_number
+    ```
 
-  ```properties
-  sentinel failover-timeout master_name	million_seconds
-  ```
+  * 指定哨兵在监控Redis服务时，设置判定服务器宕机的时长，该设置控制是否进行主从切换
 
-* 设置主从切换后，同时进行数据同步的slave数量，数值越大，要求网络资源越高，数值越小，同步时间越长
+    ```sh
+    sentinel down-after-milliseconds master_name million_seconds
+    ```
 
-  ```properties
-  sentinel parallel-syncs master_name sync_slave_number
-  ```
+  * 出现故障后，故障切换的最大超时时间，超过该值，认定切换失败，默认3分钟
 
+    ```sh
+    sentinel failover-timeout master_name	million_seconds
+    ```
 
+  * 指定同时进行主从的slave数量，数值越大，要求网络资源越高，要求约小，同步时间约长
+
+    ```sh
+    sentinel parallel-syncs master_name sync_slave_number
+    ```
 
 启动哨兵：
 
 * 服务端命令（Linux命令）：
 
-  ```properties
+  ```sh
   redis-sentinel filename
   ```
 
@@ -9724,7 +10268,7 @@ sentinel deny-scripts-reconfig yes
 
 
 
-### 哨兵原理
+### 工作原理
 
 #### 三个阶段
 
@@ -9736,7 +10280,7 @@ sentinel deny-scripts-reconfig yes
 
 
 
-#### 监控
+#### 监控阶段
 
 作用：同步各个节点的状态信息
 
@@ -9764,6 +10308,10 @@ sentinel deny-scripts-reconfig yes
 
 内部的工作原理：
 
+sentinel 1首先连接 master，建立 cmd 通道，根据主节点访问从节点，连接完成
+
+sentinel 2 首先连接 master，然后通过 master 中的 sentinels 发现其他哨兵，然后寻找哨兵建立连接，同步数据
+
 <img src="https://gitee.com/seazean/images/raw/master/DB/Redis-哨兵模式监控工作原理.png" style="zoom:67%;" />
 
 
@@ -9772,9 +10320,9 @@ sentinel deny-scripts-reconfig yes
 
 
 
-#### 通知
+#### 通知阶段
 
-sentinel在通知阶段要不断的去获取master/slave的信息，然后在各个sentinel之间进行共享，具体的流程如下：
+sentinel 在通知阶段不断的去获取 master/slave 的信息，然后在各个 sentinel 之间进行共享，流程如下：
 
 ![](https://gitee.com/seazean/images/raw/master/DB/Redis-哨兵模式通知工作流程.png)
 
@@ -9790,37 +10338,31 @@ sentinel在通知阶段要不断的去获取master/slave的信息，然后在各
 
 * 检测master
 
-  sentinel1检测到master下线后会做flag:SRI_S_DOWN标志，此时master的状态是主观下线，并通知其他哨兵，其他哨兵也会尝试与master连接，如果大于 (n/2) + 1 个sentinel检测到master下线，就达成共识更改flag，此时master的状态是客观下线
+  sentinel1 检测到 master 下线后会做 flag:SRI_S_DOWN 标志，此时 master 的状态是主观下线，并通知其他哨兵，其他哨兵也会尝试与 master 连接，如果大于 (n/2) + 1 个sentinel检测到master下线，就达成共识更改flag，此时master的状态是客观下线
 
   ![](https://gitee.com/seazean/images/raw/master/DB/Redis-哨兵模式故障转移工作流程1.png)
 
-* 当sentinel认定master下线之后，此时需要决定更换master，选举某个sentinel处理事故
+* 当 sentinel 认定 master 下线之后，此时需要决定更换 master，选举某个 sentinel 处理事故
 
   在选举的时候每一个sentinel都有一票，于是每个sentinel都会发出一个指令，在内网里广播我要做话事人；比如sentinel1和sentinel4发出这个选举指令了，那么sentinel2既能接到sentinel1的也能接到sentinel4的，sentinel2会把一票投给其中一方，投给指令最先到达的sentinel；现在sentinel1就拿到了一票，按照这样的一种形式，最终会有一个选举结果，对应的选举最终得票多的，那自然就成为了处理事故的人。需要注意在这个过程中有可能会存在失败的现象，就是一轮选举完没有选取，那就会接着进行第二轮第三轮直到完成选举。
 
   ![](https://gitee.com/seazean/images/raw/master/DB/Redis-哨兵模式故障转移工作流程2.png)
 
-* 选择新的master
+选择新的master，在服务器列表中挑选备选master的原则：
 
-  在服务器列表中挑选备选master的原则：
-
-  - 不在线的OUT
-
+- 不在线的OUT
 
   - 响应慢的OUT
 
-
   - 与原master断开时间久的OUT
-
 
   - 优先原则：优先级 --> offset --> runid
 
+选出新的master之后，发送指令（ sentinel ）给其他的slave
 
-* 选出新的master之后，发送指令（ sentinel ）给其他的slave
-  * 向新的master发送slaveof no one
+* 向新的master发送slaveof no one
 
-
-  - 向其他slave发送slaveof 新masterIP端口
+  * 向其他slave发送slaveof 新masterIP端口
 
 
 
@@ -9874,11 +10416,9 @@ sentinel在通知阶段要不断的去获取master/slave的信息，然后在各
 - 一次命中，直接返回
 - 一次未命中，告知具体位置，最多两次命中
 
-设置数据：
+设置数据：系统默认存储到某一个
 
-* 系统默认存储到某一个
-
-![](https://gitee.com/seazean/images/raw/master/DB/Redis-集群查找数据.png)
+<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-集群查找数据.png" style="zoom:67%;" />
 
 
 
@@ -10035,9 +10575,84 @@ sentinel在通知阶段要不断的去获取master/slave的信息，然后在各
 
 
 
-## 企业级方案
+## 缓存方案
 
-### 缓存预热
+### 缓存模式
+
+#### 旁路缓存
+
+旁路缓存模式 Cache Aside Pattern 是平时使用比较多的一个缓存读写模式，比较适合读请求比较多的场景
+
+Cache Aside Pattern 中服务端需要同时维系 DB 和 cache，并且是以 DB 的结果为准
+
+* 写操作：先更新 DB，然后直接删除 cache
+* 读操作：从 cache 中读取数据，读取到就直接返回；读取不到就从 DB 中读取数据返回，并放到 cache 
+
+数据库和缓存的顺序问题：
+
+* 在写数据的过程中，不能先删除 cache 再更新 DB，因为会造成缓存的不一致。比如请求1先写数据A，请求2随后读数据A，当请求1删除 cache 后，请求2直接读取了 DB，此时请求1还没写入 DB
+
+* 在写数据的过程中，先更新 DB 再删除 cache 也会出现问题，但是概率很小，因为缓存的写入速度非常快
+
+旁路缓存的缺点：
+
+* 首次请求数据一定不在 cache 的问题，一般采用缓存预热的方法，将热点数据可以提前放入cache 中
+
+* 写操作比较频繁的话导致 cache 中的数据会被频繁被删除，影响缓存命中率
+
+  数据库和缓存数据强一致场景 ：更新DB的时候同样更新 cache，不过需要加一个锁来保证更新 cache 时不存在线程安全问题，这样可以增加命中率
+
+  可以短暂地允许数据库和缓存数据不一致场景 ：更新DB的时候同样更新 cache，但是给缓存加一个比较短的过期时间，这样的话就可以保证即使数据不一致影响也比较小
+
+
+
+****
+
+
+
+#### 读写穿透
+
+读写穿透模式 Read/Write Through Pattern：服务端把 cache 视为主要数据存储，从中读取数据并将数据写入其中，cache 负责将此数据读取和写入 DB，从而减轻了应用程序的职责
+
+* 写操作：先查 cache，cache 中不存在，直接更新 DB；cache 中存在则先更新 cache，然后 cache 服务更新 DB（同步更新 cache 和 DB）
+
+* 读操作：从 cache 中读取数据，读取到就直接返回 ；读取不到先从 DB 加载，写入到 cache 后返回响应
+
+  Read-Through Pattern 实际只是在 Cache-Aside Pattern 之上进行了封装。在 Cache-Aside Pattern 下，发生读请求的时候，如果 cache 中不存在对应的数据，是由客户端负责把数据写入 cache，而 Read Through Pattern 则是 cache 服务自己来写入缓存的，对客户端是透明的
+
+Read-Through Pattern 也存在首次不命中的问题，采用缓存预热解决
+
+
+
+***
+
+
+
+#### 异步缓存
+
+异步缓存写入 Write Behind Pattern 由 cache 服务来负责 cache 和 DB 的读写，对比读写穿透不同的是 Write Behind Caching 是只更新缓存，不直接更新 DB，改为异步批量的方式来更新 DB
+
+缺点：这种模式对数据一致性没有高要求，可能出现 cache 还没异步更新DB，服务就挂掉了
+
+应用：
+
+* DB 的写性能非常高，适合一些数据经常变化又对数据一致性要求不高的场景，比如浏览量、点赞量
+
+* MySQL 的 InnoDB Buffer Pool 机制用到了这种策略
+
+
+
+参考文章：https://snailclimb.gitee.io/javaguide
+
+
+
+****
+
+
+
+### 企业方案
+
+#### 缓存预热
 
 场景：宕机，服务器启动后迅速宕机
 
@@ -10053,7 +10668,7 @@ sentinel在通知阶段要不断的去获取master/slave的信息，然后在各
 
   1. 日常例行统计数据访问记录，统计访问频度较高的热点数据
 
-  2. 利用LRU数据删除策略，构建数据留存队列例如：storm与kafka配合
+  2. 利用 LRU 数据删除策略，构建数据留存队列例如：storm与kafka配合
 
 - 准备工作：
 
@@ -10069,7 +10684,7 @@ sentinel在通知阶段要不断的去获取master/slave的信息，然后在各
 
   5. 如果条件允许，使用了CDN（内容分发网络），效果会更好
 
-**总的来说**：缓存预热就是系统启动前，提前将相关的缓存数据直接加载到缓存系统。避免在用户请求的时候，先查询数据库，然后再将数据缓存的问题！用户直接查询事先被预热的缓存数据！
+总的来说：缓存预热就是系统启动前，提前将相关的缓存数据直接加载到缓存系统。避免在用户请求的时候，先查询数据库，然后再将数据缓存的问题！用户直接查询事先被预热的缓存数据！
 
 
 
@@ -10077,7 +10692,7 @@ sentinel在通知阶段要不断的去获取master/slave的信息，然后在各
 
 
 
-### 缓存雪崩
+#### 缓存雪崩
 
 场景：数据库服务器崩溃，一连串的问题会随之而来。系统平稳运行过程中，忽然数据库连接量激增，应用服务器无法及时处理请求，大量408，500错误页面出现，客户反复刷新页面获取数据，造成：数据库崩溃、应用服务器崩溃、重启应用服务器无效、Redis服务器崩溃、Redis集群崩溃、重启数据库后再次被瞬间流量放倒
 
@@ -10089,29 +10704,28 @@ sentinel在通知阶段要不断的去获取master/slave的信息，然后在各
 
   1. 更多的页面静态化处理
 
-  2. 构建多级缓存架构：Nginx缓存+redis缓存+ehcache缓存
+  2. 构建**多级缓存**架构：Nginx 缓存 + redis 缓存 + ehcache 缓存
 
-  3. 检测Mysql严重耗时业务进行优化：对数据库的瓶颈排查：例如超时查询、耗时较高事务等
+  3. 检测 Mysql 严重耗时业务进行优化：对数据库的瓶颈排查：例如超时查询、耗时较高事务等
 
-  4. 灾难预警机制：监控redis服务器性能指标，CPU占用、CPU使用率、内存容量、查询平均响应时间、线程数
+  4. 灾难预警机制：监控redis服务器性能指标，CPU占用、CPU使用率、内存容量、平均响应时间、线程数
 
   5. 限流、降级：短时间范围内牺牲一些客户体验，限制一部分请求访问，降低应用服务器压力，待业务低速运转后再逐步放开访问
 
 * 实践：
 
-  1. LRU与LFU切换
+  1. LRU 与 LFU切换
 
-  2. 数据有效期策略调整：根据业务数据有效期进行分类错峰，A类90分钟，B类80分钟，C类70分钟，过期时间使用固定时间+随机值的形式，稀释集中到期的key的数量
+  2. 数据有效期策略调整：根据业务数据有效期进行分类错峰，A类90分钟，B类80分钟，C类70分钟，过期时间使用固定时间 + 随机值的形式，稀释集中到期的key的数量
 
   3. 超热数据使用永久key
 
-  4. 定期维护 (自动+人工)：对即将过期数据做访问量分析，确认是否延时，配合访问量统计，做热点数据的延时
+  4. 定期维护：对即将过期数据做访问量分析，确认是否延时，配合访问量统计，做热点数据的延时
 
   5. 加锁：慎用
 
-* 
 
-**总的来说**：缓存雪崩就是瞬间过期数据量太大，导致对数据库服务器造成压力。如能够有效避免过期时间集中，可以有效解决雪崩现象的出现（约40%），配合其他策略一起使用，并监控服务器的运行数据，根据运行记录做快速调整。
+总的来说：缓存雪崩就是瞬间过期数据量太大，导致对数据库服务器造成压力。如能够有效避免过期时间集中，可以有效解决雪崩现象的出现（约40%），配合其他策略一起使用，并监控服务器的运行数据，根据运行记录做快速调整。
 
 
 
@@ -10119,7 +10733,7 @@ sentinel在通知阶段要不断的去获取master/slave的信息，然后在各
 
 
 
-### 缓存击穿
+#### 缓存击穿
 
 场景：系统平稳运行过程中，数据库连接量瞬间激增，Redis服务器无大量key过期，Redis内存平稳，无波动，Redis服务器CPU正常，但是数据库崩溃
 
@@ -10127,13 +10741,11 @@ sentinel在通知阶段要不断的去获取master/slave的信息，然后在各
 
 1. Redis中某个key过期，该key访问量巨大
 
-2. 多个数据请求从服务器直接压到Redis后，均未命中
+2. 多个数据请求从服务器直接压到 Redis 后，均未命中
 
 3. Redis在短时间内发起了大量对数据库中同一数据的访问
 
 简而言之两点：单个key高热数据，key过期
-
-
 
 解决方案：
 
@@ -10147,7 +10759,7 @@ sentinel在通知阶段要不断的去获取master/slave的信息，然后在各
 
 5. 加锁：分布式锁，防止被击穿，但是要注意也是性能瓶颈，慎重！
 
-**总的来说**：缓存击穿就是单个高热数据过期的瞬间，数据访问量较大，未命中redis后，发起了大量对同一数据的数据库访问，导致对数据库服务器造成压力。应对策略应该在业务数据分析与预防方面进行，配合运行监控测试与即时调整策略，毕竟单个key的过期监控难度较高，配合雪崩处理策略即可。
+总的来说：缓存击穿就是单个高热数据过期的瞬间，数据访问量较大，未命中redis后，发起了大量对同一数据的数据库访问，导致对数据库服务器造成压力。应对策略应该在业务数据分析与预防方面进行，配合运行监控测试与即时调整策略，毕竟单个key的过期监控难度较高，配合雪崩处理策略即可
 
 
 
@@ -10155,7 +10767,7 @@ sentinel在通知阶段要不断的去获取master/slave的信息，然后在各
 
 
 
-### 缓存穿透
+#### 缓存穿透
 
 场景：系统平稳运行过程中，应用服务器流量随时间增量较大，Redis服务器命中率随时间逐步降低，Redis内存平稳，内存无压力，Redis服务器CPU占用激增，数据库服务器压力激增，数据库崩溃
 
@@ -10187,9 +10799,9 @@ sentinel在通知阶段要不断的去获取master/slave的信息，然后在各
 
 4. key加密：临时启动防灾业务key，对key进行业务层传输加密服务，设定校验程序，过来的key校验；例如每天随机分配60个加密串，挑选2到3个，混淆到页面数据id中，发现访问key不满足规则，驳回数据访问
 
-**总的来说**：缓存击穿是指访问了不存在的数据，跳过了合法数据的redis数据缓存阶段，每次访问数据库，导致对数据库服务器造成压力。通常此类数据的出现量是一个较低的值，当出现此类情况以毒攻毒，并及时报警。无论是黑名单还是白名单，都是对整体系统的压力，警报解除后尽快移除
+总的来说：缓存击穿是指访问了不存在的数据，跳过了合法数据的 redis 数据缓存阶段，每次访问数据库，导致对数据库服务器造成压力。通常此类数据的出现量是一个较低的值，当出现此类情况以毒攻毒，并及时报警。无论是黑名单还是白名单，都是对整体系统的压力，警报解除后尽快移除
 
-https://www.bilibili.com/video/BV15y4y1r7X3
+参考视频：https://www.bilibili.com/video/BV15y4y1r7X3
 
 
 
@@ -10207,19 +10819,19 @@ redis中的监控指标如下：
 
   响应请求的平均时间：
 
-  ```properties
+  ```sh
   latency
   ```
 
   平均每秒处理请求总数：
 
-  ```properties
+  ```sh
   instantaneous_ops_per_sec
   ```
 
   缓存查询命中率（通过查询总次数与查询得到非nil数据总次数计算而来）：
 
-  ```properties
+  ```sh
   hit_rate(calculated)
   ```
 
@@ -10227,25 +10839,25 @@ redis中的监控指标如下：
 
   当前内存使用量：
 
-  ```properties
+  ```sh
   used_memory
   ```
 
   内存碎片率（关系到是否进行碎片整理）：
 
-  ```properties
+  ```sh
   mem_fragmentation_ratio
   ```
 
   为避免内存溢出删除的key的总数量：
 
-  ```properties
+  ```sh
   evicted_keys
   ```
 
   基于阻塞操作（BLPOP等）影响的客户端数量：
 
-  ```properties
+  ```sh
   blocked_clients
   ```
 
@@ -10253,25 +10865,25 @@ redis中的监控指标如下：
 
   当前客户端连接总数：
 
-  ```properties
+  ```sh
   connected_clients
   ```
 
   当前连接slave总数：
 
-  ```properties
+  ```sh
   connected_slaves
   ```
 
   最后一次主从信息交换距现在的秒：
 
-  ```properties
+  ```sh
   master_last_io_seconds_ago
   ```
 
   key的总数：
 
-  ```properties
+  ```sh
   keyspace
   ```
 
@@ -10279,13 +10891,13 @@ redis中的监控指标如下：
 
   当前服务器其最后一次RDB持久化的时间：
 
-  ```properties
+  ```sh
   rdb_last_save_time
   ```
 
   当前服务器最后一次RDB持久化后数据变化总量：
 
-  ```properties
+  ```sh
   rdb_changes_since_last_save
   ```
 
@@ -10293,25 +10905,21 @@ redis中的监控指标如下：
 
   被拒绝连接的客户端总数（基于达到最大连接值的因素）：
 
-  ```properties
+  ```sh
   rejected_connections
   ```
 
   key未命中的总次数：
 
-  ```properties
+  ```sh
   keyspace_misses
   ```
 
   主从断开的秒数：
 
-  ```properties
+  ```sh
   master_link_down_since_seconds
   ```
-
-
-
-
 
 要对redis的相关指标进行监控，我们可以采用一些用具：
 
@@ -10328,13 +10936,13 @@ redis中的监控指标如下：
 
   测试当前服务器的并发性能：
 
-  ```properties
+  ```sh
   redis-benchmark [-h ] [-p ] [-c ] [-n <requests]> [-k ]
   ```
 
   范例：100个连接，5000次请求对应的性能
 
-  ```properties
+  ```sh
   redis-benchmark -c 100 -n 5000
   ```
 
@@ -10344,13 +10952,13 @@ redis中的监控指标如下：
 
   monitor：启动服务器调试信息
 
-  ```properties
+  ```sh
   monitor
   ```
 
   slowlog：慢日志
 
-  ```properties
+  ```sh
   slowlog [operator]    #获取慢查询日志
   ```
 
@@ -10360,7 +10968,7 @@ redis中的监控指标如下：
 
   相关配置：
 
-  ```properties
+  ```sh
   slowlog-log-slower-than 1000 #设置慢查询的时间下线，单位：微妙
   slowlog-max-len 100	#设置慢查询命令对应的日志显示长度，单位：命令数
   ```
