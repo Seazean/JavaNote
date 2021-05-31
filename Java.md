@@ -7055,16 +7055,12 @@ public static void main(String[] args) {
 
 #### 概述
 
-File类：代表操作系统的文件对象。
-File类：是用来操作操作系统的文件对象的，删除文件，获取文件信息，创建文件（文件夹）...
-			  广义来说操作系统认为文件包含（文件和文件夹）
+File类：代表操作系统的文件对象，是用来操作操作系统的文件对象的，删除文件，获取文件信息，创建文件（文件夹），广义来说操作系统认为文件包含（文件和文件夹）
 
-File类的创建文件对象的API：
-     包：java.io.File
-     构造器：
-         	public File(String pathname):根据路径获取文件对象
-       	  public File(String parent , String child):根据父路径和文件名称获取文件对象！
-       	  public File(File parent , String child)
+File类构造器：
+	`public File(String pathname)`：根据路径获取文件对象
+	`public File(String parent , String child)`：根据父路径和文件名称获取文件对象！
+	`public File(File parent , String child)`
 
 File类创建文件对象的格式:
 
@@ -7074,9 +7070,9 @@ File类创建文件对象的格式:
     * 一般是定位某个操作系统中的某个文件对象
   * **相对路径**：不带盘符的（重点）
     * 默认是直接相对到工程目录下寻找文件的。
-    * 相对路径只能用于寻找工程下的文件，可以跨平台！
+    * 相对路径只能用于寻找工程下的文件，可以跨平台
 
-* `File f = new File("文件对象/文件夹对象");`广义来说：文件是包含文件和文件夹的
+* `File f = new File("文件对象/文件夹对象")` 广义来说：文件是包含文件和文件夹的
 
 ```java
 public class FileDemo{
@@ -7088,7 +7084,7 @@ public class FileDemo{
         //      -- c.使用分隔符API:File.separator
         //File f1 = new File("D:"+File.separator+"it"+File.separator
 		//+"图片资源"+File.separator+"beautiful.jpg");
-        File f1 = new File("D:\\itcast\\图片资源\\beautiful.jpg");
+        File f1 = new File("D:\\seazean\\图片资源\\beautiful.jpg");
         System.out.println(f1.length()); // 获取文件的大小，字节大小
 
         // 2.创建文件对象：使用相对路径
@@ -7218,7 +7214,7 @@ public class FileDemo {
 ```java
 public class FileDemo {
     public static void main(String[] args) {
-        File dir = new File("D:\\itcast");
+        File dir = new File("D:\\seazean");
         // a.获取当前目录对象下的全部一级文件名称到一个字符串数组返回。
         String[] names = dir.list();
         for (String name : names) {
@@ -7343,12 +7339,13 @@ public static void searchFiles(File dir , String fileName){
 #### 概述
 
 IO输入输出流：输入/输出流
-    Input：输入
-    Output：输出
+
+* Input：输入
+* Output：输出
 
 引入：File类只能操作文件对象本身，不能读写文件对象的内容，读写数据内容，应该使用IO流
 
-IO流是一个水流模型：IO理解成水管，把数据理解成水流。
+IO流是一个水流模型：IO理解成水管，把数据理解成水流
 
 IO流的分类：
 
@@ -7521,9 +7518,9 @@ public class CopyDemo01 {
         OutputStream os = null ;
         try{
             //（1）创建一个字节输入流管道与源文件接通。
-            is = new FileInputStream("D:\\itcast\\图片资源\\meinv.jpg");
+            is = new FileInputStream("D:\\seazean\\图片资源\\meinv.jpg");
             //（2）创建一个字节输出流与目标文件接通。
-            os = new FileOutputStream("D:\\itcast\\meimei.jpg");
+            os = new FileOutputStream("D:\\seazean\\meimei.jpg");
             //（3）创建一个字节数组作为桶
             byte buffer = new byte[1024];
             //（4）从字节输入流管道中读取数据，写出到字节输出流管道即可
@@ -7850,7 +7847,7 @@ public static void main(String[] args) throws Exception {
 public class InputStreamReaderDemo{
     public static void main(String[] args) throws Exception {
         // 1.提取GBK文件的原始字节流
-        InputStream is = new FileInputStream("D:\\itcast\\Netty.txt");
+        InputStream is = new FileInputStream("D:\\seazean\\Netty.txt");
         // 2.把原始字节输入流通过转换流，转换成 字符输入转换流InputStreamReader
         InputStreamReader isr = new InputStreamReader(is,"GBK"); 
         // 3.包装成缓冲流
@@ -8047,9 +8044,9 @@ try(
 ```java
 try(
 	/** （1）创建一个字节输入流管道与源文件接通。 */
-	InputStream is  = new FileInputStream("D:\\itcast\\图片资源\\meinv.jpg");
+	InputStream is  = new FileInputStream("D:\\seazean\\图片资源\\meinv.jpg");
 	/** （2）创建一个字节输出流与目标文件接通。*/
-	OutputStream os = new FileOutputStream("D:\\itcast\\meimei.jpg");
+	OutputStream os = new FileOutputStream("D:\\seazean\\meimei.jpg");
 	/** （5）关闭资源！是自动进行的 */
 ){
 	byte[] buffer = new byte[1024];
@@ -8892,8 +8889,8 @@ class ReaderClientRunnable implements Runnable {
 
 ##### 字节流传输
 
-客户端：本地图片:  ‪E:\itcast\图片资源\beautiful.jpg
-服务端：服务器路径：E:\itcast\图片服务器
+客户端：本地图片:  ‪E:\seazean\图片资源\beautiful.jpg
+服务端：服务器路径：E:\seazean\图片服务器
 
 UUID. randomUUID() : 方法生成随机的文件名
 
@@ -8902,8 +8899,8 @@ UUID. randomUUID() : 方法生成随机的文件名
 ```java
 //常量包
 public class Constants {
-    public static final String SRC_IMAGE = "D:\\itcast\\图片资源\\beautiful.jpg";
-    public static final String SERVER_DIR = "D:\\itcast\\图片服务器\\";
+    public static final String SRC_IMAGE = "D:\\seazean\\图片资源\\beautiful.jpg";
+    public static final String SERVER_DIR = "D:\\seazean\\图片服务器\\";
     public static final String SERVER_IP = "127.0.0.1";
     public static final int SERVER_PORT = 8888;
 
@@ -11491,17 +11488,17 @@ public class Contact {
     <contact id="1" vip="true">
         <name>潘金莲</name>
         <gender>女</gender>
-        <email>panpan@itcast.cn</email>
+        <email>panpan@seazean.cn</email>
     </contact>
     <contact id="2" vip="false">
         <name>武松</name>
         <gender>男</gender>
-        <email>wusong@itcast.cn</email>
+        <email>wusong@seazean.cn</email>
     </contact>
     <contact id="3" vip="false">
         <name>武大狼</name>
         <gender>男</gender>
-        <email>wuda@itcast.cn</email>
+        <email>wuda@seazean.cn</email>
     </contact>
 </contactList>
 ```
@@ -11574,12 +11571,12 @@ public class XPathDemo {
 <contact id="1">
     <name>潘金莲</name>
     <gender>女</gender>
-    <email>panpan@itcast.cn</email>
+    <email>panpan@seazean.cn</email>
 </contact>
 <contact id="2">
     <name>武松</name>
     <gender>男</gender>
-    <email>wusong@itcast.cn</email>
+    <email>wusong@seazean.cn</email>
     <sql id="sql4">
         <name>sql语句</name>
     </sql>
@@ -11587,7 +11584,7 @@ public class XPathDemo {
 <contact id="3">
     <name>武大狼</name>
     <gender>男</gender>
-    <email>wuda@itcast.cn</email>
+    <email>wuda@seazean.cn</email>
 </contact>
 <contact></contact>
 <name>外面的名称</name>
