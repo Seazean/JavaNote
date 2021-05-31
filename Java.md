@@ -3974,14 +3974,16 @@ public class RegexDemo {
 
 ### 基本介绍
 
-什么是集合?
-	集合是一个大小可变的容器，容器中的每个数据称为一个元素。数据==元素
-    集合特点：类型可以不确定，大小不固定；集合有很多，不同的集合特点和使用场景不同
-    数组：类型和长度一旦定义出来就都固定
+集合是一个大小可变的容器，容器中的每个数据称为一个元素
 
-集合有啥用？
-    在开发中，很多时候元素的个数是不确定的。 
-    而且经常要进行元素的增删该查操作，集合都是非常合适的。开发中集合用的更多!!
+集合特点：类型可以不确定，大小不固定；集合有很多，不同的集合特点和使用场景不同
+
+数组：类型和长度一旦定义出来就都固定
+
+作用：
+
+* 在开发中，很多时候元素的个数是不确定的
+* 而且经常要进行元素的增删该查操作，集合都是非常合适的，开发中集合用的更多
 
 
 
@@ -4027,6 +4029,10 @@ Java常见的数据结构有哪些?
 
 
 
+***
+
+
+
 #### 二叉树
 
 二叉树中，任意一个节点的度要小于等于2
@@ -4035,6 +4041,12 @@ Java常见的数据结构有哪些?
 + 度：每一个节点的子节点数量称之为度
 
 ![二叉树结构图](https://gitee.com/seazean/images/raw/master/Java/二叉树结构图.png)
+
+
+
+****
+
+
 
 #### 二叉查找树
 
@@ -4052,6 +4064,12 @@ Java常见的数据结构有哪些?
 + 一样的不存
 
 ![二叉查找树添加节点规则](https://gitee.com/seazean/images/raw/master/Java/二叉查找树添加节点规则.png)
+
+
+
+***
+
+
 
 #### 平衡二叉树
 
@@ -4091,6 +4109,10 @@ Java常见的数据结构有哪些?
   * 右左：当根节点右子树的左子树有节点插入，导致二叉树不平衡
   * 如何旋转：先在右子树对应的节点位置进行右旋，在对整体进行左旋
     ![平衡二叉树右左](https://gitee.com/seazean/images/raw/master/Java/平衡二叉树右左.png)
+
+
+
+***
 
 
 
@@ -4769,8 +4791,8 @@ public class Student implements Comparable<Student>{
 
 #### Collections
 
-java.utils.Collections：集合**工具类**，Collections并不属于集合，是用来操作集合的工具类。
-Collections有几个常用的API:
+java.utils.Collections：集合**工具类**，Collections并不属于集合，是用来操作集合的工具类
+Collections有几个常用的API：
 `public static <T> boolean addAll(Collection<? super T> c, T... e)` : 给集合对象批量添加元素
 `public static void shuffle(List<?> list)` : 打乱集合顺序。
 `public static <T> void sort(List<T> list)` : 将集合中元素按照默认规则排序。
@@ -5590,7 +5612,39 @@ LinkedHashMap是HashMap的子类
   void afterNodeInsertion(boolean evict) {}
   ```
 
-* get方法
+* put()
+
+  ```java
+  // 调用父类HashMap的put方法
+  public V put(K key, V value) {
+      return putVal(hash(key), key, value, false, true);
+  }
+  final V putVal(int hash, K key, V value, boolean onlyIfAbsent, boolean evict)
+  → afterNodeInsertion(evict);// evict为true
+  ```
+
+  afterNodeInsertion方法，当 removeEldestEntry() 方法返回 true 时会移除最近最久未使用的节点，也就是链表首部节点 first
+
+  ```java
+  void afterNodeInsertion(boolean evict) {
+      LinkedHashMap.Entry<K,V> first;
+      // evict 只有在构建 Map 的时候才为 false，这里为 true
+      if (evict && (first = head) != null && removeEldestEntry(first)) {
+          K key = first.key;
+          removeNode(hash(key), key, null, false, true);//移除头节点
+      }
+  }
+  ```
+
+  removeEldestEntry() 默认为 false，如果需要让它为 true，需要继承 LinkedHashMap 并且覆盖这个方法的实现，在实现 LRU 的缓存中特别有用，通过移除最近最久未使用的节点，从而保证缓存空间足够，并且缓存的数据都是热点数据
+
+  ```java
+  protected boolean removeEldestEntry(Map.Entry<K,V> eldest) {
+      return false;
+  }
+  ```
+
+* get()
 
   当一个节点被访问时，如果 accessOrder 为 true，则会将该节点移到链表尾部。也就是说指定为 LRU 顺序之后，在每次访问一个节点时会将这个节点移到链表尾部，那么链表首部就是最近最久未使用的节点
 
@@ -5642,32 +5696,16 @@ LinkedHashMap是HashMap的子类
   }
   ```
 
-* afterNodeInsertion方法
-  当 removeEldestEntry() 方法返回 true 时会移除最近最久未使用的节点，也就是链表首部节点 first
-
+* remove()
+  
   ```java
-  void afterNodeInsertion(boolean evict) {
-      LinkedHashMap.Entry<K,V> first;
-      // evict 只有在构建 Map 的时候才为 false，在这里为 true
-      if (evict && (first = head) != null && removeEldestEntry(first)) {
-          K key = first.key;
-          removeNode(hash(key), key, null, false, true);
-      }
-  }
+  //调用HashMap的remove方法
+  final Node<K,V> removeNode(int hash, Object key, Object value,boolean matchValue, boolean movable)
+  → afterNodeRemoval(node);
   ```
-
-  removeEldestEntry() 默认为 false，如果需要让它为 true，需要继承 LinkedHashMap 并且覆盖这个方法的实现，在实现 LRU 的缓存中特别有用，通过移除最近最久未使用的节点，从而保证缓存空间足够，并且缓存的数据都是热点数据
-
-  ```java
-  protected boolean removeEldestEntry(Map.Entry<K,V> eldest) {
-      return false;
-  }
-  ```
-
-* afterNodeRemoval方法
-
-  当HashMap删除一个键值对时调用，会把在HashMap中删除的那个键值对一并从链表中删除，保证了哈希表和链表的一致性
-
+  
+  当 HashMap 删除一个键值对时调用，会把在 HashMap 中删除的那个键值对一并从链表中删除
+  
   ```java
   void afterNodeRemoval(Node<K,V> e) {
       LinkedHashMap.Entry<K,V> p =
@@ -5711,7 +5749,7 @@ public static void main(String[] args) {
     cache.put(3, "c");
     cache.get(1);//把1放入尾部
     cache.put(4, "d");
-    System.out.println(cache.keySet());//[3, 1, 4]只能存3个
+    System.out.println(cache.keySet());//[3, 1, 4]只能存3个，移除2
 }
 
 class LRUCache<K, V> extends LinkedHashMap<K, V> {
@@ -5735,14 +5773,43 @@ class LRUCache<K, V> extends LinkedHashMap<K, V> {
 
 #### TreeMap
 
-TreeMap集合按照键是可排序不重复的键值对集合（默认升序）
-TreeMap集合和TreeSet集合都是排序不重复集合
-TreeSet集合的底层是基于TreeMap，只是键没有附属值而已
+TreeMap 实现了 SotredMap 接口，是有序不可重复的键值对集合，基于红黑树（Red-Black tree）实现，每个 key-value 都作为一个红黑树的节点。如果构造 TreeMap 没有指定比较器，则根据key执行自然排序（默认升序），如果指定了比较器则按照比较器来进行排序
+
+TreeSet 集合的底层是基于TreeMap，只是键的附属值为空对象而已
 
 TreeMap集合指定大小规则有2种方式：
 
 * 直接为对象的类实现比较器规则接口Comparable，重写比较方法（拓展方式）
 * 直接为集合设置比较器Comparator对象，重写比较方法
+
+成员属性：
+
+* Entry节点
+
+  ```java
+   static final class Entry<K,V> implements Map.Entry<K,V> {
+       K key;
+       V value;
+       Entry<K,V> left;		//左孩子节点
+       Entry<K,V> right;		//右孩子节点
+       Entry<K,V> parent;		//父节点
+       boolean color = BLACK;	//节点的颜色，在红黑树中只有两种颜色，红色和黑色
+   }
+  ```
+
+* compare()
+
+  ```java
+  //如果comparator为null，采用comparable.compartTo进行比较，否则采用指定比较器比较大小
+  final int compare(Object k1, Object k2) {
+      return comparator==null ? ((Comparable<? super K>)k1).compareTo((K)k2)
+          : comparator.compare((K)k1, (K)k2);
+  }
+  ```
+
+
+
+参考文章：https://blog.csdn.net/weixin_33991727/article/details/91518677
 
 
 
@@ -7728,7 +7795,7 @@ public static void main(String[] args) throws Exception {
 
 字符型缓冲流高效的原因：
 
-* BufferedReader：每次调用read方法，只有第一次从磁盘中读取了8192（8k）个字符，存储到该类型对象的缓冲区数组中，将其中一个返回给调用者，再次调用read方法时，就不需要访问磁盘，直接从缓冲区中拿出一个数据即可，提升了效率
+* BufferedReader：每次调用read方法，只有第一次从磁盘中读取了8192（**8k**）个字符，存储到该类型对象的缓冲区数组中，将其中一个返回给调用者，再次调用read方法时，就不需要访问磁盘，直接从缓冲区中拿出一个数据即可，提升了效率
 * BufferedWriter：每次调用write方法，不会直接将字符刷新到文件中，而是存储到字符数组中，等字符数组写满了，才一次性刷新到文件中，减少了和磁盘交互的次数，提升了效率
 
 字节型缓冲流高效的原因：
@@ -11805,9 +11872,9 @@ Return Address：存放调用该方法的PC寄存器的值
 
 JNI：Java Native Interface，通过使用 Java本地接口书写程序，可以确保代码在不同的平台上方便移植
 
-* 不需要进行GC，与虚拟机栈类似，也是线程私有的，有StackOverFlowError和OutOfMemoryError异常
+* 不需要进行GC，与虚拟机栈类似，也是线程私有的，有 StackOverFlowError 和 OutOfMemoryError 异常
 
-* 虚拟机栈执行的是java方法，在hotSpot JVM中，直接将本地方法栈和虚拟机栈合二为一
+* 虚拟机栈执行的是java方法，在HotSpot JVM中，直接将本地方法栈和虚拟机栈合二为一
 
 * 本地方法一般是由其他语言编写，并且被编译为基于本机硬件和操作系统的程序
 
@@ -12417,7 +12484,7 @@ public void localvarGC4() {
 
 ### 垃圾判断
 
-#### 垃圾收集
+#### 垃圾介绍
 
 垃圾：**如果一个或多个对象没有任何的引用指向它了，那么这个对象现在就是垃圾**
 
@@ -12751,7 +12818,7 @@ Java语言提供了对象终止（finalization）机制来允许开发人员提�
 
 算法缺点：
 
-- 主要不足是只使用了内存的一半。
+- 主要不足是**只使用了内存的一半**
 - 对于G1这种分拆成为大量region的GC，复制而不是移动，意味着GC需要维护region之间对象引用关系，不管是内存占用或者时间开销都不小
 
 现在的商业虚拟机都采用这种收集算法回收新生代，但是并不是划分为大小相等的两块，而是一块较大的 Eden 空间和两块较小的 Survivor 空间
@@ -13336,8 +13403,8 @@ JVM是通过栈帧中的对象引用访问到其内部的对象实例：（内�
 
   <img src="https://gitee.com/seazean/images/raw/master/Java/JVM-对象访问-句柄访问.png" style="zoom: 50%;" />
 
-* 直接指针(HotSpot采用)
-  使用该方式，Java堆对象的布局必须考虑如何放置访问类型数据的相关信息，reference中直接存储的就是对象地址
+* 直接指针（HotSpot采用）
+  使用该方式，Java 堆对象的布局必须考虑如何放置访问类型数据的相关信息，reference中直接存储的就是对象地址
   优点：速度更快，**节省了一次指针定位的时间开销**
 
   <img src="https://gitee.com/seazean/images/raw/master/Java/JVM-对象访问-直接指针.png" style="zoom: 67%;" />
@@ -13403,7 +13470,7 @@ Java对象创建时机：
 
 4. 使用Clone方法创建对象：用clone方法创建对象的过程中并不会调用任何构造函数，要想使用clone方法，我们就必须先实现Cloneable接口并实现其定义的clone方法
 
-5. 使用(反)序列化机制创建对象：当反序列化一个对象时，JVM会创建一个单独的对象，在此过程中，JVM并不会调用任何构造函数，为了反序列化一个对象，需要让类实现Serializable接口
+5. 使用（反）序列化机制创建对象：当反序列化一个对象时，JVM会创建一个**单独的对象**，在此过程中，JVM并不会调用任何构造函数，为了反序列化一个对象，需要让类实现Serializable接口
 
 从Java虚拟机层面看，除了使用new关键字创建对象的方式外，其他方式全部都是通过转变为invokevirtual指令直接创建对象的
 
@@ -13566,7 +13633,7 @@ Java对象创建时机：
 
 加载过程完成以下三件事：
 
-- 通过类的完全限定名称获取定义该类的二进制字节流
+- 通过类的完全限定名称获取定义该类的二进制字节流（二进制字节码）
 - 将该字节流表示的**静态存储结构转换为方法区的运行时存储结构**（运行时常量池）
 - 在内存中生成一个代表该类的 Class 对象，作为方法区中该类各种数据的访问入口
 
@@ -13809,18 +13876,18 @@ init指的是实例构造器，主要作用是在类实例化过程中执行，�
 从 Java 开发人员的角度看：
 
 * **启动类加载器（Bootstrap ClassLoader）**：
-  * 处于安全考虑，BootStrap启动类加载器只加载包名为java、javax、sun等开头的类
-  * 类加载器负责加载在 `JAVA_HOME/jre/lib `或 `sun.boot.class.path` 目录中的，或者被 -Xbootclasspath 参数所指定的路径中的类，并且是虚拟机识别的类库加载到虚拟机内存中
-  * 仅按照文件名识别，如 rt.jar，名字不符合的类库即使放在 lib 目录中也不会被加载
+  * 处于安全考虑，BootStrap启动类加载器只加载包名为 java、javax、sun 等开头的类
+  * 类加载器负责加载在 `JAVA_HOME/jre/lib  `或 `sun.boot.class.path` 目录中的，或者被 -Xbootclasspath 参数所指定的路径中的类，并且是虚拟机识别的类库加载到虚拟机内存中
+  * 仅按照文件名识别，如 rt.jar 名字不符合的类库即使放在 lib 目录中也不会被加载
   * 启动类加载器无法被 Java 程序直接引用，在编写自定义类加载器时，如果需要把加载请求委派给启动类加载器，直接使用 null 代替
 * **扩展类加载器（Extension ClassLoader）**：
-  * 由ExtClassLoader (sun.misc.Launcher$ExtClassLoader) 实现，上级为 Bootstrap，显示为 null
+  * 由 ExtClassLoader (sun.misc.Launcher$ExtClassLoader)  实现，上级为 Bootstrap，显示为 null
   * 将 `JAVA_HOME/jre/lib/ext `或者被 `java.ext.dir` 系统变量所指定路径中的所有类库加载到内存中
   * 开发者可以使用扩展类加载器，创建的JAR放在此目录下，会由拓展类加载器自动加载
 * **应用程序类加载器（Application ClassLoader）**：
-  * 由AppClassLoader(sun.misc.Launcher$AppClassLoader)实现，上级为 Extension
-  * 负责加载环境变量classpath或系统属性 `java.class.path` 指定路径下的类库
-  * 这个类加载器是ClassLoader中的 getSystemClassLoader() 方法的返回值，因此称为系统类加载器
+  * 由 AppClassLoader(sun.misc.Launcher$AppClassLoader) 实现，上级为 Extension
+  * 负责加载环境变量 classpath 或系统属性 `java.class.path` 指定路径下的类库
+  * 这个类加载器是 ClassLoader 中的 getSystemClassLoader() 方法的返回值，因此称为系统类加载器
   * 可以直接使用这个类加载器，如果应用程序中没有自定义类加载器，这个就是程序中默认的类加载器
 * 自定义类加载器：由开发人员自定义的类加载器，上级是Application
 
@@ -13855,7 +13922,7 @@ public static void main(String[] args) {
 
 
 
-#### 抽象类
+#### 加载类
 
 ClassLoader类，是一个抽象类，其后所有的类加载器都继承自ClassLoader（不包括启动类加载器）
 
@@ -13885,16 +13952,18 @@ ClassLoader类常用方法：
 
 #### 加载模型
 
-##### 三种模型
+##### 加载机制
 
 在JVM中，对于类加载模型提供了三种，分别为全盘加载、双亲委派、缓存机制
 
-- **全盘加载：**当一个类加载器负责加载某个Class时，该Class所依赖和引用的其他Class也将由该类加载器负责载入，除非显示指定使用另外一个类加载器来载入
+- **全盘加载：**当一个类加载器负责加载某个 Class 时，该 Class 所依赖和引用的其他 Class 也将由该类加载器负责载入，除非显示指定使用另外一个类加载器来载入
 
-- **双亲委派：**先让父类加载器加载该Class，在父类加载器无法加载该类时才尝试从自己的类路径中加载该类。简单来说就是，某个特定的类加载器在接到加载类的请求时，首先将加载任务委托给父加载器，**依次递归**，如果父加载器可以完成类加载任务，就成功返回；只有当父加载器无法完成此加载任务时，才自己去加载
+- **双亲委派：**先让父类加载器加载该 Class，在父类加载器无法加载该类时才尝试从自己的类路径中加载该类。简单来说就是，某个特定的类加载器在接到加载类的请求时，首先将加载任务委托给父加载器，**依次递归**，如果父加载器可以完成类加载任务，就成功返回；只有当父加载器无法完成此加载任务时，才自己去加载
 
-- **缓存机制：**会保证所有加载过的Class都会被缓存，当程序中需要使用某个Class时，类加载器先从缓存区中搜寻该Class，只有当缓存区中不存在该Class对象时，系统才会读取该类对应的二进制数据，并将其转换成Class对象存入缓冲区中
-  - 这就是修改了Class后，必须重新启动JVM，程序所做的修改才会生效的原因
+- **缓存机制：**会保证所有加载过的 Class 都会被缓存，当程序中需要使用某个 Class 时，类加载器先从缓存区中搜寻该 Class，只有当缓存区中不存在该 Class 对象时，系统才会读取该类对应的二进制数据，并将其转换成 Class 对象存入缓冲区中
+  - 这就是修改了 Class 后，必须重新启动 JVM，程序所做的修改才会生效的原因
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-双亲委派模型.png" style="zoom:67%;" />
 
 
 
@@ -13905,8 +13974,6 @@ ClassLoader类常用方法：
 ##### 双亲委派
 
 双亲委派模型 (Parents Delegation Model)：该模型要求除了顶层的启动类加载器外，其它的类加载器都要有自己的父类加载器，这里的父子关系一般通过组合关系（Composition）来实现，而不是继承关系（Inheritance）
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-双亲委派模型.png" style="zoom:67%;" />
 
 工作过程：一个类加载器首先将类加载请求转发到父类加载器，只有当父类加载器无法完成时才尝试自己加载
 
@@ -13929,9 +13996,9 @@ ClassLoader类常用方法：
   ```
   
   此时执行main函数，会出现异常，在类 java.lang.String 中找不到 main 方法，防止恶意篡改核心API库
-  出现该信息是因为双亲委派的机制，java.lang.String的在启动类加载器(Bootstrap classLoader)得到加载，启动类加载器优先级更高，在核心jre库中有其相同名字的类文件，但该类中并没有main方法
+  出现该信息是因为双亲委派的机制，java.lang.String 的在启动类加载器(Bootstrap classLoader)得到加载，启动类加载器优先级更高，在核心 jre 库中有其相同名字的类文件，但该类中并没有 main 方法
 
-**源码分析：**
+**源码分析： **
 
 ```java
 protected Class<?> loadClass(String name, boolean resolve)
@@ -13950,7 +14017,6 @@ protected Class<?> loadClass(String name, boolean resolve)
          			//父类加载器的loadClass方法，又会检查自己是否已经加载过
                     c = parent.loadClass(name, false);
                 } else {
-                    
                     //当前类加载器没有父类加载器，说明当前类加载器是BootStrapClassLoader
           			//则调用BootStrap ClassLoader的方法加载类
                     c = findBootstrapClassOrNull(name);
@@ -13981,17 +14047,45 @@ protected Class<?> loadClass(String name, boolean resolve)
 
 
 
+****
+
+
+
+##### 破坏双亲
+
+破坏双亲委派模型有两种方式：
+
+* 引入线程上下文类加载器
+
+  Java 提供了很多服务提供者接口（Service Provider Interface，SPI），允许第三方为这些接口提供实现。常见的 SPI 有 JDBC、JCE、JNDI 等。这些 SPI 接口由 Java 核心库来提供，而 SPI 的实现代码则是作为 Java 应用所依赖的 jar 包被包含进类路径 classpath 里，SPI 接口中的代码需要加载具体的实现类：
+
+  * SPI 的接口是 Java核心库的一部分，是由引导类加载器来加载的
+  * SPI的实现类是由系统类加载器来加载的，引导类加载器是无法找到 SPI 的实现类的，因为依照双亲委派模型，BootstrapClassloader 无法委派 AppClassLoader 来加载类。
+
+  JDK 开发人员引入了线程上下文类加载器（Thread Context ClassLoader），这种类加载器可以通过 Thread  类的 setContextClassLoader 方法进行设置线程上下文类加载器，在执行线程中抛弃双亲委派加载链模式，使程序可以逆向使用类加载器，使 Bootstrap Classloader 加载器拿到了 Application ClassLoader 加载器应该加载的类，破坏了双亲委派模型
+
+* 自定义ClassLoader
+
+  * 如果不想破坏双亲委派模型，只需要重写 findClass 方法
+  * 如果想要去破坏双亲委派模型，需要去**重写 loadClass **方法
+
+
+
+参考文章：https://www.jianshu.com/p/4132d82ca3a6
+
+
+
 ***
 
 
 
 #### 沙箱机制
 
-沙箱机制：将 Java 代码限定在虚拟机(JVM)特定的运行范围中，并且严格限制代码对本地系统资源访问，来保证对代码的有效隔离，防止对本地系统造成破坏
+沙箱机制：将 Java 代码限定在虚拟机特定的运行范围中，并且严格限制代码对本地系统资源访问，来保证对代码的有效隔离，防止对本地系统造成破坏
 
 沙箱**限制系统资源访问**，包括CPU、内存、文件系统、网络，不同级别的沙箱对资源访问的限制也不一样
 
-举例：自定义String类，但是在加载自定义String类的时候会先使用引导类加载器加载，而引导类加载器在加载过程中会先加载jdk自带的文件（rt.jar包中的java\lang\String.class），报错信息说没有main方法就是因为加载的是rt.jar包中的String类，这样可以保证对java核心源代码的保护
+举例：自定义 String 类，但是在加载自定义 String 类的时候会先使用引导类加载器加载，而引导类加载器在加载过程中会先加载 jdk 自带的文件（rt.jar包中的 java\lang\String.class），报错信息说没有 main 方法就是因为加载的是 rt.jar 包中的 String 类，这样可以保证对 java 核心源代码的保护
 
 
 
@@ -14001,11 +14095,9 @@ protected Class<?> loadClass(String name, boolean resolve)
 
 #### 自定义
 
-对于自定义类加载器的实现，只需要继承ClassLoader类，覆写findClass方法即可
+对于自定义类加载器的实现，只需要继承 ClassLoader 类，覆写 findClass 方法即可
 
 作用：隔离加载类、修改类加载的方式、拓展加载源、防止源码泄漏
-
-java.lang.ClassLoader 的 loadClass() 实现了双亲委派模型的逻辑，自定义类加载器一般不去重写它，但是需要重写 findClass() 方法
 
 ```java
 //自定义类加载器，读取指定的类路径classPath下的class文件
@@ -14154,13 +14246,13 @@ HotSpot VM采用的热点探测方式是基于计数器的热点探测，为每�
 
 #### 分层编译
 
-在HotSpot VM中内嵌有两个JIT编译器，分别为Client Compiler和Server Compiler，简称为C1编译器和C2编译器
+HotSpot VM中内嵌有两个JIT编译器，分别为Client Compiler和Server Compiler，简称为C1编译器和C2编译器
 
 C1编译器会对字节码进行简单可靠的优化，耗时短，以达到更快的编译速度，C1编译器的优化方法：
 
-* 方法内联：将引用的函数代码编译到引用点处，这样可以减少栈帧的生成，减少参数传递以及跳转过程
+* 方法内联：**将引用的函数代码编译到引用点处**，这样可以减少栈帧的生成，减少参数传递以及跳转过程
 
-  方法内联能够消除方法调用的固定开销。任何方法除非被内联，否则调用都会有固定开销，来源于保存程序在该方法中的执行位置，以及新建、压入和弹出新方法所使用的栈帧。
+  方法内联能够消除方法调用的固定开销，任何方法除非被内联，否则调用都会有固定开销，来源于保存程序在该方法中的执行位置，以及新建、压入和弹出新方法所使用的栈帧。
 
   ```java
   private static int square(final int i) {
@@ -14189,8 +14281,8 @@ C2编译器进行耗时较长的优化以及激进优化，优化的代码执行
 
 VM 参数设置：
 
-- -client：指定Java虚拟机运行在Client模式下，并使用C1编译器
-- -server：指定Java虚拟机运行在Server模式下，并使用C2编译器
+- -client：指定Java虚拟机运行在 Client 模式下，并使用C1编译器
+- -server：指定Java虚拟机运行在 Server 模式下，并使用C2编译器
 
 分层编译策略 (Tiered Compilation)：程序解释执行可以触发C1编译，将字节码编译成机器码。加上性能监控，C2编译会根据性能监控信息进行激进优化，JVM 将执行状态分成了 5 个层次：
 
