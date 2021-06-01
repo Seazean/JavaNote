@@ -7384,7 +7384,7 @@ ObjectInputStream     ObjectOutputStream
 
 #### 字节流
 
-##### 字节输入流
+##### 字节输入
 
 FileInputStream文件字节输入流：
 
@@ -7460,7 +7460,7 @@ System.out.println(rs);
 
 
 
-##### 字节输出流
+##### 字节输出
 
 FileOutputStream文件字节输出流：
 
@@ -7552,9 +7552,9 @@ public class CopyDemo01 {
 
 #### 字符流
 
-##### 字符输入流
+##### 字符输入
 
-FileReader:文件字符输入流。
+FileReader：文件字符输入流
 
    * 作用：以内存为基准，把磁盘文件的数据以字符的形式读入到内存，读取文本文件内容到内存中去。
    * 构造器：
@@ -7606,9 +7606,9 @@ public class FileReaderDemo02 {//字符数组
 
 
 
-##### 字符输出流
+##### 字符输出
 
-FileWriter文件字符输出流的使用。
+FileWriter：文件字符输出流
 
 * 作用：以内存为基准，把内存中的数据按照字符的形式写出到磁盘文件中去
 * 构造器：
@@ -7938,6 +7938,10 @@ class User implements Serializable {
     ///get+set
 }
 ```
+
+
+
+****
 
 
 
@@ -12469,23 +12473,23 @@ public void localvarGC4() {
 
 安全点 (Safepoint)：程序执行时并非在所有地方都能停顿下来开始GC，只有在安全点才能停下
 
-- Safe Point的选择很重要，如果太少可能导致GC等待的时间太长，如果太多可能导致运行时的性能问题
-- 大部分指令的执行时间都非常短，通常会根据是否具有让程序长时间执行的特征为标准，选择些执行时间较长的指令作为Safe Point， 如方法调用、循环跳转和异常跳转等
+- Safe Point 的选择很重要，如果太少可能导致GC等待的时间太长，如果太多可能导致运行时的性能问题
+- 大部分指令的执行时间都非常短，通常会根据是否具有让程序长时间执行的特征为标准，选择些执行时间较长的指令作为 Safe Point， 如方法调用、循环跳转和异常跳转等
 
 在GC发生时，让所有线程都在最近的安全点停顿下来的方法：
 
 - 抢先式中断：没有虚拟机采用，首先中断所有线程，如果有线程不在安全点，就恢复线程让线程运行到安全点
 - 主动式中断：设置一个中断标志，各个线程运行到各个 Safe Point 时就轮询这个标志，如果中断标志为真，则将自己进行中断挂起
 
-问题：Safepoint 保证程序执行时，在不太长的时间内就会遇到可进入GC的Safepoint，但是当线程处于 Waiting 状态或Blocked状态，线程无法响应JVM的中断请求，运行到安全点去中断挂起，JVM也不可能等待线程被唤醒，对于这种情况，需要安全区域来解决
+问题：Safepoint 保证程序执行时，在不太长的时间内就会遇到可进入GC的 Safepoint，但是当线程处于 Waiting 状态或 Blocked 状态，线程无法响应JVM的中断请求，运行到安全点去中断挂起，JVM也不可能等待线程被唤醒，对于这种情况，需要安全区域来解决
 
 安全区域 (Safe Region)：指在一段代码片段中，对象的引用关系不会发生变化，在这个区域中的任何位置开始GC都是安全的
 
 运行流程：
 
-- 当线程运行到Safe Region的代码时，首先标识已经进入了Safe Region，如果这段时间内发生GC，JVM会忽略标识为Safe Region状态的线程
+- 当线程运行到 Safe Region 的代码时，首先标识已经进入了 Safe Region，如果这段时间内发生GC，JVM会忽略标识为 Safe Region 状态的线程
 
-- 当线程即将离开Safe Region时，会检查JVM是否已经完成GC，如果完成了则继续运行，否则线程必须等待GC完成，收到可以安全离开SafeRegion的信号
+- 当线程即将离开 Safe Region 时，会检查JVM是否已经完成GC，如果完成了则继续运行，否则线程必须等待GC 完成，收到可以安全离开 SafeRegion 的信号
 
 
 
@@ -18637,174 +18641,6 @@ public class TestVolatile {
 ```
 
 
-
-***
-
-
-
-#### 单例模式
-
-##### 饿汉式
-
-单例模式有很多实现方法，饿汉、懒汉、静态内部类、枚举类，试分析每种实现下获取单例对象时的线程安全
-
-* 饿汉式：类加载就会导致该单实例对象被创建
-
-* 懒汉式：类加载不会导致该单实例对象被创建，而是首次使用该对象时才会创建
-
-```java
-public final class Singleton implements Serializable {
-    private Singleton() {}
-    private static final Singleton INSTANCE = new Singleton();
-    public static Singleton getInstance() {
-        return INSTANCE;
-    }
-    
-    //解决序列化问题
-    protected Object readResolve() {
-    	return INSTANCE;
-    }
-}
-```
-
-* 问题1：为什么类加 final 修饰？
-  不被子类继承，防止子类中不适当的行为覆盖父类的方法，破坏了单例
-
-* 问题2：如果实现了序列化接口，怎么防止防止反序列化破坏单例？
-
-  将单例对象序列化再反序列化，对象从内存反序列化到程序中会重新创建一个对象，通过反序列化得到的对象是不同的对象，而且得到的对象不是通过构造器得到的，反序列化得到的对象不执行构造器
-
-  解决办法：
-
-  * 对单例声明 transient，然后实现 readObject(ObjectInputStream in) 方法，复用原来的单例
-
-    条件：访问权限为private/protected、返回值必须是Object、异常可以不抛
-  * 实现readResolve()方法，当 JVM 从内存中反序列化地"组装"一个新对象，就会自动调用readResolve方法返回原来单例
-
-* 问题3：为什么构造方法设置为私有? 是否能防止反射创建新的实例?
-  防止其他类无限创建对象；不能防止反射破坏
-
-* 问题4：这种方式是否能保证单例对象创建时的线程安全?
-  能，静态变量初始化在类加载时完成，由JVM保证线程安全
-
-* 问题5：为什么提供静态方法而不是直接将 INSTANCE 设置为 public？
-更好的封装性、提供泛型支持、可以改进成懒汉单例设计
-
-
-
-***
-
-
-
-##### 枚举式
-
-```java
-enum Singleton {
-	INSTANCE;//相当于枚举类的静态成员变量
-    
-    public void doSomething() {
-        System.out.println("doSomething");
-    }
-}
-public static void main(String[] args) {
-    Singleton.INSTANCE.doSomething();
-}
-```
-
-* 问题1：枚举单例是如何限制实例个数的？每个枚举项都是一个实例，是一个静态成员变量
-* 问题2：枚举单例在创建时是否有并发问题？否
-* 问题3：枚举单例能否被反射破坏单例？否，反射创建对象时判断是枚举类型就直接抛出异常
-* 问题4：枚举单例能否被反序列化破坏单例？否
-* 问题5：枚举单例属于懒汉式还是饿汉式？**饿汉式**
-* 问题6：枚举单例如果希望加入一些单例创建时的初始化逻辑该如何做？添加构造方法
-
-反编译后的：
-
-```java
-public final class Singleton extends java.lang.Enum<Singleton> {//Enum实现序列化接口
-	public static final Singleton INSTANCE = new Singleton();
-}
-```
-
-
-
-***
-
-
-
-##### 懒汉式
-
-```java
-public final class Singleton {
-    private Singleton() { }
-    private static Singleton INSTANCE = null;
-    //分析这里的线程安全，并说明有什么缺点？锁范围太大，每次进入都要加锁
-    public static synchronized Singleton getInstance() {
-        if( INSTANCE != null ){
-        	return INSTANCE;
-        }
-        INSTANCE = new Singleton();
-        return INSTANCE;
-    }
-}
-```
-
-
-
-****
-
-
-
-##### DCL
-
-```java
-public final class Singleton {
-    private Singleton() { }
-    // 防止指令重排序
-    private static volatile Singleton INSTANCE = null;
-    // 首次使用getInstance()才加锁，后续使用时无需加锁，性能好
-    public static Singleton getInstance() {
-        if (INSTANCE != null) {
-            return INSTANCE;
-        }
-        synchronized (Singleton.class) {
-            // 防止首次创建Singleton时的并发的问题
-            if (INSTANCE != null) { // t2
-                return INSTANCE;
-            }
-            INSTANCE = new Singleton();
-            return INSTANCE;
-        }
-    }
-}
-```
-
-
-
-***
-
-
-
-##### 内部类
-
-```java
-public final class Singleton {
-    private Singleton() { }
-    
-    private static class LazyHolder {
-    	static final Singleton INSTANCE = new Singleton();
-    }
-	
-	public static Singleton getInstance() {
-    	return LazyHolder.INSTANCE;
-    }
-}
-```
-
-* 问题1：属于懒汉式还是饿汉式？
-  懒汉式，类加载本身就是懒惰的，首次调用时加载，然后对单例进行初始化
-* 问题2：在创建时是否有线程安全问题？
-  没有，静态变量初始化在类加载时完成，由JVM保证线程安全
 
 
 
