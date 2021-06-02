@@ -5653,8 +5653,10 @@ CGLIB特点：
 
 * cglib类
 
-  * JDKProxy仅对接口方法做增强，cglib对所有方法做增强，包括Object类中的方法 (toString hashCode)，需要对方法进行判断是否是save，来选择性增强
+  * JDKProxy仅对接口方法做增强，cglib对所有方法做增强，包括Object类中的方法 (toString、hashCode)
   * 返回值类型采用多态向下转型，所以需要设置父类类型
+
+  需要对方法进行判断是否是save，来选择性增强
 
   ```java
   public class UserServiceImplCglibProxy {

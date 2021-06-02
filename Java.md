@@ -2750,24 +2750,24 @@ Cloneable 接口是一个标识性接口，即该接口不包含任何方法（�
 
 ### Objects
 
-* Objects类与Object是继承关系。
+Objects 类与 Object 是继承关系。
 
-* Objects的方法：
-  
-   * `public static boolean equals(Object a, Object b)` : 比较两个对象是否相同。
-       底层进行非空判断，从而可以避免空指针异常，更安全！！推荐使用！！
-   
-     ```java
-     public static boolean equals(Object a, Object b) {
-         return a == b || a != null && a.equals(b);
-     }
-     ```
-   
-   * `public static boolean isNull(Object obj)` : 判断变量是否为null ,为null返回true ,反之！
-   
-   * `public static String toString(对象)` : 返回参数中对象的字符串表示形式
-   
-   * `public static String toString(对象, 默认字符串)` : 返回对象的字符串表示形式。
+Objects的方法：
+
+* `public static boolean equals(Object a, Object b)` : 比较两个对象是否相同。
+    底层进行非空判断，从而可以避免空指针异常，更安全！！推荐使用！！
+
+  ```java
+  public static boolean equals(Object a, Object b) {
+      return a == b || a != null && a.equals(b);
+  }
+  ```
+
+* `public static boolean isNull(Object obj)` : 判断变量是否为null ,为null返回true ,反之！
+
+* `public static String toString(对象)` : 返回参数中对象的字符串表示形式
+
+* `public static String toString(对象, 默认字符串)` : 返回对象的字符串表示形式。
 
 ```java
 public class ObjectsDemo {
@@ -8073,12 +8073,10 @@ try(
 ### Properties
 
 Properties：属性集对象。就是一个Map集合，一个键值对集合
-Properties核心作用：Properties代表的是一个属性文件，可以把键值对数据存入到一个属性文件
-属性文件：后缀是.properties结尾的文件,里面的内容都是 key=value
 
-> 大型框架技术中，属性文件都是很重要的系统配置文件。
-> users.properties
->           admin=123456
+核心作用：Properties代表的是一个属性文件，可以把键值对数据存入到一个属性文件
+
+属性文件：后缀是.properties结尾的文件，里面的内容都是 key=value
 
 Properties方法：
 
@@ -8135,8 +8133,8 @@ public class PropertiesDemo02 {
 RandomAccessFile类：该类的实例支持读取和写入随机访问文件
 
 构造器：
-RandomAccessFile(File file, String mode) ：创建随机访问文件流，从File参数指定的文件读取，可选择写入。 
-RandomAccessFile(String name, String mode) ：创建随机访问文件流，从指定名称的文件读取，可选择写入文件。 
+RandomAccessFile(File file, String mode) ：创建随机访问文件流，从File参数指定的文件读取，可选择写入
+RandomAccessFile(String name, String mode) ：创建随机访问文件流，从指定名称文件读取，可选择写入文件
 
 常用方法：
 `public void seek(long pos)` : 设置文件指针偏移，从该文件开头测量，发生下一次读取或写入(插入+覆盖)
@@ -24802,316 +24800,4 @@ final void updateHead(Node<E> h, Node<E> p) {
 
 # Design
 
-（正在更新）
-
-## 单例模式
-
-单例模式，是一种常用的软件设计模式。通过单例模式可以保证系统中，
-该模式的这个类永远只有一个实例。即**一个类永远只有一个对象实例**。
-单例是为了节约内存，单例在有些业务场景下还必须用到
-
-* 饿汉单例设计模式
-      在用类获取对象的时候，对象已经提前创建好了。
-      a.定义一个类，把构造器私有。
-      b.定义一个静态变量存储一个对象。
-      c.提供一个返回单例对象的方法。
-
-* 懒汉单例设计模式
-      在真正需要该对象的时候，才去创建一个对象(延迟加载对象)。
-      a.定义一个类，把构造器私有。
-      b.定义一个静态变量存储一个对象。
-      c.提供一个返回单例对象的方法。
-
-```java
-//饿汉单例设计模式
-public class SingleInstanceDemo{
-    public static void main(String[] args){
-        Singleton s1 = Singleton.getInstance();
-        Singleton s2 = Singleton.getInstance();
-        System.out.println(s1 == s2);//true
-    }
-}
-class Singleton{
-    //在用类获取对象的时候，对象已经提前为你创建好了。
-    public static final Singleton INSTANCE = new Singleton();
-    private Singleton(){}
-    //返回单例对象
-    public static Singleton getInstance(){
-        return INSTANCE 
-    }
-}
-```
-
-```java
-//懒汉单例设计模式
-public class SingleInstanceDemo{
-    public static void main(String[] args){
-        Singleton s1 = Singleton.getInstance();
-        Singleton s2 = Singleton.getInstance();
-        System.out.println(s1 == s2);//true
-    }
-}
-class Singleton{
-    //在用类获取对象的时候，对象自己创建好了。
-    public static Singleton instance;
-    private Singleton(){}
-    //返回单例对象
-    public static Singleton getInstance(){
-        if (instance == null) {
-            instance = new Singleton;
-        }
-        return instance;
-    }
-}
-```
-
-
-
-***
-
-
-
-## 动态代理
-
-代理就是被代理者没有能力或者不愿意去完成某件事情，需要找个人代替自己去完成这件事。
-动态代理只能为实现接口的实现类对象做代理(也可以只为接口做代理对象)
-
-> 在业务开发中经常存在很多重复的方法代码，他们前后的代码形式是一样的
-> 只有中间部分代码有差别！！这种时候代码冗余读很高
-> 有没有一种方法可以直接省略前后重复的代码就可以完成功能，这时候用动态代理。
-
-* 优点：
-  * 动态代理非常的灵活，可以为任意的接口实现类对象做代理，可以为被代理对象的所有接口的所有方法做代理，动态代理可以在不改变方法源码的情况下，实现对方法功能的增强；
-  * 动态代理类简化了编程工作，提高了软件的可扩展性，Java 反射机制可以生成任意类型的动态代理类。
-  * 动态代理提高了开发效率。
-* 缺点：**只能针对接口或者接口的实现类对象做代理对象**，普通类是不能做代理对象的
-* 原因：**生成的代理类继承了Proxy**，因为java是单继承的，所以JDK动态代理只能代理接口。
-
-```java
-public class TestDemo {
-    public static void main(String[] args) {
-        // 1.创建一个业务对象
-        // 为我们的业务对象做成一个被代理的业务对象!!
-        UserService userService = ProxyUtil.getProxy(new UserServiceImpl());
-        String rs = userService.login("admin","123456");//走代理！
-        System.out.println(rs);
-        userService.deleteAll(); // 走代理！
-        userService.updateAll(); // 走代理！
-    }
-}
-```
-
-```java
-//业务接口
-public interface UserService {
-    String login(String loginName, String passWord);
-    void deleteAll();
-    void updateAll();
-}
-```
-
-```java
-//业务实现类
-public class UserServiceImpl implements UserService {
-    @Override
-    public String login(String loginName, String passWord) {
-        String flag = "登陆名称或者密码错误";
-        if("admin".equals(loginName) && "123456".equals(passWord)){
-            flag = "success";
-        }
-        try {
-            Thread.sleep(2000);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return flag;
-    }
-    @Override
-    public void deleteAll() {
-        try {
-            Thread.sleep(1500);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        System.out.println("删除成功！");
-    }
-    @Override
-    public void updateAll() {
-        try {
-            Thread.sleep(500);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        System.out.println("更新成功！");
-    }
-}
-```
-
-代理类：帮助我们做一个被代理的业务对象返回。
-java.lang.reflect.Proxy：这是 Java 动态代理机制的主类，它提供了一个静态方法来为一组接口的实现类动态地生成代理类及其对象。
-**public static Object newProxyInstance(ClassLoader loader,Class[] interfaces, InvocationHandler h)**
-    参数一：类加载器，负责加载到时候做好的业务代理对象！
-    参数二：被代理业务对象的**全部实现的接口**，以便代理对象可以知道要为哪些方法做代理。
-	参数三：代理真正的执行方法，也就是代理的处理逻辑！
-
-```java
-public class ProxyUtil {
-     //做一个被代理的业务对象返回!
-    public static <T> T getProxy(Object obj) {
-        return (T) Proxy.newProxyInstance(obj.getClass().getClassLoader(),
-                obj.getClass().getInterfaces(), new InvocationHandler() {
-                    @Override
-                    public Object invoke(Object proxy, Method method, Object[]
-                                         params) throws Throwable {
-                        // proxy : 业务代理对象本身。用不到
-                        // method: 代表当前正在被代理执行的方法！！
-                        // params: 代表的是执行方法的参数，数组的形式!
-                        long startTime = System.currentTimeMillis();
-
-                        // 真正触发真实的方法执行
-                        Object rs = method.invoke(obj,params);
-
-                        long endTime = System.currentTimeMillis();
-                     	sout(method.getName()+"方法耗时："+
-                     				 (endTime - startTime)/1000.0+"s");
-                        return rs; // 返回方法执行的结果！！
-                    }
-                });
-    }
-}
-```
-
-
-
-***
-
-
-
-## 工厂模式
-
-工厂设计模式：
-
-* 工厂模式（Factory Pattern）是 Java 中最常用的设计模式之一
-
-* 这种类型的设计模式属于创建型模式，它提供了一种创建对象的方式
-
-* 以前我们创建类对象时, 都是使用new 对象的形式创建,，除new 对象方式以外，工厂模式也可以创建对象
-
-工厂设计模式的作用：
-
-* 对象通过工厂的方法创建返回，工厂的方法可以为该对象进行加工和数据注入。
-* 可以实现类与类之间的解耦操作（核心思想，重点） 
-
-优点：工厂模式的存在可以改变创建对象的方式,解决类与类之间的**耦合**。
-缺点：工厂设计模式多了一个工厂类！！！
-
-```java
-public class FactoryDemo {
-    public static void main(String[] args) {
-        Animal a = FactoryPattern.createAniaml();
-        a.run();
-    }
-}
-// 工厂设计模式
-public class FactoryPattern {
-    // 生产对象的方法：工厂方法
-    public static Animal createAniaml(){
-        return new Dog();
-    }
-}
-
-public abstract class Animal {
-    public abstract void run();
-}
-public class Cat extends Animal {
-    @Override
-    public void run() {
-        System.out.println("猫跑的贼溜~~~~");
-    }
-}
-public class Dog extends Animal {
-    @Override
-    public void run() {
-        System.out.println("狗跑的也贼溜~~~~");
-    }
-}
-```
-
-
-
-***
-
-
-
-## 装饰模式
-
-装饰模式指的是在不改变原类, 动态地扩展一个类的功能。
-思想：是创建一个新类，包装原始类，从而在新类中提升原来类的功能！！
-
-装饰模式可以在不改变原类的基础上对类中的方法进行扩展增强,实现原则为:
-		1.定义父类。
-		2.定义原始类，继承父类，定义功能。
-		3.定义装饰类，继承父类，包装原始类，增强功能！！
-
-```java
-public class Demo {
-    public static void main(String[] args) {
-        InputStream is = new BufferedInputStrem(new FileInputStream());
-        is.read();
-        is.close();
-    }
-}
-public abstract class InputStream {
-    public abstract void read();
-    public abstract void close();
-}
-public class FileInputStream extends InputStream {
-    @Override
-    public void read() {
-        System.out.println("读取数据~~~");
-    }
-
-    @Override
-    public void close() {
-        System.out.println("关闭流~~~");
-    }
-}
-// 装饰模式！提升原始功能！！！
-public class BufferedInputStrem extends InputStream {
-    private InputStream is ;
-    public BufferedInputStrem(InputStream is){
-        this.is = is;
-    }
-    @Override
-    public void read() {
-        System.out.println("开启高效缓冲读取~");
-        is.read();
-    }
-    @Override
-    public void close() {
-        is.close();
-    }
-}
-```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
+（更新中）
