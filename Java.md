@@ -2927,14 +2927,13 @@ public class Demo {
     public static void main(String[] args) {
         String s1 = "a"; // 懒惰的
         String s2 = "b";
-        String s3 = "ab";
+        String s3 = "ab";//串池
         // new StringBuilder().append("a").append("b").toString()  new String("ab")
-        String s4 = s1 + s2; 
+        String s4 = s1 + s2; //d
         String s5 = "a" + "b";  // javac 在编译期间的优化，结果已经在编译期确定为ab
 
         System.out.println(s3 == s4); // false
         System.out.println(s3 == s5); // true
-        System.out.println(s3 == s6); // true
 
         String x2 = new String("c") + new String("d"); // new String("cd")
         // 虽然new，但是在字符串常量池没有 cd 对象，toString()方法
@@ -13436,13 +13435,13 @@ JVM是通过栈帧中的对象引用访问到其内部的对象实例：（内�
 
 在Java中，对象的生命周期包括以下几个阶段：
 
-1.      创建阶段(Created)：
-2.      应用阶段(In Use)：对象至少被一个强引用持有着
-3.      不可见阶段(Invisible)：程序的执行已经超出了该对象的作用域，不再持有该对象的任何强引用
-4.      不可达阶段(Unreachable)：该对象不再被任何强引用所持有，包括GC Root的强引用
-5.      收集阶段(Collected)：垃圾回收器已经对该对象的内存空间重新分配做好准备，该对象如果重写了finalize()方法，则会去执行该方法
-6.      终结阶段(Finalized)：等待垃圾回收器对该对象空间进行回收，当对象执行完finalize()方法后仍然处于不可达状态时进入该阶段
-7.      对象空间重分配阶段(De-allocated)：垃圾回收器对该对象的所占用的内存空间进行回收或者再分配
+1.      创建阶段 (Created)：
+2.      应用阶段 (In Use)：对象至少被一个强引用持有着
+3.      不可见阶段 (Invisible)：程序的执行已经超出了该对象的作用域，不再持有该对象的任何强引用
+4.      不可达阶段 (Unreachable)：该对象不再被任何强引用所持有，包括GC Root的强引用
+5.      收集阶段 (Collected)：垃圾回收器已经对该对象的内存空间重新分配做好准备，该对象如果重写了finalize()方法，则会去执行该方法
+6.      终结阶段 (Finalized)：等待垃圾回收器对该对象空间进行回收，当对象执行完finalize()方法后仍然处于不可达状态时进入该阶段
+7.      对象空间重分配阶段 (De-allocated)：垃圾回收器对该对象的所占用的内存空间进行回收或者再分配
 
 
 
@@ -13583,7 +13582,7 @@ Java对象创建时机：
 
    * 实例初始化不一定要在类初始化结束之后才开始
 
-   * 在同一个类加载器下，一个类型只会被初始化一次。所以一旦开始初始化一个类，无论是否完成后续都不会再重新触发该类型的初始化阶段了(只考虑在同一个类加载器下的情形)。因此，在实例化上述程序中的st变量时，**实际上是把实例初始化嵌入到了静态初始化流程中，并且在上面的程序中，嵌入到了静态初始化的起始位置**，这就导致了实例初始化完全发生在静态初始化之前，这也是导致a为110 b为0的原因
+   * 在同一个类加载器下，一个类型只会被初始化一次。所以一旦开始初始化一个类，无论是否完成后续都不会再重新触发该类型的初始化阶段了（只考虑在同一个类加载器下的情形。因此，在实例化上述程序中的st变量时，**实际上是把实例初始化嵌入到了静态初始化流程中，并且在上面的程序中，嵌入到了静态初始化的起始位置**，这就导致了实例初始化完全发生在静态初始化之前，这也是导致a为110 b为0的原因
 
    代码等价于：
 
@@ -13777,6 +13776,10 @@ class D {
 
 
 
+***
+
+
+
 ##### clinit
 
 <clinit>()：类构造器，由编译器自动收集类中所有类变量的赋值动作和静态语句块中的语句合并产生的
@@ -13786,7 +13789,7 @@ class D {
 * 如果类中没有静态变量或静态代码块，那么clinit方法将不会被生成
 * 在执行clinit方法时，必须先执行父类的clinit方法
 * clinit方法只执行一次
-* static变量的赋值操作和静态代码块的合并顺序由源文件中出现的顺序决定
+* static变量的赋值操作和静态代码块的合并顺序由源文件中**出现的顺序**决定
 
 **线程安全**问题：
 
@@ -13798,7 +13801,7 @@ class D {
 ```java
 public class Test {
     static {
-        i = 0;                // 给变量赋值可以正常编译通过
+        //i = 0;                // 给变量赋值可以正常编译通过
         System.out.print(i);  // 这句编译器会提示“非法向前引用”
     }
     static int i = 1;
@@ -13808,6 +13811,10 @@ public class Test {
 补充：
 
 接口中不可以使用静态语句块，但仍然有类变量初始化的赋值操作，因此接口与类一样都会生成 <clinit>() 方法。但两者不同的是，执行接口的 <clinit>() 方法不需要先执行父接口的 <clinit>() 方法，只有当父接口中定义的变量使用时，父接口才会初始化；接口的实现类在初始化时也一样不会执行接口的 <clinit>() 方法
+
+
+
+****
 
 
 
@@ -13833,6 +13840,10 @@ public class Test {
 * 通过子类引用父类的静态字段，不会导致子类初始化，只会触发父类的初始化
 * 通过数组定义来引用类，不会触发此类的初始化。该过程会对数组类进行初始化，数组类是一个由虚拟机自动生成的、直接继承自Object 的子类，其中包含了数组的属性和方法
 * 常量（final修饰）在编译阶段会存入调用类的常量池中，本质上并没有直接引用到定义常量的类，因此不会触发定义常量的类的初始化
+
+
+
+***
 
 
 
@@ -17464,11 +17475,10 @@ public static void main(String[] args) {
 
 对比wait & notify：
 
-* wait，notify 和 notifyAll 必须配合Object Monitor一起使用，而park、unpark不需要
+* wait，notify 和 notifyAll 必须配合 Object Monitor 一起使用，而park、unpark不需要
 * park & unpark以线程为单位来阻塞和唤醒线程，而notify 只能随机唤醒一个等待线程，notifyAll是唤醒所有等待线程
-* **park & unpark 可以先 unpark**，而 wait & notify 不能先 notify
-  类比生产消费，先消费发现有产品就消费，没有就等待；先生产就直接产生商品，然后线程直接消费
-* wait会释放锁资源进入等待队列，park 不会释放锁资源，只负责阻塞当前线程，会释放CPU
+* **park & unpark 可以先 unpark**，而 wait & notify 不能先 notify。类比生产消费，先消费发现有产品就消费，没有就等待；先生产就直接产生商品，然后线程直接消费
+* wait 会释放锁资源进入等待队列，park 不会释放锁资源，只负责阻塞当前线程，会释放CPU
 
 原理：
 
@@ -17711,17 +17721,23 @@ class GuardedObject {
 ```java
 public static void main(String[] args) throws InterruptedException {
     Thread t1 = new Thread(() -> {
-        try { Thread.sleep(1000); } catch (InterruptedException e) { }
-        // 当没有『许可』时，当前线程暂停运行；有『许可』时，用掉这个『许可』，当前线程恢复运行
-        LockSupport.park();
-        System.out.println("1");
-    }).start();
-    
-    Thread t2 = new Thread(() -> {
-        System.out.println("2");
-        // 给线程 t1 发放『许可』（多次连续调用 unpark 只会发放一个『许可』）
-        LockSupport.unpark(t1);
-    }).start();
+            while (true) {
+				//try { Thread.sleep(1000); } catch (InterruptedException e) { }
+                // 当没有许可时，当前线程暂停运行；有许可时，用掉这个许可，当前线程恢复运行
+                LockSupport.park();
+                System.out.println("1");
+            }
+        });
+        Thread t2 = new Thread(() -> {
+            while (true) {
+                System.out.println("2");
+                // 给线程 t1 发放『许可』（多次连续调用 unpark 只会发放一个『许可』）
+                LockSupport.unpark(t1);
+                try { Thread.sleep(500); } catch (InterruptedException e) { }
+            }
+        });
+        t1.start();
+        t2.start();
 }
 ```
 

@@ -2690,7 +2690,7 @@ IoC和DI的关系：IoC与DI是同一件事站在不同角度看待问题
       </property>
       <property name="properties">
           <props>
-              <prop key="name">itheima666</prop>
+              <prop key="name">seazean666</prop>
               <prop key="value">666666</prop>
           </props>
       </property>
@@ -2702,7 +2702,7 @@ IoC和DI的关系：IoC与DI是同一件事站在不同角度看待问题
       </property>
       <property name="hs">
           <set>
-              <value>itheima</value>
+              <value>seazean</value>
               <value>66666</value>
           </set>
       </property>
@@ -7805,7 +7805,7 @@ Controller加载控制：SpringMVC的处理器对应的bean必须按照规范格
 
 SpringMVC将传递的参数封装到处理器方法的形参中，达到快速访问参数的目的
 
-* 访问URL：http://localhost/requestParam1?name=itheima&age=14  
+* 访问URL：http://localhost/requestParam1?name=seazean&age=14  
 
   ```java
   @Controller
@@ -7860,7 +7860,7 @@ SpringMVC将传递的参数封装到处理器方法的形参中，达到快速�
 
 当POJO中使用简单类型属性时， 参数名称与POJO类属性名保持一致  
 
-* 访问URL： http://localhost/requestParam3?name=itheima&age=14  
+* 访问URL： http://localhost/requestParam3?name=seazean&age=14  
 
   ```java
   @RequestMapping("/requestParam3")
@@ -7884,7 +7884,7 @@ SpringMVC将传递的参数封装到处理器方法的形参中，达到快速�
 
 当POJO类型属性与其他形参出现同名问题时，将被**同时赋值**，建议使用@RequestParam注解进行区分
 
-* 访问URL： http://localhost/requestParam4?name=itheima&age=14  
+* 访问URL： http://localhost/requestParam4?name=seazean&age=14  
 
   ```java
   @RequestMapping("/requestParam4")
@@ -8047,7 +8047,7 @@ SpringMVC将传递的参数封装到处理器方法的形参中，达到快速�
 开启转换配置：`<mvc:annotation-driven />  `
 作用：提供Controller请求转发，Json自动转换等功能
 
-如果访问URL：http://localhost/requestParam1?name=itheima&age=seazean，会出现报错，类型转化异常
+如果访问URL：http://localhost/requestParam1?name=seazean&age=seazean，会出现报错，类型转化异常
 
 ```java
 @RequestMapping("/requestParam1")
@@ -8674,7 +8674,7 @@ public String  ajaxPojoToController(@RequestBody User user){
 }
 
 @RequestMapping("/ajaxListToController")
-//如果处理参数是List集合且封装了POJO，且页面发送的数据是JSON格式的对象数组，数据将自动映射到集合参数中
+//如果处理参数是List集合且封装了POJO，且页面发送的数据是JSON格式，数据将自动映射到集合参数
 public String  ajaxListToController(@RequestBody List<User> userList){
     System.out.println("controller list :"+userList);
     return "page.jsp";
@@ -8903,6 +8903,7 @@ public User cross(HttpServletRequest request){
 ### 概述
 
 拦截器（ Interceptor）是一种动态拦截方法调用的机制
+
 作用：
 
 1. 在指定的方法调用前后执行预先设定后的的代码
@@ -9466,7 +9467,7 @@ Restful请求路径简化配置方式：@RestController = @Controller + @Respons
   
   `@PathVariable`注解的参数一般在有多个参数的时候添加
 
-过滤器：HiddenHttpMethodFilter是SpringMVC对Restful风格的访问支持的过滤器
+过滤器：HiddenHttpMethodFilter 是 SpringMVC 对 Restful 风格的访问支持的过滤器
 
 代码实现：
 
@@ -11804,7 +11805,7 @@ public class UserConfig {
 ```
 
 ```properties
-it=itheima
+it=seazean
 ```
 
 ConditionalOnClass：判断环境中是否有对应字节码文件才初始化Bean
