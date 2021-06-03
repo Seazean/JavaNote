@@ -534,9 +534,11 @@ public class Test1 {
       case "b":
           System.out.println("bbb");
           break;
+      default:
+          break;
   }
   ```
-
+  
   switch 不支持 long、float、double，switch 的设计初衷是对那些只有少数几个值的类型进行等值判断，如果值过于复杂，那么用 if 比较合适
   
 * break：跳出一层循环
