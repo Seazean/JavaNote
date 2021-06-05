@@ -6,8 +6,8 @@
 
 * DB：MySQL、JDBC、Redis
 * Frame：Maven
-* Issue：Interview
-* Java：JavaSE、JVM、JUC、Design
+* Issue：Interview Questions
+* Java：JavaSE、JVM、JUC、Design Pattern
 * SSM：MyBatis、Spring、SpringMVC、SpringBoot
 * Tool：Git、Linux、Docker
 * Web：HTML、CSS、Servlet、JavaScript
