@@ -19399,7 +19399,7 @@ Servlet 为了保证其线程安全，一般不为 Servlet 设置成员变量，
 
 ThreadLocal类用来提供线程内部的局部变量，这种变量在多线程环境下访问（通过get和set方法访问）时能保证各个线程的变量相对独立于其他线程内的变量
 
-ThreadLocal实例通常来说都是`private static`类型的，属于一个线程的本地变量，用于关联线程和线程上下文。每个线程都会在 ThreadLocal 中保存一份该线程独有的数据，所以是线程安全的
+ThreadLocal实例通常来说都是 `private static` 类型的，属于一个线程的本地变量，用于关联线程和线程上下文。每个线程都会在 ThreadLocal 中保存一份该线程独有的数据，所以是线程安全的
 
 ThreadLocal 作用：
 
@@ -25550,7 +25550,7 @@ public class RuntimeDemo {
 
 #### 简单工厂
 
-简单工厂包含如下角色：
+简单工厂，也称为静态工厂模式，包含如下角色：
 
 * 抽象产品 ：定义了产品的规范，描述了产品的主要特性和功能
 * 具体产品 ：实现或者继承抽象产品的子类
@@ -25581,7 +25581,7 @@ public class RuntimeDemo {
   }
   ```
 
-* 简单工厂类，也可以修改为静态工厂模式，在 createCoffee 方法加 static
+* 简单工厂类，在 createCoffee 方法加 static
 
   ```java
   public class SimpleCoffeeFactory {
