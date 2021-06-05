@@ -6922,7 +6922,7 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
   wrapIfNecessary一定创建代理对象吗？
 
   * 存在增强器会创建动态代理，不需要增强就不需要创建动态代理对象
-  * 不创建就会把最原始的实例化的Bean放到二级缓存，因为addSingletonFactory参数中传入了实例化的Bean，在singletonFactory.getObject()中返回给singletonObject，放入二级缓存
+  * 不创建就会把最原始的实例化的Bean放到二级缓存，因为 addSingletonFactory 参数中传入了实例化的Bean，在singletonFactory.getObject()中返回给singletonObject，放入二级缓存
   
   什么时候将Bean的引用提前暴露给第三级缓存的ObjectFactory持有？
 
