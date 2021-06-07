@@ -9115,7 +9115,7 @@ Java NIO 系统的核心在于：通道和缓冲区，通道表示打开到 IO �
 
 缓冲区（Buffer）：缓冲区本质上是一个**可以读写数据的内存块**，用于特定基本数据类型的容器，用于与 NIO 通道进行交互，数据是从通道读入缓冲区，从缓冲区写入通道中的
 
-![](https://gitee.com/seazean/images/raw/master//NIO-Buffer.png)
+![](https://gitee.com/seazean/images/raw/master/Java/NIO-Buffer.png)
 
 Buffer 底层是一个数组，可以保存多个相同类型的数据，根据数据类型不同 ，有以下 Buffer 常用子类：ByteBuffer, CharBuffer, ShortBuffer, IntBuffer, LongBuffer, FloatBuffer, DoubleBuffer 
 
@@ -9166,6 +9166,7 @@ Buffer 基本操作：
 | public final int remaining()                | 返回当前位置 position 和 limit 之间的元素个数           |
 | public final boolean hasRemaining()         | 判断缓冲区中是否还有元素                                |
 | public static ByteBuffer wrap(byte[] array) | 将一个字节数组包装到缓冲区中                            |
+| abstract ByteBuffer asReadOnlyBuffer()      | 创建一个新的只读字节缓冲区                              |
 
 Buffer 数据操作：
 
@@ -9249,7 +9250,7 @@ public class TestBuffer {
 
 ##### 直接内存
 
-`byte buffer` 可以是两种类型，一种是基于直接内存（也就是非堆内存），另一种是非直接内存（也就是堆内存）。对于直接内存来说，JVM将会在IO操作上具有更高的性能，因为直接作用于本地系统的IO操作，而非直接内存，也就是堆内存中的数据，如果要作IO操作，会先从本进程内存复制到直接内存，再利用本地IO处理
+Byte Buffer可以是两种类型，一种是基于直接内存（也就是非堆内存），另一种是非直接内存（也就是堆内存）。对于直接内存来说，JVM将会在IO操作上具有更高的性能，因为直接作用于本地系统的IO操作，而非直接内存，也就是堆内存中的数据，如果要作IO操作，会先从本进程内存复制到直接内存，再利用本地IO处理
 
 直接内存创建Buffer对象：`static XxxBuffer allocateDirect(int capacity)`
 
@@ -9258,7 +9259,77 @@ public class TestBuffer {
 * 非直接内存的作用链：本地IO-->直接内存-->非直接内存-->直接内存-->本地IO
 * 直接内存是：本地IO → 直接内存 → 本地IO
 
-JVM 内存结构详解直接内存
+JVM直接内存详解
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-直接内存直接缓冲区.png" style="zoom: 50%;" />
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-直接内存非直接缓冲区.png" style="zoom:50%;" />
+
+
+
+****
+
+
+
+##### 共享内存
+
+FileChannel 提供 map 方法把文件映射到虚拟内存，通常情况可以映射整个文件，如果文件比较大，可以进行分段映射
+
+FileChannel 中的成员属性：
+
+* MapMode.mode：内存映像文件访问的方式，共三种：
+  * MapMode.READ_ONLY：只读，试图修改得到的缓冲区将导致抛出异常。
+  * MapMode.READ_WRITE：读/写，对得到的缓冲区的更改最终将写入文件；但该更改对映射到同一文件的其他程序不一定是可见的
+  * MapMode.PRIVATE：私用，可读可写，但是修改的内容不会写入文件，只是 buffer 自身的改变，称之为 copy on write 写时复制
+
+* position：文件映射时的起始位置
+* `public final FileLock lock()`：获取此文件通道的排他锁
+
+MappedByteBuffer，可以让文件直接在内存（堆外内存）中进行修改，这种方式叫做内存映射，可以直接调用系统底层的缓存，没有JVM和系统之间的复制操作，提高了传输效率，作用：
+
+* 用在进程间的通信，能达到**共享内存页**的作用，但在高并发下要对文件内存进行加锁，防止出现读写内容混乱和不一致性，Java 提供了文件锁 FileLock，但在父/子进程中锁定后另一进程会一直等待，效率不高
+* 读写那些太大而不能放进内存中的文件
+
+MappedByteBuffer 较之 ByteBuffer新增的三个方法
+
+- `final MappedByteBuffer force()`：缓冲区是 READ_WRITE 模式下，对缓冲区内容的修改强行写入文件
+- `final MappedByteBuffer load()`：将缓冲区的内容载入物理内存，并返回该缓冲区的引用
+- `final boolean isLoaded()`：如果缓冲区的内容在物理内存中，则返回真，否则返回假
+
+```java
+public class MappedByteBufferTest {
+    public static void main(String[] args) throws Exception {
+        RandomAccessFile ra = new RandomAccessFile("1.txt", "rw");
+        //获取对应的通道
+        FileChannel channel = ra.getChannel();
+
+        /**
+         * 参数1	FileChannel.MapMode.READ_WRITE 使用的读写模式
+         * 参数2	0: 可以直接修改的起始位置
+         * 参数3	5: 是映射到内存的大小（不是索引位置），即将 1.txt 的多少个字节映射到内存
+         * 可以直接修改的范围就是 0-5
+         * 实际类型 DirectByteBuffer
+         */
+        MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, 5);
+
+        buffer.put(0, (byte) 'H');
+        buffer.put(3, (byte) '9');
+        buffer.put(5, (byte) 'Y');	//IndexOutOfBoundsException
+
+        ra.close();
+        System.out.println("修改成功~~");
+    }
+}
+```
+
+从硬盘上将文件读入内存，要经过文件系统进行数据拷贝，拷贝操作是由文件系统和硬件驱动实现。通过内存映射的方法访问硬盘上的文件，拷贝数据的效率要比 read 和 write 系统调用高：
+
+- read() 是系统调用，首先将文件从硬盘拷贝到内核空间的一个缓冲区，再将这些数据拷贝到用户空间，实际上进行了两次数据拷贝
+- map() 也是系统调用，但没有进行数据拷贝，当缺页中断发生时，直接将文件从硬盘拷贝到用户空间，只进行了一次数据拷贝
+
+
+
+参考文章：https://www.jianshu.com/p/f90866dcbffc
 
 
 
@@ -9383,6 +9454,8 @@ Channel 的两个方法：
 1. Buffer
 2. 使用上述两种方法
 
+![](https://gitee.com/seazean/images/raw/master/Java/NIO-复制文件.png)
+
 ```java
 public class ChannelTest {
     @Test
@@ -9500,7 +9573,7 @@ public class ChannelTest {
 
 选择器（Selector） 是 SelectableChannle 对象的**多路复用器**，Selector 可以同时监控多个通道的状况，利用 Selector 可使一个单独的线程管理多个 Channel。**Selector 是非阻塞 IO 的核心**。
 
-![](https://gitee.com/seazean/images/raw/master//NIO-Selector.png)
+![](https://gitee.com/seazean/images/raw/master/Java/NIO-Selector.png)
 
 * Selector 能够检测多个注册的通道上是否有事件发生（多个 Channel 以事件的方式可以注册到同一个Selector)，如果有事件发生，便获取事件然后针对每个事件进行相应的处理，就可以只用一个单线程去管理多个通道，也就是管理多个连接和请求
 * 只有在连接/通道真正有读写事件发生时，才会进行读写，就大大地减少了系统开销，并且不必为每个连接都创建一个线程，不用去维护多个线程
@@ -9746,8 +9819,6 @@ ServerSocket          ServerSocketChannel	       AsynchronousServerSocketChannel
 
 在JDK1.7中，这部分内容被称作NIO.2，主要在 Java.nio.channels 包下增加了下面四个异步通道：
 AsynchronousSocketChannel、AsynchronousServerSocketChannel、AsynchronousFileChannel、AsynchronousDatagramChannel
-
-
 
 
 
