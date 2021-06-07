@@ -961,7 +961,7 @@ top：用于实时显示 process 的动态
 
 ### ps
 
-Linux 系统中查看进程使用情况的命令是 **ps** 指令
+Linux 系统中查看进程使用情况的命令是 ps 指令
 
 命令：ps
 
@@ -1478,7 +1478,7 @@ chown [-R] 属主名:属组名 文件名
 
 chown root aaa：将文件aaa的属主更改成root
 
-chown itcast:itcast aaa：将文件aaa的属主和属组更改为itcast
+chown seazean:seazean aaa：将文件aaa的属主和属组更改为seazean
 
 
 
@@ -1623,7 +1623,7 @@ grep [-abcEFGhHilLnqrsvVwxy][-A<显示列数>][-B<显示列数>][-C<显示列数
 - 通过 `命令 >> 文件`   将**命令的成功结果** **追加**  指定文件的后面
 - 通过 `命令 &>> 文件` 将 **命令的失败结果** **追加** 指定文件的后面
 
-`echo  "黑马程序员" >> a.txt`：将黑马程序员追加到a.txt后面
+`echo "程序员" >> a.txt`：将程序员追加到a.txt后面
 
 `cat 不存在的目录  &>>  error.log`：将错误信息追加到error.log文件
 

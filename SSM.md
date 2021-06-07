@@ -998,7 +998,7 @@ PageInfo相关API：
   	id INT PRIMARY KEY AUTO_INCREMENT,
   	name VARCHAR(20)
   );
-  INSERT INTO classes VALUES (NULL,'黑马一班'),(NULL,'黑马二班')
+  INSERT INTO classes VALUES (NULL,'程序一班'),(NULL,'程序二班')
   
   CREATE TABLE student(
   	id INT PRIMARY KEY AUTO_INCREMENT,
@@ -3874,9 +3874,7 @@ ApplicationContext：
 
 
 
-FileSystemXmlApplicationContext：
-
-* 加载文件系统中任意位置的配置文件，而ClassPathXmlApplicationContext只能加载类路径下的配置文件
+FileSystemXmlApplicationContext：加载文件系统中任意位置的配置文件，而ClassPathXmlApplicationContext只能加载类路径下的配置文件
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/ApplicationContext层级结构图.png)
 
@@ -4157,6 +4155,8 @@ BeanDefinitionRegistryPostProcessor：
   * 从容器中找到BeanFactoryPostProcessor组件；然后依次触发postProcessBeanFactory()方法
 
 
+
+*****
 
 
 
