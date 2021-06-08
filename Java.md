@@ -35,7 +35,7 @@ Java语言提供了八种基本类型。六种数字类型（四个整数型，�
 - 最小值是 **-128（-2^7）**
 - 最大值是 **127（2^7-1）**
 - 默认值是 **`0`**
-- byte 类型用在大型数组中节约空间，主要代替整数，因为 byte 变量占用的空间只有 int 类型的四分之一；
+- byte 类型用在大型数组中节约空间，主要代替整数，因为 byte 变量占用的空间只有 int 类型的四分之一
 - 例子：`byte a = 100，byte b = -50`
 
 **short：**
@@ -43,7 +43,7 @@ Java语言提供了八种基本类型。六种数字类型（四个整数型，�
 - short 数据类型是 16 位、有符号的以二进制补码表示的整数
 - 最小值是 **-32768（-2^15）**
 - 最大值是 **32767（2^15 - 1）**
-- Short 数据类型也可以像 byte 那样节省空间。一个short变量是int型变量所占空间的二分之一；
+- short 数据类型也可以像 byte 那样节省空间，一个short变量是int型变量所占空间的二分之一
 - 默认值是 **`0`**
 - 例子：`short s = 1000，short r = -20000`
 
@@ -87,7 +87,7 @@ Java语言提供了八种基本类型。六种数字类型（四个整数型，�
 - boolean数据类型表示一位的信息
 - 只有两个取值：true 和 false
 - 这种类型只作为一种标志来记录 true/false 情况
-- JVM规范指出boolean当做int处理，也就是4字节，boolean数组当做byte数组处理，这样我们可以得出boolean类型占了单独使用是4个字节，在数组中是确定的1个字节
+- JVM 规范指出 boolean 当做 int 处理，也就是4字节，boolean 数组当做 byte 数组处理，这样可以得出 boolean 类型单独使用占了4个字节，在数组中是1个字节
 - 默认值是 **`false`**
 - 例子：`boolean one = true`
 
@@ -293,7 +293,7 @@ valueOf() 方法的实现比较简单，就是先判断值是否在缓存池中�
 - Integer values between -128 and 127
 - Character in the range \u0000 to \u007F (0 and 127)
 
-在 jdk 1.8 所有的数值类缓冲池中，Integer 的缓存池 IntegerCache 很特殊，这个缓冲池的下界是 -128，上界默认是 127，但是上界是可调的，在启动 jvm 的时候，通过AutoBoxCacheMax=<size> 来指定这个缓冲池的大小，该选项在 JVM 初始化的时候会设定一个名为 java.lang.IntegerCache.high 系统属性，然后 IntegerCache 初始化的时候就会读取该系统属性来决定上界
+在 jdk 1.8 所有的数值类缓冲池中，Integer 的缓存池 IntegerCache 很特殊，这个缓冲池的下界是 -128，上界默认是 127，但是上界是可调的，在启动 jvm 的时候，通过 AutoBoxCacheMax=<size> 来指定这个缓冲池的大小，该选项在 JVM 初始化的时候会设定一个名为 java.lang.IntegerCache.high 系统属性，然后 IntegerCache 初始化的时候就会读取该系统属性来决定上界
 
 ```java
 Integer x = Integer.valueOf(100);
@@ -351,7 +351,7 @@ public class ScannerDemo {
   
 * 引用数据类型那么好，为什么还用基本数据类型？
 
-  > 引用类型的对象要多储存一个对象头，对基本数据类型来说空间浪费率太高
+  > 引用类型的对象要多储存对象头，对基本数据类型来说空间浪费率太高
   > 逻辑上来讲，java只有包装类就够了，为了运行速度，需要用到基本数据类型；优先考虑运行效率的问题，所以二者同时存在是合乎情理的。
 
 * Java集合不能存放基本数据类型，只存放对象的引用？
@@ -1171,7 +1171,7 @@ public class BinarySerach {
 
 
 
-#### 算法思想
+#### 算法
 
 ##### 核心思想
 
@@ -1216,7 +1216,7 @@ public static int f(int n){
 
 
 
-##### 注意
+##### 注意事项
 
 以上理论只能针对于**规律化递归**，如果是非规律化是不能套用以上公式的！
 非规律化递归的问题：文件搜索，啤酒问题。
@@ -1227,7 +1227,7 @@ public static int f(int n){
 
 
 
-#### 经典案例
+#### 案例
 
 ##### 猴子吃桃
 
@@ -1346,10 +1346,6 @@ Debug是供程序员使用的程序调试工具，它可以用于查看程序的
 ![](https://gitee.com/seazean/images/raw/master/Java/Debug按键说明.png)
 
 <img src="https://gitee.com/seazean/images/raw/master/Java/Debug条件断点.png" alt="Debug条件断点" style="zoom:50%;" />
-
-
-
-
 
 
 
@@ -2864,7 +2860,7 @@ s = s + "cd"; //s = abccd 新对象
   ```
 
   * 对象6：new String("ab")
-  * StringBuilder的toString()的调用，在字符串常量池中没有生成"ab"，new String("ab")会创建两个对象是因为传参数的时候使用字面量创建了对象“ab”，当使用数组构造string对象时，没有加入常量池的操作
+  * StringBuilder 的 toString() 调用，在字符串常量池中没有生成"ab"，new String("ab") 会创建两个对象因为传参数的时候使用字面量创建了对象 “ab ”，当使用数组构造 String 对象时，没有加入常量池的操作
 
 
 
@@ -9655,7 +9651,7 @@ ssChannel.register(selector, SelectionKey.OP_ACCEPT);
   | 方法                                                         | 说明                                         |
   | ------------------------------------------------------------ | -------------------------------------------- |
   | public final SelectableChannel configureBlocking(boolean block) | 设置此通道的阻塞模式                         |
-  | public final SelectionKey register(Selector sel, int ops)    | 向给定的选择器注册此通道，并选择感兴趣的事件 |
+  | public final SelectionKey register(Selector sel, int ops)    | 向给定的选择器注册此通道，并选择关注的的事件 |
 
 * SocketChannel_API：
 
@@ -9992,13 +9988,13 @@ public class UserServiceTest {
 
 ### 获取元素
 
-#### 获取类对象
+#### 获取类
 
 反射技术的第一步是先得到Class类对象，有三种方式获取：
 
 * 类名.class
 * 通过类的对象.getClass()方法
-* Class.forName("类的全限名")   --> `public static Class<?> forName(String className) `
+* Class.forName("类的全限名")：`public static Class<?> forName(String className) `
 
 Class类下的方法：
 
@@ -10039,7 +10035,7 @@ class Student{}
 
 
 
-#### 获取构造器
+#### 获取构造
 
 获取构造器的API：
 
@@ -10138,7 +10134,7 @@ public class TestStudent02 {
 
 
 
-#### 获取成员变量
+#### 获取变量
 
 获取Field成员变量API：
 
@@ -10234,7 +10230,7 @@ public class FieldDemo02 {
 * Method[] getDeclaredMethods()：获得类中的所有成员方法对象，返回数组，只获得本类申明的方法
 
 Method常用API：
-`public Object invoke(Object obj, Object... args) `: 使用指定的参数调用由此方法对象，obj对象名
+`public Object invoke(Object obj, Object... args) `：使用指定的参数调用由此方法对象，obj对象名
 
 ```java
 public class MethodDemo{
@@ -10289,10 +10285,10 @@ public class Dog {
 
 ### 暴力攻击
 
+泛型只能工作在编译阶段，运行阶段泛型就消失了，反射工作在运行时阶段
+
 1. 反射可以破坏面向对象的封装性（暴力反射）
 2. 同时可以破坏泛型的约束性
-
- 泛型只能工作在编译阶段，运行阶段泛型就消失了，反射工作在运行时阶段。
 
 ```java
 public class ReflectDemo {
@@ -10490,8 +10486,7 @@ public class AnnotationDemo01{
 
 ### 注解解析
 
-> 我们会使用注解注释一个类的成分，那么就设计到要解析出这些注解的数据。
-> 开发中经常要知道一个类的成分上面到底有哪些注解，注解有哪些属性数据，这都需要进行注解的解析。
+开发中经常要知道一个类的成分上面到底有哪些注解，注解有哪些属性数据，这都需要进行注解的解析。
 
 注解解析相关的接口：
 
@@ -10505,7 +10500,7 @@ API ：
   `T getAnnotation(Class<T> annotationClass)` : 根据注解类型获得对应注解对象
   `boolean isAnnotationPresent(Class<Annotation> class)` : 判断对象是否使用了指定的注解
 
-注解原理：注解本质是一个继承了`Annotation` 的特殊接口，其具体实现类是Java 运行时生成的**动态代理类**，通过反射获取注解时，返回的是Java 运行时生成的动态代理对象`$Proxy1`，通过代理对象调用自定义注解（接口）的方法，会最终调用`AnnotationInvocationHandler` 的`invoke`方法，该方法会从`memberValues` 这个Map 中找出对应的值，而`memberValues` 的来源是Java 常量池
+注解原理：注解本质是一个继承了`Annotation` 的特殊接口，其具体实现类是 Java 运行时生成的**动态代理类**，通过反射获取注解时，返回的是 Java 运行时生成的动态代理对象 `$Proxy1`，通过代理对象调用自定义注解（接口）的方法，会最终调用 `AnnotationInvocationHandler` 的 `invoke` 方法，该方法会从 `memberValues`  这个Map 中找出对应的值，而 `memberValues` 的来源是 Java 常量池
 
 解析注解数据的原理：注解在哪个成分上，就先拿哪个成分对象，比如注解作用在类上，则要该类的Class对象，再来拿上面的注解
 
@@ -12497,15 +12492,19 @@ objD.fieldG = G;     	// 写
 
 解决方法：添加读写屏障，读屏障拦截第一步，写屏障拦截第二三步，在读写前后进行一些后置处理 (AOP)
 
-* **写屏障 + 增量更新**：针对新增的引用，记录下新的引用对象，最后进行重新遍历标记
+* **写屏障 + 增量更新**：黑色对象新增的引用，将引用记录下，最后对黑色节点重新扫描
 
   增量更新 (Incremental Update) 破坏了条件二，从而保证了不会漏标
 
+  缺点：对黑色变灰的对象重新扫描所有引用，比较耗费时间
+
 * **写屏障 (Store Barrier) + SATB**：当原来成员变量的引用发生变化之前，记录下原来的引用对象
 
-  保留GC开始时的对象图，即原始快照 SATB，当GC Roots确定后，对象图就已经确定，那后续的标记也应该是按照这个时刻的对象图走，如果期间发生变化则记录下来，以后根据这些记录重新标记
+  保留GC开始时的对象图，即原始快照 SATB，当 GC Roots 确定后，对象图就已经确定，那后续的标记也应该是按照这个时刻的对象图走，如果期间对白色对象有了新的引用会记录下来，白色变灰，重新扫描该对象
 
   SATB (Snapshot At The Beginning) 破坏了条件一，从而保证了不会漏标
+
+  缺点：
 
 * **读屏障 (Load Barrier)**：破坏条件二，黑色对象引用白色对象的前提是获取到该对象，此时读屏障发挥作用
 
@@ -13193,11 +13192,11 @@ Serial GC、Parallel GC、Concurrent Mark Sweep GC这三个GC不同：
 
 实例数据：实例数据部分是对象真正存储的有效信息，也是在程序代码中所定义的各种类型的字段内容。无论是从父类继承下来的，还是在子类中定义的，都需要记录起来
 
-对齐填充：起占位符的作用。由于HotSpot VM的自动内存管理系统要求对象起始地址必须是8字节的整数倍，就是对象的大小必须是8字节的整数倍，而对象头部分正好是8字节的倍数（1倍或者2倍），因此当对象实例数据部分没有对齐时，就需要通过对齐填充来补全
+对齐填充：Padding 起占位符的作用。由于HotSpot VM的自动内存管理系统要求对象起始地址必须是8字节的整数倍，就是对象的大小必须是8字节的整数倍，而对象头部分正好是8字节的倍数（1倍或者2倍），因此当对象实例数据部分没有对齐时，就需要通过对齐填充来补全
 
 32位系统
 
-* 一个int在java中占据4byte，所以Integer的大小为：
+* 一个 int 在 java 中占据 4byte，所以 Integer 的大小为：
 
   ```ruby
   # 需要补位4byte
@@ -13232,9 +13231,9 @@ Serial GC、Parallel GC、Concurrent Mark Sweep GC这三个GC不同：
   private int size;
   ```
 
-  Mark Word 占4byte，Klass Word 占4byte，一个int字段(size)占 4byte，elementData 数组本身占 12(4+4+4)，数组中10个Integer对象占 10×16，所以整个集合空间大小为 184byte
+  Mark Word 占 4byte，Klass Word 占 4byte，一个int字段(size)占 4byte，elementData 数组本身占 12(4+4+4)，数组中 10 个 Integer 对象占 10×16，所以整个集合空间大小为 184byte
 
-* 时间用long/int表示，不用Date或者String
+* 时间用 long/int 表示，不用 Date 或者 String
 
 
 
@@ -15736,7 +15735,7 @@ JDK 自带了**监控工具，位于 JDK 的 bin 目录下**，其中最常用�
 
 * 线程通信相对简单，因为它们共享进程内的内存，一个例子是多个线程可以访问同一个共享变量
   
-  Java中的通信机制：volatile、等待/通知机制、join方式、ThreadLocal
+  Java中的通信机制：volatile、等待/通知机制、join方式、InheritableThreadLocal、MappedByteBuffer
   
 * 线程更轻量，线程上下文切换成本一般上要比进程上下文切换低
 
@@ -16078,45 +16077,43 @@ public class Test14 {
 `public static boolean interrupted()`：判断当前线程是否被打断，清除打断标记
 `public boolean isInterrupted()`：判断当前线程是否被打断，不清除打断标记
 
-sleep，wait，join方法都会让线程进入阻塞状态，打断进程会**清空打断状态** (false)
+* sleep，wait，join方法都会让线程进入阻塞状态，打断进程会**清空打断状态** (false)
 
-```java
-public static void main(String[] args) throws InterruptedException {
-    Thread t1 = new Thread(()->{
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }, "t1");
-    t1.start();
-    Thread.sleep(500);
-    t1.interrupt();
-    System.out.println(" 打断状态: {}" + t1.isInterrupted());// 打断状态: {}false
-}
-```
+  ```java
+  public static void main(String[] args) throws InterruptedException {
+      Thread t1 = new Thread(()->{
+          try {
+              Thread.sleep(1000);
+          } catch (InterruptedException e) {
+              e.printStackTrace();
+          }
+      }, "t1");
+      t1.start();
+      Thread.sleep(500);
+      t1.interrupt();
+      System.out.println(" 打断状态: {}" + t1.isInterrupted());// 打断状态: {}false
+  }
+  ```
 
+* 打断正常运行的线程：不会清空打断状态（true）
 
-
-打断正常运行的线程：不会清空打断状态（true）
-
-```java
-public static void main(String[] args) throws Exception {
-    Thread t2 = new Thread(()->{
-        while(true) {
-            Thread current = Thread.currentThread();
-            boolean interrupted = current.isInterrupted();
-            if(interrupted) {
-                System.out.println(" 打断状态: {}" + interrupted);//打断状态: {}true
-                break;
-            }
-        }
-    }, "t2");
-    t2.start();
-    Thread.sleep(500);
-    t2.interrupt();
-}
-```
+  ```java
+  public static void main(String[] args) throws Exception {
+      Thread t2 = new Thread(()->{
+          while(true) {
+              Thread current = Thread.currentThread();
+              boolean interrupted = current.isInterrupted();
+              if(interrupted) {
+                  System.out.println(" 打断状态: {}" + interrupted);//打断状态: {}true
+                  break;
+              }
+          }
+      }, "t2");
+      t2.start();
+      Thread.sleep(500);
+      t2.interrupt();
+  }
+  ```
 
 
 
@@ -16177,7 +16174,7 @@ System.out.println("unpark...");//和上一个unpark同时执行
 打断线程可能在任何时间，所以需要考虑在任何时刻被打断的处理方法：
 
 ```java
-public class Test13 {
+public class Test {
     public static void main(String[] args) throws InterruptedException {
         TwoPhaseTermination tpt = new TwoPhaseTermination();
         tpt.start();
@@ -20133,36 +20130,6 @@ class DelayTask implements Delayed {
 
 ### 操作Pool
 
-#### 状态信息
-
-ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位表示线程数量
-
-| 状态       | 高3位 | 接收新任务 | 处理阻塞任务队列 | 说明                                    |
-| ---------- | ----- | ---------- | ---------------- | --------------------------------------- |
-| RUNNING    | 111   | Y          | Y                |                                         |
-| SHUTDOWN   | 000   | N          | Y                | 不接收新任务，但处理阻塞队列剩余任务    |
-| STOP       | 001   | N          | N                | 中断正在执行的任务，并抛弃阻塞队列任务  |
-| TIDYING    | 010   | -          | -                | 任务全执行完毕，活动线程为0即将进入终结 |
-| TERMINATED | 011   | -          | -                | 终止状态                                |
-
-这些信息存储在一个原子变量 ctl 中，目的是将线程池状态与线程个数合二为一，这样就可以用一次 cas 原子操作
-进行赋值
-
-```java
-// c 为旧值， ctlOf 返回结果为新值
-ctl.compareAndSet(c, ctlOf(targetState, workerCountOf(c))));
-// rs 为高 3 位代表线程池状态， wc 为低 29 位代表线程个数，ctl 是合并它们
-private static int ctlOf(int rs, int wc) { return rs | wc; }
-```
-
-![](https://gitee.com/seazean/images/raw/master/Java/JUC-线程池状态转换图.png)
-
-
-
-***
-
-
-
 #### 创建方法
 
 ##### Executor
@@ -20343,7 +20310,7 @@ Executors提供了四种线程池的创建：newCachedThreadPool、newFixedThrea
 
 
 
-#### 提交任务
+#### 提交方法
 
 ExecutorService类API：
 
@@ -20418,6 +20385,36 @@ System.out.println(future.get());
 
 
 
+***
+
+
+
+#### 状态信息
+
+ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位表示线程数量
+
+| 状态       | 高3位 | 接收新任务 | 处理阻塞任务队列 | 说明                                    |
+| ---------- | ----- | ---------- | ---------------- | --------------------------------------- |
+| RUNNING    | 111   | Y          | Y                |                                         |
+| SHUTDOWN   | 000   | N          | Y                | 不接收新任务，但处理阻塞队列剩余任务    |
+| STOP       | 001   | N          | N                | 中断正在执行的任务，并抛弃阻塞队列任务  |
+| TIDYING    | 010   | -          | -                | 任务全执行完毕，活动线程为0即将进入终结 |
+| TERMINATED | 011   | -          | -                | 终止状态                                |
+
+这些信息存储在一个原子变量 ctl 中，目的是将线程池状态与线程个数合二为一，这样就可以用一次 cas 原子操作
+进行赋值
+
+```java
+// c为旧值， ctlOf返回结果为新值
+ctl.compareAndSet(c, ctlOf(targetState, workerCountOf(c))));
+// rs为高3位代表线程池状态， wc为低29位代表线程个数，ctl是合并它们
+private static int ctlOf(int rs, int wc) { return rs | wc; }
+```
+
+![](https://gitee.com/seazean/images/raw/master/Java/JUC-线程池状态转换图.png)
+
+
+
 
 
 ***
@@ -20462,7 +20459,7 @@ private static void method1() {
 
 #### Scheduled
 
-任务调度线程池ScheduledThreadPoolExecutor继承ThreadPoolExecutor：
+任务调度线程池 ScheduledThreadPoolExecutor 继承 ThreadPoolExecutor：
 
 构造方法：`Executors.newScheduledThreadPool(int corePoolSize)`
 
@@ -22853,6 +22850,8 @@ class ThreadB extends Thread{
 
 
 ### ConHashMap
+
+（待更新）
 
 #### 并发集合
 
