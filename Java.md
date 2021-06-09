@@ -316,8 +316,8 @@ System.out.println(x == y);   // false
 
 语法：`Scanner sc = new Scanner(System.in)`
 
-* next()：遇到了空格, 就不再录入数据了 , 结束标记: 空格, tab键
-* nextLine()：可以将数据完整的接收过来 , 结束标记: 回车换行符
+* next()：遇到了空格，就不再录入数据了，结束标记：空格、tab键
+* nextLine()：可以将数据完整的接收过来，结束标记：回车换行符
 
 一般使用 `sc.nextInt()` 或者 `sc.nextLine()` 接受整型和字符串，然后转成需要的数据类型
 
@@ -327,10 +327,10 @@ print：`PrintStream.write()`
 > 使用引用数据类型的API
 
 ```java
-import java.util.Scanner;
-public class ScannerDemo {
-    public static void main(String[] args) {
-        Scanner sc = new Scanner(System.in);
+public static void main(String[] args) {
+    Scanner sc = new Scanner(System.in);
+    while (sc.hasNextLine()) {
+        String msg = sc.nextLine();
     }
 }
 ```
@@ -7645,7 +7645,7 @@ fw.close;
 
 #### 缓冲流
 
-##### 概述
+##### 基本介绍
 
 作用：缓冲流可以提高字节流和字符流的读写数据的性能。
 
@@ -12131,7 +12131,7 @@ public class Demo1_27 {
 
 虚拟机采用了两种方式在创建对象时解决并发问题：CAS、TLAB
 
-TLAB：Thread Local Allocation Buffer，为每个线程在堆内单独分配了一个缓冲区，多线程分配内存时，使用TLAB可以避免线程安全问题，同时还能够提升内存分配的吞吐量，这种内存分配方式叫做**快速分配策略**
+TLAB：Thread Local Allocation Buffer，为每个线程在堆内单独分配了一个缓冲区，多线程分配内存时，使用TLAB 可以避免线程安全问题，同时还能够提升内存分配的吞吐量，这种内存分配方式叫做**快速分配策略**
 
 - 栈上分配使用的是栈来进行对象内存的分配
 - TLAB 分配使用的是 Eden 区域进行内存分配，属于堆内存
@@ -12142,7 +12142,7 @@ TLAB：Thread Local Allocation Buffer，为每个线程在堆内单独分配了�
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JVM-TLAB内存分配策略.jpg)
 
-JVM是将TLAB作为内存分配的首选，但不是所有的对象实例都能够在TLAB中成功分配内存，一旦对象在TLAB空间分配内存失败时，JVM就会尝试着通过**使用加锁机制确保数据操作的原子性**，从而直接在Eden空间中分配内存
+JVM 是将 TLAB 作为内存分配的首选，但不是所有的对象实例都能够在 TLAB 中成功分配内存，一旦对象在TLAB空间分配内存失败时，JVM 就会通过**使用加锁机制确保数据操作的原子性**，从而直接在 Eden 空间中分配内存
 
 栈上分配优先于 TLAB 分配进行，逃逸分析中若可进行栈上分配优化，会优先进行对象栈上直接分配内存
 
@@ -19363,6 +19363,27 @@ public class JdbcUtils {
 }
 ```
 
+用 ThreadLocal 使 SimpleDateFormat 从独享变量变成单个线程变量：
+
+```java
+public class ThreadLocalDateUtil {
+    private static ThreadLocal<DateFormat> threadLocal = new ThreadLocal<DateFormat>() {
+        @Override
+        protected DateFormat initialValue() {
+            return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        }
+    };
+
+    public static Date parse(String dateStr) throws ParseException {
+        return threadLocal.get().parse(dateStr);
+    }
+
+    public static String format(Date date) {
+        return threadLocal.get().format(date);
+    }
+}
+```
+
 
 
 ****
@@ -19679,7 +19700,7 @@ Memory leak：内存泄漏是指程序中动态分配的堆内存由于某种原
 
 * 如果key使用弱引用：
 
-  使用完 ThreadLocal ，threadLocal Ref 被回收，ThreadLocalMap 只持有 ThreadLocal 的弱引用，所以threadlocal 也可以被回收，此时Entry中的 key=null。但没有手动删除这个Entry或者 CurrentThread 依然运行，依然存在强引用链，value不会被回收，而这块value永远不会被访问到，导致value内存泄漏
+  使用完 ThreadLocal ，threadLocal Ref 被回收，ThreadLocalMap 只持有 ThreadLocal 的弱引用，所以threadlocal 也可以被回收，此时 Entry 中的 key=null。但没有手动删除这个 Entry 或者 CurrentThread 依然运行，依然存在强引用链，value 不会被回收，而这块 value 永远不会被访问到，导致 value 内存泄漏
 
   <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-ThreadLocal内存泄漏弱引用.png" style="zoom:67%;" />
 
@@ -25240,10 +25261,8 @@ UML 从目标系统的不同角度出发，定义了用例图、类图、对象�
 
   ```java
   public final Object readObject() throws IOException, ClassNotFoundException{
-      int outerHandle = passHandle;
-      try {
-          Object obj = readObject0(false);//重点查看readObject0方法
-      }
+      //...
+        Object obj = readObject0(false);//重点查看readObject0方法
   }
   
   private Object readObject0(boolean unshared) throws IOException {
