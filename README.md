@@ -2,14 +2,13 @@
 
 声明：所有的知识不保证权威性，如果各位朋友发现错误，非常欢迎与我讨论。
 
-邮箱：zhyzhyang@sina.com
+邮箱：imseazean@gmail.com
 
 内容说明：
 
-* DB：MySQL、JDBC、Redis
-* Frame：Maven
+* DB：MySQL、Redis
 * Issue：Interview Questions
 * Java：JavaSE、JVM、JUC、Design Pattern
 * SSM：MyBatis、Spring、SpringMVC、SpringBoot
 * Tool：Git、Linux、Docker
-* Web：HTML、CSS、Servlet、JavaScript
+* Web：HTML、CSS、HTTP、Servlet、JavaScript
