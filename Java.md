@@ -5144,32 +5144,31 @@ HashMap继承关系如下图所示：
 11. 调整大小下一个容量的值计算方式为(容量*负载因子) 
 
      ```java
-     //临界值,当实际大小(容量*负载因子)超过临界值时，会进行扩容
+     //临界值，当实际大小(容量*负载因子)超过临界值时，会进行扩容
      int threshold;
      ```
 
 12. **哈希表的加载因子(重点)**
 
-        ```java
-     // 加载因子
+    ```java
      final float loadFactor;
-        ```
-
-        * 加载因子的概述
-        
-          loadFactor加载因子，是用来衡量 HashMap 满的程度，表示**HashMap的疏密程度**，影响hash操作到同一个数组位置的概率，计算HashMap的实时加载因子的方法为：size/capacity，而不是占用桶的数量去除以capacity，capacity 是桶的数量，也就是 table 的长度length。
-        
-          当HashMap里面容纳的元素已经达到HashMap数组长度的75%时，表示HashMap拥挤，需要扩容，而扩容这个过程涉及到 rehash、复制数据等操作，非常消耗性能，所以开发中尽量减少扩容的次数，可以通过创建HashMap集合对象时指定初始容量来尽量避免。
-        
-          ```java
-          HashMap(int initialCapacity, float loadFactor)//构造指定初始容量和加载因子的空HashMap
-          ```
-        
-        * 为什么加载因子设置为0.75，初始化临界值是12？
-        
-          loadFactor太大导致查找元素效率低，存放的数据拥挤，太小导致数组的利用率低，存放的数据会很分散。loadFactor的默认值为**0.75f是官方给出的一个比较好的临界值**。
-        
-        * **threshold**计算公式：capacity(数组长度默认16) * loadFactor(负载因子默认0.75)。这个值是当前已占用数组长度的最大值。**当Size>=threshold**的时候，那么就要考虑对数组的resize(扩容)，这就是 **衡量数组是否需要扩增的一个标准**， 扩容后的 HashMap 容量是之前容量的**两倍**.
+    ```
+    
+    * 加载因子的概述
+    
+      loadFactor加载因子，是用来衡量 HashMap 满的程度，表示**HashMap的疏密程度**，影响hash操作到同一个数组位置的概率，计算HashMap的实时加载因子的方法为：size/capacity，而不是占用桶的数量去除以capacity，capacity 是桶的数量，也就是 table 的长度length。
+    
+      当HashMap里面容纳的元素已经达到HashMap数组长度的75%时，表示HashMap拥挤，需要扩容，而扩容这个过程涉及到 rehash、复制数据等操作，非常消耗性能，所以开发中尽量减少扩容的次数，可以通过创建HashMap集合对象时指定初始容量来尽量避免。
+    
+      ```java
+      HashMap(int initialCapacity, float loadFactor)//构造指定初始容量和加载因子的空HashMap
+      ```
+    
+    * 为什么加载因子设置为0.75，初始化临界值是12？
+    
+      loadFactor太大导致查找元素效率低，存放的数据拥挤，太小导致数组的利用率低，存放的数据会很分散。loadFactor的默认值为**0.75f是官方给出的一个比较好的临界值**。
+    
+    * **threshold**计算公式：capacity(数组长度默认16) * loadFactor(负载因子默认0.75)。这个值是当前已占用数组长度的最大值。**当Size>=threshold**的时候，那么就要考虑对数组的resize(扩容)，这就是 **衡量数组是否需要扩增的一个标准**， 扩容后的 HashMap 容量是之前容量的**两倍**.
 
 
 
@@ -8320,9 +8319,9 @@ Java中的通信模型:
 
 ### I/O
 
-#### 模型
+#### IO模型
 
-##### IO模型
+##### 五种模型
 
 对于一个套接字上的输入操作，第一步是等待数据从网络中到达，当数据到达时被复制到内核中的某个缓冲区。第二步就是把数据从内核缓冲区复制到应用进程缓冲区
 
@@ -8391,11 +8390,11 @@ recvfrom() 用于接收 Socket 传来的数据，并复制到应用进程的缓�
 
 ##### IO复用
 
-IO 复用模型使用 select 或者 poll 函数等待数据，select 会监听所有注册好的 IO，等待多个套接字中的任何一个变为可读。等待过程会被**阻塞**，当某个套接字准备好数据变为可读时 select 调用就返回，然后调用 recvfrom 把数据从内核复制到进程中。
+IO 复用模型使用 select 或者 poll 函数等待数据，select 会监听所有注册好的 IO，等待多个套接字中的任何一个变为可读，等待过程会被**阻塞**，当某个套接字准备好数据变为可读时 select 调用就返回，然后调用 recvfrom 把数据从内核复制到进程中
 
-IO 复用让单个进程具有处理多个 I/O 事件的能力，又被称为 Event Driven I/O，即事件驱动 I/O。
+IO 复用让单个进程具有处理多个 I/O 事件的能力，又被称为 Event Driven I/O，即事件驱动 I/O
 
-如果一个 Web 服务器没有 I/O 复用，那么每一个 Socket 连接都要创建一个线程去处理，如果同时有几万个连接，就需要创建相同数量的线程。相比于多进程和多线程技术，I/O 复用不需要进程线程创建和切换的开销，系统开销更小。
+如果一个 Web 服务器没有 I/O 复用，那么每一个 Socket 连接都要创建一个线程去处理，如果同时有几万个连接，就需要创建相同数量的线程。相比于多进程和多线程技术，I/O 复用不需要进程线程创建和切换的开销，系统开销更小
 
 ![](https://gitee.com/seazean/images/raw/master/Java/IO模型-IO复用模型.png)
 
@@ -8419,15 +8418,11 @@ IO 复用让单个进程具有处理多个 I/O 事件的能力，又被称为 Ev
 
 
 
-#### 函数
-
-（待完善select和epoll函数，c语言函数）
-
-select和poll差别不多，一个是数组一个是链表，因此poll的连接数理论上是不受限制的，而select是数组，数量受限。epoll多注册了一个函数ctrl事件监听。套接字是操作系统在管理，所以硬件的中断反馈给操作系统，进程从操作系统读取套接字的fd，所以这里有一个内存拷贝的过程，select和poll是轮询每个套接字，每次都要拷贝这个，而epoll则是在初始化拷贝，每次事件触发的时候直接响应，不用再复制。
 
 
 
-****
+
+***
 
 
 
@@ -9076,7 +9071,7 @@ NIO 三大核心部分：**Channel( 通道) ，Buffer( 缓冲区), Selector( 选
 
 * Buffer 缓冲区
 
-  缓冲区本质是一块可以写入数据、读取数据的内存，这块内存被包装成NIO Buffer对象，并且提供了相应的方法用来操作这块内存，相比较直接对数组的操作，Buffer 的 API 更加容易操作和管理
+  缓冲区本质是一块可以写入数据、读取数据的内存，**底层是一个数组**，这块内存被包装成NIO Buffer对象，并且提供了方法用来操作这块内存，相比较直接对数组的操作，Buffer 的 API 更加容易操作和管理
 
 * Channel 通道
 
@@ -9094,7 +9089,7 @@ NIO的实现框架：
 * 一个线程对应 Selector ， 一个 Selector 对应多个 Channel（连接）
 * 程序切换到哪个Channel 是由事件决定的，Event 是一个重要的概念
 * Selector 会根据不同的事件，在各个通道上切换
-* Buffer 就是一个内存块 ， **底层是一个数组**
+* Buffer 是一个内存块 ， 底层是一个数组
 * 数据的读取写入是通过 Buffer 完成的 , BIO 中要么是输入流，或者是输出流，不能双向，NIO 的 Buffer 是可以读也可以写， flip() 切换 Buffer 的工作模式
 
 Java NIO 系统的核心在于：通道和缓冲区，通道表示打开到 IO 设备（例如：文件、 套接字）的连接。若需要使用 NIO 系统，获取用于连接 IO 设备的通道以及用于容纳数据的缓冲区，然后操作缓冲区，对数据进行处理。简而言之，Channel 负责传输， Buffer 负责存取数据
@@ -9246,16 +9241,49 @@ public class TestBuffer {
 
 ##### 直接内存
 
-Byte Buffer可以是两种类型，一种是基于直接内存（也就是非堆内存），另一种是非直接内存（也就是堆内存）。对于直接内存来说，JVM将会在IO操作上具有更高的性能，因为直接作用于本地系统的IO操作，而非直接内存，也就是堆内存中的数据，如果要作IO操作，会先从本进程内存复制到直接内存，再利用本地IO处理
+Byte Buffer 可以是两种类型，一种是基于直接内存（也就是非堆内存），另一种是非直接内存（也就是堆内存）。对于直接内存来说，JVM将会在IO操作上具有更高的性能，因为直接作用于本地系统的IO操作，而非直接内存，也就是堆内存中的数据，如果要作IO操作，会先从本进程内存复制到直接内存，再利用本地IO处理
 
-直接内存创建Buffer对象：`static XxxBuffer allocateDirect(int capacity)`
+直接内存创建 Buffer 对象：`static XxxBuffer allocateDirect(int capacity)`
+
+直接内存的分配与回收机制参考：JVM → 内存结构 → 本地内存 → 直接内存
+
+堆外内存不受 JVM GC 控制，可以使用堆外内存进行通信，防止 GC 后缓冲区位置发生变化的情况，源码：
+
+* SocketChannel#write(java.nio.ByteBuffer) → SocketChannelImpl#write(java.nio.ByteBuffer)
+
+  ```java
+  public int write(ByteBuffer var1) throws IOException {
+       do {
+           var3 = IOUtil.write(this.fd, var1, -1L, nd);
+       } while(var3 == -3 && this.isOpen());
+  }
+  ```
+
+* IOUtil#write(java.io.FileDescriptor, java.nio.ByteBuffer, long, sun.nio.ch.NativeDispatcher)
+
+  ```java
+  static int write(FileDescriptor var0, ByteBuffer var1, long var2, NativeDispatcher var4) {
+      //判断是否是直接内存，是则直接写出，不是则封装到直接内存
+      if (var1 instanceof DirectBuffer) {
+          return writeFromNativeBuffer(var0, var1, var2, var4);
+      } else {
+          //....
+          //从堆内buffer拷贝到堆外buffer
+          ByteBuffer var8 = Util.getTemporaryDirectBuffer(var7);
+          var8.put(var1);
+          //...
+          //从堆外写到内核缓冲区
+  		int var9 = writeFromNativeBuffer(var0, var8, var2, var4);
+  	}
+  }
+  ```
 
 数据流的角度：
 
-* 非直接内存的作用链：本地IO-->直接内存-->非直接内存-->直接内存-->本地IO
+* 非直接内存的作用链：本地IO → 直接内存 → 非直接内存 → 直接内存 → 本地IO
 * 直接内存是：本地IO → 直接内存 → 本地IO
 
-JVM直接内存详解
+JVM 直接内存详解：
 
 <img src="https://gitee.com/seazean/images/raw/master/Java/JVM-直接内存直接缓冲区.png" style="zoom: 50%;" />
 
@@ -9269,7 +9297,7 @@ JVM直接内存详解
 
 ##### 共享内存
 
-FileChannel 提供 map 方法把文件映射到虚拟内存，通常情况可以映射整个文件，如果文件比较大，可以进行分段映射
+FileChannel 提供 map 方法把文件映射到虚拟内存，通常情况可以映射整个文件，如果文件比较大，可以进行分段映射，完成映射后对物理内存的操作会被同步到硬盘上
 
 FileChannel 中的成员属性：
 
@@ -9281,7 +9309,7 @@ FileChannel 中的成员属性：
 * position：文件映射时的起始位置
 * `public final FileLock lock()`：获取此文件通道的排他锁
 
-MappedByteBuffer，可以让文件直接在内存（堆外内存）中进行修改，这种方式叫做内存映射，可以直接调用系统底层的缓存，没有JVM和系统之间的复制操作，提高了传输效率，作用：
+MappedByteBuffer，可以让文件直接在内存（堆外内存）中进行修改，这种方式叫做内存映射，可以直接调用系统底层的缓存，没有 JVM 和系统之间的复制操作，提高了传输效率，作用：
 
 * 用在进程间的通信，能达到**共享内存页**的作用，但在高并发下要对文件内存进行加锁，防止出现读写内容混乱和不一致性，Java 提供了文件锁 FileLock，但在父/子进程中锁定后另一进程会一直等待，效率不高
 * 读写那些太大而不能放进内存中的文件
@@ -9322,6 +9350,8 @@ public class MappedByteBufferTest {
 
 - read() 是系统调用，首先将文件从硬盘拷贝到内核空间的一个缓冲区，再将这些数据拷贝到用户空间，实际上进行了两次数据拷贝
 - map() 也是系统调用，但没有进行数据拷贝，当缺页中断发生时，直接将文件从硬盘拷贝到用户空间，只进行了一次数据拷贝
+
+注意：mmap 的文件映射，在 Full GC 时才会进行释放，如果需要手动清除内存映射文件，可以反射调用sun.misc.Cleaner 方法
 
 
 
@@ -9783,16 +9813,6 @@ public class Client {
 
 
 
-****
-
-
-
-#### 零拷贝
-
-（待更新）
-
-
-
 ***
 
 
@@ -9824,7 +9844,7 @@ AsynchronousSocketChannel、AsynchronousServerSocketChannel、AsynchronousFileCh
 
 ## 反射
 
-### Junit
+### 测试框架
 
 > 单元测试是指程序员写的测试代码给自己的类中的方法进行预期正确性的验证。
 > 单元测试一旦写好了这些测试代码，就可以一直使用，可以实现一定程度上的自动化测试。
@@ -11489,16 +11509,16 @@ Java编译器输入的指令流是一种基于栈的指令集架构。因为跨�
 
 JVM的生命周期分为三个阶段，分别为：启动、运行、死亡。
 
-- **启动**：当启动一个Java程序时，通过引导类加载器（bootstrap class loader）创建一个初始类（initial class），对于拥有main函数的类就是JVM实例运行的起点
+- **启动**：当启动一个 Java 程序时，通过引导类加载器（bootstrap class loader）创建一个初始类（initial class），对于拥有 main 函数的类就是 JVM 实例运行的起点
 - **运行**：
-  - main()方法是一个程序的初始起点，任何线程均可由在此处启动
-  - 在JVM内部有两种线程类型，分别为：**用户线程和守护线程**，JVM通常使用的是守护线程，而main()和其他线程使用的是用户线程，守护线程会随着用户线程的结束而结束
-  - 执行一个Java程序时，真真正正在执行的是一个Java虚拟机的进程
-  - JVM有两种运行模式Server与Client，两种模式的区别在于：Client模式启动速度较快，Server模式启动较慢；但是启动进入稳定期长期运行之后Server模式的程序运行速度比Client要快很多
+  - main() 方法是一个程序的初始起点，任何线程均可由在此处启动
+  - 在 JVM 内部有两种线程类型，分别为：**用户线程和守护线程**，JVM通常使用的是守护线程，而main()和其他线程使用的是用户线程，守护线程会随着用户线程的结束而结束
+  - 执行一个 Java 程序时，真真正正在执行的是一个 Java 虚拟机的进程
+  - JVM 有两种运行模式 Server 与 Client，两种模式的区别在于：Client 模式启动速度较快，Server 模式启动较慢；但是启动进入稳定期长期运行之后 Server 模式的程序运行速度比 Client 要快很多
 - **死亡**：
-  - 当程序中的用户线程都中止，JVM才会退出
+  - 当程序中的用户线程都中止，JVM 才会退出
   - 程序正常执行结束、程序异常或错误而异常终止、操作系统错误导致终止
-  - 某线程调用Runtime类halt方法或System类exit方法，并且java安全管理器允许这次exit或halt操作
+  - 线程调用 Runtime 类 halt 方法或 System 类 exit 方法，并且 java 安全管理器允许这次 exit 或 halt 操作
 
 
 
@@ -11717,13 +11737,13 @@ JNI：Java Native Interface，通过使用 Java本地接口书写程序，可以
 
 * 不需要进行GC，与虚拟机栈类似，也是线程私有的，有 StackOverFlowError 和 OutOfMemoryError 异常
 
-* 虚拟机栈执行的是java方法，在HotSpot JVM中，直接将本地方法栈和虚拟机栈合二为一
+* 虚拟机栈执行的是 Java 方法，在 HotSpot JVM 中，直接将本地方法栈和虚拟机栈合二为一
 
 * 本地方法一般是由其他语言编写，并且被编译为基于本机硬件和操作系统的程序
 
 * 当某个线程调用一个本地方法时，就进入了不再受虚拟机限制的世界，和虚拟机拥有同样的权限
 
-  * 本地方法可以通过本地方法接口来 **访问虚拟机内部的运行时数据区**
+  * 本地方法可以通过本地方法接口来**访问虚拟机内部的运行时数据区**
   * 直接从本地内存的堆中分配任意数量的内存
   * 可以直接使用本地处理器中的寄存器
   
@@ -11926,15 +11946,15 @@ public class Demo1_8 extends ClassLoader { // 可以用来加载类的二进制�
 
 Direct Memory优点：
 
-* Java 的 NIO 库允许Java程序使用直接内存，用于数据缓冲区，使用native函数直接分配堆外内存
+* Java 的 NIO 库允许 Java 程序使用直接内存，用于数据缓冲区，使用 native 函数直接分配堆外内存
 * 读写性能高，读写频繁的场合可能会考虑使用直接内存
-* 大大提高IO性能，避免了在java堆和native堆来回复制数据
+* 大大提高IO性能，避免了在 Java 堆和 native 堆来回复制数据
 
 直接内存缺点：
 
 * 分配回收成本较高，不受 JVM 内存回收管理
-
 * 可能导致OutOfMemoryError异常：OutOfMemoryError: Direct buffer memory
+* 回收依赖 System.gc() 的调用，但这个调用 JVM 不保证执行、也不保证何时执行，行为是不可控的。程序一般需要自行管理，成对去调用 malloc、free
 
 应用场景：
 
@@ -11943,18 +11963,41 @@ Direct Memory优点：
 
 
 
-##### 底层原理
+*****
 
-工作流程：
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-直接内存直接缓冲区.png" style="zoom: 50%;" />
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-直接内存非直接缓冲区.png" style="zoom:50%;" />
+##### 分配回收
+
+DirectByteBuffer 源码分析：
+
+```java
+DirectByteBuffer(int cap) { 
+    //....
+    long base = 0;
+    try {
+        base = unsafe.allocateMemory(size);
+    }
+    unsafe.setMemory(base, size, (byte) 0);
+    if (pa && (base % ps != 0)) {
+        address = base + ps - (base & (ps - 1));
+    } else {
+        address = base;
+    }
+    cleaner = Cleaner.create(this, new Deallocator(base, size, cap));
+}
+private static class Deallocator implements Runnable {
+    public void run() {
+        unsafe.freeMemory(address);
+		//...
+    }
+}
+```
 
 分配和回收原理：
 
-* 使用了 Unsafe 对象完成直接内存的分配回收，并且回收需要主动调用 freeMemory 方法
-* ByteBuffer 的实现类内部，使用了 Cleaner （虚引用）来监测 ByteBuffer 对象，一旦ByteBuffer 对象被垃圾回收，那么就会由 ReferenceHandler 线程通过 Cleaner 的 clean 方法调用 freeMemory 来释放直接内存
+* 使用了 Unsafe 对象的 allocateMemory 方法完成直接内存的分配，setMemory 方法完成赋值
+* ByteBuffer 的实现类内部，使用了 Cleaner （虚引用）来监测 ByteBuffer 对象，一旦 ByteBuffer 对象被垃圾回收，那么 ReferenceHandler 线程通过 Cleaner 的 clean 方法调用 Deallocator 的 run方法，最后通过 freeMemory 来释放直接内存
 
 ```java
 /**
@@ -12397,8 +12440,9 @@ public void localvarGC4() {
 - 虚拟机栈中局部变量表中引用的对象：各个线程被调用的方法中使用到的参数、局部变量等
 - 本地方法栈中引用的对象
 - 方法区中类静态属性引用的对象
-- 方法区中的常量引用的对象：字符串常量池（string Table）里的引用
-- 同步锁synchronized持有的对象
+- 方法区中的常量引用的对象
+- 字符串常量池（string Table）里的引用
+- 同步锁 synchronized 持有的对象
 
 GC Roots说明：
 
@@ -12544,7 +12588,7 @@ Java语言提供了对象终止（finalization）机制来允许开发人员提�
 
 
 
-#### 四种引用
+#### 引用分析
 
 无论是通过引用计数算法判断对象的引用数量，还是通过可达性分析算法判断对象是否可达，判定对象是否可被回收都与引用有关，Java 提供了四种强度不同的引用类型
 
@@ -12552,7 +12596,7 @@ Java语言提供了对象终止（finalization）机制来允许开发人员提�
 
    * 强引用可以直接访问目标对象
    * 虚拟机宁愿抛出OOM异常，也不会回收强引用所指向对象
-   * 强引用可能导致**内存泄漏**（引用计数法小节解释了什么是内存泄漏）
+   * 强引用可能导致**内存泄漏**（引用计数法章节解释了什么是内存泄漏）
 
    ```java
    Object obj = new Object();//使用 new 一个新对象的方式来创建强引用
@@ -12561,7 +12605,7 @@ Java语言提供了对象终止（finalization）机制来允许开发人员提�
 2. 软引用（SoftReference）：被软引用关联的对象只有在内存不够的情况下才会被回收
 
    * **仅（可能有强引用，一个对象可以被多个引用）**有软引用引用该对象时，在垃圾回收后，内存仍不足时会再次出发垃圾回收，回收软引用对象
-   * 配合引用队列来释放软**引用自身**，在构造软引用时，可以指定一个引用队列，当软引用对象被回收时，就会加入指定的引用队列，通过这个队列可以跟踪对象的回收情况
+   * 配合**引用队列来释放软引用自身**，在构造软引用时，可以指定一个引用队列，当软引用对象被回收时，就会加入指定的引用队列，通过这个队列可以跟踪对象的回收情况
    * 软引用通常用来实现内存敏感的缓存，比如高速缓存就有用到软引用；如果还有空闲内存，就可以暂时保留缓存，当内存不足时清理掉，这样就保证了使用缓存的同时不会耗尽内存
 
    ```java
@@ -12595,6 +12639,15 @@ Java语言提供了对象终止（finalization）机制来允许开发人员提�
    ```
 
 5. 终结器引用（finalization）
+
+ 引用的四种状态：
+
+* Active：激活，创建 ref 对象时就是激活状态
+* Pending：等待入队，所对应的强引用被GC，就要进入引用队列
+* Enqueued：入队了
+  * 如果指定了 refQueue，pending 移动到 enqueued 状态，refQueue.poll 时进入失效状态
+  * 如果没有指定 refQueue，直接到失效状态
+* Inactive：失效
 
 
 
@@ -12640,7 +12693,6 @@ Java语言提供了对象终止（finalization）机制来允许开发人员提�
 算法缺点：
 
 - 标记和清除过程效率都不高
-- 进行GC的时候，需要停止整个应用程序，用户体验较差
 - 会产生大量不连续的内存碎片，导致无法给大对象分配内存，需要维护一个空闲链表
 
 <img src="https://gitee.com/seazean/images/raw/master/Java/JVM-标记清除算法.png" style="zoom: 67%;" />
@@ -12805,7 +12857,7 @@ Parallel Old收集器：是一个应用于老年代的并行垃圾回收器，**
 对比其他回收器：
 
 * 其它收集器目标是尽可能缩短垃圾收集时用户线程的停顿时间
-* Parallel目标是达到一个可控制的吞吐量，被称为“**吞吐量优先**”收集器
+* Parallel目标是达到一个可控制的吞吐量，被称为**吞吐量优先**收集器
 * Parallel Scavenge对比ParNew拥有**自适应调节策略**，可以通过一个开关参数打开GC Ergonomics
 
 应用场景：
@@ -12856,7 +12908,7 @@ Par是Parallel并行的缩写，New：只能处理的是新生代
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JVM-ParNew收集器.png)
 
-ParNew 是很多JVM运行在Server模式下新生代的默认垃圾收集器
+ParNew 是很多 JVM 运行在 Server 模式下新生代的默认垃圾收集器
 
 - 对于新生代，回收次数频繁，使用并行方式高效
 - 对于老年代，回收次数少，使用串行方式节省资源（CPU并行需要切换线程，串行可以省去切换线程的资源）
@@ -12877,10 +12929,10 @@ CMS收集器的关注点是尽可能缩短垃圾收集时用户线程的停顿�
 
 - 初始标记：使用STW出现短暂停顿，仅标记一下 GC Roots 能直接关联到的对象，速度很快
 - 并发标记：进行 GC Roots的直接关联对象开始遍历整个对象图，在整个回收过程中耗时最长，不需要STW，可以与用户线程一起并发运行
-- 重新标记：修正并发标记期间因用户程序继续运作而导致标记产生变动的那一部分对象的标记记录，比初始标记时间长但远比并发标记时间短，需要STW
+- 重新标记：修正并发标记期间因用户程序继续运作而导致标记产生变动的那一部分对象的标记记录，比初始标记时间长但远比并发标记时间短，需要 STW
 - 并发清除：清除标记为可以回收对象，不需要移动存活对象，所以这个阶段可以与用户线程同时并发的
 
-Mark Sweep会造成内存碎片，还不把算法换成Mark Compact的原因：
+Mark Sweep 会造成内存碎片，还不把算法换成 Mark Compact 的原因：
 
 * Mark Compact 算法会整理内存，导致用户线程使用的对象的地址改变，影响用户线程继续执行
 
@@ -12963,8 +13015,6 @@ G1对比其他处理器的优点：
 
   * 相比于 CMS GC，G1 未必能做到 CMS 在最好情况下的延时停顿，但是最差情况要好很多
 
-
-
 G1垃圾收集器的缺点：
 
 * 相较于 CMS，G1 还不具备全方位、压倒性优势。比如在用户程序运行过程中，G1 无论是为了垃圾收集产生的内存占用还是程序运行时的额外执行负载都要比 CMS 要高
@@ -12987,7 +13037,7 @@ G1垃圾收集器的缺点：
 
 <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-G1记忆集.png" style="zoom:67%;" />
 
-* 程序对Reference类型数据写操作时，产生一个 Write Barrier 暂时中断操作，检查该对象和Reference类型数据是否在不同的Region（其他收集器：检查老年代对象是否引用了新生代对象），不同便通过 CardTable 把相关引用信息记录到Reference类型所属的 Region 的 Remembered Set 之中
+* 程序对 Reference 类型数据写操作时，产生一个 Write Barrier 暂时中断操作，检查该对象和 Reference 类型数据是否在不同的 Region（其他收集器：检查老年代对象是否引用了新生代对象），不同便通过 CardTable 把相关引用信息记录到 Reference 类型所属的 Region 的 Remembered Set 之中
 * 进行内存回收时，在 GC 根节点的枚举范围中加入 Remembered Set 即可保证不对全堆扫描也不会有遗漏
 
 
@@ -12998,28 +13048,28 @@ G1垃圾收集器的缺点：
 
 ##### 工作原理
 
-G1中提供了三种垃圾回收模式：YoungGC、Mixed GC和FullGC，在不同的条件下被触发
+G1中提供了三种垃圾回收模式：YoungGC、Mixed GC 和 FullGC，在不同的条件下被触发
 
 <img src="https://gitee.com/seazean/images/raw/master/Java/JVM-G1回收过程.png" style="zoom: 50%;" />
 
-顺时针：Young GC -> Young GC + Concurrent Mark -> Mixed GC顺序，进行垃圾回收
+顺时针：Young GC -> Young GC + Concurrent Mark -> Mixed GC 顺序，进行垃圾回收
 
 * **Young GC**：发生在年轻代的GC算法，一般对象（除了巨型对象）都是在 eden region 中分配内存，当所有 eden region 被耗尽无法申请内存时，就会触发一次 young gc，G1停止应用程序的执行 (Stop-The-World)，把活跃对象放入老年代，垃圾对象回收
 
   **回收过程**：
 
-  1. 扫描根：根引用连同RSet记录的外部引用作为扫描存活对象的入口
-  2. 更新RSet：处理 dirty card queue 更新RS，此后RSet准确的反映老年代对所在的内存分段中对象的引用
-     * dirty card queue：类似缓存，产生了引用先记录在这里，然后更新到RSet
-     * 作用：产生引用直接更新RSet需要线程同步开销很大，使用队列性能好
+  1. 扫描根：根引用连同 RSet 记录的外部引用作为扫描存活对象的入口
+  2. 更新RSet：处理 dirty card queue 更新 RS，此后 RSet 准确的反映对象的引用关系
+     * dirty card queue：类似缓存，产生了引用先记录在这里，然后更新到 RSet
+     * 作用：产生引用直接更新 RSet 需要线程同步开销很大，使用队列性能好
   3. 处理RSet：识别被老年代对象指向的Eden中的对象，这些被指向的Eden中的对象被认为是存活的对象
   4. 复制对象：Eden区内存段中存活的对象会被复制到 survivor 区，survivor 区内存段中存活的对象如果年龄未达阈值，年龄会加1，达到阀值会被会被复制到 old 区中空的内存分段，如果 survivor 空间不够，Eden 空间的部分数据会直接晋升到老年代空间
   5. 处理引用：处理 Soft，Weak，Phantom，JNI Weak  等引用，最终 Eden 空间的数据为空，GC 停止工作
 
 * **并发标记过程**：
 
-  * 初始标记：标记从根节点直接可达的对象，这个阶段是STW的，并且会触发一次年轻代GC
-  * 根区域扫描 (Root Region Scanning)：G1 扫描survivor区直接可达的老年代区域对象，并标记被引用的对象，这一过程必须在Young GC之前完成
+  * 初始标记：标记从根节点直接可达的对象，这个阶段是 STW 的，并且会触发一次年轻代 GC
+  * 根区域扫描 (Root Region Scanning)：G1 扫描 survivor 区直接可达的老年代区域对象，并标记被引用的对象，这一过程必须在 Young GC 之前完成
   * 并发标记 (Concurrent Marking)：在整个堆中进行并发标记（应用程序并发执行），可能被 YoungGC 中断。在并发标记阶段，**若发现区域对象中的所有对象都是垃圾，则这个区域会被立即回收（实时回收）**，同时并发标记过程中，会计算每个区域的对象活性，即区域中存活对象的比例
   * 最终标记：为了修正在并发标记期间因用户程序继续运作而导致标记产生变动的那一部分标记记录，虚拟机将这段时间对象变化记录在线程的 Remembered Set Logs 里面，最终标记阶段需要把 Remembered Set Logs 的数据合并到 Remembered Set 中，这阶段需要停顿线程，但是可并行执行
   * 筛选回收：并发清理阶段，首先对各个 Region 中的回收价值和成本进行排序，根据用户所期望的 GC 停顿时间来制定回收计划。此阶段其实也可以做到与用户程序一起并发执行，但是因为只回收一部分 Region，时间是用户可控制的，而且停顿用户线程将大幅度提高收集效率
@@ -18033,6 +18083,31 @@ CPU 处理器速度远远大于在主内存中的，为了解决速度差异，�
 
 
 
+#### 伪共享
+
+**缓存以缓存行 cache line 为单位，每个缓存行对应着一块内存**，一般是 64 byte（8 个 long），在CPU从主存获取数据时，以 cache line 为单位加载，于是相邻的数据会一并加载到缓存中
+
+缓存会造成数据副本的产生，即同一份数据会缓存在不同核心的缓存行中，CPU 要保证数据的一致性，需要做到某个 CPU 核心更改了数据，其它 CPU 核心对应的**整个缓存行必须失效**，这就是伪共享
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/JUC-内存伪共享.png" style="zoom: 67%;" />
+
+解决方法：
+
+* padding：通过填充，让数据落在不同的 cache line 中
+
+* @Contended：原理参考 无锁 → Addr → 优化机制 → 伪共享
+
+Linux查看CPU缓存行：
+
+* 命令：`cat /sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size64`
+* 内存地址格式：[高位组标记] [低位索引] [偏移量]
+
+
+
+***
+
+
+
 #### 缓存一致
 
 缓存一致性：当多个处理器运算任务都涉及到同一块主内存区域的时候，将可能导致各自的缓存数据不一样
@@ -18060,14 +18135,6 @@ CPU 处理器速度远远大于在主内存中的，为了解决速度差异，�
   该缓存是无效的，可能有其它 CPU 修改了该缓存行
 
 解决方法：各个处理器访问缓存时都遵循一些协议，在读写时要根据协议进行操作，协议主要有MSI、MESI等
-
-Linux查看CPU缓存行：
-
-* 命令：`cat /sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size64`
-
-* 内存地址格式：[高位组标记] [低位索引] [偏移量]
-
-缓存行在 无锁 → LongAddr → 伪共享部分详解
 
 
 
@@ -18837,15 +18904,25 @@ CAS底层实现是在一个循环中不断地尝试修改目标值，直到修�
 
 
 
-#### 成员变量
+#### 优化机制
 
-**分段CAS机制**：
+##### 分段机制
+
+分段CAS机制：
 
 * 在发生竞争时，创建Cell数组用于将不同线程的操作离散（通过hash等算法映射）到不同的节点上
 * 设置多个累加单元（会根据需要扩容，最大为CPU核数），Therad-0 累加 Cell[0]，而 Thread-1 累加 Cell[1] 等，最后将结果汇总
 * 在累加时操作的不同的 Cell 变量，因此减少了 CAS 重试失败，从而提高性能
 
-**自动分段迁移机制**：某个Cell的value执行CAS失败，就会自动寻找另一个Cell分段内的value值进行CAS操作
+
+
+***
+
+
+
+##### 分段迁移
+
+自动分段迁移机制：某个Cell的value执行CAS失败，就会自动寻找另一个Cell分段内的value值进行CAS操作
 
 ```java
 // 累加单元数组, 懒惰初始化
@@ -18858,7 +18935,7 @@ transient volatile int cellsBusy;
 
 Cells占用内存是相对比较大的，是惰性加载的，在无竞争的情况下直接更新base域，在第一次发生竞争的时候（CAS失败）就会创建一个大小为2的cells数组，每次扩容都是加倍
 
-扩容数组等行为只能有一个线程执行，因此需要一个锁，这里通过CAS更新cellsBusy来实现一个简单的lock
+扩容数组等行为只能有一个线程执行，因此需要一个锁，这里通过 CAS 更新 cellsBusy 来实现一个简单的lock
 
 CAS锁：
 
@@ -18880,6 +18957,14 @@ public class LockCas {
 }
 ```
 
+
+
+***
+
+
+
+##### 伪共享
+
 Cell为累加单元：数组访问索引是通过Thread里的threadLocalRandomProbe域取模实现的，这个域是ThreadLocalRandom更新的
 
 ```java
@@ -18896,28 +18981,15 @@ Cell为累加单元：数组访问索引是通过Thread里的threadLocalRandomPr
 
 @sun.misc.Contended注解：防止缓存行伪共享
 
-
-
-***
-
-
-
-#### 伪共享
-
-CPU三层缓存结构：
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/JMM-CPU缓存结构.png" style="zoom: 50%;" />
-
-CPU 与 内存的速度差异很大，需要靠预读数据至缓存来提升效率，而**缓存以缓存行为单位，每个缓存行对应着一块内存**，一般是 64 byte（8 个 long）。缓存会造成数据副本的产生，即同一份数据会缓存在不同核心的缓存行中，CPU 要保证数据的一致性，需要做到某个 CPU 核心更改了数据，其它 CPU 核心对应的**整个缓存行必须失效**，这就是伪共享
-
-Cell 是数组形式，**在内存中是连续存储的**，一个 Cell 为 24 字节（16 字节的对象头和 8 字节的 value），因
-此缓存行可以存下 2 个的 Cell 对象，当Core-0 要修改 Cell[0]、Core-1 要修改 Cell[1]，无论谁修改成功都会导致对方 Core 的缓存行失效，需要重新去主存获取
+Cell 是数组形式，**在内存中是连续存储的**，一个 Cell 为 24 字节（16 字节的对象头和 8 字节的 value），每一个 cache line 为 64 字节，因此缓存行可以存下 2 个的 Cell 对象，当Core-0 要修改 Cell[0]、Core-1 要修改 Cell[1]，无论谁修改成功都会导致对方 Core 的缓存行失效，需要重新去主存获取
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JUC-伪共享1.png)
 
-@sun.misc.Contended：在使用此注解的对象或字段的前后各增加 128 字节大小的padding，从而让 CPU 将对象预读至缓存时占用不同的缓存行，这样就不会造成对方缓存行的失效
+@sun.misc.Contended：在使用此注解的对象或字段的前后各增加 128 字节大小的padding，使用2倍于大多数硬件缓存行让 CPU 将对象预读至缓存时占用不同的缓存行，这样就不会造成对方缓存行的失效
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JUC-伪共享2.png)
+
+
 
 
 
@@ -24085,6 +24157,7 @@ BaseHeader存储数据，headIndex存储索引，纵向上**所有索引指向�
           //索引层level，从1开始
           int level = 1, max;
           //12.判断最低位前面有几个1，有几个leve就加几：0..0 0001 1110，这是4个，则1+4=5
+          //   最大有30个就是 1 + 30
           while (((rnd >>>= 1) & 1) != 0)
               ++level;
           Index<K,V> idx = null;//最终指向z节点，就是添加的节点 

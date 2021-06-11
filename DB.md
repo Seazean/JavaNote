@@ -5504,7 +5504,7 @@ MySQL 的主从复制原理图：
 * 优化 SQL，避免慢 SQL，减少批量操作
 * 提高从库机器的配置，减少主库写 binlog 和从库读 binlog 的效率差
 * 尽量采用短的链路，主库和从库服务器的距离尽量要短，提升端口带宽，减少 binlog 传输的网络延时
-* 实时性要求的业务读强制走主库，从库只做灾备，备份
+* 实时性要求高的业务读强制走主库，从库只做灾备，备份
 * 强制将写之后立马读的操作转移到主库，比如刚注册的用户，直接登录从库查询可能查询不到，先走主库登录
 
 
@@ -8219,7 +8219,7 @@ Redis为每个服务提供16个数据库，编码0-15，每个数据库之间的
 
 #### 实现
 
-Redis字符串对象底层的数据结构实现主要是 int 和简单动态字符串SDS，涉及C语言相关，先不做记录
+Redis字符串对象底层的数据结构实现主要是 int 和简单动态字符串 SDS，涉及C语言相关，先不做记录
 
 参考文章：https://www.cnblogs.com/hunternet/p/9957913.html
 
@@ -8464,7 +8464,7 @@ list类型：保存多个数据，底层使用**双向链表**存储结构实现
 
 ##### 链表结构
 
-Redis 链表为双向无环链表，使用 listNode 结构表示
+Redis 链表为**双向无环链表**，使用 listNode 结构表示
 
 ```c
 typedef struct listNode
@@ -8493,7 +8493,7 @@ typedef struct listNode
 
 quicklist 实际上是 ziplist 和 linkedlist 的混合体，将 linkedlist 按段切分，每一段使用 ziplist 来紧凑存储，多个 ziplist 之间使用双向指针串接起来
 
-![](https://gitee.com/seazean/images/raw/master/DB/Redis-快速列表数据结构.png)
+<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-快速列表数据结构.png" style="zoom: 50%;" />
 
 
 
@@ -8723,7 +8723,7 @@ Redis 使用跳跃表作为有序集合键的底层实现之一，如果一个�
 * 基于单向链表加索引的方式实现
 
 - Redis 的跳跃表实现由 zskiplist 和 zskiplistnode 两个结构组成，其中 zskiplist 用于保存跳跃表信息（比如表头节点、表尾节点、长度），而 zskiplistnode 则用于表示跳跃表节点
-- Redis 每个跳跃表节点的层高都是 1 至 32 之间的随机数
+- Redis 每个跳跃表节点的层高都是 1 至 32 之间的随机数（Redis5之后最大层数为64）
 - 在同一个跳跃表中，多个节点可以包含相同的分值，但每个节点的成员对象必须是唯一的。跳跃表中的节点按照分值大小进行排序，当分值相同时节点按照成员对象的大小进行排序
 
 ![](https://gitee.com/seazean/images/raw/master/DB/Redis-跳跃表数据结构.png)
@@ -9129,7 +9129,7 @@ public JedisPool(GenericObjectPoolConfig poolConfig, String host, int port) {
 
 
 
-### 可视化工具
+### 可视化
 
 Redis Desktop Manager
 
@@ -9956,9 +9956,7 @@ TTL 返回的值有三种情况：正数，-1，-2
   no-enviction	#禁止驱逐数据(redis4.0中默认策略)，会引发OOM(Out Of Memory)
   ```
 
-数据淘汰策略配置依据：
-
- 使用INFO命令输出监控信息，查询缓存 hit 和 miss 的次数，根据业务需求调优Redis配置
+数据淘汰策略配置依据：使用INFO命令输出监控信息，查询缓存 hit 和 miss 的次数，根据需求调优 Redis 配置
 
 
 
@@ -10819,6 +10817,18 @@ sentinel 在通知阶段不断的去获取 master/slave 的信息，然后在各
 
 ## 缓存方案
 
+### 缓存本质
+
+弥补 CPU 的高算力和 IO 的慢读写之间巨大的鸿沟
+
+
+
+
+
+***
+
+
+
 ### 缓存模式
 
 #### 旁路缓存
@@ -10830,7 +10840,7 @@ Cache Aside Pattern 中服务端需要同时维系 DB 和 cache，并且是以 D
 * 写操作：先更新 DB，然后直接删除 cache
 * 读操作：从 cache 中读取数据，读取到就直接返回；读取不到就从 DB 中读取数据返回，并放到 cache 
 
-数据库和缓存的顺序问题：
+时序导致的不一致问题：
 
 * 在写数据的过程中，不能先删除 cache 再更新 DB，因为会造成缓存的不一致。比如请求1先写数据A，请求2随后读数据A，当请求1删除 cache 后，请求2直接读取了 DB，此时请求1还没写入 DB
 
@@ -10839,12 +10849,20 @@ Cache Aside Pattern 中服务端需要同时维系 DB 和 cache，并且是以 D
 旁路缓存的缺点：
 
 * 首次请求数据一定不在 cache 的问题，一般采用缓存预热的方法，将热点数据可以提前放入cache 中
-
 * 写操作比较频繁的话导致 cache 中的数据会被频繁被删除，影响缓存命中率
 
-  数据库和缓存数据强一致场景 ：更新DB的时候同样更新 cache，不过需要加一个锁来保证更新 cache 时不存在线程安全问题，这样可以增加命中率
 
-  可以短暂地允许数据库和缓存数据不一致场景：更新DB的时候同样更新 cache，但是给缓存加一个比较短的过期时间，这样的话就可以保证即使数据不一致影响也比较小
+缓存不一致的方法：
+
+* 数据库和缓存数据**强一致**场景 ：
+  * 更新DB时同样更新 cache，加一个锁来保证更新 cache 时不存在线程安全问题，这样可以增加命中率
+  * 延迟双删：先淘汰缓存再写数据库，休眠1秒再次淘汰缓存，可以将1秒内造成的缓存脏数据再次删除
+  * CDC 同步：通过 canal 订阅 MySQL binlog 的变更上报给 Kafka，系统监听 Kafka 消息触发缓存失效
+* 可以短暂地允许数据库和缓存数据**不一致**场景：更新DB的时候同样更新 cache，但是给缓存加一个比较短的过期时间，这样的话就可以保证即使数据不一致影响也比较小
+
+
+
+参考文章：http://cccboke.com/archives/2020-09-30-21-29-56
 
 
 
@@ -10872,7 +10890,7 @@ Read-Through Pattern 也存在首次不命中的问题，采用缓存预热解�
 
 #### 异步缓存
 
-异步缓存写入 Write Behind Pattern 由 cache 服务来负责 cache 和 DB 的读写，对比读写穿透不同的是 Write Behind Caching 是只更新缓存，不直接更新 DB，改为异步批量的方式来更新 DB
+异步缓存写入 Write Behind Pattern 由 cache 服务来负责 cache 和 DB 的读写，对比读写穿透不同的是 Write Behind Caching 是只更新缓存，不直接更新 DB，改为**异步批量**的方式来更新 DB，可以减小写的成本
 
 缺点：这种模式对数据一致性没有高要求，可能出现 cache 还没异步更新DB，服务就挂掉了
 
