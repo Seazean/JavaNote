@@ -8418,7 +8418,440 @@ IO 复用让单个进程具有处理多个 I/O 事件的能力，又被称为 Ev
 
 
 
+#### 多路复用
 
+##### select
+
+select 允许应用程序监视一组文件描述符，等待一个或者多个描述符成为就绪状态，从而完成 I/O 操作。
+
+```c
+int select(int n, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout);
+```
+
+- fd_set 使用 **bitmap 数组**实现，数组大小用 FD_SETSIZE 定义，只能监听少于 FD_SETSIZE 数量的描述符，32位机默认是 1024 个，64位机默认是 2048
+
+- fd_set 有三种类型的描述符：readset、writeset、exceptset，对应读、写、异常条件的描述符集合
+
+- n 是监测的 socket 的最大数量
+
+- timeout 为超时参数，调用 select 会一直阻塞直到有描述符的事件到达或者等待的时间超过 timeout
+
+  ```c
+  struct timeval{
+      long tv_sec; //秒
+      long tv_usec;//微秒
+  }
+  ```
+
+  timeout == null：等待无限长的时间
+  tv_sec == 0 && tv_usec == 0：获取后直接返回，不阻塞等待
+  tv_sec != 0 || tv_usec != 0：等待指定时间
+
+- 方法成功调用返回结果为就绪的文件描述符个数，出错返回结果为 -1，超时返回结果为 0
+
+Linux 提供了一组宏为 fd_set 进行赋值操作：
+
+```c
+int FD_ZERO(fd_set *fdset);			// 将一个fd_set类型变量的所有值都置为0
+int FD_CLR(int fd, fd_set *fdset);	// 将一个fd_set类型变量的fd位置为0
+int FD_SET(int fd, fd_set *fdset);	// 将一个fd_set类型变量的fd位置为1
+int FD_ISSET(int fd, fd_set *fdset);// 判断fd位是否被置为1
+```
+
+示例：
+
+```c
+sockfd = socket(AF_INET, SOCK_STREAM, 0);
+memset(&addr, 0, sizeof(addr)));
+addr.sin_family = AF_INET;
+addr.sin_port = htons(2000);
+addr.sin_addr.s_addr = INADDR_ANY;
+bind(sockfd, (struct sockaddr*)&addr, sizeof(addr));//绑定连接
+listen(sockfd, 5);//监听5个端口
+for(i = 0; i < 5; i++) {
+	memset(&client, e, sizeof(client));
+    addrlen = sizeof(client);
+	fds[i] = accept(sockfd, (struct sockaddr*)&client, &addrlen);
+    //将监听的对应的文件描述符fd存入fds：[3,4,5,6,7]
+    if(fds[i] > max)
+		max = fds[i];
+}
+while(1) {
+    FD_ZERO(&rset);//置为0
+    for(i = 0; i < 5; i++) {
+    	FD_SET(fds[i], &rset);//对应位置1 [0001 1111 00.....]
+	}
+	print("round again");
+	select(max + 1, &rset, NULL, NULL, NULL);//监听
+    
+	for(i = 0; i <5; i++) {
+        if(FD_ISSET(fds[i], &rset)) {//判断监听哪一个端口
+            memset(buffer, 0, MAXBUF);
+            read(fds[i], buffer, MAXBUF);//进入内核态读数据
+            print(buffer);
+        }
+    }
+}
+```
+
+
+
+流程图：https://gitee.com/seazean/images/blob/master/Java/IO-select%E5%8E%9F%E7%90%86%E5%9B%BE.jpg
+
+图片来源：https://www.processon.com/view/link/5f62b9a6e401fd2ad7e5d6d1
+
+参考视频：https://www.bilibili.com/video/BV19D4y1o797
+
+
+
+****
+
+
+
+##### poll
+
+poll 的功能与 select 类似，也是等待一组描述符中的一个成为就绪状态
+
+```c
+int poll(struct pollfd *fds, unsigned int nfds, int timeout);
+```
+
+poll 中的描述符是 pollfd 类型的数组，pollfd 的定义如下：
+
+```c
+struct pollfd {
+    int   fd;         /* file descriptor */
+    short events;     /* requested events */
+    short revents;    /* returned events */
+};
+```
+
+select 和 poll 对比：
+
+- select 会修改描述符，而 poll 不会
+- select 的描述符类型使用数组实现，有描述符的限制；而 poll 使用**链表**实现，没有描述符数量的限制
+- poll 提供了更多的事件类型，并且对描述符的重复利用上比 select 高
+- 如果一个线程对某个描述符调用了 select 或者 poll，另一个线程关闭了该描述符，会导致调用结果不确定
+
+* select 和 poll 速度都比较慢，每次调用都需要将全部描述符数组从应用进程缓冲区复制到内核缓冲区
+
+* 几乎所有的系统都支持 select，但是只有比较新的系统支持 poll
+* select 和 poll 的时间复杂度 O(n)，对 socket 进行扫描时是线性扫描，即采用轮询的方法，效率较低，因为并不知道具体是哪个 socket 具有事件，所以随着 FD 的增加会造成遍历速度慢的**线性下降**性能问题
+* poll 还有一个特点是水平触发，如果报告了 fd 后，没有被处理，那么下次 poll 时会再次报告该 fd
+
+
+
+参考文章：https://github.com/CyC2018/CS-Notes/blob/master/notes/Socket.md
+
+
+
+****
+
+
+
+##### epoll
+
+###### 函数
+
+epoll_ctl() 用于向内核注册新的描述符或者是改变某个文件描述符的状态。已注册的描述符在内核中会被维护在一棵**红黑树**上，通过回调函数内核会将 I/O 准备好的描述符加入到一个**链表**中管理，进程调用 epoll_wait() 便可以得到事件完成的描述符
+
+```c
+int epoll_create(int size);
+int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event)；
+int epoll_wait(int epfd, struct epoll_event * events, int maxevents, int timeout);
+```
+
+epoll 使用事件的就绪通知方式，通过 epoll_ctl 注册fd，一旦该fd就绪，内核就会采用 callback 的回调机制来激活该 fd，epoll_wait 便可以收到通知
+
+*  epall_create：一个系统函数，函数将在内核空间内开辟一块新的空间，可以理解为 epoll 结构空间，返回值为 epoll 的文件描述符编号，所以 epoll 使用一个文件描述符管理多个描述符
+
+* epall_ctl：epoll 的事件注册函数，select 函数是调用时指定需要监听的描述符和事件，epoll 先将用户感兴趣的描述符事件注册到 epoll 空间。此函数是非阻塞函数，用来增删改 epoll 空间内的描述符，参数解释：
+
+  * epfd：epoll 结构的进程 fd 编号，函数将依靠该编号找到对应的 epoll 结构
+
+  * op：表示当前请求类型，有三个宏定义：
+
+    * EPOLL_CTL_ADD：注册新的fd到epfd中
+    * EPOLL_CTL_MOD：修改已经注册的fd的监听事件
+    * EPOLL_CTI_DEL：从epfd中删除一个fd
+
+  * fd：需要监听的文件描述符，一般指 socket_fd
+
+  * event：告诉内核对该fd资源感兴趣的事件，epoll_event 的结构：
+
+    ```c
+    struct epoll_event {
+        _uint32_t events;	/*epoll events*/
+        epoll_data_t data;	/*user data variable*/
+    }
+    ```
+
+    events 可以是以下几个宏集合：EPOLLIN、EPOLOUT、EPOLLPRI、EPOLLERR、EPOLLHUP（挂断）、EPOLET（边缘触发）、EPOLLONESHOT（只监听一次，事件触发后自动清除该 fd，从 epoll 列表）
+
+* epoll_wait：等待事件的产生，类似于 select() 调用，返回值为本次就绪的 fd 个数
+
+  * epfd：指定感兴趣的 epoll 事件列表
+  * events：指向一个 epoll_event 结构数组，当函数返回时，内核会把就绪状态的数据拷贝到该数组
+  * maxevents：标明 epoll_event 数组最多能接收的数据量，即本次操作最多能获取多少就绪数据
+  * timeout：单位为毫秒
+    * 0：表示立即返回，非阻塞调用
+    * -1：阻塞调用，直到有用户感兴趣的事件就绪为止
+    * 大于0：阻塞调用，阻塞指定时间内如果有事件就绪则提前返回，否则等待指定时间后返回
+
+epoll 的描述符事件有两种触发模式：LT（level trigger）和 ET（edge trigger）：
+
+* LT 模式：当 epoll_wait() 检测到描述符事件到达时，将此事件通知进程，进程可以不立即处理该事件，下次调用 epoll_wait() 会再次通知进程。是默认的一种模式，并且同时支持 Blocking 和 No-Blocking
+* ET 模式：通知之后进程必须立即处理事件，下次再调用 epoll_wait() 时不会再得到事件到达的通知。减少了 epoll 事件被重复触发的次数，因此效率要比 LT 模式高；只支持 No-Blocking，以避免由于一个文件的阻塞读/阻塞写操作把处理多个文件描述符的任务饥饿
+
+```c
+// 创建 epoll 描述符，每个应用程序只需要一个，用于监控所有套接字
+int pollingfd = epoll_create(0xCAFE);
+if ( pollingfd < 0 )// report error
+// 初始化 epoll 结构
+struct epoll_event ev = { 0 };
+
+// 将连接类实例与事件相关联，可以关联任何想要的东西
+ev.data.ptr = pConnection1;
+
+// 监视输入，并且在事件发生后不自动重新准备描述符
+ev.events = EPOLLIN | EPOLLONESHOT;
+// 将描述符添加到监控列表中，即使另一个线程在epoll_wait中等待，描述符将被正确添加
+if ( epoll_ctl( epollfd, EPOLL_CTL_ADD, pConnection1->getSocket(), &ev) != 0 )
+    // report error
+
+// 最多等待 20 个事件
+struct epoll_event pevents[20];
+
+// 等待10秒，检索20个并存入epoll_event数组
+int ready = epoll_wait(pollingfd, pevents, 20, 10000);
+// 检查epoll是否成功
+if ( ret == -1)// report error and abort
+else if ( ret == 0)// timeout; no event detected
+else
+{
+    for (int i = 0; i < ready; i+ )
+    {
+        if ( pevents[i].events & EPOLLIN )
+        {
+            // 获取连接指针
+            Connection * c = (Connection*) pevents[i].data.ptr;
+            c->handleReadEvent();
+         }
+    }
+}
+```
+
+
+
+流程图：https://gitee.com/seazean/images/blob/master/Java/IO-epoll%E5%8E%9F%E7%90%86%E5%9B%BE.jpg
+
+图片来源：https://www.processon.com/view/link/5f62f98f5653bb28eb434add
+
+参考视频：https://www.bilibili.com/video/BV19D4y1o797
+
+参考文章：https://github.com/CyC2018/CS-Notes/blob/master/notes/Socket.md
+
+
+
+***
+
+
+
+###### 特点
+
+epoll 的特点：
+
+* epoll 使用一个文件描述符管理多个描述符，将用户关系的文件描述符的事件存放到内核的一个事件表中
+* epoll 的时间复杂度 O(1)，epoll 理解为 event poll，不同于忙轮询和无差别轮询，调用 epoll_wait 不断轮询就绪链表，但是设备就绪时调用回调函数，把就绪 fd 放入就绪链表中，并唤醒在 epoll_wait 中进入睡眠的进程，所以 epoll 实际上是**事件驱动（每个事件关联上fd）**的
+* epoll 内核中根据每个 fd 上的 callback 函数来实现，只有活跃的 socket 才会主动调用 callback，所以使用 epoll 没有前面两者的线性下降的性能问题，效率提高
+* epoll 仅适用于 Linux 系统
+
+* epoll 比 select 和 poll 更加灵活而且没有描述符数量限制
+* epoll 只需要将描述符从进程缓冲区向内核缓冲区拷贝一次， 利用 mmap() 文件映射内存加速与内核空间的消息传递，减少复制开销
+
+* epoll 对多线程编程更有友好，一个线程调用了 epoll_wait() 另一个线程关闭了同一个描述符，也不会产生像 select 和 poll 的不确定情况
+
+* select，poll 每次调用都要把 fd 集合从用户态往内核态拷贝一次，并且要把 current 往设备等待队列中挂一次，而 epoll 只要一次拷贝，而且把 current 往等待队列上挂也只挂一次（注意这里的等待队列并不是设备等待队列，只是一个epoll内部定义的等待队列），这也能节省不少的开销
+
+
+
+参考文章：https://www.jianshu.com/p/dfd940e7fca2
+
+
+
+***
+
+
+
+##### 应用
+
+应用场景： 
+
+* select 应用场景：
+  * select 的 timeout 参数精度为微秒，而 poll 和 epoll 为毫秒，因此 select 更加适用于实时性要求比较高的场景，比如核反应堆的控制
+  * select 可移植性更好，几乎被所有主流平台所支持
+
+* poll 应用场景：poll 没有最大描述符数量的限制，适用于平台支持并且对实时性要求不高的情况
+
+* epoll 应用场景：
+  * 运行在 Linux 平台上，有大量的描述符需要同时轮询，并且这些连接最好是长连接
+  * 需要同时监控小于 1000 个描述符，没必要使用 epoll，因为这个应用场景下并不能体现 epoll 的优势
+  * 需要监控的描述符状态变化多，而且都是非常短暂的，也没有必要使用 epoll。因为 epoll 中的所有描述符都存储在内核中，造成每次需要对描述符的状态改变都需要通过 epoll_ctl() 进行系统调用，频繁系统调用降低效率，并且 epoll 的描述符存储在内核，不容易调试
+
+
+
+参考文章：https://github.com/CyC2018/CS-Notes/blob/master/notes/Socket.md
+
+
+
+****
+
+
+
+#### 系统调用
+
+##### 内核态
+
+用户空间：用户代码、用户堆栈
+
+内核空间：内核代码、内核调度程序、进程描述符（内核堆栈、thread_info进程描述符）
+
+* 进程描述符和用户的进程是一一对应的
+* SYS_API系统调用：如 read、write。系统调用就是 0X80 中断
+* 进程描述符pd：进程从用户态切换到内核态时，需要保存用户态时的上下文信息，
+* 线程上下文：用户程序基地址，程序计数器、cpu cache、寄存器等，方便程序切回用户态时恢复现场
+* 内核堆栈：系统调用函数也是要创建变量的，这些变量在内核堆栈上分配
+
+![](https://gitee.com/seazean/images/raw/master/Java/IO-用户态和内核态.png)
+
+
+
+***
+
+
+
+##### 80中断
+
+在用户程序中调用操作系统提供的核心态级别的子功能，为了系统安全需要进行用户态和内核态转换，状态的转换需要进行 CPU 中断，中断分为硬中断和软中断：
+
+* 硬中断：如网络传输中，数据到达网卡后，网卡经过一系列操作后发起硬件中断
+* 软中断：如程序运行过程中本身产生的一些中断
+  - 如进行系统调用 system_call，则发起 `0X80` 中断
+  - 如程序执行碰到除 0 异常
+
+系统调用 system_call 函数所对应的中断指令编号是 0X80（十进制是8×16=128），而该指令编号对应的就是系统调用程序的入口，所以称系统调用为 80 中断
+
+系统调用的流程：
+
+* 在 CPU 寄存器里存一个系统调用号，表示哪个系统函数，比如 read
+* 将 CPU 的临时数据都保存到 thread_info 中
+* 执行 80 中断处理程序，找到刚刚存的系统调用号（read），先检查缓存中有没有对应的数据，没有就去磁盘中加载到内核缓冲区，然后从内核缓冲区拷贝到用户空间
+* 最后恢复到用户态，通过 thread_info 恢复现场，用户态继续执行
+
+![](https://gitee.com/seazean/images/raw/master/Java/IO-系统调用的过程.jpg)
+
+
+
+参考文章：https://blog.csdn.net/hancoder/article/details/112149121
+
+
+
+****
+
+
+
+#### 零拷贝
+
+##### DMA
+
+DMA (Direct Memory Access) ：直接存储器访问，让外部设备不通过 CPU 直接与系统内存交换数据的接口技术
+
+作用：可以解决批量数据的输入/输出问题，使数据的传送速度取决于存储器和外设的工作速度
+
+把内存数据传输到网卡然后发送：
+
+* 没有 DMA：CPU 读内存数据到 CPU 高速缓存，再写到网卡，这样就把 CPU 的速度拉低到和网卡一个速度
+* 使用DMA：把内存数据读到 socket 内核缓存区（CPU复制），CPU 分配给 DMA 开始**异步**操作，DMA 读取 socket 缓冲区到 DMA 缓冲区，然后写到网卡。DMA 执行完后中断 CPU，这时 socket 内核缓冲区为空，CPU 从用户态切换到内核态，执行中断处理程序，将需要使用 socket 缓冲区的阻塞进程移到运行队列
+
+一个完整的 DMA 传输过程必须经历 DMA 请求、DMA 响应、DMA 传输、DMA 结束四个步骤：
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/IO-DMA.png" style="zoom: 50%;" />
+
+DMA 方式是一种完全由硬件进行组信息传送的控制方式，通常系统总线由 CPU 管理，在 DMA 方式中，CPU 把总线让出来由 DMA 控制器接管，用来控制传送的字节数、判断 DMA 是否结束、以及发出DMA结束信号，所以 DMA 控制器必须有以下功能：
+
+* 能向 CPU 发出系统保持（HOLD）信号，提出总线接管请求
+* 当 CPU 发出允许接管信号后，负责对总线的控制，进入 DMA 方式
+* 能对存储器寻址及能修改地址指针，实现对内存的读写
+* 能决定本次 DMA 传送的字节数，判断 DMA 传送是否结束
+* 发出 DMA 结束信号，使 CPU 恢复正常工作状态（中断）
+
+
+
+***
+
+
+
+##### BIO
+
+传统的 I/O 操作进行了 4 次用户空间与内核空间的上下文切换，以及 4 次数据拷贝：
+
+* JVM发出read() 系统调用，OS 上下文切换到内核模式（切换1）并将数据从网卡或硬盘等通过 DMA 读取到内核空间缓冲区（拷贝1）
+* OS 内核将数据复制到用户空间缓冲区（拷贝2），然后 read 系统调用返回，又会导致一次内核空间到用户空间的上下文切换（切换2）
+* JVM 处理代码逻辑并发送 write() 系统调用，OS 上下文切换到内核模式（切换3）并从用户空间缓冲区复制数据到内核空间缓冲区（拷贝3）
+* write 系统调用返回，导致内核空间到用户空间的再次上下文切换（切换4），将内核空间缓冲区中的数据写到 hardware（拷贝4）
+
+![](https://gitee.com/seazean/images/raw/master/Java/IO-BIO工作流程.png)
+
+read 调用图示：
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/IO-缓冲区读写.png" style="zoom: 67%;" />
+
+
+
+***
+
+
+
+##### mmap
+
+mmap（Memory Mapped Files）加 write 实现零拷贝，零拷贝就是没有数据从内核空间复制到用户空间
+
+用户空间和内核空间共享同一块物理地址，省去用户态和内核态之间的拷贝。写网卡时，共享空间的内容拷贝到 socket 缓冲区，然后交给 DMA 发送到网卡，只需要 3 次复制
+
+进行了 4 次用户空间与内核空间的上下文切换，以及 3 次数据拷贝（2 次 DMA，一次 CPU 复制）：
+
+* 发出 mmap 系统调用，DMA 拷贝到内核缓冲区；mmap系统调用返回，无需拷贝
+* 发出write系统调用，将数据从内核缓冲区拷贝到内核 socket 缓冲区；write系统调用返回，DMA 将内核空间 socket 缓冲区中的数据传递到协议引擎
+
+![](https://gitee.com/seazean/images/raw/master/Java/IO-mmap工作流程.png)
+
+原理：利用操作系统的 Page 来实现文件到物理内存的直接映射，完成映射后对物理内存的操作会被同步到硬盘上
+
+缺点：不可靠，写到 mmap 中的数据并没有被真正的写到硬盘，操作系统会在程序主动调用 flush 的时候才把数据真正的写到硬盘
+
+Java NIO 提供了 **MappedByteBuffer** 类可以用来实现 mmap 内存映射，MappedByteBuffer 类对象只能通过调用 `FileChannel.map()` 获取
+
+
+
+****
+
+
+
+##### sendfile
+
+sendfile 实现零拷贝，打开文件的文件描述符 fd 和 socket 的 fd 传递给 sendfile，然后经过 3 次复制和 2 次用户态和内核态的切换
+
+原理：数据根本不经过用户态，直接从内核缓冲区进入到 Socket Buffer，由于和用户态完全无关，就减少了一次上下文切换
+
+![](https://gitee.com/seazean/images/raw/master/Java/IO-sendfile工作流程.png)
+
+sendfile2.4 之后，sendfile 实现了更简单的方式，文件到达内核缓冲区后，不必再将数据全部复制到 socket buffer 缓冲区，而是只**将记录数据位置和长度相关等描述符信息**保存到 socket buffer，DMA 根据 socket 缓冲区中描述符提供的位置和偏移量信息直接将内核空间缓冲区中的数据拷贝到协议引擎上（2 次复制 2 次切换）
+
+Java NIO 对 sendfile 的支持是 `FileChannel.transferTo()/transferFrom()`，把磁盘文件读取 OS 内核缓冲区后的 fileChannel，直接转给 socketChannel 发送，底层就是sendfile
+
+
+
+参考文章：https://blog.csdn.net/hancoder/article/details/112149121
 
 
 
@@ -8480,7 +8913,7 @@ UDP协议的使用场景：在线视频、网络语音、电话
 
 
 
-#### UDP实现
+#### 实现UDP
 
 UDP协议相关的两个类
 
@@ -8645,7 +9078,7 @@ ServerSocket类：
 
 
 
-#### TCP实现
+#### 实现TCP
 
 ##### 开发流程
 
@@ -8664,10 +9097,10 @@ ServerSocket类：
 
 ![](https://gitee.com/seazean/images/raw/master/Java/BIO工作机制.png)
 
-![](https://gitee.com/seazean/images/raw/master/Java/TCP工作模型.png)
+![](https://gitee.com/seazean/images/raw/master/Java/TCP-工作模型.png)
 
 * 如果输出缓冲区空间不够存放主机发送的数据，则会被阻塞，输入缓冲区同理
-* 缓冲区不属于APP，位于内核
+* 缓冲区不属于应用程序，属于内核
 * TCP从输出缓冲区读取数据会加锁阻塞线程
 
 
