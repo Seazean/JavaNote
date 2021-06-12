@@ -8422,13 +8422,17 @@ IO 复用让单个进程具有处理多个 I/O 事件的能力，又被称为 Ev
 
 ##### select
 
+###### 函数
+
+socket 不是文件，只是一个标识符，但是 Unix 操作系统把所有东西都**看作**是文件，所以 socket 说成file descriptor，也就是 fd
+
 select 允许应用程序监视一组文件描述符，等待一个或者多个描述符成为就绪状态，从而完成 I/O 操作。
 
 ```c
 int select(int n, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout);
 ```
 
-- fd_set 使用 **bitmap 数组**实现，数组大小用 FD_SETSIZE 定义，只能监听少于 FD_SETSIZE 数量的描述符，32位机默认是 1024 个，64位机默认是 2048
+- fd_set 使用 **bitmap 数组**实现，数组大小用 FD_SETSIZE 定义，只能监听少于 FD_SETSIZE 数量的描述符，32位机默认是 1024 个，64位机默认是 2048，可以对进行修改，然后重新编译内核
 
 - fd_set 有三种类型的描述符：readset、writeset、exceptset，对应读、写、异常条件的描述符集合
 
@@ -8496,11 +8500,33 @@ while(1) {
 
 
 
-流程图：https://gitee.com/seazean/images/blob/master/Java/IO-select%E5%8E%9F%E7%90%86%E5%9B%BE.jpg
-
-图片来源：https://www.processon.com/view/link/5f62b9a6e401fd2ad7e5d6d1
-
 参考视频：https://www.bilibili.com/video/BV19D4y1o797
+
+
+
+****
+
+
+
+###### 流程
+
+select 调用流程图：
+
+![](https://gitee.com/seazean/images/raw/master/Java/IO-select调用过程.png)
+
+1. 使用 copy_from_user 从用户空间拷贝 fd_set 到内核空间，进程阻塞
+2. 注册回调函数 _pollwait
+3. 遍历所有 fd，调用其对应的 poll 方法（对于 socket，这个 poll 方法是 sock_poll，sock_poll 根据情况会调用到 tcp_poll、udp_poll 或者 datagram_poll），以 tcp_poll 为例，其核心实现就是 _pollwait
+4. _pollwait 就是把 current（当前进程）挂到设备的等待队列，不同设备有不同的等待队列，对于 tcp_poll ，其等待队列是 sk → sk_sleep（把进程挂到等待队列中并不代表进程已经睡眠），在设备收到消息（网络设备）或填写完文件数据（磁盘设备）后，会唤醒设备等待队列上睡眠的进程，这时 current 便被唤醒
+5. poll 方法返回时会返回一个描述读写操作是否就绪的 mask 掩码，根据这个 mask 掩码给 fd_set 赋值
+6. 如果遍历完所有的 fd，还没有返回一个可读写的 mask 掩码，则会调用 schedule_timeout 让调用 select 的进程（就是current）进入睡眠。当设备驱动发生自身资源可读写后，会唤醒其等待队列上睡眠的进程，如果超过一定的超时时间（schedule_timeout指定），没有其他线程唤醒，则调用 select 的进程会重新被唤醒获得 CPU，进而重新遍历 fd，判断有没有就绪的 fd
+7. 把 fd_set 从内核空间拷贝到用户空间，阻塞进程继续执行
+
+
+
+参考文章：https://www.cnblogs.com/anker/p/3265058.html
+
+其他流程图：https://www.processon.com/view/link/5f62b9a6e401fd2ad7e5d6d1
 
 
 
@@ -8561,7 +8587,7 @@ int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event)；
 int epoll_wait(int epfd, struct epoll_event * events, int maxevents, int timeout);
 ```
 
-epoll 使用事件的就绪通知方式，通过 epoll_ctl 注册fd，一旦该fd就绪，内核就会采用 callback 的回调机制来激活该 fd，epoll_wait 便可以收到通知
+epoll 使用事件的就绪通知方式，通过 epoll_ctl 注册 fd，一旦该 fd 就绪，内核就会采用 callback 的回调机制来激活该 fd，epoll_wait 便可以收到通知
 
 *  epall_create：一个系统函数，函数将在内核空间内开辟一块新的空间，可以理解为 epoll 结构空间，返回值为 epoll 的文件描述符编号，所以 epoll 使用一个文件描述符管理多个描述符
 
@@ -8571,13 +8597,13 @@ epoll 使用事件的就绪通知方式，通过 epoll_ctl 注册fd，一旦该f
 
   * op：表示当前请求类型，有三个宏定义：
 
-    * EPOLL_CTL_ADD：注册新的fd到epfd中
-    * EPOLL_CTL_MOD：修改已经注册的fd的监听事件
-    * EPOLL_CTI_DEL：从epfd中删除一个fd
+    * EPOLL_CTL_ADD：注册新的 fd 到 epfd 中
+    * EPOLL_CTL_MOD：修改已经注册的 fd 的监听事件
+    * EPOLL_CTI_DEL：从 epfd 中删除一个 fd
 
   * fd：需要监听的文件描述符，一般指 socket_fd
 
-  * event：告诉内核对该fd资源感兴趣的事件，epoll_event 的结构：
+  * event：告诉内核对该 fd 资源感兴趣的事件，epoll_event 的结构：
 
     ```c
     struct epoll_event {
@@ -8662,18 +8688,15 @@ else
 epoll 的特点：
 
 * epoll 使用一个文件描述符管理多个描述符，将用户关系的文件描述符的事件存放到内核的一个事件表中
-* epoll 的时间复杂度 O(1)，epoll 理解为 event poll，不同于忙轮询和无差别轮询，调用 epoll_wait 不断轮询就绪链表，但是设备就绪时调用回调函数，把就绪 fd 放入就绪链表中，并唤醒在 epoll_wait 中进入睡眠的进程，所以 epoll 实际上是**事件驱动（每个事件关联上fd）**的
+* 没有最大并发连接的限制，能打开的 fd 的上限远大于1024（1G的内存上能监听约10万个端口）
+* epoll 的时间复杂度 O(1)，epoll 理解为 event poll，不同于忙轮询和无差别轮询，调用 epoll_wait 不断轮询监听列表，当设备就绪时调用回调函数，把就绪 fd 放入就绪链表中，并唤醒在 epoll_wait 中进入睡眠的进程，所以 epoll 实际上是**事件驱动（每个事件关联上fd）**的
 * epoll 内核中根据每个 fd 上的 callback 函数来实现，只有活跃的 socket 才会主动调用 callback，所以使用 epoll 没有前面两者的线性下降的性能问题，效率提高
 * epoll 仅适用于 Linux 系统
-
 * epoll 比 select 和 poll 更加灵活而且没有描述符数量限制
 * epoll 只需要将描述符从进程缓冲区向内核缓冲区拷贝一次， 利用 mmap() 文件映射内存加速与内核空间的消息传递，减少复制开销
-
 * epoll 对多线程编程更有友好，一个线程调用了 epoll_wait() 另一个线程关闭了同一个描述符，也不会产生像 select 和 poll 的不确定情况
-
-* select，poll 每次调用都要把 fd 集合从用户态往内核态拷贝一次，并且要把 current 往设备等待队列中挂一次，而 epoll 只要一次拷贝，而且把 current 往等待队列上挂也只挂一次（注意这里的等待队列并不是设备等待队列，只是一个epoll内部定义的等待队列），这也能节省不少的开销
-
-
+* select，poll 每次调用都要把 fd 集合从用户态往内核态拷贝一次，并且要把 current 往设备等待队列中挂一次，而 epoll 只要一次拷贝，而且把 current 往等待队列上挂也只挂一次（注意这里的等待队列并不是设备等待队列，只是一个 epoll 内部定义的等待队列），这也能节省不少的开销（看流程图会有更好的认识）
+  
 
 参考文章：https://www.jianshu.com/p/dfd940e7fca2
 
