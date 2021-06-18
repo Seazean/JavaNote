@@ -4055,7 +4055,7 @@ Docker官方的Docker hub（https://hub.docker.com）是一个用于管理公共
 
 
 
-## 对比虚拟机
+## 虚拟机
 
 容器：
 
