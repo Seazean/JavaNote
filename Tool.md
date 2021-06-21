@@ -1417,8 +1417,6 @@ mode : 权限设定字串,格式: [ugoa...][[+-=][rwxX]...][,...]
 - xyz : 就是刚刚提到的数字类型的权限属性，为 rwx 属性数值的相加。
 - -R : 进行递归(recursive)的持续变更，亦即连同次目录下的所有文件都会变更
 
-
-
 文件的权限字符为：[-rwxrwxrwx]， 这九个权限是三三一组的，我们使用数字来代表各个权限。
 
 <img src="https://gitee.com/seazean/images/raw/master/Tool/权限数字表.png" style="zoom: 67%;" />
@@ -1436,8 +1434,6 @@ mode : 权限设定字串,格式: [ugoa...][[+-=][rwxX]...][,...]
 
 
 ##### 符号权限
-
-
 
 ![](https://gitee.com/seazean/images/raw/master/Tool/权限符号表.png)
 

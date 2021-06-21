@@ -84,7 +84,7 @@ Java语言提供了八种基本类型。六种数字类型（四个整数型，�
 
 **boolean：**
 
-- boolean数据类型表示一位的信息
+- boolean 数据类型表示一位的信息
 - 只有两个取值：true 和 false
 - 这种类型只作为一种标志来记录 true/false 情况
 - JVM 规范指出 boolean 当做 int 处理，也就是4字节，boolean 数组当做 byte 数组处理，这样可以得出 boolean 类型单独使用占了4个字节，在数组中是1个字节
@@ -93,7 +93,7 @@ Java语言提供了八种基本类型。六种数字类型（四个整数型，�
 
 **char：**
 
-- char类型是一个单一的 16 位 Unicode 字符
+- char 类型是一个单一的 16 位两个字节的 Unicode 字符
 - 最小值是 **`\u0000`**（即为0）
 - 最大值是 **`\uffff`**（即为65,535）
 - char 数据类型可以储存任何字符
@@ -926,7 +926,27 @@ public class MethodDemo {
   }
   ```
 
-  
+
+
+
+
+
+***
+
+
+
+### Debug
+
+Debug是供程序员使用的程序调试工具，它可以用于查看程序的执行流程，也可以用于追踪程序执行过程来调试程序。
+
+加断点->Debug运行->单步运行->看Debugger窗口->看Console窗口
+
+![](https://gitee.com/seazean/images/raw/master/Java/Debug按键说明.png)
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/Debug条件断点.png" alt="Debug条件断点" style="zoom:50%;" />
+
+
+
 
 
 
@@ -935,235 +955,24 @@ public class MethodDemo {
 
 
 
-### 排序
-
-#### 冒泡排序
-
-冒泡排序的作用：可以用于对数组或者对集合的元素进行大小排序！
-
-冒泡排序的核心算法思想:
-    int[] arr = new int[] {55, 22, 99, 88};
-    思想：每次从数组的第一个位置开始两两比较。把较大的元素与较小的元素进行层层交换。
-    最终把当前最大的一个元素存入到数组当前的末尾。这就是冒泡思想。
 
 
-冒泡排序的核心点：每次两两比较找出当前最大值冒出到当前最后面即可！！
-
-冒泡排序的实现核心：
-    1.确定总共需要冒几轮： 数组的长度-1.
-    2.每轮两两比较几次。
-
->   i(轮数)      次数         每轮次数的规律：数组长度-i-1 次
->         0             3
->         1             2
->         2             1
-
-```java
-// 0 1位置比较，大的放后面，然后1 2位置比较，大的继续放后面，一轮循环最后一位是最大值
-
-public class BubbleSort {
-    public static void main(String[] args) {
-        int[] arr = new int[] {55, 22, 99, 88};
-        // 1.定义一个循环控制总共需要冒泡几轮：数组的长度-1
-        for(int i = 0 ;  i < arr.length - 1 ; i++ ){
-            // 2.控制每轮比较几次。
-            // j = 1; j < arr.length - i;
-            for(int j = 0 ; j < arr.length - i - 1 ; j++ ){
-                // 如果当前元素大于后一个元素
-                if(arr[j] > arr[j+1]){
-                    // 交换位置。大的元素必须后移！
-                    // 定义一个临时变量存储后一个元素
-                    int temp = arr[j+1];
-                    arr[j+1] = arr[j];
-                    arr[j] = temp;
-                }
-            }
-        }
-        System.out.println("数组："+ Arrays.toString(arr));
-    }
-}
-```
-
-
-
-***
-
-
-
-#### 选择排序
-
-选择排序的思想：从当前位置开始找出后面的较小值与该位置交换。
-数组：int[] arr = {5 , 1 , 3 , 2}
-
-选择排序的实现思路：
-    （1）控制选择几轮：数组的长度-1.
-    （2）控制每轮从当前位置开始比较几次。
-
-	> i(轮数)     次数
-	>        0           3
-	>        1           2
-	>        2           1
-
-```java
-// 0 1位置比较，小的放0位置，然后0 2位置比，小的继续放0位置，一轮循环0位置是最小值
-public class SelectSort {
-    public static void main(String[] args) {
-        int[] arr = {5 , 1 , 3 , 2};
-        // 1.定义一个循环控制选择几轮
-        for(int i = 0 ; i < arr.length - 1 ; i++ ){
-            // 2.定义一个循环控制每轮比较几次，一定是以当前位置与后面元素比较
-            for(int j = i+1 ; j < arr.length ; j++ ){
-                // 拿当前位置与j指定的元素进行大小比较，后面的较小就交换位置
-                if(arr[j] < arr[i]){
-                    int temp = arr[i];
-                    arr[i] = arr[j];
-                    arr[j] = temp;
-                }
-            }
-        }
-        System.out.println("数组："+ Arrays.toString(arr));
-    }
-}
-```
-
-
-
-***
-
-
-
-#### 快速排序
-
-快速排序算法中,每一次递归时以第一个数为基准数,找到数组中所有比基准数小的.再找到所有比基准数大的.小的全部放左边,大的全部放右边,确定基准数的正确位置
-
-> 不用递归可以直接找出某个数字在数组中的位置
-
-```java
-public class MyQuiteSortDemo2 {
-    public static void main(String[] args) {
-//        1，从右开始找比基准数小的
-//        2，从左开始找比基准数大的
-//        3，交换两个值的位置
-//        4，红色继续往左找，蓝色继续往右找，直到两个箭头指向同一个索引为止
-//        5，基准数归位
-		int[] arr = {6, 1, 2, 7, 9, 3, 4, 5, 10, 8};
-		quiteSort(arr,0,arr.length-1);
-        for (int i = 0; i < arr.length; i++) {
-            System.out.print(arr[i] + " ");
-        }
-    }
-
-    private static void quiteSort(int[] arr, int left, int right) {
-     	// 递归结束的条件
-        if(right < left){
-            return;
-        }
-        
-        int left0 = left;
-        int right0 = right;
-        int baseNumber = arr[left0];//计算出基准数
-
-        while(left != right){
-			//1.从右开始找比基准数小的
-            while(arr[right] >= baseNumber && right > left){
-                right--;
-            }
-			//2.从左开始找比基准数大的
-            while(arr[left] <= baseNumber && right > left){
-                left++;
-            }
-			//3.交换两个值的位置
-            int temp = arr[left];
-            arr[left] = arr[right];
-            arr[right] = temp;
-        }
-        //基准数归位
-        int temp = arr[left];
-        arr[left] = arr[left0];
-        arr[left0] = temp;
-      
-		// 递归调用自己,将左半部分排好序
-        quiteSort(arr,left0,--left);
-      	// 递归调用自己,将右半部分排好序
-        quiteSort(arr,++right,right0);
-    }
-}
-```
-
-
-
-***
-
-
-
-#### 二分查找
-
-> 正常查找：从第一个元素开始遍历，一个一个的往后找，综合查找比较耗时。
-
-二分查找的前提：对数组是有要求的,数组必须已经排好序。
-每次先与中间的元素进行比较，如果大于往右边找，如果小于往左边找，如果等于就返回该元素索引位置！如果没有该元素，返回-1。
-
-```java
-/*定义一个方法，记录开始的索引位置和结束的索引位置。
-取出中间索引位置的值，拿元素与中间位置的值进行比较，如果小于中间值，结束位置=中间索引-1.
-取出中间索引位置的值，拿元素与中间位置的值进行比较，如果大于中间值，开始位置=中间索引+1.
-循环正常执行的条件：开始位置索引<=结束位置索引。否则说明寻找完毕但是没有该元素值返回-1.*/
-
-public class BinarySerach {
-    public static void main(String[] args) {
-        // 1.数组
-        int[] arr = {10, 14, 21, 38, 45, 47, 53, 81, 87, 99};
-        // 2.需求是从数组中二分查询某个元素值的索引（提高性能）
-        System.out.println("81的索引是：" + binarySerach(arr,23));
- 
-    }
-
-    /**
-     * @param arr  被检索的数组
-     * @param number 被检索的元素值
-     * @return  返回元素在数组中的索引值，不存在该元素返回-1
-     */
-    public static int binarySerach(int[] arr , int number){
-        // 3.记录当前区间搜索的开始索引和结束索引。
-        int start = 0 ;//左
-        int end = arr.length - 1;//右
-        // 4.定义一个循环，反复去循环元素。
-        while(start <= end){
-            // 5.取中间索引位置
-            int middleIndex = (start + end) / 2 ;
-            // 6.判断当前元素与中间元素的大小
-            if(number < arr[middleIndex]){
-                // 7.往左边继续寻找，结束索引应该-1
-                end = middleIndex - 1;
-            }else if(number > arr[middleIndex]){
-                start = middleIndex + 1;
-            }else if(number == arr[middleIndex]){
-                return middleIndex;
-            }
-        }
-        // 如果上述循环执行完毕还没有返回索引，说明根本不存在该元素值，直接返回-1
-        return -1;
-    }
-}
-```
-
-
-
-***
-
-
+## 算法
 
 ### 递归
 
 #### 概述
 
-递归：方法在方法中又调用了自己。
+算法：解题方案的准确而完整的描述，是一系列解决问题的清晰指令，代表着用系统的方法解决问题的策略机制
+
+递归：程序调用自身的编程技巧
 
 递归：
-    直接递归：自己的方法调用自己。
-    间接递归：自己的方法调用别的方法，别的方法又调用自己。
-注意：
-     递归如果控制的不恰当，会形成递归的死循环，从而导致栈内存溢出错误！cjxch
+
+* 直接递归：自己的方法调用自己
+* 间接递归：自己的方法调用别的方法，别的方法又调用自己
+
+递归如果控制的不恰当，会形成递归的死循环，从而导致栈内存溢出错误
 
 
 
@@ -1176,9 +985,10 @@ public class BinarySerach {
 ##### 核心思想
 
 递归的三要素（理论）：
-    1.递归的终结点
-    2.递归的公式
-    3.递归的方向：必须走向终结点
+
+1. 递归的终结点
+2. 递归的公式
+3. 递归的方向：必须走向终结点
 
 ```java
 //f(x)=f(x-1)+1;   f(1)=1;    f(10)=?
@@ -1337,21 +1147,544 @@ public class BeerDemo{
 
 
 
-### Debug
+### 排序
 
-Debug是供程序员使用的程序调试工具，它可以用于查看程序的执行流程，也可以用于追踪程序执行过程来调试程序。
+#### 冒泡排序
 
-加断点->Debug运行->单步运行->看Debugger窗口->看Console窗口
+冒泡排序（Bubble Sort）：两个数比较大小，较大的数下沉，较小的数冒起来
 
-![](https://gitee.com/seazean/images/raw/master/Java/Debug按键说明.png)
+算法描述：每次从数组的第一个位置开始两两比较，把较大的元素与较小的元素进行层层交换，最终把当前最大的一个元素存入到数组当前的末尾
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/Debug条件断点.png" alt="Debug条件断点" style="zoom:50%;" />
+实现思路：
+
+1. 确定总共需要冒几轮：数组的长度-1
+2. 每轮两两比较几次
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-冒泡排序.gif" style="zoom: 80%;" />
+
+```java
+// 0 1位置比较，大的放后面，然后1 2位置比较，大的继续放后面，一轮循环最后一位是最大值
+public class BubbleSort {
+    public static void main(String[] args) {
+        int[] arr = {55, 22, 2, 5, 1, 3, 8, 5, 7, 4, 3, 99, 88};
+        //比较i和i+1，不需要再比最后一个位置
+        for (int i = 0; i < arr.length - 1; i++) {
+            //最后i位不需要比，已经排序好
+            for (int j = 0; j < arr.length - 1 - i; j++) {
+                if (arr[j] > arr[j + 1]) {
+                    int temp = arr[j];
+                    arr[j] = arr[j + 1];
+                    arr[j + 1] = temp;
+                }
+            }
+        }
+        System.out.println(Arrays.toString(arr));
+    }
+}
+```
+
+冒泡排序时间复杂度：最坏情况
+
+* 元素比较的次数为：`(N-1)+(N-2)+(N-3)+...+2+1=((N-1)+1)*(N-1)/2=N^2/2-N/2`
+* 元素交换的次数为：`(N-1)+(N-2)+(N-3)+...+2+1=((N-1)+1)*(N-1)/2=N^2/2-N/2`
+* 总执行次数为：`(N^2/2-N/2)+(N^2/2-N/2)=N^2-N`
+
+按照大 O 推导法则，保留函数中的最高阶项那么最终冒泡排序的时间复杂度为 O(N^2)
+
+
+
+***
+
+
+
+#### 选择排序
+
+##### 简单选择
+
+选择排序（Selection-sort）：一种简单直观的排序算法
+
+算法描述：首先在未排序序列中找到最小（大）元素，存放到排序序列的起始位置，然后再从剩余未排序元素中继续寻找最小（大）元素，然后放到已排序序列的末尾。以此类推，直到所有元素均排序完毕
+
+实现思路：
+
+1. 控制选择几轮：数组的长度-1
+2. 控制每轮从当前位置开始比较几次
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-选择排序.gif" style="zoom: 80%;" />
+
+```java
+// 0 1位置比较，小的放0位置，然后0 2位置比，小的继续放0位置，一轮循环0位置是最小值
+public class SelectSort {
+    public static void main(String[] args) {
+        int[] arr = {55, 22, 2, 5, 1, 3, 8, 5, 7, 4, 3, 99, 88};
+        for (int i = 0; i < arr.length - 1; i++) {
+            //获取最小索引位置
+            int minIndex = i;
+            for (int j = i + 1; j < arr.length; j++) {
+                if (arr[minIndex] > arr[j]) {
+                    minIndex = j;
+                }
+            }
+            //交换元素
+            int temp = arr[i];
+            arr[i] = arr[minIndex];
+            arr[minIndex] = temp;
+        }
+        System.out.println(Arrays.toString(arr));
+    }
+}
+```
+
+选择排序时间复杂度：
+
+* 数据比较次数：`(N-1)+(N-2)+(N-3)+...+2+1=((N-1)+1)*(N-1)/2=N^2/2-N/2`
+* 数据交换次数：`N-1`
+* 时间复杂度：`N^2/2-N/2+（N-1）=N^2/2+N/2-1`
+
+根据大 O 推导法则，保留最高阶项，去除常数因子，时间复杂度为 O(N^2)
+
+
+
+***
+
+
+
+##### 堆排序
+
+
+
+***
+
+
+
+#### 插入排序
+
+##### 直接插入
+
+插入排序（Insertion Sort）：在要排序的一组数中，假定前 n-1 个数已经排好序，现在将第 n 个数插到这个有序数列中，使得这 n 个数也是排好顺序的，如此反复循环，直到全部排好顺序
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-插入排序.png" style="zoom: 67%;" />
+
+```java
+public class InsertSort {
+    public static void main(String[] args) {
+        int[] arr = {55, 22, 2, 5, 1, 3, 8, 5, 7, 4, 3, 99, 88};
+        for (int i = 1; i < arr.length; i++) {
+            for (int j = i; j > 0; j--) {
+                //比较索引j处的值和索引j-1处的值，
+                //如果索引j-1处的值比索引j处的值大，则交换数据，
+                //如果不大，那么就找到合适的位置了，退出循环即可；
+                if (arr[j - 1] > arr[j]) {
+                    int temp = arr[j];
+                    arr[j] = arr[j - 1];
+                    arr[j - 1] = temp;
+                }
+            }
+        }
+        System.out.println(Arrays.toString(arr));
+    }
+}
+```
+
+插入排序时间复杂度：
+
+* 比较的次数为：`(N-1)+(N-2)+(N-3)+...+2+1=((N-1)+1)*(N-1)/2=N^2/2-N/2`
+* 交换的次数为：`(N-1)+(N-2)+(N-3)+...+2+1=((N-1)+1)(N-1)/2=N^2/2-N/2`
+* 总执行次数为：`(N^2/2-N/2)+(N^2/2-N/2)=N^2-N`
+
+按照大 O 推导法则，保留函数中的最高阶项那么最终插入排序的时间复杂度为 O(N^2)
+
+
+
+***
+
+
+
+##### 希尔排序
+
+希尔排序（Shell Sort）：也是一种插入排序，也称为缩小增量排序
+
+实现思路：
+
+1. 选定一个增长量h，按照增长量h作为数据分组的依据，对数据进行分组
+2. 对分好组的每一组数据完成插入排序
+3. 减小增长量，最小减为1，重复第二步操作
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-希尔排序.png" style="zoom:67%;" />
+
+希尔排序的核心在于间隔序列的设定，既可以提前设定好间隔序列，也可以动态的定义间隔序列。希尔排序就是插入排序增加了间隔
+
+```java
+public class ShellSort {
+    public static void main(String[] args) {
+        int[] arr = {55, 22, 2, 5, 1, 3, 8, 5, 7, 4, 3, 99, 88};
+        //1. 确定增长量h的初始值
+        int h = 1;
+        while (h < arr.length / 2) {
+            h = 2 * h + 1;
+        }
+        //2. 希尔排序
+        while (h >= 1) {
+            //2.1 找到待插入的元素
+            for (int i = h; i < arr.length; i++) {
+                //2.2 把待插入的元素插到有序数列中
+                for (int j = i; j >= h; j -= h) {
+                    //待插入的元素是arr[j]，比较arr[j]和arr[j-h]
+                    if (arr[j] < arr[j - h]) {
+                        int temp = arr[j];
+                        arr[j] = arr[j - h];
+                        arr[j - h] = temp;
+                    }
+                }
+            }
+            //3. 减小h的值，减小规则为：
+            h = h / 2;
+        }
+        System.out.println(Arrays.toString(arr));
+    }
+}
+```
+
+在希尔排序中，增长量h并没有固定的规则，有很多论文研究了各种不同的递增序列，但都无法证明某个序列是最
+好的，所以对于希尔排序的时间复杂度分析就认为 O(nlogn)
+
+
+
+***
+
+
+
+#### 归并排序
+
+##### 实现方式
+
+归并排序（Merge Sort）：建立在归并操作上的一种有效的排序算法，该算法是采用分治法的典型的应用。将已有序的子序列合并，得到完全有序的序列；即先使每个子序列有序，再使子序列段间有序。若将两个有序表合并成一个有序表，称为二路归并。
+
+实现思路：
+
+1. 一组数据拆分成两个元素相等的子组，并对每一个子组继续拆分，直到拆分后的每个子组的元素个数是1为止
+2. 将相邻的两个子组进行合并成一个有序的大组
+3. 不断的重复步骤2，直到最终只有一个组为止
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-归并排序.png" style="zoom:50%;" />
+
+归并步骤：每次比较两端最小的值，把最小的值放在辅助数组的左边
+
+![](https://gitee.com/seazean/images/raw/master/Java/Sort-归并步骤1.png)
+
+![](https://gitee.com/seazean/images/raw/master/Java/Sort-归并步骤2.png)
+
+![](https://gitee.com/seazean/images/raw/master/Java/Sort-归并步骤3.png)
 
 
 
 
 
 ***
+
+
+
+##### 实现代码
+
+```java
+public class MergeSort {
+    public static void main(String[] args) {
+        int[] arr = new int[]{55, 22, 2, 5, 1, 3, 8, 5, 7, 4, 3, 99, 88};
+        int[] newArr = mergetSort(arr, 0, arr.length - 1);
+        System.out.println(Arrays.toString(newArr));
+    }
+
+    public static int[] mergetSort(int[] arr, int low, int high) {
+        if (high < low) {
+            throw new ArrayIndexOutOfBoundsException("索引输入错了");
+        }
+        //递归结束的条件
+        if (low == high) {
+            return new int[]{arr[low]};
+        }
+        int mid = low + (high - low) / 2;
+        int[] leftArr = mergetSort(arr, low, mid);//左有序数组
+        int[] rightArr = mergetSort(arr, mid + 1, high);//右有序数组
+        int[] newArr = new int[leftArr.length + rightArr.length];//新有序数组
+
+        int m = 0;
+        int l = 0, r = 0;//定义左右指针
+        while (l < leftArr.length && r < rightArr.length) {
+            newArr[m++] = leftArr[l] < rightArr[r] ? leftArr[l++] : rightArr[r++];
+        }
+
+        while (l < leftArr.length) {
+            newArr[m++] = leftArr[l++];
+        }
+        while (r < rightArr.length) {
+            newArr[m++] = rightArr[r++];
+        }
+        return newArr;
+    }
+}
+```
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-归并排序时间复杂度.png" style="zoom: 67%;" />
+
+用树状图来描述归并，如果一个数组有8个元素，那么每次除以2找最小的子数组，共拆 log8 次，所以树共有3层，那么自顶向下第 k 层有 `2^k` 个子数组，每个数组的长度为 `2^(3-k)`，归并最多需要 `2^(3-k)` 次比较（）。因此每层的比较次数为 `2^k * 2^(3-k)=2^3`，那么3层总共为`3*2^3`
+
+假设元素的个数为 n，那么使用归并排序拆分的次数为 `log2(n)`，那么使用 `log2(n)` 替换`3*2^3`中的这个层数，最终得出的归并排序的时间复杂度为 `log2(n)* 2^(log2(n))=log2(n)*n`，根据大O推导法则，忽略底
+数，最终归并排序的时间复杂度为 O(nlogn)
+
+归并排序的缺点：需要申请额外的数组空间，导致空间复杂度提升，是典型的**以空间换时间**的操作
+
+
+
+
+
+****
+
+
+
+#### 快速排序
+
+快速排序（Quick Sort）：通过**分治思想**对冒泡排序的改进，基本过程是通过一趟排序将要排序的数据分割成独立的两部分，其中一部分的所有数据都比另外一部分的所有数据都要小，然后再按此方法对这两部分数据分别进行快速排序，以此达到整个数据变成有序序列
+
+实现思路：
+
+1. 从数列中挑出一个元素，称为基准（pivot）
+2. 重新排序数列，所有比基准值小的摆放在基准前面，所有比基准值大的摆在基准的后面（相同的数可以到任一边），在这个分区退出之后，该基准就处于数列的中间位置，这个称为分区（partition）操作；
+3. 递归地（recursive）把小于基准值元素的子数列和大于基准值元素的子数列排序
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-快速排序.gif" style="zoom:80%;" />
+
+```java
+public class QuickSort {
+    public static void main(String[] args) {
+        int[] arr = {55, 22, 2, 5, 1, 3, 8, 5, 7, 4, 3, 99, 88};
+        quickSort(arr, 0, arr.length - 1);
+        System.out.println(Arrays.toString(arr));
+    }
+
+    public static void quickSort(int[] arr, int low, int high) {
+        int left = low;
+        int right = high;
+
+        if (low >= high) {
+            return;
+        }
+        int temp = arr[low];//基准数
+        while (left < right) {
+            // 用 <= 可以防止多余的交换
+            while (arr[right] >= temp && right > left) {
+                right--;
+            }
+            // arr[right] < temp 放在左边，做判断防止相等
+            if (right > left) {
+                arr[left] = arr[right];//此时把arr[right]元素视为空
+                left++;
+            }
+            while (arr[left] <= temp && left < right) {
+                left++;
+            }
+            if (right > left) {
+                arr[right] = arr[left];
+                right--;
+            }
+        }
+        // left == right
+        arr[left] = temp;
+        quickSort(arr, low, left-1);
+        quickSort(arr, right + 1, high);
+    }
+}
+```
+
+快速排序和归并排序的区别：
+
+* 快速排序是另外一种分治的排序算法，将一个数组分成两个子数组，将两部分独立的排序
+* 快速排序和归并排序是互补的：归并排序将数组分成两个子数组分别排序，并将有序的子数组归并从而将整个数组排序，而快速排序的方式则是当两个数组都有序时，整个数组自然就有序了
+* 在归并排序中，一个数组被等分为两半，归并调用发生在处理整个数组之前，在快速排序中，切分数组的位置取决于数组的内容，递归调用发生在处理整个数组之后
+
+时间复杂度：
+
+* 最优情况：每一次切分选择的基准数字刚好将当前序列等分。把数组的切分看做是一个树，共切分了logn次，所以，最优情况下快速排序的时间复杂度为 O(nlogn)
+
+* 最坏情况：每一次切分选择的基准数字是当前序列中最大数或者最小数，这使得每次切分都会有一个子组，那么总共就得切分n次，所以最坏情况下，快速排序的时间复杂度为 O(n^2)
+
+  <img src="https://gitee.com/seazean/images/raw/master/Java/Sort-快排时间复杂度.png" style="zoom: 50%;" />
+
+* 平均情况：每一次切分选择的基准数字不是最大值和最小值，也不是中值，这种情况用数学归纳法证明，快速排序的时间复杂度为 O(nlogn)
+
+
+
+推荐视频：https://www.bilibili.com/video/BV1b7411N798?t=1001&p=81
+
+参考文章：https://blog.csdn.net/nrsc272420199/article/details/82587933
+
+
+
+
+
+****
+
+
+
+#### 基数排序
+
+基数排序（Radix Sort）：又叫桶排序和箱排序，借助多关键字排序的思想对单逻辑关键字进行排序的方法
+
+按照低位先排序，然后收集；再按照高位排序，然后再收集；依次类推，直到最高位。有时候有些属性是有优先级顺序的，先按低优先级排序，再按高优先级排序。最后的次序就是高优先级高的在前，高优先级相同的低优先级高的在前
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-基数排序.gif" style="zoom:67%;" />
+
+```java
+public class Test {
+    public static void main(String[] args) {
+        int[] arr = new int[]{55, 22, 2, 5, 1, 3, 8, 5, 7, 4, 3, 99, 88};
+        bucketSort(arr);
+        System.out.println(Arrays.toString(arr));
+    }
+
+    public static void bucketSort(int[] arr){
+        // 计算最大值与最小值
+        int max = Integer.MIN_VALUE;
+        int min = Integer.MAX_VALUE;
+        for(int i = 0; i < arr.length; i++){
+            max = Math.max(max, arr[i]);
+            min = Math.min(min, arr[i]);
+        }
+
+        // 计算桶的数量
+        int bucketNum = (max - min) / arr.length + 1;
+        ArrayList<ArrayList<Integer>> bucketArr = new ArrayList<>(bucketNum);
+        for(int i = 0; i < bucketNum; i++){
+            bucketArr.add(new ArrayList<Integer>());
+        }
+
+        // 将每个元素放入桶
+        for(int i = 0; i < arr.length; i++){
+            int num = (arr[i] - min) / (arr.length);
+            bucketArr.get(num).add(arr[i]);
+        }
+
+        // 对每个桶进行排序
+        for(int i = 0; i < bucketArr.size(); i++){
+            Collections.sort(bucketArr.get(i));
+        }
+
+        // 将桶中的元素赋值到原序列
+        int index = 0;
+        for(int i = 0; i < bucketArr.size(); i++){
+            for(int j = 0; j < bucketArr.get(i).size(); j++){
+                arr[index++] = bucketArr.get(i).get(j);
+            }
+        }
+    }
+}
+```
+
+
+
+推荐视频：https://www.bilibili.com/video/BV1b7411N798?p=86
+
+参考文章：https://www.toutiao.com/a6593273307280179715/?iid=6593273307280179715
+
+
+
+***
+
+
+
+#### 稳定性
+
+稳定性：在待排序的记录序列中，存在多个具有相同的关键字的记录，若经过排序，这些记录的相对次序保持不变，即在原序列中 `r[i]=r[j]`，且 r[i] 在 r[j] 之前，而在排序后的序列中，r[i] 仍在 r[j] 之前，则称这种排序算法是稳定的，否则称为不稳定的
+
+如果一组数据只需要一次排序，则稳定性一般是没有意义的，如果一组数据需要多次排序，稳定性是有意义的。
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-稳定性.png" style="zoom:50%;" />
+
+* 冒泡排序：只有当 `arr[i]>arr[i+1]` 的时候，才会交换元素的位置，而相等的时候并不交换位置，所以冒泡排序是一种稳定排序算法
+* 选择排序：是给每个位置选择当前元素最小的，例如有数据{5(1)，8 ，5(2)， 3， 9 }，第一遍选择到的最小元素为3，所以5(1)会和3进行交换位置，此时5(1)到了5(2)后面，破坏了稳定性，所以是不稳定的排序算法
+* 插入排序：比较是从有序序列的末尾开始，也就是想要插入的元素和已经有序的最大者开始比起，如果比它大则直接插入在其后面，否则一直往前找直到找到它该插入的位置。如果碰见一个和插入元素相等的，那么把要插入的元素放在相等元素的后面。相等元素的前后顺序没有改变，从原无序序列出去的顺序就是排好序后的顺序，所以插入排序是稳定的
+* 希尔排序：按照不同步长对元素进行插入排序，虽然一次插入排序是稳定的，但在不同的插入排序过程中，相同的元素可能在各自的插入排序中移动，最后其稳定性就会被打乱，所以希尔排序是不稳定的
+* 归并排序在归并的过程中，只有 `arr[i]<arr[i+1]` 的时候才会交换位置，如果两个元素相等则不会交换位置，所以它并不会破坏稳定性，归并排序是稳定的
+* 快速排序：快排需要一个基准值，在基准值的右侧找一个比基准值小的元素，在基准值的左侧找一个比基准值大的元素，然后交换这两个元素，此时会破坏稳定性，所以快速排序是一种不稳定的算法
+
+记忆口诀：
+
+* 情绪不稳定，快些选一堆好友来聊天
+
+* 快：快速排序、些：希尔排序、选：选择排序、堆：堆排序
+
+
+
+
+
+***
+
+
+
+#### 算法对比
+
+![](https://gitee.com/seazean/images/raw/master/Java/Sort-排序算法对比.png)
+
+
+
+
+
+***
+
+
+
+### 查找
+
+正常查找：从第一个元素开始遍历，一个一个的往后找，综合查找比较耗时。
+
+二分查找也称折半查找（Binary Search）是一种效率较高的查找方法，数组必须是有序数组
+
+过程：每次先与中间的元素进行比较，如果大于往右边找，如果小于往左边找，如果等于就返回该元素索引位置！如果没有该元素，返回-1
+
+```java
+/*定义一个方法，记录开始的索引位置和结束的索引位置。
+取出中间索引位置的值，拿元素与中间位置的值进行比较，如果小于中间值，结束位置=中间索引-1.
+取出中间索引位置的值，拿元素与中间位置的值进行比较，如果大于中间值，开始位置=中间索引+1.
+循环正常执行的条件：开始位置索引<=结束位置索引。否则说明寻找完毕但是没有该元素值返回-1.*/
+public class binarySearch {
+    public static void main(String[] args) {
+        int[] arr = {10, 14, 21, 38, 45, 47, 53, 81, 87, 99};
+        System.out.println("81的索引是：" + binarySearch(arr,81));
+
+    }
+
+    public static int binarySearch(int[] arr, int des) {
+        int start = 0;
+        int end = arr.length - 1;
+
+        //确保不会出现重复查找，越界
+        while (start <= end) {
+            //计算出中间索引值
+            int mid = (start + end) / 2;
+            if (des == arr[mid]) {
+                return mid;
+            } else if (des > arr[mid]) {
+                start = mid + 1;
+            } else if (des < arr[mid]) {
+                end = mid - 1;
+            }
+        }
+        // 如果上述循环执行完毕还没有返回索引，说明根本不存在该元素值，直接返回-1
+        return -1;
+    }
+}
+```
+
+![](https://gitee.com/seazean/images/raw/master/Java/二分查找.gif)
+
+
+
+
+
+
+
+***
+
+
 
 
 
@@ -1368,6 +1701,10 @@ Debug是供程序员使用的程序调试工具，它可以用于查看程序的
 * 类：相同事物共同特征的描述。类只是学术上的一个概念并非真实存在的，只能描述一类事物。
 * 对象：是真实存在的实例， 实例==对象。**对象是类的实例化**！
 * 结论：有了类和对象就可以描述万千世界所有的事物。 必须先有类才能有对象。
+
+
+
+***
 
 
 
@@ -2488,9 +2825,7 @@ new 类名|抽象类|接口(形参){
 * 匿名内部类不能定义静态成员
 * 匿名内部类一旦写出来，就会立即创建一个匿名内部类的对象返回
 * **匿名内部类的对象的类型相当于是当前new的那个的类型的子类类型**
-* 匿名内部类引用局部变量，局部变量必须是**常量**，底层创建为内部类的成员变量（JVM-->类加载-->编译优化-->内部类）
-  * 在Java中方法调用是值传递的，在匿名内部类中对变量的操作都是基于原变量的副本，不会影响到原变量的值，所以原变量的值的改变也无法同步到副本中
-  * 外部变量为final是在编译期以强制手段确保用户不会在内部类中做修改原变量值的操作，也是防止外部操作修改了变量而内部类无法随之变化出现的影响
+* 匿名内部类引用局部变量必须是**常量**，底层创建为内部类的成员变量（原因：JVM → 运行机制 → 代码优化）
 
 ```java
 public class Anonymity {
@@ -3971,7 +4306,7 @@ public class RegexDemo {
 
 ## 集合
 
-### 基本介绍
+### 集合概述
 
 集合是一个大小可变的容器，容器中的每个数据称为一个元素
 
@@ -3986,21 +4321,17 @@ public class RegexDemo {
 
 
 
-****
+***
 
 
 
-### 数据结构
+### 存储结构
 
-#### 基本介绍
+#### 数据结构
 
-什么是数据结构？
+数据结构指的是数据以什么方式组织在一起，不同的数据结构，增删查的性能是不一样的
 
-* 数据结构指的是数据以什么方式组织在一起，不同的数据结构，增删查的性能是不一样的
-* 不同的集合底层会采用不同的数据结构，了解集合的底层是基于哪种数据结构操作数据才能知道具体场景
-
-Java常见的数据结构有哪些?
-	数据存储的常用结构有：栈、队列、数组、链表和红黑树
+数据存储的常用结构有：栈、队列、数组、链表和红黑树
 
 * 队列（queue）：先进先出，后进后出。(FIFO first in first out)
   场景：各种排队、叫号系统，有很多集合可以实现队列
@@ -4096,6 +4427,7 @@ Java常见的数据结构有哪些?
   ![平衡二叉树右旋](https://gitee.com/seazean/images/raw/master/Java/平衡二叉树右旋01.png)
 
 * 平衡二叉树旋转的四种情况
+
   * 左左：当根节点左子树的左子树有节点插入，导致二叉树不平衡
   * 如何旋转：直接对整体进行右旋即可
     ![平衡二叉树左左](https://gitee.com/seazean/images/raw/master/Java/平衡二叉树左左.png)
@@ -4163,7 +4495,9 @@ Java常见的数据结构有哪些?
 
 
 
-***
+
+
+****
 
 
 
@@ -4173,7 +4507,6 @@ Java常见的数据结构有哪些?
 
 > Java中集合的代表是：Collection.
 > Collection集合是Java中集合的祖宗类。
-> 学习Collection集合的功能，那么一切集合都可以用这些功能！！
 
 Collection集合底层为数组：`[value1, value2, ....]`
 
@@ -4409,7 +4742,7 @@ public class ArrayList<E> extends AbstractList<E>
   }
   ```
 
-  如果需要的容量大于数组长度，进行扩容
+  如果需要的容量大于数组长度，进行扩容：
 
   ```java
   //判断是否需要扩容
@@ -4421,9 +4754,22 @@ public class ArrayList<E> extends AbstractList<E>
   }
   ```
 
+  指定索引插入，在旧数组上操作：
+
+  ```java
+  public void add(int index, E element) {
+      rangeCheckForAdd(index);
+      ensureCapacityInternal(size + 1);  // Increments modCount!!
+      System.arraycopy(elementData, index, elementData, index + 1,
+                       size - index);
+      elementData[index] = element;
+      size++;
+  }
+  ```
+
 * 扩容：新容量的大小为 `oldCapacity + (oldCapacity >> 1)`，`oldCapacity >> 1` 需要取整，所以新容量大约是旧容量的 1.5 倍左右，即 oldCapacity+oldCapacity/2
 
-  扩容操作需要调用`Arrays.copyOf()`（底层`System.arraycopy()`）把原数组整个复制到新数组中，这个操作代价很高，因此最好在创建 ArrayList 对象时就指定大概的容量大小，减少扩容操作的次数
+  扩容操作需要调用`Arrays.copyOf()`（底层`System.arraycopy()`）把原数组整个复制到**新数组**中，这个操作代价很高，因此最好在创建 ArrayList 对象时就指定大概的容量大小，减少扩容操作的次数
 
   ```java
   private void grow(int minCapacity) {
@@ -4446,7 +4792,7 @@ public class ArrayList<E> extends AbstractList<E>
   * OutOfMemoryError:Requested array size exceeds VM limit（请求的数组大小超出VM限制）
   * OutOfMemoryError: Java heap space（堆区内存不足，可以通过设置JVM参数 -Xmx 来调节）
 
-* 删除元素：需要调用 System.arraycopy() 将 index+1 后面的元素都复制到 index 位置上，该操作的时间复杂度为 O(N)，可以看到 ArrayList 删除元素的代价是非常高的
+* 删除元素：需要调用 System.arraycopy() 将 index+1 后面的元素都复制到 index 位置上，在旧数组上操作，该操作的时间复杂度为 O(N)，可以看到 ArrayList 删除元素的代价是非常高的，
 
   ```java
   private void fastRemove(Object[] es, int i) {
@@ -4714,7 +5060,7 @@ Set集合添加的元素是无序，不重复的。
 
 LinkedHashSet 为什么是有序的？
 
-LinkedHashSet 底层依然是使用哈希表存储元素的，但是每个元素都额外带一个链来维护添加顺序，不光增删查快，还有序，缺点是多了一个存储顺序的链会**占内存空间**，而且不允许重复，无索引
+LinkedHashSet 底层依然是使用哈希表存储元素的，但是每个元素都额外带一个链来维护添加顺序，不光增删查快，还有顺序，缺点是多了一个存储顺序的链会**占内存空间**，而且不允许重复，无索引
 
 
 
@@ -11076,12 +11422,12 @@ public class TestDemo{
 
 XML介绍：
 
-- XML 指可扩展标记语言（**EXtensible Markup Language**）
+- XML 指可扩展标记语言（EXtensible Markup Language）
 - XML 是一种**标记语言**，很类似 HTML，HTML文件也是XML文档
 - XML 的设计宗旨是**传输数据**，而非显示数据
-- XML 标签没有被预定义。您需要**自行定义标签**。
-- XML 被设计为具有**自我描述性(就是易于阅读)**。
-- XML 是 **W3C 的推荐标准**
+- XML 标签没有被预定义，需要自行定义标签
+- XML 被设计为具有自我描述性，易于阅读
+- XML 是 W3C 的推荐标准
 
 **xml与html的区别**：
 
@@ -11919,12 +12265,12 @@ public class XPathDemo {
 
 ### 基本介绍
 
-JVM：全称Java Virtual Machine，即Java虚拟机，一种规范，本身是一个虚拟计算机，直接和操作系统进行交互，与硬件不直接交互，而操作系统可以帮我们完成和硬件进行交互的工作
+JVM：全称 Java Virtual Machine，即 Java 虚拟机，一种规范，本身是一个虚拟计算机，直接和操作系统进行交互，与硬件不直接交互，而操作系统可以帮我们完成和硬件进行交互的工作
 
 特点：
 
-* Java虚拟机基于**二进制字节码**执行，由一套字节码指令集、一组寄存器、一个栈、一个垃圾回收堆、一个方法区等组成
-* JVM屏蔽了与操作系统平台相关的信息，从而能够让Java程序只需要生成能够在JVM上运行的字节码文件，通过该机制实现的**跨平台性**
+* Java 虚拟机基于**二进制字节码**执行，由一套字节码指令集、一组寄存器、一个栈、一个垃圾回收堆、一个方法区等组成
+* JVM 屏蔽了与操作系统平台相关的信息，从而能够让 Java 程序只需要生成能够在 JVM 上运行的字节码文件，通过该机制实现的**跨平台性**
 
 Java代码执行流程：java程序 --（编译）--> 字节码文件 --（解释执行）--> 操作系统（Win，Linux）
 
@@ -11970,7 +12316,7 @@ JVM的生命周期分为三个阶段，分别为：启动、运行、死亡。
 - **启动**：当启动一个 Java 程序时，通过引导类加载器（bootstrap class loader）创建一个初始类（initial class），对于拥有 main 函数的类就是 JVM 实例运行的起点
 - **运行**：
   - main() 方法是一个程序的初始起点，任何线程均可由在此处启动
-  - 在 JVM 内部有两种线程类型，分别为：**用户线程和守护线程**，JVM通常使用的是守护线程，而main()和其他线程使用的是用户线程，守护线程会随着用户线程的结束而结束
+  - 在 JVM 内部有两种线程类型，分别为：**用户线程和守护线程**，JVM 通常使用的是守护线程，而 main() 和其他线程使用的是用户线程，守护线程会随着用户线程的结束而结束
   - 执行一个 Java 程序时，真真正正在执行的是一个 Java 虚拟机的进程
   - JVM 有两种运行模式 Server 与 Client，两种模式的区别在于：Client 模式启动速度较快，Server 模式启动较慢；但是启动进入稳定期长期运行之后 Server 模式的程序运行速度比 Client 要快很多
 - **死亡**：
@@ -12500,7 +12846,7 @@ public class Demo1_27 {
 
 ### 变量位置
 
-变量的位置不取决于它是基本数据类型还是引用数据类型，取决于它的声明位置
+**变量的位置不取决于它是基本数据类型还是引用数据类型，取决于它的声明位置**
 
 静态内部类和其他内部类：
 
@@ -15553,7 +15899,7 @@ Exception table:
 
 
 
-#### 默认构造器
+#### 构造器
 
 ```java
 public class Candy1 {
@@ -15576,7 +15922,7 @@ public class Candy1 {
 
 
 
-#### 自动拆装箱
+#### 拆装箱
 
 ```java
 Integer x = 1;
@@ -15670,7 +16016,7 @@ for (int e : array) {
 }
 ```
 
-编译后：
+编译后为循环取数：
 
 ```java
 for(int i = 0; i < array.length; ++i) {
@@ -15755,7 +16101,7 @@ switch(x) {
 
 总结：
 
-* 执行了两遍 switch，第一遍是根据字符串的 hashCode 和 equals 将字符串的转换为相应byte 类型，第二遍才是利用 byte 执行进行比较
+* 执行了两遍 switch，第一遍是根据字符串的 hashCode 和 equals 将字符串的转换为相应 byte 类型，第二遍才是利用 byte 执行进行比较
 * hashCode 是为了提高效率，减少可能的比较；而 equals 是为了防止 hashCode 冲突
 
 
@@ -15776,9 +16122,11 @@ public class Candy7 {
     public static void foo(Sex sex) {
         switch (sex) {
         case MALE:
-        	System.out.println("男"); break;
+        	System.out.println("男"); 
+            break;
         case FEMALE:
-        	System.out.println("女"); break;
+        	System.out.println("女"); 
+            break;
         }
 	}
 }
@@ -15866,7 +16214,7 @@ try(资源变量 = 创建资源对象){
 }
 ```
 
-其中资源对象需要实现 **AutoCloseable**接口，例如 InputStream、OutputStream、Connection、Statement、ResultSet等接口都实现了 AutoCloseable ，使用 try-withresources可以不用写 finally 语句块，编译器会帮助生成关闭资源代码：
+其中资源对象需要实现 **AutoCloseable**接口，例如 InputStream、OutputStream、Connection、Statement、ResultSet 等接口都实现了 AutoCloseable ，使用 try-withresources可以不用写 finally 语句块，编译器会帮助生成关闭资源代码：
 
 ```java
 try(InputStream is = new FileInputStream("d:\\1.txt")) {
@@ -15923,7 +16271,7 @@ try {
 方法重写时对返回值分两种情况：
 
 * 父子类的返回值完全一致
-* 子类返回值可以是父类返回值的子类（比较绕口，见下面的例子）
+* 子类返回值可以是父类返回值的子类
 
 ```java
 class A {
@@ -15965,6 +16313,8 @@ class B extends A {
 
 #### 匿名内部类
 
+##### 无参优化
+
 源代码：
 
 ```java
@@ -15991,9 +16341,6 @@ final class Candy11$1 implements Runnable {
     	System.out.println("ok");
     }
 }
-```
-
-```java
 public class Candy11 {
     public static void main(String[] args) {
     	Runnable runnable = new Candy11$1();
@@ -16002,6 +16349,8 @@ public class Candy11 {
 ```
 
 
+
+##### 带参优化
 
 引用局部变量的匿名内部类，源代码：
 
@@ -16037,7 +16386,13 @@ public class Candy11 {
 }
 ```
 
-局部变量必须是 final 的：因为在创建Candy11￥1 对象时，将 x 的值赋值给了 Candy11$1 对象的 val属性，x不应该再发生变化了，因为发生变化，this.val​x属性没有机会再跟着变化
+局部变量在底层创建为内部类的成员变量，必须是 final 的原因：
+
+* 在Java中方法调用是值传递的，在匿名内部类中对变量的操作都是基于原变量的副本，不会影响到原变量的值，所以原变量的值的改变也无法同步到副本中
+
+* 外部变量为final是在编译期以强制手段确保用户不会在内部类中做修改原变量值的操作，也是防止外部操作修改了变量而内部类无法随之变化出现的影响
+
+  在创建 `Candy11$1 ` 对象时，将 x 的值赋值给了 `Candy11$1` 对象的 val 属性，x 不应该再发生变化了，因为发生变化，this.val$x 属性没有机会再跟着变化
 
 
 
@@ -16063,7 +16418,7 @@ public class Reflect1 {
 }
 ```
 
-foo.invoke 0 ~ 15次调用的是MethodAccessor的实现类`NativeMethodAccessorImpl.invoke0()`，本地方法执行速度慢；当调用到第 16 次时，会采用运行时生成的类`sun.reflect.GeneratedMethodAccessor1`代替
+foo.invoke 0 ~ 15次调用的是 MethodAccessor 的实现类`NativeMethodAccessorImpl.invoke0()`，本地方法执行速度慢；当调用到第 16 次时，会采用运行时生成的类`sun.reflect.GeneratedMethodAccessor1`代替
 
 ```java
 public Object invoke(Object obj, Object[] args)throws Exception {
@@ -17196,7 +17551,7 @@ LocalVariableTable:
 
 
 
-#### 锁优化
+#### 锁升级
 
 ##### 偏向锁
 
@@ -17407,6 +17762,8 @@ public class SpinLock {
 ***
 
 
+
+#### 锁优化
 
 ##### 锁消除
 
@@ -20694,13 +21051,13 @@ private final HashSet<Worker> workers = new HashSet<Worker>();
 构造方法：
 
 ```java
-public ThreadPoolExecutor(  int corePoolSize,
-                            int maximumPoolSize,
-                            long keepAliveTime,
-                            TimeUnit unit,
-                            BlockingQueue<Runnable> workQueue,
-                            ThreadFactory threadFactory,
-                            RejectedExecutionHandler handler)
+public ThreadPoolExecutor(int corePoolSize,
+                          int maximumPoolSize,
+                          long keepAliveTime,
+                          TimeUnit unit,
+                          BlockingQueue<Runnable> workQueue,
+                          ThreadFactory threadFactory,
+                          RejectedExecutionHandler handler)
 ```
 
 参数介绍：
@@ -20728,7 +21085,7 @@ public ThreadPoolExecutor(  int corePoolSize,
 
   补充：其他框架拒绝策略
 
-  * Dubbo：在抛出 RejectedExecutionException 异常前记录日志，并dump线程栈信息，方便定位问题
+  * Dubbo：在抛出 RejectedExecutionException 异常前记录日志，并 dump 线程栈信息，方便定位问题
   * Netty：创建一个新线程来执行任务
   * ActiveMQ：带超时等待（60s）尝试放入队列
   * PinPoint：它使用了一个拒绝策略链，会逐一尝试策略链中每种拒绝策略
@@ -20739,14 +21096,14 @@ public ThreadPoolExecutor(  int corePoolSize,
 
 1. 创建线程池，这时没有创建线程（**懒惰**），等待提交过来的任务请求，调用execute方法才会创建线程
 
-2. 当调用execute()方法添加一个请求任务时，线程池会做如下判断：
-   * 如果正在运行的线程数量小于corePoolSize，那么马上创建线程运行这个任务
-   * 如果正在运行的线程数量大于或等于corePoolSize，那么将这个任务放入队列
-   * 如果这时队列满了且正在运行的线程数量还小于maximumPoolSize，那么会创建非核心线程**立刻运行**这个任务（对于阻塞队列中的任务不公平）
-   * 如果队列满了且正在运行的线程数量大于或等于maximumPoolSize，那么线程池会启动饱和拒绝策略来执行
+2. 当调用 execute() 方法添加一个请求任务时，线程池会做如下判断：
+   * 如果正在运行的线程数量小于 corePoolSize，那么马上创建线程运行这个任务
+   * 如果正在运行的线程数量大于或等于 corePoolSize，那么将这个任务放入队列
+   * 如果这时队列满了且正在运行的线程数量还小于 maximumPoolSize，那么会创建非核心线程**立刻运行**这个任务（对于阻塞队列中的任务不公平）
+   * 如果队列满了且正在运行的线程数量大于或等于 maximumPoolSize，那么线程池会启动饱和**拒绝策略**来执行
 3. 当一个线程完成任务时，会从队列中取下一个任务来执行
 
-4. 当一个线程无事可做超过一定的时间（keepAliveTime）时，线程池会判断：如果当前运行的线程数大于corePoolSize，那么这个线程就被停掉，所以线程池的所有任务完成后最终会收缩到corePoolSize的大小
+4. 当一个线程无事可做超过一定的时间（keepAliveTime）时，线程池会判断：如果当前运行的线程数大于corePoolSize，那么这个线程就被停掉，所以线程池的所有任务完成后最终会收缩到 corePoolSize 大小
 
 
 
@@ -20783,7 +21140,7 @@ Executors提供了四种线程池的创建：newCachedThreadPool、newFixedThrea
   ```
 
   * 核心线程数是 0， 最大线程数是 Integer.MAX_VALUE，全部都是救急线程（60s 后可以回收），可能会创建大量线程，从而导致 **OOM**
-  * SynchronousQueue作为阻塞队列，没有容量，对于每一个take的线程会阻塞直到有一个put的线程放入元素为止（类似一手交钱、一手交货）
+  * SynchronousQueue 作为阻塞队列，没有容量，对于每一个take的线程会阻塞直到有一个put的线程放入元素为止（类似一手交钱、一手交货）
 
   * 适合任务数比较密集，但每个任务执行时间较短的情况
 
@@ -20829,9 +21186,9 @@ Executors提供了四种线程池的创建：newCachedThreadPool、newFixedThrea
 
   Executors返回的线程池对象弊端如下：
 
-  - FixedThreadPool和SingleThreadPool：
+  - FixedThreadPool 和 SingleThreadPool：
     - 运行的请求队列长度为 Integer.MAX_VALUE，可能会堆积大量的请求，从而导致OOM
-  - CacheThreadPool和ScheduledThreadPool：
+  - CacheThreadPool 和 ScheduledThreadPool：
     - 允许的创建线程数量为 Integer.MAX_VALUE，可能会创建大量的线程，从而导致 OOM
 
 创建多大容量的线程池合适？

@@ -2083,9 +2083,9 @@ HTTP：Hyper Text Transfer Protocol，意为超文本传输协议，是建立在
 
 HTTP协议是**一个无状态的面向连接的协议**，指的是协议对于事务处理没有记忆能力，服务器不知道客户端是什么状态。所以打开一个服务器上的网页和上一次打开这个服务器上的网页之间没有任何联系
 
-注意：无状态并不是代表HTTP就是UDP，面向连接也不是代表HTTP就是TCP
+注意：无状态并不是代表 HTTP 就是 UDP，面向连接也不是代表 HTTP 就 是TCP
 
-HTTP作用：用于定义WEB浏览器与WEB服务器之间交换数据的过程和数据本身的内容
+HTTP作用：用于定义 WEB 浏览器与WEB服务器之间交换数据的过程和数据本身的内容
 
 浏览器和服务器交互过程：浏览器请求，服务请求响应
 
@@ -4136,7 +4136,9 @@ public class ServletDemo08 extends HttpServlet {
 **常用的会话管理技术**：
 
 * Cookie：客户端会话管理技术，用户浏览的信息以键值对(key=value)的形式保存在浏览器上。如果没有关闭浏览器，再次访问服务器，会把cookie带到服务端，服务端就可以做相应的处理
-* Session：服务端会话管理技术。服务器为每一个浏览器开辟一块内存空间，即session。由于内存空间是每一个浏览器独享的，所有用户在访问的时候，可以把信息保存在session对象中。同时，每一个session对象都对应一个sessionId，服务器把sessionId写到cookie中，再次访问的时候，浏览器会把cookie（sessionId）带过来，找到对应的session对象。
+* Session：服务端会话管理技术。当客户端第一次请求 session 对象时候，服务器为每一个浏览器开辟一块内存空间，并将通过特殊算法算出一个 session 的 ID，用来标识该 session 对象。由于内存空间是每一个浏览器独享的，所有用户在访问的时候，可以把信息保存在session对象中。同时服务器把sessionId写到cookie中，再次访问的时候，浏览器会把cookie(sessionId)带过来，找到对应的session对象。
+
+  tomcat 生成的 sessionID 叫做 jsessionID
 
 两者区别：
 
@@ -4148,7 +4150,11 @@ public class ServletDemo08 extends HttpServlet {
 
 * Session 通过服务端记录用户的状态，服务端给特定的用户创建特定的 Session 之后就可以标识这个用户并且跟踪这个用户
 
+* Cookie 只能存储 ASCII 码，而 Session 可以存储任何类型的数据
 
+
+
+参考文章：https://blog.csdn.net/weixin_43625577/article/details/92393581
 
 
 
@@ -4192,7 +4198,7 @@ Cookie：客户端会话管理技术，把要共享的数据保存到了客户�
 
   * `Cookie(String name, String value)` : 构造方法创建Cookie对象
 
-  * Cookie属性对应的set和get方法，name属性被final修饰，没有set方法    
+  * Cookie 属性对应的set和get方法，name属性被final修饰，没有set方法    
 
 * HttpServletResponse类API：
   	`void addCookie(Cookie cookie)` : 向客户端添加Cookie，Adds the specified cookie to the response.
@@ -4207,6 +4213,10 @@ Cookie：客户端会话管理技术，把要共享的数据保存到了客户�
 
 
 #### 有效期
+
+如果不设置过期时间，表示这个cookie生命周期为浏览器会话期间，只要关闭浏览器窗口cookie就消失，这种生命期为浏览会话期的cookie被称为会话cookie，会话cookie一般不保存在硬盘上而是保存在内存里。
+
+如果设置过期时间，浏览器就会把cookie保存到硬盘上，关闭后再次打开浏览器，这些cookie依然有效直到超过设定的过期时间。存储在硬盘上的cookie可以在**不同的浏览器进程间共享**，比如两个IE窗口，而对于保存在内存的cookie，不同的浏览器有不同的处理方式
 
 设置Cookie存活时间API：`void setMaxAge(int expiry)` 
 
@@ -4297,8 +4307,6 @@ XSS 全称 Cross SiteScript，跨站脚本攻击，是Web程序中常见的漏�
 
 
 
-
-
 ***
 
 
@@ -4336,6 +4344,12 @@ HttpServletRequest类获取Session：
 
 <img src="https://gitee.com/seazean/images/raw/master/Web/Session获取的两个方法.png" style="zoom: 80%;" />
 
+
+
+***
+
+
+
 #### 常用API
 
 | 方法                                         | 说明                             |
@@ -4349,13 +4363,15 @@ HttpServletRequest类获取Session：
 
 
 
+****
+
 
 
 #### 实现会话
 
 通过第一个Servlet设置共享的数据用户名，并在第二个Servlet获取到。
 
-项目执行完以后，去浏览器抓包，Request Headers中的Cookie JSESSIONID的值是一样的
+项目执行完以后，去浏览器抓包，Request Headers 中的 Cookie JSESSIONID的值是一样的
 
 ```java
 @WebServlet("/servletDemo01")
@@ -4398,6 +4414,32 @@ public class ServletDemo02 extends HttpServlet{
     }
 }
 ```
+
+
+
+****
+
+
+
+#### 生命周期
+
+Session 的创建：一个常见的错误是以为 Session 在有客户端访问时就被创建，事实是直到某 server 端程序(如Servlet）调用 `HttpServletRequest.getSession(true)` 这样的语句时才会被创建
+
+Session 在以下情况会被删除：
+
+* 程序调用 HttpSession.invalidate()
+* 距离上一次收到客户端发送的 session id 时间间隔超过了 session 的最大有效时间
+* 服务器进程被停止
+
+注意事项：
+
+* 客户端只保存 sessionID 到 cookie 中，而不会保存 session
+* 关闭浏览器只会使存储在客户端浏览器内存中的 cookie 失效，不会使服务器端的 session 对象失效，同样也不会使已经保存到硬盘上的持久化cookie消失
+
+打开两个浏览器窗口访问应用程序会使用的是不同的session，通常 session cookie 是不能跨窗口使用，当新开了一个浏览器窗口进入相同页面时，系统会赋予一个新的 session id，实现跨窗口信息共享：
+
+* 先把 session id 保存在 persistent cookie 中（通过设置session的最大有效时间）
+* 在新窗口中读出来，就可以得到上一个窗口的 session id，这样通过 session cookie 和 persistent cookie 的结合就可以实现跨窗口的会话跟踪
 
 
 
@@ -4457,7 +4499,9 @@ public class ServletDemo02 extends HttpServlet{
 
 #### 钝化活化
 
-钝化：序列化，持久态。把长时间不用，但还不到过期时间的HttpSession进行序列化写到磁盘上。
+Session 存放在服务器端的内存中，可以做持久化管理。
+
+钝化：序列化，持久态。把长时间不用，但还不到过期时间的 HttpSession 进行序列化写到磁盘上。
 
 活化：相反的状态
 

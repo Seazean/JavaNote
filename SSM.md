@@ -2391,7 +2391,7 @@ ApplicationContext子类相关API：
 
   ![](https://gitee.com/seazean/images/raw/master/Frame/DI介绍.png)
 
-IoC和DI的关系：IoC与DI是同一件事站在不同角度看待问题
+IoC 和 DI 的关系：IoC 与 DI是同一件事站在不同角度看待问题
 
 
 
