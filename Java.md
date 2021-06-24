@@ -191,8 +191,8 @@ Java为包装类做了一些特殊功能，具体来看特殊功能主要有：
 
 * 把字符串类型的数值转换成对应的基本数据类型的值（**重要**）
 
-  1. Xxx.parseXxx("字符串类型的数值")  ---->Integer.parseInt(numStr)
-  2. Xxx.valueOf("字符串类型的数值")    ---->Integer.valueOf(numStr) （推荐使用）
+  1. Xxx.parseXxx("字符串类型的数值") → Integer.parseInt(numStr)
+  2. Xxx.valueOf("字符串类型的数值")   → Integer.valueOf(numStr) （推荐使用）
 
   ```java
   public class PackageClass02 {
@@ -373,7 +373,7 @@ public static void main(String[] args) {
 
 #### 初始化
 
-数组就是存储数据长度固定的容器，存储多个数据的**数据类型要一致**
+数组就是存储数据长度固定的容器，存储多个数据的**数据类型要一致**，数组也是一个对象
 
 创建数组：
 
@@ -468,9 +468,11 @@ public static void main(String[] args) {
 初始化：
 
 * 动态初始化：
+  
   数据类型[][] 变量名 = new 数据类型[m] [n] : `int[][] arr = new int[3][3];`
-  	m表示这个二维数组，可以存放多少个一维数组
-  	n表示每一个一维数组，可以存放多少个元素
+  
+  * m 表示这个二维数组，可以存放多少个一维数组，行
+  * n 表示每一个一维数组，可以存放多少个元素，列
 * 静态初始化
   * 数据类型[][] 变量名 = new 数据类型[][]{ {元素1, 元素2...} , {元素1, 元素2...} 
   * 数据类型[][] 变量名 = { {元素1, 元素2...} , {元素1, 元素2...} ...}
@@ -1464,18 +1466,20 @@ public class QuickSort {
     public static void quickSort(int[] arr, int low, int high) {
         int left = low;
         int right = high;
-
+        
+		//递归结束的条件，等于防止一次多余的赋值
         if (low >= high) {
             return;
         }
-        int temp = arr[low];//基准数
+        int temp = arr[left];//基准数
         while (left < right) {
             // 用 <= 可以防止多余的交换
             while (arr[right] >= temp && right > left) {
                 right--;
             }
-            // arr[right] < temp 放在左边，做判断防止相等
+            //做判断防止相等
             if (right > left) {
+                // 到这里说明 arr[right] < temp 
                 arr[left] = arr[right];//此时把arr[right]元素视为空
                 left++;
             }
@@ -1533,51 +1537,62 @@ public class QuickSort {
 
 <img src="https://gitee.com/seazean/images/raw/master/Java/Sort-基数排序.gif" style="zoom:67%;" />
 
+实现思路：
+
+- 获得最大数的位数，可以通过将最大数变为String类型，再求长度
+- 将所有待比较数值（正整数）统一为同样的数位长度，**位数较短的数前面补零**
+- 从最低位开始，依次进行一次排序
+- 从最低位排序一直到最高位（个位->十位->百位->…->最高位）排序完成以后，，数列就变成一个有序序列
+
 ```java
-public class Test {
+public class BucketSort {
     public static void main(String[] args) {
-        int[] arr = new int[]{55, 22, 2, 5, 1, 3, 8, 5, 7, 4, 3, 99, 88};
+        int[] arr = new int[]{576, 22, 26, 548, 1, 3, 843, 536, 735, 43, 3, 912, 88};
         bucketSort(arr);
         System.out.println(Arrays.toString(arr));
     }
 
-    public static void bucketSort(int[] arr){
-        // 计算最大值与最小值
-        int max = Integer.MIN_VALUE;
-        int min = Integer.MAX_VALUE;
-        for(int i = 0; i < arr.length; i++){
-            max = Math.max(max, arr[i]);
-            min = Math.min(min, arr[i]);
-        }
+    private static void bucketSort(int[] arr) {
+        // 桶的个数固定为10个（个位是0~9），最大容量由数组的长度决定
+        int[][] bucket = new int[10][arr.length];
+        //记录每个桶中的有多少个元素
+        int[] elementCounts = new int[10];
 
-        // 计算桶的数量
-        int bucketNum = (max - min) / arr.length + 1;
-        ArrayList<ArrayList<Integer>> bucketArr = new ArrayList<>(bucketNum);
-        for(int i = 0; i < bucketNum; i++){
-            bucketArr.add(new ArrayList<Integer>());
+        //获取数组的最大元素
+        int max = arr[0];
+        for (int i = 1; i < arr.length; i++) {
+            if (arr[i] > max) {
+                max = arr[i];
+            }
         }
-
-        // 将每个元素放入桶
-        for(int i = 0; i < arr.length; i++){
-            int num = (arr[i] - min) / (arr.length);
-            bucketArr.get(num).add(arr[i]);
-        }
-
-        // 对每个桶进行排序
-        for(int i = 0; i < bucketArr.size(); i++){
-            Collections.sort(bucketArr.get(i));
-        }
-
-        // 将桶中的元素赋值到原序列
-        int index = 0;
-        for(int i = 0; i < bucketArr.size(); i++){
-            for(int j = 0; j < bucketArr.get(i).size(); j++){
-                arr[index++] = bucketArr.get(i).get(j);
+        String maxEle = Integer.toString(max);
+        //将数组中的元素放入桶中
+        for (int i = 0, step = 1; i < maxEle.length(); i++, step *= 10) {
+            for (int j = 0; j < arr.length; j++) {
+                //获取最后一位的数据，也就是索引
+                int index = (arr[j] / step) % 10;
+                //放入具体位置
+                bucket[index][elementCounts[index]] = arr[j];
+                elementCounts[index]++;
+            }
+            //收集回数组
+            for (int j = 0, index = 0; j < 10; j++) {
+                //先进先出
+                int position = 0;
+                //桶中有元素就取出
+                while (elementCounts[j] > 0) {
+                    arr[index] = bucket[j][position];
+                    elementCounts[j]--;
+                    position++;
+                    index++;
+                }
             }
         }
     }
 }
 ```
+
+空间换时间
 
 
 
@@ -1677,6 +1692,165 @@ public class binarySearch {
 ![](https://gitee.com/seazean/images/raw/master/Java/二分查找.gif)
 
 
+
+***
+
+
+
+### 匹配
+
+#### BF
+
+暴力匹配算法：
+
+```java
+public static void main(String[] args) {
+    String s = "seazean";
+    String t = "az";
+    System.out.println(match(s,t));//2
+}
+
+public static int match(String s,String t) {
+    int k = 0;
+    int i = k, j = 0;
+    //防止越界
+    while (i < s.length() && j < t.length()) {
+        if (s.charAt(i) == t.charAt(j)) {
+            ++i;
+            ++j;
+        } else {
+            k++;
+            i = k;
+            j = 0;
+        }
+    }
+    //说明是匹配成功
+    if (j >= t.length()) {
+        return k;
+    }
+    return 0;
+}
+```
+
+
+
+***
+
+
+
+#### RK
+
+
+
+
+
+***
+
+
+
+#### KMP
+
+KMP匹配：
+
+* next 数组的核心就是自己匹配自己，主串代表后缀，模式串代表前缀
+* nextVal 数组的核心就是
+
+```java
+public class Kmp {
+    public static void main(String[] args) {
+        String s = "acababaabc";
+        String t = "abaabc";
+        //[-1, 0, 0, 1, 1, 2]
+        System.out.println(Arrays.toString(getNext(t)));
+        //[-1, 0, -1, 1, 0, 2]
+        System.out.println(Arrays.toString(getNextVal(t)));
+        //5
+        System.out.println(kmp(s, t));
+    }
+
+    private static int kmp(String s, String t) {
+        int[] next = getNext(t);
+        int i = 0, j = 0;
+        while (i < s.length() && j < t.length()) {
+            //j==-1时说明第一个位置匹配失败，所以将s的下一个和t的首字符比较
+            if (j == -1 || s.charAt(i) == t.charAt(j)) {
+                i++;
+                j++;
+            } else {
+                //模式串右移，比较s的当前位置与t的next[j]位置
+                j = next[j];
+            }
+        }
+        if (j >= t.length()) {
+            return i - j + 1;
+        }
+        return -1;
+    }
+	//next数组
+    private static int[] getNext(String t) {
+        int[] next = new int[t.length()];
+        next[0] = -1;
+        int j = -1;
+        int i = 0;
+        while (i < t.length() - 1) {
+            // 根据已知的前j位推测第j+1位
+            // j=-1说明首位就没有匹配，即t[0]!=t[i]，说明next[i+1]没有最大前缀，为0
+            if (j == -1 || t.charAt(i) == t.charAt(j)) {
+                // i位置和j位置的数据相同，当i+1位置不匹配时，可以跳转到j+1的位置对比
+                // 所以只需要将i的最大公共前缀+1就代表i+1的最大前缀，依次类推
+                // 所以2位置的最大公共前缀只需要1位置的最大前缀+1
+                i++;
+                j++;
+                next[i] = j;
+            } else {
+                //i位置的数据和j位置的不相等，所以回退对比next[j]和i位置的数据
+                j = next[j];
+            }
+
+        }
+        return next;
+    }
+	//nextVal
+    private static int[] getNextVal(String t) {
+        int[] nextVal = new int[t.length()];
+        nextVal[0] = -1;
+        int j = -1;
+        int i = 0;
+        while (i < t.length() - 1) {
+            if (j == -1 || t.charAt(i) == t.charAt(j)) {
+                i++;
+                j++;
+                // 如果t[i+1]==t[j+1]，回退后仍然失配，所以要继续回退
+                if (t.charAt(i) == t.charAt(j)) {
+                    nextVal[i] = nextVal[j];
+                } else {
+                    nextVal[i] = j;
+                }
+            } else {
+                j = nextVal[j];
+            }
+        }
+        return nextVal;
+    }
+    /*根据next求nextVal
+    private static int[] getNextVal(String t, int[] next) {
+        int[] nextVal = new int[next.length];
+        nextVal[0] = -1;
+        for (int i = 1; i < nextVal.length; i++) {
+            if (t.charAt(i) == t.charAt(next[i])) {
+                nextVal[i] = nextVal[next[i]];
+            } else {
+                nextVal[i] = next[i];
+            }
+        }
+        return nextVal;
+    }*/
+}
+```
+
+
+
+参考文章：https://www.cnblogs.com/tangzhengyue/p/4315393.html
 
 
 
@@ -3074,7 +3248,7 @@ Cloneable 接口是一个标识性接口，即该接口不包含任何方法（�
   }
   ```
 
-
+SDP → 创建型 → 原型模式
 
 
 
@@ -3168,7 +3342,7 @@ s = s + "cd"; //s = abccd 新对象
 直接赋值：`String s = “abc”` 直接赋值的方式创建字符串对象，内容就是abc
 
 - 通过构造方法创建：通过 new 创建的字符串对象，每一次 new 都会申请一个内存空间，虽然内容相同，但是地址值不同，**返回堆内存中对象的引用**
-- 直接赋值方式创建：以“ ”方式给出的字符串，只要字符序列相同(顺序和大小写)，无论在程序代码中出现几次，JVM 都只会**在 String Pool 中创建一个字符串对象**，并在字符串池中维护
+- 直接赋值方式创建：以“ ”方式给出的字符串，只要字符序列相同（顺序和大小写），无论在程序代码中出现几次，JVM 都只会**在 String Pool 中创建一个字符串对象**，并在字符串池中维护
 
 `String str = new String("abc")`创建字符串对象：
 
@@ -3214,6 +3388,7 @@ s = s + "cd"; //s = abccd 新对象
 `public char charAt(int index)` : 取索引处的值
 `public char[] toCharArray()` : 将字符串拆分为字符数组后返回
 `public boolean startsWith(String prefix)` : 测试此字符串是否以指定的前缀开头
+`public int indexOf(String str)` : 返回指定子字符串第一次出现的字符串内的索引，没有返回-1
 `public int lastIndexOf(String str)` : 返回字符串最后一次出现str的索引，没有返回-1
 `public String substring(int beginIndex)` : 返回子字符串，以原字符串指定索引处到结尾
 `public String substring(int beginIndex, int endIndex)` : 返回原字符串指定索引处的字符串
@@ -3249,7 +3424,7 @@ s.replace("-","");//12378
 
 * jdk1.8：当一个字符串调用 intern() 方法时，如果 String Pool 中：
   * 存在一个字符串和该字符串值相等（使用 equals() 方法进行确定），就会返回 String Pool 中字符串的引用（需要变量接收）
-  * 不存在，会把对象的引用地址复制一份放入串池，并返回串池中的引用地址，前提是堆内存有该对象。因为Pool在堆中，为了节省内存不再创建新对象
+  * 不存在，会把对象的引用地址复制一份放入串池，并返回串池中的引用地址，前提是堆内存有该对象。因为 Pool 在堆中，为了节省内存不再创建新对象
 * jdk1.6：将这个字符串对象尝试放入串池，如果有就不放入，返回已有的串池中的对象的地址；如果没有会把此对象复制一份，放入串池，把串池中的对象返回
 
 ```java
@@ -4841,7 +5016,7 @@ public class ArrayList<E> extends AbstractList<E>
 
 扩容：Vector 的构造函数可以传入 capacityIncrement 参数，作用是在扩容时使容量 capacity 增长 capacityIncrement，如果这个参数的值小于等于 0（默认0），扩容时每次都令 capacity 为原来的两倍
 
-对比ArrayList
+对比 ArrayList
 
 1. Vector 是同步的，开销比 ArrayList 要大，访问速度更慢。最好使用 ArrayList 而不是 Vector，因为同步操作完全可以由程序来控制
 
@@ -5308,7 +5483,7 @@ HashMap基于哈希表的Map接口实现，是以key-value存储形式存在，�
 
 * HashMap的实现不是同步的，这意味着它不是线程安全的
 * key是唯一不重复的，底层的哈希表结构，依赖hashCode方法和equals方法保证键的唯一
-* key、value都可以为null，但是键位置只能是一个null
+* key、value都可以为null，但是key位置只能是一个null
 * HashMap中的映射不是有序的，即存取是无序的
 * **key要存储的是自定义对象，需要重写hashCode和equals方法，防止出现地址不同内容相同的key**
 
@@ -5417,7 +5592,7 @@ HashMap继承关系如下图所示：
     * int类型是32位整型，占4个字节
     * Java的原始类型里没有无符号类型，所以首位是符号位正数为0，负数为1
 
-5. 当链表的值超过8则会转红黑树(**1.8新增**)
+5. 当链表的值超过8则会转红黑树（1.8新增**）
 
     ```java
      //当桶(bucket)上的结点数大于这个值时会转成红黑树
@@ -7346,8 +7521,8 @@ class Student{
 
 ```java
 // foreach终结方法
-	list.stream().filter(s -> s.startsWith("张"))
-		.filter(s -> s.length() == 3).forEach(System.out::println);
+list.stream().filter(s -> s.startsWith("张"))
+    .filter(s -> s.length() == 3).forEach(System.out::println);
 ```
 
 
@@ -8770,7 +8945,7 @@ IO 复用让单个进程具有处理多个 I/O 事件的能力，又被称为 Ev
 
 ###### 函数
 
-socket 不是文件，只是一个标识符，但是 Unix 操作系统把所有东西都**看作**是文件，所以 socket 说成file descriptor，也就是 fd
+socket 不是文件，只是一个标识符，但是 Unix 操作系统把所有东西都**看作**是文件，所以 socket 说成 file descriptor，也就是 fd
 
 select 允许应用程序监视一组文件描述符，等待一个或者多个描述符成为就绪状态，从而完成 I/O 操作。
 
@@ -9033,7 +9208,7 @@ epoll 的特点：
 * epoll 仅适用于 Linux 系统
 * epoll 使用一个文件描述符管理多个描述符，将用户关系的文件描述符的事件存放到内核的一个事件表中
 * 没有最大描述符数量（并发连接）的限制，打开 fd 的上限远大于1024（1G 内存能监听约10万个端口）
-* epoll 的时间复杂度 O(1)，epoll 理解为 event poll，不同于忙轮询和无差别轮询，调用 epoll_wait 只是轮询就绪链表。当监听列表有设备就绪时调用回调函数，把就绪 fd 放入就绪链表中，并唤醒在 epoll_wait 中阻塞的进程，所以 epoll 实际上是**事件驱动（每个事件关联上fd）**的
+* epoll 的时间复杂度 O(1)，epoll 理解为 event poll，不同于忙轮询和无差别轮询，调用 epoll_wait **只是轮询就绪链表**。当监听列表有设备就绪时调用回调函数，把就绪 fd 放入就绪链表中，并唤醒在 epoll_wait 中阻塞的进程，所以 epoll 实际上是**事件驱动**（每个事件关联上fd）的
 * epoll 内核中根据每个 fd 上的 callback 函数来实现，只有活跃的 socket 才会主动调用 callback，所以使用 epoll 没有前面两者的线性下降的性能问题，效率提高
 
 * epoll 每次注册新的事件到 epoll 句柄中时，会把所有的 fd 拷贝进内核，但不是每次 epoll_wait 的时重复拷贝，对比前面两种，epoll 只需要将描述符从进程缓冲区向内核缓冲区拷贝一次。 epoll 也可以利用 mmap() 文件映射内存加速与内核空间的消息传递，减少复制开销
@@ -9192,11 +9367,11 @@ mmap（Memory Mapped Files）加 write 实现零拷贝，零拷贝就是没有�
 进行了 4 次用户空间与内核空间的上下文切换，以及 3 次数据拷贝（2 次 DMA，一次 CPU 复制）：
 
 * 发出 mmap 系统调用，DMA 拷贝到内核缓冲区；mmap系统调用返回，无需拷贝
-* 发出write系统调用，将数据从内核缓冲区拷贝到内核 socket 缓冲区；write系统调用返回，DMA 将内核空间 socket 缓冲区中的数据传递到协议引擎
+* 发出 write 系统调用，将数据从内核缓冲区拷贝到内核 socket 缓冲区；write系统调用返回，DMA 将内核空间 socket 缓冲区中的数据传递到协议引擎
 
 ![](https://gitee.com/seazean/images/raw/master/Java/IO-mmap工作流程.png)
 
-原理：利用操作系统的 Page 来实现文件到物理内存的直接映射，完成映射后对物理内存的操作会被同步到硬盘上
+原理：利用操作系统的 Page 来实现文件到物理内存的直接映射，完成映射后对物理内存的操作会**被同步**到硬盘上
 
 缺点：不可靠，写到 mmap 中的数据并没有被真正的写到硬盘，操作系统会在程序主动调用 flush 的时候才把数据真正的写到硬盘
 
@@ -9212,7 +9387,7 @@ Java NIO 提供了 **MappedByteBuffer** 类可以用来实现 mmap 内存映射�
 
 sendfile 实现零拷贝，打开文件的文件描述符 fd 和 socket 的 fd 传递给 sendfile，然后经过 3 次复制和 2 次用户态和内核态的切换
 
-原理：数据根本不经过用户态，直接从内核缓冲区进入到 Socket Buffer，由于和用户态完全无关，就减少了一次上下文切换
+原理：数据根本不经过用户态，直接从内核缓冲区进入到 Socket Buffer，由于和用户态完全无关，就减少了两次上下文切换
 
 ![](https://gitee.com/seazean/images/raw/master/Java/IO-sendfile工作流程.png)
 
@@ -9912,7 +10087,7 @@ Java NIO 系统的核心在于：通道和缓冲区，通道表示打开到 IO �
 
 ![](https://gitee.com/seazean/images/raw/master/Java/NIO-Buffer.png)
 
-Buffer 底层是一个数组，可以保存多个相同类型的数据，根据数据类型不同 ，有以下 Buffer 常用子类：ByteBuffer, CharBuffer, ShortBuffer, IntBuffer, LongBuffer, FloatBuffer, DoubleBuffer 
+Buffer 底层是一个数组，可以保存多个相同类型的数据，根据数据类型不同 ，有以下 Buffer 常用子类：ByteBuffer、CharBuffer、ShortBuffer、IntBuffer、LongBuffer、FloatBuffer、DoubleBuffer 
 
 
 
@@ -10106,9 +10281,9 @@ FileChannel 提供 map 方法把文件映射到虚拟内存，通常情况可以
 FileChannel 中的成员属性：
 
 * MapMode.mode：内存映像文件访问的方式，共三种：
-  * MapMode.READ_ONLY：只读，试图修改得到的缓冲区将导致抛出异常。
-  * MapMode.READ_WRITE：读/写，对得到的缓冲区的更改最终将写入文件；但该更改对映射到同一文件的其他程序不一定是可见的
-  * MapMode.PRIVATE：私用，可读可写，但是修改的内容不会写入文件，只是 buffer 自身的改变，称之为 copy on write 写时复制
+  * `MapMode.READ_ONLY`：只读，试图修改得到的缓冲区将导致抛出异常。
+  * `MapMode.READ_WRITE`：读/写，对得到的缓冲区的更改最终将写入文件；但该更改对映射到同一文件的其他程序不一定是可见的
+  * `MapMode.PRIVATE`：私用，可读可写，但是修改的内容不会写入文件，只是 buffer 自身的改变，称之为 copy on write 写时复制
 
 * position：文件映射时的起始位置
 * `public final FileLock lock()`：获取此文件通道的排他锁
@@ -10219,6 +10394,10 @@ Channel 基本操作：
 | public abstract long size()                | 返回此通道的文件的当前大小                               |
 
 **读写都是相对于内存来看，也就是缓冲区**
+
+
+
+****
 
 
 
@@ -10421,7 +10600,7 @@ public class ChannelTest {
 
 向选择器注册通道：`SelectableChannel.register(Selector sel, int ops)`
 
-将通道注册选择器时，选择器对通道的监听事件，需要通过第二个参数 ops 指定。监听的事件类型用四个常量表示：
+选择器对通道的监听事件，需要通过第二个参数 ops 指定。监听的事件类型用四个常量表示：
 
 * 读 : SelectionKey.OP_READ （1）
 * 写 : SelectionKey.OP_WRITE （4）
@@ -10507,7 +10686,7 @@ ssChannel.register(selector, SelectionKey.OP_ACCEPT);
   | public abstract SocketChannel accept()                     | 接受与此通道套接字的连接，通过此方法返回的套接字通道将处于阻塞模式 |
 
   * 如果 ServerSocketChannel 处于非阻塞模式，如果没有挂起连接，则此方法将立即返回 null
-  * 如果通道处于阻塞模式，如果没有挂起连接将无限期地阻塞，直到有新的连接或发生I / O错误
+  * 如果通道处于阻塞模式，如果没有挂起连接将无限期地阻塞，直到有新的连接或发生 I/O 错误
 
 
 
@@ -10552,7 +10731,7 @@ public class Server {
         // 4、获取选择器Selector
         Selector selector = Selector.open();
         // 5、将通道都注册到选择器上去，并且开始指定监听接收事件
-        serverSocketChannel. register(selector, SelectionKey.OP_ACCEPT);
+        serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
 		// 6、使用Selector选择器轮询已经就绪好的事件
         while (selector.select() > 0) {
             System.out.println("----开始新一轮的时间处理----");
@@ -10578,7 +10757,6 @@ public class Server {
                     ByteBuffer buffer = ByteBuffer.allocate(1024);
                     int len;
                     while ((len = socketChannel.read(buffer)) > 0) {
-                        System.out.println(len);
                         buffer.flip();
                         System.out.println(socketChannel.getRemoteAddress() + ":" + new String(buffer.array(), 0, len));
                         buffer.clear();// 清除之前的数据
@@ -11442,7 +11620,7 @@ XML介绍：
 
 
 
-### 创建文件
+### 创建
 
 person.xml
 
@@ -11461,7 +11639,7 @@ person.xml
 
 
 
-### 组成部分
+### 组成
 
 XML文件中常见的组成元素有:文档声明、元素、属性、注释、转义字符、字符区。文件后缀名为xml
 
@@ -11561,7 +11739,7 @@ XML文件中常见的组成元素有:文档声明、元素、属性、注释、�
 
 ### 约束
 
-#### DTD约束
+#### DTD
 
 ##### DTD定义
 
@@ -11768,9 +11946,9 @@ persondtd.dtd文件
 
 
 
-#### Schema约束
+#### Schema
 
-##### Schema定义
+##### 定义
 
 1.Schema 语言也可作为 XSD（XML Schema Definition）
 2.schema约束文件本身也是一个xml文件，符合xml的语法，这个文件的后缀名.xsd
@@ -11780,7 +11958,7 @@ persondtd.dtd文件
 
 
 
-##### Schema规则
+##### 规则
 
 1、创建一个文件，这个文件的后缀名为.xsd。
 2、定义文档声明
@@ -11827,7 +12005,7 @@ person.xsd
 
 
 
-##### Schema引入
+##### 引入
 
 1、在根标签上定义属性xmlns="http://www.w3.org/2001/XMLSchema-instance"
 2、**通过xmlns引入约束文件的名称空间**
@@ -11854,7 +12032,7 @@ person.xsd
 
 
 
-##### Schema属性
+##### Sc属性
 
 ```scheme
 <?xml version="1.0" encoding="UTF-8" ?>
@@ -12167,25 +12345,25 @@ public class Contact {
 
 ### XPath
 
-> Dom4J可以用于解析整个XML的数据。但是如果要检索XML中的某些信息，建议使用XPath.
+Dom4J 可以用于解析整个XML的数据。但是如果要检索XML中的某些信息，建议使用XPath
 
-XPath使用步骤：
-    1.导入dom4j框架。（XPath依赖于Dom4j技术,必须先倒入dom4j框架！）
-    2.导入XPath独有的框架包。jaxen-1.1.2.jar
-XPath常用API:
-    List<Node> selectNodes(String var1) : 检索出一批节点集合。
-    Node selectSingleNode(String var1) : 检索出一个节点返回。
+XPath常用API：
+
+* List<Node> selectNodes(String var1) : 检索出一批节点集合
+* Node selectSingleNode(String var1) : 检索出一个节点返回
+
 XPath提供的四种检索数据的写法：
-	1.绝对路径： /根元素/子元素/子元素。
-	2.相对路径： ./子元素/子元素。 (.代表了当前元素)
-	3.全文搜索：
-       	//元素  在全文找这个元素
-     	  //元素1/元素2  在全文找元素1下面的一级元素2
-      	 //元素1//元素2  在全文找元素1下面的全部元素2
-	4.属性查找。
-      	//@属性名称  在全文检索属性对象。
-       	//元素[@属性名称]  在全文检索包含该属性的元素对象。
-      	 //元素[@属性名称=值]  在全文检索包含该属性的元素且属性值为该值的元素对象。
+
+1. 绝对路径：/根元素/子元素/子元素。
+2. 相对路径：./子元素/子元素。 (.代表了当前元素)
+3. 全文搜索：
+   * //元素  在全文找这个元素
+   * //元素1/元素2  在全文找元素1下面的一级元素2
+   *  //元素1//元素2  在全文找元素1下面的全部元素2
+4. 属性查找。
+   * //@属性名称  在全文检索属性对象。
+   * //元素[@属性名称]  在全文检索包含该属性的元素对象。
+   * //元素[@属性名称=值]  在全文检索包含该属性的元素且属性值为该值的元素对象。
 
 ```java
 public class XPathDemo {
@@ -12295,8 +12473,8 @@ Java编译器输入的指令流是一种基于栈的指令集架构。因为跨�
 * 基于栈式架构的特点：
   * 设计和实现简单，适用于资源受限的系统
   * 使用零地址指令方式分配，执行过程依赖操作栈，指令集更小，编译器容易实现
-    * 零地址指令：机器指令的一种，是指令系统中的一种不设地址字段的指令，只有操作码而没有地址码。这种指令有两种情况：一是无需操作数，另一种是操作数为默认的（隐含的），默认为操作数在寄存器中，指令可直接访问寄存器
-    * 一地址指令：一个地址对应一个操作数
+    * 零地址指令：机器指令的一种，是指令系统中的一种不设地址字段的指令，只有操作码而没有地址码。这种指令有两种情况：一是无需操作数，另一种是操作数为默认的（隐含的），默认为操作数在寄存器（ACC）中，指令可直接访问寄存器
+    * 一地址指令：一个操作码对应一个地址码，通过地址码寻找操作数
   * 不需要硬件的支持，可移植性更好，更好实现跨平台
 * 基于寄存器架构的特点：
   * 需要硬件的支持，可移植性差
@@ -12512,14 +12690,14 @@ Return Address：存放调用该方法的PC寄存器的值
 
 方法的结束有两种方式：正常执行完成、出现未处理的异常，在方法退出后都返回到该方法被调用的位置
 
-* 正常：调用者的pc计数器的值作为返回地址，即调用该方法的指令的下一条指令的地址
+* 正常：调用者的pc计数器的值作为返回地址，即调用该方法的指令的**下一条指令的地址**
 * 异常：返回地址是要通过异常表来确定
 
 正常完成出口：执行引擎遇到任意一个方法返回的字节码指令（return），会有返回值传递给上层的方法调用者
 
 异常完成出口：方法执行的过程中遇到了异常（Exception），并且这个异常没有在方法内进行处理，本方法的异常表中没有搜素到匹配的异常处理器，导致方法退出
 
-* 两者区别：通过异常完成出口退出的不会给上层调用者产生任何的返回值
+两者区别：通过异常完成出口退出的不会给上层调用者产生任何的返回值
 
 
 
@@ -12908,7 +13086,7 @@ public class Demo1_27 {
 
 * 如果内存规整，使用指针碰撞（BumpThePointer）
   所有用过的内存在一边，空闲的内存在另外一边，中间有一个指针作为分界点的指示器，分配内存就仅仅是把指针向空闲那边挪动一段与对象大小相等的距离
-* 如果内存不规整，虚拟机需要维护一个列表，使用空闲列表（Free List）分配
+* 如果内存不规整，虚拟机需要维护一个空闲列表（Free List）分配
   已使用的内存和未使用的内存相互交错，虚拟机维护了一个列表，记录上哪些内存块是可用的，再分配的时候从列表中找到一块足够大的空间划分给对象实例，并更新列表上的内容
 
 
@@ -15936,7 +16114,7 @@ Integer x = Integer.valueOf(1);
 int y = x.intValue();
 ```
 
-JDK5以后编译阶段自动转换成上述片段
+JDK5 以后编译阶段自动转换成上述片段
 
 
 
@@ -21175,7 +21353,7 @@ Executors提供了四种线程池的创建：newCachedThreadPool、newFixedThrea
 
 #### 开发要求
 
-阿里巴巴Java开发手册要求
+阿里巴巴 Java 开发手册要求：
 
 - **线程资源必须通过线程池提供，不允许在应用中自行显式创建线程**
 
@@ -28231,20 +28409,6 @@ public class Demo {
 
 除了模板方法模式和解释器模式是类行为型模式，其他的全部属于对象行为型模式
 
-行为型模式分为：
-
-* 模板方法模式
-* 策略模式
-* 命令模式
-* 职责链模式
-* 状态模式
-* 观察者模式
-* 中介者模式
-* 迭代器模式
-* 访问者模式
-* 备忘录模式
-* 解释器模式
-
 
 
 ***
@@ -28446,7 +28610,6 @@ public abstract class InputStream implements Closeable {
 * 具体策略类：
 
   ```java
-  
   //为春节准备的促销活动A
   public class StrategyA implements Strategy {
       public void show() {
@@ -28462,7 +28625,7 @@ public abstract class InputStream implements Closeable {
       }
   }
   ```
-
+  
 * 环境类：用于连接上下文，即把促销活动推销给客户，这里可以理解为促销员
 
   ```java

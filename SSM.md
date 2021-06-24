@@ -772,6 +772,10 @@ Mapper 接口开发需要遵循以下规范：
 
 
 
+***
+
+
+
 ### 插件使用
 
 开发步骤：
@@ -808,12 +812,15 @@ Mapper 接口开发需要遵循以下规范：
 
    
 
+****
+
 
 
 ### 参数获取
 
 PageInfo构造方法：
-	`PageInfo<Student> info = new PageInfo<>(list)` : list是SQL执行返回的结果集合，参考上一节
+
+* `PageInfo<Student> info = new PageInfo<>(list)` : list是SQL执行返回的结果集合，参考上一节
 
 PageInfo相关API：
 
@@ -11226,6 +11233,8 @@ yml文件优势：
   # 行内写法
   person: {name: zhangsan}
   ```
+
+  注意：不建议使用 JSON，应该使用 yaml 语法
 
 * 数组：一组按次序排列的值
 
