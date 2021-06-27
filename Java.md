@@ -513,7 +513,7 @@ public class Test1 {
 ### 运算
 
 * i++与++i的区别？
-  i++表示先将i放在表达式中运算，然后再加1；
+  i++表示先将i放在表达式中运算，然后再加1
   ++i表示先将i加1，然后再放在表达式中运算
 
 * ||和|，&&和&的区别，逻辑运算符
@@ -566,7 +566,7 @@ public class Test1 {
     -100补码:	11111111  11111111  11111111  10011100
     ```
 
-    补码 --> 原码：符号位不变，其余位置取反加1
+    补码 → 原码：符号位不变，其余位置取反加1
 
   运算符：
 
@@ -1169,15 +1169,22 @@ public class BeerDemo{
 public class BubbleSort {
     public static void main(String[] args) {
         int[] arr = {55, 22, 2, 5, 1, 3, 8, 5, 7, 4, 3, 99, 88};
+        int flag;//标记本趟排序是否发生了交换
         //比较i和i+1，不需要再比最后一个位置
         for (int i = 0; i < arr.length - 1; i++) {
+            flag = 0;
             //最后i位不需要比，已经排序好
             for (int j = 0; j < arr.length - 1 - i; j++) {
                 if (arr[j] > arr[j + 1]) {
                     int temp = arr[j];
                     arr[j] = arr[j + 1];
                     arr[j + 1] = temp;
+                    flag = 1;//发生了交换
                 }
+            }
+            //没有发生交换，证明已经有序，不需要继续排序
+            if(flag == 0) {
+                break;
             }
         }
         System.out.println(Arrays.toString(arr));
@@ -1253,6 +1260,75 @@ public class SelectSort {
 
 ##### 堆排序
 
+堆排序（Heapsort）是指利用堆这种数据结构所设计的一种排序算法，堆结构是一个近似完全二叉树的结构，并同时满足子结点的键值或索引总是小于（或者大于）父节点
+
+优先队列：堆排序每次上浮过程都会将最大或者最小值放在堆顶，应用于优先队列可以将优先级最高的元素浮到堆顶
+
+实现思路：
+
+1. 将初始待排序关键字序列（R1,R2….Rn）构建成大顶堆，并通过上浮对堆进行调整，此堆为初始的无序区，堆顶为最大数
+
+2. 将堆顶元素 R[1] 与最后一个元素 R[n] 交换，此时得到新的无序区（R1,R2,……Rn-1）和新的有序区 Rn，且满足 R[1,2…n-1]<=R[n]
+
+3. 交换后新的堆顶 R[1] 可能违反堆的性质，因此需要对当前无序区（R1,R2,……Rn-1）调整为新堆，然后再次将 R[1] 与无序区最后一个元素交换，得到新的无序区（R1,R2….Rn-2）和新的有序区（Rn-1,Rn），不断重复此过程直到有序区的元素个数为 n-1，则整个排序过程完成
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-堆排序.jpg" style="zoom:67%;" />
+
+floor：向下取整
+
+```java
+public class HeapSort {
+    public static void main(String[] args) {
+        int[] arr = {55, 22, 2, 5, 1, 3, 8, 5, 7, 4, 3, 99, 88};
+        heapSort(arr, arr.length);
+        System.out.println(Arrays.toString(arr));
+    }
+
+    //len为数组长度
+    private static void heapSort(int[] arr, int len) {
+        //建堆，逆排序，因为堆排序定义的交换顺序是从当前结点往下交换，逆序排可以避免多余的交换
+        for (int i = len / 2 - 1; i >= 0; i--) {
+            //调整函数
+            sift(arr, i, len - 1);
+        }
+        //从尾索引开始排序
+        for (int i = len - 1; i > 0; i--) {
+            //将最大的节点放入末尾
+            int temp = arr[0];
+            arr[0] = arr[i];
+            arr[i] = temp;
+            //继续寻找最大的节点
+            sift(arr, 0, i - 1);
+        }
+    }
+
+    //调整函数，调整arr[low]的元素，从索引low到high的范围调整
+    private static void sift(int[] arr, int low, int high) {
+        //暂存调整元素
+        int temp = arr[low];
+        int i = low, j = low * 2 + 1;//j是左节点
+        while (j <= high) {
+            //判断是否有右孩子，并且比较左右孩子中较大的节点
+            if (j < high && arr[j] < arr[j + 1]) {
+                j++;    //指向右孩子
+            }
+            if (temp < arr[j]) {
+                arr[i] = arr[j];
+                i = j;  //继续向下调整
+                j = 2 * i + 1;
+            } else {
+                //temp > arr[j]，说明也大于j的孩子，探测结束
+                break;
+            }
+        }
+        //将被调整的节点放入最终的位置
+        arr[i] = temp;
+    }
+}
+```
+
+堆排序的时间复杂度是 O(nlogn)
+
 
 
 ***
@@ -1314,7 +1390,7 @@ public class InsertSort {
 
 <img src="https://gitee.com/seazean/images/raw/master/Java/Sort-希尔排序.png" style="zoom:67%;" />
 
-希尔排序的核心在于间隔序列的设定，既可以提前设定好间隔序列，也可以动态的定义间隔序列。希尔排序就是插入排序增加了间隔
+希尔排序的核心在于间隔序列的设定，既可以提前设定好间隔序列，也可以动态的定义间隔序列，希尔排序就是插入排序增加了间隔
 
 ```java
 public class ShellSort {
@@ -1347,8 +1423,7 @@ public class ShellSort {
 }
 ```
 
-在希尔排序中，增长量h并没有固定的规则，有很多论文研究了各种不同的递增序列，但都无法证明某个序列是最
-好的，所以对于希尔排序的时间复杂度分析就认为 O(nlogn)
+在希尔排序中，增长量h并没有固定的规则，有很多论文研究了各种不同的递增序列，但都无法证明某个序列是最好的，所以对于希尔排序的时间复杂度分析就认为 O(nlogn)
 
 
 
@@ -1392,46 +1467,44 @@ public class ShellSort {
 public class MergeSort {
     public static void main(String[] args) {
         int[] arr = new int[]{55, 22, 2, 5, 1, 3, 8, 5, 7, 4, 3, 99, 88};
-        int[] newArr = mergetSort(arr, 0, arr.length - 1);
-        System.out.println(Arrays.toString(newArr));
+        mergeSort(arr, 0, arr.length - 1);
+        System.out.println(Arrays.toString(arr));
+    }
+	//low 为arr最小索引，high为最大索引
+    public static void mergeSort(int[] arr, int low, int high) {
+        if (low < high) {
+            int mid = (low + high) / 2;
+            mergeSort(arr, low, mid);//归并排序前半段
+            mergeSort(arr, mid + 1, high);//归并排序后半段
+            merge(arr, low, mid, high);//将两段有序段合成一段有序段
+        }
     }
 
-    public static int[] mergetSort(int[] arr, int low, int high) {
-        if (high < low) {
-            throw new ArrayIndexOutOfBoundsException("索引输入错了");
-        }
-        //递归结束的条件
-        if (low == high) {
-            return new int[]{arr[low]};
-        }
-        int mid = low + (high - low) / 2;
-        int[] leftArr = mergetSort(arr, low, mid);//左有序数组
-        int[] rightArr = mergetSort(arr, mid + 1, high);//右有序数组
-        int[] newArr = new int[leftArr.length + rightArr.length];//新有序数组
-
+    private static void merge(int[] arr, int low, int mid, int high) {
         int m = 0;
-        int l = 0, r = 0;//定义左右指针
-        while (l < leftArr.length && r < rightArr.length) {
-            newArr[m++] = leftArr[l] < rightArr[r] ? leftArr[l++] : rightArr[r++];
+        //定义左右指针
+        int left = low, right = mid + 1;
+        int[] assist = new int[high - low + 1];
+        while (left <= mid && right <= high) {
+            assist[m++] = arr[left] < arr[right] ? arr[left++] : arr[right++];
+        }
+        while (left <= mid) {
+            assist[m++] = arr[left++];
+        }
+        while (right <= high) {
+            assist[m++] = arr[right++];
         }
 
-        while (l < leftArr.length) {
-            newArr[m++] = leftArr[l++];
+        for (int k = 0; k < assist.length; k++) {
+            arr[low++] = assist[k];
         }
-        while (r < rightArr.length) {
-            newArr[m++] = rightArr[r++];
-        }
-        return newArr;
     }
 }
 ```
 
 <img src="https://gitee.com/seazean/images/raw/master/Java/Sort-归并排序时间复杂度.png" style="zoom: 67%;" />
 
-用树状图来描述归并，如果一个数组有8个元素，那么每次除以2找最小的子数组，共拆 log8 次，所以树共有3层，那么自顶向下第 k 层有 `2^k` 个子数组，每个数组的长度为 `2^(3-k)`，归并最多需要 `2^(3-k)` 次比较（）。因此每层的比较次数为 `2^k * 2^(3-k)=2^3`，那么3层总共为`3*2^3`
-
-假设元素的个数为 n，那么使用归并排序拆分的次数为 `log2(n)`，那么使用 `log2(n)` 替换`3*2^3`中的这个层数，最终得出的归并排序的时间复杂度为 `log2(n)* 2^(log2(n))=log2(n)*n`，根据大O推导法则，忽略底
-数，最终归并排序的时间复杂度为 O(nlogn)
+用树状图来描述归并，假设元素的个数为 n，那么使用归并排序拆分的次数为 `log2(n)`，即层数，每次归并需要做 n 次对比，最终得出的归并排序的时间复杂度为 `log2(n)*n`，根据大O推导法则，忽略底数，最终归并排序的时间复杂度为 O(nlogn)
 
 归并排序的缺点：需要申请额外的数组空间，导致空间复杂度提升，是典型的**以空间换时间**的操作
 
@@ -1464,20 +1537,21 @@ public class QuickSort {
     }
 
     public static void quickSort(int[] arr, int low, int high) {
-        int left = low;
-        int right = high;
-        
-		//递归结束的条件，等于防止一次多余的赋值
+        //递归结束的条件
         if (low >= high) {
             return;
         }
+        
+        int left = low;
+        int right = high;
+        
         int temp = arr[left];//基准数
         while (left < right) {
-            // 用 <= 可以防止多余的交换
+            // 用 >= 可以防止多余的交换
             while (arr[right] >= temp && right > left) {
                 right--;
             }
-            //做判断防止相等
+            // 做判断防止相等
             if (right > left) {
                 // 到这里说明 arr[right] < temp 
                 arr[left] = arr[right];//此时把arr[right]元素视为空
@@ -1507,7 +1581,7 @@ public class QuickSort {
 
 时间复杂度：
 
-* 最优情况：每一次切分选择的基准数字刚好将当前序列等分。把数组的切分看做是一个树，共切分了logn次，所以，最优情况下快速排序的时间复杂度为 O(nlogn)
+* 最优情况：每一次切分选择的基准数字刚好将当前序列等分。把数组的切分看做是一个树，共切分了 logn 次，所以，最优情况下快速排序的时间复杂度为 O(nlogn)
 
 * 最坏情况：每一次切分选择的基准数字是当前序列中最大数或者最小数，这使得每次切分都会有一个子组，那么总共就得切分n次，所以最坏情况下，快速排序的时间复杂度为 O(n^2)
 
@@ -1535,6 +1609,8 @@ public class QuickSort {
 
 按照低位先排序，然后收集；再按照高位排序，然后再收集；依次类推，直到最高位。有时候有些属性是有优先级顺序的，先按低优先级排序，再按高优先级排序。最后的次序就是高优先级高的在前，高优先级相同的低优先级高的在前
 
+解释：先排低位再排高位，可以说明在高位相等的情况下低位是递增的，如果高位也是递增，则数据有序
+
 <img src="https://gitee.com/seazean/images/raw/master/Java/Sort-基数排序.gif" style="zoom:67%;" />
 
 实现思路：
@@ -1542,7 +1618,7 @@ public class QuickSort {
 - 获得最大数的位数，可以通过将最大数变为String类型，再求长度
 - 将所有待比较数值（正整数）统一为同样的数位长度，**位数较短的数前面补零**
 - 从最低位开始，依次进行一次排序
-- 从最低位排序一直到最高位（个位->十位->百位->…->最高位）排序完成以后，，数列就变成一个有序序列
+- 从最低位排序一直到最高位（个位 → 十位 → 百位 → … →最高位）排序完成以后，数列就变成一个有序序列
 
 ```java
 public class BucketSort {
@@ -1553,7 +1629,7 @@ public class BucketSort {
     }
 
     private static void bucketSort(int[] arr) {
-        // 桶的个数固定为10个（个位是0~9），最大容量由数组的长度决定
+        // 桶的个数固定为10个（个位是0~9），数组长度为了防止所有的数在同一行
         int[][] bucket = new int[10][arr.length];
         //记录每个桶中的有多少个元素
         int[] elementCounts = new int[10];
@@ -1561,18 +1637,17 @@ public class BucketSort {
         //获取数组的最大元素
         int max = arr[0];
         for (int i = 1; i < arr.length; i++) {
-            if (arr[i] > max) {
-                max = arr[i];
-            }
+            max = max > arr[i] ? max : arr[i];
         }
         String maxEle = Integer.toString(max);
-        //将数组中的元素放入桶中
+        //将数组中的元素放入桶中，最大数的位数相当于需要几次放入桶中
         for (int i = 0, step = 1; i < maxEle.length(); i++, step *= 10) {
             for (int j = 0; j < arr.length; j++) {
                 //获取最后一位的数据，也就是索引
                 int index = (arr[j] / step) % 10;
                 //放入具体位置
                 bucket[index][elementCounts[index]] = arr[j];
+                //存储每个桶的数量
                 elementCounts[index]++;
             }
             //收集回数组
@@ -1655,6 +1730,8 @@ public class BucketSort {
 
 过程：每次先与中间的元素进行比较，如果大于往右边找，如果小于往左边找，如果等于就返回该元素索引位置！如果没有该元素，返回-1
 
+时间复杂度：O(logn)
+
 ```java
 /*定义一个方法，记录开始的索引位置和结束的索引位置。
 取出中间索引位置的值，拿元素与中间位置的值进行比较，如果小于中间值，结束位置=中间索引-1.
@@ -1701,7 +1778,7 @@ public class binarySearch {
 
 #### BF
 
-暴力匹配算法：
+Brute Force 暴力匹配算法：
 
 ```java
 public static void main(String[] args) {
@@ -1732,6 +1809,8 @@ public static int match(String s,String t) {
 }
 ```
 
+平均时间复杂度：O(m+n)，最坏时间复杂度：O(m*n)
+
 
 
 ***
@@ -1740,7 +1819,11 @@ public static int match(String s,String t) {
 
 #### RK
 
+把主串得长度记为 n，模式串得长度记为 m，通过哈希算法对主串中的 n-m+1 个子串分别求哈希值，然后逐个与模式串的哈希值比较大小，如果某个子串的哈希值与模式串相等，再去对比值是否相等（防止哈希冲突），那就说明对应的子串和模式串匹配了
 
+因为哈希值是一个数字，数字之间比较是否相等是非常快速的
+
+第一部分计算哈希值的时间复杂度为 O(n)，第二部分对比的时间复杂度为 O(1)，整体平均时间复杂度为 O(n)，最坏为 O(n*m)
 
 
 
@@ -1753,7 +1836,7 @@ public static int match(String s,String t) {
 KMP匹配：
 
 * next 数组的核心就是自己匹配自己，主串代表后缀，模式串代表前缀
-* nextVal 数组的核心就是
+* nextVal 数组的核心就是回退失配
 
 ```java
 public class Kmp {
@@ -1848,11 +1931,531 @@ public class Kmp {
 }
 ```
 
+平均和最坏时间复杂度都是 O(m+n)
+
 
 
 参考文章：https://www.cnblogs.com/tangzhengyue/p/4315393.html
 
 
+
+***
+
+
+
+### 树
+
+#### 二叉树
+
+二叉树中，任意一个节点的度要小于等于 2
+
++ 节点：在树结构中,每一个元素称之为节点
++ 度：每一个节点的子节点数量称之为度
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/二叉树结构图.png" alt="二叉树结构图" style="zoom:80%;" />
+
+
+
+****
+
+
+
+#### 排序树
+
+##### 存储结构
+
+二叉排序树（BST），又称二叉查找树或者二叉搜索树
+
++ 每一个节点上最多有两个子节点
++ 左子树上所有节点的值都小于根节点的值
++ 右子树上所有节点的值都大于根节点的值
++ 不存在重复的节点
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/二叉查找树结构图.png" alt="二叉查找树" style="zoom: 80%;" />
+
+
+
+
+
+***
+
+
+
+##### 代码实现
+
+* 节点类：
+
+  ```java
+  private static class TreeNode {
+      int key;
+      TreeNode left;  //左节点
+      TreeNode right; //右节点
+  
+      private TreeNode(int key) {
+          this.key = key;
+      }
+  }
+  ```
+
+* 查找节点：
+
+  ```java
+   // 递归查找
+  private static TreeNode search(TreeNode root, int key) {
+      //递归结束的条件
+      if (root == null) {
+          return null;
+      }
+      if (key == root.key) {
+          return root;
+      } else if (key > root.key) {
+          return search(root.right, key);
+      } else {
+          return search(root.left, key);
+      }
+  }
+  
+  // 非递归
+  private static TreeNode search1(TreeNode root, int key) {
+      while (root != null) {
+          if (key == root.key) {
+              return root;
+          } else if (key > root.key) {
+              root = root.right;
+          } else {
+              root = root.left;
+          }
+      }
+      return null;
+  }
+  ```
+
+* 插入节点：
+
+  ```java
+  private static int insert(TreeNode root, int key) {
+      if (root == null) {
+          root = new TreeNode(key);
+          root.left = null;
+          root.right = null;
+          return 1;
+      } else {
+          if (key == root.key) {
+              return 0;
+          } else if (key > root.key) {
+              return insert(root.right, key);
+          } else {
+              return insert(root.left, key);
+          }
+      }
+  }
+  ```
+
+* 构造函数：
+
+  ```java
+  // 构造函数，返回根节点
+  private static TreeNode createBST(int[] arr) {
+      if (arr.length > 0) {
+          TreeNode root = new TreeNode(arr[0]);
+          for (int i = 1; i < arr.length; i++) {
+              insert(root, arr[i]);
+          }
+          return root;
+      }
+      return null;
+  }
+  ```
+
+* 删除节点：要删除节点12，先找到节点19，然后移动并替换节点12<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-二叉查找树删除节点.png" style="zoom: 50%;" />
+
+  代码链接：https://leetcode-cn.com/submissions/detail/190232548/
+
+  
+
+参考视频：https://www.bilibili.com/video/BV1iJ411E7xW?t=756&p=86
+
+图片来源：https://leetcode-cn.com/problems/delete-node-in-a-bst/solution/tu-jie-yi-dong-jie-dian-er-bu-shi-xiu-ga-edtn/
+
+
+
+***
+
+
+
+#### 平衡树
+
+平衡二叉树（AVL）的特点：
+
++ 二叉树左右两个子树的高度差不超过1
++ 任意节点的左右两个子树都是一颗平衡二叉树
+
+平衡二叉树旋转：
+
++ 旋转触发时机：当添加一个节点之后，该树不再是一颗平衡二叉树
+
++ 平衡二叉树和二叉查找树对比结构图
+
+![平衡二叉树和二叉查找树对比](https://gitee.com/seazean/images/raw/master/Java/平衡二叉树和二叉查找树对比结构图.png)
+
++ 左旋
+  将根节点的右侧往左拉，原先的右子节点变成新的父节点，并把多余的左子节点出让，给已经降级的根节点当右子节点
+
+  ![平衡二叉树左旋](https://gitee.com/seazean/images/raw/master/Java/平衡二叉树左旋01.png)
+
+* 右旋
+  将根节点的左侧往右拉，左子节点变成了新的父节点，并把多余的右子节点出让，给已经降级根节点当左子节点
+
+  ![平衡二叉树右旋](https://gitee.com/seazean/images/raw/master/Java/平衡二叉树右旋01.png)
+
+* 平衡二叉树旋转的四种情况
+
+  * 左左：当根节点左子树的左子树有节点插入，导致二叉树不平衡
+  * 如何旋转：直接对整体进行右旋即可
+    ![平衡二叉树左左](https://gitee.com/seazean/images/raw/master/Java/平衡二叉树左左.png)
+  * 左右：当根节点左子树的右子树有节点插入，导致二叉树不平衡
+  * 如何旋转：先在左子树对应的节点位置进行左旋，在对整体进行右旋
+    ![平衡二叉树左右](https://gitee.com/seazean/images/raw/master/Java/平衡二叉树左右.png)
+  * 右右：当根节点右子树的右子树有节点插入,导致二叉树不平衡
+  * 如何旋转：直接对整体进行左旋即可
+    ![平衡二叉树右右](https://gitee.com/seazean/images/raw/master/Java/平衡二叉树右右.png)
+  * 右左：当根节点右子树的左子树有节点插入，导致二叉树不平衡
+  * 如何旋转：先在右子树对应的节点位置进行右旋，在对整体进行左旋
+    ![平衡二叉树右左](https://gitee.com/seazean/images/raw/master/Java/平衡二叉树右左.png)
+
+
+
+***
+
+
+
+#### 红黑树
+
+红黑树的特点：
+
+* 每一个节点可以是红或者黑
+
++ 红黑树不是高度平衡的，它的平衡是通过"自己的红黑规则"进行实现的
+
+红黑树的红黑规则有哪些：
+
+1. 每一个节点或是红色的，或者是黑色的
+2. 根节点必须是黑色
+3. 如果一个节点没有子节点或者父节点，则该节点相应的指针属性值为Nil，这些Nil视为叶节点，每个叶节点(Nil)是黑色的
+4. 如果某一个节点是红色,那么它的子节点必须是黑色(不能出现两个红色节点相连 的情况)
+5. 对每一个节点，从该节点到其所有后代叶节点的简单路径上，均包含相同数目的黑色节点
+
+红黑树与AVL树的比较：
+
+- 红黑树的插入删除比AVL树更便于控制操作，红黑树更适合于插入修改密集型任务
+
+* AVL树是更加严格的平衡，可以提供更快的查找速度，一般读取查找密集型任务，适用AVL树
+
+- 红黑树整体性能略优于AVL树，AVL树的旋转比红黑树的旋转更加难以平衡和调试
+
+![红黑树](https://gitee.com/seazean/images/raw/master/Java/红黑树结构图.png)
+
+
+
+红黑树添加节点的默认颜色为红色,效率高
+![](https://gitee.com/seazean/images/raw/master/Java/红黑树添加节点颜色.png)
+
+
+
+**红黑树添加节点后如何保持红黑规则：**
+
++ 根节点位置
+  + 直接变为黑色
++ 非根节点位置
+  + 父节点为黑色
+    + 不需要任何操作,默认红色即可
+  + 父节点为红色
+    + 叔叔节点为红色
+      1. 将"父节点"设为黑色,将"叔叔节点"设为黑色
+      2. 将"祖父节点"设为红色
+      3. 如果"祖父节点"为根节点,则将根节点再次变成黑色
+    + 叔叔节点为黑色
+      1. 将"父节点"设为黑色
+      2. 将"祖父节点"设为红色
+      3. 以"祖父节点"为支点进行旋转
+
+
+
+
+
+***
+
+
+
+#### 并查集
+
+##### 基本实现
+
+并查集是一种树型的数据结构，有以下特点：
+
+* 每个元素都唯一的对应一个结点
+* 每一组数据中的多个元素都在同一颗树中
+* 一个组中的数据对应的树和另外一个组中的数据对应的树之间没有任何联系
+* 元素在树中并没有子父级关系的硬性要求
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-并查集.png" style="zoom:50%;" />
+
+可以高效地进行如下操作：
+
+* 查询元素 p 和元素 q 是否属于同一组
+* 合并元素 p 和元素 q 所在的组
+
+存储结构：
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-并查集存储结构.png" style="zoom:67%;" />
+
+合并方式：
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-并查集合并.png" style="zoom:67%;" />
+
+
+
+代码实现：
+
+* 类实现：
+
+  ```java
+  public class UF {
+      //记录节点元素和该元素所在分组的标识
+      private int[] eleAndGroup;
+      //记录分组的个数
+      private int count;
+  
+      //初始化并查集
+      public UF(int N) {
+          //初始化分组数量
+          this.count = N;
+          
+          //初始化eleAndGroup数量
+          this.eleAndGroup = new int[N];
+  
+          //初始化eleAndGroup中的元素及其所在分组的标识符，eleAndGroup索引作为并查集的每个节点的元素
+          //每个索引处的值就是该组的索引，就是该元素所在的组的标识符
+          for (int i = 0; i < eleAndGroup.length; i++) {
+              eleAndGroup[i] = i;
+          }
+      }
+  
+      //查询p所在的分组的标识符
+      public int find(int p) {
+          return eleAndGroup[p];
+      }
+  
+      //判断并查集中元素p和元素q是否在同一分组中
+      public boolean connect(int p, int q) {
+          return find(p) == find(q);
+      }
+  
+      //把p元素所在分组和q元素所在分组合并
+      public void union(int p, int q) {
+          //判断元素q和p是否已经在同一个分组中，如果已经在同一个分组中，则结束方法就可以了
+          if (connect(p, q)) {
+              return;
+          }
+          int pGroup = find(p);//找到p所在分组的标识符
+          int qGroup = find(q);//找到q所在分组的标识符
+  
+          //合并组，让p所在组的 所有元素 的组标识符变为q所在分组的标识符
+          for (int i = 0; i < eleAndGroup.length; i++) {
+              if (eleAndGroup[i] == pGroup) {
+                  eleAndGroup[i] = qGroup;
+              }
+          }
+          //分组个数-1
+          this.count--;
+      }
+  }
+  ```
+
+* 测试代码：
+
+  ```java
+  public static void main(String[] args) {
+      //创建并查集对象
+      UF uf = new UF(5);
+      System.out.println(uf);
+  
+      //从控制台录入两个合并的元素，调用union方法合并，观察合并后并查集的分组
+      Scanner sc = new Scanner(System.in);
+  
+      while (true) {
+          System.out.println("输入第一个要合并的元素");
+          int p = sc.nextInt();
+          System.out.println("输入第二个要合并的元素");
+          int q = sc.nextInt();
+          if (uf.connect(p, q)) {
+              System.out.println(p + "元素已经和" + q + "元素已经在同一个组");
+              continue;
+          }
+          uf.union(p, q);
+          System.out.println("当前并查集中还有：" + uf.count() + "个分组");
+          System.out.println(uf);
+          System.out.println("********************");
+      }
+  }
+  ```
+
+最坏情况下 union 算法的时间复杂度也是 O(N^2)
+
+
+
+****
+
+
+
+##### 优化实现
+
+让每个索引处的节点都指向它的父节点，当 eleGroup[i] = i 时，说明 i 是根节点
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-并查集优化.png" style="zoom: 67%;" />
+
+```java
+//查询p所在的分组的标识符，递归寻找父标识符，直到找到根节点
+public int findRoot(int p) {
+    while (p != eleAndGroup[p]) {
+        p = eleAndGroup[p];
+    }
+    return p;
+}
+
+//判断并查集中元素p和元素q是否在同一分组中
+public boolean connect(int p, int q) {
+    return findRoot(p) == findRoot(q);
+}
+
+//把p元素所在分组和q元素所在分组合并
+public void union(int p, int q) {
+    //找到p q对应的根节点
+    int pRoot = findRoot(p);
+    int qRoot = findRoot(q);
+    if (pRoot == qRoot) {
+        return;
+    }
+    //让p所在树的节点根节点为q的所在的根节点，只需要把根节点改一下，时间复杂度 O(1)
+    eleAndGroup[pRoot] = qRoot;
+}
+```
+
+平均时间复杂度为 O(N)，最坏时间复杂度是 O(N^2)
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-并查集时间复杂度.png" style="zoom:67%;" />
+
+继续优化：路径压缩，保证每次把小树合并到大树
+
+```java
+public class UF_Tree_Weighted {
+    private int[] eleAndGroup;
+    private int count;
+    private int[] size;//存储每一个根结点对应的树中的保存的节点的个数
+
+    //初始化并查集
+    public UF_Tree_Weighted(int N) {
+        this.count = N;
+        this.eleAndGroup = new int[N];
+        for (int i = 0; i < eleAndGroup.length; i++) {
+            eleAndGroup[i] = i;
+        }
+        this.size = new int[N];
+        //默认情况下，size中每个索引处的值都是1
+        for (int i = 0; i < size.length; i++) {
+            size[i] = 1;
+        }
+    }
+	//查询p所在的分组的标识符，父标识符
+    public int findRoot(int p) {
+        while (p != eleAndGroup[p]) {
+            p = eleAndGroup[p];
+        }
+        return p;
+    }
+
+    //判断并查集中元素p和元素q是否在同一分组中
+    public boolean connect(int p, int q) {
+        return findRoot(p) == findRoot(q);
+    }
+
+    //把p元素所在分组和q元素所在分组合并
+    public void union(int p, int q) {
+        //找到p q对应的根节点
+        int pRoot = findRoot(p);
+        int qRoot = findRoot(q);
+        if (pRoot == qRoot) {
+            return;
+        }
+        //判断pRoot对应的树大还是qRoot对应的树大，最终需要把较小的树合并到较大的树中
+        if (size[pRoot] < size[qRoot]) {
+            eleAndGroup[pRoot] = qRoot;
+            size[qRoot] += size[pRoot];
+        } else {
+            eleAndGroup[qRoot] = pRoot;
+            size[pRoot] += size[qRoot];
+        }
+        //组的数量-1、
+        this.count--;
+    }
+}
+```
+
+
+
+***
+
+
+
+##### 应用场景
+
+并查集存储的每一个整数表示的是一个大型计算机网络中的计算机
+
+* 可以通过 connected(int p, int q) 来检测该网络中的某两台计算机之间是否连通，
+* 可以调用 union(int p,int q) 使得 p 和 q 之间连通，这样两台计算机之间就可以通信
+
+畅通工程：某省调查城镇交通状况，得到现有城镇道路统计表，表中列出了每条道路直接连通的城镇。省政府畅通工程的目标是使全省任何两个城镇间都可以实现交通，但不一定有直接的道路相连，只要互相间接通过道路可达即可，问最少还需要建设多少条道路？
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-应用场景.png" style="zoom:67%;" />
+
+解题思路：
+
+1. 创建一个并查集 UF_Tree_Weighted(20)
+2. 分别调用 union(0,1)、union(6,9)、union(3,8)、union(5,11)、union(2,12)、union(6,10)、union(4,8)，表示已经修建好的道路把对应的城市连接起来
+3. 如果城市全部连接起来，那么并查集中剩余的分组数目为 1，所有的城市都在一个树中，只需要获取当前并查集中剩余的数目减去 1，就是还需要修建的道路数目
+
+```java
+public static void main(String[] args)throws Exception {
+    Scanner sc = new Scanner(System.in);
+    //读取城市数目，初始化并查集
+    int number = sc.nextInt();
+    //读取已经修建好的道路数目
+    int roadNumber = sc.nextInt();
+    UF_Tree_Weighted uf = new UF_Tree_Weighted(number);
+    //循环读取已经修建好的道路，并调用union方法
+    for (int i = 0; i < roadNumber; i++) {
+        int p = sc.nextInt();
+        int q = sc.nextInt();
+        uf.union(p,q);
+    }
+    //获取剩余的分组数量
+    int groupNumber = uf.count();
+    //计算出还需要修建的道路
+    System.out.println("还需要修建"+(groupNumber-1)+"道路，城市才能相通");
+}
+```
+
+
+
+参考视频：https://www.bilibili.com/video/BV1iJ411E7xW?p=142
+
+
+
+****
+
+
+
+### 图
 
 
 
@@ -4502,8 +5105,6 @@ public class RegexDemo {
 
 ### 存储结构
 
-#### 数据结构
-
 数据结构指的是数据以什么方式组织在一起，不同的数据结构，增删查的性能是不一样的
 
 数据存储的常用结构有：栈、队列、数组、链表和红黑树
@@ -4519,13 +5120,13 @@ public class RegexDemo {
   特点：**查询元素快**（根据索引快速计算出元素的地址，然后立即去定位）
               **增删元素慢**（创建新数组，迁移元素）
 
-* 链表：元素不是内存中的连续区域存储，元素是游离存储的。每个元素会记录下个元素的地址
+* 链表：元素不是内存中的连续区域存储，元素是游离存储的，每个元素会记录下个元素的地址
   特点：**查询元素慢，增删元素快**（针对于首尾元素，速度极快，一般是双链表）
 
 * 树
 
-  * 二叉树：binary tree 永远只有一个根节点,是每个结点不超过2个节点的树（tree） 
-    特点：查找二叉树,排序二叉树：小的左边，大的右边，但是可能树很高，性能变差
+  * 二叉树：binary tree 永远只有一个根节点，是每个结点不超过2个节点的树（tree） 
+    特点：二叉排序树：小的左边，大的右边，但是可能树很高，性能变差
                 为了做排序和搜索会进行左旋和右旋实现平衡查找二叉树，让树的高度差不大于1
 
   * 红黑树（基于红黑规则实现自平衡的排序二叉树）：树保证到了很矮小，但是又排好序，性能最高的树
@@ -4535,144 +5136,6 @@ public class RegexDemo {
 
 
 ***
-
-
-
-#### 二叉树
-
-二叉树中，任意一个节点的度要小于等于2
-
-+ 节点：在树结构中,每一个元素称之为节点
-+ 度：每一个节点的子节点数量称之为度
-
-![二叉树结构图](https://gitee.com/seazean/images/raw/master/Java/二叉树结构图.png)
-
-
-
-****
-
-
-
-#### 二叉查找树
-
-+ 二叉查找树，又称二叉排序树或者二叉搜索树
-+ 每一个节点上最多有两个子节点
-+ 左子树上所有节点的值都小于根节点的值
-+ 右子树上所有节点的值都大于根节点的值
-
-![二叉查找树](https://gitee.com/seazean/images/raw/master/Java/二叉查找树结构图.png)
-
-二叉查找树添加节点规则
-
-+ 小的存左边
-+ 大的存右边
-+ 一样的不存
-
-![二叉查找树添加节点规则](https://gitee.com/seazean/images/raw/master/Java/二叉查找树添加节点规则.png)
-
-
-
-***
-
-
-
-#### 平衡二叉树
-
-平衡二叉树的特点
-
-+ 二叉树左右两个子树的高度差不超过1
-+ 任意节点的左右两个子树都是一颗平衡二叉树
-
-平衡二叉树旋转
-
-+ 旋转触发时机：当添加一个节点之后，该树不再是一颗平衡二叉树
-
-+ 平衡二叉树和二叉查找树对比结构图
-
-![平衡二叉树和二叉查找树对比](https://gitee.com/seazean/images/raw/master/Java/平衡二叉树和二叉查找树对比结构图.png)
-
-+ 左旋
-  将根节点的右侧往左拉，原先的右子节点变成新的父节点，并把多余的左子节点出让，给已经降级的根节点当右子节点
-
-  ![平衡二叉树左旋](https://gitee.com/seazean/images/raw/master/Java/平衡二叉树左旋01.png)
-
-* 右旋
-  将根节点的左侧往右拉，左子节点变成了新的父节点，并把多余的右子节点出让，给已经降级根节点当左子节点
-
-  ![平衡二叉树右旋](https://gitee.com/seazean/images/raw/master/Java/平衡二叉树右旋01.png)
-
-* 平衡二叉树旋转的四种情况
-
-  * 左左：当根节点左子树的左子树有节点插入，导致二叉树不平衡
-  * 如何旋转：直接对整体进行右旋即可
-    ![平衡二叉树左左](https://gitee.com/seazean/images/raw/master/Java/平衡二叉树左左.png)
-  * 左右：当根节点左子树的右子树有节点插入，导致二叉树不平衡
-  * 如何旋转：先在左子树对应的节点位置进行左旋，在对整体进行右旋
-    ![平衡二叉树左右](https://gitee.com/seazean/images/raw/master/Java/平衡二叉树左右.png)
-  * 右右：当根节点右子树的右子树有节点插入,导致二叉树不平衡
-  * 如何旋转：直接对整体进行左旋即可
-    ![平衡二叉树右右](https://gitee.com/seazean/images/raw/master/Java/平衡二叉树右右.png)
-  * 右左：当根节点右子树的左子树有节点插入，导致二叉树不平衡
-  * 如何旋转：先在右子树对应的节点位置进行右旋，在对整体进行左旋
-    ![平衡二叉树右左](https://gitee.com/seazean/images/raw/master/Java/平衡二叉树右左.png)
-
-
-
-***
-
-
-
-#### 红黑树
-
-+ 红黑树的特点
-
-  + 平衡二叉B树
-  + 每一个节点可以是红或者黑
-  + 红黑树不是高度平衡的，它的平衡是通过"自己的红黑规则"进行实现的
-
-+ 红黑树的红黑规则有哪些
-
-  1. 每一个节点或是红色的，或者是黑色的
-
-  2. 根节点必须是黑色
-
-  3. 如果一个节点没有子节点或者父节点，则该节点相应的指针属性值为Nil，这些Nil视为叶节点，每个叶节点(Nil)是黑色的
-
-  4. 如果某一个节点是红色,那么它的子节点必须是黑色(不能出现两个红色节点相连 的情况)
-
-  5. 对每一个节点，从该节点到其所有后代叶节点的简单路径上，均包含相同数目的黑色节点
-
-![红黑树](https://gitee.com/seazean/images/raw/master/Java/红黑树结构图.png)
-
-
-
-* 红黑树添加节点的默认颜色为红色,效率高
-  ![](https://gitee.com/seazean/images/raw/master/Java/红黑树添加节点颜色.png)
-
-
-
-**红黑树添加节点后如何保持红黑规则：**
-
-+ 根节点位置
-  + 直接变为黑色
-+ 非根节点位置
-  + 父节点为黑色
-    + 不需要任何操作,默认红色即可
-  + 父节点为红色
-    + 叔叔节点为红色
-      1. 将"父节点"设为黑色,将"叔叔节点"设为黑色
-      2. 将"祖父节点"设为红色
-      3. 如果"祖父节点"为根节点,则将根节点再次变成黑色
-    + 叔叔节点为黑色
-      1. 将"父节点"设为黑色
-      2. 将"祖父节点"设为红色
-      3. 以"祖父节点"为支点进行旋转
-
-
-
-
-
-****
 
 
 
@@ -5443,10 +5906,11 @@ public static void main(String[] args){
     Map<String , Integer> maps = new HashMap<>();
 	//(1)键找值
     Set<String> keys = maps.keySet();
-    //Iterator<String> iterator = hm.keySet().iterator();
     for(String key : keys) {
         System.out.println(key + "=" + maps.get(key));
     }
+    //Iterator<String> iterator = hm.keySet().iterator();
+    
     //(2)键值对
     //(2.1)普通方式
     Set<Map.Entry<String,Integer>> entries = maps.entrySet();
@@ -5795,7 +6259,7 @@ HashMap继承关系如下图所示：
    HashMap是支持Key为空的；HashTable是直接用Key来获取HashCode，key为空会抛异常
 
    * &（按位与运算）：相同的二进制数位上，都是1的时候，结果为1，否则为零
-   * ^（按位异或运算）：相同的二进制数位上，数字相同，结果为0，不同为1，不进位加法
+   * ^（按位异或运算）：相同的二进制数位上，数字相同，结果为0，不同为1，**不进位加法**
    
    ```java
    static final int hash(Object key) {
@@ -5806,7 +6270,7 @@ HashMap继承关系如下图所示：
    }
    ```
    
-   计算hash的方法：将hashCode无符号右移16位，高16 bit和低16 bit做了一个异或
+   计算 hash 的方法：将hashCode无符号右移16位，高16bit 和低16bit 做了一个异或
    
    原因：当数组长度很小，假设是16，那么 n-1即为 1111 ，这样的值和hashCode()直接做按位与操作，实际上只使用了哈希值的后4位。如果当哈希值的高位变化很大，低位变化很小，就很容易造成哈希冲突了，所以这里**把高低位都利用起来，让高16位也参与运算**，从而解决了这个问题
    
@@ -5814,9 +6278,9 @@ HashMap继承关系如下图所示：
    
 2. put
 
-   jdk1.8前是头插法 (拉链法)，多线程下扩容出现循环链表，jdk1.8以后引入红黑树，插入方法变成尾插法
+   jdk1.8 前是头插法 (拉链法)，多线程下扩容出现循环链表，jdk1.8 以后引入红黑树，插入方法变成尾插法
 
-   第一次调用put方法时创建数组Node[] table，因为散列表耗费内存，为了防止内存浪费，所以**延迟初始化**
+   第一次调用 put 方法时创建数组 Node[] table，因为散列表耗费内存，为了防止内存浪费，所以**延迟初始化**
 
    存储数据步骤（存储过程）：
 
@@ -6069,9 +6533,10 @@ HashMap继承关系如下图所示：
       * 这里和插入时一样，如果对比节点的哈希值相等并且通过equals判断值也相等，就会判断key相等，直接返回，不相等就从子树中递归查找
 
    5. 时间复杂度 O(1)
-      若为树，则在树中通过key.equals(k)查找，**O(logn)** 
-   
-      若为链表，则在链表中通过key.equals(k)查找，**O(n)**
+      
+      * 若为树，则在树中通过key.equals(k)查找，**O(logn)** 
+      
+      * 若为链表，则在链表中通过key.equals(k)查找，**O(n)**
 
 
 
@@ -7688,7 +8153,6 @@ System.out.println(f.isDirectory()); // false
 ##### 创建删除
 
 `public boolean createNewFile()` : 当且仅当具有该名称的文件尚不存在时， 创建一个新的空文件。
-															（几乎不用的，因为以后文件都是自动创建的！）
 `public boolean delete()` : 删除由此File表示的文件或目录。 （只能删除空目录）
 `public boolean mkdir()` : 创建由此File表示的目录。（只能创建一级目录）
 `public boolean mkdirs()` : 可以创建多级目录（建议使用的）
@@ -12494,7 +12958,7 @@ JVM的生命周期分为三个阶段，分别为：启动、运行、死亡。
 - **启动**：当启动一个 Java 程序时，通过引导类加载器（bootstrap class loader）创建一个初始类（initial class），对于拥有 main 函数的类就是 JVM 实例运行的起点
 - **运行**：
   - main() 方法是一个程序的初始起点，任何线程均可由在此处启动
-  - 在 JVM 内部有两种线程类型，分别为：**用户线程和守护线程**，JVM 通常使用的是守护线程，而 main() 和其他线程使用的是用户线程，守护线程会随着用户线程的结束而结束
+  - 在 JVM 内部有两种线程类型，分别为：用户线程和守护线程，**JVM 使用的是守护线程，main() 和其他线程使用的是用户线程**，守护线程会随着用户线程的结束而结束
   - 执行一个 Java 程序时，真真正正在执行的是一个 Java 虚拟机的进程
   - JVM 有两种运行模式 Server 与 Client，两种模式的区别在于：Client 模式启动速度较快，Server 模式启动较慢；但是启动进入稳定期长期运行之后 Server 模式的程序运行速度比 Client 要快很多
 - **死亡**：
@@ -13325,19 +13789,19 @@ public void localvarGC4() {
 
 #### 安全区域
 
-安全点 (Safepoint)：程序执行时并非在所有地方都能停顿下来开始GC，只有在安全点才能停下
+安全点 (Safepoint)：程序执行时并非在所有地方都能停顿下来开始 GC，只有在安全点才能停下
 
-- Safe Point 的选择很重要，如果太少可能导致GC等待的时间太长，如果太多可能导致运行时的性能问题
+- Safe Point 的选择很重要，如果太少可能导致 GC 等待的时间太长，如果太多可能导致运行时的性能问题
 - 大部分指令的执行时间都非常短，通常会根据是否具有让程序长时间执行的特征为标准，选择些执行时间较长的指令作为 Safe Point， 如方法调用、循环跳转和异常跳转等
 
-在GC发生时，让所有线程都在最近的安全点停顿下来的方法：
+在 GC 发生时，让所有线程都在最近的安全点停顿下来的方法：
 
 - 抢先式中断：没有虚拟机采用，首先中断所有线程，如果有线程不在安全点，就恢复线程让线程运行到安全点
 - 主动式中断：设置一个中断标志，各个线程运行到各个 Safe Point 时就轮询这个标志，如果中断标志为真，则将自己进行中断挂起
 
-问题：Safepoint 保证程序执行时，在不太长的时间内就会遇到可进入GC的 Safepoint，但是当线程处于 Waiting 状态或 Blocked 状态，线程无法响应JVM的中断请求，运行到安全点去中断挂起，JVM也不可能等待线程被唤醒，对于这种情况，需要安全区域来解决
+问题：Safepoint 保证程序执行时，在不太长的时间内就会遇到可进入GC 的 Safepoint，但是当线程处于 Waiting 状态或 Blocked 状态，线程无法响应 JVM 的中断请求，运行到安全点去中断挂起，JVM 也不可能等待线程被唤醒，对于这种情况，需要安全区域来解决
 
-安全区域 (Safe Region)：指在一段代码片段中，对象的引用关系不会发生变化，在这个区域中的任何位置开始GC都是安全的
+安全区域 (Safe Region)：指在一段代码片段中，对象的引用关系不会发生变化，在这个区域中的任何位置开始 GC 都是安全的
 
 运行流程：
 
@@ -13439,9 +13903,9 @@ GC Roots说明：
 
 ##### 工作原理
 
-可达性分析算法以**根对象集合 (GCRoots)**为起始点，从上至下的方式搜索被根对象集合所连接的目标对象
+可达性分析算法以**根对象集合（GCRoots）**为起始点，从上至下的方式搜索被根对象集合所连接的目标对象
 
-分析工作必须在一个能保障**一致性的快照**中进行，否则结果的准确性无法保证，这点也是导致GC进行时必须 Stop The World 的一个重要原因
+分析工作必须在一个能保障**一致性的快照**中进行，否则结果的准确性无法保证，这点也是导致 GC 进行时必须 Stop The World 的一个重要原因
 
 基本原理：
 
@@ -13469,10 +13933,10 @@ GC Roots说明：
 - 灰色：本对象已访问过，但是本对象引用到的其他对象尚未全部访问
 - 黑色：本对象已访问过，而且本对象引用到的其他对象也全部访问完成
 
-当Stop The World (STW) 时，对象间的引用是不会发生变化的，可以轻松完成标记，遍历访问过程为：
+当 Stop The World (STW) 时，对象间的引用是不会发生变化的，可以轻松完成标记，遍历访问过程为：
 
 1. 初始时，所有对象都在白色集合
-2. 将GC Roots 直接引用到的对象挪到灰色集合
+2. 将 GC Roots 直接引用到的对象挪到灰色集合
 3. 从灰色集合中获取对象：
    * 将本对象引用到的其他对象全部挪到灰色集合中
    * 将本对象挪到黑色集合里面
@@ -13487,9 +13951,9 @@ GC Roots说明：
 
 ###### 并发标记
 
-并发标记时，对象间的引用可能发生变化**，**多标和漏标的情况就有可能发生：
+并发标记时，对象间的引用可能发生变化**，**多标和漏标的情况就有可能发生
 
-**多标情况：**当E变为灰色或黑色时，其他线程断开的D对E的引用，导致这部分对象仍会被标记为存活，本轮GC不会回收这部分内存，这部分本应该回收但是没有回收到的内存，被称之为**浮动垃圾**
+**多标情况：**当E变为灰色或黑色时，其他线程断开的 D 对 E 的引用，导致这部分对象仍会被标记为存活，本轮 GC 不会回收这部分内存，这部分本应该回收但是没有回收到的内存，被称之为**浮动垃圾**
 
 * 针对并发标记开始后的**新对象**，通常的做法是直接全部当成黑色，也算浮动垃圾
 * 浮动垃圾并不会影响应用程序的正确性，只是需要等到下一轮垃圾回收中才被清除
@@ -13498,7 +13962,7 @@ GC Roots说明：
 
 **漏标情况：**
 
-* 条件一：灰色对象断开了对一个白色对象的引用 (直接或间接)，即灰色对象原成员变量的引用发生了变化
+* 条件一：灰色对象断开了对一个白色对象的引用（直接或间接），即灰色对象原成员变量的引用发生了变化
 * 条件二：其他线程中修改了黑色对象，插入了一条或多条对该白色对象的新引用
 * 结果：导致该白色对象当作垃圾被GC，影响到了应用程序的正确性
 
@@ -13512,13 +13976,13 @@ objE.fieldG = null;  	// 写
 objD.fieldG = G;     	// 写
 ```
 
-为了解决问题，可以操作上面三步，**将对象G记录起来，然后作为灰色对象再进行遍历**，比如放到一个特定的集合，等初始的GC Roots遍历完（并发标记），再遍历该集合（重新标记）
+为了解决问题，可以操作上面三步，**将对象G记录起来，然后作为灰色对象再进行遍历**，比如放到一个特定的集合，等初始的 GC Roots遍历完（并发标记），再遍历该集合（重新标记）
 
 > 所以重新标记需要STW，应用程序一直在运行，该集合可能会一直增加新的对象，导致永远都运行不完
 
-解决方法：添加读写屏障，读屏障拦截第一步，写屏障拦截第二三步，在读写前后进行一些后置处理 (AOP)
+解决方法：添加读写屏障，读屏障拦截第一步，写屏障拦截第二三步，在读写前后进行一些后置处理：
 
-* **写屏障 + 增量更新**：黑色对象新增的引用，将引用记录下，最后对黑色节点重新扫描
+* **写屏障 + 增量更新**：黑色对象新增引用，会将黑色对象变成灰色对象，最后对该节节点重新扫描
 
   增量更新 (Incremental Update) 破坏了条件二，从而保证了不会漏标
 
@@ -13526,15 +13990,13 @@ objD.fieldG = G;     	// 写
 
 * **写屏障 (Store Barrier) + SATB**：当原来成员变量的引用发生变化之前，记录下原来的引用对象
 
-  保留GC开始时的对象图，即原始快照 SATB，当 GC Roots 确定后，对象图就已经确定，那后续的标记也应该是按照这个时刻的对象图走，如果期间对白色对象有了新的引用会记录下来，白色变灰，重新扫描该对象
+  保留 GC 开始时的对象图，即原始快照 SATB，当 GC Roots 确定后，对象图就已经确定，那后续的标记也应该是按照这个时刻的对象图走，如果期间对白色对象有了新的引用会记录下来，并且将白色对象变灰，重新扫描该对象
 
   SATB (Snapshot At The Beginning) 破坏了条件一，从而保证了不会漏标
 
-  缺点：
-
 * **读屏障 (Load Barrier)**：破坏条件二，黑色对象引用白色对象的前提是获取到该对象，此时读屏障发挥作用
 
-以Java HotSpot VM为例，其并发标记时对漏标的处理方案如下：
+以 Java HotSpot VM 为例，其并发标记时对漏标的处理方案如下：
 
 - CMS：写屏障 + 增量更新
 - G1：写屏障 + SATB
@@ -18605,23 +19067,23 @@ class GuardedObject {
 ```java
 public static void main(String[] args) throws InterruptedException {
     Thread t1 = new Thread(() -> {
-            while (true) {
-				//try { Thread.sleep(1000); } catch (InterruptedException e) { }
-                // 当没有许可时，当前线程暂停运行；有许可时，用掉这个许可，当前线程恢复运行
-                LockSupport.park();
-                System.out.println("1");
-            }
-        });
-        Thread t2 = new Thread(() -> {
-            while (true) {
-                System.out.println("2");
-                // 给线程 t1 发放『许可』（多次连续调用 unpark 只会发放一个『许可』）
-                LockSupport.unpark(t1);
-                try { Thread.sleep(500); } catch (InterruptedException e) { }
-            }
-        });
-        t1.start();
-        t2.start();
+        while (true) {
+            //try { Thread.sleep(1000); } catch (InterruptedException e) { }
+            // 当没有许可时，当前线程暂停运行；有许可时，用掉这个许可，当前线程恢复运行
+            LockSupport.park();
+            System.out.println("1");
+        }
+    });
+    Thread t2 = new Thread(() -> {
+        while (true) {
+            System.out.println("2");
+            // 给线程 t1 发放『许可』（多次连续调用 unpark 只会发放一个『许可』）
+            LockSupport.unpark(t1);
+            try { Thread.sleep(500); } catch (InterruptedException e) { }
+        }
+    });
+    t1.start();
+    t2.start();
 }
 ```
 
@@ -19175,6 +19637,8 @@ Volatile是Java虚拟机提供的**轻量级**的同步机制（三大特性）
 性能：volatile修饰的变量进行读操作与普通变量几乎没什么差别，但是写操作相对慢一些，因为需要在本地代码中插入很多内存屏障来保证指令不会发生乱序执行，但是开销比锁要小
 
 
+
+
 ***
 
 
@@ -19236,11 +19700,11 @@ Volatile是Java虚拟机提供的**轻量级**的同步机制（三大特性）
 
 #### 底层原理
 
-使用volatile修饰的共享变量，总线会开启CPU总线嗅探机制来解决JMM缓存一致性问题，也就是共享变量在多线程中可见性的问题，实现 MESI 缓存一致性协议
+使用 volatile 修饰的共享变量，总线会开启 CPU 总线嗅探机制来解决 JMM 缓存一致性问题，也就是共享变量在多线程中可见性的问题，实现 MESI 缓存一致性协议
 
-底层是通过汇编 lock 前缀指令，共享变量加了 lock 前缀指令，在线程修改完共享变量后，会马上执行 store 和 write 操作写回主存。在执行 store 操作前，会先执行缓存锁定的操作，其他的CPU上运行的线程根据CPU总线嗅探机制会修改其共享变量为失效状态，读取时会重新从主内存中读取最新的数据
+底层是通过汇编 lock 前缀指令，共享变量加了 lock 前缀指令，在线程修改完共享变量后，会马上执行 store 和 write 操作写回主存。在执行 store 操作前，会先执行缓存锁定的操作，其他的 CPU 上运行的线程根据 CPU 总线嗅探机制会修改其共享变量为失效状态，读取时会重新从主内存中读取最新的数据
 
-lock前缀指令就相当于内存屏障，Memory Barrier（Memory Fence）
+lock 前缀指令就相当于内存屏障，Memory Barrier（Memory Fence）
 
 * 对 volatile 变量的写指令后会加入写屏障
 * 对 volatile 变量的读指令前会加入读屏障
@@ -19279,7 +19743,7 @@ lock前缀指令就相当于内存屏障，Memory Barrier（Memory Fence）
 
   <img src="https://gitee.com/seazean/images/raw/master/Java/JMM-volatile保证可见性.png" style="zoom:67%;" />
 
-* 全能屏障：mfence（modify/mix Barrier），兼具sfence和lfence的功能
+* 全能屏障：mfence（modify/mix Barrier），兼具 sfence 和 lfence 的功能
 
 保证有序性：
 
@@ -19576,13 +20040,13 @@ public class TestVolatile {
 CAS的全称是Compare-And-Swap，是**CPU并发原语**
 
 * CAS并发原语体现在Java语言中就是sun.misc.Unsafe类的各个方法，调用UnSafe类中的CAS方法，JVM会实现出CAS汇编指令，这是一种完全依赖于硬件的功能，通过它实现了原子操作
-* CAS是一种系统原语，原语属于操作系统范畴，是由若干条指令组成 ，用于完成某个功能的一个过程，并且**原语的执行必须是连续的，执行过程中不允许被中断**，也就是说CAS是一条CPU的原子指令，不会造成所谓的数据不一致的问题，也就是说CAS是线程安全的
+* CAS是一种系统原语，原语属于操作系统范畴，是由若干条指令组成 ，用于完成某个功能的一个过程，并且**原语的执行必须是连续的，执行过程中不允许被中断**，也就是说CAS是一条CPU的原子指令，不会造成所谓的数据不一致的问题，所以 CAS 是线程安全的
 
 底层原理：CAS 的底层是 `lock cmpxchg` 指令(X86 架构)，在单核和多核 CPU 下都能够保证比较交换的原子性
 
-* 程序是在单核处理器上运行，就会省略 lock 前缀（单处理器自身会维护单处理器内的顺序一致性，不需要lock前缀提供的内存屏障效果）
+* 程序是在单核处理器上运行，会省略 lock 前缀，单处理器自身会维护处理器内的顺序一致性，不需要 lock 前缀的内存屏障效果
 
-* 程序是在多核处理器上运行，会为 cmpxchg 指令加上 lock 前缀 (lock cmpxchg)。当某个核执行到带 lock 的指令时，CPU 会执行**总线锁定或缓存锁定**，当这个核把此指令执行完毕，这个过程不会被线程的调度机制所打断，保证了多个线程对内存操作的原子性
+* 程序是在多核处理器上运行，会为 cmpxchg 指令加上 lock 前缀（lock cmpxchg）。当某个核执行到带 lock 的指令时，CPU 会执行**总线锁定或缓存锁定**，当这个核把此指令执行完毕，这个过程不会被线程的调度机制所打断，保证了多个线程对内存操作的原子性
 
 作用：比较当前工作内存中的值和主物理内存中的值，如果相同则执行规定操作，否者继续比较直到主内存和工作内存的值一致为止
 
@@ -20949,14 +21413,14 @@ java.util.concurrent.BlockingQueue 接口有以下阻塞队列的实现：**FIFO
 | 检查（队首元素） | element() | peek()   | 不可用 | 不可用             |
 
 * 抛出异常组：
-  * 当阻塞队列满时：在往队列中add插入元素会抛出 IIIegalStateException: Queue full
-  * 当阻塞队列空时：再往队列中remove移除元素，会抛出NoSuchException
+  * 当阻塞队列满时：在往队列中 add 插入元素会抛出 IIIegalStateException: Queue full
+  * 当阻塞队列空时：再往队列中remove移除元素，会抛出 NoSuchException
 * 特殊值组：
-  * 插入方法：成功true，失败false
-  * 移除方法：成功返回出队列元素，队列没有就返回null
+  * 插入方法：成功 true，失败 false
+  * 移除方法：成功返回出队列元素，队列没有就返回 null
 * 阻塞组：
-  * 当阻塞队列满时，生产者继续往队列里put元素，队列会一直阻塞生产线程直到put数据或响应中断退出
-  * 当阻塞队列空时，消费者线程试图从队列里take元素，队列会一直阻塞消费者线程直到队列可用
+  * 当阻塞队列满时，生产者继续往队列里 put 元素，队列会一直阻塞生产线程直到 put 数据或响应中断退出
+  * 当阻塞队列空时，消费者线程试图从队列里 take 元素，队列会一直阻塞消费者线程直到队列可用
 * 超时退出：当阻塞队列满时，队里会阻塞生产者线程一定时间，超过限时后生产者线程会退出
 
 
@@ -21175,9 +21639,11 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
 
 #### 延迟队列
 
+##### 延迟阻塞
+
 DelayQueue 是一个支持延时获取元素的阻塞队列， 内部采用优先队列 PriorityQueue 存储元素，同时元素必须实现 Delayed 接口；在创建元素时可以指定多久才可以从队列中获取当前元素，只有在延迟期满时才能从队列中提取元素
 
-DelayQueue只能添加(offer/put/add)实现了Delayed接口的对象，不能添加int、String
+DelayQueue 只能添加（offer/put/add）实现了 Delayed 接口的对象，不能添加 int、String
 
 API：
 
@@ -21207,6 +21673,12 @@ class DelayTask implements Delayed {
 ```
 
 
+
+****
+
+
+
+##### 优先队列
 
 
 
@@ -23044,7 +23516,7 @@ signal 流程：
 独占锁：指该锁一次只能被一个线程所持有，对ReentrantLock和Synchronized而言都是独占锁
 共享锁：指该锁可以被多个线程锁持有
 
-ReentrantReadWriteLock其读锁是共享，其写锁是独占
+ReentrantReadWriteLock 其读锁是共享，其写锁是独占
 
 作用：多个线程同时读一个资源类没有任何问题，为了满足并发量，读取共享资源应该同时进行，但是如果一个线程想去写共享资源，就不应该再有其它线程可以对该资源进行读或写
 
@@ -23527,7 +23999,7 @@ class DataContainerStamped {
 
 #### 信号量
 
-synchronized可以起到锁的作用，但某个时间段内，只能有一个线程允许执行
+synchronized 可以起到锁的作用，但某个时间段内，只能有一个线程允许执行
 
 Semaphore（信号量）用来限制能同时访问共享资源的线程上限，非重入锁
 
