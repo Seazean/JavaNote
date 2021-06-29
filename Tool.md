@@ -2534,7 +2534,7 @@ mount [-fnrsvw] [-t vfstype] [-o options] device dir
 
 ### 状态
 
-**启动语法：service  服务     status**
+**启动语法：service  服务   status**
 
 * 查看防火墙状态：`service iptables status`
 
@@ -2545,7 +2545,7 @@ mount [-fnrsvw] [-t vfstype] [-o options] device dir
 
 
 
-### 防火墙放行
+### 放行
 
 设置端口防火墙放行
 

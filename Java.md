@@ -547,35 +547,36 @@ public class Test1 {
 * break：跳出一层循环
 
 * 移位运算
+  
   计算机里一般用**补码表示数字**，正数、负数的表示区别就是最高位是0还是1
-
+  
   * 正数的原码反码补码相同
-
+  
     ```java
     100:	00000000  00000000  00000000  01100100
     ```
-
+  
   * 负数：
     原码：最高位为1，其余位置和正数相同
     反码：保证符号位不变，其余位置取反
     补码：保证符号位不变，其余位置取反加1，即反码+1
-
+  
     ```java
     -100原码:	10000000  00000000  00000000  01100100	//32位
     -100反码:	11111111  11111111  11111111  10011011
     -100补码:	11111111  11111111  11111111  10011100
     ```
-
+  
     补码 → 原码：符号位不变，其余位置取反加1
-
+  
   运算符：
-
-  * `>>`运算符：将二进制位进行右移操作
-  * `<<`运算符：将二进制位进行左移操作
+  
+  * `>>`运算符：将二进制位进行右移操作，相当于除 2
+  * `<<`运算符：将二进制位进行左移操作，相当于乘 2
   * `>>>`运算符：无符号右移，忽略符号位，空位都以0补齐
-
+  
   运算规则：
-
+  
   * 正数的左移与右移，空位补0
   * 负数原码的左移与右移，空位补0
     负数反码的左移与右移，空位补1
@@ -592,13 +593,12 @@ public class Test1 {
 
 #### 形参实参
 
-* 形参
-  可以理解为形式参数，用于定义方法的时候使用的参数，只能是变量
-  形参只有在方法被调用的时候，虚拟机才分配内存单元，方法调用结束之后便会释放所分配的内存单元
+形参：
 
-* 实参
+* 形式参数，用于定义方法的时候使用的参数，只能是变量
+* 形参只有在方法被调用的时候，虚拟机才分配内存单元，方法调用结束之后便会释放所分配的内存单元
 
-  调用方法时传递的数据可以是常量，也可以是变量
+实参：调用方法时传递的数据可以是常量，也可以是变量
 
 
 
@@ -978,6 +978,10 @@ Debug是供程序员使用的程序调试工具，它可以用于查看程序的
 
 
 
+推荐阅读：https://time.geekbang.org/column/article/41440
+
+
+
 ***
 
 
@@ -1005,6 +1009,10 @@ public static int f(int x){
     }
 }
 ```
+
+
+
+***
 
 
 
@@ -1043,9 +1051,7 @@ public static int f(int n){
 
 ##### 猴子吃桃
 
-猴子第一天摘了若干个桃子，当即吃了一半，觉得好不过瘾，然后又多吃了一个。
-第二天又吃了前一天剩下的一半，觉得好不过瘾，然后又多吃了一个。以后每天都是如此
-等到第十天再吃的时候发现只有1个桃子，请问猴子第一天总共摘了多少个桃子。
+猴子第一天摘了若干个桃子，当即吃了一半，觉得好不过瘾，然后又多吃了一个。第二天又吃了前一天剩下的一半，觉得好不过瘾，然后又多吃了一个。以后每天都是如此。等到第十天再吃的时候发现只有1个桃子，问猴子第一天总共摘了多少个桃子？
 
 ```java
 /*
@@ -1065,7 +1071,11 @@ public static int f(int x){
 
 
 
-##### 求和
+***
+
+
+
+##### 递归求和
 
 ```java
 //（1）递归的终点接：f(1) = 1
@@ -1079,21 +1089,32 @@ public static int f(int n){
 
 
 
-##### 阶乘
+****
+
+
+
+##### 汉诺塔
 
 ```java
-//（1）递归的终点接： f(1) = 1
-//（2）递归的公式   f(n) = f(n-1)*n
-//（3）递归的方向必须走向终结点
+public class Hanoi {
+    public static void main(String[] args) {
+        hanoi('X', 'Y', 'Z', 3);
+    }
 
-public static int f(int n){
-	if(n == 1){
-		return 1 ;
-	}else{
-		return f(n-1)*n;
-	}
+    //将n个块分治的从x移动到z，y为辅助柱
+    private static void hanoi(char x, char y, char z, int n) {
+        if (n == 1) {
+            System.out.println(x + "→" + z);    //直接将x的块移动到z
+        } else {
+            hanoi(x, z, y, n - 1);           //分治处理n-1个块，先将n-1个块借助z移到y
+            System.out.println(x + "→" + z);    //然后将x最下面的块（最大的）移动到z
+            hanoi(y, x, z, n - 1);           //最后将n-1个块从y移动到z，x为辅助柱
+        }
+    }
 }
 ```
+
+时间复杂度 O(2^n)
 
 
 
@@ -1576,6 +1597,7 @@ public class QuickSort {
 快速排序和归并排序的区别：
 
 * 快速排序是另外一种分治的排序算法，将一个数组分成两个子数组，将两部分独立的排序
+* 归并排序的处理过程是由下到上的，先处理子问题，然后再合并。而快排正好相反，它的处理过程是由上到下的，先分区，然后再处理子问题
 * 快速排序和归并排序是互补的：归并排序将数组分成两个子数组分别排序，并将有序的子数组归并从而将整个数组排序，而快速排序的方式则是当两个数组都有序时，整个数组自然就有序了
 * 在归并排序中，一个数组被等分为两半，归并调用发生在处理整个数组之前，在快速排序中，切分数组的位置取决于数组的内容，递归调用发生在处理整个数组之后
 
@@ -1606,6 +1628,8 @@ public class QuickSort {
 #### 基数排序
 
 基数排序（Radix Sort）：又叫桶排序和箱排序，借助多关键字排序的思想对单逻辑关键字进行排序的方法
+
+计数排序其实是桶排序的一种特殊情况，当要排序的 n 个数据，所处的范围并不大的时候，比如最大值是 k，我们就可以把数据划分成 k 个桶，每个桶内的数据值都是相同的，省掉了桶内排序的时间
 
 按照低位先排序，然后收集；再按照高位排序，然后再收集；依次类推，直到最高位。有时候有些属性是有优先级顺序的，先按低优先级排序，再按高优先级排序。最后的次序就是高优先级高的在前，高优先级相同的低优先级高的在前
 
@@ -1768,6 +1792,36 @@ public class binarySearch {
 
 ![](https://gitee.com/seazean/images/raw/master/Java/二分查找.gif)
 
+查找第一个匹配的元素：
+
+```java
+public static int binarySearch(int[] arr, int des) {
+        int start = 0;
+        int end = arr.length - 1;
+
+        while (start <= end) {
+            int mid = (start + end) / 2;
+            if (des == arr[mid]) {
+                //如果 mid 等于 0，那这个元素已经是数组的第一个元素，那肯定是我要找的
+                if (mid == 0 || a[mid - 1] != des) {
+                    return mid;
+                } else {
+                    //a[mid]前面的一个元素 a[mid-1]也等于 value，
+                    //要找的元素肯定出现在[low, mid-1]之间
+                    high = mid - 1
+                }
+            } else if (des > arr[mid]) {
+                start = mid + 1;
+            } else if (des < arr[mid]) {
+                end = mid - 1;
+            }
+        }
+        return -1;
+    }
+```
+
+
+
 
 
 ***
@@ -1879,14 +1933,14 @@ public class Kmp {
             // 根据已知的前j位推测第j+1位
             // j=-1说明首位就没有匹配，即t[0]!=t[i]，说明next[i+1]没有最大前缀，为0
             if (j == -1 || t.charAt(i) == t.charAt(j)) {
-                // i位置和j位置的数据相同，当i+1位置不匹配时，可以跳转到j+1的位置对比
-                // 所以只需要将i的最大公共前缀+1就代表i+1的最大前缀，依次类推
-                // 所以2位置的最大公共前缀只需要1位置的最大前缀+1
+                // 因为模式串已经匹配到了索引j处，说明之前的位都是相等的
+                // 因为是自己匹配自己，所以模式串就是前缀，主串就是后缀，j就是最长公共前缀
+                // 当i+1位置不匹配时（i位之前匹配），可以跳转到j+1位置对比，next[i+1]=j+1
                 i++;
                 j++;
                 next[i] = j;
             } else {
-                //i位置的数据和j位置的不相等，所以回退对比next[j]和i位置的数据
+                //i位置的数据和j位置的不相等，所以回退对比i和next[j]位置的数据
                 j = next[j];
             }
 
@@ -1903,7 +1957,7 @@ public class Kmp {
             if (j == -1 || t.charAt(i) == t.charAt(j)) {
                 i++;
                 j++;
-                // 如果t[i+1]==t[j+1]，回退后仍然失配，所以要继续回退
+                // 如果t[i+1] == t[next(i+1)]=next[j+1]，回退后仍然失配，所以要继续回退
                 if (t.charAt(i) == t.charAt(j)) {
                     nextVal[i] = nextVal[j];
                 } else {
@@ -2098,30 +2152,16 @@ public class Kmp {
 
 ![平衡二叉树和二叉查找树对比](https://gitee.com/seazean/images/raw/master/Java/平衡二叉树和二叉查找树对比结构图.png)
 
-+ 左旋
-  将根节点的右侧往左拉，原先的右子节点变成新的父节点，并把多余的左子节点出让，给已经降级的根节点当右子节点
-
++ 左旋：将根节点的右侧往左拉，原先的右子节点变成新的父节点，并把多余的左子节点出让，给已经降级的根节点当右子节点
+  
   ![平衡二叉树左旋](https://gitee.com/seazean/images/raw/master/Java/平衡二叉树左旋01.png)
 
-* 右旋
-  将根节点的左侧往右拉，左子节点变成了新的父节点，并把多余的右子节点出让，给已经降级根节点当左子节点
-
+* 右旋：将根节点的左侧往右拉，左子节点变成了新的父节点，并把多余的右子节点出让，给已经降级根节点当左子节点
+  
   ![平衡二叉树右旋](https://gitee.com/seazean/images/raw/master/Java/平衡二叉树右旋01.png)
 
-* 平衡二叉树旋转的四种情况
+推荐文章：https://pdai.tech/md/algorithm/alg-basic-tree-balance.html
 
-  * 左左：当根节点左子树的左子树有节点插入，导致二叉树不平衡
-  * 如何旋转：直接对整体进行右旋即可
-    ![平衡二叉树左左](https://gitee.com/seazean/images/raw/master/Java/平衡二叉树左左.png)
-  * 左右：当根节点左子树的右子树有节点插入，导致二叉树不平衡
-  * 如何旋转：先在左子树对应的节点位置进行左旋，在对整体进行右旋
-    ![平衡二叉树左右](https://gitee.com/seazean/images/raw/master/Java/平衡二叉树左右.png)
-  * 右右：当根节点右子树的右子树有节点插入,导致二叉树不平衡
-  * 如何旋转：直接对整体进行左旋即可
-    ![平衡二叉树右右](https://gitee.com/seazean/images/raw/master/Java/平衡二叉树右右.png)
-  * 右左：当根节点右子树的左子树有节点插入，导致二叉树不平衡
-  * 如何旋转：先在右子树对应的节点位置进行右旋，在对整体进行左旋
-    ![平衡二叉树右左](https://gitee.com/seazean/images/raw/master/Java/平衡二叉树右左.png)
 
 
 
@@ -2141,23 +2181,22 @@ public class Kmp {
 
 1. 每一个节点或是红色的，或者是黑色的
 2. 根节点必须是黑色
-3. 如果一个节点没有子节点或者父节点，则该节点相应的指针属性值为Nil，这些Nil视为叶节点，每个叶节点(Nil)是黑色的
-4. 如果某一个节点是红色,那么它的子节点必须是黑色(不能出现两个红色节点相连 的情况)
+3. 如果一个节点没有子节点或者父节点，则该节点相应的指针属性值为 Nil，这些 Nil 视为叶节点，每个叶节点(Nil) 是黑色的
+4. 如果某一个节点是红色，那么它的子节点必须是黑色(不能出现两个红色节点相连 的情况)
 5. 对每一个节点，从该节点到其所有后代叶节点的简单路径上，均包含相同数目的黑色节点
 
-红黑树与AVL树的比较：
+红黑树与 AVL 树的比较：
 
-- 红黑树的插入删除比AVL树更便于控制操作，红黑树更适合于插入修改密集型任务
+* AVL树是更加严格的平衡，可以提供更快的查找速度，适用于读取查找密集型任务
+* 红黑树只是做到了近似平衡，并不是严格的平衡，红黑树的插入删除比AVL树更便于控制操作，红黑树更适合于插入修改密集型任务
 
-* AVL树是更加严格的平衡，可以提供更快的查找速度，一般读取查找密集型任务，适用AVL树
-
-- 红黑树整体性能略优于AVL树，AVL树的旋转比红黑树的旋转更加难以平衡和调试
+- 红黑树整体性能略优于AVL树，AVL树的旋转比红黑树的旋转多，更加难以平衡和调试，插入和删除的效率比红黑树慢
 
 ![红黑树](https://gitee.com/seazean/images/raw/master/Java/红黑树结构图.png)
 
 
 
-红黑树添加节点的默认颜色为红色,效率高
+红黑树添加节点的默认颜色为红色，效率高
 ![](https://gitee.com/seazean/images/raw/master/Java/红黑树添加节点颜色.png)
 
 
@@ -2451,11 +2490,107 @@ public static void main(String[] args)throws Exception {
 
 
 
-****
+***
 
 
 
-### 图
+#### 字典树
+
+##### 基本介绍
+
+Trie 树，也叫字典树，是一种专门处理字符串匹配的树形结构，用来解决在一组字符串集合中快速查找某个字符串的问题，Trie 树的本质就是利用字符串之间的公共前缀，将重复的前缀合并在一起
+
+* 根节点不包含任何信息
+* 每个节点表示一个字符串中的字符，从**根节点到红色节点的一条路径表示一个字符串**
+* 红色节点并不都是叶子节点
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-字典树构造过程1.png" style="zoom: 50%;" />
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-字典树构造过程2.png" style="zoom:50%;" />
+
+注意：要查找的是字符串“he”，从根节点开始，沿着某条路径来匹配，可以匹配成功。但是路径的最后一个节点“e”并不是红色的，也就是说，“he”是某个字符串的前缀子串，但并不能完全匹配任何字符串
+
+
+
+***
+
+
+
+##### 实现Trie
+
+通过一个下标与字符一一映射的数组，来存储子节点的指针
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-字典树存储结构.png" style="zoom:50%;" />
+
+时间复杂度是 O(n)（n 表示要查找字符串的长度）
+
+```java
+public class Trie {
+    private TrieNode root = new TrieNode('/');
+
+    //插入一个字符
+    public void insert(char[] chars) {
+        TrieNode p = root;
+        for (int i = 0; i < chars.length; i++) {
+            //获取字符的索引位置
+            int index = chars[i] - 'a';
+            if (p.children[index] == null) {
+                TrieNode node = new TrieNode(chars[i]);
+                p.children[index] = node;
+            }
+            p = p.children[index];
+        }
+        p.isEndChar = true;
+    }
+
+    //查找一个字符串
+    public boolean find(char[] chars) {
+        TrieNode p = root;
+        for (int i = 0; i < chars.length; i++) {
+            int index = chars[i] - 'a';
+            if (p.children[index] == null) {
+                return false;
+            }
+            p = p.children[index];
+        }
+        if (p.isEndChar) {
+            //完全匹配
+            return true;
+        } else {
+            // 不能完全匹配，只是前缀
+            return false;
+        }
+    }
+
+
+    private class TrieNode {
+        char data;
+        TrieNode[] children = new TrieNode[26];//26个英文字母
+        boolean isEndChar = false;//结尾字符为true
+        public TrieNode(char data) {
+            this.data = data;
+        }
+    }
+}
+```
+
+
+
+***
+
+
+
+##### 优化Trie
+
+Trie 树是非常耗内存，采取空间换时间的思路。Trie 树的变体有很多，可以在一定程度上解决内存消耗的问题。比如缩点优化，对只有一个子节点的节点，而且此节点不是一个串的结束节点，可以将此节点与子节点合并
+
+![](https://gitee.com/seazean/images/raw/master/Java/Tree-字典树缩点优化.png)
+
+
+
+参考文章：https://time.geekbang.org/column/article/72414
+
+
 
 
 
@@ -4191,13 +4326,24 @@ public class Demo1_25 {
 
 ### StringBuilder
 
-**String StringBuffer StringBuilder区别**：
-	String : **不可变**的字符序列，线程安全
-	StringBuffer : **可变**的字符序列，线程安全，效率低
-	StringBuilder : **可变**的字符序列，JDK5.0新增；线程不安全，效率高。
-	同：底层使用char[]/byte[]存储
+String StringBuffer 和 StringBuilder 区别：
 
-**源码分析**：
+* String : **不可变**的字符序列，线程安全
+* StringBuffer : **可变**的字符序列，线程安全，底层方法加 synchronized，效率低
+* StringBuilder : **可变**的字符序列，JDK5.0新增；线程不安全，效率高
+
+相同点：底层使用 char[] 存储
+
+构造方法：
+	public StringBuilder()：创建一个空白可变字符串对象，不含有任何内容
+	public StringBuilder(String   str)：根据字符串的内容，来创建可变字符串对象
+
+常用API : 
+	`public StringBuilder append(任意类型)` : 添加数据，并返回对象本身
+	`public StringBuilder reverse()` : 返回相反的字符序列
+	`public String toString()` : 通过 toString() 就可以实现把 StringBuilder 转换为 String
+
+存储原理：
 
 ```java
 String str = "abc";
@@ -4206,14 +4352,31 @@ StringBuffer sb1 = new StringBuffer();//new byte[16]
 sb1.append('a'); //value[0] = 'a';
 ```
 
-**构造方法**：
-	public StringBuilder()：创建一个空白可变字符串对象，不含有任何内容
-	public StringBuilder(String   str)：根据字符串的内容，来创建可变字符串对象
+append 源码：
 
-**常用API** : 
-	`public StringBuilder append(任意类型)` : 添加数据，并返回对象本身
-	`public StringBuilder reverse()` : 返回相反的字符序列
-	`public String toString()` : 通过 toString() 就可以实现把 StringBuilder 转换为 String
+```java
+public AbstractStringBuilder append(String str) {
+    if (str == null) return appendNull();
+    int len = str.length();
+    ensureCapacityInternal(count + len);
+    str.getChars(0, len, value, count);
+    count += len;
+    return this;
+}
+private void ensureCapacityInternal(int minimumCapacity) {
+    // 创建超过数组长度就新的char数组，把数据拷贝过去
+    if (minimumCapacity - value.length > 0) {
+        //int newCapacity = (value.length << 1) + 2;每次扩容2倍+2
+        value = Arrays.copyOf(value, newCapacity(minimumCapacity));
+    }
+}
+ public void getChars(int srcBegin, int srcEnd, char dst[], int dstBegin) {
+	//将字符串中的字符复制到目标字符数组中
+	System.arraycopy(value, srcBegin, dst, dstBegin, srcEnd - srcBegin);
+}
+```
+
+
 
 
 
@@ -5361,7 +5524,7 @@ public class ArrayList<E> extends AbstractList<E>
   }
   ```
 
-  当add 第 1 个元素到 ArrayList，size是0，进入ensureCapacityInternal方法，
+  当add 第 1 个元素到 ArrayList，size是0，进入 ensureCapacityInternal 方法，
 
   ```java
   private void ensureCapacityInternal(int minCapacity) {
@@ -5407,7 +5570,7 @@ public class ArrayList<E> extends AbstractList<E>
 
 * 扩容：新容量的大小为 `oldCapacity + (oldCapacity >> 1)`，`oldCapacity >> 1` 需要取整，所以新容量大约是旧容量的 1.5 倍左右，即 oldCapacity+oldCapacity/2
 
-  扩容操作需要调用`Arrays.copyOf()`（底层`System.arraycopy()`）把原数组整个复制到**新数组**中，这个操作代价很高，因此最好在创建 ArrayList 对象时就指定大概的容量大小，减少扩容操作的次数
+  扩容操作需要调用 `Arrays.copyOf()`（底层 `System.arraycopy()`）把原数组整个复制到**新数组**中，这个操作代价很高，因此最好在创建 ArrayList 对象时就指定大概的容量大小，减少扩容操作的次数
 
   ```java
   private void grow(int minCapacity) {
@@ -9571,7 +9734,7 @@ int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event)；
 int epoll_wait(int epfd, struct epoll_event * events, int maxevents, int timeout);
 ```
 
-*  epall_create：一个系统函数，函数将在内核空间内开辟一块新的空间，可以理解为 epoll 结构空间，返回值为 epoll 的文件描述符编号，所以 epoll 使用一个文件描述符管理多个描述符
+*  epall_create：一个系统函数，函数将在内核空间内创建一个 epoll 数据结构，可以理解为 epoll 结构空间，返回值为 epoll 的文件描述符编号，后面当有client连接时，向该 epoll 区中添加监听，所以 epoll 使用一个文件描述符管理多个描述符
 
 * epall_ctl：epoll 的事件注册函数，select 函数是调用时指定需要监听的描述符和事件，epoll 先将用户感兴趣的描述符事件注册到 epoll 空间。此函数是非阻塞函数，用来增删改 epoll 空间内的描述符，参数解释：
 
@@ -9672,7 +9835,7 @@ epoll 的特点：
 * epoll 仅适用于 Linux 系统
 * epoll 使用一个文件描述符管理多个描述符，将用户关系的文件描述符的事件存放到内核的一个事件表中
 * 没有最大描述符数量（并发连接）的限制，打开 fd 的上限远大于1024（1G 内存能监听约10万个端口）
-* epoll 的时间复杂度 O(1)，epoll 理解为 event poll，不同于忙轮询和无差别轮询，调用 epoll_wait **只是轮询就绪链表**。当监听列表有设备就绪时调用回调函数，把就绪 fd 放入就绪链表中，并唤醒在 epoll_wait 中阻塞的进程，所以 epoll 实际上是**事件驱动**（每个事件关联上fd）的
+* epoll 的时间复杂度 O(1)，epoll 理解为 event poll，不同于忙轮询和无差别轮询，调用 epoll_wait **只是轮询就绪链表**。当监听列表有设备就绪时调用回调函数，把就绪 fd 放入就绪链表中，并唤醒在 epoll_wait 中阻塞的进程，所以 epoll 实际上是**事件驱动**（每个事件关联上fd）的，降低了 system call 的时间复杂度
 * epoll 内核中根据每个 fd 上的 callback 函数来实现，只有活跃的 socket 才会主动调用 callback，所以使用 epoll 没有前面两者的线性下降的性能问题，效率提高
 
 * epoll 每次注册新的事件到 epoll 句柄中时，会把所有的 fd 拷贝进内核，但不是每次 epoll_wait 的时重复拷贝，对比前面两种，epoll 只需要将描述符从进程缓冲区向内核缓冲区拷贝一次。 epoll 也可以利用 mmap() 文件映射内存加速与内核空间的消息传递，减少复制开销
@@ -13091,15 +13254,15 @@ Java 虚拟机栈：Java Virtual Machine Stacks，**每个线程**运行时所�
 局部变量表也被称之为局部变量数组或本地变量表，本质上定义为一个数字数组，主要用于存储方法参数和定义在方法体内的局部变量
 
 * 表是建立在线程的栈上，是线程私有的数据，因此不存在数据安全问题
-* 表的容量大小是在编译期确定的，保存在方法的Code属性的maximum local variables数据项中
+* 表的容量大小是在编译期确定的，保存在方法的 Code 属性的 maximum local variables 数据项中
 * 表中的变量只在当前方法调用中有效，方法结束栈帧销毁，局部变量表也会随之销毁
 * 表中的变量也是重要的垃圾回收根节点，只要被表中数据直接或间接引用的对象都不会被回收
 
-局部变量表最基本的存储单元是**slot(变量槽)**：
+局部变量表最基本的存储单元是 **slot(变量槽)**：
 
 * 参数值的存放总是在局部变量数组的index0开始，到数组长度-1的索引结束，JVM为每一个slot都分配一个访问索引，通过索引即可访问到槽中的数据
 * 存放编译期可知的各种基本数据类型（8种），引用类型（reference），returnAddress类型的变量
-* 32位以内的类型只占用一个slot（包括returnAddress类型），64位的类型（long和double）占用两个slot
+* 32 位以内的类型只占用一个 slot（包括returnAddress类型），64位的类型（long和double）占用两个slot
 * 局部变量表中的槽位是可以**重复利用**的，如果一个局部变量过了其作用域，那么之后申明的新的局部变量就可能会复用过期局部变量的槽位，从而达到节省资源的目的
 
 
@@ -13119,7 +13282,7 @@ Java 虚拟机栈：Java Virtual Machine Stacks，**每个线程**运行时所�
 * Java虚拟机的解释引擎是基于栈的执行引擎，其中的栈指的就是操作数栈
 * 如果被调用的方法带有返回值的话，其返回值将会被压入当前栈帧的操作数栈中
 
-栈顶缓存技术ToS（Top-of-Stack Cashing）：将栈顶元素全部缓存在CPU的寄存器中，以此降低对内存的读/写次数，提升执行的效率
+栈顶缓存技术 ToS（Top-of-Stack Cashing）：将栈顶元素全部缓存在 CPU 的寄存器中，以此降低对内存的读/写次数，提升执行的效率
 
 基于栈式架构的虚拟机使用的零地址指令更加紧凑，完成一项操作需要使用很多入栈和出栈指令，所以需要更多的指令分派（instruction dispatch）次数和内存读/写次数，由于操作数是存储在内存中的，因此频繁地执行内存读/写操作必然会影响执行速度，所以需要栈顶缓存技术
 
@@ -13591,11 +13754,11 @@ public class Demo1_27 {
 
 * **对象优先在 Eden 分配**：当创建一个对象的时候，对象会被分配在新生代的 Eden 区，当Eden 区要满了时候，触发 YoungGC
 
-* 当进行 YoungGC 后，此时在 Eden 区存活的对象被移动到S0区，并且**当前对象的年龄会加1**，清空 Eden 区
+* 当进行 YoungGC 后，此时在 Eden 区存活的对象被移动到 to 区，并且**当前对象的年龄会加1**，清空 Eden 区
 
-* 当再一次触发 YoungGC 的时候，会把 Eden 区中存活下来的对象和 S0 中的对象，移动到 S1 区中，这些对象的年龄会加1，清空 Eden 区和 S0 区
+* 当再一次触发 YoungGC 的时候，会把 Eden 区中存活下来的对象和 to 中的对象，移动到 from 区中，这些对象的年龄会加 1，清空 Eden 区和 to 区
 
-* to区永远是空 Survivor 区，from 区是有数据的，每次 MinorGC 后两个区域互换
+* to 区永远是空 Survivor 区，from 区是有数据的，每次 MinorGC 后两个区域互换
 
 晋升到老年代：
 
@@ -13736,8 +13899,8 @@ FullGC 同时回收新生代、老年代和方法区，只会存在一个FullGC�
 
 * 调用 System.gc()：
 
-  * 在默认情况下，通过system.gc() 或 Runtime.getRuntime().gc() 的调用，会显式触发FullGC，同时对老年代和新生代进行回收，但是虚拟机不一定真正去执行，无法保证对垃圾收集器的调用 (马上触发GC)
-  * 不建议使用这种方式，应该让虚拟机管理内存。一般情况下，垃圾回收应该是自动进行的，无须手动触发；在一些特殊情况下，如正在编写一个性能基准，可以在运行之间调用System.gc() 
+  * 在默认情况下，通过 System.gc() 或 Runtime.getRuntime().gc() 的调用，会显式触发 FullGC，同时对老年代和新生代进行回收，但是虚拟机不一定真正去执行，无法保证对垃圾收集器的调用 (马上触发GC)
+  * 不建议使用这种方式，应该让虚拟机管理内存。一般情况下，垃圾回收应该是自动进行的，无须手动触发；在一些特殊情况下，如正在编写一个性能基准，可以在运行之间调用 System.gc() 
 
 * 老年代空间不足：
 
@@ -14294,7 +14457,7 @@ GC性能指标：
 
 #### Parallel
 
-Parallel Scavenge收集器是应用于新生代的并行垃圾回收器，**采用复制算法**、并行回收和"Stop the World"机制
+Parallel Scavenge 收集器是应用于新生代的并行垃圾回收器，**采用复制算法**、并行回收和"Stop the World"机制
 
 Parallel Old收集器：是一个应用于老年代的并行垃圾回收器，**采用标记-整理算法**
 
@@ -14393,7 +14556,7 @@ Mark Sweep 会造成内存碎片，还不把算法换成 Mark Compact 的原因�
 - 吞吐量降低：在并发阶段虽然不会导致用户停顿，但是会因为占用了一部分线程而导致应用程序变慢，CPU 利用率不够高
 - CMS收集器无法处理浮动垃圾，可能出现 Concurrent Mode Failure导致另一次Full GC的产生
   浮动垃圾是指并发清除阶段由于用户线程继续运行而产生的垃圾，这部分垃圾只能到下一次 GC 时才能进行回收。由于浮动垃圾的存在，CMS 收集需要预留出一部分内存，不能等待老年代快满的时候再回收。如果预留的内存不够存放浮动垃圾，就会出现 Concurrent Mode Failure，这时虚拟机将临时启用 Serial Old 来替代 CMS，导致很长的停顿时间
-- 标记 - 清除算法导致的空间碎片，往往出现老年代空间无法找到足够大连续空间来分配当前对象，不得不提前触发一次 Full GC；为新对象分配内存空间时，将无法使用指针碰撞（Bump the Pointer）技术，而只能够选择空闲链表（Free List）执行内存分配
+- 标记 - 清除算法导致的空间碎片，往往出现老年代空间无法找到足够大连续空间来分配当前对象，不得不提前触发一次 Full GC；为新对象分配内存空间时，将无法使用指针碰撞（Bump the Pointer）技术，而只能够选择空闲列表（Free List）执行内存分配
 
 参数设置：
 
@@ -14427,19 +14590,19 @@ Mark Sweep 会造成内存碎片，还不把算法换成 Mark Compact 的原因�
 
 G1（Garbage-First）是一款面向服务端应用的垃圾收集器，**应用于新生代和老年代**、采用标记-整理算法、软实时、低延迟、可设定目标(最大STW停顿时间)的垃圾回收器，用于代替CMS，适用于较大的堆(>4~6G)，在JDK9之后默认使用G1
 
-G1对比其他处理器的优点：
+G1 对比其他处理器的优点：
 
 * **并发与并行：**
-  * 并行性：G1在回收期间，可以有多个GC线程同时工作，有效利用多核计算能力，此时用户线程STW
+  * 并行性：G1在回收期间，可以有多个 GC 线程同时工作，有效利用多核计算能力，此时用户线程 STW
   * 并发性：G1拥有与应用程序交替执行的能力，部分工作可以和应用程序同时执行，因此不会在整个回收阶段发生完全阻塞应用程序的情况
-  * 其他的垃圾收集器使用内置的JVM线程执行GC的多线程操作，而G1 GC可以采用应用线程承担后台运行的GC工作，JVM的GC线程处理速度慢时，系统会**调用应用程序线程加速垃圾回收**过程
+  * 其他的垃圾收集器使用内置的 JVM 线程执行 GC 的多线程操作，而 G1 GC 可以采用应用线程承担后台运行的 GC 工作，JVM 的 GC 线程处理速度慢时，系统会**调用应用程序线程加速垃圾回收**过程
 
 * **分区算法：**
 
-  * 从分代上看，G1属于分代型垃圾回收器，区分年轻代和老年代，年轻代依然有 Eden 区和 Survivor 区
-    从堆结构上看，新生代和老年代不再物理隔离，不用担心每个代内存是否足够，这种特性有利于程序长时间运行，分配大对象时不会因为无法找到连续内存空间而提前触发下一次GC
-  * 将整个堆划分成约2048个大小相同的独立 Region 块，每个 Region 块大小根据堆空间的实际大小而定，整体被控制在1MB到32MB之间且为2**的N次幂**，所有 Region 大小相同，在JVM生命周期内不会被改变。G1 把堆划分成多个大小相等的独立区域，使得每个小空间可以单独进行垃圾回收
-  * **新的区域Humongous**：本身属于老年代区，当出现了一个巨大的对象，超出了分区容量的一半，则这个对象会进入到该区域。如果一个H区装不下一个巨型对象，那么 G1 会寻找连续的H分区来存储，为了能找到连续的H区，有时候不得不启动 Full GC
+  * 从分代上看，G1  属于分代型垃圾回收器，区分年轻代和老年代，年轻代依然有 Eden 区和 Survivor 区
+    从堆结构上看，**新生代和老年代不再物理隔离**，不用担心每个代内存是否足够，这种特性有利于程序长时间运行，分配大对象时不会因为无法找到连续内存空间而提前触发下一次 GC
+  * 将整个堆划分成约 2048 个大小相同的独立 Region 块，每个 Region 块大小根据堆空间的实际大小而定，整体被控制在1MB到32MB之间且为2**的N次幂**，所有 Region 大小相同，在 JVM 生命周期内不会被改变。G1 把堆划分成多个大小相等的独立区域，使得每个小空间可以单独进行垃圾回收
+  * **新的区域 Humongous**：本身属于老年代区，当出现了一个巨大的对象，超出了分区容量的一半，则这个对象会进入到该区域。如果一个 H 区装不下一个巨型对象，那么 G1 会寻找连续的 H 分区来存储，为了能找到连续的H区，有时候不得不启动 Full GC
   * G1 不会对巨型对象进行拷贝，回收时被优先考虑，G1 会跟踪老年代所有 incoming 引用，这样老年代incoming 引用为 0 的巨型对象就可以在新生代垃圾回收时处理掉
   
   * Region结构图：
@@ -14448,14 +14611,14 @@ G1对比其他处理器的优点：
 
 - **空间整合：**
 
-  - CMS：“标记-清除”算法、内存碎片、若干次GC后进行一次碎片整理
+  - CMS：“标记-清除”算法、内存碎片、若干次 GC 后进行一次碎片整理
   - G1：整体来看是基于“标记 - 整理”算法实现的收集器，从局部（Region 之间）上来看是基于“复制”算法实现的，两种算法都可以避免内存碎片
 
 - **可预测的停顿时间模型（软实时soft real-time）：**
 
   - 可以指定在一个长度为 M 毫秒的时间片段内，消耗在 GC 上的时间不得超过 N 毫秒
-  - 由于分块的原因，G1可以只选取部分区域进行内存回收，这样缩小了回收的范围，对于全局停顿情况也能得到较好的控制
-  - G1跟踪各个 Region 里面的垃圾堆积的价值大小（回收所获得的空间大小以及回收所需时间，通过过去回收的经验获得），在后台维护一个**优先列表**，每次根据允许的收集时间，优先回收价值最大的Region，保证了G1收集器在有限的时间内可以获取尽可能高的收集效率
+  - 由于分块的原因，G1 可以只选取部分区域进行内存回收，这样缩小了回收的范围，对于全局停顿情况也能得到较好的控制
+  - G1 跟踪各个 Region 里面的垃圾堆积的价值大小（回收所获得的空间大小以及回收所需时间，通过过去回收的经验获得），在后台维护一个**优先列表**，每次根据允许的收集时间优先回收价值最大的 Region，保证了G1收集器在有限的时间内可以获取尽可能高的收集效率
 
   * 相比于 CMS GC，G1 未必能做到 CMS 在最好情况下的延时停顿，但是最差情况要好很多
 
@@ -14467,7 +14630,7 @@ G1垃圾收集器的缺点：
 应用场景：
 
 * 面向服务端应用，针对具有大内存、多处理器的机器
-* 需要低GC延迟，并具有大堆的应用程序提供解决方案
+* 需要低 GC 延迟，并具有大堆的应用程序提供解决方案
 
 
 
@@ -14496,18 +14659,18 @@ G1中提供了三种垃圾回收模式：YoungGC、Mixed GC 和 FullGC，在不�
 
 <img src="https://gitee.com/seazean/images/raw/master/Java/JVM-G1回收过程.png" style="zoom: 50%;" />
 
-顺时针：Young GC -> Young GC + Concurrent Mark -> Mixed GC 顺序，进行垃圾回收
+顺时针：Young GC → Young GC + Concurrent Mark → Mixed GC 顺序，进行垃圾回收
 
-* **Young GC**：发生在年轻代的GC算法，一般对象（除了巨型对象）都是在 eden region 中分配内存，当所有 eden region 被耗尽无法申请内存时，就会触发一次 young gc，G1停止应用程序的执行 (Stop-The-World)，把活跃对象放入老年代，垃圾对象回收
+* **Young GC**：发生在年轻代的 GC 算法，一般对象（除了巨型对象）都是在 eden region 中分配内存，当所有 eden region 被耗尽无法申请内存时，就会触发一次 young gc，G1停止应用程序的执行 (Stop-The-World)，把活跃对象放入老年代，垃圾对象回收
 
   **回收过程**：
 
   1. 扫描根：根引用连同 RSet 记录的外部引用作为扫描存活对象的入口
-  2. 更新RSet：处理 dirty card queue 更新 RS，此后 RSet 准确的反映对象的引用关系
+  2. 更新 RSet：处理 dirty card queue 更新 RS，此后 RSet 准确的反映对象的引用关系
      * dirty card queue：类似缓存，产生了引用先记录在这里，然后更新到 RSet
      * 作用：产生引用直接更新 RSet 需要线程同步开销很大，使用队列性能好
-  3. 处理RSet：识别被老年代对象指向的Eden中的对象，这些被指向的Eden中的对象被认为是存活的对象
-  4. 复制对象：Eden区内存段中存活的对象会被复制到 survivor 区，survivor 区内存段中存活的对象如果年龄未达阈值，年龄会加1，达到阀值会被会被复制到 old 区中空的内存分段，如果 survivor 空间不够，Eden 空间的部分数据会直接晋升到老年代空间
+  3. 处理 RSet：识别被老年代对象指向的 Eden 中的对象，这些被指向的对象被认为是存活的对象
+  4. 复制对象：Eden 区内存段中存活的对象会被复制到 survivor 区，survivor 区内存段中存活的对象如果年龄未达阈值，年龄会加1，达到阀值会被会被复制到 old 区中空的内存分段，如果 survivor 空间不够，Eden 空间的部分数据会直接晋升到老年代空间
   5. 处理引用：处理 Soft，Weak，Phantom，JNI Weak  等引用，最终 Eden 空间的数据为空，GC 停止工作
 
 * **并发标记过程**：
@@ -14520,18 +14683,18 @@ G1中提供了三种垃圾回收模式：YoungGC、Mixed GC 和 FullGC，在不�
 
   ![](https://gitee.com/seazean/images/raw/master/Java/JVM-G1收集器.jpg)
 
-* **Mixed GC**：当很多对象晋升到老年代 old region 时，为了避免堆内存被耗尽，虚拟机会触发一个混合的垃圾收集器，即 Mixed GC，除了回收整个 young region，还会**回收一部分**的 old region，过程同YGC
+* **Mixed GC**：当很多对象晋升到老年代 old region 时，为了避免堆内存被耗尽，虚拟机会触发一个混合的垃圾收集器，即 Mixed GC，除了回收整个 young region，还会**回收一部分**的 old region，过程同 YGC
 
-  注意：**是一部分老年代，而不是全部老年代**，可以选择哪些old region收集，对垃圾回收的时间进行控制
+  注意：**是一部分老年代，而不是全部老年代**，可以选择哪些 old region 收集，对垃圾回收的时间进行控制
 
-  在G1中，Mixed GC可以通过`-XX:InitiatingHeapOccupancyPercent`设置阈值
+  在G1中，Mixed GC可以通过 `-XX:InitiatingHeapOccupancyPercent` 设置阈值
 
-* **Full GC**：对象内存分配速度过快，Mixed GC来不及回收，导致老年代被填满，就会触发一次Full GC，G1的Full GC算法就是单线程执行的垃圾回收，会导致异常长时间的暂停时间，需要进行不断的调优，尽可能的避免Full GC
+* **Full GC**：对象内存分配速度过快，Mixed GC 来不及回收，导致老年代被填满，就会触发一次 Full GC，G1 的 Full GC 算法就是单线程执行的垃圾回收，会导致异常长时间的暂停时间，需要进行不断的调优，尽可能的避免 Full GC
 
-  产生Full GC的原因：
+  产生 Full GC 的原因：
 
   * 晋升时没有足够的空间存放晋升的对象
-  * 并发处理过程完成之前空间耗尽
+  * 并发处理过程完成之前空间耗尽，浮动垃圾
 
 
 
@@ -14557,9 +14720,9 @@ G1中提供了三种垃圾回收模式：YoungGC、Mixed GC 和 FullGC，在不�
 
 ##### 调优
 
-G1的设计原则就是简化JVM性能调优，只需要简单的三步即可完成调优：
+G1 的设计原则就是简化 JVM 性能调优，只需要简单的三步即可完成调优：
 
-1. 开启G1垃圾收集器
+1. 开启 G1 垃圾收集器
 2. 设置堆的最大内存
 3. 设置最大的停顿时间（stw）
 
@@ -14572,8 +14735,8 @@ G1的设计原则就是简化JVM性能调优，只需要简单的三步即可完
 
 **不要设置新生代和老年代的大小**：
 
-- 避免使用-Xmn或-XX:NewRatio等相关选项显式设置年轻代大小，G1收集器在运行的时候会调整新生代和老年代的大小，从而达到我们为收集器设置的暂停时间目标
-- 设置了新生代大小相当于放弃了G1为我们做的自动调优，我们需要做的只是设置整个堆内存的大小，剩下的交给G1自己去分配各个代的大小
+- 避免使用 -Xmn 或 -XX:NewRatio 等相关选项显式设置年轻代大小，G1 收集器在运行的时候会调整新生代和老年代的大小，从而达到我们为收集器设置的暂停时间目标
+- 设置了新生代大小相当于放弃了 G1 为我们做的自动调优，我们需要做的只是设置整个堆内存的大小，剩下的交给 G1 自己去分配各个代的大小
 
 
 
@@ -19890,15 +20053,15 @@ private static volatile SingletonDemo INSTANCE = null;
 
 happens-before 先行发生
 
-Java内存模型具备一些先天的“有序性”，即不需要通过任何同步手段（volatile、synchronized等）就能够得到保证的安全，这个通常也称为happens-before原则，它是可见性与有序性的一套规则总结
+Java 内存模型具备一些先天的“有序性”，即不需要通过任何同步手段（volatile、synchronized等）就能够得到保证的安全，这个通常也称为 happens-before 原则，它是可见性与有序性的一套规则总结
 
 不符合 happens-before 规则，JMM 并不能保证一个线程的可见性和有序性
 
 1. 程序次序规则 (Program Order Rule)：一个线程内，逻辑上书写在前面的操作先行发生于书写在后面的操作 ，因为多个操作之间有先后依赖关系，则不允许对这些操作进行重排序
 
-2. 锁定规则 (Monitor Lock Rule)：一个unLock操作先行发生于后面（时间的先后）对同一个锁的lock操作，所以线程解锁 m 之前对变量的写（锁内的写），对于接下来对 m 加锁的其它线程对该变量的读可见
+2. 锁定规则 (Monitor Lock Rule)：一个 unLock 操作先行发生于后面（时间的先后）对同一个锁的 lock 操作，所以线程解锁 m 之前对变量的写（锁内的写），对于接下来对 m 加锁的其它线程对该变量的读可见
 
-3. **volatile变量规则** (Volatile Variable Rule)：对volatile变量的写操作先行发生于后面对这个变量的读
+3. **volatile变量规则** (Volatile Variable Rule)：对 volatile 变量的写操作先行发生于后面对这个变量的读
 
 4. 传递规则 (Transitivity)：具有传递性，如果操作A先行发生于操作B，而操作B又先行发生于操作C，则可以得出操作A先行发生于操作C
 
@@ -19923,7 +20086,7 @@ Java内存模型具备一些先天的“有序性”，即不需要通过任何�
 
 ### 设计模式
 
-#### 两阶段终止
+#### 终止模式
 
 终止模式之两阶段终止模式：停止标记用 volatile 是为了保证该变量在多个线程之间的可见性
 
@@ -20000,9 +20163,9 @@ public class MonitorService {
 
 对比保护性暂停模式：保护性暂停模式用在一个线程等待另一个线程的执行结果，当条件不满足时线程等待
 
-例子：希望 doInit() 方法仅被调用一次，下面的实现是否有问题，为什么？有问题：
+例子：希望 doInit() 方法仅被调用一次，下面的实现出现的问题：
 
-* 当t1线程进入 init() 准备 doInit()，t2 线程进来，initialized还为false，则t2就又初始化一次
+* 当 t1 线程进入 init() 准备 doInit()，t2 线程进来，initialized 还为f alse，则 t2 就又初始化一次
 * volatile 适合一个线程写，其他线程读的情况，这个代码需要加锁
 
 ```java
@@ -25352,7 +25515,7 @@ public boolean add(E e) {
 
 跳表 SkipList 是一个**有序的链表**，默认升序，底层是链表加多级索引的结构。跳表可以对元素进行快速查询，类似于平衡树，是一种利用空间换时间的算法
 
-对于单链表，即使链表是有序的，如果查找数据也只能从头到尾遍历链表，所以采用链表上建索引的方式提高效率，跳表的查询时间复杂度是 **O(logn)**，
+对于单链表，即使链表是有序的，如果查找数据也只能从头到尾遍历链表，所以采用链表上建索引的方式提高效率，跳表的查询时间复杂度是 **O(logn)**，空间复杂度 O(n)
 
 ConcurrentSkipListMap 提供了一种线程安全的并发访问的排序映射表，内部是跳表结构实现，通过 CAS +　volatile 保证线程安全
 
@@ -25363,7 +25526,7 @@ ConcurrentSkipListMap 提供了一种线程安全的并发访问的排序映射�
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ConcurrentSkipListMap数据结构.png)
 
-BaseHeader存储数据，headIndex存储索引，纵向上**所有索引指向链表最下面的节点**
+BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引指向链表最下面的节点**
 
 
 

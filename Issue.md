@@ -1,5 +1,23 @@
 # Base
 
+## Algorithm
+
+排序类问题：
+
+* 海量数据排序：
+  * 外部排序：归并 + 败者树
+  * 基数排序：https://time.geekbang.org/column/article/42038
+
+
+
+
+
+
+
+***
+
+
+
 ## Network
 
 ### 传输层
