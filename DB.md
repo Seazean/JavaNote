@@ -3926,9 +3926,10 @@ B+Tree 为 BTree 的变种，B+Tree 与 BTree 的区别为：
 
 * n 叉 B+Tree 最多含有 n 个 key（哈希值），而 BTree 最多含有 n-1 个 key
 
-- 所有**非叶子节点只存储键值 key**信息，可以看作 key 的索引部分
-- 所有**数据都存储在叶子节点**，按照 key 大小顺序排列
-- 节点从上到下的所有节点中的 key 在叶子节点中也存在（比如 5)，key 允许重复，B 树不同节点不存在重复的 key
+- 所有**非叶子节点只存储键值 key**信息，只进行数据索引，使每个非叶子节点所能保存的关键字大大增加
+- 所有**数据都存储在叶子节点**，所以每次数据查询的次数都一样
+- 叶子节点按照 key 大小顺序排列，左边结尾数据都会保存右边节点开始数据的指针，形成一个链表
+- 所有节点中的 key 在叶子节点中也存在（比如 5)，key 允许重复，B 树不同节点不存在重复的 key
 
 <img src="https://gitee.com/seazean/images/raw/master/DB/MySQL-B+Tree数据结构.png" style="zoom: 67%;" />
 
@@ -3946,7 +3947,7 @@ BTree 数据结构中每个节点中不仅包含数据的 key 值，还有 data 
 
 MySQL 索引数据结构对经典的 B+Tree 进行了优化，在原 B+Tree 的基础上，增加一个指向相邻叶子节点的链表指针，就形成了带有顺序指针的 B+Tree，**提高区间访问的性能，防止回旋查找**
 
-区间访问的意思是访问索引为 5 - 15 的数据，这样就可以直接根据相邻节点的指针遍历
+区间访问的意思是访问索引为 5 - 15 的数据，可以直接根据相邻节点的指针遍历
 
 ![](https://gitee.com/seazean/images/raw/master/DB/索引的原理-B+Tree.png)
 
@@ -3955,7 +3956,7 @@ MySQL 索引数据结构对经典的 B+Tree 进行了优化，在原 B+Tree 的�
 - 有范围：对于主键的范围查找和分页查找
 - 有顺序：从根节点开始，进行随机查找，顺序查找
 
-InnoDB 存储引擎中页的大小为 16KB，一般表的主键类型为 INT（4字节）或 BIGINT（8字节），指针类型也一般为4或8个字节，也就是说一个页（B+Tree中的**一个节点**）中大概存储 16KB/(8B+8B)=1K 个键值（估值）。则一个深度为3的B+Tree索引可以维护 `10^3 * 10^3 * 10^3 = 10亿` 条记录
+InnoDB 存储引擎中页的大小为 16KB，一般表的主键类型为 INT（4字节）或 BIGINT（8字节），指针类型也一般为4或8个字节，也就是说一个页（B+Tree中的**一个节点**）中大概存储 16KB/(8B+8B)=1K 个键值（估值）。则一个深度为3的 B+Tree 索引可以维护 `10^3 * 10^3 * 10^3 = 10亿` 条记录
 
 实际情况中每个节点可能不能填充满，因此在数据库中，B+Tree的高度一般都在2-4层。MySQL 的 InnoDB 存储引擎在设计时是将根节点常驻内存的，也就是说查找某一键值的行记录时最多只需要1~3次磁盘 I/O 操作
 
@@ -8751,135 +8752,7 @@ Redis 使用跳跃表作为有序集合键的底层实现之一，如果一个�
 
 ### Bitmaps
 
-#### 布隆过滤
-
-##### 基本介绍
-
-布隆过滤器：一种数据结构，是一个很长的二进制向量（位数组）和一系列随机映射函数（哈希函数），既然是二进制，每个空间存放的不是0就是1，但是初始默认值都是0，所以布隆过滤器不存数据只存状态
-
-<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-Bitmaps数据结构.png" style="zoom: 80%;" />
-
-这种数据结构是高效且性能很好的，但缺点是具有一定的错误识别率和删除难度。并且，理论情况下，添加到集合中的元素越多，误报的可能性就越大
-
-
-
-***
-
-
-
-##### 工作流程
-
-向布隆过滤器中添加一个元素key时，会通过多个hash函数得到多个哈希值，在位数组中把对应下标的值置为 1
-
-![](https://gitee.com/seazean/images/raw/master/DB/Redis-布隆过滤器添加数据.png)
-
-布隆过滤器查询一个数据，是否在二进制的集合中，查询过程如下：
-
-- 通过 K 个哈希函数计算该数据，对应计算出的 K 个hash值
-- 通过 hash 值找到对应的二进制的数组下标
-- 判断方法：如果存在一处位置的二进制数据是0，那么该数据不存在。如果都是1，该数据存在集合中
-
-布隆过滤器优缺点：
-
-* 优点：
-  * 二进制组成的数组，占用内存极少，并且插入和查询速度都足够快
-  * 去重方便：当字符串第一次存储时对应的位数组下标设置为 1，当第二次存储相同字符串时，因为对应位置已设置为 1，所以很容易知道此值已经存在
-* 缺点：
-  * 随着数据的增加，误判率会增加：添加数据是通过计算数据的hash值，不同的字符串可能哈希出来的位置相同，导致无法确定到底是哪个数据存在，**这种情况可以适当增加位数组大小或者调整哈希函数**
-  * 无法删除数据：可能存在几个数据占据相同的位置，所以删除一位会导致很多数据失效
-
-* 总结：**布隆过滤器判断某个元素存在，小概率会误判。如果判断某个元素不在，那这个元素一定不在**
-
-
-
-参考文章：https://www.cnblogs.com/ysocean/p/12594982.html
-
-
-
-***
-
-
-
-##### Guava
-
-引入 Guava 的依赖：
-
-```xml
-<dependency>
-    <groupId>com.google.guava</groupId>
-    <artifactId>guava</artifactId>
-    <version>28.0-jre</version>
-</dependency>
-```
-
-指定误判率为（0.01）：
-
-```java
-public static void main(String[] args) {
-    // 创建布隆过滤器对象
-    BloomFilter<Integer> filter = BloomFilter.create(
-        Funnels.integerFunnel(),
-        1500,
-        0.01);
-    // 判断指定元素是否存在
-    System.out.println(filter.mightContain(1));
-    System.out.println(filter.mightContain(2));
-    // 将元素添加进布隆过滤器
-    filter.put(1);
-    filter.put(2);
-    System.out.println(filter.mightContain(1));
-    System.out.println(filter.mightContain(2));
-}
-```
-
-
-
-***
-
-
-
-##### 实现布隆
-
-```java
-class MyBloomFilter {
-    //布隆过滤器容量
-    private static final int DEFAULT_SIZE = 2 << 28;
-    //bit数组，用来存放key
-    private static BitSet bitSet = new BitSet(DEFAULT_SIZE);
-    //后面hash函数会用到，用来生成不同的hash值，随意设置
-    private static final int[] ints = {1, 6, 16, 38, 58, 68};
-
-    //add方法，计算出key的hash值，并将对应下标置为true
-    public void add(Object key) {
-        Arrays.stream(ints).forEach(i -> bitSet.set(hash(key, i)));
-    }
-
-    //判断key是否存在，true不一定说明key存在，但是false一定说明不存在
-    public boolean isContain(Object key) {
-        boolean result = true;
-        for (int i : ints) {
-            //短路与，只要有一个bit位为false，则返回false
-            result = result && bitSet.get(hash(key, i));
-        }
-        return result;
-    }
-
-    //hash函数，借鉴了hashmap的扰动算法
-    private int hash(Object key, int i) {
-        int h;
-        return key == null ? 0 : (i * (DEFAULT_SIZE - 1) & ((h = key.hashCode()) ^ (h >>> 16)));
-    }
-}
-
-```
-
-
-
-***
-
-
-
-#### 基本操作
+#### 操作
 
 指令操作：
 
@@ -8915,9 +8788,11 @@ class MyBloomFilter {
 
 
 
-#### 应用场景
+#### 应用
 
 - 解决Redis缓存穿透，判断给定数据是否存在， 防止缓存穿透
+
+  布隆过滤器在 Java.md → SE → 算法 → 位图 部分详解
 
   <img src="https://gitee.com/seazean/images/raw/master/DB/Redis-Bitmaps应用之缓存穿透.png" style="zoom: 67%;" />
 

@@ -86,8 +86,7 @@ Java语言提供了八种基本类型。六种数字类型（四个整数型，�
 
 - boolean 数据类型表示一位的信息
 - 只有两个取值：true 和 false
-- 这种类型只作为一种标志来记录 true/false 情况
-- JVM 规范指出 boolean 当做 int 处理，也就是4字节，boolean 数组当做 byte 数组处理，这样可以得出 boolean 类型单独使用占了4个字节，在数组中是1个字节
+- JVM 规范指出 boolean 当做 int 处理，boolean 数组当做 byte 数组处理，这样可以得出 boolean 类型单独使用占了4个字节，在数组中是1个字节
 - 默认值是 **`false`**
 - 例子：`boolean one = true`
 
@@ -2182,7 +2181,7 @@ public class Kmp {
 1. 每一个节点或是红色的，或者是黑色的
 2. 根节点必须是黑色
 3. 如果一个节点没有子节点或者父节点，则该节点相应的指针属性值为 Nil，这些 Nil 视为叶节点，每个叶节点(Nil) 是黑色的
-4. 如果某一个节点是红色，那么它的子节点必须是黑色(不能出现两个红色节点相连 的情况)
+4. 如果某一个节点是红色，那么它的子节点必须是黑色（不能出现两个红色节点相连的情况）
 5. 对每一个节点，从该节点到其所有后代叶节点的简单路径上，均包含相同数目的黑色节点
 
 红黑树与 AVL 树的比较：
@@ -2589,6 +2588,213 @@ Trie 树是非常耗内存，采取空间换时间的思路。Trie 树的变体�
 
 
 参考文章：https://time.geekbang.org/column/article/72414
+
+
+
+***
+
+
+
+### 图
+
+图的邻接表形式：
+
+```java
+public class AGraph {
+    private VertexNode[] adjList;   //邻接数组
+    private int vLen, eLen;         //顶点数和边数
+
+    public AGraph(int vLen, int eLen) {
+        this.vLen = vLen;
+        this.eLen = eLen;
+        adjList = new VertexNode[vLen];
+    }
+    //弧节点
+    private class ArcNode {
+        int adjVex;         //该边所指向的顶点的位置
+        ArcNode nextArc;    //下一条边（弧）
+        //int info  		//添加权值
+
+        public ArcNode(int adjVex) {
+            this.adjVex = adjVex;
+            nextArc = null;
+        }
+    }
+
+    //表顶点
+    private class VertexNode {
+        char data;      	//顶点信息
+        ArcNode firstArc;  	//指向第一条边的指针
+
+        public VertexNode(char data) {
+            this.data = data;
+            firstArc = null;
+        }
+    }
+}
+```
+
+图的邻接矩阵形式：
+
+```java
+public class MGraph {
+    private int[][] edges;      //邻接矩阵定义，有权图将int改为float
+    private int vLen;           //顶点数
+    private int eLen;           //边数
+    private VertexNode[] vex;   //存放节点信息
+
+    public MGraph(int vLen, int eLen) {
+        this.vLen = vLen;
+        this.eLen = eLen;
+        this.edges = new int[vLen][vLen];
+        this.vex = new VertexNode[vLen];
+    }
+
+    private class VertexNode {
+        int num;    //顶点编号
+        String info;  //顶点信息
+
+        public VertexNode(int num) {
+            this.num = num;
+            this.info = null;
+        }
+    }
+}
+```
+
+
+
+图相关的算法需要很多的流程图，此处不再一一列举，推荐参考书籍《数据结构高分笔记》
+
+
+
+***
+
+
+
+### 位图
+
+#### 基本介绍
+
+布隆过滤器：一种数据结构，是一个很长的二进制向量（位数组）和一系列随机映射函数（哈希函数），既然是二进制，每个空间存放的不是0就是1，但是初始默认值都是0，所以布隆过滤器不存数据只存状态
+
+<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-Bitmaps数据结构.png" style="zoom: 80%;" />
+
+这种数据结构是高效且性能很好的，但缺点是具有一定的错误识别率和删除难度。并且，理论情况下，添加到集合中的元素越多，误报的可能性就越大
+
+
+
+***
+
+
+
+#### 工作流程
+
+向布隆过滤器中添加一个元素key时，会通过多个hash函数得到多个哈希值，在位数组中把对应下标的值置为 1
+
+![](https://gitee.com/seazean/images/raw/master/DB/Redis-布隆过滤器添加数据.png)
+
+布隆过滤器查询一个数据，是否在二进制的集合中，查询过程如下：
+
+- 通过 K 个哈希函数计算该数据，对应计算出的 K 个hash值
+- 通过 hash 值找到对应的二进制的数组下标
+- 判断方法：如果存在一处位置的二进制数据是0，那么该数据不存在。如果都是1，该数据存在集合中
+
+布隆过滤器优缺点：
+
+* 优点：
+  * 二进制组成的数组，占用内存极少，并且插入和查询速度都足够快
+  * 去重方便：当字符串第一次存储时对应的位数组下标设置为 1，当第二次存储相同字符串时，因为对应位置已设置为 1，所以很容易知道此值已经存在
+* 缺点：
+  * 随着数据的增加，误判率会增加：添加数据是通过计算数据的hash值，不同的字符串可能哈希出来的位置相同，导致无法确定到底是哪个数据存在，**这种情况可以适当增加位数组大小或者调整哈希函数**
+  * 无法删除数据：可能存在几个数据占据相同的位置，所以删除一位会导致很多数据失效
+
+* 总结：**布隆过滤器判断某个元素存在，小概率会误判。如果判断某个元素不在，那这个元素一定不在**
+
+
+
+参考文章：https://www.cnblogs.com/ysocean/p/12594982.html
+
+
+
+***
+
+
+
+#### Guava
+
+引入 Guava 的依赖：
+
+```xml
+<dependency>
+    <groupId>com.google.guava</groupId>
+    <artifactId>guava</artifactId>
+    <version>28.0-jre</version>
+</dependency>
+```
+
+指定误判率为（0.01）：
+
+```java
+public static void main(String[] args) {
+    // 创建布隆过滤器对象
+    BloomFilter<Integer> filter = BloomFilter.create(
+        Funnels.integerFunnel(),
+        1500,
+        0.01);
+    // 判断指定元素是否存在
+    System.out.println(filter.mightContain(1));
+    System.out.println(filter.mightContain(2));
+    // 将元素添加进布隆过滤器
+    filter.put(1);
+    filter.put(2);
+    System.out.println(filter.mightContain(1));
+    System.out.println(filter.mightContain(2));
+}
+```
+
+
+
+***
+
+
+
+#### 实现布隆
+
+```java
+class MyBloomFilter {
+    //布隆过滤器容量
+    private static final int DEFAULT_SIZE = 2 << 28;
+    //bit数组，用来存放key
+    private static BitSet bitSet = new BitSet(DEFAULT_SIZE);
+    //后面hash函数会用到，用来生成不同的hash值，随意设置
+    private static final int[] ints = {1, 6, 16, 38, 58, 68};
+
+    //add方法，计算出key的hash值，并将对应下标置为true
+    public void add(Object key) {
+        Arrays.stream(ints).forEach(i -> bitSet.set(hash(key, i)));
+    }
+
+    //判断key是否存在，true不一定说明key存在，但是false一定说明不存在
+    public boolean isContain(Object key) {
+        boolean result = true;
+        for (int i : ints) {
+            //短路与，只要有一个bit位为false，则返回false
+            result = result && bitSet.get(hash(key, i));
+        }
+        return result;
+    }
+
+    //hash函数，借鉴了hashmap的扰动算法
+    private int hash(Object key, int i) {
+        int h;
+        return key == null ? 0 : (i * (DEFAULT_SIZE - 1) & ((h = key.hashCode()) ^ (h >>> 16)));
+    }
+}
+
+```
+
+
 
 
 
@@ -3580,10 +3786,11 @@ class Cat extends Animal{}
 
 #### instanceof
 
-* 引用类型强制类型转换：父类类型的变量或者对象强制类型转换成子类类型的变量，否则报错!
+instanceof：判断左边的对象是否是右边的类的实例，或者是其直接或间接子类，或者是其接口的实现类
+
+* 引用类型强制类型转换：父类类型的变量或者对象强制类型转换成子类类型的变量，否则报错
 * 强制类型转换的格式：**类型 变量名称 = (类型)(对象或者变量)**
-* 有继承/实现关系的两个类型就可以进行强制类型转换，编译阶段一定不报错！但是运行阶段可能出现：类型转换异常 ClassCastException
-* **instanceof**：判断左边的对象是否是右边的类的实例，或者是其直接或间接子类，或者是其接口的实现类
+* 有继承/实现关系的两个类型就可以进行强制类型转换，编译阶段一定不报错，但是运行阶段可能出现类型转换异常 ClassCastException
 
 ```java
 public class Demo{
@@ -5295,6 +5502,14 @@ public class RegexDemo {
   * 红黑树（基于红黑规则实现自平衡的排序二叉树）：树保证到了很矮小，但是又排好序，性能最高的树
 
     特点：**红黑树的增删查改性能都好**
+
+各数据结构时间复杂度对比：
+
+![](https://gitee.com/seazean/images/raw/master/Java/数据结构的复杂度对比.png)
+
+
+
+图片来源：https://www.bigocheatsheet.com/
 
 
 
@@ -8810,9 +9025,9 @@ fw.close;
 
 作用：可以把低级的字节输入流包装成一个高级的缓冲字节输入流管道, 提高字节输入流读数据的性能
 
-构造器: `public BufferedInputStream(InputStream in)`
+构造器：`public BufferedInputStream(InputStream in)`
 
-原理：缓冲字节输入流管道自带了一个8KB的缓冲池，每次可以直接借用操作系统的功能最多提取 8KB 的数据到缓冲池中去，以后我们直接从缓冲池读取数据，所以性能较好
+原理：缓冲字节输入流管道自带了一个 8KB 的缓冲池，每次可以直接借用操作系统的功能最多提取 8KB 的数据到缓冲池中去，以后我们直接从缓冲池读取数据，所以性能较好
 
 ```java
 public class BufferedInputStreamDemo01 {
@@ -9989,7 +10204,7 @@ read 调用图示：read、write 都是系统调用指令
 
 mmap（Memory Mapped Files）加 write 实现零拷贝，零拷贝就是没有数据从内核空间复制到用户空间
 
-用户空间和内核空间共享同一块物理地址，省去用户态和内核态之间的拷贝。写网卡时，共享空间的内容拷贝到 socket 缓冲区，然后交给 DMA 发送到网卡，只需要 3 次复制
+用户空间和内核空间都使用内存，所以可以共享同一块物理内存地址，省去用户态和内核态之间的拷贝。写网卡时，共享空间的内容拷贝到 socket 缓冲区，然后交给 DMA 发送到网卡，只需要 3 次复制
 
 进行了 4 次用户空间与内核空间的上下文切换，以及 3 次数据拷贝（2 次 DMA，一次 CPU 复制）：
 
@@ -10002,7 +10217,7 @@ mmap（Memory Mapped Files）加 write 实现零拷贝，零拷贝就是没有�
 
 缺点：不可靠，写到 mmap 中的数据并没有被真正的写到硬盘，操作系统会在程序主动调用 flush 的时候才把数据真正的写到硬盘
 
-Java NIO 提供了 **MappedByteBuffer** 类可以用来实现 mmap 内存映射，MappedByteBuffer 类对象只能通过调用 `FileChannel.map()` 获取
+Java NIO 提供了 **MappedByteBuffer** 类可以用来实现 mmap 内存映射，MappedByteBuffer 类对象**只能**通过调用 `FileChannel.map()` 获取
 
 
 
@@ -10912,7 +11127,6 @@ FileChannel 中的成员属性：
   * `MapMode.READ_WRITE`：读/写，对得到的缓冲区的更改最终将写入文件；但该更改对映射到同一文件的其他程序不一定是可见的
   * `MapMode.PRIVATE`：私用，可读可写，但是修改的内容不会写入文件，只是 buffer 自身的改变，称之为 copy on write 写时复制
 
-* position：文件映射时的起始位置
 * `public final FileLock lock()`：获取此文件通道的排他锁
 
 MappedByteBuffer，可以让文件直接在内存（堆外内存）中进行修改，这种方式叫做内存映射，可以直接调用系统底层的缓存，没有 JVM 和系统之间的复制操作，提高了传输效率，作用：
@@ -10935,7 +11149,7 @@ public class MappedByteBufferTest {
 
         /**
          * 参数1	FileChannel.MapMode.READ_WRITE 使用的读写模式
-         * 参数2	0: 可以直接修改的起始位置
+         * 参数2	0: 文件映射时的起始位置
          * 参数3	5: 是映射到内存的大小（不是索引位置），即将 1.txt 的多少个字节映射到内存
          * 可以直接修改的范围就是 0-5
          * 实际类型 DirectByteBuffer
@@ -10955,7 +11169,7 @@ public class MappedByteBufferTest {
 从硬盘上将文件读入内存，要经过文件系统进行数据拷贝，拷贝操作是由文件系统和硬件驱动实现。通过内存映射的方法访问硬盘上的文件，拷贝数据的效率要比 read 和 write 系统调用高：
 
 - read() 是系统调用，首先将文件从硬盘拷贝到内核空间的一个缓冲区，再将这些数据拷贝到用户空间，实际上进行了两次数据拷贝
-- map() 也是系统调用，但没有进行数据拷贝，当缺页中断发生时，直接将文件从硬盘拷贝到用户空间，只进行了一次数据拷贝
+- mmap() 也是系统调用，但没有进行数据拷贝，当缺页中断发生时，直接将文件从硬盘拷贝到共享内存，只进行了一次数据拷贝
 
 注意：mmap 的文件映射，在 Full GC 时才会进行释放，如果需要手动清除内存映射文件，可以反射调用sun.misc.Cleaner 方法
 
