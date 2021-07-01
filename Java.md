@@ -2268,11 +2268,9 @@ public class Kmp {
       public UF(int N) {
           //初始化分组数量
           this.count = N;
-          
           //初始化eleAndGroup数量
           this.eleAndGroup = new int[N];
-  
-          //初始化eleAndGroup中的元素及其所在分组的标识符，eleAndGroup索引作为并查集的每个节点的元素
+          //初始化eleAndGroup中的元素及其所在分组的标识符，eleAndGroup索引作为每个节点的元素
           //每个索引处的值就是该组的索引，就是该元素所在的组的标识符
           for (int i = 0; i < eleAndGroup.length; i++) {
               eleAndGroup[i] = i;
@@ -2309,7 +2307,7 @@ public class Kmp {
       }
   }
   ```
-
+  
 * 测试代码：
 
   ```java
@@ -2358,6 +2356,7 @@ public int findRoot(int p) {
     while (p != eleAndGroup[p]) {
         p = eleAndGroup[p];
     }
+    //p == eleGroup[p]，说明p是根节点
     return p;
 }
 
@@ -2447,9 +2446,9 @@ public class UF_Tree_Weighted {
 
 ##### 应用场景
 
-并查集存储的每一个整数表示的是一个大型计算机网络中的计算机
+并查集存储的每一个整数表示的是一个大型计算机网络中的计算机：
 
-* 可以通过 connected(int p, int q) 来检测该网络中的某两台计算机之间是否连通，
+* 可以通过 connected(int p, int q) 来检测该网络中的某两台计算机之间是否连通
 * 可以调用 union(int p,int q) 使得 p 和 q 之间连通，这样两台计算机之间就可以通信
 
 畅通工程：某省调查城镇交通状况，得到现有城镇道路统计表，表中列出了每条道路直接连通的城镇。省政府畅通工程的目标是使全省任何两个城镇间都可以实现交通，但不一定有直接的道路相连，只要互相间接通过道路可达即可，问最少还需要建设多少条道路？
@@ -6651,6 +6650,11 @@ HashMap继承关系如下图所示：
    计算 hash 的方法：将hashCode无符号右移16位，高16bit 和低16bit 做了一个异或
    
    原因：当数组长度很小，假设是16，那么 n-1即为 1111 ，这样的值和hashCode()直接做按位与操作，实际上只使用了哈希值的后4位。如果当哈希值的高位变化很大，低位变化很小，就很容易造成哈希冲突了，所以这里**把高低位都利用起来，让高16位也参与运算**，从而解决了这个问题
+   
+   哈希冲突的处理方式：
+   
+   * 开放定址法：线性探查法（ThreadLocalMap部分详解），平方探查法（i + 1^2、i - 1^2、i + 2^2……）、双重散列（多个哈希函数）
+   * 链地址法：拉链法
    
    
    
@@ -15041,7 +15045,7 @@ Serial GC、Parallel GC、Concurrent Mark Sweep GC这三个GC不同：
     unused(25+1) + hash(31) + age(4) + lock(3) = 64bit	#64位系统
     ```
 
-  * Klass Word：类型指针，对象指向它的类的元数据的指针，虚拟机通过这个指针来确定这个对象是哪个类的实例；在64位系统中，开启指针压缩(-XX:+UseCompressedOops)或者JVM堆的最大值小于32G，这个指针也是4byte，否则是8byte
+  * Klass Word：类型指针，对象指向它的类的元数据的指针，虚拟机通过这个指针来确定这个对象是哪个类的实例；在64位系统中，开启指针压缩 (-XX:+UseCompressedOops) 或者 JVM 堆的最大值小于 32G，这个指针也是 4byte，否则是 8byte
 
   ```ruby
   |-----------------------------------------------------|
@@ -15060,10 +15064,12 @@ Serial GC、Parallel GC、Concurrent Mark Sweep GC这三个GC不同：
   |  Mark Word(32bits)    | 	  Klass Word(32bits) 	  |   array length(32bits)  |
   |-----------------------|-----------------------------|-------------------------|
   ```
+  
+  ![](https://gitee.com/seazean/images/raw/master/Java/JVM-对象头结构.png)
 
 实例数据：实例数据部分是对象真正存储的有效信息，也是在程序代码中所定义的各种类型的字段内容。无论是从父类继承下来的，还是在子类中定义的，都需要记录起来
 
-对齐填充：Padding 起占位符的作用。由于HotSpot VM的自动内存管理系统要求对象起始地址必须是8字节的整数倍，就是对象的大小必须是8字节的整数倍，而对象头部分正好是8字节的倍数（1倍或者2倍），因此当对象实例数据部分没有对齐时，就需要通过对齐填充来补全
+对齐填充：Padding 起占位符的作用。64位系统，由于 HotSpot VM 的自动内存管理系统要求对象起始地址必须是8字节的整数倍，就是对象的大小必须是8字节的整数倍，而对象头部分正好是8字节的倍数（1倍或者2倍），因此当对象实例数据部分没有对齐时，就需要通过对齐填充来补全
 
 32位系统
 
@@ -15114,7 +15120,7 @@ Serial GC、Parallel GC、Concurrent Mark Sweep GC这三个GC不同：
 
 #### 对象访问
 
-JVM是通过栈帧中的对象引用访问到其内部的对象实例：（内部结构查看类加载部分）
+JVM是通过栈帧中的对象引用访问到其内部的对象实例：
 
 * 句柄访问
   使用该方式，Java堆中会划分出一块内存来作为句柄池，reference中存储的就是对象的句柄地址，而句柄中包含了对象实例数据和类型数据各自的具体地址信息
@@ -18570,15 +18576,23 @@ LocalVariableTable:
 
 #### 锁升级
 
-##### 偏向锁
+##### 升级过程
 
-###### 优化
-
-**synchronized是可重入、不公平的重量级锁**，所以可以对其进行优化
+**synchronized 是可重入、不公平的重量级锁**，所以可以对其进行优化
 
 ```java
 无锁 -> 偏向锁 -> 轻量级锁 -> 重量级锁	//随着竞争的增加，只能锁升级，不能降级
 ```
+
+![](https://gitee.com/seazean/images/raw/master/Java/JUC-锁升级过程.png)
+
+
+
+***
+
+
+
+##### 偏向锁
 
 偏向锁的思想是偏向于让第一个获取锁对象的线程，这个线程之后重新获取该锁不再需要同步操作：
 
@@ -18593,19 +18607,17 @@ LocalVariableTable:
 * 如果开启了偏向锁（默认开启），那么对象创建后，markword 值为 0x05 即最后 3 位为 101，这时它的
   thread、epoch、age 都为 0
 * 偏向锁是默认是延迟的，不会在程序启动时立即生效，如果想避免延迟，可以加VM参数 `-XX:BiasedLockingStartupDelay=0` 来禁用延迟
+
+  JDK 8 延迟 4s 开启偏向锁原因：在刚开始执行代码时，会有好多线程来抢锁，如果开偏向锁效率反而降低
 * 如果禁用了偏向锁，那么对象创建后，markword 值为 0x01 即最后 3 位为 001，这时它的 hashcode、age 都为 0，**第一次用到 hashcode 时才会赋值**，添加 VM 参数 `-XX:-UseBiasedLocking` 禁用偏向锁
-
-
-
-###### 撤销
 
 撤销偏向锁的状态：
 
-* 调用对象的hashCode：偏向锁的对象 MarkWord 中存储的是线程 id，调用 hashCode导致偏向锁被撤销
+* 调用对象的 hashCode：偏向锁的对象 MarkWord 中存储的是线程 id，调用 hashCode 导致偏向锁被撤销
   * 轻量级锁会在锁记录中记录 hashCode
   * 重量级锁会在 Monitor 中记录 hashCode
 * 当有其它线程使用偏向锁对象时，会将偏向锁升级为轻量级锁
-* 调用wait/notify
+* 调用 wait/notify
 
 
 
@@ -18659,7 +18671,7 @@ public static void method2() {
 * 如果CAS失败，有两种情况：
 
   * 如果是其它线程已经持有了该 Object 的轻量级锁，这时表明有竞争，进入锁膨胀过程
-  * 如果是自己执行了synchronized锁重入，就添加一条 Lock Record 作为重入的计数
+  * 如果是自己执行了 synchronized 锁重入，就添加一条 Lock Record 作为重入的计数
 
   ![](https://gitee.com/seazean/images/raw/master/Java/JUC-轻量级锁原理3.png)
 
@@ -18692,9 +18704,13 @@ public static void method2() {
 
 
 
+
+
 ***
 
 
+
+#### 锁优化
 
 ##### 自旋锁
 
@@ -18779,8 +18795,6 @@ public class SpinLock {
 ***
 
 
-
-#### 锁优化
 
 ##### 锁消除
 
@@ -18881,10 +18895,10 @@ class BigRoom {
 
 java 死锁产生的四个必要条件：
 
-1. 互斥条件，即当资源被一个线程使用(占有)时，别的线程不能使用
-2. 不剥夺条件，资源请求者不能强制从资源占有者手中夺取资源，资源只能由资源占有者主动释放
+1. 互斥条件，即当资源被一个线程使用（占有）时，别的线程不能使用
+2. 不可剥夺条件，资源请求者不能强制从资源占有者手中夺取资源，资源只能由资源占有者主动释放
 3. 请求和保持条件，即当资源请求者在请求其他的资源的同时保持对原有资源的占有
-4. 循环等待条件，即存在一个等待循环队列：p1要p2的资源，p2要p1的资源，形成了一个等待环路
+4. 循环等待条件，即存在一个等待循环队列：p1 要 p2 的资源，p2 要 p1 的资源，形成了一个等待环路
 
 四个条件都成立的时候，便形成死锁。死锁情况下打破上述任何一个条件，便可让死锁消失
 
@@ -18960,7 +18974,7 @@ class HoldLockThread implements Runnable {
 
 定位死锁的方法：
 
-* 使用 jps 定位进程 id，再用 `jstack id`定位死锁，找到死锁的线程去查看源码，解决优化
+* 使用 jps 定位进程 id，再用 `jstack id` 定位死锁，找到死锁的线程去查看源码，解决优化
 
   ```sh
   "Thread-1" #12 prio=5 os_prio=0 tid=0x000000001eb69000 nid=0xd40 waiting formonitor entry [0x000000001f54f000]
@@ -18994,11 +19008,11 @@ class HoldLockThread implements Runnable {
       at thread.TestDeadLock$$Lambda$1/495053715
   ```
   
-* linux 下可以通过 top 先定位到CPU 占用高的 Java 进程，再利用 `top -Hp 进程id` 来定位是哪个线程，最后再用 jstack <pid>的输出来看各个线程栈，
+* linux 下可以通过 top 先定位到 CPU 占用高的 Java 进程，再利用 `top -Hp 进程id` 来定位是哪个线程，最后再用 jstack <pid>的输出来看各个线程栈，
 
 * 避免死锁：避免死锁要注意加锁顺序
 
-* 也可以使用 jconsole 工具，在 `jdk\bin` 目录下
+* 可以使用 jconsole 工具，在 `jdk\bin` 目录下
 
 
 
@@ -20742,7 +20756,7 @@ CAS底层实现是在一个循环中不断地尝试修改目标值，直到修�
 
 ##### 分段机制
 
-分段CAS机制：
+分段 CAS 机制：
 
 * 在发生竞争时，创建Cell数组用于将不同线程的操作离散（通过hash等算法映射）到不同的节点上
 * 设置多个累加单元（会根据需要扩容，最大为CPU核数），Therad-0 累加 Cell[0]，而 Thread-1 累加 Cell[1] 等，最后将结果汇总
@@ -21557,11 +21571,13 @@ static class Entry extends WeakReference<ThreadLocal<?>> {
   
   ```
   
-  ThreadLocalMap使用**线性探测法来解决哈希冲突**：
+  ThreadLocalMap 使用**线性探测法来解决哈希冲突**：
   
   * 该方法一次探测下一个地址，直到有空的地址后插入，若整个空间都找不到空余的地址，则产生溢出
   * 在探测过程中 ThreadLocal 会释放 key 为 NULL，value 不为 NULL 的脏 Entry对象，防止内存泄漏
   * 假设当前table长度为16，计算出来key的hash值为14，如果table[14]上已经有值，并且其key与当前key不一致，那么就发生了hash冲突，这个时候将14加1得到15，取table[15]进行判断，如果还是冲突会回到0，取table[0]，以此类推，直到可以插入，可以把Entry[]  table看成一个**环形数组**
+  
+  线性探测法会出现**堆积问题**，一般采取平方探测法解决
   
 * 扩容：
 
