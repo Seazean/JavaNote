@@ -27,15 +27,15 @@
 
 ##### 基本类型
 
-Java语言提供了八种基本类型。六种数字类型（四个整数型，两个浮点型），一种字符类型，还有一种布尔型。
+Java语言提供了八种基本类型。六种数字类型（四个整数型，两个浮点型），一种字符类型，还有一种布尔型
 
 **byte：**
 
-- byte 数据类型是8位、有符号的，以**二进制补码**表示的整数，**8位一个字节**，首位是符号位
+- byte 数据类型是 8 位、有符号的，以**二进制补码**表示的整数，**8 位一个字节**，首位是符号位
 - 最小值是 **-128（-2^7）**
 - 最大值是 **127（2^7-1）**
 - 默认值是 **`0`**
-- byte 类型用在大型数组中节约空间，主要代替整数，因为 byte 变量占用的空间只有 int 类型的四分之一
+- byte 类型用在大型数组中节约空间，主要代替整数，byte 变量占用的空间只有 int 类型的四分之一
 - 例子：`byte a = 100，byte b = -50`
 
 **short：**
@@ -68,7 +68,7 @@ Java语言提供了八种基本类型。六种数字类型（四个整数型，�
 
 **float：**
 
-- float 数据类型是单精度、32位、符合IEEE 754标准的浮点数
+- float 数据类型是单精度、32 位、符合 IEEE 754 标准的浮点数
 - float 在储存大型浮点数组的时候可节省内存空间
 - 默认值是 **`0.0f`**
 - 浮点数不能用来表示精确的值，如货币
@@ -76,9 +76,9 @@ Java语言提供了八种基本类型。六种数字类型（四个整数型，�
 
 **double：**
 
-- double 数据类型是双精度、64 位、符合IEEE 754标准的浮点数
-- 浮点数的默认类型为double类型
-- double类型同样不能表示精确的值，如货币
+- double 数据类型是双精度、64 位、符合 IEEE 754 标准的浮点数
+- 浮点数的默认类型为 double 类型
+- double 类型同样不能表示精确的值，如货币
 - 默认值是 **`0.0d`**
 - 例子：`double d1 = 123.4`
 
@@ -86,15 +86,15 @@ Java语言提供了八种基本类型。六种数字类型（四个整数型，�
 
 - boolean 数据类型表示一位的信息
 - 只有两个取值：true 和 false
-- JVM 规范指出 boolean 当做 int 处理，boolean 数组当做 byte 数组处理，这样可以得出 boolean 类型单独使用占了4个字节，在数组中是1个字节
+- JVM 规范指出 boolean 当做 int 处理，boolean 数组当做 byte 数组处理，这样可以得出 boolean 类型单独使用占了 4 个字节，在数组中是 1 个字节
 - 默认值是 **`false`**
 - 例子：`boolean one = true`
 
 **char：**
 
 - char 类型是一个单一的 16 位两个字节的 Unicode 字符
-- 最小值是 **`\u0000`**（即为0）
-- 最大值是 **`\uffff`**（即为65,535）
+- 最小值是 **`\u0000`**（即为 0）
+- 最大值是 **`\uffff`**（即为 65535）
 - char 数据类型可以储存任何字符
 - 例子：`char c = 'A';`   `char c = '张';`
 
@@ -240,13 +240,10 @@ public class PackegeClass {
         int a = 12 ;
         Integer a1 = 12 ;  // 自动装箱
         Integer a2 = a ;   // 自动装箱
+        Integer a3 = null; // 引用数据类型的默认值可以为null
 
         Integer c = 100 ;
         int c1 = c ;      // 自动拆箱
-
-        int d = 12;
-        Integer d1 = null; // 引用数据类型的默认值可以为null
-        Integer d2 = 0;
 
         Integer it = Integer.valueOf(12);  // 手工装箱！
         // Integer it1 = new Integer(12); // 手工装箱！
@@ -270,7 +267,7 @@ new Integer(123) 与 Integer.valueOf(123) 的区别在于：
 
 - new Integer(123)：每次都会新建一个对象
 
-- Integer.valueOf(123)：会使用缓存池中的对象，多次调用取得同一个对象的引用，反编译后底层调用该方法自动装箱
+- Integer.valueOf(123)：会使用缓存池中的对象，多次调用取得同一个对象的引用
 
   ```java
   Integer x = new Integer(123);
@@ -304,6 +301,18 @@ Integer y = Integer.valueOf(1000);
 System.out.println(x == y);   // false
 //因为缓存池最大127
 ```
+
+反编译后底层调用 `Integer.valueOf()` 实现自动装箱，源码：
+
+```java
+public static Integer valueOf(int i) {
+    if (i >= IntegerCache.low && i <= IntegerCache.high)
+        return IntegerCache.cache[i + (-IntegerCache.low)];
+    return new Integer(i);
+}
+```
+
+
 
 
 
@@ -739,7 +748,9 @@ public static 返回值类型 方法名(参数) {
 
 重载仅对应方法的定义，与方法的调用无关，调用方式参照标准格式
 
-重载仅针对**同一个类**中方法的名称与参数进行识别，**与返回值无关**，不能通过返回值来判定两个方法是否相互构成重载
+重载仅针对**同一个类**中方法的名称与参数进行识别，**与返回值无关**，不能通过返回值来判定两个方法是否构成重载
+
+原理：JVM → 运行机制 → 字节码 → 方法表
 
 ```java
 public class MethodDemo {
@@ -945,1853 +956,6 @@ Debug是供程序员使用的程序调试工具，它可以用于查看程序的
 ![](https://gitee.com/seazean/images/raw/master/Java/Debug按键说明.png)
 
 <img src="https://gitee.com/seazean/images/raw/master/Java/Debug条件断点.png" alt="Debug条件断点" style="zoom:50%;" />
-
-
-
-
-
-
-
-****
-
-
-
-
-
-## 算法
-
-### 递归
-
-#### 概述
-
-算法：解题方案的准确而完整的描述，是一系列解决问题的清晰指令，代表着用系统的方法解决问题的策略机制
-
-递归：程序调用自身的编程技巧
-
-递归：
-
-* 直接递归：自己的方法调用自己
-* 间接递归：自己的方法调用别的方法，别的方法又调用自己
-
-递归如果控制的不恰当，会形成递归的死循环，从而导致栈内存溢出错误
-
-
-
-推荐阅读：https://time.geekbang.org/column/article/41440
-
-
-
-***
-
-
-
-#### 算法
-
-##### 核心思想
-
-递归的三要素（理论）：
-
-1. 递归的终结点
-2. 递归的公式
-3. 递归的方向：必须走向终结点
-
-```java
-//f(x)=f(x-1)+1;   f(1)=1;    f(10)=?
-//1.递归的终结点： f(1)  = 1
-//2.递归的公式：f(x) = f(x - 1) + 1
-//3.递归的方向：必须走向终结点
-public static int f(int x){
-    if(x == 1){
-        return 1;
-    }else{
-        return f(x-1) + 1;
-    }
-}
-```
-
-
-
-***
-
-
-
-##### 公式转换
-
-```java
-//已知： f(x) = f(x + 1) + 2,  f(1) = 1。求：f(10) = ?
-//公式转换
-//f(x-1)=f(x-1+1)+2 => f(x)=f(x-1)+2
-//（1）递归的公式：   f(n) = f(n-1)- 2 ;
-//（2）递归的终结点：  f(1) = 1
-//（3）递归的方向：必须走向终结点。
-public static int f(int n){
-    if(n == 1){
-        return 1;
-    }else{
-        return f(n-1) - 2;
-    }
-}
-```
-
-
-
-##### 注意事项
-
-以上理论只能针对于**规律化递归**，如果是非规律化是不能套用以上公式的！
-非规律化递归的问题：文件搜索，啤酒问题。
-
-
-
-***
-
-
-
-#### 案例
-
-##### 猴子吃桃
-
-猴子第一天摘了若干个桃子，当即吃了一半，觉得好不过瘾，然后又多吃了一个。第二天又吃了前一天剩下的一半，觉得好不过瘾，然后又多吃了一个。以后每天都是如此。等到第十天再吃的时候发现只有1个桃子，问猴子第一天总共摘了多少个桃子？
-
-```java
-/*
-（1）公式： f(x+1)=f(x)-f(x)/2-1; ==> 2f(x+1) = f(x) - 2 ==> f(x)=2f(x+1)+2
-（2）终结点：f(10) = 1
-（3）递归的方向：走向了终结点
-*/
-
-public static int f(int x){
-    if(x == 10){
-        return 1;
-    } else {
-        return 2*f(x+1)+2
-    }
-}
-```
-
-
-
-***
-
-
-
-##### 递归求和
-
-```java
-//（1）递归的终点接：f(1) = 1
-//（2）递归的公式： f(n) = f(n-1) + n
-//（3）递归的方向必须走向终结点：
-public static int f(int n){
-        if(n == 1 ) return 1;
-        return f(n-1) + n;
-}
-```
-
-
-
-****
-
-
-
-##### 汉诺塔
-
-```java
-public class Hanoi {
-    public static void main(String[] args) {
-        hanoi('X', 'Y', 'Z', 3);
-    }
-
-    //将n个块分治的从x移动到z，y为辅助柱
-    private static void hanoi(char x, char y, char z, int n) {
-        if (n == 1) {
-            System.out.println(x + "→" + z);    //直接将x的块移动到z
-        } else {
-            hanoi(x, z, y, n - 1);           //分治处理n-1个块，先将n-1个块借助z移到y
-            System.out.println(x + "→" + z);    //然后将x最下面的块（最大的）移动到z
-            hanoi(y, x, z, n - 1);           //最后将n-1个块从y移动到z，x为辅助柱
-        }
-    }
-}
-```
-
-时间复杂度 O(2^n)
-
-
-
-****
-
-
-
-##### 啤酒问题
-
-非规律化递归问题。
-
-啤酒2元一瓶，4个盖子可以换一瓶，2个空瓶可以换一瓶。
-
-```java
-public class BeerDemo{
-    // 定义一个静态变量存储可以喝酒的总数
-    public static int totalNum;
-    public static int lastBottleNum;
-    public static int lastCoverNum;
-    public static void main(String[] args) {
-        buyBeer(10);
-        System.out.println("总数："+totalNum);
-        System.out.println("剩余盖子："+ lastCoverNum);
-        System.out.println("剩余瓶子："+ lastBottleNum);
-    }
-    public static void buyBeer(int money){
-        int number = money / 2;
-        totalNum += number;
-        // 算出当前剩余的全部盖子和瓶子数，换算成金额继续购买。
-        int currentBottleNum = lastBottleNum + number ;
-        int currentCoverNum = lastCoverNum + number ;
-        // 把他们换算成金额
-        int totalMoney = 0 ;
-        totalMoney += (currentBottleNum/2)*2;//除2代表可以换几个瓶子，乘2代表换算成钱，秒！
-        lastBottleNum = currentBottleNum % 2 ;//取余//算出剩余的瓶子
-     
-        totalMoney += (currentCoverNum / 4) * 2;
-        lastCoverNum = currentCoverNum % 4 ;
-
-        // 继续拿钱买酒
-        if(totalMoney >= 2){
-            buyBeer(totalMoney);
-        }
-    }
-}
-```
-
-
-
-
-
-***
-
-
-
-### 排序
-
-#### 冒泡排序
-
-冒泡排序（Bubble Sort）：两个数比较大小，较大的数下沉，较小的数冒起来
-
-算法描述：每次从数组的第一个位置开始两两比较，把较大的元素与较小的元素进行层层交换，最终把当前最大的一个元素存入到数组当前的末尾
-
-实现思路：
-
-1. 确定总共需要冒几轮：数组的长度-1
-2. 每轮两两比较几次
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-冒泡排序.gif" style="zoom: 80%;" />
-
-```java
-// 0 1位置比较，大的放后面，然后1 2位置比较，大的继续放后面，一轮循环最后一位是最大值
-public class BubbleSort {
-    public static void main(String[] args) {
-        int[] arr = {55, 22, 2, 5, 1, 3, 8, 5, 7, 4, 3, 99, 88};
-        int flag;//标记本趟排序是否发生了交换
-        //比较i和i+1，不需要再比最后一个位置
-        for (int i = 0; i < arr.length - 1; i++) {
-            flag = 0;
-            //最后i位不需要比，已经排序好
-            for (int j = 0; j < arr.length - 1 - i; j++) {
-                if (arr[j] > arr[j + 1]) {
-                    int temp = arr[j];
-                    arr[j] = arr[j + 1];
-                    arr[j + 1] = temp;
-                    flag = 1;//发生了交换
-                }
-            }
-            //没有发生交换，证明已经有序，不需要继续排序
-            if(flag == 0) {
-                break;
-            }
-        }
-        System.out.println(Arrays.toString(arr));
-    }
-}
-```
-
-冒泡排序时间复杂度：最坏情况
-
-* 元素比较的次数为：`(N-1)+(N-2)+(N-3)+...+2+1=((N-1)+1)*(N-1)/2=N^2/2-N/2`
-* 元素交换的次数为：`(N-1)+(N-2)+(N-3)+...+2+1=((N-1)+1)*(N-1)/2=N^2/2-N/2`
-* 总执行次数为：`(N^2/2-N/2)+(N^2/2-N/2)=N^2-N`
-
-按照大 O 推导法则，保留函数中的最高阶项那么最终冒泡排序的时间复杂度为 O(N^2)
-
-
-
-***
-
-
-
-#### 选择排序
-
-##### 简单选择
-
-选择排序（Selection-sort）：一种简单直观的排序算法
-
-算法描述：首先在未排序序列中找到最小（大）元素，存放到排序序列的起始位置，然后再从剩余未排序元素中继续寻找最小（大）元素，然后放到已排序序列的末尾。以此类推，直到所有元素均排序完毕
-
-实现思路：
-
-1. 控制选择几轮：数组的长度-1
-2. 控制每轮从当前位置开始比较几次
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-选择排序.gif" style="zoom: 80%;" />
-
-```java
-// 0 1位置比较，小的放0位置，然后0 2位置比，小的继续放0位置，一轮循环0位置是最小值
-public class SelectSort {
-    public static void main(String[] args) {
-        int[] arr = {55, 22, 2, 5, 1, 3, 8, 5, 7, 4, 3, 99, 88};
-        for (int i = 0; i < arr.length - 1; i++) {
-            //获取最小索引位置
-            int minIndex = i;
-            for (int j = i + 1; j < arr.length; j++) {
-                if (arr[minIndex] > arr[j]) {
-                    minIndex = j;
-                }
-            }
-            //交换元素
-            int temp = arr[i];
-            arr[i] = arr[minIndex];
-            arr[minIndex] = temp;
-        }
-        System.out.println(Arrays.toString(arr));
-    }
-}
-```
-
-选择排序时间复杂度：
-
-* 数据比较次数：`(N-1)+(N-2)+(N-3)+...+2+1=((N-1)+1)*(N-1)/2=N^2/2-N/2`
-* 数据交换次数：`N-1`
-* 时间复杂度：`N^2/2-N/2+（N-1）=N^2/2+N/2-1`
-
-根据大 O 推导法则，保留最高阶项，去除常数因子，时间复杂度为 O(N^2)
-
-
-
-***
-
-
-
-##### 堆排序
-
-堆排序（Heapsort）是指利用堆这种数据结构所设计的一种排序算法，堆结构是一个近似完全二叉树的结构，并同时满足子结点的键值或索引总是小于（或者大于）父节点
-
-优先队列：堆排序每次上浮过程都会将最大或者最小值放在堆顶，应用于优先队列可以将优先级最高的元素浮到堆顶
-
-实现思路：
-
-1. 将初始待排序关键字序列（R1,R2….Rn）构建成大顶堆，并通过上浮对堆进行调整，此堆为初始的无序区，堆顶为最大数
-
-2. 将堆顶元素 R[1] 与最后一个元素 R[n] 交换，此时得到新的无序区（R1,R2,……Rn-1）和新的有序区 Rn，且满足 R[1,2…n-1]<=R[n]
-
-3. 交换后新的堆顶 R[1] 可能违反堆的性质，因此需要对当前无序区（R1,R2,……Rn-1）调整为新堆，然后再次将 R[1] 与无序区最后一个元素交换，得到新的无序区（R1,R2….Rn-2）和新的有序区（Rn-1,Rn），不断重复此过程直到有序区的元素个数为 n-1，则整个排序过程完成
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-堆排序.jpg" style="zoom:67%;" />
-
-floor：向下取整
-
-```java
-public class HeapSort {
-    public static void main(String[] args) {
-        int[] arr = {55, 22, 2, 5, 1, 3, 8, 5, 7, 4, 3, 99, 88};
-        heapSort(arr, arr.length);
-        System.out.println(Arrays.toString(arr));
-    }
-
-    //len为数组长度
-    private static void heapSort(int[] arr, int len) {
-        //建堆，逆排序，因为堆排序定义的交换顺序是从当前结点往下交换，逆序排可以避免多余的交换
-        for (int i = len / 2 - 1; i >= 0; i--) {
-            //调整函数
-            sift(arr, i, len - 1);
-        }
-        //从尾索引开始排序
-        for (int i = len - 1; i > 0; i--) {
-            //将最大的节点放入末尾
-            int temp = arr[0];
-            arr[0] = arr[i];
-            arr[i] = temp;
-            //继续寻找最大的节点
-            sift(arr, 0, i - 1);
-        }
-    }
-
-    //调整函数，调整arr[low]的元素，从索引low到high的范围调整
-    private static void sift(int[] arr, int low, int high) {
-        //暂存调整元素
-        int temp = arr[low];
-        int i = low, j = low * 2 + 1;//j是左节点
-        while (j <= high) {
-            //判断是否有右孩子，并且比较左右孩子中较大的节点
-            if (j < high && arr[j] < arr[j + 1]) {
-                j++;    //指向右孩子
-            }
-            if (temp < arr[j]) {
-                arr[i] = arr[j];
-                i = j;  //继续向下调整
-                j = 2 * i + 1;
-            } else {
-                //temp > arr[j]，说明也大于j的孩子，探测结束
-                break;
-            }
-        }
-        //将被调整的节点放入最终的位置
-        arr[i] = temp;
-    }
-}
-```
-
-堆排序的时间复杂度是 O(nlogn)
-
-
-
-***
-
-
-
-#### 插入排序
-
-##### 直接插入
-
-插入排序（Insertion Sort）：在要排序的一组数中，假定前 n-1 个数已经排好序，现在将第 n 个数插到这个有序数列中，使得这 n 个数也是排好顺序的，如此反复循环，直到全部排好顺序
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-插入排序.png" style="zoom: 67%;" />
-
-```java
-public class InsertSort {
-    public static void main(String[] args) {
-        int[] arr = {55, 22, 2, 5, 1, 3, 8, 5, 7, 4, 3, 99, 88};
-        for (int i = 1; i < arr.length; i++) {
-            for (int j = i; j > 0; j--) {
-                //比较索引j处的值和索引j-1处的值，
-                //如果索引j-1处的值比索引j处的值大，则交换数据，
-                //如果不大，那么就找到合适的位置了，退出循环即可；
-                if (arr[j - 1] > arr[j]) {
-                    int temp = arr[j];
-                    arr[j] = arr[j - 1];
-                    arr[j - 1] = temp;
-                }
-            }
-        }
-        System.out.println(Arrays.toString(arr));
-    }
-}
-```
-
-插入排序时间复杂度：
-
-* 比较的次数为：`(N-1)+(N-2)+(N-3)+...+2+1=((N-1)+1)*(N-1)/2=N^2/2-N/2`
-* 交换的次数为：`(N-1)+(N-2)+(N-3)+...+2+1=((N-1)+1)(N-1)/2=N^2/2-N/2`
-* 总执行次数为：`(N^2/2-N/2)+(N^2/2-N/2)=N^2-N`
-
-按照大 O 推导法则，保留函数中的最高阶项那么最终插入排序的时间复杂度为 O(N^2)
-
-
-
-***
-
-
-
-##### 希尔排序
-
-希尔排序（Shell Sort）：也是一种插入排序，也称为缩小增量排序
-
-实现思路：
-
-1. 选定一个增长量h，按照增长量h作为数据分组的依据，对数据进行分组
-2. 对分好组的每一组数据完成插入排序
-3. 减小增长量，最小减为1，重复第二步操作
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-希尔排序.png" style="zoom:67%;" />
-
-希尔排序的核心在于间隔序列的设定，既可以提前设定好间隔序列，也可以动态的定义间隔序列，希尔排序就是插入排序增加了间隔
-
-```java
-public class ShellSort {
-    public static void main(String[] args) {
-        int[] arr = {55, 22, 2, 5, 1, 3, 8, 5, 7, 4, 3, 99, 88};
-        //1. 确定增长量h的初始值
-        int h = 1;
-        while (h < arr.length / 2) {
-            h = 2 * h + 1;
-        }
-        //2. 希尔排序
-        while (h >= 1) {
-            //2.1 找到待插入的元素
-            for (int i = h; i < arr.length; i++) {
-                //2.2 把待插入的元素插到有序数列中
-                for (int j = i; j >= h; j -= h) {
-                    //待插入的元素是arr[j]，比较arr[j]和arr[j-h]
-                    if (arr[j] < arr[j - h]) {
-                        int temp = arr[j];
-                        arr[j] = arr[j - h];
-                        arr[j - h] = temp;
-                    }
-                }
-            }
-            //3. 减小h的值，减小规则为：
-            h = h / 2;
-        }
-        System.out.println(Arrays.toString(arr));
-    }
-}
-```
-
-在希尔排序中，增长量h并没有固定的规则，有很多论文研究了各种不同的递增序列，但都无法证明某个序列是最好的，所以对于希尔排序的时间复杂度分析就认为 O(nlogn)
-
-
-
-***
-
-
-
-#### 归并排序
-
-##### 实现方式
-
-归并排序（Merge Sort）：建立在归并操作上的一种有效的排序算法，该算法是采用分治法的典型的应用。将已有序的子序列合并，得到完全有序的序列；即先使每个子序列有序，再使子序列段间有序。若将两个有序表合并成一个有序表，称为二路归并。
-
-实现思路：
-
-1. 一组数据拆分成两个元素相等的子组，并对每一个子组继续拆分，直到拆分后的每个子组的元素个数是1为止
-2. 将相邻的两个子组进行合并成一个有序的大组
-3. 不断的重复步骤2，直到最终只有一个组为止
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-归并排序.png" style="zoom:50%;" />
-
-归并步骤：每次比较两端最小的值，把最小的值放在辅助数组的左边
-
-![](https://gitee.com/seazean/images/raw/master/Java/Sort-归并步骤1.png)
-
-![](https://gitee.com/seazean/images/raw/master/Java/Sort-归并步骤2.png)
-
-![](https://gitee.com/seazean/images/raw/master/Java/Sort-归并步骤3.png)
-
-
-
-
-
-***
-
-
-
-##### 实现代码
-
-```java
-public class MergeSort {
-    public static void main(String[] args) {
-        int[] arr = new int[]{55, 22, 2, 5, 1, 3, 8, 5, 7, 4, 3, 99, 88};
-        mergeSort(arr, 0, arr.length - 1);
-        System.out.println(Arrays.toString(arr));
-    }
-	//low 为arr最小索引，high为最大索引
-    public static void mergeSort(int[] arr, int low, int high) {
-        if (low < high) {
-            int mid = (low + high) / 2;
-            mergeSort(arr, low, mid);//归并排序前半段
-            mergeSort(arr, mid + 1, high);//归并排序后半段
-            merge(arr, low, mid, high);//将两段有序段合成一段有序段
-        }
-    }
-
-    private static void merge(int[] arr, int low, int mid, int high) {
-        int m = 0;
-        //定义左右指针
-        int left = low, right = mid + 1;
-        int[] assist = new int[high - low + 1];
-        while (left <= mid && right <= high) {
-            assist[m++] = arr[left] < arr[right] ? arr[left++] : arr[right++];
-        }
-        while (left <= mid) {
-            assist[m++] = arr[left++];
-        }
-        while (right <= high) {
-            assist[m++] = arr[right++];
-        }
-
-        for (int k = 0; k < assist.length; k++) {
-            arr[low++] = assist[k];
-        }
-    }
-}
-```
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-归并排序时间复杂度.png" style="zoom: 67%;" />
-
-用树状图来描述归并，假设元素的个数为 n，那么使用归并排序拆分的次数为 `log2(n)`，即层数，每次归并需要做 n 次对比，最终得出的归并排序的时间复杂度为 `log2(n)*n`，根据大O推导法则，忽略底数，最终归并排序的时间复杂度为 O(nlogn)
-
-归并排序的缺点：需要申请额外的数组空间，导致空间复杂度提升，是典型的**以空间换时间**的操作
-
-
-
-
-
-****
-
-
-
-#### 快速排序
-
-快速排序（Quick Sort）：通过**分治思想**对冒泡排序的改进，基本过程是通过一趟排序将要排序的数据分割成独立的两部分，其中一部分的所有数据都比另外一部分的所有数据都要小，然后再按此方法对这两部分数据分别进行快速排序，以此达到整个数据变成有序序列
-
-实现思路：
-
-1. 从数列中挑出一个元素，称为基准（pivot）
-2. 重新排序数列，所有比基准值小的摆放在基准前面，所有比基准值大的摆在基准的后面（相同的数可以到任一边），在这个分区退出之后，该基准就处于数列的中间位置，这个称为分区（partition）操作；
-3. 递归地（recursive）把小于基准值元素的子数列和大于基准值元素的子数列排序
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-快速排序.gif" style="zoom:80%;" />
-
-```java
-public class QuickSort {
-    public static void main(String[] args) {
-        int[] arr = {55, 22, 2, 5, 1, 3, 8, 5, 7, 4, 3, 99, 88};
-        quickSort(arr, 0, arr.length - 1);
-        System.out.println(Arrays.toString(arr));
-    }
-
-    public static void quickSort(int[] arr, int low, int high) {
-        //递归结束的条件
-        if (low >= high) {
-            return;
-        }
-        
-        int left = low;
-        int right = high;
-        
-        int temp = arr[left];//基准数
-        while (left < right) {
-            // 用 >= 可以防止多余的交换
-            while (arr[right] >= temp && right > left) {
-                right--;
-            }
-            // 做判断防止相等
-            if (right > left) {
-                // 到这里说明 arr[right] < temp 
-                arr[left] = arr[right];//此时把arr[right]元素视为空
-                left++;
-            }
-            while (arr[left] <= temp && left < right) {
-                left++;
-            }
-            if (right > left) {
-                arr[right] = arr[left];
-                right--;
-            }
-        }
-        // left == right
-        arr[left] = temp;
-        quickSort(arr, low, left-1);
-        quickSort(arr, right + 1, high);
-    }
-}
-```
-
-快速排序和归并排序的区别：
-
-* 快速排序是另外一种分治的排序算法，将一个数组分成两个子数组，将两部分独立的排序
-* 归并排序的处理过程是由下到上的，先处理子问题，然后再合并。而快排正好相反，它的处理过程是由上到下的，先分区，然后再处理子问题
-* 快速排序和归并排序是互补的：归并排序将数组分成两个子数组分别排序，并将有序的子数组归并从而将整个数组排序，而快速排序的方式则是当两个数组都有序时，整个数组自然就有序了
-* 在归并排序中，一个数组被等分为两半，归并调用发生在处理整个数组之前，在快速排序中，切分数组的位置取决于数组的内容，递归调用发生在处理整个数组之后
-
-时间复杂度：
-
-* 最优情况：每一次切分选择的基准数字刚好将当前序列等分。把数组的切分看做是一个树，共切分了 logn 次，所以，最优情况下快速排序的时间复杂度为 O(nlogn)
-
-* 最坏情况：每一次切分选择的基准数字是当前序列中最大数或者最小数，这使得每次切分都会有一个子组，那么总共就得切分n次，所以最坏情况下，快速排序的时间复杂度为 O(n^2)
-
-  <img src="https://gitee.com/seazean/images/raw/master/Java/Sort-快排时间复杂度.png" style="zoom: 50%;" />
-
-* 平均情况：每一次切分选择的基准数字不是最大值和最小值，也不是中值，这种情况用数学归纳法证明，快速排序的时间复杂度为 O(nlogn)
-
-
-
-推荐视频：https://www.bilibili.com/video/BV1b7411N798?t=1001&p=81
-
-参考文章：https://blog.csdn.net/nrsc272420199/article/details/82587933
-
-
-
-
-
-****
-
-
-
-#### 基数排序
-
-基数排序（Radix Sort）：又叫桶排序和箱排序，借助多关键字排序的思想对单逻辑关键字进行排序的方法
-
-计数排序其实是桶排序的一种特殊情况，当要排序的 n 个数据，所处的范围并不大的时候，比如最大值是 k，我们就可以把数据划分成 k 个桶，每个桶内的数据值都是相同的，省掉了桶内排序的时间
-
-按照低位先排序，然后收集；再按照高位排序，然后再收集；依次类推，直到最高位。有时候有些属性是有优先级顺序的，先按低优先级排序，再按高优先级排序。最后的次序就是高优先级高的在前，高优先级相同的低优先级高的在前
-
-解释：先排低位再排高位，可以说明在高位相等的情况下低位是递增的，如果高位也是递增，则数据有序
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-基数排序.gif" style="zoom:67%;" />
-
-实现思路：
-
-- 获得最大数的位数，可以通过将最大数变为String类型，再求长度
-- 将所有待比较数值（正整数）统一为同样的数位长度，**位数较短的数前面补零**
-- 从最低位开始，依次进行一次排序
-- 从最低位排序一直到最高位（个位 → 十位 → 百位 → … →最高位）排序完成以后，数列就变成一个有序序列
-
-```java
-public class BucketSort {
-    public static void main(String[] args) {
-        int[] arr = new int[]{576, 22, 26, 548, 1, 3, 843, 536, 735, 43, 3, 912, 88};
-        bucketSort(arr);
-        System.out.println(Arrays.toString(arr));
-    }
-
-    private static void bucketSort(int[] arr) {
-        // 桶的个数固定为10个（个位是0~9），数组长度为了防止所有的数在同一行
-        int[][] bucket = new int[10][arr.length];
-        //记录每个桶中的有多少个元素
-        int[] elementCounts = new int[10];
-
-        //获取数组的最大元素
-        int max = arr[0];
-        for (int i = 1; i < arr.length; i++) {
-            max = max > arr[i] ? max : arr[i];
-        }
-        String maxEle = Integer.toString(max);
-        //将数组中的元素放入桶中，最大数的位数相当于需要几次放入桶中
-        for (int i = 0, step = 1; i < maxEle.length(); i++, step *= 10) {
-            for (int j = 0; j < arr.length; j++) {
-                //获取最后一位的数据，也就是索引
-                int index = (arr[j] / step) % 10;
-                //放入具体位置
-                bucket[index][elementCounts[index]] = arr[j];
-                //存储每个桶的数量
-                elementCounts[index]++;
-            }
-            //收集回数组
-            for (int j = 0, index = 0; j < 10; j++) {
-                //先进先出
-                int position = 0;
-                //桶中有元素就取出
-                while (elementCounts[j] > 0) {
-                    arr[index] = bucket[j][position];
-                    elementCounts[j]--;
-                    position++;
-                    index++;
-                }
-            }
-        }
-    }
-}
-```
-
-空间换时间
-
-
-
-推荐视频：https://www.bilibili.com/video/BV1b7411N798?p=86
-
-参考文章：https://www.toutiao.com/a6593273307280179715/?iid=6593273307280179715
-
-
-
-***
-
-
-
-#### 稳定性
-
-稳定性：在待排序的记录序列中，存在多个具有相同的关键字的记录，若经过排序，这些记录的相对次序保持不变，即在原序列中 `r[i]=r[j]`，且 r[i] 在 r[j] 之前，而在排序后的序列中，r[i] 仍在 r[j] 之前，则称这种排序算法是稳定的，否则称为不稳定的
-
-如果一组数据只需要一次排序，则稳定性一般是没有意义的，如果一组数据需要多次排序，稳定性是有意义的。
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-稳定性.png" style="zoom:50%;" />
-
-* 冒泡排序：只有当 `arr[i]>arr[i+1]` 的时候，才会交换元素的位置，而相等的时候并不交换位置，所以冒泡排序是一种稳定排序算法
-* 选择排序：是给每个位置选择当前元素最小的，例如有数据{5(1)，8 ，5(2)， 3， 9 }，第一遍选择到的最小元素为3，所以5(1)会和3进行交换位置，此时5(1)到了5(2)后面，破坏了稳定性，所以是不稳定的排序算法
-* 插入排序：比较是从有序序列的末尾开始，也就是想要插入的元素和已经有序的最大者开始比起，如果比它大则直接插入在其后面，否则一直往前找直到找到它该插入的位置。如果碰见一个和插入元素相等的，那么把要插入的元素放在相等元素的后面。相等元素的前后顺序没有改变，从原无序序列出去的顺序就是排好序后的顺序，所以插入排序是稳定的
-* 希尔排序：按照不同步长对元素进行插入排序，虽然一次插入排序是稳定的，但在不同的插入排序过程中，相同的元素可能在各自的插入排序中移动，最后其稳定性就会被打乱，所以希尔排序是不稳定的
-* 归并排序在归并的过程中，只有 `arr[i]<arr[i+1]` 的时候才会交换位置，如果两个元素相等则不会交换位置，所以它并不会破坏稳定性，归并排序是稳定的
-* 快速排序：快排需要一个基准值，在基准值的右侧找一个比基准值小的元素，在基准值的左侧找一个比基准值大的元素，然后交换这两个元素，此时会破坏稳定性，所以快速排序是一种不稳定的算法
-
-记忆口诀：
-
-* 情绪不稳定，快些选一堆好友来聊天
-
-* 快：快速排序、些：希尔排序、选：选择排序、堆：堆排序
-
-
-
-
-
-***
-
-
-
-#### 算法对比
-
-![](https://gitee.com/seazean/images/raw/master/Java/Sort-排序算法对比.png)
-
-
-
-
-
-***
-
-
-
-### 查找
-
-正常查找：从第一个元素开始遍历，一个一个的往后找，综合查找比较耗时。
-
-二分查找也称折半查找（Binary Search）是一种效率较高的查找方法，数组必须是有序数组
-
-过程：每次先与中间的元素进行比较，如果大于往右边找，如果小于往左边找，如果等于就返回该元素索引位置！如果没有该元素，返回-1
-
-时间复杂度：O(logn)
-
-```java
-/*定义一个方法，记录开始的索引位置和结束的索引位置。
-取出中间索引位置的值，拿元素与中间位置的值进行比较，如果小于中间值，结束位置=中间索引-1.
-取出中间索引位置的值，拿元素与中间位置的值进行比较，如果大于中间值，开始位置=中间索引+1.
-循环正常执行的条件：开始位置索引<=结束位置索引。否则说明寻找完毕但是没有该元素值返回-1.*/
-public class binarySearch {
-    public static void main(String[] args) {
-        int[] arr = {10, 14, 21, 38, 45, 47, 53, 81, 87, 99};
-        System.out.println("81的索引是：" + binarySearch(arr,81));
-
-    }
-
-    public static int binarySearch(int[] arr, int des) {
-        int start = 0;
-        int end = arr.length - 1;
-
-        //确保不会出现重复查找，越界
-        while (start <= end) {
-            //计算出中间索引值
-            int mid = (start + end) / 2;
-            if (des == arr[mid]) {
-                return mid;
-            } else if (des > arr[mid]) {
-                start = mid + 1;
-            } else if (des < arr[mid]) {
-                end = mid - 1;
-            }
-        }
-        // 如果上述循环执行完毕还没有返回索引，说明根本不存在该元素值，直接返回-1
-        return -1;
-    }
-}
-```
-
-![](https://gitee.com/seazean/images/raw/master/Java/二分查找.gif)
-
-查找第一个匹配的元素：
-
-```java
-public static int binarySearch(int[] arr, int des) {
-        int start = 0;
-        int end = arr.length - 1;
-
-        while (start <= end) {
-            int mid = (start + end) / 2;
-            if (des == arr[mid]) {
-                //如果 mid 等于 0，那这个元素已经是数组的第一个元素，那肯定是我要找的
-                if (mid == 0 || a[mid - 1] != des) {
-                    return mid;
-                } else {
-                    //a[mid]前面的一个元素 a[mid-1]也等于 value，
-                    //要找的元素肯定出现在[low, mid-1]之间
-                    high = mid - 1
-                }
-            } else if (des > arr[mid]) {
-                start = mid + 1;
-            } else if (des < arr[mid]) {
-                end = mid - 1;
-            }
-        }
-        return -1;
-    }
-```
-
-
-
-
-
-***
-
-
-
-### 匹配
-
-#### BF
-
-Brute Force 暴力匹配算法：
-
-```java
-public static void main(String[] args) {
-    String s = "seazean";
-    String t = "az";
-    System.out.println(match(s,t));//2
-}
-
-public static int match(String s,String t) {
-    int k = 0;
-    int i = k, j = 0;
-    //防止越界
-    while (i < s.length() && j < t.length()) {
-        if (s.charAt(i) == t.charAt(j)) {
-            ++i;
-            ++j;
-        } else {
-            k++;
-            i = k;
-            j = 0;
-        }
-    }
-    //说明是匹配成功
-    if (j >= t.length()) {
-        return k;
-    }
-    return 0;
-}
-```
-
-平均时间复杂度：O(m+n)，最坏时间复杂度：O(m*n)
-
-
-
-***
-
-
-
-#### RK
-
-把主串得长度记为 n，模式串得长度记为 m，通过哈希算法对主串中的 n-m+1 个子串分别求哈希值，然后逐个与模式串的哈希值比较大小，如果某个子串的哈希值与模式串相等，再去对比值是否相等（防止哈希冲突），那就说明对应的子串和模式串匹配了
-
-因为哈希值是一个数字，数字之间比较是否相等是非常快速的
-
-第一部分计算哈希值的时间复杂度为 O(n)，第二部分对比的时间复杂度为 O(1)，整体平均时间复杂度为 O(n)，最坏为 O(n*m)
-
-
-
-***
-
-
-
-#### KMP
-
-KMP匹配：
-
-* next 数组的核心就是自己匹配自己，主串代表后缀，模式串代表前缀
-* nextVal 数组的核心就是回退失配
-
-```java
-public class Kmp {
-    public static void main(String[] args) {
-        String s = "acababaabc";
-        String t = "abaabc";
-        //[-1, 0, 0, 1, 1, 2]
-        System.out.println(Arrays.toString(getNext(t)));
-        //[-1, 0, -1, 1, 0, 2]
-        System.out.println(Arrays.toString(getNextVal(t)));
-        //5
-        System.out.println(kmp(s, t));
-    }
-
-    private static int kmp(String s, String t) {
-        int[] next = getNext(t);
-        int i = 0, j = 0;
-        while (i < s.length() && j < t.length()) {
-            //j==-1时说明第一个位置匹配失败，所以将s的下一个和t的首字符比较
-            if (j == -1 || s.charAt(i) == t.charAt(j)) {
-                i++;
-                j++;
-            } else {
-                //模式串右移，比较s的当前位置与t的next[j]位置
-                j = next[j];
-            }
-        }
-        if (j >= t.length()) {
-            return i - j + 1;
-        }
-        return -1;
-    }
-	//next数组
-    private static int[] getNext(String t) {
-        int[] next = new int[t.length()];
-        next[0] = -1;
-        int j = -1;
-        int i = 0;
-        while (i < t.length() - 1) {
-            // 根据已知的前j位推测第j+1位
-            // j=-1说明首位就没有匹配，即t[0]!=t[i]，说明next[i+1]没有最大前缀，为0
-            if (j == -1 || t.charAt(i) == t.charAt(j)) {
-                // 因为模式串已经匹配到了索引j处，说明之前的位都是相等的
-                // 因为是自己匹配自己，所以模式串就是前缀，主串就是后缀，j就是最长公共前缀
-                // 当i+1位置不匹配时（i位之前匹配），可以跳转到j+1位置对比，next[i+1]=j+1
-                i++;
-                j++;
-                next[i] = j;
-            } else {
-                //i位置的数据和j位置的不相等，所以回退对比i和next[j]位置的数据
-                j = next[j];
-            }
-
-        }
-        return next;
-    }
-	//nextVal
-    private static int[] getNextVal(String t) {
-        int[] nextVal = new int[t.length()];
-        nextVal[0] = -1;
-        int j = -1;
-        int i = 0;
-        while (i < t.length() - 1) {
-            if (j == -1 || t.charAt(i) == t.charAt(j)) {
-                i++;
-                j++;
-                // 如果t[i+1] == t[next(i+1)]=next[j+1]，回退后仍然失配，所以要继续回退
-                if (t.charAt(i) == t.charAt(j)) {
-                    nextVal[i] = nextVal[j];
-                } else {
-                    nextVal[i] = j;
-                }
-            } else {
-                j = nextVal[j];
-            }
-        }
-        return nextVal;
-    }
-    /*根据next求nextVal
-    private static int[] getNextVal(String t, int[] next) {
-        int[] nextVal = new int[next.length];
-        nextVal[0] = -1;
-        for (int i = 1; i < nextVal.length; i++) {
-            if (t.charAt(i) == t.charAt(next[i])) {
-                nextVal[i] = nextVal[next[i]];
-            } else {
-                nextVal[i] = next[i];
-            }
-        }
-        return nextVal;
-    }*/
-}
-```
-
-平均和最坏时间复杂度都是 O(m+n)
-
-
-
-参考文章：https://www.cnblogs.com/tangzhengyue/p/4315393.html
-
-
-
-***
-
-
-
-### 树
-
-#### 二叉树
-
-二叉树中，任意一个节点的度要小于等于 2
-
-+ 节点：在树结构中,每一个元素称之为节点
-+ 度：每一个节点的子节点数量称之为度
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/二叉树结构图.png" alt="二叉树结构图" style="zoom:80%;" />
-
-
-
-****
-
-
-
-#### 排序树
-
-##### 存储结构
-
-二叉排序树（BST），又称二叉查找树或者二叉搜索树
-
-+ 每一个节点上最多有两个子节点
-+ 左子树上所有节点的值都小于根节点的值
-+ 右子树上所有节点的值都大于根节点的值
-+ 不存在重复的节点
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/二叉查找树结构图.png" alt="二叉查找树" style="zoom: 80%;" />
-
-
-
-
-
-***
-
-
-
-##### 代码实现
-
-* 节点类：
-
-  ```java
-  private static class TreeNode {
-      int key;
-      TreeNode left;  //左节点
-      TreeNode right; //右节点
-  
-      private TreeNode(int key) {
-          this.key = key;
-      }
-  }
-  ```
-
-* 查找节点：
-
-  ```java
-   // 递归查找
-  private static TreeNode search(TreeNode root, int key) {
-      //递归结束的条件
-      if (root == null) {
-          return null;
-      }
-      if (key == root.key) {
-          return root;
-      } else if (key > root.key) {
-          return search(root.right, key);
-      } else {
-          return search(root.left, key);
-      }
-  }
-  
-  // 非递归
-  private static TreeNode search1(TreeNode root, int key) {
-      while (root != null) {
-          if (key == root.key) {
-              return root;
-          } else if (key > root.key) {
-              root = root.right;
-          } else {
-              root = root.left;
-          }
-      }
-      return null;
-  }
-  ```
-
-* 插入节点：
-
-  ```java
-  private static int insert(TreeNode root, int key) {
-      if (root == null) {
-          root = new TreeNode(key);
-          root.left = null;
-          root.right = null;
-          return 1;
-      } else {
-          if (key == root.key) {
-              return 0;
-          } else if (key > root.key) {
-              return insert(root.right, key);
-          } else {
-              return insert(root.left, key);
-          }
-      }
-  }
-  ```
-
-* 构造函数：
-
-  ```java
-  // 构造函数，返回根节点
-  private static TreeNode createBST(int[] arr) {
-      if (arr.length > 0) {
-          TreeNode root = new TreeNode(arr[0]);
-          for (int i = 1; i < arr.length; i++) {
-              insert(root, arr[i]);
-          }
-          return root;
-      }
-      return null;
-  }
-  ```
-
-* 删除节点：要删除节点12，先找到节点19，然后移动并替换节点12<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-二叉查找树删除节点.png" style="zoom: 50%;" />
-
-  代码链接：https://leetcode-cn.com/submissions/detail/190232548/
-
-  
-
-参考视频：https://www.bilibili.com/video/BV1iJ411E7xW?t=756&p=86
-
-图片来源：https://leetcode-cn.com/problems/delete-node-in-a-bst/solution/tu-jie-yi-dong-jie-dian-er-bu-shi-xiu-ga-edtn/
-
-
-
-***
-
-
-
-#### 平衡树
-
-平衡二叉树（AVL）的特点：
-
-+ 二叉树左右两个子树的高度差不超过1
-+ 任意节点的左右两个子树都是一颗平衡二叉树
-
-平衡二叉树旋转：
-
-+ 旋转触发时机：当添加一个节点之后，该树不再是一颗平衡二叉树
-
-+ 平衡二叉树和二叉查找树对比结构图
-
-![平衡二叉树和二叉查找树对比](https://gitee.com/seazean/images/raw/master/Java/平衡二叉树和二叉查找树对比结构图.png)
-
-+ 左旋：将根节点的右侧往左拉，原先的右子节点变成新的父节点，并把多余的左子节点出让，给已经降级的根节点当右子节点
-  
-  ![平衡二叉树左旋](https://gitee.com/seazean/images/raw/master/Java/平衡二叉树左旋01.png)
-
-* 右旋：将根节点的左侧往右拉，左子节点变成了新的父节点，并把多余的右子节点出让，给已经降级根节点当左子节点
-  
-  ![平衡二叉树右旋](https://gitee.com/seazean/images/raw/master/Java/平衡二叉树右旋01.png)
-
-推荐文章：https://pdai.tech/md/algorithm/alg-basic-tree-balance.html
-
-
-
-
-***
-
-
-
-#### 红黑树
-
-红黑树的特点：
-
-* 每一个节点可以是红或者黑
-
-+ 红黑树不是高度平衡的，它的平衡是通过"自己的红黑规则"进行实现的
-
-红黑树的红黑规则有哪些：
-
-1. 每一个节点或是红色的，或者是黑色的
-2. 根节点必须是黑色
-3. 如果一个节点没有子节点或者父节点，则该节点相应的指针属性值为 Nil，这些 Nil 视为叶节点，每个叶节点(Nil) 是黑色的
-4. 如果某一个节点是红色，那么它的子节点必须是黑色（不能出现两个红色节点相连的情况）
-5. 对每一个节点，从该节点到其所有后代叶节点的简单路径上，均包含相同数目的黑色节点
-
-红黑树与 AVL 树的比较：
-
-* AVL树是更加严格的平衡，可以提供更快的查找速度，适用于读取查找密集型任务
-* 红黑树只是做到了近似平衡，并不是严格的平衡，红黑树的插入删除比AVL树更便于控制操作，红黑树更适合于插入修改密集型任务
-
-- 红黑树整体性能略优于AVL树，AVL树的旋转比红黑树的旋转多，更加难以平衡和调试，插入和删除的效率比红黑树慢
-
-![红黑树](https://gitee.com/seazean/images/raw/master/Java/红黑树结构图.png)
-
-
-
-红黑树添加节点的默认颜色为红色，效率高
-![](https://gitee.com/seazean/images/raw/master/Java/红黑树添加节点颜色.png)
-
-
-
-**红黑树添加节点后如何保持红黑规则：**
-
-+ 根节点位置
-  + 直接变为黑色
-+ 非根节点位置
-  + 父节点为黑色
-    + 不需要任何操作,默认红色即可
-  + 父节点为红色
-    + 叔叔节点为红色
-      1. 将"父节点"设为黑色,将"叔叔节点"设为黑色
-      2. 将"祖父节点"设为红色
-      3. 如果"祖父节点"为根节点,则将根节点再次变成黑色
-    + 叔叔节点为黑色
-      1. 将"父节点"设为黑色
-      2. 将"祖父节点"设为红色
-      3. 以"祖父节点"为支点进行旋转
-
-
-
-
-
-***
-
-
-
-#### 并查集
-
-##### 基本实现
-
-并查集是一种树型的数据结构，有以下特点：
-
-* 每个元素都唯一的对应一个结点
-* 每一组数据中的多个元素都在同一颗树中
-* 一个组中的数据对应的树和另外一个组中的数据对应的树之间没有任何联系
-* 元素在树中并没有子父级关系的硬性要求
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-并查集.png" style="zoom:50%;" />
-
-可以高效地进行如下操作：
-
-* 查询元素 p 和元素 q 是否属于同一组
-* 合并元素 p 和元素 q 所在的组
-
-存储结构：
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-并查集存储结构.png" style="zoom:67%;" />
-
-合并方式：
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-并查集合并.png" style="zoom:67%;" />
-
-
-
-代码实现：
-
-* 类实现：
-
-  ```java
-  public class UF {
-      //记录节点元素和该元素所在分组的标识
-      private int[] eleAndGroup;
-      //记录分组的个数
-      private int count;
-  
-      //初始化并查集
-      public UF(int N) {
-          //初始化分组数量
-          this.count = N;
-          //初始化eleAndGroup数量
-          this.eleAndGroup = new int[N];
-          //初始化eleAndGroup中的元素及其所在分组的标识符，eleAndGroup索引作为每个节点的元素
-          //每个索引处的值就是该组的索引，就是该元素所在的组的标识符
-          for (int i = 0; i < eleAndGroup.length; i++) {
-              eleAndGroup[i] = i;
-          }
-      }
-  
-      //查询p所在的分组的标识符
-      public int find(int p) {
-          return eleAndGroup[p];
-      }
-  
-      //判断并查集中元素p和元素q是否在同一分组中
-      public boolean connect(int p, int q) {
-          return find(p) == find(q);
-      }
-  
-      //把p元素所在分组和q元素所在分组合并
-      public void union(int p, int q) {
-          //判断元素q和p是否已经在同一个分组中，如果已经在同一个分组中，则结束方法就可以了
-          if (connect(p, q)) {
-              return;
-          }
-          int pGroup = find(p);//找到p所在分组的标识符
-          int qGroup = find(q);//找到q所在分组的标识符
-  
-          //合并组，让p所在组的 所有元素 的组标识符变为q所在分组的标识符
-          for (int i = 0; i < eleAndGroup.length; i++) {
-              if (eleAndGroup[i] == pGroup) {
-                  eleAndGroup[i] = qGroup;
-              }
-          }
-          //分组个数-1
-          this.count--;
-      }
-  }
-  ```
-  
-* 测试代码：
-
-  ```java
-  public static void main(String[] args) {
-      //创建并查集对象
-      UF uf = new UF(5);
-      System.out.println(uf);
-  
-      //从控制台录入两个合并的元素，调用union方法合并，观察合并后并查集的分组
-      Scanner sc = new Scanner(System.in);
-  
-      while (true) {
-          System.out.println("输入第一个要合并的元素");
-          int p = sc.nextInt();
-          System.out.println("输入第二个要合并的元素");
-          int q = sc.nextInt();
-          if (uf.connect(p, q)) {
-              System.out.println(p + "元素已经和" + q + "元素已经在同一个组");
-              continue;
-          }
-          uf.union(p, q);
-          System.out.println("当前并查集中还有：" + uf.count() + "个分组");
-          System.out.println(uf);
-          System.out.println("********************");
-      }
-  }
-  ```
-
-最坏情况下 union 算法的时间复杂度也是 O(N^2)
-
-
-
-****
-
-
-
-##### 优化实现
-
-让每个索引处的节点都指向它的父节点，当 eleGroup[i] = i 时，说明 i 是根节点
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-并查集优化.png" style="zoom: 67%;" />
-
-```java
-//查询p所在的分组的标识符，递归寻找父标识符，直到找到根节点
-public int findRoot(int p) {
-    while (p != eleAndGroup[p]) {
-        p = eleAndGroup[p];
-    }
-    //p == eleGroup[p]，说明p是根节点
-    return p;
-}
-
-//判断并查集中元素p和元素q是否在同一分组中
-public boolean connect(int p, int q) {
-    return findRoot(p) == findRoot(q);
-}
-
-//把p元素所在分组和q元素所在分组合并
-public void union(int p, int q) {
-    //找到p q对应的根节点
-    int pRoot = findRoot(p);
-    int qRoot = findRoot(q);
-    if (pRoot == qRoot) {
-        return;
-    }
-    //让p所在树的节点根节点为q的所在的根节点，只需要把根节点改一下，时间复杂度 O(1)
-    eleAndGroup[pRoot] = qRoot;
-}
-```
-
-平均时间复杂度为 O(N)，最坏时间复杂度是 O(N^2)
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-并查集时间复杂度.png" style="zoom:67%;" />
-
-继续优化：路径压缩，保证每次把小树合并到大树
-
-```java
-public class UF_Tree_Weighted {
-    private int[] eleAndGroup;
-    private int count;
-    private int[] size;//存储每一个根结点对应的树中的保存的节点的个数
-
-    //初始化并查集
-    public UF_Tree_Weighted(int N) {
-        this.count = N;
-        this.eleAndGroup = new int[N];
-        for (int i = 0; i < eleAndGroup.length; i++) {
-            eleAndGroup[i] = i;
-        }
-        this.size = new int[N];
-        //默认情况下，size中每个索引处的值都是1
-        for (int i = 0; i < size.length; i++) {
-            size[i] = 1;
-        }
-    }
-	//查询p所在的分组的标识符，父标识符
-    public int findRoot(int p) {
-        while (p != eleAndGroup[p]) {
-            p = eleAndGroup[p];
-        }
-        return p;
-    }
-
-    //判断并查集中元素p和元素q是否在同一分组中
-    public boolean connect(int p, int q) {
-        return findRoot(p) == findRoot(q);
-    }
-
-    //把p元素所在分组和q元素所在分组合并
-    public void union(int p, int q) {
-        //找到p q对应的根节点
-        int pRoot = findRoot(p);
-        int qRoot = findRoot(q);
-        if (pRoot == qRoot) {
-            return;
-        }
-        //判断pRoot对应的树大还是qRoot对应的树大，最终需要把较小的树合并到较大的树中
-        if (size[pRoot] < size[qRoot]) {
-            eleAndGroup[pRoot] = qRoot;
-            size[qRoot] += size[pRoot];
-        } else {
-            eleAndGroup[qRoot] = pRoot;
-            size[pRoot] += size[qRoot];
-        }
-        //组的数量-1、
-        this.count--;
-    }
-}
-```
-
-
-
-***
-
-
-
-##### 应用场景
-
-并查集存储的每一个整数表示的是一个大型计算机网络中的计算机：
-
-* 可以通过 connected(int p, int q) 来检测该网络中的某两台计算机之间是否连通
-* 可以调用 union(int p,int q) 使得 p 和 q 之间连通，这样两台计算机之间就可以通信
-
-畅通工程：某省调查城镇交通状况，得到现有城镇道路统计表，表中列出了每条道路直接连通的城镇。省政府畅通工程的目标是使全省任何两个城镇间都可以实现交通，但不一定有直接的道路相连，只要互相间接通过道路可达即可，问最少还需要建设多少条道路？
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-应用场景.png" style="zoom:67%;" />
-
-解题思路：
-
-1. 创建一个并查集 UF_Tree_Weighted(20)
-2. 分别调用 union(0,1)、union(6,9)、union(3,8)、union(5,11)、union(2,12)、union(6,10)、union(4,8)，表示已经修建好的道路把对应的城市连接起来
-3. 如果城市全部连接起来，那么并查集中剩余的分组数目为 1，所有的城市都在一个树中，只需要获取当前并查集中剩余的数目减去 1，就是还需要修建的道路数目
-
-```java
-public static void main(String[] args)throws Exception {
-    Scanner sc = new Scanner(System.in);
-    //读取城市数目，初始化并查集
-    int number = sc.nextInt();
-    //读取已经修建好的道路数目
-    int roadNumber = sc.nextInt();
-    UF_Tree_Weighted uf = new UF_Tree_Weighted(number);
-    //循环读取已经修建好的道路，并调用union方法
-    for (int i = 0; i < roadNumber; i++) {
-        int p = sc.nextInt();
-        int q = sc.nextInt();
-        uf.union(p,q);
-    }
-    //获取剩余的分组数量
-    int groupNumber = uf.count();
-    //计算出还需要修建的道路
-    System.out.println("还需要修建"+(groupNumber-1)+"道路，城市才能相通");
-}
-```
-
-
-
-参考视频：https://www.bilibili.com/video/BV1iJ411E7xW?p=142
-
-
-
-***
-
-
-
-#### 字典树
-
-##### 基本介绍
-
-Trie 树，也叫字典树，是一种专门处理字符串匹配的树形结构，用来解决在一组字符串集合中快速查找某个字符串的问题，Trie 树的本质就是利用字符串之间的公共前缀，将重复的前缀合并在一起
-
-* 根节点不包含任何信息
-* 每个节点表示一个字符串中的字符，从**根节点到红色节点的一条路径表示一个字符串**
-* 红色节点并不都是叶子节点
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-字典树构造过程1.png" style="zoom: 50%;" />
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-字典树构造过程2.png" style="zoom:50%;" />
-
-注意：要查找的是字符串“he”，从根节点开始，沿着某条路径来匹配，可以匹配成功。但是路径的最后一个节点“e”并不是红色的，也就是说，“he”是某个字符串的前缀子串，但并不能完全匹配任何字符串
-
-
-
-***
-
-
-
-##### 实现Trie
-
-通过一个下标与字符一一映射的数组，来存储子节点的指针
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-字典树存储结构.png" style="zoom:50%;" />
-
-时间复杂度是 O(n)（n 表示要查找字符串的长度）
-
-```java
-public class Trie {
-    private TrieNode root = new TrieNode('/');
-
-    //插入一个字符
-    public void insert(char[] chars) {
-        TrieNode p = root;
-        for (int i = 0; i < chars.length; i++) {
-            //获取字符的索引位置
-            int index = chars[i] - 'a';
-            if (p.children[index] == null) {
-                TrieNode node = new TrieNode(chars[i]);
-                p.children[index] = node;
-            }
-            p = p.children[index];
-        }
-        p.isEndChar = true;
-    }
-
-    //查找一个字符串
-    public boolean find(char[] chars) {
-        TrieNode p = root;
-        for (int i = 0; i < chars.length; i++) {
-            int index = chars[i] - 'a';
-            if (p.children[index] == null) {
-                return false;
-            }
-            p = p.children[index];
-        }
-        if (p.isEndChar) {
-            //完全匹配
-            return true;
-        } else {
-            // 不能完全匹配，只是前缀
-            return false;
-        }
-    }
-
-
-    private class TrieNode {
-        char data;
-        TrieNode[] children = new TrieNode[26];//26个英文字母
-        boolean isEndChar = false;//结尾字符为true
-        public TrieNode(char data) {
-            this.data = data;
-        }
-    }
-}
-```
-
-
-
-***
-
-
-
-##### 优化Trie
-
-Trie 树是非常耗内存，采取空间换时间的思路。Trie 树的变体有很多，可以在一定程度上解决内存消耗的问题。比如缩点优化，对只有一个子节点的节点，而且此节点不是一个串的结束节点，可以将此节点与子节点合并
-
-![](https://gitee.com/seazean/images/raw/master/Java/Tree-字典树缩点优化.png)
-
-
-
-参考文章：https://time.geekbang.org/column/article/72414
-
-
-
-***
-
-
-
-### 图
-
-图的邻接表形式：
-
-```java
-public class AGraph {
-    private VertexNode[] adjList;   //邻接数组
-    private int vLen, eLen;         //顶点数和边数
-
-    public AGraph(int vLen, int eLen) {
-        this.vLen = vLen;
-        this.eLen = eLen;
-        adjList = new VertexNode[vLen];
-    }
-    //弧节点
-    private class ArcNode {
-        int adjVex;         //该边所指向的顶点的位置
-        ArcNode nextArc;    //下一条边（弧）
-        //int info  		//添加权值
-
-        public ArcNode(int adjVex) {
-            this.adjVex = adjVex;
-            nextArc = null;
-        }
-    }
-
-    //表顶点
-    private class VertexNode {
-        char data;      	//顶点信息
-        ArcNode firstArc;  	//指向第一条边的指针
-
-        public VertexNode(char data) {
-            this.data = data;
-            firstArc = null;
-        }
-    }
-}
-```
-
-图的邻接矩阵形式：
-
-```java
-public class MGraph {
-    private int[][] edges;      //邻接矩阵定义，有权图将int改为float
-    private int vLen;           //顶点数
-    private int eLen;           //边数
-    private VertexNode[] vex;   //存放节点信息
-
-    public MGraph(int vLen, int eLen) {
-        this.vLen = vLen;
-        this.eLen = eLen;
-        this.edges = new int[vLen][vLen];
-        this.vex = new VertexNode[vLen];
-    }
-
-    private class VertexNode {
-        int num;    //顶点编号
-        String info;  //顶点信息
-
-        public VertexNode(int num) {
-            this.num = num;
-            this.info = null;
-        }
-    }
-}
-```
-
-
-
-图相关的算法需要很多的流程图，此处不再一一列举，推荐参考书籍《数据结构高分笔记》
-
-
-
-***
-
-
-
-### 位图
-
-#### 基本介绍
-
-布隆过滤器：一种数据结构，是一个很长的二进制向量（位数组）和一系列随机映射函数（哈希函数），既然是二进制，每个空间存放的不是0就是1，但是初始默认值都是0，所以布隆过滤器不存数据只存状态
-
-<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-Bitmaps数据结构.png" style="zoom: 80%;" />
-
-这种数据结构是高效且性能很好的，但缺点是具有一定的错误识别率和删除难度。并且，理论情况下，添加到集合中的元素越多，误报的可能性就越大
-
-
-
-***
-
-
-
-#### 工作流程
-
-向布隆过滤器中添加一个元素key时，会通过多个hash函数得到多个哈希值，在位数组中把对应下标的值置为 1
-
-![](https://gitee.com/seazean/images/raw/master/DB/Redis-布隆过滤器添加数据.png)
-
-布隆过滤器查询一个数据，是否在二进制的集合中，查询过程如下：
-
-- 通过 K 个哈希函数计算该数据，对应计算出的 K 个hash值
-- 通过 hash 值找到对应的二进制的数组下标
-- 判断方法：如果存在一处位置的二进制数据是0，那么该数据不存在。如果都是1，该数据存在集合中
-
-布隆过滤器优缺点：
-
-* 优点：
-  * 二进制组成的数组，占用内存极少，并且插入和查询速度都足够快
-  * 去重方便：当字符串第一次存储时对应的位数组下标设置为 1，当第二次存储相同字符串时，因为对应位置已设置为 1，所以很容易知道此值已经存在
-* 缺点：
-  * 随着数据的增加，误判率会增加：添加数据是通过计算数据的hash值，不同的字符串可能哈希出来的位置相同，导致无法确定到底是哪个数据存在，**这种情况可以适当增加位数组大小或者调整哈希函数**
-  * 无法删除数据：可能存在几个数据占据相同的位置，所以删除一位会导致很多数据失效
-
-* 总结：**布隆过滤器判断某个元素存在，小概率会误判。如果判断某个元素不在，那这个元素一定不在**
-
-
-
-参考文章：https://www.cnblogs.com/ysocean/p/12594982.html
-
-
-
-***
-
-
-
-#### Guava
-
-引入 Guava 的依赖：
-
-```xml
-<dependency>
-    <groupId>com.google.guava</groupId>
-    <artifactId>guava</artifactId>
-    <version>28.0-jre</version>
-</dependency>
-```
-
-指定误判率为（0.01）：
-
-```java
-public static void main(String[] args) {
-    // 创建布隆过滤器对象
-    BloomFilter<Integer> filter = BloomFilter.create(
-        Funnels.integerFunnel(),
-        1500,
-        0.01);
-    // 判断指定元素是否存在
-    System.out.println(filter.mightContain(1));
-    System.out.println(filter.mightContain(2));
-    // 将元素添加进布隆过滤器
-    filter.put(1);
-    filter.put(2);
-    System.out.println(filter.mightContain(1));
-    System.out.println(filter.mightContain(2));
-}
-```
-
-
-
-***
-
-
-
-#### 实现布隆
-
-```java
-class MyBloomFilter {
-    //布隆过滤器容量
-    private static final int DEFAULT_SIZE = 2 << 28;
-    //bit数组，用来存放key
-    private static BitSet bitSet = new BitSet(DEFAULT_SIZE);
-    //后面hash函数会用到，用来生成不同的hash值，随意设置
-    private static final int[] ints = {1, 6, 16, 38, 58, 68};
-
-    //add方法，计算出key的hash值，并将对应下标置为true
-    public void add(Object key) {
-        Arrays.stream(ints).forEach(i -> bitSet.set(hash(key, i)));
-    }
-
-    //判断key是否存在，true不一定说明key存在，但是false一定说明不存在
-    public boolean isContain(Object key) {
-        boolean result = true;
-        for (int i : ints) {
-            //短路与，只要有一个bit位为false，则返回false
-            result = result && bitSet.get(hash(key, i));
-        }
-        return result;
-    }
-
-    //hash函数，借鉴了hashmap的扰动算法
-    private int hash(Object key, int i) {
-        int h;
-        return key == null ? 0 : (i * (DEFAULT_SIZE - 1) & ((h = key.hashCode()) ^ (h >>> 16)));
-    }
-}
-
-```
 
 
 
@@ -4541,13 +2705,15 @@ String StringBuffer 和 StringBuilder 区别：
 相同点：底层使用 char[] 存储
 
 构造方法：
-	public StringBuilder()：创建一个空白可变字符串对象，不含有任何内容
-	public StringBuilder(String   str)：根据字符串的内容，来创建可变字符串对象
+
+* `public StringBuilder()`：创建一个空白可变字符串对象，不含有任何内容
+* `public StringBuilder(String str)`：根据字符串的内容，来创建可变字符串对象
 
 常用API : 
-	`public StringBuilder append(任意类型)` : 添加数据，并返回对象本身
-	`public StringBuilder reverse()` : 返回相反的字符序列
-	`public String toString()` : 通过 toString() 就可以实现把 StringBuilder 转换为 String
+
+* `public StringBuilder append(任意类型)`：添加数据，并返回对象本身
+* `public StringBuilder reverse()`：返回相反的字符序列
+* `public String toString()`：通过 toString() 就可以实现把 StringBuilder 转换为 String
 
 存储原理：
 
@@ -4592,13 +2758,14 @@ private void ensureCapacityInternal(int minimumCapacity) {
 
 ### Arrays
 
-Array的工具类
+Array 的工具类
 
 常用API：
-	`public static String toString(int[] a)` : 返回指定数组的内容的字符串表示形式
-	`public static void sort(int[] a)` : 按照数字顺序排列指定的数组
-	`public static int binarySearch(int[] a, int key)` : 利用二分查找返回指定元素的索引
-	`public static <T> List<T> asList(T... a)` : 返回由指定数组支持的列表。
+
+* `public static String toString(int[] a)` : 返回指定数组的内容的字符串表示形式
+* `public static void sort(int[] a)` : 按照数字顺序排列指定的数组
+* `public static int binarySearch(int[] a, int key)` : 利用二分查找返回指定元素的索引
+* `public static <T> List<T> asList(T... a)` : 返回由指定数组支持的列表。
 
 ```java
 public class MyArraysDemo {
@@ -4648,12 +2815,14 @@ public class MyArraysDemo {
 
 ### Date
 
-包：java.util.Date。
 构造器：
-         `public Date()`：创建当前系统的此刻日期时间对象。
-         `public Date(long time)`：把时间毫秒值转换成日期对象。
+
+* `public Date()`：创建当前系统的此刻日期时间对象。
+*  `public Date(long time)`：把时间毫秒值转换成日期对象
+
 方法：
-        `public long getTime()`：返回自 1970 年 1 月 1 日 00:00:00 GMT 以来总的毫秒数。
+
+* `public long getTime()`：返回自 1970 年 1 月 1 日 00:00:00 GMT 以来总的毫秒数。
 
 时间记录的两种方式：
 
@@ -4693,19 +2862,19 @@ public static void main(String[] args){
 
 ### DateFormat
 
-DateFormat作用：
-1.可以把“日期对象”或者“时间毫秒值”格式化成我们喜欢的时间形式。（格式化时间）
-2.可以把字符串的时间形式解析成日期对象。（解析字符串时间）
+DateFormat 作用：
 
-DateFormat是一个抽象类，不能直接使用，要找它的子类：SimpleDateFormat
+1. 可以把“日期对象”或者“时间毫秒值”格式化成我们喜欢的时间形式（格式化时间）
+2. 可以把字符串的时间形式解析成日期对象（解析字符串时间）
 
-SimpleDateFormat简单日期格式化类：
-	包：java.text.SimpleDateFormat
-    构造器：public SimpleDateFormat(String pattern) : 指定时间的格式创建简单日期对象
-    方法：
-      `public String format(Date date) `: 把日期对象格式化成我们喜欢的时间形式，返回字符串!
-      `public String format(Object time)` : 把时间毫秒值格式化成设定的时间形式，返回字符串!
-      `public Date parse(String date) throws ParseException` : 把字符串的时间解析成日期对象
+DateFormat 是一个抽象类，不能直接使用，使用它的子类：SimpleDateFormat
+
+SimpleDateFormat  简单日期格式化类：
+
+* `public SimpleDateFormat(String pattern)` : 指定时间的格式创建简单日期对象
+* `public String format(Date date) ` : 把日期对象格式化成我们喜欢的时间形式，返回字符串
+* `public String format(Object time)` : 把时间毫秒值格式化成设定的时间形式，返回字符串!
+* `public Date parse(String date)` : 把字符串的时间解析成日期对象
 
 >yyyy年MM月dd日 HH:mm:ss EEE a" 周几 上午下午
 
@@ -4772,15 +2941,16 @@ public static void main(String[] args){
 
 ### LocalDateTime
 
->  JDK1.8新增，线程安全。
+JDK1.8 新增，线程安全
 
 + LocalDate       表示日期（年月日）  
 + LocalTime       表示时间（时分秒）
 + LocalDateTime    表示时间+ 日期 （年月日时分秒）
 
 构造方法：
-  public static LocalDateTime now()  获取当前系统时间 
-  public static LocalDateTime of  (年, 月 , 日, 时, 分, 秒)  使用指定年月日和时分秒初始化一个对象
+
+* public static LocalDateTime now()：获取当前系统时间 
+* public static LocalDateTime of(年, 月 , 日, 时, 分, 秒)：使用指定年月日和时分秒初始化一个对象
 
 常用API：
 
@@ -4834,9 +3004,7 @@ public class JDK8DateDemo2 {
 
 
 
-**时间间隔**
-
-Duration类API：
+**时间间隔** Duration 类API：
 
 | 方法名                                           | 说明                 |
 | ------------------------------------------------ | -------------------- |
@@ -4875,16 +3043,16 @@ Math用于做数学运算。
 Math类中的方法全部是静态方法，直接用类名调用即可。
 方法：
 
-| 方法                                         | 说明                            |
-| -------------------------------------------- | ------------------------------- |
-| public static int abs(int a)                 | 获取参数a的绝对值               |
-| public static double ceil(double a)          | 向上取整                        |
-| public static double floor(double a)         | 向下取整                        |
-| public static double pow(double a, double b) | 获取a的b次幂                    |
-| public static long round(double a)           | 四舍五入取整                    |
-| public static int max(int a,int b)           | 返回较大值                      |
-| public static int min(int a,int b)           | 返回较小值                      |
-| public   static double random()              | 返回值为double的正值，[0.0,1.0) |
+| 方法                                         | 说明                              |
+| -------------------------------------------- | --------------------------------- |
+| public static int abs(int a)                 | 获取参数a的绝对值                 |
+| public static double ceil(double a)          | 向上取整                          |
+| public static double floor(double a)         | 向下取整                          |
+| public static double pow(double a, double b) | 获取 a 的 b 次幂                  |
+| public static long round(double a)           | 四舍五入取整                      |
+| public static int max(int a,int b)           | 返回较大值                        |
+| public static int min(int a,int b)           | 返回较小值                        |
+| public static double random()                | 返回值为 double 的正值，[0.0,1.0) |
 
 ```java
 public class MathDemo {
@@ -5026,23 +3194,23 @@ public class BigDecimalDemo {
 }
 ```
 
-+ 总结
+总结
 
-  1. BigDecimal是用来进行精确计算的
-  2. 创建BigDecimal的对象，构造方法使用参数类型为字符串的。
-  3. 四则运算中的除法，如果除不尽请使用divide的三个参数的方法。
+1. BigDecimal 是用来进行精确计算的
+2. 创建 BigDecimal 的对象，构造方法使用参数类型为字符串的。
+3. 四则运算中的除法，如果除不尽请使用 divide 的三个参数的方法。
 
-  ```java
-  BigDecimal divide = bd1.divide(参与运算的对象,小数点后精确到多少位,舍入模式);
-  参数1：表示参与运算的BigDecimal 对象。
-  参数2：表示小数点后面精确到多少位
-  参数3：舍入模式  
-    BigDecimal.ROUND_UP  进一法
-    BigDecimal.ROUND_FLOOR 去尾法
-    BigDecimal.ROUND_HALF_UP 四舍五入
-  ```
-  
-  
+```java
+BigDecimal divide = bd1.divide(参与运算的对象,小数点后精确到多少位,舍入模式);
+参数1：表示参与运算的BigDecimal 对象。
+参数2：表示小数点后面精确到多少位
+参数3：舍入模式  
+  BigDecimal.ROUND_UP  进一法
+  BigDecimal.ROUND_FLOOR 去尾法
+  BigDecimal.ROUND_HALF_UP 四舍五入
+```
+
+
 
 ***
 
@@ -5052,8 +3220,7 @@ public class BigDecimalDemo {
 
 #### 概述
 
-正则表达式的作用：
-	是一些特殊字符组成的校验规则，可以校验信息的正确性，校验邮箱、电话号码、金额等。
+正则表达式的作用：是一些特殊字符组成的校验规则，可以校验信息的正确性，校验邮箱、电话号码、金额等。
 
 比如检验qq号：
 
@@ -5395,10 +3562,8 @@ public static void checkEmail(String email){
 
 ##### 查找替换
 
-* `public String[] split(String regex)`：
-      -- 按照正则表达式匹配的内容进行分割字符串，反回一个字符串数组。
-* `public String replaceAll(String regex,String newStr)`
-      -- 按照正则表达式匹配的内容进行替换
+* `public String[] split(String regex)`：按照正则表达式匹配的内容进行分割字符串，反回一个字符串数组
+* `public String replaceAll(String regex,String newStr)`：按照正则表达式匹配的内容进行替换
 
 ```java
 //数组分割
@@ -5877,7 +4042,9 @@ public class ArrayList<E> extends AbstractList<E>
 LinkedList也是List的实现类：基于**双向链表**实现，使用 Node 存储链表节点信息，增删比较快，查询慢
 
 LinkedList除了拥有List集合的全部功能还多了很多操作首尾元素的特殊功能：
-    `public void addFirst(E e)` : 将指定元素插入此列表的开头
+	`public boolean add(E e)` : 将指定元素添加到此列表的结尾
+	`public E poll()` : 检索并删除此列表的头（第一个元素）
+	`public void addFirst(E e)` : 将指定元素插入此列表的开头
     `public void addLast(E e)` : 将指定元素添加到此列表的结尾
     `public E getFirst()` : 返回此列表的第一个元素
     `public E getLast()` : 返回此列表的最后一个元素
@@ -6085,26 +4252,31 @@ LinkedHashSet 底层依然是使用哈希表存储元素的，但是每个元素
 
 ##### TreeSet
 
-TreeSet集合自排序的方式：
+TreeSet 集合自排序的方式：
 
-1. 有值特性的元素直接可以升序排序。（浮点型，整型）
-2. 字符串类型的元素会按照首字符的编号排序。
-3. 对于自定义的引用数据类型，TreeSet默认无法排序，执行的时候报错，因为不知道排序规则。
+1. 有值特性的元素直接可以升序排序（浮点型，整型）
+2. 字符串类型的元素会按照首字符的编号排序
+3. 对于自定义的引用数据类型，TreeSet 默认无法排序，执行的时候报错，因为不知道排序规则
 
-自定义的引用数据类型，TreeSet默认无法排序 所们需要定制排序的规则，定义大小规则的方案有2种：
+自定义的引用数据类型，TreeSet 默认无法排序，需要定制排序的规则，方案有2种：
 
-   * 直接为**对象的类**实现比较器规则接口Comparable，重写比较方法
-            `public int compareTo(Employee o): this是比较者, o是被比较者     `
-            比较者大于被比较者 返回正数！ 
-            比较者小于被比较者 返回负数！
-            比较者等于被比较者 返回0！
-   * 直接为**集合**设置比较器Comparator对象，重写比较方法
-     `public int compare(Employee o1, Employee o2): o1比较者, o2被比较者`
-     比较者大于被比较者 返回正数！
-     比较者小于被比较者 返回负数！
-     比较者等于被比较者 返回0！
+   * 直接为**对象的类**实现比较器规则接口 Comparable，重写比较方法：
+           
+           方法：`public int compareTo(Employee o): this是比较者, o是被比较者     `
+          
+           * 比较者大于被比较者，返回正数
+           * 比较者小于被比较者，返回负数
+           * 比较者等于被比较者，返回0
+          
+   * 直接为**集合**设置比较器 Comparator 对象，重写比较方法：
+     
+     方法：`public int compare(Employee o1, Employee o2): o1比较者, o2被比较者`
+     
+     * 比较者大于被比较者，返回正数
+     * 比较者小于被比较者，返回负数
+     * 比较者等于被比较者，返回0
 
-注意：如果类和集合都带有比较规则，优先使用集合自带的比较规则。
+注意：如果类和集合都带有比较规则，优先使用集合自带的比较规则
 
 ```java
 public class TreeSetDemo{
@@ -6799,7 +4971,7 @@ HashMap继承关系如下图所示：
 
 5. resize
 
-   当HashMap中的元素个数超过`(数组长度)*loadFactor(负载因子)`或者链表过长时，就会进行数组扩容，创建新的数组，伴随一次重新hash分配，并且遍历hash表中所有的元素，非常耗时，所以要尽量避免resize
+   当 HashMap 中的元素个数超过`(数组长度)*loadFactor(负载因子)`或者链表过长时，就会进行数组扩容，创建新的数组，伴随一次重新 hash 分配，并且遍历 hash 表中所有的元素非常耗时，所以要尽量避免 resize
 
    扩容机制为扩容为原来容量的2倍：
 
@@ -6809,16 +4981,36 @@ HashMap继承关系如下图所示：
        newThr = oldThr << 1; // double threshold
    ```
 
-   HashMap在进行扩容后，节点**要么就在原来的位置，要么就被分配到"原位置+旧容量"的位置**
+   HashMap 在进行扩容后，节点**要么就在原来的位置，要么就被分配到"原位置+旧容量"的位置**
 
-   判断：e.hash与oldCap对应的有效高位上的值是1，即当前数组长度n为1的位为 x，如果key的哈希值 x 位也为1，则扩容后的索引为 now + n
+   判断：e.hash 与 oldCap 对应的有效高位上的值是 1，即当前数组长度 n 为 1 的位为  x，如果 key 的哈希值 x 位也为 1，则扩容后的索引为 now + n
 
    注意：这里也要求**数组长度2的幂**
 
    ![](https://gitee.com/seazean/images/raw/master/Java/HashMap-resize扩容.png)
 
-   红黑树节点：扩容时split方法会将树**拆成高位和低位两个链表**，判断长度是否小于等于6
+   普通节点：
 
+   ```java
+   //oldCap旧数组大小
+   if ((e.hash & oldCap) == 0) {
+       if (loTail == null)
+           loHead = e;
+       else
+           loTail.next = e;
+       loTail = e;
+   }
+   else {
+       if (hiTail == null)
+           hiHead = e;
+       else
+           hiTail.next = e;
+       hiTail = e;
+   }
+   ```
+   
+   红黑树节点：扩容时 split 方法会将树**拆成高位和低位两个链表**，判断长度是否小于等于6
+   
    ```java
    //如果低位链表首节点不为null，说明有这个链表存在
    if (loHead != null) {
@@ -6930,17 +5122,17 @@ HashMap继承关系如下图所示：
 
 ##### 原理分析
 
-LinkedHashMap是HashMap的子类
+LinkedHashMap是 HashMap 的子类
 
 * 优点：添加的元素按照键有序不重复的，有序的原因是底层维护了一个双向链表
 
 * 缺点：会占用一些内存空间
 
-对比Set：
+对比 Set：
 
-* HashSet集合相当于是HashMap集合的键，不带值
-* LinkedHashSet集合相当于是LinkedHashMap集合的键，不带值
-* 底层原理完全一样，都是基于哈希表按照键存储数据的，只是Map多了一个键的值
+* HashSet 集合相当于是 HashMap 集合的键，不带值
+* LinkedHashSet 集合相当于是 LinkedHashMap 集合的键，不带值
+* 底层原理完全一样，都是基于哈希表按照键存储数据的，只是 Map 多了一个键的值
 
 源码解析：
 
@@ -8247,12 +6439,12 @@ public class ConstructorDemo {
 
 #### 概述
 
-Stream流其实就是一根传送带，元素在上面可以被Stream流操作
+Stream 流其实就是一根传送带，元素在上面可以被 Stream 流操作
 
 作用：
 
 * 可以解决已有集合类库或者数组API的弊端。
-* Stream流简化集合和数组的操作
+* Stream 流简化集合和数组的操作
 * 链式编程
 
 ```java
@@ -8274,7 +6466,7 @@ list.stream().filter(s -> s.startsWith("张"));
 
 #### 获取流
 
-集合获取Stream流用：default Stream<E> stream()
+集合获取 Stream 流用：default Stream<E> stream()
 
 数组：Arrays.stream(数组)   /  Stream.of(数组);
 
@@ -8380,10 +6572,10 @@ list.stream().filter(s -> s.startsWith("张"))
 
 #### 收集流
 
-收集Stream流的含义：就是把Stream流的数据转回到集合中去。
+收集 Stream：把 Stream 流的数据转回到集合中去
 
-Stream流：手段
-集合：目的
+* Stream流：工具
+* 集合：目的
 
 | 方法名                                                       | 说明                   |
 | ------------------------------------------------------------ | ---------------------- |
@@ -9568,2103 +7760,6 @@ public class CommonsIODemo01 {
 
 
 
-****
-
-
-
-## 网络
-
-### 介绍
-
-#### 网络编程
-
-网络编程，就是在一定的协议下，实现两台计算机的通信的技术
-
-通信一定是基于软件结构实现的:
-
-* C/S结构 ：全称为Client/Server结构，是指客户端和服务器结构，常见程序有ＱＱ、IDEA等软件。
-* B/S结构 ：全称为Browser/Server结构，是指浏览器和服务器结构。
-
-两种架构各有优势，但是无论哪种架构，都离不开网络的支持。
-
-网络通信的三要素：
-
-1. 协议：计算机网络客户端与服务端通信必须约定和彼此遵守的通信规则，HTTP、FTP、TCP、UDP、SMTP
-   
-2. IP地址：互联网协议地址(Internet Protocol Address)，用来给一个网络中的计算机设备做唯一的编号
-
-   * IPv4 ：4个字节，32位组成，192.168.1.1
-   * Pv6：可以实现为所有设备分配IP  128位
-
-   * ipconfig：查看本机的IP
-     ​      ping 检查本机与某个IP指定的机器是否联通，或者说是检测对方是否在线。
-     ​      ping 空格 IP地址 ：ping 220.181.57.216，ping www.baidu.com
-
-   特殊的IP地址： 本机IP地址，**127.0.0.1 == localhost**，回环测试
-   
-3. 端口：端口号就可以唯一标识设备中的进程（应用程序）
-   端口号：用两个字节表示的整数，的取值范围是0-65535，0-1023之间的端口号用于一些知名的网络服务和应用，普通的应用程序需要使用1024以上的端口号。如果端口号被另外一个服务或应用所占用，会导致当前程序启动失败，报出端口被占用异常
-
-利用**协议+IP地址+端口号** 三元组合，就可以标识网络中的进程了，那么进程间的通信就可以利用这个标识与其它进程进行交互。
-
-
-
-****
-
-
-
-#### 通信协议
-
-网络通信协议：对计算机必须遵守的规则，只有遵守这些规则，计算机之间才能进行通信
-
-> 应用层：应用程序（QQ,微信,浏览器），可能用到的协议（HTTP,FTP,SMTP）
->
-> 传输层：TCP/IP协议 - UDP协议
->
-> 网络层  ：IP协议，封装自己的IP和对方的IP和端口
->
-> 数据链路层 ： 进入到硬件（网）
-
-TCP/IP协议：传输控制协议 (Transmission Control Protocol)
-
-TCP：面向连接的安全的可靠的传输通信协议
-
-* 在通信之前必须确定对方在线并且连接成功才可以通信
-* 例如下载文件、浏览网页等(要求可靠传输)
-
-UDP：用户数据报协议(User Datagram Protocol)，是一个面向无连接的不可靠传输的协议
-
-* 直接发消息给对方，不管对方是否在线，发消息后也不需要确认
-* 无线（视频会议，通话），性能好，可能丢失一些数据
-
-
-
-****
-
-
-
-#### Java模型
-
-相关概念：
-
-* 同步：当前线程要自己进行数据的读写操作（自己去银行取钱）
-* 异步：当前线程可以去做其他事情（委托别人拿银行卡到银行取钱，然后给你）
-* 阻塞：在数据没有的情况下，还是要继续等待着读（排队等待）
-* 非阻塞：在数据没有的情况下，会去做其他事情，一旦有了数据再来获取（柜台取款，取个号，然后坐在椅子上做其它事，等号广播会通知你办理） 
-
-Java中的通信模型:
-
-1. BIO表示同步阻塞式通信，服务器实现模式为一个连接一个线程，即客户端有连接请求时服务器端就需要启动一个线程进行处理，如果这个连接不做任何事情会造成不必要的线程开销，可以通过线程池机制改善。
-   同步阻塞式性能极差：大量线程，大量阻塞
-
-2. 伪异步通信：引入线程池，不需要一个客户端一个线程，实现线程复用来处理很多个客户端，线程可控。 
-   高并发下性能还是很差：线程数量少，数据依然是阻塞的；数据没有来线程还是要等待
-
-3. NIO表示**同步非阻塞IO**，服务器实现模式为请求对应一个线程，客户端发送的连接会注册到多路复用器上，多路复用器轮询到连接有I/O请求时才启动一个线程进行处理
-
-   工作原理：1个主线程专门负责接收客户端，1个线程轮询所有的客户端，发来了数据才会开启线程处理
-   同步：线程还要不断的接收客户端连接，以及处理数据
-   非阻塞：如果一个管道没有数据，不需要等待，可以轮询下一个管道是否有数据
-
-4. AIO表示异步非阻塞IO，AIO 引入异步通道的概念，采用了 Proactor 模式，有效的请求才启动线程，特点是先由操作系统完成后才通知服务端程序启动线程去处理，一般适用于连接数较多且连接时间较长的应用
-   异步：服务端线程接收到了客户端管道以后就交给底层处理IO通信，线程可以做其他事情
-   非阻塞：底层也是客户端有数据才会处理，有了数据以后处理好通知服务器应用来启动线程进行处理
-
-各种模型应用场景：
-
-* BIO适用于连接数目比较小且固定的架构，该方式对服务器资源要求比较高，并发局限于应用中，程序简单
-* NIO适用于连接数目多且连接比较短（轻操作）的架构，如聊天服务器，并发局限于应用中，编程复杂，JDK 1.4开始支持
-* AIO适用于连接数目多且连接比较长（重操作）的架构，如相册服务器，充分调用操作系统参与并发操作，编程复杂，JDK 1.7开始支持
-
-
-
-
-
-****
-
-
-
-### I/O
-
-#### IO模型
-
-##### 五种模型
-
-对于一个套接字上的输入操作，第一步是等待数据从网络中到达，当数据到达时被复制到内核中的某个缓冲区。第二步就是把数据从内核缓冲区复制到应用进程缓冲区
-
-Linux 有五种 I/O 模型：
-
-- 阻塞式 I/O
-- 非阻塞式 I/O
-- I/O 复用（select 和 poll）
-- 信号驱动式 I/O（SIGIO）
-- 异步 I/O（AIO）
-
-五种模型对比：
-
-* 同步 I/O 包括阻塞式 I/O、非阻塞式 I/O、I/O 复用和信号驱动 I/O ，它们的主要区别在第一个阶段，非阻塞式 I/O 、信号驱动 I/O 和异步 I/O 在第一阶段不会阻塞
-
-- 同步 I/O：将数据从内核缓冲区复制到应用进程缓冲区的阶段（第二阶段），应用进程会阻塞
-- 异步 I/O：第二阶段应用进程不会阻塞
-
-
-
-***
-
-
-
-##### 阻塞式IO
-
-应用进程通过系统调用 recvfrom 接收数据，会被阻塞，直到数据从内核缓冲区复制到应用进程缓冲区中才返回。阻塞不意味着整个操作系统都被阻塞，其它应用进程还可以执行，只是当前阻塞进程不消耗 CPU 时间，这种模型的 CPU 利用率会比较高
-
-recvfrom() 用于接收 Socket 传来的数据，并复制到应用进程的缓冲区 buf 中，把 recvfrom() 当成系统调用
-
-![](https://gitee.com/seazean/images/raw/master/Java/IO模型-阻塞式IO.png)
-
-
-
-***
-
-
-
-##### 非阻塞式
-
-应用进程通过 recvfrom 调用不停的去和内核交互，直到内核准备好数据。如果没有准备好数据，内核返回一个错误码，过一段时间应用进程再执行 recvfrom 系统调用，在两次发送请求的时间段，进程可以进行其他任务，这种方式称为轮询（polling）
-
-由于 CPU 要处理更多的系统调用，因此这种模型的 CPU 利用率比较低
-
-![](https://gitee.com/seazean/images/raw/master/Java/IO模型-非阻塞式IO.png)
-
-
-
-***
-
-
-
-##### 信号驱动
-
-应用进程使用 sigaction 系统调用，内核立即返回，应用进程可以继续执行，等待数据阶段应用进程是非阻塞的。当内核数据准备就绪时向应用进程发送 SIGIO 信号，应用进程收到之后在信号处理程序中调用 recvfrom 将数据从内核复制到应用进程中
-
-相比于非阻塞式 I/O 的轮询方式，信号驱动 I/O 的 CPU 利用率更高
-
-![](https://gitee.com/seazean/images/raw/master/Java/IO模型-信号驱动IO.png)
-
-
-
-***
-
-
-
-##### IO复用
-
-IO 复用模型使用 select 或者 poll 函数等待数据，select 会监听所有注册好的 IO，等待多个套接字中的任何一个变为可读，等待过程会被**阻塞**，当某个套接字准备好数据变为可读时 select 调用就返回，然后调用 recvfrom 把数据从内核复制到进程中
-
-IO 复用让单个进程具有处理多个 I/O 事件的能力，又被称为 Event Driven I/O，即事件驱动 I/O
-
-如果一个 Web 服务器没有 I/O 复用，那么每一个 Socket 连接都要创建一个线程去处理，如果同时有几万个连接，就需要创建相同数量的线程。相比于多进程和多线程技术，I/O 复用不需要进程线程创建和切换的开销，系统开销更小
-
-![](https://gitee.com/seazean/images/raw/master/Java/IO模型-IO复用模型.png)
-
-
-
-***
-
-
-
-##### 异步IO
-
-应用进程执行 aio_read 系统调用会立即返回，给内核传递描述符、缓冲区指针、缓冲区大小等。应用进程可以继续执行不会被阻塞，内核会在所有操作完成之后向应用进程发送信号。
-
-异步 I/O 与信号驱动 I/O 的区别在于，异步 I/O 的信号是通知应用进程 I/O 完成，而信号驱动 I/O 的信号是通知应用进程可以开始 I/O
-
-![](https://gitee.com/seazean/images/raw/master/Java/IO模型-异步IO模型.png)
-
-
-
-****
-
-
-
-#### 多路复用
-
-##### select
-
-###### 函数
-
-socket 不是文件，只是一个标识符，但是 Unix 操作系统把所有东西都**看作**是文件，所以 socket 说成 file descriptor，也就是 fd
-
-select 允许应用程序监视一组文件描述符，等待一个或者多个描述符成为就绪状态，从而完成 I/O 操作。
-
-```c
-int select(int n, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout);
-```
-
-- fd_set 使用 **bitmap 数组**实现，数组大小用 FD_SETSIZE 定义，只能监听少于 FD_SETSIZE 数量的描述符，32位机默认是 1024 个，64位机默认是 2048，可以对进行修改，然后重新编译内核
-
-- fd_set 有三种类型的描述符：readset、writeset、exceptset，对应读、写、异常条件的描述符集合
-
-- n 是监测的 socket 的最大数量
-
-- timeout 为超时参数，调用 select 会一直阻塞直到有描述符的事件到达或者等待的时间超过 timeout
-
-  ```c
-  struct timeval{
-      long tv_sec; //秒
-      long tv_usec;//微秒
-  }
-  ```
-
-  timeout == null：等待无限长的时间
-  tv_sec == 0 && tv_usec == 0：获取后直接返回，不阻塞等待
-  tv_sec != 0 || tv_usec != 0：等待指定时间
-
-- 方法成功调用返回结果为就绪的文件描述符个数，出错返回结果为 -1，超时返回结果为 0
-
-Linux 提供了一组宏为 fd_set 进行赋值操作：
-
-```c
-int FD_ZERO(fd_set *fdset);			// 将一个fd_set类型变量的所有值都置为0
-int FD_CLR(int fd, fd_set *fdset);	// 将一个fd_set类型变量的fd位置为0
-int FD_SET(int fd, fd_set *fdset);	// 将一个fd_set类型变量的fd位置为1
-int FD_ISSET(int fd, fd_set *fdset);// 判断fd位是否被置为1
-```
-
-示例：
-
-```c
-sockfd = socket(AF_INET, SOCK_STREAM, 0);
-memset(&addr, 0, sizeof(addr)));
-addr.sin_family = AF_INET;
-addr.sin_port = htons(2000);
-addr.sin_addr.s_addr = INADDR_ANY;
-bind(sockfd, (struct sockaddr*)&addr, sizeof(addr));//绑定连接
-listen(sockfd, 5);//监听5个端口
-for(i = 0; i < 5; i++) {
-	memset(&client, e, sizeof(client));
-    addrlen = sizeof(client);
-	fds[i] = accept(sockfd, (struct sockaddr*)&client, &addrlen);
-    //将监听的对应的文件描述符fd存入fds：[3,4,5,6,7]
-    if(fds[i] > max)
-		max = fds[i];
-}
-while(1) {
-    FD_ZERO(&rset);//置为0
-    for(i = 0; i < 5; i++) {
-    	FD_SET(fds[i], &rset);//对应位置1 [0001 1111 00.....]
-	}
-	print("round again");
-	select(max + 1, &rset, NULL, NULL, NULL);//监听
-    
-	for(i = 0; i <5; i++) {
-        if(FD_ISSET(fds[i], &rset)) {//判断监听哪一个端口
-            memset(buffer, 0, MAXBUF);
-            read(fds[i], buffer, MAXBUF);//进入内核态读数据
-            print(buffer);
-        }
-    }
-}
-```
-
-
-
-参考视频：https://www.bilibili.com/video/BV19D4y1o797
-
-
-
-****
-
-
-
-###### 流程
-
-select 调用流程图：
-
-![](https://gitee.com/seazean/images/raw/master/Java/IO-select调用过程.png)
-
-1. 使用 copy_from_user 从用户空间拷贝 fd_set 到内核空间，进程阻塞
-2. 注册回调函数 _pollwait
-3. 遍历所有 fd，调用其对应的 poll 方法（对于 socket，这个 poll 方法是 sock_poll，sock_poll 根据情况会调用到 tcp_poll、udp_poll 或者 datagram_poll），以 tcp_poll 为例，其核心实现就是 _pollwait
-4. _pollwait 就是把 current（当前进程）挂到设备的等待队列，不同设备有不同的等待队列，对于 tcp_poll ，其等待队列是 sk → sk_sleep（把进程挂到等待队列中并不代表进程已经睡眠），在设备收到消息（网络设备）或填写完文件数据（磁盘设备）后，会唤醒设备等待队列上睡眠的进程，这时 current 便被唤醒
-5. poll 方法返回时会返回一个描述读写操作是否就绪的 mask 掩码，根据这个 mask 掩码给 fd_set 赋值
-6. 如果遍历完所有的 fd，还没有返回一个可读写的 mask 掩码，则会调用 schedule_timeout 让调用 select 的进程（就是current）进入睡眠。当设备驱动发生自身资源可读写后，会唤醒其等待队列上睡眠的进程，如果超过一定的超时时间（schedule_timeout指定），没有其他线程唤醒，则调用 select 的进程会重新被唤醒获得 CPU，进而重新遍历 fd，判断有没有就绪的 fd
-7. 把 fd_set 从内核空间拷贝到用户空间，阻塞进程继续执行
-
-
-
-参考文章：https://www.cnblogs.com/anker/p/3265058.html
-
-其他流程图：https://www.processon.com/view/link/5f62b9a6e401fd2ad7e5d6d1
-
-
-
-****
-
-
-
-##### poll
-
-poll 的功能与 select 类似，也是等待一组描述符中的一个成为就绪状态
-
-```c
-int poll(struct pollfd *fds, unsigned int nfds, int timeout);
-```
-
-poll 中的描述符是 pollfd 类型的数组，pollfd 的定义如下：
-
-```c
-struct pollfd {
-    int   fd;         /* file descriptor */
-    short events;     /* requested events */
-    short revents;    /* returned events */
-};
-```
-
-select 和 poll 对比：
-
-- select 会修改描述符，而 poll 不会
-- select 的描述符类型使用数组实现，有描述符的限制；而 poll 使用**链表**实现，没有描述符数量的限制
-- poll 提供了更多的事件类型，并且对描述符的重复利用上比 select 高
-
-* select 和 poll 速度都比较慢，每次调用都需要将全部描述符数组 fd 从应用进程缓冲区复制到内核缓冲区，同时每次都需要在内核遍历传递进来的所有 fd ，这个开销在 fd 很多时会很大
-* 几乎所有的系统都支持 select，但是只有比较新的系统支持 poll
-* select 和 poll 的时间复杂度 O(n)，对 socket 进行扫描时是线性扫描，即采用轮询的方法，效率较低，因为并不知道具体是哪个 socket 具有事件，所以随着 FD 的增加会造成遍历速度慢的**线性下降**性能问题
-* poll 还有一个特点是水平触发，如果报告了 fd 后，没有被处理，那么下次 poll 时会再次报告该 fd
-* 如果一个线程对某个描述符调用了 select 或者 poll，另一个线程关闭了该描述符，会导致调用结果不确定
-
-
-
-参考文章：https://github.com/CyC2018/CS-Notes/blob/master/notes/Socket.md
-
-
-
-****
-
-
-
-##### epoll
-
-###### 函数
-
-epoll 使用事件的就绪通知方式，通过 epoll_ctl() 向内核注册新的描述符或者是改变某个文件描述符的状态。已注册的描述符在内核中会被维护在一棵**红黑树**上，一旦该 fd 就绪，内核通过 callback 回调函数将 I/O 准备好的描述符加入到一个**链表**中管理，进程调用 epoll_wait() 便可以得到事件完成的描述符
-
-```c
-int epoll_create(int size);
-int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event)；
-int epoll_wait(int epfd, struct epoll_event * events, int maxevents, int timeout);
-```
-
-*  epall_create：一个系统函数，函数将在内核空间内创建一个 epoll 数据结构，可以理解为 epoll 结构空间，返回值为 epoll 的文件描述符编号，后面当有client连接时，向该 epoll 区中添加监听，所以 epoll 使用一个文件描述符管理多个描述符
-
-* epall_ctl：epoll 的事件注册函数，select 函数是调用时指定需要监听的描述符和事件，epoll 先将用户感兴趣的描述符事件注册到 epoll 空间。此函数是非阻塞函数，用来增删改 epoll 空间内的描述符，参数解释：
-
-  * epfd：epoll 结构的进程 fd 编号，函数将依靠该编号找到对应的 epoll 结构
-
-  * op：表示当前请求类型，有三个宏定义：
-
-    * EPOLL_CTL_ADD：注册新的 fd 到 epfd 中
-    * EPOLL_CTL_MOD：修改已经注册的 fd 的监听事件
-    * EPOLL_CTI_DEL：从 epfd 中删除一个 fd
-
-  * fd：需要监听的文件描述符，一般指 socket_fd
-
-  * event：告诉内核对该 fd 资源感兴趣的事件，epoll_event 的结构：
-
-    ```c
-    struct epoll_event {
-        _uint32_t events;	/*epoll events*/
-        epoll_data_t data;	/*user data variable*/
-    }
-    ```
-
-    events 可以是以下几个宏集合：EPOLLIN、EPOLOUT、EPOLLPRI、EPOLLERR、EPOLLHUP（挂断）、EPOLET（边缘触发）、EPOLLONESHOT（只监听一次，事件触发后自动清除该 fd，从 epoll 列表）
-
-* epoll_wait：等待事件的产生，类似于 select() 调用，返回值为本次就绪的 fd 个数
-
-  * epfd：指定感兴趣的 epoll 事件列表
-  * events：指向一个 epoll_event 结构数组，当函数返回时，内核会把就绪状态的数据拷贝到该数组
-  * maxevents：标明 epoll_event 数组最多能接收的数据量，即本次操作最多能获取多少就绪数据
-  * timeout：单位为毫秒
-    * 0：表示立即返回，非阻塞调用
-    * -1：阻塞调用，直到有用户感兴趣的事件就绪为止
-    * 大于0：阻塞调用，阻塞指定时间内如果有事件就绪则提前返回，否则等待指定时间后返回
-
-epoll 的描述符事件有两种触发模式：LT（level trigger）和 ET（edge trigger）：
-
-* LT 模式：当 epoll_wait() 检测到描述符事件到达时，将此事件通知进程，进程可以不立即处理该事件，下次调用 epoll_wait() 会再次通知进程。是默认的一种模式，并且同时支持 Blocking 和 No-Blocking
-* ET 模式：通知之后进程必须立即处理事件，下次再调用 epoll_wait() 时不会再得到事件到达的通知。减少了 epoll 事件被重复触发的次数，因此效率要比 LT 模式高；只支持 No-Blocking，以避免由于一个文件的阻塞读/阻塞写操作把处理多个文件描述符的任务饥饿
-
-```c
-// 创建 epoll 描述符，每个应用程序只需要一个，用于监控所有套接字
-int pollingfd = epoll_create(0xCAFE);
-if ( pollingfd < 0 )// report error
-// 初始化 epoll 结构
-struct epoll_event ev = { 0 };
-
-// 将连接类实例与事件相关联，可以关联任何想要的东西
-ev.data.ptr = pConnection1;
-
-// 监视输入，并且在事件发生后不自动重新准备描述符
-ev.events = EPOLLIN | EPOLLONESHOT;
-// 将描述符添加到监控列表中，即使另一个线程在epoll_wait中等待，描述符将被正确添加
-if ( epoll_ctl( epollfd, EPOLL_CTL_ADD, pConnection1->getSocket(), &ev) != 0 )
-    // report error
-
-// 最多等待 20 个事件
-struct epoll_event pevents[20];
-
-// 等待10秒，检索20个并存入epoll_event数组
-int ready = epoll_wait(pollingfd, pevents, 20, 10000);
-// 检查epoll是否成功
-if ( ret == -1)// report error and abort
-else if ( ret == 0)// timeout; no event detected
-else
-{
-    for (int i = 0; i < ready; i+ )
-    {
-        if ( pevents[i].events & EPOLLIN )
-        {
-            // 获取连接指针
-            Connection * c = (Connection*) pevents[i].data.ptr;
-            c->handleReadEvent();
-         }
-    }
-}
-```
-
-
-
-流程图：https://gitee.com/seazean/images/blob/master/Java/IO-epoll%E5%8E%9F%E7%90%86%E5%9B%BE.jpg
-
-图片来源：https://www.processon.com/view/link/5f62f98f5653bb28eb434add
-
-参考视频：https://www.bilibili.com/video/BV19D4y1o797
-
-参考文章：https://github.com/CyC2018/CS-Notes/blob/master/notes/Socket.md
-
-
-
-***
-
-
-
-###### 特点
-
-epoll 的特点：
-
-* epoll 仅适用于 Linux 系统
-* epoll 使用一个文件描述符管理多个描述符，将用户关系的文件描述符的事件存放到内核的一个事件表中
-* 没有最大描述符数量（并发连接）的限制，打开 fd 的上限远大于1024（1G 内存能监听约10万个端口）
-* epoll 的时间复杂度 O(1)，epoll 理解为 event poll，不同于忙轮询和无差别轮询，调用 epoll_wait **只是轮询就绪链表**。当监听列表有设备就绪时调用回调函数，把就绪 fd 放入就绪链表中，并唤醒在 epoll_wait 中阻塞的进程，所以 epoll 实际上是**事件驱动**（每个事件关联上fd）的，降低了 system call 的时间复杂度
-* epoll 内核中根据每个 fd 上的 callback 函数来实现，只有活跃的 socket 才会主动调用 callback，所以使用 epoll 没有前面两者的线性下降的性能问题，效率提高
-
-* epoll 每次注册新的事件到 epoll 句柄中时，会把所有的 fd 拷贝进内核，但不是每次 epoll_wait 的时重复拷贝，对比前面两种，epoll 只需要将描述符从进程缓冲区向内核缓冲区拷贝一次。 epoll 也可以利用 mmap() 文件映射内存加速与内核空间的消息传递，减少复制开销
-* 前面两者要把 current 往设备等待队列中挂一次，epoll 也只把 current 往等待队列上挂一次，但是这里的等待队列并不是设备等待队列，只是一个 epoll 内部定义的等待队列，这样节省不少的开销
-* epoll 对多线程编程更有友好，一个线程调用了 epoll_wait() 另一个线程关闭了同一个描述符，也不会产生像 select 和 poll 的不确定情况
-
-
-
-参考文章：https://www.jianshu.com/p/dfd940e7fca2
-
-参考文章：https://www.cnblogs.com/anker/p/3265058.html
-
-
-
-***
-
-
-
-##### 应用
-
-应用场景： 
-
-* select 应用场景：
-  * select 的 timeout 参数精度为微秒，而 poll 和 epoll 为毫秒，因此 select 更加适用于实时性要求比较高的场景，比如核反应堆的控制
-  * select 可移植性更好，几乎被所有主流平台所支持
-
-* poll 应用场景：poll 没有最大描述符数量的限制，适用于平台支持并且对实时性要求不高的情况
-
-* epoll 应用场景：
-  * 运行在 Linux 平台上，有大量的描述符需要同时轮询，并且这些连接最好是长连接
-  * 需要同时监控小于 1000 个描述符，没必要使用 epoll，因为这个应用场景下并不能体现 epoll 的优势
-  * 需要监控的描述符状态变化多，而且都是非常短暂的，也没有必要使用 epoll。因为 epoll 中的所有描述符都存储在内核中，造成每次需要对描述符的状态改变都需要通过 epoll_ctl() 进行系统调用，频繁系统调用降低效率，并且 epoll 的描述符存储在内核，不容易调试
-
-
-
-参考文章：https://github.com/CyC2018/CS-Notes/blob/master/notes/Socket.md
-
-
-
-****
-
-
-
-#### 系统调用
-
-##### 内核态
-
-用户空间：用户代码、用户堆栈
-
-内核空间：内核代码、内核调度程序、进程描述符（内核堆栈、thread_info进程描述符）
-
-* 进程描述符和用户的进程是一一对应的
-* SYS_API 系统调用：如 read、write，系统调用就是 0X80 中断
-* 进程描述符pd：进程从用户态切换到内核态时，需要保存用户态时的上下文信息，
-* 线程上下文：用户程序基地址，程序计数器、cpu cache、寄存器等，方便程序切回用户态时恢复现场
-* 内核堆栈：系统调用函数也是要创建变量的，这些变量在内核堆栈上分配
-
-![](https://gitee.com/seazean/images/raw/master/Java/IO-用户态和内核态.png)
-
-
-
-***
-
-
-
-##### 80中断
-
-在用户程序中调用操作系统提供的核心态级别的子功能，为了系统安全需要进行用户态和内核态转换，状态的转换需要进行 CPU 中断，中断分为硬中断和软中断：
-
-* 硬中断：如网络传输中，数据到达网卡后，网卡经过一系列操作后发起硬件中断
-* 软中断：如程序运行过程中本身产生的一些中断
-  - 发起 `0X80` 中断
-  - 程序执行碰到除 0 异常
-
-系统调用 system_call 函数所对应的中断指令编号是 0X80（十进制是8×16=128），而该指令编号对应的就是系统调用程序的入口，所以称系统调用为 80 中断
-
-系统调用的流程：
-
-* 在 CPU 寄存器里存一个系统调用号，表示哪个系统函数，比如 read
-* 将 CPU 的临时数据都保存到 thread_info 中
-* 执行 80 中断处理程序，找到刚刚存的系统调用号（read），先检查缓存中有没有对应的数据，没有就去磁盘中加载到内核缓冲区，然后从内核缓冲区拷贝到用户空间
-* 最后恢复到用户态，通过 thread_info 恢复现场，用户态继续执行
-
-![](https://gitee.com/seazean/images/raw/master/Java/IO-系统调用的过程.jpg)
-
-
-
-参考文章：https://blog.csdn.net/hancoder/article/details/112149121
-
-
-
-****
-
-
-
-#### 零拷贝
-
-##### DMA
-
-DMA (Direct Memory Access) ：直接存储器访问，让外部设备不通过 CPU 直接与系统内存交换数据的接口技术
-
-作用：可以解决批量数据的输入/输出问题，使数据的传送速度取决于存储器和外设的工作速度
-
-把内存数据传输到网卡然后发送：
-
-* 没有 DMA：CPU 读内存数据到 CPU 高速缓存，再写到网卡，这样就把 CPU 的速度拉低到和网卡一个速度
-* 使用 DMA：把内存数据读到 socket 内核缓存区（CPU复制），CPU 分配给 DMA 开始**异步**操作，DMA 读取 socket 缓冲区到 DMA 缓冲区，然后写到网卡。DMA 执行完后中断 CPU，这时 socket 内核缓冲区为空，CPU 从用户态切换到内核态，执行中断处理程序，将需要使用 socket 缓冲区的阻塞进程移到运行队列
-
-一个完整的 DMA 传输过程必须经历 DMA 请求、DMA 响应、DMA 传输、DMA 结束四个步骤：
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/IO-DMA.png" style="zoom: 50%;" />
-
-DMA 方式是一种完全由硬件进行组信息传送的控制方式，通常系统总线由 CPU 管理，在 DMA 方式中，CPU 的主存控制信号被禁止使用，CPU 把总线（地址总线、数据总线、控制总线）让出来由 DMA 控制器接管，用来控制传送的字节数、判断 DMA 是否结束、以及发出 DMA 结束信号，所以 DMA 控制器必须有以下功能：
-
-* 接受外设发出的 DMA 请求，并向 CPU 发出总线接管请求
-* 当 CPU 发出允许接管信号后，进入 DMA 操作周期
-* 确定传送数据的主存单元地址及长度，并自动修改主存地址计数和传送长度计数
-* 规定数据在主存和外设间的传送方向，发出读写等控制信号，执行数据传送操作
-* 判断 DMA 传送是否结束，发出 DMA 结束信号，使 CPU 恢复正常工作状态（中断）
-
-
-
-***
-
-
-
-##### BIO
-
-传统的 I/O 操作进行了 4 次用户空间与内核空间的上下文切换，以及 4 次数据拷贝：
-
-* JVM 发出 read() 系统调用，OS 上下文切换到内核模式（切换1）并将数据从网卡或硬盘等通过 DMA 读取到内核空间缓冲区（拷贝1）
-* OS 内核将数据复制到用户空间缓冲区（拷贝2），然后 read 系统调用返回，又会导致一次内核空间到用户空间的上下文切换（切换2）
-* JVM 处理代码逻辑并发送 write() 系统调用，OS 上下文切换到内核模式（切换3）并从用户空间缓冲区复制数据到内核空间缓冲区（拷贝3）
-* write 系统调用返回，导致内核空间到用户空间的再次上下文切换（切换4），将内核空间缓冲区中的数据写到 hardware（拷贝4）
-
-流程图中的箭头反过来也成立，可以从网卡获取数据
-
-![](https://gitee.com/seazean/images/raw/master/Java/IO-BIO工作流程.png)
-
-read 调用图示：read、write 都是系统调用指令
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/IO-缓冲区读写.png" style="zoom: 67%;" />
-
-
-
-***
-
-
-
-##### mmap
-
-mmap（Memory Mapped Files）加 write 实现零拷贝，零拷贝就是没有数据从内核空间复制到用户空间
-
-用户空间和内核空间都使用内存，所以可以共享同一块物理内存地址，省去用户态和内核态之间的拷贝。写网卡时，共享空间的内容拷贝到 socket 缓冲区，然后交给 DMA 发送到网卡，只需要 3 次复制
-
-进行了 4 次用户空间与内核空间的上下文切换，以及 3 次数据拷贝（2 次 DMA，一次 CPU 复制）：
-
-* 发出 mmap 系统调用，DMA 拷贝到内核缓冲区；mmap系统调用返回，无需拷贝
-* 发出 write 系统调用，将数据从内核缓冲区拷贝到内核 socket 缓冲区；write系统调用返回，DMA 将内核空间 socket 缓冲区中的数据传递到协议引擎
-
-![](https://gitee.com/seazean/images/raw/master/Java/IO-mmap工作流程.png)
-
-原理：利用操作系统的 Page 来实现文件到物理内存的直接映射，完成映射后对物理内存的操作会**被同步**到硬盘上
-
-缺点：不可靠，写到 mmap 中的数据并没有被真正的写到硬盘，操作系统会在程序主动调用 flush 的时候才把数据真正的写到硬盘
-
-Java NIO 提供了 **MappedByteBuffer** 类可以用来实现 mmap 内存映射，MappedByteBuffer 类对象**只能**通过调用 `FileChannel.map()` 获取
-
-
-
-****
-
-
-
-##### sendfile
-
-sendfile 实现零拷贝，打开文件的文件描述符 fd 和 socket 的 fd 传递给 sendfile，然后经过 3 次复制和 2 次用户态和内核态的切换
-
-原理：数据根本不经过用户态，直接从内核缓冲区进入到 Socket Buffer，由于和用户态完全无关，就减少了两次上下文切换
-
-![](https://gitee.com/seazean/images/raw/master/Java/IO-sendfile工作流程.png)
-
-sendfile2.4 之后，sendfile 实现了更简单的方式，文件到达内核缓冲区后，不必再将数据全部复制到 socket buffer 缓冲区，而是只**将记录数据位置和长度相关等描述符信息**保存到 socket buffer，DMA 根据 socket 缓冲区中描述符提供的位置和偏移量信息直接将内核空间缓冲区中的数据拷贝到协议引擎上（2 次复制 2 次切换）
-
-Java NIO 对 sendfile 的支持是 `FileChannel.transferTo()/transferFrom()`，把磁盘文件读取 OS 内核缓冲区后的 fileChannel，直接转给 socketChannel 发送，底层就是sendfile
-
-
-
-参考文章：https://blog.csdn.net/hancoder/article/details/112149121
-
-
-
-***
-
-
-
-### Inet
-
-一个该 InetAddress 类的对象就代表一个IP地址对象
-
-成员方法：
-`static InetAddress getLocalHost()` : 获得本地主机IP地址对象
-`static InetAddress getByName(String host)` : 根据IP地址字符串或主机名获得对应的IP地址对象
-`String getHostName()` : 获取主机名
-`String getHostAddress()` : 获得IP地址字符串
-
-```java
-public class InetAddressDemo {
-    public static void main(String[] args) throws Exception {
-        // 1.获取本机地址对象
-        InetAddress ip = InetAddress.getLocalHost();
-        System.out.println(ip.getHostName());//DESKTOP-NNMBHQR
-        System.out.println(ip.getHostAddress());//192.168.11.1
-        // 2.获取域名ip对象
-        InetAddress ip2 = InetAddress.getByName("www.baidu.com");
-        System.out.println(ip2.getHostName());//www.baidu.com
-        System.out.println(ip2.getHostAddress());//14.215.177.38
-        // 3.获取公网IP对象。
-        InetAddress ip3 = InetAddress.getByName("182.61.200.6");
-        System.out.println(ip3.getHostName());//182.61.200.6
-        System.out.println(ip3.getHostAddress());//182.61.200.6
-        
-        // 4.判断是否能通： ping  5s之前测试是否可通
-        System.out.println(ip2.isReachable(5000)); // ping百度
-    }
-}
-```
-
-
-
-***
-
-
-
-### UDP
-
-#### 基本介绍
-
-UDP（User Datagram Protocol）协议的特点：
-
-* 面向无连接的协议
-* 发送端只管发送，不确认对方是否能收到
-* 基于数据包进行数据传输
-* 发送数据的包的大小限制**64KB**以内
-* 因为面向无连接，速度快，但是不可靠，会丢失数据
-
-UDP协议的使用场景：在线视频、网络语音、电话
-
-
-
-#### 实现UDP
-
-UDP协议相关的两个类
-
-* DatagramPacket（数据包对象）：用来封装要发送或要接收的数据，比如：集装箱
-* DatagramSocket（发送对象）：用来发送或接收数据包，比如：码头
-
-**DatagramPacket**：
-
-* DatagramPacket类
-
-  `public new DatagramPacket(byte[] buf, int length, InetAddress address, int port)` : 创建发送端数据包对象，参数： 
-
-  * buf：要发送的内容，字节数组
-  * length：要发送内容的长度，单位是字节
-  * address：接收端的IP地址对象
-  * port：接收端的端口号
-
-  `public new DatagramPacket(byte[] buf, int length)` : 创建接收端的数据包对象，参数：
-
-  * buf：用来存储接收到内容		
-  * length：能够接收内容的长度
-* DatagramPacket 类常用方法
-     `public int getLength()` : 获得实际接收到的字节个数
-     `public byte[] getData()` : 返回数据缓冲区
-
-**DatagramSocket**：
-
-* DatagramSocket类构造方法
-  `protected DatagramSocket()` : 创建发送端的Socket对象，系统会随机分配一个端口号
-  `protected DatagramSocket(int port)` : 创建接收端的Socket对象并指定端口号
-* DatagramSocket类成员方法
-  `public void send(DatagramPacket dp)` : 发送数据包
-  `public void receive(DatagramPacket p)` : 接收数据包
-  `public void close()` : 关闭数据报套接字
-
-```java
-public class UDPClientDemo {
-    public static void main(String[] args) throws Exception {
-        System.out.println("===启动客户端===");
-        // 1.创建一个集装箱对象，用于封装需要发送的数据包!
-        byte[] buffer = "我学Java".getBytes();
-        DatagramPacket packet = new DatagramPacket(buffer,bubffer.length
-											,InetAddress.getLoclHost,8000);
-        // 2.创建一个码头对象
-        DatagramSocket socket = new DatagramSocket();
-        // 3.开始发送数据包对象
-        socket.send(packet);
-        socket.close();
-    }
-}
-public class UDPServerDemo{
-    public static void main(String[] args) throws Exception {
-        System.out.println("==启动服务端程序==");
-        // 1.创建一个接收客户都端的数据包对象（集装箱）
-        byte[] buffer = new byte[1024*64];
-        DatagramPacket packet = new DatagramPacket(buffer,bubffer.length);
-        // 2.创建一个接收端的码头对象
-        DatagramSocket socket = new DatagramSocket(8000);
-        // 3.开始接收
-        socket.receive(packet);
-        // 4.从集装箱中获取本次读取的数据量
-        int len = packet.getLength();
-        // 5.输出数据
-        //String rs = new String(socket.getData(), 0, len)
-        String rs = new String(buffer , 0 , len);
-        System.out.println(rs);
-        // 6.服务端还可以获取发来信息的客户端的IP和端口。
-        String ip = packet.getAddress().getHostAdress();
-        int port = packet.getPort();
-        socket.close();
-    }
-}
-```
-
-
-
-***
-
-
-
-#### 通讯方式
-
-UDP通信方式：
-
-+ 单播：用于两个主机之间的端对端通信
-
-+ 组播：用于对一组特定的主机进行通信
-  IP : 224.0.1.0
-  Socket对象 : MulticastSocket
-  
-+ 广播：用于一个主机对整个局域网上所有主机上的数据通信
-  IP : 255.255.255.255
-  Socket对象 : DatagramSocket
-  
-  
-
-***
-
-
-
-### TCP
-
-#### 基本介绍
-
-TCP/IP协议 ==> Transfer Control Protocol ==> 传输控制协议
-
-TCP/IP协议的特点：
-
-* 面向连接的协议
-* 只能由客户端主动发送数据给服务器端，服务器端接收到数据之后，可以给客户端响应数据
-* 通过**三次握手**建立连接，连接成功形成数据传输通道；通过**四次挥手**断开连接
-* 基于IO流进行数据传输
-* 传输数据大小没有限制
-* 因为面向连接的协议，速度慢，但是是可靠的协议。
-
-TCP协议的使用场景：文件上传和下载、邮件发送和接收、远程登录
-
-注意：**TCP不会为没有数据的ACK超时重传**
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/三次握手.png" alt="三次握手" style="zoom: 50%;" />
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/四次挥手.png" alt="四次挥手" style="zoom: 67%;" />
-
-
-
-***
-
-
-
-#### Socket
-
-TCP通信也叫**Socket网络编程**，只要代码基于Socket开发，底层就是基于了可靠传输的TCP通信
-
-TCP协议相关的类：
-
-* Socket：一个该类的对象就代表一个客户端程序。
-* ServerSocket：一个该类的对象就代表一个服务器端程序。
-
-Socket类
-
-* 构造方法：
-  `Socket(InetAddress address,int port)` : 创建流套接字并将其连接到指定IP指定端口号
-  `Socket(String host, int port)` : 根据ip地址字符串和端口号创建客户端Socket对象
-  注意事项：执行该方法，就会立即连接指定的服务器，连接成功，则表示三次握手通过，反之抛出异常
-* 常用API：
-  `OutputStream getOutputStream()` : 获得字节输出流对象
-  `InputStream getInputStream()` : 获得字节输入流对象
-  `void shutdownInput()` : 停止接受
-  `void shutdownOutput()` : 停止发送数据，终止通信
-  `SocketAddress getRemoteSocketAddress() `: 返回套接字连接到的端点的地址，未连接返回null
-
-ServerSocket类：
-
-* 构造方法：`public ServerSocket(int port)`
-* 常用API：`public Socket accept()`，**阻塞等待**接收一个客户端的Socket管道连接请求，连接成功返回一个Socket对象
-
-相当于客户端和服务器建立一个数据管道，管道一般不用close
-
-
-
-***
-
-
-
-#### 实现TCP
-
-##### 开发流程
-
-客户端的开发流程：
-
-1. 客户端要请求于服务端的socket管道连接
-2. 从socket通信管道中得到一个字节输出流
-3. 通过字节输出流给服务端写出数据
-
-服务端的开发流程：
-
-1. 用ServerSocket注册端口
-2. 接收客户端的Socket管道连接
-3. 从socket通信管道中得到一个字节输入流
-4. 从字节输入流中读取客户端发来的数据
-
-![](https://gitee.com/seazean/images/raw/master/Java/BIO工作机制.png)
-
-![](https://gitee.com/seazean/images/raw/master/Java/TCP-工作模型.png)
-
-* 如果输出缓冲区空间不够存放主机发送的数据，则会被阻塞，输入缓冲区同理
-* 缓冲区不属于应用程序，属于内核
-* TCP从输出缓冲区读取数据会加锁阻塞线程
-
-
-
-***
-
-
-
-##### BIO通信
-
-需求一：客户端发送一行数据，服务端接收一行数据
-
-````java
-public class ClientDemo {
-    public static void main(String[] args) throws Exception {
-        // 1.客户端要请求于服务端的socket管道连接。
-        Socket socket = new Socket("127.0.0.1",8080);
-        // 2.从socket通信管道中得到一个字节输出流
-        OutputStream os = new socket.getOutputStream();
-        // 3.把低级的字节输出流包装成高级的打印流。
-        PrintStream ps = new PrintStream(os);
-        // 4.开始发消息出去
-        ps.println("我是客户端");
-        ps.flush();//一般不关闭IO流
-        System.out.println("客户端发送完毕~~~~");
-    }
-}
-public class ServerDemo{
-    public static void main(String[] args) throws Exception {
-        System.out.println("----服务端启动----");
-        // 1.注册端口: public ServerSocket(int port)
-        ServerSocket serverSocket = new ServerSocket(8080);
-        // 2.开始等待接收客户端的Socket管道连接。
-        Socket socket = serverSocket.accept();
-        // 3.从socket通信管道中得到一个字节输入流。
-        InputStream is = socket.getInputStream();
-        // 4.把字节输入流转换成字符输入流
-        BufferedReader br = new BufferedReader(new InputStreamReader(is));
-        // 6.按照行读取消息 。
-        String line;
-        if((line = br.readLine()) != null){
-            System.out.println(line);
-        }
-    }
-}
-````
-
-
-
-需求二：客户2端可以反复发送数据，服务端可以反复数据2
-
-```java
-public class ClientDemo {
-    public static void main(String[] args) throws Exception {
-        // 1.客户端要请求于服务端的socket管道连接。
-        Socket socket = new Socket("127.0.0.1",8080);
-        // 2.从socket通信管道中得到一个字节输出流
-        OutputStream os = new socket.getOutputStream();
-        // 3.把低级的字节输出流包装成高级的打印流。
-        PrintStream ps = new PrintStream(os);
-        // 4.开始发消息出去
-         while(true){
-            Scanner sc = new Scanner(System.in);
-            System.out.print("请说：");
-            ps.println(sc.nextLine());
-            ps.flush();
-        }
-    }
-}
-public class ServerDemo{
-    public static void main(String[] args) throws Exception {
-        System.out.println("----服务端启动----");
-        // 1.注册端口: public ServerSocket(int port)
-        ServerSocket serverSocket = new ServerSocket(8080);
-        // 2.开始等待接收客户端的Socket管道连接。
-        Socket socket = serverSocket.accept();
-        // 3.从socket通信管道中得到一个字节输入流。
-        InputStream is = socket.getInputStream();
-        // 4.把字节输入流转换成字符输入流
-        BufferedReader br = new BufferedReader(new InputStreamReader(is));
-        // 6.按照行读取消息 。
-        String line;
-        while((line = br.readLine()) != null){
-            System.out.println(line);
-        }
-    }
-}
-```
-
-
-
-需求三：实现一个服务端可以同时接收多个客户端的消息。
-
-```java
-public class ClientDemo {
-    public static void main(String[] args) throws Exception {
-        Socket socket = new Socket("127.0.0.1",8080);
-        OutputStream os = new socket.getOutputStream();
-        PrintStream ps = new PrintStream(os);
-		while(true){
-            Scanner sc = new Scanner(System.in);
-            System.out.print("请说：");
-            ps.println(sc.nextLine());
-            ps.flush();
-        }
-    }
-}
-public class ServerDemo{
-    public static void main(String[] args) throws Exception {
-        System.out.println("----服务端启动----");
-        ServerSocket serverSocket = new ServerSocket(8080);
-        while(true){
-            // 开始等待接收客户端的Socket管道连接。
-             Socket socket = serverSocket.accept();
-            // 每接收到一个客户端必须为这个客户端管道分配一个独立的线程来处理与之通信。
-            new ServerReaderThread(socket).start();
-        }
-    }
-}
-class ServerReaderThread extends Thread{
-    privat Socket socket;
-    public ServerReaderThread(Socket socket){this.socket = socket;}
-    @Override
-    public void run() {
-        try(InputStream is = socket.getInputStream();
-           	BufferedReader br = new BufferedReader(new InputStreamReader(is))
-           ){
-            String line;
-            while((line = br.readLine()) != null){
-                sout(socket.getRemoteSocketAddress() + ":" + line);
-            }
-        }catch(Exception e){
-            sout(socket.getRemoteSocketAddress() + "下线了~~~~~~");
-        }
-    }
-}
-```
-
-
-
-***
-
-
-
-##### 伪异步
-
-一个客户端要一个线程，这种模型是不行的，并发越高系统瘫痪的越快，可以在服务端引入线程池，使用线程池来处理与客户端的消息通信
-
-优势：不会引起系统的死机，可以控制并发线程的数量
-劣势：同时可以并发的线程将受到限制
-
-```java
-public class BIOServer {
-    public static void main(String[] args) throws Exception {
-        //线程池机制
-        //创建一个线程池，如果有客户端连接，就创建一个线程，与之通讯(单独写一个方法)
-        ExecutorService newCachedThreadPool = Executors.newCachedThreadPool();
-        //创建ServerSocket
-        ServerSocket serverSocket = new ServerSocket(6666);
-        System.out.println("服务器启动了");
-        while (true) {
-            System.out.println("线程名字 = " + Thread.currentThread().getName());
-            //监听，等待客户端连接
-            System.out.println("等待连接....");
-            final Socket socket = serverSocket.accept();
-            System.out.println("连接到一个客户端");
-            //创建一个线程，与之通讯
-            newCachedThreadPool.execute(new Runnable() {
-                public void run() {
-                    //可以和客户端通讯
-                    handler(socket);
-                }
-            });
-        }
-    }
-
-    //编写一个handler方法，和客户端通讯
-    public static void handler(Socket socket) {
-        try {
-            System.out.println("线程名字 = " + Thread.currentThread().getName());
-            byte[] bytes = new byte[1024];
-            //通过socket获取输入流
-            InputStream inputStream = socket.getInputStream();
-            int len;
-            //循环的读取客户端发送的数据
-            while ((len = inputStream.read(bytes)) != -1) {
-                System.out.println("线程名字 = " + Thread.currentThread().getName());
-                //输出客户端发送的数据
-                System.out.println(new String(bytes, 0, read));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            System.out.println("关闭和client的连接");
-            try {
-                socket.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-}
-```
-
-
-
-****
-
-
-
-#### 文件传输
-
-##### 字节流
-
-客户端：本地图片:  ‪E:\seazean\图片资源\beautiful.jpg
-服务端：服务器路径：E:\seazean\图片服务器
-
-UUID. randomUUID() : 方法生成随机的文件名
-
-**socket.shutdownOutput()**：这个必须执行，不然服务器会一直循环等待数据，最后文件损坏，程序报错
-
-```java
-//常量包
-public class Constants {
-    public static final String SRC_IMAGE = "D:\\seazean\\图片资源\\beautiful.jpg";
-    public static final String SERVER_DIR = "D:\\seazean\\图片服务器\\";
-    public static final String SERVER_IP = "127.0.0.1";
-    public static final int SERVER_PORT = 8888;
-
-}
-public class ClientDemo {
-    public static void main(String[] args) throws Exception {
-        Socket socket = new Socket(Constants.ERVER_IP,Constants.SERVER_PORT);
-        BufferedOutputStream bos=new BufferedOutputStream(socket.getOutputStream());
-        //提取本机的图片上传给服务端。Constants.SRC_IMAGE
-        BufferedInputStream bis = new BufferedInputStream(new FileInputStream());
-        byte[] buffer = new byte[1024];
-        int len ;
-        while((len = bis.read(buffer)) != -1) {
-            bos.write(buffer, 0 ,len);
-        }
-        bos.flush();// 刷新图片数据到服务端！！
-        socket.shutdownOutput();// 告诉服务端我的数据已经发送完毕，不要在等我了！
-        bis.close();
-        
-        //等待着服务端的响应数据！！
-        BufferedReader br = new BufferedReader(
-           				 new InputStreamReader(socket.getInputStream()));
-        System.out.println("收到服务端响应："+br.readLine());
-    }
-}
-```
-
-```java
-public class ServerDemo {
-    public static void main(String[] args) throws Exception {
-        System.out.println("----服务端启动----");
-        // 1.注册端口: 
-        ServerSocket serverSocket = new ServerSocket(Constants.SERVER_PORT);
-        // 2.定义一个循环不断的接收客户端的连接请求
-        while(true){
-            // 3.开始等待接收客户端的Socket管道连接。
-            Socket socket = serverSocket.accept();
-            // 4.每接收到一个客户端必须为这个客户端管道分配一个独立的线程来处理与之通信。
-            new ServerReaderThread(socket).start();
-        }
-    }
-}
-class ServerReaderThread extends Thread{
-    private Socket socket ;
-    public ServerReaderThread(Socket socket){this.socket = socket;}
-    @Override
-    public void run() {
-        try{
-            InputStream is = socket.getInputStream();
-           	BufferedInputStream bis = new BufferedInputStream(is);
-            BufferedOutputStream bos = new BufferedOutputStream(
-                new FileOutputStream
-                (Constants.SERVER_DIR+UUID.randomUUID().toString()+".jpg"));
-            byte[] buffer = new byte[1024];
-            int len;
-            while((len = bis.read(buffer)) != -1){
-                bos.write(buffer,0,len);
-            }
-            bos.close();
-            System.out.println("服务端接收完毕了！");
-            
-            // 4.响应数据给客户端
-            PrintStream ps = new PrintStream(socket.getOutputStream());
-            ps.println("您好，已成功接收您上传的图片！");
-            ps.flush();
-            Thread.sleep(10000);
-        }catch (Exception e){
-            sout(socket.getRemoteSocketAddress() + "下线了");
-        }
-    }
-}
-```
-
-
-
-****
-
-
-
-##### 数据流
-
-构造方法：
-`DataOutputStream(OutputStream out)` : 创建一个新的数据输出流，以将数据写入指定的底层输出流
-`DataInputStream(InputStream in) ` : 创建使用指定的底层 InputStream 的 DataInputStream
-
-常用API：
-`final void writeUTF(String str)` : 使用机器无关的方式使用 UTF-8 编码将字符串写入底层输出流
-`final String readUTF()` : 读取以modified UTF-8格式编码的 Unicode 字符串，返回 String  类型
-
-```java
-public class Client {
-    public static void main(String[] args) {
-		InputStream is = new FileInputStream("path");
-            //  1、请求与服务端的Socket链接
-            Socket socket = new Socket("127.0.0.1" , 8888);
-            //  2、把字节输出流包装成一个数据输出流
-            DataOutputStream dos = new DataOutputStream(socket.getOutputStream());
-            //  3、先发送上传文件的后缀给服务端
-            dos.writeUTF(".png");
-            //  4、把文件数据发送给服务端进行接收
-            byte[] buffer = new byte[1024];
-            int len;
-            while((len = is.read(buffer)) > 0 ){
-                dos.write(buffer , 0 , len);
-            }
-            dos.flush();
-            Thread.sleep(10000);
-    }
-}
-
-public class Server {
-    public static void main(String[] args) {
-        ServerSocket ss = new ServerSocket(8888);
-        Socket socket = ss.accept();
- 		// 1、得到一个数据输入流读取客户端发送过来的数据
-		DataInputStream dis = new DataInputStream(socket.getInputStream());
-		// 2、读取客户端发送过来的文件类型
-		String suffix = dis.readUTF();
-		// 3、定义一个字节输出管道负责把客户端发来的文件数据写出去
-		OutputStream os = new FileOutputStream("path"+
-                    UUID.randomUUID().toString()+suffix);
-		// 4、从数据输入流中读取文件数据，写出到字节输出流中去
-		byte[] buffer = new byte[1024];
-		int len;
-		while((len = dis.read(buffer)) > 0){
- 			os.write(buffer,0, len);
-		}
-		os.close();
-		System.out.println("服务端接收文件保存成功！");
-    }
-}
-```
-
-
-
-***
-
-
-
-### NIO
-
-#### 基本介绍
-
-**NIO的介绍**：
-
-Java NIO（New IO、Java non-blocking IO），从 Java 1.4 版本开始引入的一个新的IO API，可以替代标准的 Java IO API，NIO支持面**向缓冲区**的、基于**通道**的IO操作，以更加高效的方式进行文件的读写操作。
-
-* NIO 有三大核心部分：**Channel( 通道) ，Buffer( 缓冲区), Selector( 选择器)**
-* NIO 是非阻塞IO，传统 IO 的 read 和 write 只能阻塞执行，线程在读写 IO 期间不能干其他事情，比如调用socket.read()，如果服务器没有数据传输过来，线程就一直阻塞，而 NIO 中可以配置 Socket 为非阻塞模式
-* NIO 可以做到用一个线程来处理多个操作的。假设有 1000 个请求过来，根据实际情况可以分配20 或者 80个线程来处理，不像之前的阻塞 IO 那样分配 1000 个
-
-NIO 和 BIO 的比较：
-
-* BIO 以流的方式处理数据，而 NIO 以块的方式处理数据，块 I/O 的效率比流 I/O 高很多
-
-* BIO 是阻塞的，NIO 则是非阻塞的
-
-* BIO 基于字节流和字符流进行操作，而 NIO 基于 Channel 和 Buffer 进行操作，数据从通道读取到缓冲区中，或者从缓冲区写入到通道中。Selector 用于监听多个通道的事件（比如：连接请求，数据到达等），因此使用单个线程就可以监听多个客户端通道
-
-  | NIO                       | BIO                 |
-  | ------------------------- | ------------------- |
-  | 面向缓冲区（Buffer）      | 面向流（Stream）    |
-  | 非阻塞（Non Blocking IO） | 阻塞IO(Blocking IO) |
-  | 选择器（Selectors）       |                     |
-
-
-
-***
-
-
-
-#### NIO原理
-
-NIO 三大核心部分：**Channel( 通道) ，Buffer( 缓冲区), Selector( 选择器)**
-
-* Buffer 缓冲区
-
-  缓冲区本质是一块可以写入数据、读取数据的内存，**底层是一个数组**，这块内存被包装成NIO Buffer对象，并且提供了方法用来操作这块内存，相比较直接对数组的操作，Buffer 的 API 更加容易操作和管理
-
-* Channel 通道
-
-  Java NIO 的通道类似流，不同的是既可以从通道中读取数据，又可以写数据到通道，流的读写通常是单向的，通道可以非阻塞读取和写入通道，支持读取或写入缓冲区，也支持异步地读写。
-
-* Selector 选择器
-
-  Selector 是一个 Java NIO 组件，能够检查一个或多个 NIO 通道，并确定哪些通道已经准备好进行读取或写入，这样一个单独的线程可以管理多个channel，从而管理多个网络连接，提高效率
-
-NIO的实现框架：
-
-![](https://gitee.com/seazean/images/raw/master/Java/NIO框架.png)
-
-* 每个 Channel 对应一个 Buffer
-* 一个线程对应 Selector ， 一个 Selector 对应多个 Channel（连接）
-* 程序切换到哪个Channel 是由事件决定的，Event 是一个重要的概念
-* Selector 会根据不同的事件，在各个通道上切换
-* Buffer 是一个内存块 ， 底层是一个数组
-* 数据的读取写入是通过 Buffer 完成的 , BIO 中要么是输入流，或者是输出流，不能双向，NIO 的 Buffer 是可以读也可以写， flip() 切换 Buffer 的工作模式
-
-Java NIO 系统的核心在于：通道和缓冲区，通道表示打开到 IO 设备（例如：文件、 套接字）的连接。若需要使用 NIO 系统，获取用于连接 IO 设备的通道以及用于容纳数据的缓冲区，然后操作缓冲区，对数据进行处理。简而言之，Channel 负责传输， Buffer 负责存取数据
-
-
-
-***
-
-
-
-#### 缓冲区
-
-##### 基本介绍
-
-缓冲区（Buffer）：缓冲区本质上是一个**可以读写数据的内存块**，用于特定基本数据类型的容器，用于与 NIO 通道进行交互，数据是从通道读入缓冲区，从缓冲区写入通道中的
-
-![](https://gitee.com/seazean/images/raw/master/Java/NIO-Buffer.png)
-
-Buffer 底层是一个数组，可以保存多个相同类型的数据，根据数据类型不同 ，有以下 Buffer 常用子类：ByteBuffer、CharBuffer、ShortBuffer、IntBuffer、LongBuffer、FloatBuffer、DoubleBuffer 
-
-
-
-***
-
-
-
-##### 基本属性
-
-* 容量 (capacity)：作为一个内存块，Buffer 具有固定大小，缓冲区容量不能为负，并且创建后不能更改
-
-* 限制 (limit)：表示缓冲区中可以操作数据的大小（limit 后数据不能进行读写），缓冲区的限制不能为负，并且不能大于其容量。 **写入模式，限制等于 buffer 的容量；读取模式下，limit 等于写入的数据量**
-
-* 位置 (position)：下一个要读取或写入的数据的索引，缓冲区的位置不能为负，并且不能大于其限制
-
-* 标记 (mark)与重置 (reset)：标记是一个索引，通过Buffer中的 mark() 方法指定 Buffer 中一个特定的位置，可以通过调用 reset() 方法恢复到这个 position
-
-* 位置、限制、容量遵守以下不变式： **0 <= position <= limit <= capacity**
-
-  <img src="https://gitee.com/seazean/images/raw/master/Java/NIO-Buffer操作.png" style="zoom:67%;" />
-
-
-
-***
-
-
-
-##### 常用API
-
-`static XxxBuffer allocate(int capacity)` : 创建一个容量为capacity 的 XxxBuffer 对象
-
-Buffer 基本操作：
-
-| 方法                                        | 说明                                                    |
-| ------------------------------------------- | ------------------------------------------------------- |
-| public Buffer clear()                       | 清空缓冲区，不清空内容，将位置设置为零，限制设置为容量  |
-| public Buffer flip()                        | 翻转缓冲区，将缓冲区的界限设置为当前位置，position 置 0 |
-| public int capacity()                       | 返回 Buffer的 capacity 大小                             |
-| public final int limit()                    | 返回 Buffer 的界限 limit 的位置                         |
-| public Buffer limit(int n)                  | 设置缓冲区界限为 n                                      |
-| public Buffer mark()                        | 在此位置对缓冲区设置标记                                |
-| public final int position()                 | 返回缓冲区的当前位置 position                           |
-| public Buffer position(int n)               | 设置缓冲区的当前位置为n                                 |
-| public Buffer reset()                       | 将位置 position 重置为先前 mark 标记的位置              |
-| public Buffer rewind()                      | 将位置设为为0，取消设置的 mark                          |
-| public final int remaining()                | 返回当前位置 position 和 limit 之间的元素个数           |
-| public final boolean hasRemaining()         | 判断缓冲区中是否还有元素                                |
-| public static ByteBuffer wrap(byte[] array) | 将一个字节数组包装到缓冲区中                            |
-| abstract ByteBuffer asReadOnlyBuffer()      | 创建一个新的只读字节缓冲区                              |
-
-Buffer 数据操作：
-
-| 方法                                              | 说明                                            |
-| ------------------------------------------------- | ----------------------------------------------- |
-| public abstract byte get()                        | 读取该缓冲区当前位置的单个字节，然后增加位置    |
-| public ByteBuffer get(byte[] dst)                 | 读取多个字节到字节数组dst中                     |
-| public abstract byte get(int index)               | 读取指定索引位置的字节，不移动 position         |
-| public abstract ByteBuffer put(byte b)            | 将给定单个字节写入缓冲区的当前位置，position+1  |
-| public final ByteBuffer put(byte[] src)           | 将 src 字节数组写入缓冲区的当前位置             |
-| public abstract ByteBuffer put(int index, byte b) | 将指定字节写入缓冲区的索引位置，不移动 position |
-
-提示："\n"，占用两个字节
-
-
-
-****
-
-
-
-##### 读写数据
-
-使用Buffer读写数据一般遵循以下四个步骤：
-
-* 写入数据到 Buffer
-* 调用 flip()方法，转换为读取模式
-* 从 Buffer 中读取数据
-* 调用 buffer.clear() 方法清除缓冲区
-
-```java
-public class TestBuffer {
-	@Test
-    public void test(){
-		String str = "seazean";
-		//1. 分配一个指定大小的缓冲区
-		ByteBuffer buffer = ByteBuffer.allocate(1024);
-		System.out.println("-----------------allocate()----------------");
-		System.out.println(bufferf.position());//0
-		System.out.println(buffer.limit());//1024
-		System.out.println(buffer.capacity());//1024
-        
-        //2. 利用 put() 存入数据到缓冲区中
-      	buffer.put(str.getBytes());
-     	System.out.println("-----------------put()----------------");
-		System.out.println(bufferf.position());//7
-		System.out.println(buffer.limit());//1024
-		System.out.println(buffer.capacity());//1024
-        
-        //3. 切换读取数据模式
-        buffer.flip();
-        System.out.println("-----------------flip()----------------");
-        System.out.println(buffer.position());//0
-        System.out.println(buffer.limit());//7
-        System.out.println(buffer.capacity());//1024
-        
-        //4. 利用 get() 读取缓冲区中的数据
-        byte[] dst = new byte[buffer.limit()];
-        buffer.get(dst);
-        System.out.println(dst.length);
-        System.out.println(new String(dst, 0, dst.length));
-        System.out.println(buffer.position());//7
-        System.out.println(buffer.limit());//7
-       
-        //5. clear() : 清空缓冲区. 但是缓冲区中的数据依然存在，但是处于“被遗忘”状态
-        System.out.println(buffer.hasRemaining());//true
-        buffer.clear();
-        System.out.println(buffer.hasRemaining());//true
-      	System.out.println("-----------------clear()----------------");
-      	System.out.println(buffer.position());//0
-      	System.out.println(buffer.limit());//1024
-      	System.out.println(buffer.capacity());//1024
-    }
-}
-```
-
-
-
-****
-
-
-
-##### 直接内存
-
-Byte Buffer 可以是两种类型，一种是基于直接内存（也就是非堆内存），另一种是非直接内存（也就是堆内存）。对于直接内存来说，JVM将会在IO操作上具有更高的性能，因为直接作用于本地系统的IO操作，而非直接内存，也就是堆内存中的数据，如果要作IO操作，会先从本进程内存复制到直接内存，再利用本地IO处理
-
-直接内存创建 Buffer 对象：`static XxxBuffer allocateDirect(int capacity)`
-
-直接内存的分配与回收机制参考：JVM → 内存结构 → 本地内存 → 直接内存
-
-堆外内存不受 JVM GC 控制，可以使用堆外内存进行通信，防止 GC 后缓冲区位置发生变化的情况，源码：
-
-* SocketChannel#write(java.nio.ByteBuffer) → SocketChannelImpl#write(java.nio.ByteBuffer)
-
-  ```java
-  public int write(ByteBuffer var1) throws IOException {
-       do {
-           var3 = IOUtil.write(this.fd, var1, -1L, nd);
-       } while(var3 == -3 && this.isOpen());
-  }
-  ```
-
-* IOUtil#write(java.io.FileDescriptor, java.nio.ByteBuffer, long, sun.nio.ch.NativeDispatcher)
-
-  ```java
-  static int write(FileDescriptor var0, ByteBuffer var1, long var2, NativeDispatcher var4) {
-      //判断是否是直接内存，是则直接写出，不是则封装到直接内存
-      if (var1 instanceof DirectBuffer) {
-          return writeFromNativeBuffer(var0, var1, var2, var4);
-      } else {
-          //....
-          //从堆内buffer拷贝到堆外buffer
-          ByteBuffer var8 = Util.getTemporaryDirectBuffer(var7);
-          var8.put(var1);
-          //...
-          //从堆外写到内核缓冲区
-  		int var9 = writeFromNativeBuffer(var0, var8, var2, var4);
-  	}
-  }
-  ```
-
-数据流的角度：
-
-* 非直接内存的作用链：本地IO → 直接内存 → 非直接内存 → 直接内存 → 本地IO
-* 直接内存是：本地IO → 直接内存 → 本地IO
-
-JVM 直接内存详解：
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-直接内存直接缓冲区.png" style="zoom: 50%;" />
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-直接内存非直接缓冲区.png" style="zoom:50%;" />
-
-
-
-****
-
-
-
-##### 共享内存
-
-FileChannel 提供 map 方法把文件映射到虚拟内存，通常情况可以映射整个文件，如果文件比较大，可以进行分段映射，完成映射后对物理内存的操作会被同步到硬盘上
-
-FileChannel 中的成员属性：
-
-* MapMode.mode：内存映像文件访问的方式，共三种：
-  * `MapMode.READ_ONLY`：只读，试图修改得到的缓冲区将导致抛出异常。
-  * `MapMode.READ_WRITE`：读/写，对得到的缓冲区的更改最终将写入文件；但该更改对映射到同一文件的其他程序不一定是可见的
-  * `MapMode.PRIVATE`：私用，可读可写，但是修改的内容不会写入文件，只是 buffer 自身的改变，称之为 copy on write 写时复制
-
-* `public final FileLock lock()`：获取此文件通道的排他锁
-
-MappedByteBuffer，可以让文件直接在内存（堆外内存）中进行修改，这种方式叫做内存映射，可以直接调用系统底层的缓存，没有 JVM 和系统之间的复制操作，提高了传输效率，作用：
-
-* 用在进程间的通信，能达到**共享内存页**的作用，但在高并发下要对文件内存进行加锁，防止出现读写内容混乱和不一致性，Java 提供了文件锁 FileLock，但在父/子进程中锁定后另一进程会一直等待，效率不高
-* 读写那些太大而不能放进内存中的文件
-
-MappedByteBuffer 较之 ByteBuffer新增的三个方法
-
-- `final MappedByteBuffer force()`：缓冲区是 READ_WRITE 模式下，对缓冲区内容的修改强行写入文件
-- `final MappedByteBuffer load()`：将缓冲区的内容载入物理内存，并返回该缓冲区的引用
-- `final boolean isLoaded()`：如果缓冲区的内容在物理内存中，则返回真，否则返回假
-
-```java
-public class MappedByteBufferTest {
-    public static void main(String[] args) throws Exception {
-        RandomAccessFile ra = new RandomAccessFile("1.txt", "rw");
-        //获取对应的通道
-        FileChannel channel = ra.getChannel();
-
-        /**
-         * 参数1	FileChannel.MapMode.READ_WRITE 使用的读写模式
-         * 参数2	0: 文件映射时的起始位置
-         * 参数3	5: 是映射到内存的大小（不是索引位置），即将 1.txt 的多少个字节映射到内存
-         * 可以直接修改的范围就是 0-5
-         * 实际类型 DirectByteBuffer
-         */
-        MappedByteBuffer buffer = channel.map(FileChannel.MapMode.READ_WRITE, 0, 5);
-
-        buffer.put(0, (byte) 'H');
-        buffer.put(3, (byte) '9');
-        buffer.put(5, (byte) 'Y');	//IndexOutOfBoundsException
-
-        ra.close();
-        System.out.println("修改成功~~");
-    }
-}
-```
-
-从硬盘上将文件读入内存，要经过文件系统进行数据拷贝，拷贝操作是由文件系统和硬件驱动实现。通过内存映射的方法访问硬盘上的文件，拷贝数据的效率要比 read 和 write 系统调用高：
-
-- read() 是系统调用，首先将文件从硬盘拷贝到内核空间的一个缓冲区，再将这些数据拷贝到用户空间，实际上进行了两次数据拷贝
-- mmap() 也是系统调用，但没有进行数据拷贝，当缺页中断发生时，直接将文件从硬盘拷贝到共享内存，只进行了一次数据拷贝
-
-注意：mmap 的文件映射，在 Full GC 时才会进行释放，如果需要手动清除内存映射文件，可以反射调用sun.misc.Cleaner 方法
-
-
-
-参考文章：https://www.jianshu.com/p/f90866dcbffc
-
-
-
-***
-
-
-
-#### 通道
-
-##### 基本介绍
-
-通道（Channel）：表示 IO 源与目标打开的连接，Channel 类似于传统的流，只不过 Channel 本身不能直接访问数据，Channel 只能与 Buffer **进行交互**
-
-1. NIO 的通道类似于流，但有些区别如下：
-   * 通道可以同时进行读写，而流只能读或者只能写
-   * 通道可以实现异步读写数据
-   * 通道可以从缓冲读数据，也可以写数据到缓冲
-
-2. BIO 中的 stream 是单向的，NIO中的 Channel 是双向的，可以读操作，也可以写操作
-
-3. Channel 在 NIO 中是一个接口：`public interface Channel extends Closeable{}`
-
-
-
-Channel 实现类：
-
-* FileChannel：用于读取、写入、映射和操作文件的通道
-* DatagramChannel：通过 UDP 读写网络中的数据通道
-* SocketChannel：通过 TCP 读写网络中的数据
-* ServerSocketChannel：可以监听新进来的 TCP 连接，对每一个新进来的连接都会创建一个SocketChannel。
-  提示：ServerSocketChanne 类似 ServerSocket , SocketChannel 类似 Socket
-
-
-
-***
-
-
-
-##### 常用API
-
-获取 Channel 方式：
-
-* 对支持通道的对象调用 `getChannel()` 方法
-* 通过通道的静态方法 `open()` 打开并返回指定通道
-* 使用 Files 类的静态方法 `newByteChannel()` 获取字节通道
-
-Channel 基本操作：
-
-| 方法                                       | 说明                                                     |
-| ------------------------------------------ | -------------------------------------------------------- |
-| public abstract int read(ByteBuffer dst)   | 从 Channel 中读取数据到 ByteBuffer，从 position 开始储存 |
-| public final long read(ByteBuffer[] dsts)  | 将Channel中的数据“分散”到ByteBuffer[]                    |
-| public abstract int write(ByteBuffer src)  | 将 ByteBuffer 中的数据写入 Channel，从 position 开始写出 |
-| public final long write(ByteBuffer[] srcs) | 将ByteBuffer[]到中的数据“聚集”到Channel                  |
-| public abstract long position()            | 返回此通道的文件位置                                     |
-| FileChannel position(long newPosition)     | 设置此通道的文件位置                                     |
-| public abstract long size()                | 返回此通道的文件的当前大小                               |
-
-**读写都是相对于内存来看，也就是缓冲区**
-
-
-
-****
-
-
-
-##### 文件读写
-
-```java
-public class ChannelTest {
-    @Test
-	public void write() throws Exception{
- 		// 1、字节输出流通向目标文件
-        FileOutputStream fos = new FileOutputStream("data01.txt");
-        // 2、得到字节输出流对应的通道Channel
-        FileChannel channel = fos.getChannel();
-        // 3、分配缓冲区
-        ByteBuffer buffer = ByteBuffer.allocate(1024);
-        buffer.put("hello,黑马Java程序员！".getBytes());
-        // 4、把缓冲区切换成写出模式
-        buffer.flip();
-        channel.write(buffer);
-        channel.close();
-        System.out.println("写数据到文件中！");
-    }
-    @Test
-    public void read() throws Exception {
-        // 1、定义一个文件字节输入流与源文件接通
-        FileInputStream fis = new FileInputStream("data01.txt");
-        // 2、需要得到文件字节输入流的文件通道
-        FileChannel channel = fis.getChannel();
-        // 3、定义一个缓冲区
-        ByteBuffer buffer = ByteBuffer.allocate(1024);
-        // 4、读取数据到缓冲区
-        channel.read(buffer);
-        buffer.flip();
-        // 5、读取出缓冲区中的数据并输出即可
-        String rs = new String(buffer.array(),0,buffer.remaining());
-        System.out.println(rs);
-    }
-}
-```
-
-
-
-***
-
-
-
-##### 文件复制
-
-Channel 的两个方法：
-
-* `abstract long transferFrom(ReadableByteChannel src, long position, long count)`：从给定的可读字节通道将字节传输到该通道的文件中
-  * src：源通道
-  * position：文件中要进行传输的位置，必须是非负的 
-  * count：要传输的最大字节数，必须是非负的 
-
-* `abstract long transferTo(long position, long count, WritableByteChannel target)`：将该通道文件的字节传输到给定的可写字节通道。
-  * position：传输开始的文件中的位置; 必须是非负的 
-  * count：要传输的最大字节数; 必须是非负的 
-  * target：目标通道 
-
-文件复制的两种方式：
-
-1. Buffer
-2. 使用上述两种方法
-
-![](https://gitee.com/seazean/images/raw/master/Java/NIO-复制文件.png)
-
-```java
-public class ChannelTest {
-    @Test
-    public void copy1() throws Exception {
-        File srcFile = new File("C:\\壁纸.jpg");
-        File destFile = new File("C:\\Users\\壁纸new.jpg");
-        // 得到一个字节字节输入流
-        FileInputStream fis = new FileInputStream(srcFile);
-        // 得到一个字节输出流
-        FileOutputStream fos = new FileOutputStream(destFile);
-        // 得到的是文件通道
-        FileChannel isChannel = fis.getChannel();
-        FileChannel osChannel = fos.getChannel();
-        // 分配缓冲区
-        ByteBuffer buffer = ByteBuffer.allocate(1024);
-        while(true){
-            // 必须先清空缓冲然后再写入数据到缓冲区
-            buffer.clear();
-            // 开始读取一次数据
-            int flag = isChannel.read(buffer);
-            if(flag == -1){
-                break;
-            }
-            // 已经读取了数据 ，把缓冲区的模式切换成可读模式
-            buffer.flip();
-            // 把数据写出到
-            osChannel.write(buffer);
-        }
-        isChannel.close();
-        osChannel.close();
-        System.out.println("复制完成！");
-    }
-    
-	@Test
-	public void copy02() throws Exception {
-    	// 1、字节输入管道
-   	 	FileInputStream fis = new FileInputStream("data01.txt");
-   	 	FileChannel isChannel = fis.getChannel();
-    	// 2、字节输出流管道
-    	FileOutputStream fos = new FileOutputStream("data03.txt");
-    	FileChannel osChannel = fos.getChannel();
-    	// 3、复制
-    	osChannel.transferFrom(isChannel,isChannel.position(),isChannel.size());
-    	isChannel.close();
-    	osChannel.close();
-	}
-    
-	@Test
-	public void copy03() throws Exception {
-    	// 1、字节输入管道
-    	FileInputStream fis = new FileInputStream("data01.txt");
-    	FileChannel isChannel = fis.getChannel();
-    	// 2、字节输出流管道
-    	FileOutputStream fos = new FileOutputStream("data04.txt");
-    	FileChannel osChannel = fos.getChannel();
-    	// 3、复制
-    	isChannel.transferTo(isChannel.position() , isChannel.size() , osChannel);
-    	isChannel.close();
-    	osChannel.close();
-	}
-}
-```
-
-
-
-***
-
-
-
-##### 分散聚集
-
-分散读取（Scatter ）：是指把Channel通道的数据读入到多个缓冲区中去
-
-聚集写入（Gathering ）：是指将多个 Buffer 中的数据“聚集”到 Channel。
-
-```java
-public class ChannelTest {
-    @Test
-    public void test() throws IOException{
-    	// 1、字节输入管道
-        FileInputStream is = new FileInputStream("data01.txt");
-        FileChannel isChannel = is.getChannel();
-        // 2、字节输出流管道
-        FileOutputStream fos = new FileOutputStream("data02.txt");
-        FileChannel osChannel = fos.getChannel();
-        // 3、定义多个缓冲区做数据分散
-        ByteBuffer buffer1 = ByteBuffer.allocate(4);
-        ByteBuffer buffer2 = ByteBuffer.allocate(1024);
-        ByteBuffer[] buffers = {buffer1 , buffer2};
-        // 4、从通道中读取数据分散到各个缓冲区
-        isChannel.read(buffers);
-        // 5、从每个缓冲区中查询是否有数据读取到了
-        for(ByteBuffer buffer : buffers){
-            buffer.flip();// 切换到读数据模式
-            System.out.println(new String(buffer.array() , 0 , buffer.remaining()));
-        }
-        // 6、聚集写入到通道
-        osChannel.write(buffers);
-        isChannel.close();
-        osChannel.close();
-        System.out.println("文件复制~~");
-    }
-}
-```
-
-
-
-***
-
-
-
-#### 选择器
-
-##### 基本介绍
-
-选择器（Selector） 是 SelectableChannle 对象的**多路复用器**，Selector 可以同时监控多个通道的状况，利用 Selector 可使一个单独的线程管理多个 Channel。**Selector 是非阻塞 IO 的核心**。
-
-![](https://gitee.com/seazean/images/raw/master/Java/NIO-Selector.png)
-
-* Selector 能够检测多个注册的通道上是否有事件发生（多个 Channel 以事件的方式可以注册到同一个Selector)，如果有事件发生，便获取事件然后针对每个事件进行相应的处理，就可以只用一个单线程去管理多个通道，也就是管理多个连接和请求
-* 只有在连接/通道真正有读写事件发生时，才会进行读写，就大大地减少了系统开销，并且不必为每个连接都创建一个线程，不用去维护多个线程
-* 避免了多线程之间的上下文切换导致的开销
-
-
-
-***
-
-
-
-##### 常用API
-
-创建 Selector：`Selector selector = Selector.open();`
-
-向选择器注册通道：`SelectableChannel.register(Selector sel, int ops)`
-
-选择器对通道的监听事件，需要通过第二个参数 ops 指定。监听的事件类型用四个常量表示：
-
-* 读 : SelectionKey.OP_READ （1）
-* 写 : SelectionKey.OP_WRITE （4）
-* 连接 : SelectionKey.OP_CONNECT （8）
-* 接收 : SelectionKey.OP_ACCEPT （16）
-* 若注册时不止监听一个事件，则可以使用“位或”操作符连接：
-  `int interestSet = SelectionKey.OP_READ | SelectionKey.OP_WRITE `
-
-
-
-**Selector API**：
-
-| 方法                                             | 说明                                  |
-| ------------------------------------------------ | ------------------------------------- |
-| public static Selector open()                    | 打开选择器                            |
-| public abstract void close()                     | 关闭此选择器                          |
-| public abstract int select()                     | 阻塞选择一组通道准备好进行I/O操作的键 |
-| public abstract int select(long timeout)         | 阻塞等待 timeout 毫秒                 |
-| public abstract int selectNow()                  | 获取一下，不阻塞，立刻返回            |
-| public abstract Selector wakeup()                | 唤醒正在阻塞的 selector               |
-| public abstract Set<SelectionKey> selectedKeys() | 返回此选择器的选择键集                |
-
-SelectionKey API:
-
-| 方法                                        | 说明                                               |
-| ------------------------------------------- | -------------------------------------------------- |
-| public abstract void cancel()               | 取消该键的通道与其选择器的注册                     |
-| public abstract SelectableChannel channel() | 返回创建此键的通道，该方法在取消键之后仍将返回通道 |
-| public final boolean isAcceptable()         | 检测此密钥的通道是否已准备好接受新的套接字连接     |
-| public final boolean isConnectable()        | 检测此密钥的通道是否已完成或未完成其套接字连接操作 |
-| public final boolean isReadable()           | 检测此密钥的频道是否可以阅读                       |
-| public final boolean isWritable()           | 检测此密钥的通道是否准备好进行写入                 |
-
-基本步骤：
-
-```java
-//1.获取通道
-ServerSocketChannel ssChannel = ServerSocketChannel.open();
-//2.切换非阻塞模式
-ssChannel.configureBlocking(false);
-//3.绑定连接
-ssChannel.bin(new InetSocketAddress(9999));
-//4.获取选择器
-Selector selector = Selector.open();
-//5.将通道注册到选择器上，并且指定“监听接收事件”
-ssChannel.register(selector, SelectionKey.OP_ACCEPT);
-```
-
-
-
-***
-
-
-
-#### NIO实现
-
-##### 常用API
-
-* SelectableChannel_API
-
-  | 方法                                                         | 说明                                         |
-  | ------------------------------------------------------------ | -------------------------------------------- |
-  | public final SelectableChannel configureBlocking(boolean block) | 设置此通道的阻塞模式                         |
-  | public final SelectionKey register(Selector sel, int ops)    | 向给定的选择器注册此通道，并选择关注的的事件 |
-
-* SocketChannel_API：
-
-  | 方法                                                    | 说明                           |
-  | :------------------------------------------------------ | ------------------------------ |
-  | public static SocketChannel open()                      | 打开套接字通道                 |
-  | public static SocketChannel open(SocketAddress remote)  | 打开套接字通道并连接到远程地址 |
-  | public abstract boolean connect(SocketAddress remote)   | 连接此通道的到远程地址         |
-  | public abstract SocketChannel bind(SocketAddress local) | 将通道的套接字绑定到本地地址   |
-  | public abstract SocketAddress getLocalAddress()         | 返回套接字绑定的本地套接字地址 |
-  | public abstract SocketAddress getRemoteAddress()        | 返回套接字连接的远程套接字地址 |
-
-* ServerSocketChannel_API：
-
-  | 方法                                                       | 说明                                                         |
-  | ---------------------------------------------------------- | ------------------------------------------------------------ |
-  | public static ServerSocketChannel open()                   | 打开服务器套接字通道                                         |
-  | public final ServerSocketChannel bind(SocketAddress local) | 将通道的套接字绑定到本地地址，并配置套接字以监听连接         |
-  | public abstract SocketChannel accept()                     | 接受与此通道套接字的连接，通过此方法返回的套接字通道将处于阻塞模式 |
-
-  * 如果 ServerSocketChannel 处于非阻塞模式，如果没有挂起连接，则此方法将立即返回 null
-  * 如果通道处于阻塞模式，如果没有挂起连接将无限期地阻塞，直到有新的连接或发生 I/O 错误
-
-
-
-***
-
-
-
-##### 代码实现
-
-服务端 ：
-
-1. 获取通道，当客户端连接服务端时，服务端会通过 `ServerSocketChannel.accept` 得到 SocketChannel 
-
-2. 切换非阻塞模式
-
-3. 绑定连接
-
-4. 获取选择器
-
-5. 将通道注册到选择器上, 并且指定“监听接收事件”
-
-6. 轮询式的获取选择器上已经“准备就绪”的事件
-
-客户端：
-
-1. 获取通道：`SocketChannel sc = SocketChannel.open(new InetSocketAddress(HOST, PORT))`
-2. 切换非阻塞模式
-3. 分配指定大小的缓冲区：`ByteBuffer buffer = ByteBuffer.allocate(1024)`
-4. 发送数据给服务端
-
-37行代码，如果判断条件改为 !=-1，需要客户端 shutdown 一下
-
-```java
-public class Server {
-    public static void main(String[] args){
-        // 1、获取通道
-        ServerSocketChannel serverSocketChannel = ServerSocketChannel.open();
-        // 2、切换为非阻塞模式
-        serverSocketChannel.configureBlocking(false);
-        // 3、绑定连接的端口
-        serverSocketChannel.bind(new InetSocketAddress(9999));
-        // 4、获取选择器Selector
-        Selector selector = Selector.open();
-        // 5、将通道都注册到选择器上去，并且开始指定监听接收事件
-        serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
-		// 6、使用Selector选择器轮询已经就绪好的事件
-        while (selector.select() > 0) {
-            System.out.println("----开始新一轮的时间处理----");
-            // 7、获取选择器中的所有注册的通道中已经就绪好的事件
-            Set<SelectionKey> selectionKeys = selector.selectedKeys();
-            Iterator<SelectionKey> it = selectionKeys.iterator();
-            // 8、开始遍历这些准备好的事件
-            while (it.hasNext()) {
-                SelectionKey key = it.next();// 提取当前这个事件
-                // 9、判断这个事件具体是什么
-                if (key.isAcceptable()) {
-                    // 10、直接获取当前接入的客户端通道
-                    SocketChannel socketChannel = serverSocketChannel.accept();
-                    // 11 、切换成非阻塞模式
-                    socketChannel.configureBlocking(false);
-                    // 12、将本客户端通道注册到选择器
-                    socketChannel.register(selector, SelectionKey.OP_READ);
-                } else if (key.isReadable()) {
-                    // 13、获取当前选择器上的读就绪事件
-                    SelectableChannel channel = key.channel();
-                    SocketChannel socketChannel = (SocketChannel) channel;
-                    // 14、读取数据
-                    ByteBuffer buffer = ByteBuffer.allocate(1024);
-                    int len;
-                    while ((len = socketChannel.read(buffer)) > 0) {
-                        buffer.flip();
-                        System.out.println(socketChannel.getRemoteAddress() + ":" + new String(buffer.array(), 0, len));
-                        buffer.clear();// 清除之前的数据
-                    }
-                }
-                //删除当前的 selectionKey，防止重复操作
-                it.remove();
-            }
-        }
-    }
-}
-```
-
-```java
-public class Client {
-    public static void main(String[] args) throws Exception {
-        // 1、获取通道
-        SocketChannel socketChannel = SocketChannel.open(new InetSocketAddress("127.0.0.1", 9999));
-        // 2、切换成非阻塞模式
-        socketChannel.configureBlocking(false);
-        // 3、分配指定缓冲区大小
-        ByteBuffer buffer = ByteBuffer.allocate(1024);
-        // 4、发送数据给服务端
-        Scanner sc = new Scanner(System.in);
-        while (true){
-            System.out.print("请说：");
-            String msg = sc.nextLine();
-            buffer.put(("波妞：" + msg).getBytes());
-            buffer.flip();
-            socketChannel.write(buffer);
-            buffer.clear();
-        }
-    }
-}
-```
-
-
-
-***
-
-
-
-### AIO
-
-Java AIO(NIO.2) ： AsynchronousI/O，异步非阻塞，采用了 Proactor 模式。服务器实现模式为一个有效请求一个线程，客户端的 I/O 请求都是由 OS 先完成了再通知服务器应用去启动线程进行处理。
-
-```java
-AIO异步非阻塞，基于NIO的，可以称之为NIO2.0
-  BIO                     NIO                                AIO        
-Socket                SocketChannel                    AsynchronousSocketChannel
-ServerSocket          ServerSocketChannel	       AsynchronousServerSocketChannel
-```
-
-当进行读写操作时，调用 API 的 read 或 write 方法，这两种方法均为异步的，完成后会主动调用回调函数：
-
-* 对于读操作，当有流可读取时，操作系统会将可读的流传入 read 方法的缓冲区
-* 对于写操作，当操作系统将 write 方法传递的流写入完毕时，操作系统主动通知应用程序
-
-在JDK1.7中，这部分内容被称作NIO.2，主要在 Java.nio.channels 包下增加了下面四个异步通道：
-AsynchronousSocketChannel、AsynchronousServerSocketChannel、AsynchronousFileChannel、AsynchronousDatagramChannel
-
-
-
 ***
 
 
@@ -11687,29 +7782,6 @@ Junit单元测试框架的作用：
 
 * 用来对类中的方法功能进行有目的的测试，以保证程序的正确性和稳定性
 * 能够**独立的**测试某个方法或者所有方法的预期正确性
-
-Junit框架的使用步骤：
-
-```java
-（1）下载这个框架。
-	框架一般是jar包的形式，jar包里面都是class文件。（Java工程的最终形式）
-	class文件就是我们调用的核心代码。Junit已经被IDEA下载好了，可以直接导入到项目使用的。
-
-（2）直接用Junit测试代码即可
-	a.先模拟业务代码
-	b.写测试类
-		测试类的命名规范：以Test开头，以业务类类名结尾，使用驼峰命名法
-		业务名称是：UserService
-		测试这个业务类的测试类：TestUserService/UserServiceTest
-	c.在测试类中写测试方法
-		测试方法的命名规则：以test开头，以业务方法名结尾
-		比如被测试业务方法名为：login，那么测试方法名就应该叫：testLogin
-
-（3）如何运行测试方法
-	选中方法名 --> 右键 --> Run '测试方法名'  运行选中的测试方法
-	选中测试类类名 --> 右键 --> Run '测试类类名'  运行测试类中所有测试方法
-	选中模块名 --> 右键 --> Run 'All Tests'  运行模块中的所有测试类的所有测试方法
-```
 
 测试方法注意事项：**必须是public修饰的，没有返回值，没有参数，使用注解@Test修饰**
 
@@ -11805,13 +7877,13 @@ public class UserServiceTest {
 
 * 成员方法对象：Method
 
-核心思想：在运行时获取类编译后的字节码文件对象，然后解析类中的全部成分。
+核心思想：在运行时获取类编译后的字节码文件对象，然后解析类中的全部成分
 
 反射提供了一个Class类型：HelloWorld.java → javac → HelloWorld.class
 
 * `Class c = HelloWorld.class;` 
 
-注意：反射是工作在**运行时**的技术，只有运行之后才会有class类对象
+注意：反射是工作在**运行时**的技术，只有运行之后才会有 class 类对象
 
 作用：可以在运行时得到一个类的全部成分然后操作，破坏封装性，也可以破坏泛型的约束性。
 
@@ -13402,7 +9474,7 @@ JVM 内存结构规定了 Java 在运行过程中内存申请、分配、管理�
 线程运行诊断：
 
 * 定位：jps定位进程id
-* jstack 进程id：用于打印出给定的java进程ID或core file或远程调试服务的Java堆栈信息
+* jstack 进程id：用于打印出给定的 java 进程 ID 或 core file 或远程调试服务的 Java 堆栈信息
 
 常见OOM错误：
 
@@ -13429,7 +9501,7 @@ Java 虚拟机栈：Java Virtual Machine Stacks，**每个线程**运行时所�
 
 * 每个方法被执行时，都会在虚拟机栈中创建一个栈帧 stack frame（**一个方法一个栈帧**）
 
-* java虚拟机规范允许**Java栈的大小是动态的或者是固定不变的**
+* java虚拟机规范允许 **Java 栈的大小是动态的或者是固定不变的**
 
 * 虚拟机栈是**每个线程私有的**，每个线程只能有一个活动栈帧，对应方法调用到执行完成的整个过程
 
@@ -13479,8 +9551,8 @@ Java 虚拟机栈：Java Virtual Machine Stacks，**每个线程**运行时所�
 局部变量表最基本的存储单元是 **slot(变量槽)**：
 
 * 参数值的存放总是在局部变量数组的index0开始，到数组长度-1的索引结束，JVM为每一个slot都分配一个访问索引，通过索引即可访问到槽中的数据
-* 存放编译期可知的各种基本数据类型（8种），引用类型（reference），returnAddress类型的变量
-* 32 位以内的类型只占用一个 slot（包括returnAddress类型），64位的类型（long和double）占用两个slot
+* 存放编译期可知的各种基本数据类型（8种），引用类型（reference），returnAddress 类型的变量
+* 32 位以内的类型只占一个 slot（包括returnAddress类型），64 位的类型（long 和 double）占两个 slot
 * 局部变量表中的槽位是可以**重复利用**的，如果一个局部变量过了其作用域，那么之后申明的新的局部变量就可能会复用过期局部变量的槽位，从而达到节省资源的目的
 
 
@@ -13491,13 +9563,13 @@ Java 虚拟机栈：Java Virtual Machine Stacks，**每个线程**运行时所�
 
 ##### 操作数栈
 
-栈 ：可以使用数组或者链表来实现
+栈：可以使用数组或者链表来实现
 
 操作数栈：在方法执行过程中，根据字节码指令，往栈中写入数据或提取数据，即入栈（push）或出栈（pop）
 
 * 保存计算过程的中间结果，同时作为计算过程中变量临时的存储空间，是执行引擎的一个工作区
 
-* Java虚拟机的解释引擎是基于栈的执行引擎，其中的栈指的就是操作数栈
+* Java 虚拟机的解释引擎是基于栈的执行引擎，其中的栈指的就是操作数栈
 * 如果被调用的方法带有返回值的话，其返回值将会被压入当前栈帧的操作数栈中
 
 栈顶缓存技术 ToS（Top-of-Stack Cashing）：将栈顶元素全部缓存在 CPU 的寄存器中，以此降低对内存的读/写次数，提升执行的效率
@@ -13518,7 +9590,7 @@ Java 虚拟机栈：Java Virtual Machine Stacks，**每个线程**运行时所�
 
   ![](https://gitee.com/seazean/images/raw/master/Java/JVM-动态链接符号引用.png)
 
-* 在Java源文件被编译成字节码文件中，所有的变量和方法引用都作为符号引用保存在class的常量池中
+* 在 Java 源文件被编译成字节码文件中，所有的变量和方法引用都作为符号引用保存在 class 的常量池中
   常量池的作用：提供一些符号和常量，便于指令的识别
 
   ![](https://gitee.com/seazean/images/raw/master/Java/JVM-动态链接运行时常量池.png)
@@ -13535,7 +9607,7 @@ Return Address：存放调用该方法的PC寄存器的值
 
 方法的结束有两种方式：正常执行完成、出现未处理的异常，在方法退出后都返回到该方法被调用的位置
 
-* 正常：调用者的pc计数器的值作为返回地址，即调用该方法的指令的**下一条指令的地址**
+* 正常：调用者的 pc 计数器的值作为返回地址，即调用该方法的指令的**下一条指令的地址**
 * 异常：返回地址是要通过异常表来确定
 
 正常完成出口：执行引擎遇到任意一个方法返回的字节码指令（return），会有返回值传递给上层的方法调用者
@@ -13548,7 +9620,7 @@ Return Address：存放调用该方法的PC寄存器的值
 
 ##### 附加信息
 
-栈帧中还允许携带与java虚拟机实现相关的一些附加信息。例如，对程序调试提供支持的信息
+栈帧中还允许携带与 Java 虚拟机实现相关的一些附加信息，例如对程序调试提供支持的信息
 
 
 
@@ -13560,7 +9632,7 @@ Return Address：存放调用该方法的PC寄存器的值
 
 本地方法栈是为虚拟机**执行本地方法时提供服务的**
 
-JNI：Java Native Interface，通过使用 Java本地接口书写程序，可以确保代码在不同的平台上方便移植
+JNI：Java Native Interface，通过使用 Java 本地接口书写程序，可以确保代码在不同的平台上方便移植
 
 * 不需要进行GC，与虚拟机栈类似，也是线程私有的，有 StackOverFlowError 和 OutOfMemoryError 异常
 
@@ -13684,6 +9756,9 @@ public static void main(String[] args) {
 
 常量池表（Constant Pool Table）是Class文件的一部分，存储了类在编译期间生成的**字面量、符号引用**，JVM为每个已加载的类维护一个常量池
 
+- 字面量：基本数据类型、字符串类型常量、声明为 final 的常量值等
+- 符号引用：类、字段、方法、接口等的符号引用
+
 **运行时常量池**是方法区的一部分
 
 * 常量池（编译器生成的字面量和符号引用）中的数据会在类加载的加载阶段放入运行时常量池
@@ -13767,99 +9842,28 @@ public class Demo1_8 extends ClassLoader { // 可以用来加载类的二进制�
 
 #### 直接内存
 
-##### 基本介绍
-
 直接内存是 Java 堆外的、直接向系统申请的内存区间，不是虚拟机运行时数据区的一部分，也不是《Java虚拟机规范》中定义的内存区域
 
 Direct Memory 优点：
 
 * Java 的 NIO 库允许 Java 程序使用直接内存，用于数据缓冲区，使用 native 函数直接分配堆外内存
 * 读写性能高，读写频繁的场合可能会考虑使用直接内存
-* 大大提高IO性能，避免了在 Java 堆和 native 堆来回复制数据
+* 大大提高 IO 性能，避免了在 Java 堆和 native 堆来回复制数据
 
 直接内存缺点：
 
 * 分配回收成本较高，不受 JVM 内存回收管理
-* 可能导致OutOfMemoryError异常：OutOfMemoryError: Direct buffer memory
+* 可能导致 OutOfMemoryError 异常：OutOfMemoryError: Direct buffer memory
 * 回收依赖 System.gc() 的调用，但这个调用 JVM 不保证执行、也不保证何时执行，行为是不可控的。程序一般需要自行管理，成对去调用 malloc、free
 
 应用场景：
 
 - 有很大的数据需要存储，数据的生命周期很长
-- 适合频繁的IO操作，比如网络并发场景
+- 适合频繁的 IO 操作，比如网络并发场景
 
 
 
-*****
-
-
-
-##### 分配回收
-
-DirectByteBuffer 源码分析：
-
-```java
-DirectByteBuffer(int cap) { 
-    //....
-    long base = 0;
-    try {
-        base = unsafe.allocateMemory(size);
-    }
-    unsafe.setMemory(base, size, (byte) 0);
-    if (pa && (base % ps != 0)) {
-        address = base + ps - (base & (ps - 1));
-    } else {
-        address = base;
-    }
-    cleaner = Cleaner.create(this, new Deallocator(base, size, cap));
-}
-private static class Deallocator implements Runnable {
-    public void run() {
-        unsafe.freeMemory(address);
-		//...
-    }
-}
-```
-
-分配和回收原理：
-
-* 使用了 Unsafe 对象的 allocateMemory 方法完成直接内存的分配，setMemory 方法完成赋值
-* ByteBuffer 的实现类内部，使用了 Cleaner （虚引用）来监测 ByteBuffer 对象，一旦 ByteBuffer 对象被垃圾回收，那么 ReferenceHandler 线程通过 Cleaner 的 clean 方法调用 Deallocator 的 run方法，最后通过 freeMemory 来释放直接内存
-
-```java
-/**
- * 直接内存分配的底层原理：Unsafe
- */
-public class Demo1_27 {
-    static int _1Gb = 1024 * 1024 * 1024;
-
-    public static void main(String[] args) throws IOException {
-        Unsafe unsafe = getUnsafe();
-        // 分配内存
-        long base = unsafe.allocateMemory(_1Gb);
-        unsafe.setMemory(base, _1Gb, (byte) 0);
-        System.in.read();
-        // 释放内存
-        unsafe.freeMemory(base);
-        System.in.read();
-    }
-
-    public static Unsafe getUnsafe() {
-        try {
-            Field f = Unsafe.class.getDeclaredField("theUnsafe");
-            f.setAccessible(true);
-            Unsafe unsafe = (Unsafe) f.get(null);
-            return unsafe;
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException(e);
-        }
-    }
-}
-```
-
-
-
-参考文章：https://juejin.cn/post/6844904182483271694
+直接内存机制参考：NET → NIO → 缓冲区 → 直接内存
 
 
 
@@ -14858,12 +10862,20 @@ G1垃圾收集器的缺点：
 
 ##### 记忆集
 
-每个 Region 都有一个 Remembered Set，用来被哪些其他Region里的对象引用（谁引用了我就记录谁）
+记忆集 Remembered Set 在新生代中，每个 Region 都有一个 Remembered Set，用来被哪些其他 Region 里的对象引用（谁引用了我就记录谁）
 
 <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-G1记忆集.png" style="zoom:67%;" />
 
 * 程序对 Reference 类型数据写操作时，产生一个 Write Barrier 暂时中断操作，检查该对象和 Reference 类型数据是否在不同的 Region（其他收集器：检查老年代对象是否引用了新生代对象），不同便通过 CardTable 把相关引用信息记录到 Reference 类型所属的 Region 的 Remembered Set 之中
 * 进行内存回收时，在 GC 根节点的枚举范围中加入 Remembered Set 即可保证不对全堆扫描也不会有遗漏
+
+垃圾收集器在新生代中建立了记忆集这样的数据结构，可以理解为它是一个抽象类，具体实现记忆集的三种方式：
+
+* 字长精度
+* 对象精度
+* 卡精度(卡表)
+
+卡表（Card Table）在老年代中，是一种对记忆集的具体实现，主要定义了记忆集的记录精度、与堆内存的映射关系等，卡表中的每一个元素都对应着一块特定大小的内存块。这个内存块称之为卡页（card page），当存在跨代引用时，会将卡页标记为 dirty，JVM 对于卡页的维护也是通过写屏障的方式
 
 
 
@@ -14874,6 +10886,9 @@ G1垃圾收集器的缺点：
 ##### 工作原理
 
 G1中提供了三种垃圾回收模式：YoungGC、Mixed GC 和 FullGC，在不同的条件下被触发
+
+* 当堆内存使用达到一定值（默认45%）时，开始老年代并发标记过程
+* 标记完成马上开始混合回收过程
 
 <img src="https://gitee.com/seazean/images/raw/master/Java/JVM-G1回收过程.png" style="zoom: 50%;" />
 
@@ -14964,24 +10979,40 @@ G1 的设计原则就是简化 JVM 性能调优，只需要简单的三步即可
 
 #### ZGC
 
-Shenandoah 垃圾回收器的目标是内存回收实现低停顿
-
-Shenandoah GC 暂停时间与堆大小无关，无论将堆设置为200MB还是200GB，99.9%的目标都可以把垃圾收集的停顿时间限制在十毫秒以内，不过实际使用性能将取决于实际工作堆的大小和工作负载
-
-* 优点：低延迟
-* 缺点：高运行负担下的吞吐量下降
-
-ZGC收集器是一款基于Region内存布局的，（暂时）不设分代，使用了读屏障、染色指针和内存多重映射等技术来实现可并发的标记压缩算法的，以低延迟为首要目标的一款垃圾收集器
+ZGC 收集器是一个可伸缩的、低延迟的垃圾收集器，基于 Region 内存布局的，不设分代，使用了读屏障、染色指针和内存多重映射等技术来实现**可并发的标记压缩算法**
 
 * 在 CMS 和 G1 中都用到了写屏障，而 ZGC 用到了读屏障
-* 染色指针：直接将少量额外的信息存储在指针上的技术，从 64 位的指针中拿几位来标识对象此时的状态
+* 染色指针：直接将少量额外的信息存储在指针上的技术，从 64 位的指针中拿高 4 位来标识对象此时的状态
+  * 染色指针可以使得一旦某个 Region 的存活对象被移走之后，这个 Region 立即就能够被释放和重用掉
+  * 可以直接从指针中看到引用对象的三色标记状态（Marked0、Marked1）、是否进入了重分配集（是否被移动过 Remapped）、是否只能通过 finalize() 方法才能被访问到（Finalizable）
+  * 可以大幅减少在垃圾收集过程中内存屏障的使用数量，写屏障的目的通常是为了记录对象引用的变动情况，如果将这些信息直接维护在指针中，显然就可以省去一些专门的记录操作
+  * 可以作为一种可扩展的存储结构用来记录更多与对象标记、重定位过程相关的数据
 * 内存多重映射：多个虚拟地址指向同一个物理地址
 
-与 CMS 和 G1 类似，ZGC也采用标记-复制算法，不过 ZGC 对该算法做了重大改进，在 ZGC 中出现 Stop The World 的情况会更少，在尽可能对吞吐量影响不大的前提下，实现在任意堆内存大小下都可以把垃圾收集的停顿时间限制在十毫秒以内的低延迟
+可并发的标记压缩算法：染色指针标识对象是否被标记或移动，读屏障保证在每次应用程序或 GC 程序访问对象时先根据染色指针的标识判断是否被移动，如果被移动就访问新的复制对象，并更新引用，不会像 G1 一样必须等待垃圾回收完成才能访问
 
-ZGC的工作过程可以分为4个阶段：并发标记一并发预备重分配一并发重分配一并发重映射
+ZGC 目标：
 
-ZGC几乎在所有地方并发执行的，除了初始标记的是STW的，但这部分的实际时间是非常少的，所以响应速度快
+- 停顿时间不会超过 10ms
+- 停顿时间不会随着堆的增大而增大（不管多大的堆都能保持在 10ms 以下）
+- 可支持几百 M，甚至几 T 的堆大小（最大支持4T）
+
+ZGC 的工作过程可以分为 4 个阶段：
+
+* 并发标记（Concurrent Mark）： 遍历对象图做可达性分析的阶段，也要经过类似于 G1的初始标记、最终标记的短暂停顿
+* 并发预备重分配（ Concurrent Prepare for Relocate）： 根据特定的查询条件统计得出本次收集过程要清理哪些 Region，将这些 Region 组成重分配集（Relocation Set）
+* 并发重分配（Concurrent Relocate）： 重分配是 ZGC 执行过程中的核心阶段，这个过程要把重分配集中的存活对象复制到新的 Region 上，并为重分配集中的每个 Region 维护一个转发表（Forward Table），记录从旧对象到新对象的转向关系
+* 并发重映射（Concurrent Remap）： 修正整个堆中指向重分配集中旧对象的所有引用，ZGC 的并发映射并不是一个必须要立即完成的任务，ZGC 很巧妙地把并发重映射阶段要做的工作，合并到下一次垃圾收集循环中的并发标记阶段里去完成，因为都是要遍历所有对象的，这样合并节省了一次遍历的开销
+
+ZGC 几乎在所有地方并发执行的，除了初始标记的是 STW 的，但这部分的实际时间是非常少的，所以响应速度快，在尽可能对吞吐量影响不大的前提下，实现在任意堆内存大小下都可以把垃圾收集的停顿时间限制在十毫秒以内的低延迟
+
+优点：高吞吐量、低延迟
+
+缺点：浮动垃圾，当 ZGC 准备要对一个很大的堆做一次完整的并发收集，其全过程要持续十分钟以上，由于应用的对象分配速率很高，将创造大量的新对象产生浮动垃圾
+
+
+
+参考文章：https://www.cnblogs.com/jimoer/p/13170249.html
 
 
 
@@ -15146,7 +11177,7 @@ JVM是通过栈帧中的对象引用访问到其内部的对象实例：
 
 #### 生命周期
 
-在Java中，对象的生命周期包括以下几个阶段：
+在 Java 中，对象的生命周期包括以下几个阶段：
 
 1.      创建阶段 (Created)：
 2.      应用阶段 (In Use)：对象至少被一个强引用持有着
@@ -15172,11 +11203,11 @@ JVM是通过栈帧中的对象引用访问到其内部的对象实例：
 
 Java对象创建时机：
 
-1. 使用new关键字创建对象：由执行类实例创建表达式而引起的对象创建
+1. 使用 new 关键字创建对象：由执行类实例创建表达式而引起的对象创建
 
-2. 使用Class类的newInstance方法 (反射机制)
+2. 使用 Class 类的 newInstance 方法 (反射机制)
 
-3. 使用Constructor类的newInstance方法(反射机制)
+3. 使用 Constructor 类的 newInstance 方法(反射机制)
 
    ```java
    public class Student {
@@ -15191,13 +11222,13 @@ Java对象创建时机：
    }
    ```
 
-   使用newInstance方法的这两种方式创建对象使用的就是Java的反射机制，事实上Class的newInstance方法内部调用的也是Constructor的newInstance方法
+   使用 newInstance 方法的这两种方式创建对象使用的就是 Java 的反射机制，事实上 Class 的 newInstance 方法内部调用的也是 Constructor 的 newInstance 方法
 
-4. 使用Clone方法创建对象：用clone方法创建对象的过程中并不会调用任何构造函数，要想使用clone方法，我们就必须先实现Cloneable接口并实现其定义的clone方法
+4. 使用 Clone 方法创建对象：用 clone 方法创建对象的过程中并不会调用任何构造函数，要想使用 clone 方法，我们就必须先实现 Cloneable 接口并实现其定义的 clone 方法
 
-5. 使用（反）序列化机制创建对象：当反序列化一个对象时，JVM会创建一个**单独的对象**，在此过程中，JVM并不会调用任何构造函数，为了反序列化一个对象，需要让类实现Serializable接口
+5. 使用（反）序列化机制创建对象：当反序列化一个对象时，JVM 会创建一个**单独的对象**，在此过程中，JVM 并不会调用任何构造函数，为了反序列化一个对象，需要让类实现 Serializable 接口
 
-从Java虚拟机层面看，除了使用new关键字创建对象的方式外，其他方式全部都是通过转变为invokevirtual指令直接创建对象的
+从 Java 虚拟机层面看，除了使用 new 关键字创建对象的方式外，其他方式全部都是通过转变为 invokevirtual 指令直接创建对象的
 
 
 
@@ -15211,12 +11242,12 @@ Java对象创建时机：
 
 1. 判断对象对应的类是否加载、链接、初始化
 
-2. 为对象分配内存：指针碰撞、空闲链表。当一个对象被创建时，虚拟机就会为其分配内存来存放对象的实例变量及其从父类继承过来的实例变量 (即使从超类继承过来的实例变量有可能被**隐藏**也会被分配空间)
+2. 为对象分配内存：指针碰撞、空闲链表。当一个对象被创建时，虚拟机就会为其分配内存来存放对象的实例变量及其从父类继承过来的实例变量，即使从**隐藏变量**也会被分配空间（继承部分解释了为什么会隐藏）
 
 3. 处理并发安全问题：
 
-   * 采用CAS配上自旋保证更新的原子性
-   * 每个线程预先分配一块TLAB
+   * 采用 CAS 配上自旋保证更新的原子性
+   * 每个线程预先分配一块 TLAB
 
 4. 初始化分配的空间：虚拟机将分配到的内存空间都初始化为零值（不包括对象头），保证对象实例字段在不赋值时可以直接使用，程序能访问到这些字段的数据类型所对应的零值
 
@@ -15341,10 +11372,10 @@ Java对象创建时机：
 
 * 隐式加载：
   * 创建类对象、使用类的静态域、创建子类对象、使用子类的静态域
-  * 在JVM启动时，通过三大类加载器加载class
+  * 在 JVM 启动时，通过三大类加载器加载 class
 * 显式加载：
   * ClassLoader.loadClass(className)，只加载和连接，**不会进行初始化**
-  * Class.forName(String name, boolean initialize,ClassLoader loader)，使用loader进行加载和连接，根据参数initialize决定是否初始化
+  * Class.forName(String name, boolean initialize,ClassLoader loader)，使用 loader 进行加载和连接，根据参数 initialize 决定是否初始化
 
 
 
@@ -15392,7 +11423,7 @@ Java对象创建时机：
 
 ##### 验证
 
-确保 Class 文件的字节流中包含的信息是否符合 JVM规范，保证被加载类的正确性，不会危害虚拟机自身的安全
+确保 Class 文件的字节流中包含的信息是否符合 JVM 规范，保证被加载类的正确性，不会危害虚拟机自身的安全
 
 主要包括四种验证：文件格式验证，源数据验证，字节码验证，符号引用验证
 
@@ -15443,7 +11474,7 @@ Java对象创建时机：
 将常量池中类、接口、字段、方法的**符号引用替换为直接引用**（内存地址）的过程：
 
 * 符号引用：一组符号来描述目标，可以是任何字面量，属于编译原理方面的概念如：包括类和接口的全限名、字段的名称和描述符、方法的名称和**方法描述符**
-* 直接引用：直接指向目标的指针、相对偏移量或一个间接定位到目标的句柄
+* 直接引用：直接指向目标的指针、相对偏移量或一个间接定位到目标的句柄，如果有了直接引用，那说明引用的目标必定已经存在于内存之中
 
 解析动作主要针对类或接口、字段、类方法、接口方法、方法类型等
 
@@ -15479,13 +11510,13 @@ class D {
 
 ##### 介绍
 
-初始化阶段才真正开始执行类中定义的 Java 程序代码，在准备阶段，类变量已经赋过一次系统要求的初始值；在初始化阶段，通过程序制定的计划去初始化类变量和其它资源，执行<clinit>
+初始化阶段才真正开始执行类中定义的 Java 程序代码，在准备阶段，类变量已经赋过一次系统要求的初始值；在初始化阶段，通过程序制定的计划去初始化类变量和其它资源，执行 <clinit>
 
-在编译生成class文件时，编译器会产生两个方法加于class文件中，一个是类的初始化方法clinit, 另一个是实例的初始化方法init
+在编译生成 class 文件时，编译器会产生两个方法加于 class 文件中，一个是类的初始化方法 clinit, 另一个是实例的初始化方法 init
 
-类构造器<clinit>()与实例构造器<init>()不同，它不需要程序员进行显式调用，在一个类的生命周期中，类构造器<clinit>()最多被虚拟机**调用一次**，而实例构造器<init>()则会被虚拟机调用多次，只要程序员创建对象
+类构造器 <clinit>() 与实例构造器 <init>() 不同，它不需要程序员进行显式调用，在一个类的生命周期中，类构造器最多被虚拟机**调用一次**，而实例构造器则会被虚拟机调用多次，只要程序员创建对象
 
-类在第一次实例化加载一次，把class读入内存，后续实例化不再加载，引用第一次加载的类
+类在第一次实例化加载一次，把 class 读入内存，后续实例化不再加载，引用第一次加载的类
 
 
 
@@ -15500,9 +11531,9 @@ class D {
 作用：是在类加载过程中的初始化阶段进行静态变量初始化和执行静态代码块
 
 * 如果类中没有静态变量或静态代码块，那么clinit方法将不会被生成
-* 在执行clinit方法时，必须先执行父类的clinit方法
-* clinit方法只执行一次
-* static变量的赋值操作和静态代码块的合并顺序由源文件中**出现的顺序**决定
+* 在执行 clinit 方法时，必须先执行父类的clinit方法
+* clinit 方法只执行一次
+* static 变量的赋值操作和静态代码块的合并顺序由源文件中**出现的顺序**决定
 
 **线程安全**问题：
 
@@ -15576,15 +11607,15 @@ init指的是实例构造器，主要作用是在类实例化过程中执行，�
 
 #### 卸载阶段
 
-时机：执行了System.exit()方法，程序正常执行结束，程序在执行过程中遇到了异常或错误而异常终止，由于操作系统出现错误而导致Java虚拟机进程终止
+时机：执行了 System.exit() 方法，程序正常执行结束，程序在执行过程中遇到了异常或错误而异常终止，由于操作系统出现错误而导致Java虚拟机进程终止
 
-卸载类即该类的**Class对象被GC**，卸载类需要满足3个要求:
+卸载类即该类的 **Class 对象被 GC**，卸载类需要满足3个要求:
 
-1. 该类的所有的实例对象都已被GC，也就是说堆不存在该类的实例对象
+1. 该类的所有的实例对象都已被 GC，也就是说堆不存在该类的实例对象
 2. 该类没有在其他任何地方被引用
-3. 该类的类加载器的实例已被GC
+3. 该类的类加载器的实例已被 GC
 
-在JVM生命周期类，由 JVM 自带的类加载器加载的类是不会被卸载的，由我们自定义的类加载器加载的类是可能被卸载。因为 JVM 会始终引用启动、扩展、系统类加载器，这些类加载器始终引用它们所加载的类，所以这些类始终是可及的
+在 JVM 生命周期类，由 JVM 自带的类加载器加载的类是不会被卸载的，由我们自定义的类加载器加载的类是可能被卸载。因为 JVM 会始终引用启动、扩展、系统类加载器，这些类加载器始终引用它们所加载的类，所以这些类始终是可及的
 
 
 
@@ -15797,7 +11828,7 @@ protected Class<?> loadClass(String name, boolean resolve)
   Java 提供了很多服务提供者接口（Service Provider Interface，SPI），允许第三方为这些接口提供实现。常见的 SPI 有 JDBC、JCE、JNDI 等。这些 SPI 接口由 Java 核心库来提供，而 SPI 的实现代码则是作为 Java 应用所依赖的 jar 包被包含进类路径 classpath 里，SPI 接口中的代码需要加载具体的实现类：
 
   * SPI 的接口是 Java核心库的一部分，是由引导类加载器来加载的
-  * SPI的实现类是由系统类加载器来加载的，引导类加载器是无法找到 SPI 的实现类的，因为依照双亲委派模型，BootstrapClassloader 无法委派 AppClassLoader 来加载类。
+  * SPI 的实现类是由系统类加载器来加载的，引导类加载器是无法找到 SPI 的实现类的，因为依照双亲委派模型，BootstrapClassloader 无法委派 AppClassLoader 来加载类
 
   JDK 开发人员引入了线程上下文类加载器（Thread Context ClassLoader），这种类加载器可以通过 Thread  类的 setContextClassLoader 方法进行设置线程上下文类加载器，在执行线程中抛弃双亲委派加载链模式，使程序可以逆向使用类加载器，使 Bootstrap Classloader 加载器拿到了 Application ClassLoader 加载器应该加载的类，破坏了双亲委派模型
 
@@ -15899,7 +11930,999 @@ public class ClassLoaderTest {
 - 类加载器：用于装载字节码文件(.class文件)
 - 运行时数据区：用于分配存储空间
 - 执行引擎：执行字节码文件或本地方法
-- 垃圾回收器：用于对JVM中的垃圾内容进行回收
+- 垃圾回收器：用于对 JVM 中的垃圾内容进行回收
+
+
+
+****
+
+
+
+### 字节码
+
+#### 跨平台性
+
+Java 语言：跨平台的语言（write once ，run anywhere）
+
+* 当 Java 源代码成功编译成字节码后，在不同的平台上面运行无须再次编译
+* 让一个 Java 程序正确地运行在 JVM 中，Java 源码就必须要被编译为符合 JVM 规范的字节码
+
+编译过程中的编译器：
+
+* 前端编译器： Sun 的全量式编译器 javac、 Eclipse 的增量式编译器 ECJ，把源代码编译为字节码文件.class
+
+  * IntelliJ IDEA 使用 javac 编译器
+  * Eclipse 中，当开发人员编写完代码后保存时，ECJ 编译器就会把未编译部分的源码逐行进行编译，而非每次都全量编译，因此 ECJ 的编译效率会比 javac 更加迅速和高效
+  * 前端编译器并不会直接涉及编译优化等方面的技术，具体优化细节移交给 HotSpot 的 JIT 编译器负责
+
+* 后端运行期编译器：HotSpot VM 的 C1、C2 编译器，也就是 JIT 编译器，Graal 编译器
+
+  * JIT编译器：执行引擎部分详解
+  * Graal 编译器：JDK10 HotSpot 加入的一个全新的即时编译器，编译效果短短几年时间就追平了 C2
+
+* 静态提前编译器：AOT  (Ahead Of Time Compiler)编译器，直接把源代码编译成本地机器代码，
+
+  * JDK 9 引入，是与即时编译相对立的一个概念，即时编译指的是在程序的运行过程中将字节码转换为机器码，AOT 是程序运行之前便将字节码转换为机器码
+
+  * 优点：Java 虚拟机加载已经预编译成二进制库，可以直接执行，不必等待即时编译器的预热，减少 Java 应用第一次运行慢的现象
+  * 缺点：
+    * 破坏了 Java "一次编译，到处运行”，必须为每个不同硬件编译对应的发行包
+    * 降低了 Java 链接过程的动态性，加载的代码在编译期就必须全部已知
+
+
+
+
+
+***
+
+
+
+#### 语言发展
+
+机器码：各种用二进制编码方式表示的指令，与CPU紧密相关，所以不同种类的CPU对应的机器指令不同
+
+指令：指令就是把机器码中特定的0和1序列，简化成对应的指令，例如mov，inc等，可读性稍好，但是不同的硬件平台的同一种指令（比如mov），对应的机器码也可能不同
+
+指令集：不同的硬件平台支持的指令是有区别的，每个平台所支持的指令，称之为对应平台的指令集
+
+- x86指令集，对应的是x86架构的平台
+- ARM指令集，对应的是ARM架构的平台
+
+汇编语言：用助记符代替机器指令的操作码，用地址符号或标号代替指令或操作数的地址
+
+* 在不同的硬件平台，汇编语言对应着不同的机器语言指令集，通过汇编过程转换成机器指令
+* 计算机只认识指令码，汇编语言编写的程序也必须翻译成机器指令码，计算机才能识别和执行
+
+高级语言：为了使计算机用户编程序更容易些，后来就出现了各种高级计算机语言
+
+字节码：是一种中间状态（中间码）的二进制代码，比机器码更抽象，需要直译器转译后才能成为机器码
+
+* 字节码为了实现特定软件运行和软件环境，与硬件环境无关
+* 通过编译器和虚拟机器实现，编译器将源码编译成字节码，虚拟机器将字节码转译为可以直接执行的指令
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-高级语言执行过程.png" style="zoom:50%;" />
+
+
+
+***
+
+
+
+
+
+#### 类结构
+
+##### 文件结构
+
+字节码是一种二进制的类文件，是编译之后供虚拟机解释执行的二进制字节码文件，**一个 class 文件对应一个 public 类型的类或接口**
+
+字节码内容是 JVM 的字节码指令，不是机器码，C、C++ 经由编译器直接生成机器码，所以 C 执行效率比 Java 高
+
+JVM 官方文档：https://docs.oracle.com/javase/specs/jvms/se8/html/index.html
+
+根据 JVM 规范，类文件结构如下：
+
+```java
+ClassFile {
+	u4 				magic;						
+    u2 				minor_version;						
+    u2 				major_version;						
+    u2 				constant_pool_count;
+    cp_info			constant_pool[constant_pool_count-1];
+    u2	 			access_flags;
+    u2 				this_class;
+    u2 				super_class;
+    u2 				interfaces_count;
+    u2 				interfaces[interfaces_count];
+    u2 				fields_count;
+    field_info 		fields[fields_count];
+    u2 				methods_count;
+    method_info 	methods[methods_count];
+    u2 				attributes_count;
+    attribute_info 	attributes[attributes_count];
+}
+```
+
+| 类型           | 名称                | 说明                 | 长度    | 数量                  |
+| -------------- | ------------------- | -------------------- | ------- | --------------------- |
+| u4             | magic               | 魔数，识别类文件格式 | 4个字节 | 1                     |
+| u2             | minor_version       | 副版本号(小版本)     | 2个字节 | 1                     |
+| u2             | major_version       | 主版本号(大版本)     | 2个字节 | 1                     |
+| u2             | constant_pool_count | 常量池计数器         | 2个字节 | 1                     |
+| cp_info        | constant_pool       | 常量池表             | n个字节 | constant_pool_count-1 |
+| u2             | access_flags        | 访问标识             | 2个字节 | 1                     |
+| u2             | this_class          | 类索引               | 2个字节 | 1                     |
+| u2             | super_class         | 父类索引             | 2个字节 | 1                     |
+| u2             | interfaces_count    | 接口计数             | 2个字节 | 1                     |
+| u2             | interfaces          | 接口索引集合         | 2个字节 | interfaces_count      |
+| u2             | fields_count        | 字段计数器           | 2个字节 | 1                     |
+| field_info     | fields              | 字段表               | n个字节 | fields_count          |
+| u2             | methods_count       | 方法计数器           | 2个字节 | 1                     |
+| method_info    | methods             | 方法表               | n个字节 | methods_count         |
+| u2             | attributes_count    | 属性计数器           | 2个字节 | 1                     |
+| attribute_info | attributes          | 属性表               | n个字节 | attributes_count      |
+
+Class 文件格式采用一种类似于 C 语言结构体的方式进行数据存储，这种结构中只有两种数据类型：无符号数和表
+
+* 无符号数属于基本的数据类型，以 u1、u2、u4、u8 来分别代表1个字节、2个字节、4个字节和8个字节的无符号数，无符号数可以用来描述数字、索引引用、数量值或者按照 UTF-8 编码构成字符串
+* 表是由多个无符号数或者其他表作为数据项构成的复合数据类型，表都以 `_info` 结尾，用于描述有层次关系的数据，整个 Class 文件本质上就是一张表，由于表没有固定长度，所以通常会在其前面加上个数说明
+
+获取方式：
+
+* HelloWorld.java 执行 `javac -parameters -d . HellowWorld.java`指令
+* 写入文件指令 `javap -v xxx.class >xxx.txt`
+* IDEA 插件 jclasslib 
+
+
+
+***
+
+
+
+##### 魔数版本
+
+魔数：每个 Class 文件开头的 4 个字节的无符号整数称为魔数（Magic Number），是 Class 文件的标识符，代表这是一个能被虚拟机接受的有效合法的 Class 文件，
+
+* 魔数值固定为 0xCAFEBABE，不符合则会抛出错误
+
+* 使用魔数而不是扩展名来进行识别主要是基于安全方面的考虑，因为文件扩展名可以随意地改动
+
+版本：4 个 字节，5 6两个字节代表的是编译的副版本号 minor_version，而 7 8 两个字节是编译的主版本号 major_version
+
+* 不同版本的 Java 编译器编译的 Class 文件对应的版本是不一样的，高版本的 Java 虚拟机可以执行由低版本编译器生成的 Class 文件，反之 JVM 会抛出异常 `java.lang.UnsupportedClassVersionError`
+
+| 主版本（十进制） | 副版本（十进制） | 编译器版本 |
+| ---------------- | ---------------- | ---------- |
+| 45               | 3                | 1.1        |
+| 46               | 0                | 1.2        |
+| 47               | 0                | 1.3        |
+| 48               | 0                | 1.4        |
+| 49               | 0                | 1.5        |
+| 50               | 0                | 1.6        |
+| 51               | 0                | 1.7        |
+| 52               | 0                | 1.8        |
+| 53               | 0                | 1.9        |
+| 54               | 0                | 1.10       |
+| 55               | 0                | 1.11       |
+
+![](https://gitee.com/seazean/images/raw/master/Java/JVM-类结构.png)
+
+
+
+图片来源：https://www.bilibili.com/video/BV1PJ411n7xZ
+
+
+
+***
+
+
+
+##### 常量池
+
+常量池中常量的数量是不固定的，所以在常量池的入口需要放置一项 u2 类型的无符号数，代表常量池计数器（constant_pool_count），这个容量计数是从 1 而不是 0 开始，是为了满足后面某些指向常量池的索引值的数据在特定情况下需要表达不引用任何一个常量池项目，这种情况可用索引值 0 来表示
+
+constant_pool 是一种表结构，以1 ~ constant_pool_count - 1为索引，表明有多少个常量池表项。表项中存放编译时期生成的各种字面量和符号引用，这部分内容将在类加载后进入方法区的运行时常量池
+
+* 字面量（Literal） ：基本数据类型、字符串类型常量、声明为 final 的常量值等
+
+* 符号引用（Symbolic References）：类和接口的全限定名、字段的名称和描述符、方法的名称和描述符
+
+  * 全限定名：com/test/Demo 这个就是类的全限定名，仅仅是把包名的 `.` 替换成 `/`，为了使连续的多个全限定名之间不产生混淆，在使用时最后一般会加入一个 `;` 表示全限定名结束
+
+  * 简单名称：指没有类型和参数修饰的方法或者字段名称，比如字段 x 的简单名称就是 x
+
+  * 描述符：用来描述字段的数据类型、方法的参数列表（包括数量、类型以及顺序）和返回值
+
+    | 标志符 | 含义                                                 |
+    | ------ | ---------------------------------------------------- |
+    | B      | 基本数据类型byte                                     |
+    | C      | 基本数据类型char                                     |
+    | D      | 基本数据类型double                                   |
+    | F      | 基本数据类型float                                    |
+    | I      | 基本数据类型int                                      |
+    | J      | 基本数据类型long                                     |
+    | S      | 基本数据类型short                                    |
+    | Z      | 基本数据类型boolean                                  |
+    | V      | 代表void类型                                         |
+    | L      | 对象类型，比如：`Ljava/lang/Object;`                 |
+    | [      | 数组类型，代表一维数组。比如：`double[][][] is [[[D` |
+
+常量类型和结构：
+
+| 类型                             | 标志(或标识) | 描述                   |
+| -------------------------------- | ------------ | ---------------------- |
+| CONSTANT_utf8_info               | 1            | UTF-8编码的字符串      |
+| CONSTANT_Integer_info            | 3            | 整型字面量             |
+| CONSTANT_Float_info              | 4            | 浮点型字面量           |
+| CONSTANT_Long_info               | 5            | 长整型字面量           |
+| CONSTANT_Double_info             | 6            | 双精度浮点型字面量     |
+| CONSTANT_Class_info              | 7            | 类或接口的符号引用     |
+| CONSTANT_String_info             | 8            | 字符串类型字面量       |
+| CONSTANT_Fieldref_info           | 9            | 字段的符号引用         |
+| CONSTANT_Methodref_info          | 10           | 类中方法的符号引用     |
+| CONSTANT_InterfaceMethodref_info | 11           | 接口中方法的符号引用   |
+| CONSTANT_NameAndType_info        | 12           | 字段或方法的符号引用   |
+| CONSTANT_MethodHandle_info       | 15           | 表示方法句柄           |
+| CONSTANT_MethodType_info         | 16           | 标志方法类型           |
+| CONSTANT_InvokeDynamic_info      | 18           | 表示一个动态方法调用点 |
+
+18 种常量没有出现 byte、short、char，boolean 的原因：编译之后都可以理解为 Integer
+
+
+
+****
+
+
+
+##### 访问标识
+
+访问标识（access_flag），又叫访问标志、访问标记，该标识用两个字节表示，用于识别一些类或者接口层次的访问信息，包括这个 Class 是类还是接口，是否定义为 public类型，是否定义为 abstract类型等
+
+* 类的访问权限通常为 ACC_ 开头的常量
+* 每一种类型的表示都是通过设置访问标记的 32 位中的特定位来实现的，比如若是 public final 的类，则该标记为 `ACC_PUBLIC | ACC_FINAL`
+* 使用 `ACC_SUPER` 可以让类更准确地定位到父类的方法，确定类或接口里面的 invokespecial 指令使用的是哪一种执行语义，现代编译器都会设置并且使用这个标记
+
+| 标志名称       | 标志值 | 含义                                                         |
+| -------------- | ------ | ------------------------------------------------------------ |
+| ACC_PUBLIC     | 0x0001 | 标志为 public 类型                                           |
+| ACC_FINAL      | 0x0010 | 标志被声明为 final，只有类可以设置                           |
+| ACC_SUPER      | 0x0020 | 标志允许使用 invokespecial 字节码指令的新语义，JDK1.0.2之后编译出来的类的这个标志默认为真，使用增强的方法调用父类方法 |
+| ACC_INTERFACE  | 0x0200 | 标志这是一个接口                                             |
+| ACC_ABSTRACT   | 0x0400 | 是否为 abstract 类型，对于接口或者抽象类来说，次标志值为真，其他类型为假 |
+| ACC_SYNTHETIC  | 0x1000 | 标志此类并非由用户代码产生（由编译器产生的类，没有源码对应） |
+| ACC_ANNOTATION | 0x2000 | 标志这是一个注解                                             |
+| ACC_ENUM       | 0x4000 | 标志这是一个枚举                                             |
+
+
+
+***
+
+
+
+##### 索引集合
+
+类索引、父类索引、接口索引集合
+
+* 类索引用于确定这个类的全限定名
+
+* 父类索引用于确定这个类的父类的全限定名，Java 语言不允许多重继承，所以父类索引只有一个，除了Object 之外，所有的 Java 类都有父类，因此除了 java.lang.Object 外，所有 Java 类的父类索引都不为0
+
+* 接口索引集合就用来描述这个类实现了哪些接口
+  * interfaces_count 项的值表示当前类或接口的直接超接口数量
+  * interfaces[] 接口索引集合，被实现的接口将按 implements 语句后的接口顺序从左到右排列在接口索引集合中
+
+| 长度 | 含义                         |
+| ---- | ---------------------------- |
+| u2   | this_class                   |
+| u2   | super_class                  |
+| u2   | interfaces_count             |
+| u2   | interfaces[interfaces_count] |
+
+
+
+***
+
+
+
+##### 字段表
+
+字段 fields 用于描述接口或类中声明的变量，包括类变量以及实例变量，但不包括方法内部、代码块内部声明的局部变量以及从父类或父接口继承。字段叫什么名字、被定义为什么数据类型，都是无法固定的，只能引用常量池中的常量来描述
+
+fields_count（字段计数器），表示当前 class 文件 fields 表的成员个数，用两个字节来表示
+
+fields[]（字段表）：
+
+* 表中的每个成员都是一个 fields_info 结构的数据项，用于表示当前类或接口中某个字段的完整描述
+
+* 字段访问标识：
+
+  | 标志名称      | 标志值 | 含义                       |
+  | ------------- | ------ | -------------------------- |
+  | ACC_PUBLIC    | 0x0001 | 字段是否为public           |
+  | ACC_PRIVATE   | 0x0002 | 字段是否为private          |
+  | ACC_PROTECTED | 0x0004 | 字段是否为protected        |
+  | ACC_STATIC    | 0x0008 | 字段是否为static           |
+  | ACC_FINAL     | 0x0010 | 字段是否为final            |
+  | ACC_VOLATILE  | 0x0040 | 字段是否为volatile         |
+  | ACC_TRANSTENT | 0x0080 | 字段是否为transient        |
+  | ACC_SYNCHETIC | 0x1000 | 字段是否为由编译器自动产生 |
+  | ACC_ENUM      | 0x4000 | 字段是否为enum             |
+
+* 字段名索引：根据该值查询常量池中的指定索引项即可
+
+* 描述符索引：用来描述字段的数据类型、方法的参数列表和返回值
+
+  | 字符        | 类型      | 含义                    |
+  | ----------- | --------- | ----------------------- |
+  | B           | byte      | 有符号字节型树          |
+  | C           | char      | Unicode字符，UTF-16编码 |
+  | D           | double    | 双精度浮点数            |
+  | F           | float     | 单精度浮点数            |
+  | I           | int       | 整型数                  |
+  | J           | long      | 长整数                  |
+  | S           | short     | 有符号短整数            |
+  | Z           | boolean   | 布尔值true/false        |
+  | V           | void      | 代表void类型            |
+  | L Classname | reference | 一个名为Classname的实例 |
+  | [           | reference | 一个一维数组            |
+
+* 属性表集合：属性个数存放在 attribute_count 中，属性具体内容存放在 attribute 数组中，一个字段还可能拥有一些属性，用于存储更多的额外信息，比如初始化值、一些注释信息等
+
+  ```java
+  ConstantValue_attribute{
+      u2 attribute_name_index;
+      u4 attribute_length;
+      u2 constantvalue_index;
+  }
+  ```
+
+  对于常量属性而言，attribute_length 值恒为2
+
+
+
+***
+
+
+
+##### 方法表
+
+方法表是 methods 指向常量池索引集合，其中每一个 method_info 项都对应着一个类或者接口中的方法信息，完整描述了每个方法的签名
+
+* 如果这个方法不是抽象的或者不是 native 的，字节码中就会体现出来
+* methods 表只描述当前类或接口中声明的方法，不包括从父类或父接口继承的方法
+* methods 表可能会出现由编译器自动添加的方法，比如初始化方法 <cinit> 和实例化方法 <init>
+
+**重载（Overload）**一个方法，除了要与原方法具有相同的简单名称之外，还要求必须拥有一个与原方法不同的特征签名，特征签名就是一个方法中各个参数在常量池中的字段符号引用的集合，因为返回值不会包含在特征签名之中，因此 Java 语言里无法仅仅依靠返回值的不同来对一个已有方法进行重载。但在 Class 文件格式中，特征签名的范围更大一些，只要描述符不是完全一致的两个方法就可以共存
+
+methods_count（方法计数器）：表示 class 文件 methods 表的成员个数，使用两个字节来表示
+
+methods[]（方法表）：每个表项都是一个 method_info 结构，表示当前类或接口中某个方法的完整描述
+
+* 方法表结构如下：
+
+  | 类型           | 名称             | 含义       | 数量             |
+  | -------------- | ---------------- | ---------- | ---------------- |
+  | u2             | access_flags     | 访问标志   | 1                |
+  | u2             | name_index       | 字段名索引 | 1                |
+  | u2             | descriptor_index | 描述符索引 | 1                |
+  | u2             | attrubutes_count | 属性计数器 | 1                |
+  | attribute_info | attributes       | 属性集合   | attributes_count |
+
+* 方法表访问标志：
+
+  | 标志名称      | 标志值 | 含义                       |
+  | ------------- | ------ | -------------------------- |
+  | ACC_PUBLIC    | 0x0001 | 字段是否为 public          |
+  | ACC_PRIVATE   | 0x0002 | 字段是否为 private         |
+  | ACC_PROTECTED | 0x0004 | 字段是否为 protected       |
+  | ACC_STATIC    | 0x0008 | 字段是否为 static          |
+  | ACC_FINAL     | 0x0010 | 字段是否为 final           |
+  | ACC_VOLATILE  | 0x0040 | 字段是否为 volatile        |
+  | ACC_TRANSTENT | 0x0080 | 字段是否为 transient       |
+  | ACC_SYNCHETIC | 0x1000 | 字段是否为由编译器自动产生 |
+  | ACC_ENUM      | 0x4000 | 字段是否为 enum            |
+
+
+
+***
+
+
+
+##### 属性表
+
+属性表集合，指的是 Class 文件所携带的辅助信息，比如该 Class 文件的源文件的名称，以及任何带有 `RetentionPolicy.CLASS` 或者 `RetentionPolicy.RUNTIME` 的注解，这类信息通常被用于 Java 虚拟机的验证和运行，以及 Java 程序的调试。字段表、方法表都可以有自己的属性表，用于描述某些场景专有的信息
+
+attributes_ count（属性计数器）：表示当前文件属性表的成员个数
+
+attributes[]（属性表）：属性表的每个项的值必须是 attribute_info 结构
+
+* 属性的通用格式：
+
+  ```java
+  ConstantValue_attribute{
+      u2 attribute_name_index;	//属性名索引
+      u4 attribute_length;		//属性长度
+      u2 attribute_info;			//属性表
+  }
+  ```
+
+* 属性类型：
+
+  | 属性名称                              | 使用位置           | 含义                                                         |
+  | ------------------------------------- | ------------------ | ------------------------------------------------------------ |
+  | Code                                  | 方法表             | Java 代码编译成的字节码指令                                  |
+  | ConstantValue                         | 字段表             | final 关键字定义的常量池                                     |
+  | Deprecated                            | 类、方法、字段表   | 被声明为 deprecated 的方法和字段                             |
+  | Exceptions                            | 方法表             | 方法抛出的异常                                               |
+  | EnclosingMethod                       | 类文件             | 仅当一个类为局部类或者匿名类是才能拥有这个属性，这个属性用于标识这个类所在的外围方法 |
+  | InnerClass                            | 类文件             | 内部类列表                                                   |
+  | LineNumberTable                       | Code属性           | Java 源码的行号与字节码指令的对应关系                        |
+  | LocalVariableTable                    | Code属性           | 方法的局部变量描述                                           |
+  | StackMapTable                         | Code属性           | JDK1.6中新增的属性，供新的类型检查检验器检查和处理目标方法的局部变量和操作数有所需要的类是否匹配 |
+  | Signature                             | 类，方法表，字段表 | 用于支持泛型情况下的方法签名                                 |
+  | SourceFile                            | 类文件             | 记录源文件名称                                               |
+  | SourceDebugExtension                  | 类文件             | 用于存储额外的调试信息                                       |
+  | Syothetic                             | 类，方法表，字段表 | 标志方法或字段为编泽器自动生成的                             |
+  | LocalVariableTypeTable                | 类                 | 使用特征签名代替描述符，是为了引入泛型语法之后能描述泛型参数化类型而添加 |
+  | RuntimeVisibleAnnotations             | 类，方法表，字段表 | 为动态注解提供支持                                           |
+  | RuntimelnvisibleAnnotations           | 类，方法表，字段表 | 用于指明哪些注解是运行时不可见的                             |
+  | RuntimeVisibleParameterAnnotation     | 方法表             | 作用与 RuntimeVisibleAnnotations 属性类似，只不过作用对象为方法 |
+  | RuntirmelnvisibleParameterAnniotation | 方法表             | 作用与 RuntimelnvisibleAnnotations 属性类似，作用对象哪个为方法参数 |
+  | AnnotationDefauit                     | 方法表             | 用于记录注解类元素的默认值                                   |
+  | BootstrapMethods                      | 类文件             | 用于保存 invokeddynanic 指令引用的引导方式限定符             |
+
+
+
+
+
+****
+
+
+
+#### javap
+
+##### javac
+
+javac：编译命令，将 java 源文件编译成 class 字节码文件
+
+`javac xx.java` 不会在生成对应的局部变量表等信息，使用 `javac -g xx.java` 可以生成所有相关信息
+
+
+
+****
+
+
+
+##### javap
+
+javap 反编译生成的字节码文件，根据 class 字节码文件，反解析出当前类对应的 code 区 （字节码指令）、局部变量表、异常表和代码行偏移量映射表、常量池等信息
+
+用法：javap <options> <classes>
+
+```sh
+-help  --help  -?        输出此用法消息
+-version                 版本信息
+-public                  仅显示公共类和成员
+-protected               显示受保护的/公共类和成员
+-package                 显示程序包/受保护的/公共类和成员 (默认)
+-p  -private             显示所有类和成员
+						 #常用的以下三个
+-v  -verbose             输出附加信息
+-l                       输出行号和本地变量表
+-c                       对代码进行反汇编
+
+-s                       输出内部类型签名
+-sysinfo                 显示正在处理的类的系统信息 (路径, 大小, 日期, MD5 散列)
+-constants               显示最终常量
+-classpath <path>        指定查找用户类文件的位置
+-cp <path>               指定查找用户类文件的位置
+-bootclasspath <path>    覆盖引导类文件的位置
+```
+
+
+
+***
+
+
+
+#### 指令集  
+
+##### 执行指令
+
+Java 字节码属于 JVM 基本执行指令。由一个字节长度的代表某种操作的操作码（opcode）以及零至多个代表此操作所需参数的操作数（operand）所构成，虚拟机中许多指令并不包含操作数，只有一个操作码（零地址指令）
+
+由于限制了 Java 虚拟机操作码的长度为一个字节（0~255），所以指令集的操作码总数不可能超过 256 条
+
+在 JVM 的指令集中，大多数的指令都包含了其操作所对应的数据类型信息。例如 iload 指令用于从局部变量表中加载 int 型的数据到操作数栈中，而 fload 指令加载的则是 float 类型的数据
+
+* i 代表对 int 类型的数据操作
+* l 代表 long 
+* s 代表 short
+* b 代表 byte
+* c 代表 char
+* f 代表 float
+* d 代表 double
+
+大部分的指令都没有支持 byte、char、short、boolean 类型，编译器会在编译期或运行期将 byte 和 short 类型的数据带符号扩展（Sign-Extend-）为相应的 int 类型数据，将 boolean 和 char 类型数据零位扩展（Zero-Extend-）为相应的 int 类型数据
+
+在做值相关操作时:
+
+- 一个指令，可以从局部变量表、常量池、堆中对象、方法调用、系统调用中等取得数据，这些数据（可能是值，也可能是对象的引用）被压入操作数栈
+- 一个指令，也可以从操作数栈中取出一到多个值（pop 多次），完成赋值、加减乘除、方法传参、系统调用等等操作
+
+
+
+***
+
+
+
+##### 加载存储
+
+加载和存储指令用于将数据从栈帧的局部变量表和操作数栈之间来回传递
+
+局部变量压栈指令：将给定的局部变量表中的数据压入操作数栈
+
+* xload、xload_n，x 表示取值数据类型，为 i、l、f、d、a， n 为 0 到 3
+* 指令 xload_n 表示将第 n 个局部变量压入操作数栈，aload_n 表示将一个对象引用压栈
+* 指令 xload n 通过指定参数的形式，把局部变量压入操作数栈，局部变量数量超过 4 个时使用这个命令
+
+常量入栈指令：将常数压入操作数栈，根据数据类型和入栈内容的不同，又分为 const、push、ldc指令
+
+* push：包括 bipush 和 sipush，区别在于接收数据类型的不同，bipush 接收 8 位整数作为参数，sipush 接收 16 位整数
+* ldc：如果以上指令不能满足需求，可以使用 ldc 指令，接收一个 8 位的参数，该参数指向常量池中的 int、 float 或者 String 的索引，将指定的内容压入堆栈。ldc_w 接收两个 8 位参数，能支持的索引范围更大，如果要压入的元素是 long 或 double 类型的，则使用 ldc2_w 指令
+* aconst_null 将 null 对象引用压入栈，iconst_m1 将 int 类型常量 -1 压入栈，iconst_0 将 int 类型常量 0 压入栈
+
+出栈装入局部变量表指令：将操作数栈中栈顶元素弹出后，装入局部变量表的指定位置，用于给局部变量赋值
+
+* xstore、xstore_n，x 表示取值类型为 i、l、f、d、a， n 为 0 到 3
+* xastore 表示存入数组，x 取值为 i、l、f、d、a、b、c、s
+
+扩充局部变量表的访问索引的指令：wide
+
+
+
+****
+
+
+
+##### 算术指令
+
+算术指令用于对两个操作数栈上的值进行某种特定运算，并把计算结果重新压入操作数栈
+
+没有直接支持 byte、 short、 char 和 boolean类型的算术指令，对于这些数据的运算，都使用 int 类型的指令来处理，数组类型也是转换成 int 数组
+
+* 加法指令：iadd、ladd、fadd、dadd
+* 减法指令：isub、lsub、fsub、dsub
+* 乘法指令：imu、lmu、fmul、dmul
+* 除法指令：idiv、ldiv、fdiv、ddiv
+* 求余指令：irem、lrem、frem、drem（remainder 余数）
+* 取反指令：ineg、lneg、fneg、dneg （negation 取反）
+* 自增指令：iinc（直接**在局部变量 slot 上进行运算**，不用放入操作数栈）
+* 位运算指令，又可分为：
+  - 位移指令：ishl、ishr、 iushr、lshl、lshr、 lushr
+  - 按位或指令：ior、lor
+  - 按位与指令：iand、land
+  - 按位异或指令：ixor、lxor
+
+* 比较指令：dcmpg、dcmpl、 fcmpg、fcmpl、lcmp
+
+运算模式：
+
+* 向最接近数舍入模式，JVM 在进行浮点数计算时，所有的运算结果都必须舍入到适当的精度，非精确结果必须舍入为可被表示的最接近的精确值，如果有两种可表示形式与该值一样接近，将优先选择最低有效位为零的
+* 向零舍入模式：将浮点数转换为整数时，该模式将在目标数值类型中选择一个最接近但是不大于原值的数字作为最精确的舍入结果
+
+NaN 值：当一个操作产生溢出时，将会使用有符号的无穷大表示，如果某个操作结果没有明确的数学定义，将使用 NaN 值来表示
+
+```java
+double j = i / 0.0;
+System.out.println(j);//无穷大，NaN: not a number
+```
+
+分析i++：从字节码角度分析：a++ 和 ++a 的区别是先执行 iload 还是 先执行 iinc
+
+```java
+public class Demo {
+    public static void main(String[] args) {
+        int a = 10;
+        int b = a++ + ++a + a--;
+        System.out.println(a);	//11
+        System.out.println(b);	//34
+    }
+}
+```
+
+判断结果：
+
+```java
+public class Demo {
+    public static void main(String[] args) {
+        int i = 0;
+        int x = 0;
+        while (i < 10) {
+            x = x++;
+            i++;
+        }
+        System.out.println(x); // 结果是 0
+    }
+}
+```
+
+
+
+***
+
+
+
+##### 类型转换
+
+类型转换指令可以将两种不同的数值类型进行相互转换，除了 boolean 之外的七种类型
+
+宽化类型转换：
+
+* JVM 支持以下数值的宽化类型转换（widening numeric conversion），小范围类型到大范围类型的安全转换
+  * 从 int 类型到 long、float 或者 double 类型，对应的指令为 i2l、i2f、i2d
+  * 从 long 类型到 float、 double 类型，对应的指令为 l2f、l2d
+  * 从 float 类型到 double 类型，对应的指令为 f2d
+
+* 精度损失问题
+  * 宽化类型转换是不会因为超过目标类型最大值而丢失信息
+  * 从 int 转换到 float 或者 long 类型转换到 double 时，将可能发生精度丢失
+
+* 从 byte、char 和 short 类型到 int 类型的宽化类型转换实际上是不存在的，JVM 把它们当作 int 处理
+
+窄化类型转换：
+
+* Java 虚拟机直接支持以下窄化类型转换：
+  * 从 int 类型至 byte、 short 或者 char 类型，对应的指令有 i2b、i2c、i2s
+  * 从 long 类型到 int 类型，对应的指令有 l2i
+  * 从 float 类型到 int 或者 long 类型，对应的指令有:f2i、f2l
+  * 从 double 类型到 int、long 或 float 者类型，对应的指令有 d2i、d2、d2f
+
+* 精度损失问题：
+  * 窄化类型转换可能会导致转换结果具备不同的正负号、不同的数量级，转换过程可能会导致数值丢失精度
+  * 将一个浮点值窄化转换为整数类型 T（T 限于 int 或 long 类型之一）时，将遵循以下转换规则：
+    - 如果浮点值是 NaN，那转换结果就是 int 或 long 类型的 0
+    - 如果浮点值不是无穷大的话，浮点值使用 IEEE 754 的向零舍入模式取整，获得整数值 v，如果 v 在目标类型 T 的表示范围之内，那转换结果就是 v，否则将根据 v 的符号，转换为 T 所能表示的最大或者最小正数
+
+
+
+***
+
+
+
+##### 创建访问
+
+创建指令：
+
+* 创建类实例指令：new，接收一个操作数指向常量池的索引，表示要创建的类型，执行完成后将对象的引用压入栈
+
+  ```java
+  0:  new             #2 // class com/jvm/bytecode/Demo
+  3:  dup
+  4:  invokespecial   #3 // Method "<init>":()V
+  ```
+
+  dup 是复制操作数栈栈顶的内容，需要两份引用原因：
+
+  - 一个要配合 invokespecial 调用该对象的构造方法 <init>:()V （会消耗掉栈顶一个引用）
+  - 一个要配合 astore_1 赋值给局部变量
+
+* 创建数组的指令：newarray、anewarray、multianewarray
+
+  * newarray：创建基本类型数组
+  * anewarray：创建引用类型数组
+  * multianewarray：创建多维数组
+
+字段访问指令：对象创建后可以通过对象访问指令获取对象实例或数组实例中的字段或者数组元素
+
+* 访问类字段（static字段，或者称为类变量）的指令：getstatic、putstatic
+* 访问类实例字段（非static字段，或者称为实例变量）的指令：getfield、 putfield
+
+类型检查指令：检查类实例或数组类型的指令
+
+* checkcast：用于检查类型强制转换是否可以进行，如果可以进行 checkcast 指令不会改变操作数栈，否则它会抛出 ClassCastException 异常
+
+* instanceof：判断给定对象是否是某一个类的实例，会将判断结果压入操作数栈
+
+
+
+
+****
+
+
+
+##### 方法指令
+
+方法调用指令：invokevirtual、 invokeinterface、invokespecial、invokestatic、invokedynamic
+
+**方法调用章节详解**
+
+
+
+***
+
+
+
+##### 操作数栈
+
+JVM 提供的操作数栈管理指令，可以用于直接操作操作数栈的指令
+
+* pop、pop2：将一个或两个元素从栈顶弹出，并且直接废弃
+* dup、dup2，dup_x1、dup2_x1，dup_x2、dup2_x2：复制栈顶一个或两个数值并重新压入栈顶
+
+* swap：将栈最顶端的两个 slot 数值位置交换，JVM 没有提供交换两个 64 位数据类型数值的指令
+
+* nop：一个非常特殊的指令，字节码为 0x00，和汇编语言中的 nop 一样，表示什么都不做，一般可用于调试、占位等
+
+
+
+***
+
+
+
+##### 控制转移
+
+###### 指令介绍
+
+
+比较指令：比较栈顶两个元素的大小，并将比较结果入栈
+
+* lcmp：比较两个 long 类型值
+* fcmpl：比较两个 float 类型值（当遇到NaN时，返回-1）
+* fcmpg：比较两个 float 类型值（当遇到NaN时，返回1）
+* dcmpl：比较两个 double 类型值（当遇到NaN时，返回-1）
+* dcmpg：比较两个 double 类型值（当遇到NaN时，返回1）
+
+条件跳转指令：
+
+| 指令      | 说明                                               |
+| --------- | -------------------------------------------------- |
+| ifeq      | equals，当栈顶int类型数值等于0时跳转               |
+| ifne      | not equals，当栈顶in类型数值不等于0时跳转          |
+| iflt      | lower than，当栈顶in类型数值小于0时跳转            |
+| ifle      | lower or equals，当栈顶in类型数值小于等于0时跳转   |
+| ifgt      | greater than，当栈顶int类型数组大于0时跳转         |
+| ifge      | greater or equals，当栈顶in类型数值大于等于0时跳转 |
+| ifnull    | 为 null 时跳转                                     |
+| ifnonnull | 不为 null 时跳转                                   |
+
+比较条件跳转指令：
+
+| 指令      | 说明                                                      |
+| --------- | --------------------------------------------------------- |
+| if_icmpeq | 比较栈顶两 int 类型数值大小（下同），当前者等于后者时跳转 |
+| if_icmpne | 当前者不等于后者时跳转                                    |
+| if_icmplt | 当前者小于后者时跳转                                      |
+| if_icmple | 当前者小于等于后者时跳转                                  |
+| if_icmpgt | 当前者大于后者时跳转                                      |
+| if_icmpge | 当前者大于等于后者时跳转                                  |
+| if_acmpeq | 当结果相等时跳转                                          |
+| if_acmpne | 当结果不相等时跳转                                        |
+
+多条件分支跳转指令：
+
+* tableswitch：用于 switch 条件跳转，case 值连续
+* lookupswitch：用于 switch 条件跳转，case 值不连续
+
+无条件跳转指令：
+
+* goto：用来进行跳转到指定行号的字节码
+
+* goto_w：无条件跳转（宽索引）
+
+
+
+***
+
+
+
+###### 代码示例
+
+条件判断：
+
+```java
+public static void main(String[] args) {    int a = 0;    if(a == 0) {    	a = 10;    } else {    	a = 20;    }}
+```
+
+```sh
+1: istore_12: iload_13: ifne 126: bipush 108: istore_19: goto 1512: bipush 2014: istore_115: return
+```
+
+while循环：
+
+```java
+public static void main(String[] args) {    int a = 0;    while (a < 10) {    	a++;    }}
+```
+
+```sh
+0: 	iconst_01: 	istore_12: 	iload_13: 	bipush 105: 	if_icmpge 148: 	iinc 1, 111: goto 214: return
+```
+
+for循环：
+
+```java
+for (int i = 0; i < 10; i++) { }
+```
+
+```java
+0: 	iconst_01:	istore_12: 	iload_13: 	bipush 105: 	if_icmpge 148: 	iinc 1, 1		//在slot上直接递增11: goto 214: return
+```
+
+
+
+***
+
+
+
+##### 异常处理
+
+###### 处理机制
+
+抛出异常指令：athrow指令
+
+JVM 处理异常（catch语句）不是由字节码指令来实现的，而是**采用异常表来完成**的
+
+* 代码：
+
+  ```java
+  public static void main(String[] args) {    int i = 0;    try {    	i = 10;    } catch (ArithmeticException e) {    	i = 30;    } catch (NullPointerException e) {    	i = 40;    } catch (Exception e) {    	i = 50;    }}
+  ```
+
+* 字节码：
+
+  * 多出一个 **Exception table** 的结构，[from, to) 是**前闭后开**的检测范围，一旦这个范围内的字节码执行出现异常，则通过 type 匹配异常类型，如果一致，进入 target 所指示行号
+  * 8 行的字节码指令 astore_2 是将异常对象引用存入局部变量表的 slot 2 位置，因为异常出现时，只能进入 Exception table 中一个分支，所以局部变量表 slot 2 位置被共用
+
+  ```java
+  public static void main(java.lang.String[]);    descriptor: ([Ljava/lang/String;)V    flags: ACC_PUBLIC, ACC_STATIC    Code:      stack=1, locals=3, args_size=1        0: iconst_0        1: istore_1        2: bipush 10        4: istore_1        5: goto 26        8: astore_2        9: bipush 30        11: istore_1        12: goto 26        15: astore_2        16: bipush 40        18: istore_1        19: goto 26        22: astore_2        23: bipush 50        25: istore_1        26: return    Exception table:    	from to target type    	2 	  5		8  Class java/lang/Exception        2 	  5 	15 Class java/lang/NullPointerException		2 	  5 	22 Class java/lang/Exception    LineNumberTable: ...    LocalVariableTable:    	Start 	Length Slot Name     Signature    		9 		3 	2 		e 		Ljava/lang/ArithmeticException;			16 		3 	2 		e 		Ljava/lang/NullPointerException;			23 		3 	2 		e 		Ljava/lang/Exception;    		0 		27 	0 		args 	[Ljava/lang/String;    		2 		25 	1 		i 		I      StackMapTable: ...    MethodParameters: ...}
+  ```
+
+
+
+***
+
+
+
+###### finally
+
+finally 中的代码被复制了 3 份，分别放入 try 流程，catch 流程以及 catch 剩余的异常类型流程
+
+* 代码：
+
+  ```java
+  public static void main(String[] args) {    int i = 0;    try {    	i = 10;    } catch (Exception e) {    	i = 20;    } finally {    	i = 30;    }}
+  ```
+
+* 字节码：
+
+  ```java
+      0: 	iconst_0    1: 	istore_1 	// 0 -> i	->赋值    2: 	bipush 10 	// try 10 放入操作数栈顶    4: 	istore_1 	// 10 -> i 将操作数栈顶数据弹出，存入局部变量表的 slot1    5: 	bipush 30 	// finally     7: 	istore_1 	// 30 -> i     8: 	goto 27 	// return -----------------------------------    11: astore_2 	// catch Exceptin -> e ----------------------    12: bipush 20 	//     14: istore_1 	// 20 -> i     15: bipush 30 	// finally     17: istore_1 	// 30 -> i     18: goto 27 	// return -----------------------------------    21: astore_3 	// catch any -> slot 3 ----------------------    22: bipush 30 	// finally     24: istore_1 	// 30 -> i     25: aload_3 	// 将局部变量表的slot 3数据弹出，放入操作数栈栈顶    26: athrow 		// throw 抛出异常    27: returnException table:	from   to 	target 	type		2	5 		11 	Class java/lang/Exception		2 	5 		21 	any // 剩余的异常类型，比如 Error		11 15 		21 	any // 剩余的异常类型，比如 ErrorLineNumberTable: ...LocalVariableTable:	Start Length Slot Name Signature	  12 	3 		2 	e 	Ljava/lang/Exception;	  0 	28 		0 args 	[Ljava/lang/String;	  2 	26 		1 	i 	I
+  ```
+
+
+
+***
+
+
+
+###### return
+
+* 吞异常
+
+  ```java
+  public static int test() {    try {    	return 10;    } finally {    	return 20;    }}
+  ```
+
+  ```java
+      0: bipush 10 	// 10 放入栈顶    2: istore_0 	// 10 -> slot 0 (从栈顶移除了)    3: bipush 20 	// 20 放入栈顶    5: ireturn 		// 返回栈顶 int(20)    6: astore_1 	// catch any -> slot 1 存入局部变量表的 slot1    7: bipush 20 	// 20 放入栈顶    9: ireturn 		// 返回栈顶 int(20)Exception table:	from   to 	target 	type		0	3		6 	any      
+  ```
+
+  * 由于 finally 中的 ireturn 被插入了所有可能的流程，因此返回结果肯 finally 的为准
+  * 字节码中没有 **athrow** ，表明如果在 finally 中出现了 return，会**吞掉异常**
+
+* 不吞异常
+
+  ```java
+  public class Demo {    public static void main(String[] args) {    	int result = test();    	System.out.println(result);//10	}	public static int test() {        int i = 10;        try {            return i;//返回10        } finally {            i = 20;        }   	}}
+  ```
+
+  ```java
+      0: 	bipush 10 	// 10 放入栈顶    2: 	istore_0 	// 10 -> i，赋值给i，放入slot 0    3: 	iload_0 	// i(10)加载至操作数栈    4: 	istore_1 	// 10 -> slot 1，暂存至 slot 1，目的是为了固定返回值    5: 	bipush 20 	// 20 放入栈顶    7: 	istore_0 	// 20 -> i    8: 	iload_1 	// slot 1(10) 载入 slot 1 暂存的值    9: 	ireturn 	// 返回栈顶的 int(10)    10: astore_2	// catch any -> slot 2 存入局部变量表的 slot2    11: bipush 20    13: istore_0    14: aload_2    15: athrow		// 不会吞掉异常Exception table:	from   to 	target 	type	  3	   5		10 	any  
+  ```
+
+
+
+***
+
+
+
+##### 同步控制
+
+方法级的同步：是隐式的，无须通过字节码指令来控制，它实现在方法调用和返回操作之中，虚拟机可以从方法常量池的方法表结构中的 ACC_SYNCHRONIZED 访问标志得知一个方法是否声明为同步方法
+
+方法内指定指令序列的同步：有 monitorenter 和 monitorexit 两条指令来支持 synchronized 关键字的语义
+
+* montiorenter：进入并获取对象监视器，即为栈顶对象加锁
+* monitorexit：释放并退出对象监视器，即为栈顶对象解锁
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-字节码指令同步控制.png" style="zoom: 33%;" />
+
+
+
+
+
+***
+
+
+
+#### 执行流程
+
+原始 Java 代码：
+
+```java
+public class Demo {	public static void main(String[] args) {        int a = 10;        int b = Short.MAX_VALUE + 1;        int c = a + b;        System.out.println(c);	}}
+```
+
+javap -v Demo.class：省略
+
+* 常量池载入运行时常量池
+
+* 方法区字节码载入方法区
+
+* main 线程开始运行，分配栈帧内存：（操作数栈stack=2，局部变量表locals=4）
+
+* **执行引擎**开始执行字节码
+
+  `bipush 10`：将一个 byte 压入操作数栈（其长度会补齐 4 个字节），类似的指令
+
+  * sipush 将一个 short 压入操作数栈（其长度会补齐 4 个字节）
+  * ldc 将一个 int 压入操作数栈
+  * ldc2_w 将一个 long 压入操作数栈（分两次压入，因为 long 是 8 个字节）
+  * 这里小的数字都是和字节码指令存在一起，超过 short 范围的数字存入了常量池
+
+  `istore_1`：将操作数栈顶数据弹出，存入局部变量表的 slot 1
+
+  ![](https://gitee.com/seazean/images/raw/master/Java/JVM-字节码执行流程1.png)
+
+  `ldc #3`：从常量池加载 #3 数据到操作数栈
+  Short.MAX_VALUE 是 32767，所以 32768 = Short.MAX_VALUE + 1 实际是在编译期间计算完成
+
+  ![](https://gitee.com/seazean/images/raw/master/Java/JVM-字节码执行流程2.png)
+
+  `istore_2`：将操作数栈顶数据弹出，存入局部变量表的 slot 2
+
+  `iload_1`：将局部变量表的 slot 1数据弹出，放入操作数栈栈顶
+
+  `iload_2`：将局部变量表的 slot 2数据弹出，放入操作数栈栈顶
+
+  `iadd`：执行相加操作
+
+  ![](https://gitee.com/seazean/images/raw/master/Java/JVM-字节码执行流程3.png)
+
+  `istore_3`：将操作数栈顶数据弹出，存入局部变量表的 slot 3
+
+  `getstatic #4`：获取静态字段
+
+  ![](https://gitee.com/seazean/images/raw/master/Java/JVM-字节码执行流程4.png)
+
+  `iload_3`：
+
+  ![](https://gitee.com/seazean/images/raw/master/Java/JVM-字节码执行流程5.png)
+
+  `invokevirtual #5`：
+
+  * 找到常量池 #5 项
+  * 定位到方法区 java/io/PrintStream.println:(I)V 方法
+  * **生成新的栈帧**（分配 locals、stack等）
+  * 传递参数，执行新栈帧中的字节码
+  * 执行完毕，弹出栈帧
+  * 清除 main 操作数栈内容
+
+  ![](https://gitee.com/seazean/images/raw/master/Java/JVM-字节码执行流程6.png)
+
+  return：完成 main 方法调用，弹出 main 栈帧，程序结束
+
+  
 
 
 
@@ -15913,21 +12936,15 @@ public class ClassLoaderTest {
 
 执行引擎：Java虚拟机的核心组成部分之一，JVM的主要任务是负责装载字节码到其内部，但字节码并不能够直接运行在操作系统之上，需要执行引擎将字节码指令解释/编译为对应平台上的本地机器指令
 
-虚拟机是一个相对于“物理机”的概念，这两种机器都有代码执行能力：
+虚拟机是一个相对于物理机的概念，这两种机器都有代码执行能力：
 
 * 物理机的执行引擎是直接建立在处理器、缓存、指令集和操作系统层面上
 * 虚拟机的执行引擎是由软件自行实现的，可以不受物理条件制约地定制指令集与执行引擎的结构体系
 
-编译过程中的编译器：
-
-* 前端编译器： Sun的Javac、 Eclipse JDT中的增量式编译器ECJ，把源代码编译为字节码文件.class
-* 后端运行期编译器：HotSpot VM的C1、C2编译器，也就是JIT编译器
-* 静态提前编译器：AOT编译器，直接把源代码编译成本地机器代码
-
-Java是**半编译半解释型语言**，将解释执行与编译执行二者结合起来进行：
+Java 是**半编译半解释型语言**，将解释执行与编译执行二者结合起来进行：
 
 * 解释器：根据预定义的规范对字节码采用逐行解释的方式执行，将每条字节码文件中的内容“翻译”为对应平台的本地机器指令执行
-* 即时编译器（JIT : Just In Time Compiler）：虚拟机运行时将源代码直接编译成**和本地机器平台相关的机器码**后再执行，并存入Code Cache，下次遇到相同的代码直接执行，效率高（一次编译，到处运行）
+* 即时编译器（JIT : Just In Time Compiler）：虚拟机运行时将源代码直接编译成**和本地机器平台相关的机器码**后再执行，并存入 Code Cache，下次遇到相同的代码直接执行，效率高
 
 
 
@@ -15963,19 +12980,19 @@ HotSpot VM 可以通过VM参数设置程序执行方式：
 热点代码：被 JIT 编译器编译的字节码，根据代码被调用执行的频率而定
 
 * 一个被多次调用的方法或者一个循环次数较多的循环体都可以被称之为热点代码
-* 这种编译方式发生在方法的执行过程中，也称为栈上替换，简称OSR (On StackReplacement) 编译
+* 这种编译方式发生在方法的执行过程中，也称为栈上替换，简称 **OSR (On StackReplacement) 编译**
 
 OSR 替换循环代码体的入口，C1、C2 替换的是方法调用的入口，OSR 编译后会出现方法的整段代码被编译了，但是只有循环体部分才执行编译后的机器码，其他部分仍是解释执行
 
-热点探测：JIT编译器在运行时会针热点代码做出深度优化，将其直接编译为对应平台的本地机器指令进行缓存，以提升Java程序的执行性能
+热点探测：JIT 编译器在运行时会针热点代码做出深度优化，将其直接编译为对应平台的本地机器指令进行缓存，以提升 Java 程序的执行性能
 
-CodeCache 用于缓存编译后的机器码，动态生成的代码和本地方法代码(JNI)，如果 CodeCache 区域被占满，编译器被停用，字节码将不会编译为机器码，应用程序继续运行，但运行速度会降低一个数量级，严重影响系统性能
+CodeCache 用于缓存编译后的机器码，动态生成的代码和本地方法代码 JNI，如果 CodeCache 区域被占满，编译器被停用，字节码将不会编译为机器码，应用程序继续运行，但运行速度会降低一个数量级，严重影响系统性能
 
-HotSpot VM采用的热点探测方式是基于计数器的热点探测，为每一个方法都建立2个不同类型的计数器：方法调用计数器 (Invocation Counter) 和回边计数器 (BackEdge Counter)
+HotSpot VM 采用的热点探测方式是基于计数器的热点探测，为每一个方法都建立2个不同类型的计数器：方法调用计数器（Invocation Counter）和回边计数器（BackEdge Counter）
 
-* 方法调用计数器：用于统计方法被调用的次数，默认阈值在Client 模式 下是1500 次，在Server 模式下是10000 次，超过这个阈值，就会触发JIT编译，阈值可以通过虚拟机参数 `-XX:CompileThreshold` 设置
+* 方法调用计数器：用于统计方法被调用的次数，默认阈值在Client 模式 下是1500 次，在 Server 模式下是10000 次，超过这个阈值，就会触发 JIT 编译，阈值可以通过虚拟机参数 `-XX:CompileThreshold` 设置
 
-  工作流程：当一个方法被调用时， 会先检查该方法是否存在被JIT编译过的版本，存在则使用编译后的本地代码来执行；如果不存在则将此方法的调用计数器值加1，然后判断方法调用计数器与回边计数器值之和是否超过方法调用计数器的阈值，如果超过阈值会向即时编译器提交一个该方法的代码编译请求
+  工作流程：当一个方法被调用时， 会先检查该方法是否存在被 JIT 编译过的版本，存在则使用编译后的本地代码来执行；如果不存在则将此方法的调用计数器值加 1，然后判断方法调用计数器与回边计数器值之和是否超过方法调用计数器的阈值，如果超过阈值会向即时编译器提交一个该方法的代码编译请求
 
 * 回边计数器：统计一个方法中循环体代码执行的次数，在字节码中控制流向后跳转的指令称为回边
 
@@ -15987,7 +13004,7 @@ HotSpot VM采用的热点探测方式是基于计数器的热点探测，为每�
 
 #### 分层编译
 
-HotSpot VM 内嵌有两个JIT编译器，分别为 Client Compiler 和 Server Compiler，简称为C1编译器和C2编译器
+HotSpot VM 内嵌两个 JIT 编译器，分别为 Client Compiler 和 Server Compiler，简称 C1 编译器和 C2 编译器
 
 C1编译器会对字节码进行简单可靠的优化，耗时短，以达到更快的编译速度，C1编译器的优化方法：
 
@@ -16018,7 +13035,7 @@ C1编译器会对字节码进行简单可靠的优化，耗时短，以达到更
 
 * 内联缓存：是一种加快动态绑定的优化技术
 
-C2编译器进行耗时较长的优化以及激进优化，优化的代码执行效率更高，当激进优化的假设不成立时，再退回使用C1编译。C2的优化主要是在全局层面，逃逸分析是优化的基础：标量替换、栈上分配、同步消除
+C2 编译器进行耗时较长的优化以及激进优化，优化的代码执行效率更高，当激进优化的假设不成立时，再退回使用 C1 编译。C2 的优化主要是在全局层面，逃逸分析是优化的基础：标量替换、栈上分配、同步消除
 
 VM 参数设置：
 
@@ -16026,7 +13043,7 @@ VM 参数设置：
 - -server：指定 Java 虚拟机运行在 Server 模式下，并使用C2编译器
 - `-server -XX:+TieredCompilation`：在1.8之前，分层编译默认是关闭的，可以添加该参数开启
 
-分层编译策略 (Tiered Compilation)：程序解释执行可以触发C1编译，将字节码编译成机器码，加上性能监控，C2编译会根据性能监控信息进行激进优化，JVM 将执行状态分成了 5 个层次：
+分层编译策略 (Tiered Compilation)：程序解释执行可以触发 C1 编译，将字节码编译成机器码，加上性能监控，C2 编译会根据性能监控信息进行激进优化，JVM 将执行状态分成了 5 个层次：
 
 * 0 层，解释执行（Interpreter）
 
@@ -16046,66 +13063,16 @@ VM 参数设置：
 
 
 
-#### 其他编译
-
-Graal编译器：JDK10 HotSpot 加入的一个全新的即时编译器，编译效果短短几年时间就追平了C2编译器
-
-AOT编译器：JDK9引入，静态提前编译器 (Ahead Of Time Compiler)，程序运行之前便将字节码转换为机器码的过程，是与即时编译相对立的一个概念，即时编译指的是在程序的运行过程中，将字节码转换为机器码
-
-* 优点：Java虚拟机加载已经预编译成二进制库，可以直接执行，不必等待即时编译器的预热，减少Java应用第一次运行慢的现象
-* 缺点：
-  * 破坏了java"一次编译，到处运行”，必须为每个不同硬件、SS编译对应的发行包
-  * 降低了Java链接过程的动态性，加载的代码在编译期就必须全部已知
-
-
-
-***
-
-
-
-#### 语言发展
-
-机器码：各种用二进制编码方式表示的指令，与CPU紧密相关，所以不同种类的CPU对应的机器指令不同
-
-指令：指令就是把机器码中特定的0和1序列，简化成对应的指令，例如mov，inc等，可读性稍好，但是不同的硬件平台的同一种指令（比如mov），对应的机器码也可能不同
-
-指令集：不同的硬件平台支持的指令是有区别的，每个平台所支持的指令，称之为对应平台的指令集
-
-- x86指令集，对应的是x86架构的平台
-- ARM指令集，对应的是ARM架构的平台
-
-汇编语言：用助记符代替机器指令的操作码，用地址符号或标号代替指令或操作数的地址
-
-* 在不同的硬件平台，汇编语言对应着不同的机器语言指令集，通过汇编过程转换成机器指令
-* 计算机只认识指令码，汇编语言编写的程序也必须翻译成机器指令码，计算机才能识别和执行
-
-高级语言：为了使计算机用户编程序更容易些，后来就出现了各种高级计算机语言
-
-字节码：是一种中间状态（中间码）的二进制代码，比机器码更抽象，需要直译器转译后才能成为机器码
-
-* 字节码为了实现特定软件运行和软件环境，与硬件环境无关
-* 通过编译器和虚拟机器实现，编译器将源码编译成字节码，虚拟机器将字节码转译为可以直接执行的指令
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-高级语言执行过程.png" style="zoom:50%;" />
-
-
-
-
-
-***
-
-
-
 ### 方法调用
 
 #### 方法识别
 
 Java 虚拟机识别方法的关键在于类名、方法名以及方法描述符（method descriptor）
 
-* 方法描述符是由方法的参数类型以及返回类型所构成，也叫方法签名
+* 方法描述符是由方法的参数类型以及返回类型所构成，也叫方法特征签名
 * 在同一个类中，如果同时出现多个名字相同且描述符也相同的方法，那么 Java 虚拟机会在类的验证阶段报错
 
-JVM根据名字和描述符来判断的，只要返回值不一样，其它完全一样，在JVM中是允许的，但Java语言不允许
+JVM 根据名字和描述符来判断的，只要返回值不一样，其它完全一样，在 JVM 中是允许的，但 Java 语言不允许
 
 ```java
 // 返回值类型不同，编译阶段直接报错
@@ -16127,12 +13094,12 @@ public static int invoke(Object... args) {
 
 方法调用并不等于方法执行，方法调用阶段唯一的任务就是确定被调用方法的版本，不是方法的具体运行过程
 
-在JVM中，将符号引用转换为直接引用有两种机制：
+在 JVM 中，将符号引用转换为直接引用有两种机制：
 
-- 静态链接：当一个字节码文件被装载进JVM内部时，如果被调用的目标方法在编译期可知，且运行期保持不变，将调用方法的符号引用转换为直接引用的过程称之为静态链接（类加载的解析阶段）
+- 静态链接：当一个字节码文件被装载进 JVM 内部时，如果被调用的目标方法在编译期可知，且运行期保持不变，将调用方法的符号引用转换为直接引用的过程称之为静态链接（类加载的解析阶段）
 - 动态链接：如果被调用的方法在编译期无法被确定下来，只能够在程序运行期将调用方法的符号引用转换为直接引用，由于这种引用转换过程具备动态性，因此被称为动态链接（初始化后的解析阶段）
 
-对应的方法的绑定（分配）机制为：静态绑定和动态绑定。绑定是一个字段、方法或者类从符号引用被替换为直接引用的过程，仅发生一次
+对应的方法的绑定（分配）机制为：静态绑定和动态绑定。绑定是一个字段、方法或者类从符号引用被替换为直接引用的过程，仅发生一次：
 
 - 静态绑定：被调用的目标方法在编译期可知，且运行期保持不变，将这个方法与所属的类型进行绑定
 - 动态绑定：被调用的目标方法在编译期无法确定，只能在程序运行期根据实际的类型绑定相关的方法
@@ -16143,7 +13110,7 @@ public static int invoke(Object... args) {
 
 - 非虚方法在编译期就确定了具体的调用版本，这个版本在运行时是不可变的
 - 静态方法、私有方法、final方法、实例构造器、父类方法都是非虚方法
-- 所有普通成员方法和被重写的方法都是虚方法
+- 所有普通成员方法、实例方法、被重写的方法都是虚方法
 
 动态类型语言和静态类型语言：
 
@@ -16172,14 +13139,14 @@ public static int invoke(Object... args) {
 
 - invokestatic：调用静态方法
 - invokespecial：调用私有实例方法、构造器，和父类的实例方法或构造器，以及所实现接口的默认方法
-- invokevirtual：调用所有虚方法
+- invokevirtual：调用所有虚方法（虚方法分派）
 - invokeinterface：调用接口方法
 
 动态调用指令：
 
 - invokedynamic：动态解析出需要调用的方法，
-  - Java7为了实现动态类型语言支持而引入了该指令，但是并没有提供直接生成invokedynamic指令的方法，需要借助ASM这种底层字节码工具来产生invokedynamic指令
-  - Java8的Lambda表达式的出现，invokedynamic指令在Java中才有了直接生成方式
+  - Java7 为了实现动态类型语言支持而引入了该指令，但是并没有提供直接生成 invokedynamic 指令的方法，需要借助 ASM 这种底层字节码工具来产生 invokedynamic 指令
+  - Java8 的 lambda 表达式的出现，invokedynamic 指令在 Java 中才有了直接生成方式
 
 指令对比：
 
@@ -16277,12 +13244,10 @@ public class Demo {
 28: return
 ```
 
-- new 是在堆中创建对象，执行成功会将**对象引用**压入操作数栈
-- dup 是复制操作数栈栈顶的内容，本例即为对象引用，为什么需要两份引用呢？
-  - 一个要配合 invokespecial 调用该对象的构造方法 <init>:()V （会消耗掉栈顶一个引用）
-  - 一个要配合 astore_1 赋值给局部变量
-- `d.test4()` 是通过**对象引用**调用一个静态方法，在调用invokestatic 之前执行了 pop 指令，把对象引用从操作数栈弹掉
-  - 不建议使用`对象.静态方法()`的方式调用静态方法，多了aload和pop指令
+- invokespecial 调用该对象的构造方法 <init>:()V 
+
+- `d.test4()` 是通过**对象引用**调用一个静态方法，在调用 invokestatic 之前执行了 pop 指令，把对象引用从操作数栈弹掉
+  - 不建议使用 `对象.静态方法()` 的方式调用静态方法，多了aload 和 pop 指令
   - 成员方法与静态方法调用的区别是：执行方法前是否需要对象引用
 
 
@@ -16390,521 +13355,6 @@ Passenger 类的方法表包括两个方法，分别对应 0 号和 1 号。方�
 ***
 
 
-
-### 字节码
-
-（字节码部分笔记待优化）
-
-#### 类结构
-
-class文件是编译器编译之后供虚拟机解释执行的二进制字节码文件，一个class文件对应一个public类型的类
-
-根据 JVM 规范，类文件结构如下：
-
-```java
-ClassFile {
-	u4 				magic;			//魔数
-    u2 				minor_version;	//小版本
-    u2 				major_version;	//主版本
-    u2 				constant_pool_count;
-    cp_info			constant_pool[constant_pool_count-1];
-    u2	 			access_flags;
-    u2 				this_class;
-    u2 				super_class;
-    u2 				interfaces_count;
-    u2 				interfaces[interfaces_count];
-    u2 				fields_count;
-    field_info 		fields[fields_count];
-    u2 				methods_count;
-    method_info 	methods[methods_count];
-    u2 				attributes_count;
-    attribute_info 	attributes[attributes_count];
-}
-```
-
-HelloWorld.java 执行 `javac -parameters -d . HellowWorld.java`指令：
-
-```sh
-0000000 ca fe ba be 00 00 00 34 00 23 0a 00 06 00 15 09
-0000020 00 16 00 17 08 00 18 0a 00 19 00 1a 07 00 1b 07
-0000040 00 1c 01 00 06 3c 69 6e 69 74 3e 01 00 03 28 29 //...
-```
-
-魔数：0~3 字节，表示是否是Classs类型的文件，ca fe ba be代表Java
-
-版本：4~7 字节，表示类的版本 00 34（52） 表示是 Java 8
-
-常量池：8~9 字节，表示常量池长度，00 23 （35） 表示常量池有 #1~#34项，注意 #0 项不计入，也没有值
-
-* 第#1项 0a 表示一个 Method 信息，00 06 和 00 15（21） 表示它引用了常量池中 #6 和 #21 项来获得
-  这个方法的【所属类】和【方法名】
-* 第#2项 09 表示一个 Field 信息，00 16（22）和 00 17（23） 表示它引用了常量池中 #22 和 # 23 项
-  来获得这个成员变量的【所属类】和【成员变量名】
-* 第#n项
-
-![](https://gitee.com/seazean/images/raw/master/Java/JVM-类结构常量池.png)
-
-```sh
-0000660 29 56 00 21 00 05 00 06 00 00 00 00 00 02 00 01
-```
-
-访问标识与继承信息：
-
-* 00 21 表示该 class 是一个类，公共的
-* 00 05 表示根据常量池中 #5 找到本类全限定名
-* 00 06 表示根据常量池中 #6 找到父类全限定名
-* 00 00 表示接口的数量，本类为 0
-
-Field信息：表示成员变量数量，00 00表示本类为 0
-
-![](https://gitee.com/seazean/images/raw/master/Java/JVM-类结构Field信息.png)
-
-Method信息：表示方法数量，00 02 本类为 2，一个方法由 访问修饰符，名称，参数描述，方法属性数量，方法属性组成
-
-附加属性：
-
-* 00 01 表示附加属性数量
-* 00 13 表示引用了常量池 #19 项，即【SourceFile】
-* 00 00 00 02 表示此属性的长度
-* 00 14 表示引用了常量池 #20 项，即【HelloWorld.java】
-
-```sh
-0001100 00 12 00 00 00 05 01 00 10 00 00 00 01 00 13 00
-0001120 00 00 02 00 14
-```
-
-
-
-
-
-****
-
-
-
-#### javap
-
-`javap -v HelloWorld.class`：反编译 class 文件
-
-slot：局部变量表中最基本的存储单元
-
-aload：从局部变量表的相应位置装载一个对象引用到操作数栈的栈顶
-
-* aload_0把this装载到了操作数栈中
-* aload_0是一组格式为aload_的操作码中的一个，这一组操作码把对象的引用装载到操作数栈中标志了待处理的局部变量表中的位置
-
-`iload_,lload_,fload_,dload_`：i代表int型，l代表long型，f代表float型以及d代表double型
-
-* 在局部变量表中的索引位置大于3的变量的装载可以使用iload、lload、fload,、dload和aload
-* 这些操作码都需要一个操作数的参数，用于确认需要装载的局部变量的位置
-
-Ljava.lang.String：
-
-* `[`：表示一维数组 
-* `[[`：表示二维数组 
-* `L`：表示一个对象 
-* `java.lang.String`：表示对象的类型 
-
-
-
-***
-
-
-
-#### 执行流程
-
-原始Java代码：
-
-```java
-public class Demo {
-	public static void main(String[] args) {
-        int a = 10;
-        int b = Short.MAX_VALUE + 1;
-        int c = a + b;
-        System.out.println(c);
-	}
-}
-```
-
-javap -v Demo.class：省略
-
-* 常量池载入运行时常量池
-
-* 方法区字节码载入方法区
-
-* main 线程开始运行，分配栈帧内存：（操作数栈stack=2，局部变量表locals=4）
-
-* **执行引擎**开始执行字节码
-
-  `bipush 10`：将一个 byte 压入操作数栈（其长度会补齐 4 个字节），类似的指令
-
-  * sipush 将一个 short 压入操作数栈（其长度会补齐 4 个字节）
-  * ldc 将一个 int 压入操作数栈
-  * ldc2_w 将一个 long 压入操作数栈（分两次压入，因为 long 是 8 个字节）
-  * 这里小的数字都是和字节码指令存在一起，超过 short 范围的数字存入了常量池
-
-  `istore_1`：将操作数栈顶数据弹出，存入局部变量表的 slot 1
-
-  ![](https://gitee.com/seazean/images/raw/master/Java/JVM-字节码执行流程1.png)
-
-  `ldc #3`：从常量池加载 #3 数据到操作数栈
-  Short.MAX_VALUE 是 32767，所以 32768 = Short.MAX_VALUE + 1 实际是在编译期间计算完成
-
-  ![](https://gitee.com/seazean/images/raw/master/Java/JVM-字节码执行流程2.png)
-
-  `istore_2`：将操作数栈顶数据弹出，存入局部变量表的 slot 2
-
-  `iload_1`：将局部变量表的 slot 1数据弹出，放入操作数栈栈顶
-
-  `iload_2`：将局部变量表的 slot 2数据弹出，放入操作数栈栈顶
-
-  `iadd`：执行相加操作
-
-  ![](https://gitee.com/seazean/images/raw/master/Java/JVM-字节码执行流程3.png)
-
-  `istore_3`：将操作数栈顶数据弹出，存入局部变量表的 slot 3
-
-  `getstatic #4`：获取静态字段
-
-  ![](https://gitee.com/seazean/images/raw/master/Java/JVM-字节码执行流程4.png)
-
-  `iload_3`：
-
-  ![](https://gitee.com/seazean/images/raw/master/Java/JVM-字节码执行流程5.png)
-
-  `invokevirtual #5`：
-
-  * 找到常量池 #5 项
-  * 定位到方法区 java/io/PrintStream.println:(I)V 方法
-  * **生成新的栈帧**（分配 locals、stack等）
-  * 传递参数，执行新栈帧中的字节码
-  * 执行完毕，弹出栈帧
-  * 清除 main 操作数栈内容
-
-  ![](https://gitee.com/seazean/images/raw/master/Java/JVM-字节码执行流程6.png)
-
-  return：完成 main 方法调用，弹出 main 栈帧，程序结束
-
-  
-
-***
-
-
-
-#### 条件判断
-
-```java
-public static void main(String[] args) {
-    int a = 0;
-    if(a == 0) {
-    	a = 10;
-    } else {
-    	a = 20;
-    }
-}
-```
-
-说明：
-
-* byte，short，char 都会按 int 比较，因为操作数栈都是 4 字节
-* goto 用来进行跳转到指定行号的字节码
-
-```sh
-1: istore_1
-2: iload_1
-3: ifne 12
-6: bipush 10
-8: istore_1
-9: goto 15
-12: bipush 20
-14: istore_1
-15: return
-```
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-字节码条件判断指令.png" style="zoom:67%;" />
-
-
-
-***
-
-
-
-#### 循环控制
-
-iinc 指令：是直接在局部变量 slot 上进行运算
-
-while循环：
-
-```java
-public static void main(String[] args) {
-    int a = 0;
-    while (a < 10) {
-    	a++;
-    }
-}
-```
-
-```sh
-0: 	iconst_0
-1: 	istore_1
-2: 	iload_1
-3: 	bipush 10
-5: 	if_icmpge 14
-8: 	iinc 1, 1
-11: goto 2
-14: return
-```
-
-for循环：
-
-```java
-for (int i = 0; i < 10; i++) { }
-```
-
-```sh
-0: 	iconst_0
-1:	istore_1
-2: 	iload_1
-3: 	bipush 10
-5: 	if_icmpge 14
-8: 	iinc 1, 1
-11: goto 2
-14: return
-```
-
-
-
-***
-
-
-
-#### 面试题
-
-##### 分析i++
-
-从字节码角度分析：a++ 和 ++a 的区别是先执行 iload 还是 先执行 iinc
-
-```java
-public class Demo {
-    public static void main(String[] args) {
-        int a = 10;
-        int b = a++ + ++a + a--;
-        System.out.println(a);	//11
-        System.out.println(b);	//34
-    }
-}
-```
-
-
-
-##### 判断结果
-
-```java
-public class Demo3_6_1 {
-    public static void main(String[] args) {
-        int i = 0;
-        int x = 0;
-        while (i < 10) {
-            x = x++;
-            i++;
-        }
-        System.out.println(x); // 结果是 0
-    }
-}
-```
-
-
-
-***
-
-
-
-#### 异常处理
-
-##### try-catch
-
-```java
-public static void main(String[] args) {
-    int i = 0;
-    try {
-    	i = 10;
-    } catch (ArithmeticException e) {
-    	i = 30;
-    } catch (NullPointerException e) {
-    	i = 40;
-    } catch (Exception e) {
-    	i = 50;
-    }
-}
-```
-
-```java
-public static void main(java.lang.String[]);
-    descriptor: ([Ljava/lang/String;)V
-    flags: ACC_PUBLIC, ACC_STATIC
-    Code:
-      stack=1, locals=3, args_size=1
-        0: iconst_0
-        1: istore_1
-        2: bipush 10
-        4: istore_1
-        5: goto 26
-        8: astore_2
-        9: bipush 30
-        11: istore_1
-        12: goto 26
-        15: astore_2
-        16: bipush 40
-        18: istore_1
-        19: goto 26
-        22: astore_2
-        23: bipush 50
-        25: istore_1
-        26: return
-    Exception table:
-    	from to target type
-    	2 	  5		8  Class java/lang/Exception
-        2 	  5 	15 Class java/lang/NullPointerException
-		2 	  5 	22 Class java/lang/Exception
-    LineNumberTable: ...
-    LocalVariableTable:
-    	Start 	Length Slot Name     Signature
-    		9 		3 	2 		e 		Ljava/lang/ArithmeticException;
-			16 		3 	2 		e 		Ljava/lang/NullPointerException;
-			23 		3 	2 		e 		Ljava/lang/Exception;
-    		0 		27 	0 		args 	[Ljava/lang/String;
-    		2 		25 	1 		i 		I
-      StackMapTable: ...
-    MethodParameters: ...
-}
-```
-
-* 多出一个 **Exception table** 的结构，[from, to) 是前闭后开的检测范围，一旦这个范围内的字节码执行出现异常，则通过 type 匹配异常类型，如果一致，进入 target 所指示行号
-* 8 行的字节码指令 astore_2 是将异常对象引用存入局部变量表的 slot 2 位置
-* 因为异常出现时，只能进入 Exception table 中一个分支，所以局部变量表 slot 2 位置被共用
-
-
-
-##### finally
-
-finally 中的代码被复制了 3 份，分别放入 try 流程，catch 流程以及 catch 剩余的异常类型流程
-
-```java
-public static void main(String[] args) {
-    int i = 0;
-    try {
-    	i = 10;
-    } catch (Exception e) {
-    	i = 20;
-    } finally {
-    	i = 30;
-    }
-}
-```
-
-```java
-    0: 	iconst_0
-    1: 	istore_1 	// 0 -> i	->赋值
-    2: 	bipush 10 	// try 10 放入操作数栈顶
-    4: 	istore_1 	// 10 -> i 将操作数栈顶数据弹出，存入局部变量表的 slot1
-    5: 	bipush 30 	// finally 
-    7: 	istore_1 	// 30 -> i 
-    8: 	goto 27 	// return -----------------------------------
-    11: astore_2 	// catch Exceptin -> e ----------------------
-    12: bipush 20 	// 
-    14: istore_1 	// 20 -> i 
-    15: bipush 30 	// finally 
-    17: istore_1 	// 30 -> i 
-    18: goto 27 	// return -----------------------------------
-    21: astore_3 	// catch any -> slot 3 ----------------------
-    22: bipush 30 	// finally 
-    24: istore_1 	// 30 -> i 
-    25: aload_3 	// 将局部变量表的slot 3数据弹出，放入操作数栈栈顶
-    26: athrow 		// throw 抛出异常
-    27: return
-Exception table:
-	from   to 	target 	type
-		2	5 		11 	Class java/lang/Exception
-		2 	5 		21 	any // 剩余的异常类型，比如 Error
-		11 15 		21 	any // 剩余的异常类型，比如 Error
-LineNumberTable: ...
-LocalVariableTable:
-	Start Length Slot Name Signature
-	  12 	3 		2 	e 	Ljava/lang/Exception;
-	  0 	28 		0 args 	[Ljava/lang/String;
-	  2 	26 		1 	i 	I
-```
-
-
-
-##### return
-
-###### 吞异常
-
-```java
-public static int test() {
-    try {
-    	return 10;
-    } finally {
-    	return 20;
-    }
-}
-```
-
-```java
-    0: bipush 10 	// 10 放入栈顶
-    2: istore_0 	// 10 -> slot 0 (从栈顶移除了)
-    3: bipush 20 	// 20 放入栈顶
-    5: ireturn 		// 返回栈顶 int(20)
-    6: astore_1 	// catch any -> slot 1 存入局部变量表的 slot1
-    7: bipush 20 	// 20 放入栈顶
-    9: ireturn 		// 返回栈顶 int(20)
-Exception table:
-	from   to 	target 	type
-		0	3		6 	any      
-```
-
-* 由于 finally 中的 ireturn 被插入了所有可能的流程，因此返回结果肯 finally 的为准
-* 字节码中没有 **athrow** ，表明：如果在 finally 中出现了 return，会**吞掉异常**
-
-
-
-###### 不吞异常
-
-```java
-public class Demo3_12_2 {
-    public static void main(String[] args) {
-    	int result = test();
-    	System.out.println(result);//10
-	}
-	public static int test() {
-        int i = 10;
-        try {
-            return i;//返回10
-        } finally {
-            i = 20;
-        }
-   	}
-}
-```
-
-```java
-    0: 	bipush 10 	// 10 放入栈顶
-    2: 	istore_0 	// 10 -> i，赋值给i，放入slot 0
-    3: 	iload_0 	// i(10)加载至操作数栈
-    4: 	istore_1 	// 10 -> slot 1，暂存至 slot 1，目的是为了固定返回值
-    5: 	bipush 20 	// 20 放入栈顶
-    7: 	istore_0 	// 20 -> i
-    8: 	iload_1 	// slot 1(10) 载入 slot 1 暂存的值
-    9: 	ireturn 	// 返回栈顶的 int(10)
-    10: astore_2	// catch any -> slot 2 存入局部变量表的 slot2
-    11: bipush 20
-    13: istore_0
-    14: aload_2
-    15: athrow		// 不会吞掉异常
-Exception table:
-	from   to 	target 	type
-	  3	   5		10 	any  
-```
 
 
 
@@ -17517,7 +13967,7 @@ JDK 自带了**监控工具，位于 JDK 的 bin 目录下**，其中最常用�
 
 ### 参数调优
 
-对于JVM调优，主要就是调整年轻代、老年代、元空间的内存空间大小及使用的垃圾回收器类型
+对于 JVM 调优，主要就是调整年轻代、老年代、元空间的内存空间大小及使用的垃圾回收器类型
 
 * 设置堆的初始大小和最大大小，为了防止垃圾收集器在初始大小、最大大小之间收缩堆而产生额外的时间，通常把最大、初始大小设置为相同的值
 
@@ -17562,31 +14012,26 @@ JDK 自带了**监控工具，位于 JDK 的 bin 目录下**，其中最常用�
 
 
 
-# JUC
+# ALG
 
-## 进程
+## 递归
 
 ### 概述
 
-进程：程序是静止的，进程实体的运行过程就是进程，是系统进行资源分配的基本单位
+算法：解题方案的准确而完整的描述，是一系列解决问题的清晰指令，代表着用系统的方法解决问题的策略机制
 
-进程的特征：动态性、并发性、独立性、异步性、结构性
+递归：程序调用自身的编程技巧
 
-**线程**：线程是属于进程的，是一个基本的CPU执行单元，是程序执行流的最小单元。线程是进程中的一个实体，是被系统独立调度和分配的基本单位，线程本身不拥有系统资源，只拥有一点在运行中必不可少的资源，但它可与同属一个进程的其他线程共享进程所拥有的全部资源。
+递归：
 
-关系：一个进程可以包含多个线程，这就是多线程，比如看视频是进程，图画、声音、广告等就是多个线程
+* 直接递归：自己的方法调用自己
+* 间接递归：自己的方法调用别的方法，别的方法又调用自己
 
-线程的作用：使多道程序更好的并发执行，提高资源利用率和系统吞吐量，增强操作系统的并发性能
+递归如果控制的不恰当，会形成递归的死循环，从而导致栈内存溢出错误
 
-**并发并行**：
 
-* 并行：在同一时刻，有多个指令在多个CPU上同时执行
-* 并发：在同一时刻，有多个指令在单个CPU上交替执行
 
-**同步异步**：
-
-* 需要等待结果返回，才能继续运行就是同步
-* 不需要等待结果返回，就能继续运行就是异步
+推荐阅读：https://time.geekbang.org/column/article/41440
 
 
 
@@ -17594,190 +14039,26 @@ JDK 自带了**监控工具，位于 JDK 的 bin 目录下**，其中最常用�
 
 
 
-### 对比
+### 算法
 
-线程进程对比：
+#### 核心思想
 
-* 进程基本上相互独立的，而线程存在于进程内，是进程的一个子集
+递归的三要素（理论）：
 
-* 进程拥有共享的资源，如内存空间等，供其内部的线程共享
-
-* 进程间通信较为复杂
-
-  同一台计算机的进程通信称为 IPC（Inter-process communication）
-
-  * 信号量：信号量是一个计数器，用于多进程对共享数据的访问，解决同步相关的问题并避免竞争条件
-  * 共享存储：多个进程可以访问同一块内存空间，需要使用信号量用来同步对共享存储的访问
-  * 管道通信：管道是用于连接一个读进程和一个写进程以实现它们之间通信的一个共享文件，pipe文件
-    * 匿名管道(Pipes) ：用于具有亲缘关系的父子进程间或者兄弟进程之间的通信，只支持半双工通信
-    * 命名管道(Names Pipes)：以磁盘文件的方式存在，可以实现本机任意两个进程通信，遵循FIFO
-  * 消息队列：消息的链表，具有特定的格式，存放在内存中并由消息队列标识符标识，对比管道：
-    * 匿名管道存在于内存中的文件；命名管道存在于实际的磁盘介质或者文件系统；消息队列存放在内核中，只有在内核重启(操作系统重启)或者显示地删除一个消息队列时，该消息队列才被真正删除
-    * 读进程可以根据消息类型有选择地接收消息，而不像 FIFO 那样只能默认地接收
-
-  不同计算机之间的进程通信，需要通过网络，并遵守共同的协议，例如 HTTP
-
-  * 套接字：与其它通信机制不同的是，它可用于不同机器间的进程通信
-
-* 线程通信相对简单，因为它们共享进程内的内存，一个例子是多个线程可以访问同一个共享变量
-  
-  Java中的通信机制：volatile、等待/通知机制、join方式、InheritableThreadLocal、MappedByteBuffer
-  
-* 线程更轻量，线程上下文切换成本一般上要比进程上下文切换低
-
-
-
-***
-
-
-
-## 线程
-
-### 创建线程
-
-#### 三种方式
-
-运行一个程序就是开启一个进程，在进程中创建线程的方式有三种:
-
-1. 直接定义一个类继承线程类Thread，重写run()方法，创建线程对象，调用线程对象的start()方法启动线程
-2. 定义一个线程任务类实现Runnable接口，重写run()方法，创建线程任务对象，把线程任务对象包装成线程对象， 调用线程对象的start()方法启动线程
-3. 实现Callable接口
-
-
-
-
-
-#### Thread
-
-Thread创建线程方式：创建线程类，匿名内部类方式
-
-* **start()方法底层其实是给CPU注册当前线程，并且触发run()方法执行**。
-* 线程的启动必须调用start()方法，如果线程直接调用run()方法，相当于变成了普通类的执行，此时将只有主线程在执行该线程
-* 建议线程先创建子线程，主线程的任务放在之后，否则主线程（main）永远是先执行完
-
-Thread构造器：
-
-* `public Thread()`
-* `public Thread(String name)`
+1. 递归的终结点
+2. 递归的公式
+3. 递归的方向：必须走向终结点
 
 ```java
-puclic class ThreadDemo{
-    public static void main(String[] args) {
-        Thread t = new MyThread();
-        t.start();
-       	for(int i = 0 ; i < 100 ; i++ ){
-            System.out.println("main线程"+i)
-        }
-        //   main线程输出放在上面 就变成有先后顺序了
-    }
-}
-class MyThread extends Thread{
-    @Override
-    public void run() {
-        for(int i = 0 ; i < 100 ; i++ ){
-            System.out.println("子线程输出："+i)
-        }
-    }
-}
-```
-
-继承Thread类的优缺点：
-    优点：编码简单。
-    缺点：线程类已经继承了Thread类无法继承其他类了，功能不能通过继承拓展（单继承的局限性）
-
-
-
-
-
-#### Runnable
-
-Runnable创建线程方式：创建线程类，匿名内部类方式
-
-**Thread类本身也是实现了Runnable接口**
-
-Thread的构造器：
-	`public Thread(Runnable target)`
-	`public Thread(Runnable target, String name)`
-
-```java
-public class ThreadDemo {
-    public static void main(String[] args) {
-        Runnable target = new MyRunnable();
-        Thread t1 = new Thread(target,"1号线程");
-		t1.start();
-        Thread t2 = new Thread(target);//Thread-0
-    }
-}
-
-public class MyRunnable implements Runnable{
-    @Override
-    public void run() {
-        for(int i = 0 ; i < 10 ; i++ ){
-            System.out.println(Thread.currentThread().getName()+"->"+i);
-        }
-    }
-}
-```
-
-* 缺点：代码复杂一点。
-
-* 优点：
-
-  1. 线程任务类只是实现了Runnable接口，可以继续继承其他类，避免了单继承的局限性
-
-  2. 同一个线程任务对象可以被包装成多个线程对象
-
-  3. 适合多个多个线程去共享同一个资源
-
-  4. 实现解耦操作，线程任务代码可以被多个线程共享，线程任务代码和线程独立
-
-  5. 线程池可以放入实现Runnable或Callable线程任务对象
-
-
-​     
-
-#### Callable
-
-实现Callable接口：
-	1.定义一个线程任务类实现Callable接口，申明线程执行的结果类型
-	2.重写线程任务类的call方法，这个方法可以直接返回执行的结果
-    3.创建一个Callable的线程任务对象
-    4.把Callable的线程任务对象包装成一个未来任务对象
-	5.把未来任务对象包装成线程对象
-	6.调用线程的start()方法启动线程
-
-`public FutureTask(Callable<V> callable)`：未来任务对象，在线程执行完后**得到线程的执行结果**
-
-* 其实就是Runnable对象，这样被包装成未来任务对象
-
-`public V get()`：同步等待 task 执行完毕的结果
-
-* 如果在线程中获取另一个线程执行结果，会阻塞等待，用于线程同步
-
-优缺点：
-
-* 优点：同Runnable，并且能得到线程执行的结果
-* 缺点：编码复杂
-
-```java
-public class ThreadDemo {
-    public static void main(String[] args) {
-        Callable call = new MyCallable();
-        FutureTask<String> task = new FutureTask<>(call);
-        Thread t = new Thread(task);
-        t.start();
-        try {
-            String s = task.get(); // 获取call方法返回的结果（正常/异常结果）
-            System.out.println(s);
-        }  catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-public class MyCallable implements Callable<String> {
-    @Override//重写线程任务类方法
-    public String call() throws Exception {
-        return Thread.currentThread().getName() + "->" + "Hello World";
+//f(x)=f(x-1)+1;   f(1)=1;    f(10)=?
+//1.递归的终结点： f(1)  = 1
+//2.递归的公式：f(x) = f(x - 1) + 1
+//3.递归的方向：必须走向终结点
+public static int f(int x){
+    if(x == 1){
+        return 1;
+    }else{
+        return f(x-1) + 1;
     }
 }
 ```
@@ -17788,218 +14069,30 @@ public class MyCallable implements Callable<String> {
 
 
 
-### 运行原理
-
-JVM 中由堆、栈、方法区所组成
-
-Java Virtual Machine Stacks（Java 虚拟机栈）：每个线程启动后，虚拟机就会为其分配一块栈内存
-
-* 每个栈由多个栈帧（Frame）组成，对应着每次方法调用时所占用的内存
-* 每个线程只能有一个活动栈帧，对应着当前正在执行的那个方法
-
-线程上下文切换（Thread Context Switch）：一些原因导致 cpu 不再执行当前线程，转而执行另一个线程
-
-* 线程的 cpu 时间片用完
-* 垃圾回收
-* 有更高优先级的线程需要运行
-* 线程自己调用了 sleep、yield、wait、join、park、synchronized、lock 等方法
-
-程序计数器（Program Counter Register）：记住下一条 jvm 指令的执行地址，是线程私有的
-
-当 Context Switch 发生时，需要由操作系统保存当前线程的状态，并恢复另一个线程的状态，包括程序计数器、虚拟机栈中每个栈帧的信息，如局部变量、操作数栈、返回地址等
-
-Java创建的线程是内核级线程，**线程的调度是在内核态运行的，而线程中的代码是在用户态运行**，所以线程切换（状态改变）会导致用户与内核态转换，这是非常消耗性能
-
-
-
-***
-
-
-
-### 常用API
-
-#### API
-
-Thread类API：
-
-| 方法                                        | 说明                                                         |
-| ------------------------------------------- | ------------------------------------------------------------ |
-| public void start()                         | 启动一个新线程；Java虚拟机调用此线程的run方法                |
-| public void run()                           | 线程启动后调用该方法                                         |
-| public void setName(String name)            | 给当前线程取名字                                             |
-| public void getName()                       | 获取当前线程的名字<br />线程存在默认名称：子线程是Thread-索引，主线程是main |
-| public static Thread currentThread()        | 获取当前线程对象，代码在哪个线程中执行                       |
-| public static void sleep(long time)         | 让当前线程休眠多少毫秒再继续执行<br />**Thread.sleep(0)** : 让操作系统立刻重新进行一次cpu竞争 |
-| public static native void yield()           | 提示线程调度器让出当前线程对CPU的使用                        |
-| public final int getPriority()              | 返回此线程的优先级                                           |
-| public final void setPriority(int priority) | 更改此线程的优先级，常用1 5 10                               |
-| public void interrupt()                     | 中断这个线程，异常处理机制                                   |
-| public static boolean interrupted()         | 判断当前线程是否被打断，清除打断标记                         |
-| public boolean isInterrupted()              | 判断当前线程是否被打断，不清除打断标记                       |
-| public final void join()                    | 等待这个线程结束                                             |
-| public final void join(long millis)         | 等待这个线程死亡millis毫秒，0意味着永远等待                  |
-| public final native boolean isAlive()       | 线程是否存活（还没有运行完毕）                               |
-| public final void setDaemon(boolean on)     | 将此线程标记为守护线程或用户线程                             |
-
-
-
-***
-
-
-
-#### run start
-
-run：称为线程体，包含了要执行的这个线程的内容，方法运行结束，此线程随即终止。直接调用 run 是在主线程中执行了 run，没有启动新的线程，需要顺序执行
-
-start：使用 start 是启动新的线程，此线程处于就绪（可运行）状态，通过新的线程间接执行 run 中的代码
-
-说明：**线程控制资源类**
-
-**面试问题**：run()方法中的异常不能抛出，只能try/catch
-
-* 因为父类中没有抛出任何异常，子类不能比父类抛出更多的异常
-* 异常不能跨线程传播回 main() 中，因此必须在本地进行处理
-
-
-
-***
-
-
-
-#### sleep yield
-
-sleep：
-
-* 调用 sleep 会让当前线程从 Running 进入 `Timed Waiting` 状态（阻塞）
-* sleep()方法的过程中，线程不会释放对象锁
-* 其它线程可以使用 interrupt 方法打断正在睡眠的线程，这时 sleep 方法会抛出 InterruptedException
-* 睡眠结束后的线程未必会立刻得到执行
-* 建议用 TimeUnit 的 sleep 代替 Thread 的 sleep 来获得更好的可读性
-
-yield：
-
-* 调用 yield 会让提示线程调度器让出当前线程对CPU的使用
-* 具体的实现依赖于操作系统的任务调度器
-* **会放弃CPU资源，锁资源不会释放**
-
-
-
-***
-
-
-
-#### priority
-
-* 线程优先级会提示（hint）调度器优先调度该线程，但这仅仅是一个提示，调度器可以忽略它
-* 如果 cpu 比较忙，那么优先级高的线程会获得更多的时间片，但 cpu 闲时，优先级几乎没作
-
-
-
-***
-
-
-
-#### join
-
-public final void join()：等待这个线程结束
-
-原理：调用者轮询检查线程 alive 状态，t1.join()等价于：
+#### 公式转换
 
 ```java
-synchronized (t1) {
-    // 调用者线程进入 t1 的 waitSet 等待, 直到 t1 运行结束
-    while (t1.isAlive()) {
-    	t1.wait(0);
-    }
-}
-```
-
-* join方法是被synchronized修饰的，本质上是一个对象锁，其内部的wait方法调用也是释放锁的，但是**释放的是当前线程的对象锁，而不是外面的lock锁**
-
-* t1会强占CPU资源，直至线程执行结束，当调用某个线程的join方法后，该线程抢占到CPU资源，就不再释放，直到线程执行完毕
-
-线程同步：
-
-* join实现线程同步，因为会阻塞等待另一个线程的结束，才能继续向下运行
-  * 需要外部共享变量，不符合面向对象封装的思想
-  * 必须等待线程结束，不能配合线程池使用
-* Future 实现（同步）：get()方法阻塞等待执行结果
-  * main 线程接收结果
-  * get 方法是让调用线程同步等待
-
-```java
-public class Test14 {
-    static int r = 0;
-    public static void main(String[] args) throws InterruptedException {
-        test1();
-    }
-    private static void test1() throws InterruptedException {
-        Thread t1 = new Thread(() -> {
-            try {
-                Thread.sleep(1000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            r = 10;
-        });
-        t1.start();
-        t1.join();//不等待线程执行结束，输出的10
-        System.out.println(r);
+//已知： f(x) = f(x + 1) + 2,  f(1) = 1。求：f(10) = ?
+//公式转换
+//f(x-1)=f(x-1+1)+2 => f(x)=f(x-1)+2
+//（1）递归的公式：   f(n) = f(n-1)- 2 ;
+//（2）递归的终结点：  f(1) = 1
+//（3）递归的方向：必须走向终结点。
+public static int f(int n){
+    if(n == 1){
+        return 1;
+    }else{
+        return f(n-1) - 2;
     }
 }
 ```
 
 
 
-***
+#### 注意事项
 
-
-
-#### interrupt
-
-##### 打断线程
-
-`public void interrupt()`：中断这个线程，异常处理机制
-`public static boolean interrupted()`：判断当前线程是否被打断，清除打断标记
-`public boolean isInterrupted()`：判断当前线程是否被打断，不清除打断标记
-
-* sleep，wait，join方法都会让线程进入阻塞状态，打断进程会**清空打断状态** (false)
-
-  ```java
-  public static void main(String[] args) throws InterruptedException {
-      Thread t1 = new Thread(()->{
-          try {
-              Thread.sleep(1000);
-          } catch (InterruptedException e) {
-              e.printStackTrace();
-          }
-      }, "t1");
-      t1.start();
-      Thread.sleep(500);
-      t1.interrupt();
-      System.out.println(" 打断状态: {}" + t1.isInterrupted());// 打断状态: {}false
-  }
-  ```
-
-* 打断正常运行的线程：不会清空打断状态（true）
-
-  ```java
-  public static void main(String[] args) throws Exception {
-      Thread t2 = new Thread(()->{
-          while(true) {
-              Thread current = Thread.currentThread();
-              boolean interrupted = current.isInterrupted();
-              if(interrupted) {
-                  System.out.println(" 打断状态: {}" + interrupted);//打断状态: {}true
-                  break;
-              }
-          }
-      }, "t2");
-      t2.start();
-      Thread.sleep(500);
-      t2.interrupt();
-  }
-  ```
+以上理论只能针对于**规律化递归**，如果是非规律化是不能套用以上公式的！
+非规律化递归的问题：文件搜索，啤酒问题。
 
 
 
@@ -18007,1441 +14100,43 @@ public class Test14 {
 
 
 
-##### 打断park
+### 应用
 
-park作用类似sleep，打断 park 线程，不会清空打断状态（true）
+#### 猴子吃桃
+
+猴子第一天摘了若干个桃子，当即吃了一半，觉得好不过瘾，然后又多吃了一个。第二天又吃了前一天剩下的一半，觉得好不过瘾，然后又多吃了一个。以后每天都是如此。等到第十天再吃的时候发现只有1个桃子，问猴子第一天总共摘了多少个桃子？
 
 ```java
-public static void main(String[] args) throws Exception {
-    Thread t1 = new Thread(() -> {
-        System.out.println("park...");
-        LockSupport.park();
-        System.out.println("unpark...");
-        Sout("打断状态：" + Thread.currentThread().isInterrupted());//打断状态：true
-    }, "t1");
-    t1.start();
-    Thread.sleep(2000);
-    t1.interrupt();
-}
-```
-
-如果打断标记已经是 true, 则 park 会失效，
-
-```java
-LockSupport.park();
-System.out.println("unpark...");
-LockSupport.park();//失效，不会阻塞
-System.out.println("unpark...");//和上一个unpark同时执行
-```
-
-可以修改获取打断状态方法，使用`Thread.interrupted()`，清除打断标记
-
-
-
-***
-
-
-
-##### 终止模式
-
-终止模式之两阶段终止模式：Two Phase Termination
-
-目标：在一个线程 T1 中如何“优雅”终止线程 T2？”优雅“指的是给 T2 一个后置处理器
-
-错误思想：
-
-* 使用线程对象的 stop() 方法停止线程：stop 方法会真正杀死线程，如果这时线程锁住了共享资源，当它被杀死后就再也没有机会释放锁，其它线程将永远无法获取锁
-* 使用 System.exit(int) 方法停止线程：目的仅是停止一个线程，但这种做法会让整个程序都停止
-
-两阶段终止模式图示：
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/JUC-两阶段终止模式.png" style="zoom: 67%;" />
-
-打断线程可能在任何时间，所以需要考虑在任何时刻被打断的处理方法：
-
-```java
-public class Test {
-    public static void main(String[] args) throws InterruptedException {
-        TwoPhaseTermination tpt = new TwoPhaseTermination();
-        tpt.start();
-        Thread.sleep(3500);
-        tpt.stop();
-    }
-}
-class TwoPhaseTermination {
-    private Thread monitor;
-    //启动监控线程
-    public void start() {
-        monitor = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (true) {
-                    Thread thread = Thread.currentThread();
-                    if (thread.isInterrupted()) {
-                        System.out.println("后置处理");
-                        break;
-                    }
-                    try {
-                        Thread.sleep(1000);//睡眠
-                        System.out.println("执行监控记录");//在此被打断不会异常
-                    } catch (InterruptedException e) {//在睡眠期间被打断
-                        e.printStackTrace();
-                        //重新设置打断标记
-                        thread.interrupt();
-                    }
-                }
-            }
-        });
-        monitor.start();
-    }
-    //停止监控线程
-    public void stop() {
-        monitor.interrupt();
-    }
-}
-```
-
-
-
-***
-
-
-
-#### daemon
-
-`public final void setDaemon(boolean on)`：如果是 true ，将此线程标记为守护线程 
-
-线程**启动前**调用此方法：
-
-```java
-Thread t = new Thread() {
-    @Override
-    public void run() {
-        System.out.println("running");
-    }
-};
-// 设置该线程为守护线程
-t.setDaemon(true);
-t.start();
-```
-
-用户线程：平常创建的普通线程
-
-守护线程：服务于用户线程，只要其它非守护线程运行结束了，即使守护线程代码没有执行完，也会强制结束
-
-说明：当运行的线程都是守护线程，Java虚拟机将退出，因为普通线程执行完后，守护线程不会继续运行下去
-
-常见的守护线程：
-
-* 垃圾回收器线程就是一种守护线程
-* Tomcat 中的 Acceptor 和 Poller 线程都是守护线程，所以 Tomcat 接收到 shutdown 命令后，不会等
-  待它们处理完当前请求
-
-
-
-***
-
-
-
-#### 不推荐方法
-
-不推荐使用的方法，这些方法已过时，容易破坏同步代码块，造成线程死锁：
-
-| 方法                        | 功能                 |
-| --------------------------- | -------------------- |
-| public final void stop()    | 停止线程运行         |
-| public final void suspend() | 挂起（暂停）线程运行 |
-| public final void resume()  | 恢复线程运行         |
-
-
-
-***
-
-
-
-### 线程状态
-
-进程的状态参考操作系统：创建态、就绪态、运行态、阻塞态、终止态
-
-线程由生到死的完整过程（生命周期）：当线程被创建并启动以后，它既不是一启动就进入了执行状态，也不是一直处于执行状态，在API中`java.lang.Thread.State`这个枚举中给出了六种线程状态：
-
-| 线程状态                | 导致状态发生条件                                             |
-| ----------------------- | ------------------------------------------------------------ |
-| NEW(新建)               | 线程刚被创建，但是并未启动。还没调用start方法。MyThread t = new MyThread只有线程对象，没有线程特征。 |
-| Runnable(可运行)        | 线程可以在java虚拟机中运行的状态，可能正在运行自己代码，也可能没有，这取决于操作系统处理器。调用了t.start()方法：就绪（经典叫法） |
-| Blocked(锁阻塞)         | 当一个线程试图获取一个对象锁，而该对象锁被其他的线程持有，则该线程进入Blocked状态；当该线程持有锁时，该线程将变成Runnable状态 |
-| Waiting(无限等待)       | 一个线程在等待另一个线程执行一个（唤醒）动作时，该线程进入Waiting状态，进入这个状态后不能自动唤醒，必须等待另一个线程调用notify或者notifyAll方法才能唤醒 |
-| Timed Waiting(计时等待) | 有几个方法有超时参数，调用将进入Timed Waiting状态，这一状态将一直保持到超时期满或者接收到唤醒通知。带有超时参数的常用方法有Thread.sleep 、Object.wait |
-| Teminated(被终止)       | run方法正常退出而死亡，或者因为没有捕获的异常终止了run方法而死亡 |
-
-![](https://gitee.com/seazean/images/raw/master/Java/JUC-线程6种状态.png)
-
-* NEW --> RUNNABLE：当调用 t.start() 方法时，由 NEW --> RUNNABLE
-
-* RUNNABLE <--> WAITING：
-
-  * 调用 obj.wait() 方法时
-
-    调用 obj.notify()、obj.notifyAll()、t.interrupt()：
-
-    * 竞争锁成功，t 线程从 WAITING --> RUNNABLE
-    * 竞争锁失败，t 线程从 WAITING --> BLOCKED
-
-  * 当前线程调用 t.join() 方法，注意是当前线程在t 线程对象的监视器上等待
-
-  * 当前线程调用 LockSupport.park() 方法
-
-* RUNNABLE <--> TIMED_WAITING：调用 obj.wait(long n) 方法、当前线程调用 t.join(long n) 方法、当前线程调用 Thread.sleep(long n)
-
-* RUNNABLE <--> BLOCKED：t 线程用 synchronized(obj) 获取了对象锁时竞争失败
-
-
-
-***
-
-
-
-### 查看线程
-
-windows：
-
-* 任务管理器可以查看进程和线程数，也可以用来杀死进程
-* tasklist 查看进程
-* taskkill 杀死进程
-
-linux：
-
-* ps -ef 查看所有进程
-* ps -fT -p <PID> 查看某个进程（PID）的所有线程
-* kill 杀死进程
-* top 按大写 H 切换是否显示线程
-* top -H -p <PID> 查看某个进程（PID）的所有线程
-
-Java：
-
-* jps 命令查看所有 Java 进程
-* jstack <PID> 查看某个 Java 进程（PID）的所有线程状态
-* jconsole 来查看某个 Java 进程中线程的运行情况（图形界面）
-
-
-
-
-
-***
-
-
-
-## 管程
-
-### 临界区
-
-临界资源：一次仅允许一个进程使用的资源成为临界资源
-
-临界区：访问临界资源的代码块
-
-竞态条件：多个线程在临界区内执行，由于代码的执行序列不同而导致结果无法预测，称之为发生了竞态条件
-
-一个程序运行多个线程本身是没有问题的，多个线程访问共享资源会出现问题：
-
-* 多个线程读共享资源也没有问题
-* 在多个线程对共享资源读写操作时发生指令交错，就会出现问题
-
-为了避免临界区的竞态条件发生（解决线程安全问题）：
-
-* 阻塞式的解决方案：synchronized，Lock
-* 非阻塞式的解决方案：原子变量
-
-管程(monitor)：由局部于自己的若干公共变量和所有访问这些公共变量的过程所组成的软件模块，保证同一时刻只有一个进程在管程内活动，即管程内定义的操作在同一时刻只被一个进程调用(由编译器实现)
-
-**synchronized：对象锁，保证了临界区内代码的原子性**，采用互斥的方式让同一时刻至多只有一个线程能持有对象锁，其它线程获取这个对象锁时会阻塞，保证拥有锁的线程可以安全的执行临界区内的代码，不用担心线程上下文切换
-
-互斥和同步都可以采用 synchronized 关键字来完成，区别：
-
-* 互斥是保证临界区的竞态条件发生，同一时刻只能有一个线程执行临界区代码
-* 同步是由于线程执行的先后、顺序不同、需要一个线程等待其它线程运行到某个点
-
-性能：
-
-* 线程安全，性能差
-* 线程不安全性能好，假如开发中不会存在多线程安全问题，建议使用线程不安全的设计类
-
-
-
-***
-
-
-
-### syn-ed
-
-#### 基本使用
-
-##### 同步代码块
-
-锁对象：理论上可以是任意的“唯一”对象
-
-synchronized是可重入、不公平的重量级锁
-
-原则上：
-
-* 锁对象建议使用共享资源
-* 在实例方法中建议用this作为锁对象，锁住的this正好是共享资源
-* 在静态方法中建议用类名.class字节码作为锁对象
-  * 因为静态成员属于类，被所有实例对象共享，所以需要锁住类
-  * 锁住类以后，类的所有实例都相当于同一把锁，参考线程八锁
-
-格式：
-
-```java
-synchronized(锁对象){
-	// 访问共享资源的核心代码
-}
-```
-
-实例：
-
-```java
-public class demo {
-    static int counter = 0;
-    //static修饰，则元素是属于类本身的，不属于对象  ，与类一起加载一次，只有一个
-    static final Object room = new Object();
-    public static void main(String[] args) throws InterruptedException {
-        Thread t1 = new Thread(() -> {
-            for (int i = 0; i < 5000; i++) {
-                synchronized (room) {
-                    counter++;
-                }
-            }
-        }, "t1");
-        Thread t2 = new Thread(() -> {
-            for (int i = 0; i < 5000; i++) {
-                synchronized (room) {
-                    counter--;
-                }
-            }
-        }, "t2");
-        t1.start();
-        t2.start();
-        t1.join();
-        t2.join();
-        System.out.println(counter);
-    }
-}
-```
-
-
-
-***
-
-
-
-##### 同步方法
-
-作用：把出现线程安全问题的核心方法锁起来，每次只能一个线程进入访问
-
-用法：直接给方法加上一个修饰符 synchronized
-
-```java
-//同步方法
-修饰符 synchronized 返回值类型 方法名(方法参数) { 
-	方法体；
-}
-//同步静态方法
-修饰符 static synchronized 返回值类型 方法名(方法参数) { 
-	方法体；
-}
-```
-
-同步方法底层也是有锁对象的：
-
-* 如果方法是实例方法：同步方法默认用this作为的锁对象
-
-  ```java
-  public synchronized void test() {} //等价于
-  public void test() {
-      synchronized(this) {}
-  }
-  ```
-
-* 如果方法是静态方法：同步方法默认用类名.class作为的锁对象
-
-  ```java
-  class Test{
-  	public synchronized static void test() {}
-  }
-  //等价于
-  class Test{
-      public void test() {
-          synchronized(Test.class) {}
-  	}
-  }
-  ```
-
-面向对象实例：
-
-```java
-public class Demo {
-    public static void main(String[] args) throws InterruptedException {
-        Room room = new Room();
-        Thread t1 = new Thread(() -> {
-            for (int j = 0; j < 5000; j++) {
-                room.increment();
-            }
-        }, "t1");
-        Thread t2 = new Thread(() -> {
-            for (int j = 0; j < 5000; j++) {
-                room.decrement();
-            }
-        }, "t2");
-        t1.start();
-        t2.start();
-        t1.join();
-        t2.join();
-        System.out.println(room.get());
-    }
-}
-
-class Room {
-    int value = 0;
-    public synchronized void increment() {
-        value++;
-    }
-    public synchronized void decrement() {
-        value--;
-    }
-    public synchronized int get() {
-        return value;
-    }
-}
-```
-
-
-
-***
-
-
-
-##### 线程八锁
-
-所谓的“线程八锁”，其实就是考察 synchronized 锁住的是哪个对象，直接百度搜索
-
-说明：主要关注锁住的对象是不是同一个
-
-* 锁住类对象，所有类的实例的方法都是安全的
-* 锁住this对象，只有在当前实例对象的线程内是安全的，如果有多个实例就不安全
-
-线程不安全：因为锁住的不是同一个对象，线程1调用a方法锁住的类对象，线程2调用b方法锁住的n2对象，不是同一个对象
-
-```java
-class Number{
-    public static synchronized void a(){
-		Thread.sleep(1000);
-        System.out.println("1");
-    }
-    public synchronized void b() {
-        System.out.println("2");
-    }
-}
-public static void main(String[] args) {
-    Number n1 = new Number();
-    Number n2 = new Number();
-    new Thread(()->{ n1.a(); }).start();
-    new Thread(()->{ n2.b(); }).start();
-}
-```
-
-线程安全：因为n1调用a()方法，锁住的是类对象，n2调用b()方法，锁住的也是类对象，所以线程安全
-
-```java
-class Number{
-    public static synchronized void a(){
-		Thread.sleep(1000);
-        System.out.println("1");
-    }
-    public static synchronized void b() {
-        System.out.println("2");
-    }
-}
-public static void main(String[] args) {
-    Number n1 = new Number();
-    Number n2 = new Number();
-    new Thread(()->{ n1.a(); }).start();
-    new Thread(()->{ n2.b(); }).start();
-}
-```
-
-
-
-
-
-***
-
-
-
-#### 锁原理
-
-##### Monitor
-
-Monitor 被翻译为监视器或管程
-
-每个 Java 对象都可以关联一个 Monitor 对象，如果使用 synchronized 给对象上锁（重量级）之后，该对象头的
-Mark Word 中就被设置指向 Monitor 对象的指针，这就是重量级锁
-
-* Mark Word结构：
-
-  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-Monitor-MarkWord结构32位.png)
-
-* 64位虚拟机Mark Word：
-
-  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-Monitor-MarkWord结构64位.png)
-
-工作流程：
-
-* 开始时 Monitor 中 Owner 为 null
-* 当 Thread-2 执行 synchronized(obj) 就会将 Monitor 的所有者 Owner 置为 Thread-2，Monitor中只能有一
-  个 Owner，**obj对象的Mark Word指向Monitor**
-  <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-Monitor工作原理1.png" style="zoom:67%;" />
-* 在 Thread-2 上锁的过程中，Thread-3、Thread-4、Thread-5也来执行 synchronized(obj)，就会进入
-  EntryList BLOCKED（双向链表）
-* Thread-2 执行完同步代码块的内容，然后唤醒 EntryList 中等待的线程来竞争锁，竞争是**非公平的**
-* WaitSet 中的Thread-0，是以前获得过锁，但条件不满足进入 WAITING 状态的线程（wait-notify ）
-
-![](https://gitee.com/seazean/images/raw/master/Java/JUC-Monitor工作原理2.png)
-
-注意：
-
-* synchronized 必须是进入同一个对象的 monitor 才有上述的效果
-* 不加 synchronized 的对象不会关联监视器，不遵从以上规则
-
-
-
-****
-
-
-
-##### 字节码
-
-代码：
-
-```java
-public static void main(String[] args) {
-    Object lock = new Object();
-    synchronized (lock) {
-        System.out.println("ok");
-    }
-}
-```
-
-```java
-0: 	new				#2		// new Object
-3: 	dup
-4: 	invokespecial 	#1 		// invokespecial <init>:()V，非虚方法
-7: 	astore_1 				// lock引用 -> lock
-8: 	aload_1					// lock （synchronized开始）
-9: 	dup						//一份用来初始化，一份用来引用
-10: astore_2 				// lock引用 -> slot 2
-11: monitorenter 			// 将 lock对象 MarkWord 置为 Monitor 指针
-12: getstatic 		#3		// System.out
-15: ldc 			#4		// "ok"
-17: invokevirtual 	#5 		// invokevirtual println:(Ljava/lang/String;)V
-20: aload_2 				// slot 2(lock引用)
-21: monitorexit 			// 将 lock对象 MarkWord 重置, 唤醒 EntryList
-22: goto 30
-25: astore_3 				// any -> slot 3
-26: aload_2 				// slot 2(lock引用)
-27: monitorexit 			// 将 lock对象 MarkWord 重置, 唤醒 EntryList
-28: aload_3
-29: athrow
-30: return
-Exception table:
-    from to target type
-      12 22 25 		any
-      25 28 25 		any
-LineNumberTable: ...
-LocalVariableTable:
-    Start Length Slot Name Signature
-    	0 	31 		0 args [Ljava/lang/String;
-    	8 	23 		1 lock Ljava/lang/Object;
-```
-
-说明：
-
-* 通过异常**try-catch机制**，确保一定会被解锁
-* 方法级别的 synchronized 不会在字节码指令中有所体现
-
-
-
-***
-
-
-
-#### 锁升级
-
-##### 升级过程
-
-**synchronized 是可重入、不公平的重量级锁**，所以可以对其进行优化
-
-```java
-无锁 -> 偏向锁 -> 轻量级锁 -> 重量级锁	//随着竞争的增加，只能锁升级，不能降级
-```
-
-![](https://gitee.com/seazean/images/raw/master/Java/JUC-锁升级过程.png)
-
-
-
-***
-
-
-
-##### 偏向锁
-
-偏向锁的思想是偏向于让第一个获取锁对象的线程，这个线程之后重新获取该锁不再需要同步操作：
-
-* 当锁对象第一次被线程获得的时候进入偏向状态，标记为101，同时使用 CAS 操作将线程 ID 记录到Mark Word。如果 CAS 操作成功，这个线程以后进入这个锁相关的同步块，查看这个线程 ID 是自己的就表示没有竞争，就不需要再进行任何同步操作
-
-* 当有另外一个线程去尝试获取这个锁对象时，偏向状态就宣告结束，此时撤销偏向（Revoke Bias）后恢复到未锁定状态或轻量级锁状态
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/JUC-Monitor-MarkWord结构64位.png" style="zoom: 67%;" />
-
-一个对象创建时：
-
-* 如果开启了偏向锁（默认开启），那么对象创建后，markword 值为 0x05 即最后 3 位为 101，这时它的
-  thread、epoch、age 都为 0
-* 偏向锁是默认是延迟的，不会在程序启动时立即生效，如果想避免延迟，可以加VM参数 `-XX:BiasedLockingStartupDelay=0` 来禁用延迟
-
-  JDK 8 延迟 4s 开启偏向锁原因：在刚开始执行代码时，会有好多线程来抢锁，如果开偏向锁效率反而降低
-* 如果禁用了偏向锁，那么对象创建后，markword 值为 0x01 即最后 3 位为 001，这时它的 hashcode、age 都为 0，**第一次用到 hashcode 时才会赋值**，添加 VM 参数 `-XX:-UseBiasedLocking` 禁用偏向锁
-
-撤销偏向锁的状态：
-
-* 调用对象的 hashCode：偏向锁的对象 MarkWord 中存储的是线程 id，调用 hashCode 导致偏向锁被撤销
-  * 轻量级锁会在锁记录中记录 hashCode
-  * 重量级锁会在 Monitor 中记录 hashCode
-* 当有其它线程使用偏向锁对象时，会将偏向锁升级为轻量级锁
-* 调用 wait/notify
-
-
-
-**批量撤销**：如果对象被多个线程访问，但没有竞争，这时偏向了线程 T1 的对象仍有机会重新偏向 T2，重偏向会重置对象的 Thread ID
-
-* 批量重偏向：当撤销偏向锁阈值超过 20 次后，jvm会觉得是不是偏向错了，于是在给这些对象加锁时重新偏向至加锁线程
-
-* 批量撤销：当撤销偏向锁阈值超过 40 次后，jvm会觉得自己确实偏向错了，根本就不该偏向。于是整个类的所有对象都会变为不可偏向的，新建的对象也是不可偏向的
-
-
-
-***
-
-
-
-##### 轻量级锁
-
-一个对象有多个线程要加锁，但加锁的时间是错开的（没有竞争），那么可以使用轻量级锁来优化，轻量级锁对使用者是透明的（不可见）
-
-可重入锁：**线程可以进入任何一个它已经拥有的锁所同步着的代码块，可重入锁最大的作用是避免死锁**
-
-轻量级锁在没有竞争时（锁重入时），每次重入仍然需要执行 CAS 操作，Java 6 才引入的偏向锁来优化
-
-锁重入实例：
-
-```java
-static final Object obj = new Object();
-public static void method1() {
-    synchronized( obj ) {
-        // 同步块 A
-        method2();
-    }
-}
-public static void method2() {
-    synchronized( obj ) {
-    	// 同步块 B
-    }
-}
-```
-
-* 创建锁记录(Lock Record)对象，每个线程的栈帧都会包含一个锁记录的结构，存储锁定对象的Mark Word
-
-  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-轻量级锁原理1.png)
-
-* 让锁记录中Object reference指向锁对象，并尝试用CAS替换Object的Mark Word，将Mark Word的值存
-  入锁记录
-
-* 如果CAS替换成功，对象头中存储了锁记录地址和状态 00（轻量级锁） ，表示由该线程给对象加锁
-  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-轻量级锁原理2.png)
-
-* 如果CAS失败，有两种情况：
-
-  * 如果是其它线程已经持有了该 Object 的轻量级锁，这时表明有竞争，进入锁膨胀过程
-  * 如果是自己执行了 synchronized 锁重入，就添加一条 Lock Record 作为重入的计数
-
-  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-轻量级锁原理3.png)
-
-* 当退出 synchronized 代码块（解锁时）
-
-  * 如果有取值为 null 的锁记录，表示有重入，这时重置锁记录，表示重入计数减1
-  * 如果锁记录的值不为 null，这时使用 cas 将 Mark Word 的值恢复给对象头
-    * 成功，则解锁成功
-    * 失败，说明轻量级锁进行了锁膨胀或已经升级为重量级锁，进入重量级锁解锁流程
-
-
-
-***
-
-
-
-##### 锁膨胀
-
-在尝试加轻量级锁的过程中，CAS 操作无法成功，可能是其它线程为此对象加上了轻量级锁（有竞争），这时需要进行锁膨胀，将轻量级锁变为**重量级锁**
-
-* 当 Thread-1 进行轻量级加锁时，Thread-0 已经对该对象加了轻量级锁
-
-  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-重量级锁原理1.png)
-
-* Thread-1 加轻量级锁失败，进入锁膨胀流程：为 Object 对象申请 Monitor 锁，让Object 对象头指向重量级锁地址，Monitor 的 Owner 置为 Thread-0，然后自己进入 Monitor 的 EntryList BLOCKED
-
-  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-重量级锁原理2.png)
-
-* 当Thread-0退出同步块解锁时，使用 cas 将 Mark Word 的值恢复给对象头，失败，这时进入重量级解锁流程，即按照 Monitor 地址找到 Monitor 对象，设置 Owner 为 null，唤醒 EntryList 中 BLOCKED 线程
-
-
-
-
-
-***
-
-
-
-#### 锁优化
-
-##### 自旋锁
-
-**重量级锁竞争**时，尝试获取锁的线程不会立即阻塞，可以使用**自旋**来进行优化，采用循环的方式去尝试获取锁
-
-注意：
-
-* 自旋占用 CPU 时间，单核 CPU 自旋就是浪费，多核 CPU 自旋才能发挥优势
-* 自旋失败的线程会进入阻塞状态
-
-优点：不会进入阻塞状态，减少线程上下文切换的消耗
-
-缺点：当自旋的线程越来越多时，会不断的消耗CPU资源
-
-自旋锁情况：
-
-* 自旋成功的情况：
-      <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-自旋成功.png" style="zoom: 80%;" />
-
-* 自旋失败的情况：
-
-  <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-自旋失败.png" style="zoom:80%;" />
-
-自旋锁说明：
-
-* 在 Java 6 之后自旋锁是自适应的，比如对象刚刚的一次自旋操作成功过，那么认为这次自旋成功的可能性会
-  高，就多自旋几次；反之，就少自旋甚至不自旋，比较智能
-* Java 7 之后不能控制是否开启自旋功能，由JVM控制
-
-```java
-//手写自旋锁
-public class SpinLock {
-    // 泛型装的是Thread，原子引用线程
-    AtomicReference<Thread> atomicReference = new AtomicReference<>();
-
-    public void lock() {
-        Thread thread = Thread.currentThread();
-        System.out.println(thread.getName() + " come in");
-
-        //开始自旋，期望值为null，更新值是当前线程
-        while (!atomicReference.compareAndSet(null, thread)) {
-            Thread.sleep(1000);
-            System.out.println(thread.getName() + " 正在自旋");
-        }
-        System.out.println(thread.getName() + " 自旋成功");
-    }
-
-    public void unlock() {
-        Thread thread = Thread.currentThread();
-
-        //线程使用完锁把引用变为null
-		atomicReference.compareAndSet(thread, null);
-        System.out.println(thread.getName() + " invoke unlock");
-    }
-
-    public static void main(String[] args) throws InterruptedException {
-        SpinLock lock = new SpinLock();
-        new Thread(() -> {
-            //占有锁
-            lock.lock();
-            Thread.sleep(10000); 
-
-            //释放锁
-            lock.unlock();
-        },"t1").start();
-
-        // 让main线程暂停1秒，使得t1线程，先执行
-        Thread.sleep(1000);
-
-        new Thread(() -> {
-            lock.lock();
-            lock.unlock();
-        },"t2").start();
-    }
-}
-```
-
-
-
-
-
-***
-
-
-
-##### 锁消除
-
-锁消除是指对于被检测出不可能存在竞争的共享数据的锁进行消除
-
-锁消除主要是通过逃逸分析来支持，如果堆上的共享数据不可能逃逸出去被其它线程访问到，那么就可以把它们当成私有数据对待，也就可以将它们的锁进行消除（同步消除：JVM内存分配）
-
-
-
-***
-
-
-
-##### 锁粗化
-
-对相同对象多次加锁，导致线程发生多次重入，频繁的加锁操作就会导致性能损耗，可以使用锁粗化方式优化
-
-如果虚拟机探测到一串零碎的操作都对同一个对象加锁，将会把加锁的范围扩展（粗化）到整个操作序列的外部
-
-* 一些看起来没有加锁的代码，其实隐式的加了很多锁：
-
-  ```java
-  public static String concatString(String s1, String s2, String s3) {
-      return s1 + s2 + s3;
-  }
-  ```
-
-* String 是一个不可变的类，编译器会对 String 的拼接自动优化。在 JDK 1.5 之前，转化为StringBuffer对象的连续 append() 操作，每个append() 方法中都有一个同步块
-
-  ```java
-  public static String concatString(String s1, String s2, String s3) {
-      StringBuffer sb = new StringBuffer();
-      sb.append(s1);
-      sb.append(s2);
-      sb.append(s3);
-      return sb.toString();
-  }
-  ```
-
-扩展到第一个 append() 操作之前直至最后一个 append() 操作之后，只需要加锁一次就可以
-
-
-
-****
-
-
-
-#### 多把锁
-
-多把不相干的锁：一间大屋子有两个功能：睡觉、学习，互不相干。现在一人要学习，一人要睡觉，如果只用一间屋子（一个对象锁）的话，那么并发度很低
-
-将锁的粒度细分：
-
-* 好处，是可以增强并发度
-* 坏处，如果一个线程需要同时获得多把锁，就容易发生死锁 
-
-解决方法：准备多个对象锁
-
-```java
-public static void main(String[] args) {
-    BigRoom bigRoom = new BigRoom();
-    new Thread(() -> { bigRoom.study(); }).start();
-    new Thread(() -> { bigRoom.sleep(); }).start();
-}
-class BigRoom {
-    private final Object studyRoom = new Object();
-    private final Object sleepRoom = new Object();
-
-    public void sleep() throws InterruptedException {
-        synchronized (sleepRoom) {
-            System.out.println("sleeping 2 小时");
-            Thread.sleep(2000);
-        }
-    }
-
-    public void study() throws InterruptedException {
-        synchronized (studyRoom) {
-            System.out.println("study 1 小时");
-            Thread.sleep(1000);
-        }
-    }
-}
-```
-
-
-
-***
-
-
-
-#### 活跃性
-
-##### 死锁
-
-###### 形成
-
-死锁：多个线程同时被阻塞，它们中的一个或者全部都在等待某个资源被释放，由于线程被无限期地阻塞，因此程序不可能正常终止
-
-java 死锁产生的四个必要条件：
-
-1. 互斥条件，即当资源被一个线程使用（占有）时，别的线程不能使用
-2. 不可剥夺条件，资源请求者不能强制从资源占有者手中夺取资源，资源只能由资源占有者主动释放
-3. 请求和保持条件，即当资源请求者在请求其他的资源的同时保持对原有资源的占有
-4. 循环等待条件，即存在一个等待循环队列：p1 要 p2 的资源，p2 要 p1 的资源，形成了一个等待环路
-
-四个条件都成立的时候，便形成死锁。死锁情况下打破上述任何一个条件，便可让死锁消失
-
-```java
-public class Dead {
-    public static Object resources1 = new Object();
-    public static Object resources2 = new Object();
-    public static void main(String[] args) {
-        new Thread(() -> {
-            // 线程1：占用资源1 ，请求资源2
-            synchronized(resources1){
-                System.out.println("线程1已经占用了资源1，开始请求资源2");
-                Thread.sleep(2000);//休息两秒，防止线程1直接运行完成。
-                //2秒内线程2肯定可以锁住资源2
-                synchronized (resources2){
-                    System.out.println("线程1已经占用了资源2");
-                }
-        }).start();
-        new Thread(() -> {
-            // 线程2：占用资源2 ，请求资源1
-            synchronized(resources2){
-                System.out.println("线程2已经占用了资源2，开始请求资源1");
-                Thread.sleep(2000);
-                synchronized (resources1){
-                    System.out.println("线程2已经占用了资源1");
-                }
-            }}
-        }).start();
-    }
-}
-```
-
-面向对象写法：
-
-```java
-public class DeadLock {
-    static String lockA = "lockA";
-    static String lockB = "lockB";
-    public static void main(String[] args) {
-        new Thread(new HoldLockThread(lockA, lockB)).start();
-        new Thread(new HoldLockThread(lockB, lockA)).start();
-    }
-}
-class HoldLockThread implements Runnable {
-    private String lockA;
-    private String lockB;
-
-    public HoldLockThread(String lockA, String lockB) {
-        this.lockA = lockA;
-        this.lockB = lockB;
-    }
-
-    @Override
-    public void run() {
-        synchronized (lockA) {
-            System.out.println(Thread.currentThread().getName() + " 持有" + lockA + "，尝试获得" + lockB);
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            synchronized (lockB) {
-                System.out.println(Thread.currentThread().getName() + " 持有" + lockB + "，尝试获得" + lockA);
-            }
-        }
-    }
-}
-```
-
-
-
-###### 定位
-
-定位死锁的方法：
-
-* 使用 jps 定位进程 id，再用 `jstack id` 定位死锁，找到死锁的线程去查看源码，解决优化
-
-  ```sh
-  "Thread-1" #12 prio=5 os_prio=0 tid=0x000000001eb69000 nid=0xd40 waiting formonitor entry [0x000000001f54f000]
-  	java.lang.Thread.State: BLOCKED (on object monitor)
-  #省略    
-  "Thread-1" #12 prio=5 os_prio=0 tid=0x000000001eb69000 nid=0xd40 waiting for monitor entry [0x000000001f54f000]
-  	java.lang.Thread.State: BLOCKED (on object monitor)
-  #省略
-  
-  Found one Java-level deadlock:
-  ===================================================
-  "Thread-1":
-      waiting to lock monitor 0x000000000361d378 (object 0x000000076b5bf1c0, a java.lang.Object),
-      which is held by "Thread-0"
-  "Thread-0":
-      waiting to lock monitor 0x000000000361e768 (object 0x000000076b5bf1d0, a java.lang.Object),
-      which is held by "Thread-1"
-      
-  Java stack information for the threads listed above:
-  ===================================================
-  "Thread-1":
-      at thread.TestDeadLock.lambda$main$1(TestDeadLock.java:28)
-      - waiting to lock <0x000000076b5bf1c0> (a java.lang.Object)
-      - locked <0x000000076b5bf1d0> (a java.lang.Object)
-      at thread.TestDeadLock$$Lambda$2/883049899.run(Unknown Source)
-      at java.lang.Thread.run(Thread.java:745)
-  "Thread-0":
-      at thread.TestDeadLock.lambda$main$0(TestDeadLock.java:15)
-      - waiting to lock <0x000000076b5bf1d0> (a java.lang.Object)
-      - locked <0x000000076b5bf1c0> (a java.lang.Object)
-      at thread.TestDeadLock$$Lambda$1/495053715
-  ```
-  
-* linux 下可以通过 top 先定位到 CPU 占用高的 Java 进程，再利用 `top -Hp 进程id` 来定位是哪个线程，最后再用 jstack <pid>的输出来看各个线程栈，
-
-* 避免死锁：避免死锁要注意加锁顺序
-
-* 可以使用 jconsole 工具，在 `jdk\bin` 目录下
-
-
-
-***
-
-
-
-##### 活锁
-
-活锁：指的是任务或者执行者没有被阻塞，由于某些条件没有满足，导致一直重复尝试—失败—尝试—失败的过程
-
-两个线程互相改变对方的结束条件，最后谁也无法结束：
-
-```java
-class TestLiveLock {
-    static volatile int count = 10;
-    static final Object lock = new Object();
-    public static void main(String[] args) {
-        new Thread(() -> {
-            // 期望减到 0 退出循环
-            while (count > 0) {
-                Thread.sleep(200);
-                count--;
-                System.out.println("线程一count:" + count);
-            }
-        }, "t1").start();
-        new Thread(() -> {
-            // 期望超过 20 退出循环
-            while (count < 20) {
-                Thread.sleep(200);
-                count++;
-                System.out.println("线程二count:"+ count);
-            }
-        }, "t2").start();
-    }
-}
-```
-
-
-
-***
-
-
-
-##### 饥饿
-
-饥饿：一个线程由于优先级太低，始终得不到 CPU 调度执行，也不能够结束
-
-
-
-***
-
-
-
-### wait-ify
-
-#### 基本使用
-
-需要获取对象锁后才可以调用`锁对象.wait()`，调用notify随机唤醒一个线程，notifyAll唤醒所有线程去竞争CPU
-
-Object类API：
-
-```java
-public final void notify():唤醒正在等待对象监视器的单个线程。
-public final void notifyAll():唤醒正在等待对象监视器的所有线程。
-public final void wait():导致当前线程等待，直到另一个线程调用该对象的notify()方法或 notifyAll()方法。
-public final native void wait(long timeout):有时限的等待, 到n毫秒后结束等待，或是被唤醒
-```
-
-对比sleep()：
-
-* 原理不同：sleep()方法是属于Thread类，是线程用来控制自身流程的，使此线程暂停执行一段时间而把执行机会让给其他线程；wait()方法属于Object类，用于线程间通信
-* 对锁的处理机制不同：调用sleep()方法的过程中，线程不会释放对象锁，当调用wait()方法的时候，线程会放弃对象锁，进入等待此对象的等待锁定池，但是都会释放CPU
-* 使用区域不同：wait()方法必须放在**同步控制方法和同步代码块（先获取锁）**中使用，sleep() 方法则可以放在任何地方使用
-
-底层原理：
-
-* Owner 线程发现条件不满足，调用 wait 方法，即可进入 WaitSet 变为 WAITING 状态
-* BLOCKED 和 WAITING 的线程都处于阻塞状态，不占用 CPU 时间片
-* BLOCKED 线程会在 Owner 线程释放锁时唤醒
-* WAITING 线程会在 Owner 线程调用 notify 或 notifyAll 时唤醒，但唤醒后并不意味者立刻获得锁，仍需进入
-  EntryList 重新竞争
-
-![](https://gitee.com/seazean/images/raw/master/Java/JUC-Monitor工作原理2.png)
-
-
-
-***
-
-
-
-#### 代码优化
-
-虚假唤醒：notify 只能随机唤醒一个 WaitSet 中的线程，这时如果有其它线程也在等待，那么就可能唤醒不了正确的线程
-
-解决方法：采用notifyAll
-
-notifyAll 仅解决某个线程的唤醒问题，使用 if + wait 判断仅有一次机会，一旦条件不成立，无法重新判断
-
-解决方法：用 while + wait，当条件不成立，再次 wait
-
-```java
-@Slf4j(topic = "c.demo")
-public class demo {
-    static final Object room = new Object();
-    static boolean hasCigarette = false;    //有没有烟
-    static boolean hasTakeout = false;
-
-    public static void main(String[] args) throws InterruptedException {
-        new Thread(() -> {
-            synchronized (room) {
-                log.debug("有烟没？[{}]", hasCigarette);
-                while (!hasCigarette) {//while防止虚假唤醒
-                    log.debug("没烟，先歇会！");
-                    try {
-                        room.wait();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                log.debug("有烟没？[{}]", hasCigarette);
-                if (hasCigarette) {
-                    log.debug("可以开始干活了");
-                } else {
-                    log.debug("没干成活...");
-                }
-            }
-        }, "小南").start();
-
-        new Thread(() -> {
-            synchronized (room) {
-                Thread thread = Thread.currentThread();
-                log.debug("外卖送到没？[{}]", hasTakeout);
-                if (!hasTakeout) {
-                    log.debug("没外卖，先歇会！");
-                    try {
-                        room.wait();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                log.debug("外卖送到没？[{}]", hasTakeout);
-                if (hasTakeout) {
-                    log.debug("可以开始干活了");
-                } else {
-                    log.debug("没干成活...");
-                }
-            }
-        }, "小女").start();
-
-
-        Thread.sleep(1000);
-        new Thread(() -> {
-        // 这里能不能加 synchronized (room)？
-            synchronized (room) {
-                hasTakeout = true;
-				//log.debug("烟到了噢！");
-                log.debug("外卖到了噢！");
-                room.notifyAll();
-            }
-        }, "送外卖的").start();
-    }
-}
-```
-
-
-
-
-
-****
-
-
-
-### park-un
-
-LockSupport 类方法：
-
-* `LockSupport.park()`：暂停当前线程
-* `LockSupport.unpark(暂停的线程对象)`：恢复某个线程的运行
-
-```java
-public static void main(String[] args) {
-    Thread t1 = new Thread(() -> {
-        System.out.println("start...");//1
-		Thread.sleep(1000);//Thread.sleep(3000)
-        //先park再unpark 和 先unpark再park效果一样，都会直接恢复线程的运行
-        System.out.println("park...");//2
-        LockSupport.park();
-        System.out.println("resume...");//4
-    },"t1");
-    t1.start();
-   	Thread.sleep(2000);
-    System.out.println("unpark...");//3
-    LockSupport.unpark(t1);
-}
-```
-
-对比wait & notify：
-
-* wait，notify 和 notifyAll 必须配合 Object Monitor 一起使用，而park、unpark不需要
-* park & unpark以线程为单位来阻塞和唤醒线程，而notify 只能随机唤醒一个等待线程，notifyAll是唤醒所有等待线程
-* **park & unpark 可以先 unpark**，而 wait & notify 不能先 notify。类比生产消费，先消费发现有产品就消费，没有就等待；先生产就直接产生商品，然后线程直接消费
-* wait 会释放锁资源进入等待队列，park 不会释放锁资源，只负责阻塞当前线程，会释放CPU
-
-原理：
-
-* 先park：
-  1. 当前线程调用 Unsafe.park() 方法
-  2. 检查 _counter ，本情况为 0，这时获得 _mutex 互斥锁
-  3. 线程进入 _cond 条件变量阻塞
-  4. 调用 Unsafe.unpark(Thread_0) 方法，设置 _counter 为 1
-  5. 唤醒 _cond 条件变量中的 Thread_0，Thread_0 恢复运行，设置 _counter 为 0
-
-![](https://gitee.com/seazean/images/raw/master/Java/JUC-park原理1.png)
-
-* 先unpark：
-
-  1. 调用 Unsafe.unpark(Thread_0) 方法，设置 _counter 为 1
-  2. 当前线程调用 Unsafe.park() 方法
-  3. 检查 _counter ，本情况为 1，这时线程无需阻塞，继续运行，设置 _counter 为 0
-
-  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-park原理2.png)
-
-
-
-
-
-***
-
-
-
-### 安全分析
-
-成员变量和静态变量：
-
-* 如果它们没有共享，则线程安全
-* 如果它们被共享了，根据它们的状态是否能够改变，分两种情况：
-  * 如果只有读操作，则线程安全
-  * 如果有读写操作，则这段代码是临界区，需要考虑线程安全问题
-
-局部变量：
-
-* 局部变量是线程安全的
-* 局部变量引用的对象不一定线程安全（逃逸分析）：
-  * 如果该对象没有逃离方法的作用访问，它是线程安全的（每一个方法有一个栈帧）
-  * 如果该对象逃离方法的作用范围，需要考虑线程安全问题（暴露引用）
-
-常见线程安全类：String、Integer、StringBuffer、Random、Vector、Hashtable、java.util.concurrent包
-
-* 线程安全的是指，多个线程调用它们同一个实例的某个方法时，是线程安全的
-
-* 每个方法是原子的，但多个方法的组合不是原子的，只能保证调用的方法内部安全：
-
-  ```java
-  Hashtable table = new Hashtable();
-  // 线程1，线程2
-  if( table.get("key") == null) {
-  	table.put("key", value);
-  }
-  ```
-
-不可变类线程安全：String、Integer 等都是不可变类，因为内部的状态不可以改变，因此方法是线程安全
-
-* replace等方法底层是新建一个对象，复制过去
-
-  ```java
-  Map<String,Object> map = new HashMap<>();	//线程不安全
-  String S1 = "...";							//线程安全
-  final String S2 = "...";					//线程安全
-  Date D1 = new Date();						//线程不安全
-  final Date D2 = new Date();	//线程不安全，final让D2引用的对象不能变，但对象的内容可以变
-  ```
-
-抽象方法如果有参数，被重写后行为不确定可能造成线程不安全，被称之为外星方法：`public abstract foo(Student s);`
-
-无状态类线程安全
-
-
-
-***
-
-
-
-### 同步模式
-
-#### 保护性暂停
-
-##### 单任务版
-
-Guarded Suspension，用在一个线程等待另一个线程的执行结果
-
-* 有一个结果需要从一个线程传递到另一个线程，让它们关联同一个 GuardedObject
-* 如果有结果不断从一个线程到另一个线程那么可以使用消息队列（见生产者/消费者）
-* JDK 中，join 的实现、Future 的实现，采用的就是此模式
-
-![](https://gitee.com/seazean/images/raw/master/Java/JUC-保护性暂停.png)
-
-```java
-public static void main(String[] args) {
-    GuardedObject object = new GuardedObjectV2();
-    new Thread(() -> {
-        sleep(1);
-        object.complete(Arrays.asList("a", "b", "c"));
-    }).start();
-    
-    Object response = object.get(2500);
-    if (response != null) {
-        log.debug("get response: [{}] lines", ((List<String>) response).size());
+/*
+（1）公式： f(x+1)=f(x)-f(x)/2-1; ==> 2f(x+1) = f(x) - 2 ==> f(x)=2f(x+1)+2
+（2）终结点：f(10) = 1
+（3）递归的方向：走向了终结点
+*/
+
+public static int f(int x){
+    if(x == 10){
+        return 1;
     } else {
-        log.debug("can't get response");
-    }
-}
-
-class GuardedObject {
-    private Object response;
-    private final Object lock = new Object();
-
-    //获取结果
-    //timeout :最大等待时间
-    public Object get(long millis) {
-        synchronized (lock) {
-            // 1) 记录最初时间
-            long begin = System.currentTimeMillis();
-            // 2) 已经经历的时间
-            long timePassed = 0;
-            while (response == null) {
-                // 4) 假设 millis 是 1000，结果在 400 时唤醒了，那么还有 600 要等
-                long waitTime = millis - timePassed;
-                log.debug("waitTime: {}", waitTime);
-                //经历时间超过最大等待时间退出循环
-                if (waitTime <= 0) {
-                    log.debug("break...");
-                    break;
-                }
-                try {
-                    lock.wait(waitTime);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                // 3) 如果提前被唤醒，这时已经经历的时间假设为 400
-                timePassed = System.currentTimeMillis() - begin;
-                log.debug("timePassed: {}, object is null {}",
-                        timePassed, response == null);
-            }
-            return response;
-        }
-    }
-
-    //产生结果
-    public void complete(Object response) {
-        synchronized (lock) {
-            // 条件满足，通知等待线程
-            this.response = response;
-            log.debug("notify...");
-            lock.notifyAll();
-        }
+        return 2*f(x+1)+2
     }
 }
 ```
 
 
 
-##### 多任务版
+***
 
-多任务版保护性暂停：
 
-![](https://gitee.com/seazean/images/raw/master/Java/JUC-保护性暂停多任务版.png)
+
+#### 递归求和
 
 ```java
-public static void main(String[] args) throws InterruptedException {
-    for (int i = 0; i < 3; i++) {
-        new People().start();
-    }
-    Thread.sleep(1000);
-    for (Integer id : Mailboxes.getIds()) {
-        new Postman(id, id + "号快递到了").start();
-    }
-}
-
-@Slf4j(topic = "c.People")
-class People extends Thread{
-    @Override
-    public void run() {
-        // 收信
-        GuardedObject guardedObject = Mailboxes.createGuardedObject();
-        log.debug("开始收信i d:{}", guardedObject.getId());
-        Object mail = guardedObject.get(5000);
-        log.debug("收到信id:{}，内容:{}", guardedObject.getId(),mail);
-    }
-}
-
-class Postman extends Thread{
-    private int id;
-    private String mail;
-    //构造方法
-    @Override
-    public void run() {
-        GuardedObject guardedObject = Mailboxes.getGuardedObject(id);
-        log.debug("开始送信i d:{}，内容:{}", guardedObject.getId(),mail);
-        guardedObject.complete(mail);
-    }
-}
-
-class  Mailboxes {
-    private static Map<Integer, GuardedObject> boxes = new Hashtable<>();
-    private static int id = 1;
-
-    //产生唯一的id
-    private static synchronized int generateId() {
-        return id++;
-    }
-
-    public static GuardedObject getGuardedObject(int id) {
-        return boxes.remove(id);
-    }
-
-    public static GuardedObject createGuardedObject() {
-        GuardedObject go = new GuardedObject(generateId());
-        boxes.put(go.getId(), go);
-        return go;
-    }
-
-    public static Set<Integer> getIds() {
-        return boxes.keySet();
-    }
-}
-class GuardedObject {
-    //标识，Guarded Object
-    private int id;//添加get set方法
+//（1）递归的终点接：f(1) = 1
+//（2）递归的公式： f(n) = f(n-1) + n
+//（3）递归的方向必须走向终结点：
+public static int f(int n){
+        if(n == 1 ) return 1;
+        return f(n-1) + n;
 }
 ```
 
@@ -19451,536 +14146,28 @@ class GuardedObject {
 
 
 
-#### 顺序输出
-
-顺序输出 2  1 
+#### 汉诺塔
 
 ```java
-public static void main(String[] args) throws InterruptedException {
-    Thread t1 = new Thread(() -> {
-        while (true) {
-            //try { Thread.sleep(1000); } catch (InterruptedException e) { }
-            // 当没有许可时，当前线程暂停运行；有许可时，用掉这个许可，当前线程恢复运行
-            LockSupport.park();
-            System.out.println("1");
-        }
-    });
-    Thread t2 = new Thread(() -> {
-        while (true) {
-            System.out.println("2");
-            // 给线程 t1 发放『许可』（多次连续调用 unpark 只会发放一个『许可』）
-            LockSupport.unpark(t1);
-            try { Thread.sleep(500); } catch (InterruptedException e) { }
-        }
-    });
-    t1.start();
-    t2.start();
-}
-```
-
-
-
-***
-
-
-
-#### 交替输出
-
-连续输出5次abc
-
-```java
-public class day2_14 {
-    public static void main(String[] args) throws InterruptedException {
-        AwaitSignal awaitSignal = new AwaitSignal(5);
-        Condition a = awaitSignal.newCondition();
-        Condition b = awaitSignal.newCondition();
-        Condition c = awaitSignal.newCondition();
-        new Thread(() -> {
-            awaitSignal.print("a", a, b);
-        }).start();
-        new Thread(() -> {
-            awaitSignal.print("b", b, c);
-        }).start();
-        new Thread(() -> {
-            awaitSignal.print("c", c, a);
-        }).start();
-
-        Thread.sleep(1000);
-        awaitSignal.lock();
-        try {
-            a.signal();
-        } finally {
-            awaitSignal.unlock();
-        }
-    }
-}
-
-class AwaitSignal extends ReentrantLock {
-    private int loopNumber;
-
-    public AwaitSignal(int loopNumber) {
-        this.loopNumber = loopNumber;
-    }
-    //参数1：打印内容  参数二：条件变量  参数二：唤醒下一个
-    public void print(String str, Condition condition, Condition next) {
-        for (int i = 0; i < loopNumber; i++) {
-            lock();
-            try {
-                condition.await();
-                System.out.print(str);
-                next.signal();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } finally {
-                unlock();
-            }
-        }
-    }
-}
-```
-
-
-
-***
-
-
-
-### 异步模式
-
-#### 传统版
-
-异步模式之生产者/消费者：
-
-```java
-class ShareData {
-    private int number = 0;
-    private Lock lock = new ReentrantLock();
-    private Condition condition = lock.newCondition();
-
-    public void increment() throws Exception{
-        // 同步代码块，加锁
-        lock.lock();
-        try {
-            // 判断  防止虚假唤醒
-            while(number != 0) {
-                // 等待不能生产
-                condition.await();
-            }
-            // 干活
-            number++;
-            System.out.println(Thread.currentThread().getName() + "\t " + number);
-            // 通知 唤醒
-            condition.signalAll();
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    public void decrement() throws Exception{
-        // 同步代码块，加锁
-        lock.lock();
-        try {
-            // 判断 防止虚假唤醒
-            while(number == 0) {
-                // 等待不能消费
-                condition.await();
-            }
-            // 干活
-            number--;
-            System.out.println(Thread.currentThread().getName() + "\t " + number);
-            // 通知 唤醒
-            condition.signalAll();
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            lock.unlock();
-        }
-    }
-}
-
-public class TraditionalProducerConsumer {
-	public static void main(String[] args) {
-        ShareData shareData = new ShareData();
-        // t1线程，生产
-        new Thread(() -> {
-            for (int i = 0; i < 5; i++) {
-            	shareData.increment();
-            }
-        }, "t1").start();
-
-        // t2线程，消费
-        new Thread(() -> {
-            for (int i = 0; i < 5; i++) {
-				shareData.decrement();
-            }
-        }, "t2").start(); 
-    }
-}
-```
-
-
-
-#### 改进版
-
-异步模式之生产者/消费者：
-
-* 消费队列可以用来平衡生产和消费的线程资源，不需要产生结果和消费结果的线程一一对应
-* 生产者仅负责产生结果数据，不关心数据该如何处理，而消费者专心处理结果数据
-* 消息队列是有容量限制的，满时不会再加入数据，空时不会再消耗数据
-* JDK 中各种阻塞队列，采用的就是这种模式
-
-![](https://gitee.com/seazean/images/raw/master/Java/JUC-生产者消费者模式.png)
-
-```java
-public class demo {
+public class Hanoi {
     public static void main(String[] args) {
-        MessageQueue queue = new MessageQueue(2);
-        for (int i = 0; i < 3; i++) {
-            int id = i;
-            new Thread(() -> {
-                queue.put(new Message(id,"值"+id));
-            }, "生产者" + i).start();
-        }
-        
-        new Thread(() -> {
-            while (true) {
-                try {
-                    Thread.sleep(1000);
-                    Message message = queue.take();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        },"消费者").start();
-    }
-}
-
-//消息队列类，Java间线程之间通信
-class MessageQueue {
-    private LinkedList<Message> list = new LinkedList<>();//消息的队列集合
-    private int capacity;//队列容量
-    public MessageQueue(int capacity) {
-        this.capacity = capacity;
+        hanoi('X', 'Y', 'Z', 3);
     }
 
-    //获取消息
-    public Message take() {
-        //检查队列是否为空
-        synchronized (list) {
-            while (list.isEmpty()) {
-                try {
-                    sout(Thread.currentThread().getName() + ":队列为空，消费者线程等待");
-                    list.wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            //从队列的头部获取消息返回
-            Message message = list.removeFirst();
-            sout(Thread.currentThread().getName() + "：已消费消息--" + message);
-            list.notifyAll();
-            return message;
-        }
-    }
-
-    //存入消息
-    public void put(Message message) {
-        synchronized (list) {
-            //检查队列是否满
-            while (list.size() == capacity) {
-                try {
-                    sout(Thread.currentThread().getName()+":队列为已满，生产者线程等待");
-                    list.wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-            //将消息加入队列尾部
-            list.addLast(message);
-            sout(Thread.currentThread().getName() + ":已生产消息--" + message);
-            list.notifyAll();
+    //将n个块分治的从x移动到z，y为辅助柱
+    private static void hanoi(char x, char y, char z, int n) {
+        if (n == 1) {
+            System.out.println(x + "→" + z);    //直接将x的块移动到z
+        } else {
+            hanoi(x, z, y, n - 1);           //分治处理n-1个块，先将n-1个块借助z移到y
+            System.out.println(x + "→" + z);    //然后将x最下面的块（最大的）移动到z
+            hanoi(y, x, z, n - 1);           //最后将n-1个块从y移动到z，x为辅助柱
         }
     }
 }
-
-final class Message {
-    private int id;
-    private Object value;
-	//get set
-}
 ```
 
-
-
-***
-
-
-
-#### 阻塞队列
-
-```java
-public static void main(String[] args) {
-    ExecutorService consumer = Executors.newFixedThreadPool(1);
-    ExecutorService producer = Executors.newFixedThreadPool(1);
-    BlockingQueue<Integer> queue = new SynchronousQueue<>();
-    producer.submit(() -> {
-        try {
-            System.out.println("生产...");
-            Thread.sleep(1000);
-            queue.put(10);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    });
-    consumer.submit(() -> {
-        try {
-            System.out.println("等待消费...");
-            Integer result = queue.take();
-            System.out.println("结果为:" + result);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    });
-}
-```
-
-
-
-
-
-***
-
-
-
-## 内存
-
-### JMM
-
-#### 内存模型
-
-Java 内存模型是 Java MemoryModel（JMM），本身是一种**抽象的概念**，实际上并不存在，描述的是一组规则或规范，通过这组规范定义了程序中各个变量（包括实例字段，静态字段和构成数组对象的元素）的访问方式
-
-作用：
-
-* 屏蔽各种硬件和操作系统的内存访问差异，实现让Java程序在各种平台下都能达到一致的内存访问效果
-* 规定了线程和内存之间的一些关系
-
-根据JMM的设计，系统存在一个主内存(Main Memory)，Java中所有变量都存储在主存中，对于所有线程都是共享的；每条线程都有自己的工作内存(Working Memory)，工作内存中保存的是主存中某些**变量的拷贝**，线程对所有变量的操作都是先对变量进行拷贝，然后在工作内存中进行，不能直接操作主内存中的变量；线程之间无法相互直接访问，线程间的通信（传递）必须通过主内存来完成
-
-![](https://gitee.com/seazean/images/raw/master/Java/JMM内存模型.png)
-
-主内存和工作内存：
-
-* 主内存：计算机的内存，也就是经常提到的8G内存，16G内存，存储所有共享变量的值
-* 工作内存：存储该线程使用到的共享变量在主内存的的值的副本拷贝
-
-
-
-**jvm和jmm之间的关系**：
-
-* jmm中的主内存、工作内存与jvm中的Java堆、栈、方法区等并不是同一个层次的内存划分，这两者基本上是没有关系的，如果两者一定要勉强对应起来：
-  * 主内存主要对应于Java堆中的对象实例数据部分，而工作内存则对应于虚拟机栈中的部分区域
-  * 从更低层次上说，主内存直接对应于物理硬件的内存，工作内存对应寄存器和高速缓存
-
-
-
-***
-
-
-
-#### 内存交互
-
-Java 内存模型定义了 8 个操作来完成主内存和工作内存的交互操作：
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/JMM内存交互.png" style="zoom: 67%;" />
-
-* lock：将一个变量标识为被一个线程独占状态
-* unclock：将一个变量从独占状态释放出来，释放后的变量才可以被其他线程锁定
-* read：把一个变量的值从主内存传输到工作内存中
-* load：在 read 之后执行，把 read 得到的值放入工作内存的变量副本中
-* use：把工作内存中一个变量的值传递给执行引擎，每当遇到一个使用到变量的操作时都要使用该指令
-* assign：把从执行引擎接收到的一个值赋给工作内存的变量，每当虚拟机遇到一个给变量赋值的操作时，都要使用该指令
-* store：把工作内存的一个变量的值传送到主内存中
-* write：在 store 之后执行，把 store 得到的值放入主内存的变量中
-
-
-
-***
-
-
-
-#### 三大特性
-
-##### 可见性
-
-可见性：是指当多个线程访问同一个变量时，一个线程修改了这个变量的值，其他线程能够立即看得到修改的值
-
-存在可见性问题的根本原因是由于缓存的存在，线程持有的是共享变量的副本，无法感知其他线程对于共享变量的更改，导致读取的值不是最新的
-
-main 线程对 run 变量的修改对于 t 线程不可见，导致了 t 线程无法停止：
-
-```java
-static boolean run = true;	//添加volatile
-public static void main(String[] args) throws InterruptedException {
-    Thread t = new Thread(()->{
-        while(run){
-        // ....
-        }
-	});
-    t.start();
-    sleep(1);
-    run = false; // 线程t不会如预想的停下来
-}
-```
-
-原因：
-
-* 初始状态， t 线程刚开始从主内存读取了 run 的值到工作内存
-* 因为 t 线程要频繁从主内存中读取 run 的值，JIT 编译器会将 run 的值缓存至自己工作内存中的高速缓存中，
-  减少对主存中 run 的访问，提高效率
-* 1 秒之后，main 线程修改了 run 的值，并同步至主存，而 t 是从自己工作内存中的高速缓存中读取这个变量
-  的值，结果永远是旧值
-
-![](https://gitee.com/seazean/images/raw/master/Java/JMM-可见性例子.png)
-
-
-
-***
-
-
-
-##### 原子性
-
-原子性：不可分割，完整性，也就是说某个线程正在做某个具体业务时，中间不可以被分割，需要具体完成，要么同时成功，要么同时失败，保证指令不会受到线程上下文切换的影响 
-
-定义原子操作的使用规则：
-
-1. 不允许一个线程无原因地（没有发生过任何assign操作）把数据从工作内存同步会主内存中
-2. 一个新的变量只能在主内存中诞生，不允许在工作内存中直接使用一个未被初始化（assign或者load）的变量，即对一个变量实施use和store操作之前，必须先自行assign和load操作
-3. 一个变量在同一时刻只允许一条线程对其进行lock操作，但lock操作可以被同一线程重复执行多次，多次执行lock后，只有**执行相同次数的unlock**操作，变量才会被解锁，**lock和unlock必须成对出现**
-4. 如果对一个变量执行lock操作，将会清空工作内存中此变量的值，在执行引擎使用这个变量之前需要重新执行load或assign操作初始化变量的值
-5. 如果一个变量事先没有被lock操作锁定，则不允许对它执行unlock操作，也不允许去unlock一个被其他线程锁定的变量
-6. 对一个变量执行unlock操作之前，必须先把此变量同步到主内存中（执行store和write操作）
-
-
-
-***
-
-
-
-##### 有序性
-
-有序性：在本线程内观察，所有操作都是有序的；在一个线程观察另一个线程，所有操作都是无序的，无序是因为发生了指令重排序
-
-CPU的基本工作是执行存储的指令序列，即程序，程序的执行过程实际上是不断地取出指令、分析指令、执行指令的过程，为了提高性能，编译器和处理器会对指令重排，一般分为以下三种：
-
-```java
-源代码 -> 编译器优化的重排 -> 指令并行的重排 -> 内存系统的重排 -> 最终执行指令
-```
-
-现代 CPU 支持多级指令流水线，几乎所有的冯•诺伊曼型计算机的CPU，其工作都可以分为5个阶段：取指令、指令译码、执行指令、访存取数和结果写回，可以称之为**五级指令流水线**。这时 CPU 可以在一个时钟周期内，同时运行五条指令的**不同阶段**（每个线程不同的阶段），本质上流水线技术并不能缩短单条指令的执行时间，但变相地提高了指令地吞吐率
-
-处理器在进行重排序时，必须要考虑**指令之间的数据依赖性**
-
-* 单线程环境也存在指令重排，由于存在依赖，最终执行结果和代码顺序的结果一致
-* 多线程环境中线程交替执行，由于编译器优化重排，两个线程中使用的变量能否保证一致性是无法确定的
-
-
-
-
-
-***
-
-
-
-### cache
-
-#### 缓存机制
-
-##### 缓存结构
-
-在计算机系统中，CPU高速缓存（CPU Cache，简称缓存）是用于减少处理器访问内存所需平均时间的部件；在存储体系中位于自顶向下的第二层，仅次于CPU寄存器；其容量远小于内存，但速度却可以接近处理器的频率
-
-CPU 处理器速度远远大于在主内存中的，为了解决速度差异，在它们之间架设了多级缓存，如 L1、L2、L3 级别的缓存，这些缓存离CPU越近就越快，将频繁操作的数据缓存到这里，加快访问速度
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/JMM-CPU缓存结构.png" style="zoom: 50%;" />
-
-| 从 cpu 到 | 大约需要的时钟周期               |
-| --------- | -------------------------------- |
-| 寄存器    | 1 cycle (4GHz 的 CPU 约为0.25ns) |
-| L1        | 3~4 cycle                        |
-| L2        | 10~20 cycle                      |
-| L3        | 40~45 cycle                      |
-| 内存      | 120~240 cycle                    |
-
-
-
-##### 缓存使用
-
-当处理器发出内存访问请求时，会先查看缓存内是否有请求数据，如果存在（命中），则不经访问内存直接返回该数据；如果不存在（失效），则要先把内存中的相应数据载入缓存，再将其返回处理器
-
-缓存之所以有效，主要因为程序运行时对内存的访问呈现局部性（Locality）特征。既包括空间局部性（Spatial Locality），也包括时间局部性（Temporal Locality），有效利用这种局部性，缓存可以达到极高的命中率。
-
-
-
-***
-
-
-
-#### 伪共享
-
-**缓存以缓存行 cache line 为单位，每个缓存行对应着一块内存**，一般是 64 byte（8 个 long），在CPU从主存获取数据时，以 cache line 为单位加载，于是相邻的数据会一并加载到缓存中
-
-缓存会造成数据副本的产生，即同一份数据会缓存在不同核心的缓存行中，CPU 要保证数据的一致性，需要做到某个 CPU 核心更改了数据，其它 CPU 核心对应的**整个缓存行必须失效**，这就是伪共享
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/JUC-内存伪共享.png" style="zoom: 67%;" />
-
-解决方法：
-
-* padding：通过填充，让数据落在不同的 cache line 中
-
-* @Contended：原理参考 无锁 → Addr → 优化机制 → 伪共享
-
-Linux查看CPU缓存行：
-
-* 命令：`cat /sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size64`
-* 内存地址格式：[高位组标记] [低位索引] [偏移量]
-
-
-
-***
-
-
-
-#### 缓存一致
-
-缓存一致性：当多个处理器运算任务都涉及到同一块主内存区域的时候，将可能导致各自的缓存数据不一样
-
-**MESI**（Modified Exclusive Shared Or Invalid）是一种广泛使用的支持写回策略的缓存一致性协议，CPU中每个缓存行 (caceh line) 使用4种状态进行标记（使用额外的两位 (bit) 表示)：
-
-* M：被修改（Modified)
-
-  该缓存行只被缓存在该 CPU 的缓存中，并且是被修改过的，与主存中的数据不一致 (dirty)，该缓存行中的内存需要在未来的某个时间点（其它 CPU 读取主存中相应数据之前）写回（ write back ）主存
-
-  当被写回主存之后，该缓存行的状态会变成独享 (exclusive) 状态。
-
-* E：独享的（Exclusive)
-
-  该缓存行只被缓存在该 CPU 的缓存中，它是未被修改过的 (clear)，与主存中数据一致，该状态可以在任何时刻有其它 CPU 读取该内存时变成共享状态 (shared)
-
-  当 CPU 修改该缓存行中内容时，该状态可以变成 Modified 状态
-
-* S：共享的（Shared)
-
-  该状态意味着该缓存行可能被多个 CPU 缓存，并且各个缓存中的数据与主存数据一致 (clear)，当有一个 CPU 修改该缓存行中，其它 CPU 中该缓存行变成无效状态 (Invalid)
-
-* I：无效的（Invalid）
-
-  该缓存是无效的，可能有其它 CPU 修改了该缓存行
-
-解决方法：各个处理器访问缓存时都遵循一些协议，在读写时要根据协议进行操作，协议主要有MSI、MESI等
+时间复杂度 O(2^n)
 
 
 
@@ -19988,26 +14175,47 @@ Linux查看CPU缓存行：
 
 
 
-#### 处理机制
+#### 啤酒问题
 
-单核 CPU 处理器会自动保证基本内存操作的原子性
+非规律化递归问题。
 
-多核 CPU 处理器，每个 CPU 处理器内维护了一块内存，每个内核内部维护着一块缓存，当多线程并发读写时，就会出现缓存数据不一致的情况。处理器提供：
+啤酒2元一瓶，4个盖子可以换一瓶，2个空瓶可以换一瓶。
 
-* 总线锁定：当处理器要操作共享变量时，在 BUS 总线上发出一个 LOCK 信号，其他处理器就无法操作这个共享变量，该操作会导致大量阻塞，从而增加系统的性能开销
-* 缓存锁定：当处理器对缓存中的共享变量进行了操作，其他处理器有嗅探机制，将该共享变量的缓存失效，其他线程读取时会重新从主内存中读取最新的数据，基于 MESI 缓存一致性协议来实现
+```java
+public class BeerDemo{
+    // 定义一个静态变量存储可以喝酒的总数
+    public static int totalNum;
+    public static int lastBottleNum;
+    public static int lastCoverNum;
+    public static void main(String[] args) {
+        buyBeer(10);
+        System.out.println("总数："+totalNum);
+        System.out.println("剩余盖子："+ lastCoverNum);
+        System.out.println("剩余瓶子："+ lastBottleNum);
+    }
+    public static void buyBeer(int money){
+        int number = money / 2;
+        totalNum += number;
+        // 算出当前剩余的全部盖子和瓶子数，换算成金额继续购买。
+        int currentBottleNum = lastBottleNum + number ;
+        int currentCoverNum = lastCoverNum + number ;
+        // 把他们换算成金额
+        int totalMoney = 0 ;
+        totalMoney += (currentBottleNum/2)*2;//除2代表可以换几个瓶子，乘2代表换算成钱，秒！
+        lastBottleNum = currentBottleNum % 2 ;//取余//算出剩余的瓶子
+     
+        totalMoney += (currentCoverNum / 4) * 2;
+        lastCoverNum = currentCoverNum % 4 ;
 
-有如下两种情况处理器不会使用缓存锁定：
+        // 继续拿钱买酒
+        if(totalMoney >= 2){
+            buyBeer(totalMoney);
+        }
+    }
+}
+```
 
-* 当操作的数据跨多个缓存行，或没被缓存在处理器内部，则处理器会使用总线锁定
 
-* 有些处理器不支持缓存锁定，比如：Intel 486 和 Pentium 处理器也会调用总线锁定
-
-总线机制：
-
-* 总线嗅探：每个处理器通过嗅探在总线上传播的数据来检查自己缓存值是否过期了，当处理器发现自己的缓存对应的内存地址数据被修改，就将当前处理器的缓存行设置为无效状态，当处理器对这个数据进行操作时，会重新从内存中把数据读取到处理器缓存中
-
-* 总线风暴：由于 volatile 的 MESI 缓存一致性协议，需要不断的从主内存嗅探和 CAS 循环，无效的交互会导致总线带宽达到峰值；因此不要大量使用 volatile 关键字，使用 volatile、syschonized 都需要根据实际场景
 
 
 
@@ -20015,17 +14223,310 @@ Linux查看CPU缓存行：
 
 
 
-### volatile
+## 排序
 
-#### 基本特性
+### 冒泡排序
 
-Volatile是Java虚拟机提供的**轻量级**的同步机制（三大特性）
+冒泡排序（Bubble Sort）：两个数比较大小，较大的数下沉，较小的数冒起来
 
-- 保证可见性
-- 不保证原子性
-- 保证有序性（禁止指令重排）
+算法描述：每次从数组的第一个位置开始两两比较，把较大的元素与较小的元素进行层层交换，最终把当前最大的一个元素存入到数组当前的末尾
 
-性能：volatile修饰的变量进行读操作与普通变量几乎没什么差别，但是写操作相对慢一些，因为需要在本地代码中插入很多内存屏障来保证指令不会发生乱序执行，但是开销比锁要小
+实现思路：
+
+1. 确定总共需要冒几轮：数组的长度-1
+2. 每轮两两比较几次
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-冒泡排序.gif" style="zoom: 80%;" />
+
+```java
+// 0 1位置比较，大的放后面，然后1 2位置比较，大的继续放后面，一轮循环最后一位是最大值
+public class BubbleSort {
+    public static void main(String[] args) {
+        int[] arr = {55, 22, 2, 5, 1, 3, 8, 5, 7, 4, 3, 99, 88};
+        int flag;//标记本趟排序是否发生了交换
+        //比较i和i+1，不需要再比最后一个位置
+        for (int i = 0; i < arr.length - 1; i++) {
+            flag = 0;
+            //最后i位不需要比，已经排序好
+            for (int j = 0; j < arr.length - 1 - i; j++) {
+                if (arr[j] > arr[j + 1]) {
+                    int temp = arr[j];
+                    arr[j] = arr[j + 1];
+                    arr[j + 1] = temp;
+                    flag = 1;//发生了交换
+                }
+            }
+            //没有发生交换，证明已经有序，不需要继续排序
+            if(flag == 0) {
+                break;
+            }
+        }
+        System.out.println(Arrays.toString(arr));
+    }
+}
+```
+
+冒泡排序时间复杂度：最坏情况
+
+* 元素比较的次数为：`(N-1)+(N-2)+(N-3)+...+2+1=((N-1)+1)*(N-1)/2=N^2/2-N/2`
+* 元素交换的次数为：`(N-1)+(N-2)+(N-3)+...+2+1=((N-1)+1)*(N-1)/2=N^2/2-N/2`
+* 总执行次数为：`(N^2/2-N/2)+(N^2/2-N/2)=N^2-N`
+
+按照大 O 推导法则，保留函数中的最高阶项那么最终冒泡排序的时间复杂度为 O(N^2)
+
+
+
+***
+
+
+
+### 选择排序
+
+#### 简单选择
+
+选择排序（Selection-sort）：一种简单直观的排序算法
+
+算法描述：首先在未排序序列中找到最小（大）元素，存放到排序序列的起始位置，然后再从剩余未排序元素中继续寻找最小（大）元素，然后放到已排序序列的末尾。以此类推，直到所有元素均排序完毕
+
+实现思路：
+
+1. 控制选择几轮：数组的长度-1
+2. 控制每轮从当前位置开始比较几次
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-选择排序.gif" style="zoom: 80%;" />
+
+```java
+// 0 1位置比较，小的放0位置，然后0 2位置比，小的继续放0位置，一轮循环0位置是最小值
+public class SelectSort {
+    public static void main(String[] args) {
+        int[] arr = {55, 22, 2, 5, 1, 3, 8, 5, 7, 4, 3, 99, 88};
+        for (int i = 0; i < arr.length - 1; i++) {
+            //获取最小索引位置
+            int minIndex = i;
+            for (int j = i + 1; j < arr.length; j++) {
+                if (arr[minIndex] > arr[j]) {
+                    minIndex = j;
+                }
+            }
+            //交换元素
+            int temp = arr[i];
+            arr[i] = arr[minIndex];
+            arr[minIndex] = temp;
+        }
+        System.out.println(Arrays.toString(arr));
+    }
+}
+```
+
+选择排序时间复杂度：
+
+* 数据比较次数：`(N-1)+(N-2)+(N-3)+...+2+1=((N-1)+1)*(N-1)/2=N^2/2-N/2`
+* 数据交换次数：`N-1`
+* 时间复杂度：`N^2/2-N/2+（N-1）=N^2/2+N/2-1`
+
+根据大 O 推导法则，保留最高阶项，去除常数因子，时间复杂度为 O(N^2)
+
+
+
+***
+
+
+
+#### 堆排序
+
+堆排序（Heapsort）是指利用堆这种数据结构所设计的一种排序算法，堆结构是一个近似完全二叉树的结构，并同时满足子结点的键值或索引总是小于（或者大于）父节点
+
+优先队列：堆排序每次上浮过程都会将最大或者最小值放在堆顶，应用于优先队列可以将优先级最高的元素浮到堆顶
+
+实现思路：
+
+1. 将初始待排序关键字序列（R1,R2….Rn）构建成大顶堆，并通过上浮对堆进行调整，此堆为初始的无序区，堆顶为最大数
+
+2. 将堆顶元素 R[1] 与最后一个元素 R[n] 交换，此时得到新的无序区（R1,R2,……Rn-1）和新的有序区 Rn，且满足 R[1,2…n-1]<=R[n]
+
+3. 交换后新的堆顶 R[1] 可能违反堆的性质，因此需要对当前无序区（R1,R2,……Rn-1）调整为新堆，然后再次将 R[1] 与无序区最后一个元素交换，得到新的无序区（R1,R2….Rn-2）和新的有序区（Rn-1,Rn），不断重复此过程直到有序区的元素个数为 n-1，则整个排序过程完成
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-堆排序.jpg" style="zoom:67%;" />
+
+floor：向下取整
+
+```java
+public class HeapSort {
+    public static void main(String[] args) {
+        int[] arr = {55, 22, 2, 5, 1, 3, 8, 5, 7, 4, 3, 99, 88};
+        heapSort(arr, arr.length);
+        System.out.println(Arrays.toString(arr));
+    }
+
+    //len为数组长度
+    private static void heapSort(int[] arr, int len) {
+        //建堆，逆排序，因为堆排序定义的交换顺序是从当前结点往下交换，逆序排可以避免多余的交换
+        for (int i = len / 2 - 1; i >= 0; i--) {
+            //调整函数
+            sift(arr, i, len - 1);
+        }
+        //从尾索引开始排序
+        for (int i = len - 1; i > 0; i--) {
+            //将最大的节点放入末尾
+            int temp = arr[0];
+            arr[0] = arr[i];
+            arr[i] = temp;
+            //继续寻找最大的节点
+            sift(arr, 0, i - 1);
+        }
+    }
+
+    //调整函数，调整arr[low]的元素，从索引low到high的范围调整
+    private static void sift(int[] arr, int low, int high) {
+        //暂存调整元素
+        int temp = arr[low];
+        int i = low, j = low * 2 + 1;//j是左节点
+        while (j <= high) {
+            //判断是否有右孩子，并且比较左右孩子中较大的节点
+            if (j < high && arr[j] < arr[j + 1]) {
+                j++;    //指向右孩子
+            }
+            if (temp < arr[j]) {
+                arr[i] = arr[j];
+                i = j;  //继续向下调整
+                j = 2 * i + 1;
+            } else {
+                //temp > arr[j]，说明也大于j的孩子，探测结束
+                break;
+            }
+        }
+        //将被调整的节点放入最终的位置
+        arr[i] = temp;
+    }
+}
+```
+
+堆排序的时间复杂度是 O(nlogn)
+
+
+
+***
+
+
+
+### 插入排序
+
+#### 直接插入
+
+插入排序（Insertion Sort）：在要排序的一组数中，假定前 n-1 个数已经排好序，现在将第 n 个数插到这个有序数列中，使得这 n 个数也是排好顺序的，如此反复循环，直到全部排好顺序
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-插入排序.png" style="zoom: 67%;" />
+
+```java
+public class InsertSort {
+    public static void main(String[] args) {
+        int[] arr = {55, 22, 2, 5, 1, 3, 8, 5, 7, 4, 3, 99, 88};
+        for (int i = 1; i < arr.length; i++) {
+            for (int j = i; j > 0; j--) {
+                //比较索引j处的值和索引j-1处的值，
+                //如果索引j-1处的值比索引j处的值大，则交换数据，
+                //如果不大，那么就找到合适的位置了，退出循环即可；
+                if (arr[j - 1] > arr[j]) {
+                    int temp = arr[j];
+                    arr[j] = arr[j - 1];
+                    arr[j - 1] = temp;
+                }
+            }
+        }
+        System.out.println(Arrays.toString(arr));
+    }
+}
+```
+
+插入排序时间复杂度：
+
+* 比较的次数为：`(N-1)+(N-2)+(N-3)+...+2+1=((N-1)+1)*(N-1)/2=N^2/2-N/2`
+* 交换的次数为：`(N-1)+(N-2)+(N-3)+...+2+1=((N-1)+1)(N-1)/2=N^2/2-N/2`
+* 总执行次数为：`(N^2/2-N/2)+(N^2/2-N/2)=N^2-N`
+
+按照大 O 推导法则，保留函数中的最高阶项那么最终插入排序的时间复杂度为 O(N^2)
+
+
+
+***
+
+
+
+#### 希尔排序
+
+希尔排序（Shell Sort）：也是一种插入排序，也称为缩小增量排序
+
+实现思路：
+
+1. 选定一个增长量h，按照增长量h作为数据分组的依据，对数据进行分组
+2. 对分好组的每一组数据完成插入排序
+3. 减小增长量，最小减为1，重复第二步操作
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-希尔排序.png" style="zoom:67%;" />
+
+希尔排序的核心在于间隔序列的设定，既可以提前设定好间隔序列，也可以动态的定义间隔序列，希尔排序就是插入排序增加了间隔
+
+```java
+public class ShellSort {
+    public static void main(String[] args) {
+        int[] arr = {55, 22, 2, 5, 1, 3, 8, 5, 7, 4, 3, 99, 88};
+        //1. 确定增长量h的初始值
+        int h = 1;
+        while (h < arr.length / 2) {
+            h = 2 * h + 1;
+        }
+        //2. 希尔排序
+        while (h >= 1) {
+            //2.1 找到待插入的元素
+            for (int i = h; i < arr.length; i++) {
+                //2.2 把待插入的元素插到有序数列中
+                for (int j = i; j >= h; j -= h) {
+                    //待插入的元素是arr[j]，比较arr[j]和arr[j-h]
+                    if (arr[j] < arr[j - h]) {
+                        int temp = arr[j];
+                        arr[j] = arr[j - h];
+                        arr[j - h] = temp;
+                    }
+                }
+            }
+            //3. 减小h的值，减小规则为：
+            h = h / 2;
+        }
+        System.out.println(Arrays.toString(arr));
+    }
+}
+```
+
+在希尔排序中，增长量h并没有固定的规则，有很多论文研究了各种不同的递增序列，但都无法证明某个序列是最好的，所以对于希尔排序的时间复杂度分析就认为 O(nlogn)
+
+
+
+***
+
+
+
+### 归并排序
+
+#### 实现方式
+
+归并排序（Merge Sort）：建立在归并操作上的一种有效的排序算法，该算法是采用分治法的典型的应用。将已有序的子序列合并，得到完全有序的序列；即先使每个子序列有序，再使子序列段间有序。若将两个有序表合并成一个有序表，称为二路归并。
+
+实现思路：
+
+1. 一组数据拆分成两个元素相等的子组，并对每一个子组继续拆分，直到拆分后的每个子组的元素个数是1为止
+2. 将相邻的两个子组进行合并成一个有序的大组
+3. 不断的重复步骤2，直到最终只有一个组为止
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-归并排序.png" style="zoom:50%;" />
+
+归并步骤：每次比较两端最小的值，把最小的值放在辅助数组的左边
+
+![](https://gitee.com/seazean/images/raw/master/Java/Sort-归并步骤1.png)
+
+![](https://gitee.com/seazean/images/raw/master/Java/Sort-归并步骤2.png)
+
+![](https://gitee.com/seazean/images/raw/master/Java/Sort-归并步骤3.png)
+
 
 
 
@@ -20034,54 +14535,54 @@ Volatile是Java虚拟机提供的**轻量级**的同步机制（三大特性）
 
 
 
-#### 解决重排
+#### 实现代码
 
-**volatile 修饰的变量，可以禁用指令重排**
+```java
+public class MergeSort {
+    public static void main(String[] args) {
+        int[] arr = new int[]{55, 22, 2, 5, 1, 3, 8, 5, 7, 4, 3, 99, 88};
+        mergeSort(arr, 0, arr.length - 1);
+        System.out.println(Arrays.toString(arr));
+    }
+	//low 为arr最小索引，high为最大索引
+    public static void mergeSort(int[] arr, int low, int high) {
+        if (low < high) {
+            int mid = (low + high) / 2;
+            mergeSort(arr, low, mid);//归并排序前半段
+            mergeSort(arr, mid + 1, high);//归并排序后半段
+            merge(arr, low, mid, high);//将两段有序段合成一段有序段
+        }
+    }
 
-**synchronized 无法禁止指令重排和处理器优化**，为什么可以保证有序性？
-加了锁之后，只能有一个线程获得到了锁，获得不到锁的线程就要阻塞，所以同一时间只有一个线程执行，相当于单线程，而单线程的指令重排是没有问题的
+    private static void merge(int[] arr, int low, int mid, int high) {
+        int m = 0;
+        //定义左右指针
+        int left = low, right = mid + 1;
+        int[] assist = new int[high - low + 1];
+        while (left <= mid && right <= high) {
+            assist[m++] = arr[left] < arr[right] ? arr[left++] : arr[right++];
+        }
+        while (left <= mid) {
+            assist[m++] = arr[left++];
+        }
+        while (right <= high) {
+            assist[m++] = arr[right++];
+        }
 
-指令重排实例：
+        for (int k = 0; k < assist.length; k++) {
+            arr[low++] = assist[k];
+        }
+    }
+}
+```
 
-* example 1：
+<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-归并排序时间复杂度.png" style="zoom: 67%;" />
 
-  ```java
-  public void mySort() {
-  	int x = 11;	//语句1
-  	int y = 12;	//语句2  谁先执行效果一样
-  	x = x + 5;	//语句3
-  	y = x * x;	//语句4
-  }
-  ```
+用树状图来描述归并，假设元素的个数为 n，那么使用归并排序拆分的次数为 `log2(n)`，即层数，每次归并需要做 n 次对比，最终得出的归并排序的时间复杂度为 `log2(n)*n`，根据大O推导法则，忽略底数，最终归并排序的时间复杂度为 O(nlogn)
 
-  执行顺序是：1 2 3 4、2 1 3 4、1 3 2 4
-  指令重排也有限制不会出现：4321，语句4需要依赖于 y 以及 x 的申明，因为存在数据依赖，无法首先执行
+归并排序的缺点：需要申请额外的数组空间，导致空间复杂度提升，是典型的**以空间换时间**的操作
 
-* example 2：
 
-  ```java
-  int num = 0;
-  boolean ready = false;
-  // 线程1 执行此方法
-  public void actor1(I_Result r) {
-      if(ready) {
-      	r.r1 = num + num;
-      } else {
-      	r.r1 = 1;
-      }
-  }
-  // 线程2 执行此方法
-  public void actor2(I_Result r) {
-  	num = 2;
-  	ready = true;
-  }
-  ```
-
-  情况一：线程1 先执行，ready = false，结果为 r.r1 = 1
-  情况二：线程2 先执行 num = 2，但还没执行 ready = true，线程1 执行，结果为 r.r1 = 1
-  情况三：线程2 先执行 ready = true，线程1 执行，进入 if 分支结果为 r.r1 = 4
-  情况四：线程2 执行 ready = true，切换到线程1，进入 if 分支为 r.r1 = 0，再切回线程2 执行 num = 2
-  			   发生指令重排
 
 
 
@@ -20089,1220 +14590,87 @@ Volatile是Java虚拟机提供的**轻量级**的同步机制（三大特性）
 
 
 
-#### 底层原理
+### 快速排序
 
-使用 volatile 修饰的共享变量，总线会开启 CPU 总线嗅探机制来解决 JMM 缓存一致性问题，也就是共享变量在多线程中可见性的问题，实现 MESI 缓存一致性协议
+快速排序（Quick Sort）：通过**分治思想**对冒泡排序的改进，基本过程是通过一趟排序将要排序的数据分割成独立的两部分，其中一部分的所有数据都比另外一部分的所有数据都要小，然后再按此方法对这两部分数据分别进行快速排序，以此达到整个数据变成有序序列
 
-底层是通过汇编 lock 前缀指令，共享变量加了 lock 前缀指令，在线程修改完共享变量后，会马上执行 store 和 write 操作写回主存。在执行 store 操作前，会先执行缓存锁定的操作，其他的 CPU 上运行的线程根据 CPU 总线嗅探机制会修改其共享变量为失效状态，读取时会重新从主内存中读取最新的数据
+实现思路：
 
-lock 前缀指令就相当于内存屏障，Memory Barrier（Memory Fence）
+1. 从数列中挑出一个元素，称为基准（pivot）
+2. 重新排序数列，所有比基准值小的摆放在基准前面，所有比基准值大的摆在基准的后面（相同的数可以到任一边），在这个分区退出之后，该基准就处于数列的中间位置，这个称为分区（partition）操作；
+3. 递归地（recursive）把小于基准值元素的子数列和大于基准值元素的子数列排序
 
-* 对 volatile 变量的写指令后会加入写屏障
-* 对 volatile 变量的读指令前会加入读屏障
-
-内存屏障有三个作用：
-
-- 确保对内存的读-改-写操作原子执行
-- 阻止屏障两侧的指令重排序
-- 强制把缓存中的脏数据写回主内存，让缓存行中相应的数据失效
-
-保证可见性：
-
-* 写屏障（sfence，Store Barrier）保证在该屏障之前的，对共享变量的改动，都同步到主存当中
-
-  ```java
-  public void actor2(I_Result r) {
-      num = 2;
-      ready = true; // ready 是 volatile 赋值带写屏障
-      // 写屏障
-  }
-  ```
-
-* 读屏障（lfence，Load Barrier）保证在该屏障之后的，对共享变量的读取，加载的是主存中最新数据
-
-  ```java
-  public void actor1(I_Result r) {
-      // 读屏障
-      // ready 是 volatile 读取值带读屏障
-      if(ready) {
-      	r.r1 = num + num;
-      } else {
-      	r.r1 = 1;
-      }
-  }
-  ```
-
-  <img src="https://gitee.com/seazean/images/raw/master/Java/JMM-volatile保证可见性.png" style="zoom:67%;" />
-
-* 全能屏障：mfence（modify/mix Barrier），兼具 sfence 和 lfence 的功能
-
-保证有序性：
-
-* 写屏障会确保指令重排序时，不会将写屏障之前的代码排在写屏障之后
-* 读屏障会确保指令重排序时，不会将读屏障之后的代码排在读屏障之前
-
-不能解决指令交错：
-
-* 写屏障仅仅是保证之后的读能够读到最新的结果，但不能保证其他的读跑到写屏障之前
-
-* 有序性的保证也只是保证了本线程内相关代码不被重排序
-
-  ```java
-  volatile i = 0;
-  new Thread(() -> {i++});
-  new Thread(() -> {i--});
-  ```
-
-  i++反编译后的指令：
-
-  ```java
-  0: iconst_1			//当int取值 -1~5 时，JVM采用iconst指令将常量压入栈中
-  1: istore_1			//将操作数栈顶数据弹出，存入局部变量表的 slot 1
-  2: iinc		1, 1	
-  ```
-
-  <img src="https://gitee.com/seazean/images/raw/master/Java/JMM-volatile不能保证原子性.png" style="zoom: 67%;" />
-
-
-
-***
-
-
-
-#### 双端检锁
-
-##### 检锁机制
-
-Double-Checked Locking：双端检锁机制
-
-DCL（双端检锁）机制不一定是线程安全的，原因是有指令重排的存在，加入volatile可以禁止指令重排
+<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-快速排序.gif" style="zoom:80%;" />
 
 ```java
-public final class Singleton {
-    private Singleton() { }
-    private static Singleton INSTANCE = null;
-    
-    public static Singleton getInstance() {
-        if(INSTANCE == null) { // t2
-            // 首次访问会同步，而之后的使用没有 synchronized
-            synchronized(Singleton.class) {
-                if (INSTANCE == null) { // t1
-                    INSTANCE = new Singleton();
-                }
-            }
-        }
-        return INSTANCE;
-    }
-}
-```
-
-不锁INSTANCE的原因：
-
-* INSTANCE 要重新赋值
-* INSTANCE 是null，线程加锁之前需要获取对象的引用，null没有引用
-
-实现特点： 
-
-* 懒惰初始化
-* 首次使用 getInstance() 才使用 synchronized 加锁，后续使用时无需加锁
-* 第一个 if 使用了 INSTANCE 变量，是在同步块之外，但在多线程环境下会产生问题
-
-
-
-***
-
-
-
-##### DCL问题
-
-getInstance 方法对应的字节码为：
-
-```java
-0: 	getstatic 		#2 		// Field INSTANCE:Ltest/Singleton;
-3: 	ifnonnull 		37
-6: 	ldc 			#3 		// class test/Singleton
-8: 	dup
-9: 	astore_0
-10: monitorenter
-11: getstatic 		#2 		// Field INSTANCE:Ltest/Singleton;
-14: ifnonnull 27
-17: new 			#3 		// class test/Singleton
-20: dup
-21: invokespecial 	#4 		// Method "<init>":()V
-24: putstatic 		#2 		// Field INSTANCE:Ltest/Singleton;
-27: aload_0
-28: monitorexit
-29: goto 37
-32: astore_1
-33: aload_0
-34: monitorexit
-35: aload_1
-36: athrow
-37: getstatic 		#2 		// Field INSTANCE:Ltest/Singleton;
-40: areturn
-```
-
-* 17 表示创建对象，将对象引用入栈 
-* 20 表示复制一份对象引用，引用地址
-* 21 表示利用一个对象引用，调用构造方法初始化对象
-* 24 表示利用一个对象引用，赋值给 static INSTANCE
-
-步骤21和步骤24之间不存在数据依赖关系，而且无论重排前后，程序的执行结果在单线程中并没有改变，因此这种重排优化是允许的
-
-* 关键在于 0: getstatic 这行代码在 monitor 控制之外，可以越过 monitor 读取INSTANCE 变量的值
-* 当其他线程访问 instance 不为null时，由于 instance 实例未必已初始化，那么 t2 拿到的是将是一个未初
-  始化完毕的单例返回，这就造成了线程安全的问题
-
-![](https://gitee.com/seazean/images/raw/master/Java/JMM-DCL出现的问题.png)
-
-
-
-***
-
-
-
-##### 解决方法
-
-指令重排只会保证串行语义的执行一致性（单线程），但并不会关系多线程间的语义一致性
-
-引入volatile，来保证出现指令重排的问题，从而保证单例模式的线程安全性：
-
-```java
-private static volatile SingletonDemo INSTANCE = null;
-```
-
-
-
-***
-
-
-
-### ha-be
-
-happens-before 先行发生
-
-Java 内存模型具备一些先天的“有序性”，即不需要通过任何同步手段（volatile、synchronized等）就能够得到保证的安全，这个通常也称为 happens-before 原则，它是可见性与有序性的一套规则总结
-
-不符合 happens-before 规则，JMM 并不能保证一个线程的可见性和有序性
-
-1. 程序次序规则 (Program Order Rule)：一个线程内，逻辑上书写在前面的操作先行发生于书写在后面的操作 ，因为多个操作之间有先后依赖关系，则不允许对这些操作进行重排序
-
-2. 锁定规则 (Monitor Lock Rule)：一个 unLock 操作先行发生于后面（时间的先后）对同一个锁的 lock 操作，所以线程解锁 m 之前对变量的写（锁内的写），对于接下来对 m 加锁的其它线程对该变量的读可见
-
-3. **volatile变量规则** (Volatile Variable Rule)：对 volatile 变量的写操作先行发生于后面对这个变量的读
-
-4. 传递规则 (Transitivity)：具有传递性，如果操作A先行发生于操作B，而操作B又先行发生于操作C，则可以得出操作A先行发生于操作C
-
-5. 线程启动规则 (Thread Start Rule)：Thread对象的start()方法先行发生于此线程中的每一个操作
-
-   ```java
-   static int x = 10;//线程 start 前对变量的写，对该线程开始后对该变量的读可见
-   new Thread(()->{	System.out.println(x);	},"t1").start();
-   ```
-
-6. 线程中断规则 (Thread Interruption Rule)：对线程interrupt()方法的调用先行发生于被中断线程的代码检测到中断事件的发生
-
-7. 线程终止规则 (Thread Termination Rule)：线程中所有的操作都先行发生于线程的终止检测，可以通过Thread.join()方法结束、Thread.isAlive()的返回值手段检测到线程已经终止执行
-
-8. 对象终结规则（Finaizer Rule）：一个对象的初始化完成（构造函数执行结束）先行发生于它的finalize()方法的开始
-
-
-
-***
-
-
-
-### 设计模式
-
-#### 终止模式
-
-终止模式之两阶段终止模式：停止标记用 volatile 是为了保证该变量在多个线程之间的可见性
-
-```java
-class TwoPhaseTermination {
-    //监控线程
-    private Thread monitor;
-    //停止标记
-    private volatile boolean stop = false;;
-
-    //启动监控线程
-    public void start() {
-        monitor = new Thread(() -> {
-            while (true) {
-                Thread thread = Thread.currentThread();
-                if (stop) {
-                    System.out.println("后置处理");
-                    break;
-                }
-                try {
-                    Thread.sleep(1000);//睡眠
-                    System.out.println(thread.getName() + "执行监控记录");
-                } catch (InterruptedException e) {
-                   	System.out.println("被打断，退出睡眠");
-                }
-            }
-        });
-        monitor.start();
+public class QuickSort {
+    public static void main(String[] args) {
+        int[] arr = {55, 22, 2, 5, 1, 3, 8, 5, 7, 4, 3, 99, 88};
+        quickSort(arr, 0, arr.length - 1);
+        System.out.println(Arrays.toString(arr));
     }
 
-    //停止监控线程
-    public void stop() {
-        stop = true;
-        monitor.interrupt();//让线程尽快退出Timed Waiting
-    }
-}
-//测试
-public static void main(String[] args) throws InterruptedException {
-    TwoPhaseTermination tpt = new TwoPhaseTermination();
-    tpt.start();
-    Thread.sleep(3500);
-    System.out.println("停止监控");
-    tpt.stop();
-}
-```
-
-
-
-****
-
-
-
-#### Balking
-
-Balking （犹豫）模式用在一个线程发现另一个线程或本线程已经做了某一件相同的事，那么本线程就无需再做
-了，直接结束返回
-
-```java
-public class MonitorService {
-    // 用来表示是否已经有线程已经在执行启动了
-    private volatile boolean starting = false;
-    public void start() {
-        System.out.println("尝试启动监控线程...");
-        synchronized (this) {
-            if (starting) {
-            	return;
-            }
-            starting = true;
-        }
-        // 真正启动监控线程...
-    }
-}
-```
-
-对比保护性暂停模式：保护性暂停模式用在一个线程等待另一个线程的执行结果，当条件不满足时线程等待
-
-例子：希望 doInit() 方法仅被调用一次，下面的实现出现的问题：
-
-* 当 t1 线程进入 init() 准备 doInit()，t2 线程进来，initialized 还为f alse，则 t2 就又初始化一次
-* volatile 适合一个线程写，其他线程读的情况，这个代码需要加锁
-
-```java
-public class TestVolatile {
-    volatile boolean initialized = false;
-    
-    void init() {
-        if (initialized) {
+    public static void quickSort(int[] arr, int low, int high) {
+        //递归结束的条件
+        if (low >= high) {
             return;
         }
-    	doInit();
-    	initialized = true;
-    }
-    private void doInit() {
-    }
-}
-```
-
-
-
-
-
-***
-
-
-
-## 无锁
-
-### CAS
-
-#### 实现原理
-
-无锁编程：lock free
-
-CAS的全称是Compare-And-Swap，是**CPU并发原语**
-
-* CAS并发原语体现在Java语言中就是sun.misc.Unsafe类的各个方法，调用UnSafe类中的CAS方法，JVM会实现出CAS汇编指令，这是一种完全依赖于硬件的功能，通过它实现了原子操作
-* CAS是一种系统原语，原语属于操作系统范畴，是由若干条指令组成 ，用于完成某个功能的一个过程，并且**原语的执行必须是连续的，执行过程中不允许被中断**，也就是说CAS是一条CPU的原子指令，不会造成所谓的数据不一致的问题，所以 CAS 是线程安全的
-
-底层原理：CAS 的底层是 `lock cmpxchg` 指令(X86 架构)，在单核和多核 CPU 下都能够保证比较交换的原子性
-
-* 程序是在单核处理器上运行，会省略 lock 前缀，单处理器自身会维护处理器内的顺序一致性，不需要 lock 前缀的内存屏障效果
-
-* 程序是在多核处理器上运行，会为 cmpxchg 指令加上 lock 前缀（lock cmpxchg）。当某个核执行到带 lock 的指令时，CPU 会执行**总线锁定或缓存锁定**，当这个核把此指令执行完毕，这个过程不会被线程的调度机制所打断，保证了多个线程对内存操作的原子性
-
-作用：比较当前工作内存中的值和主物理内存中的值，如果相同则执行规定操作，否者继续比较直到主内存和工作内存的值一致为止
-
-CAS特点：
-
-* CAS 体现的是**无锁并发、无阻塞并发**，没有使用 synchronized，所以线程不会陷入阻塞，线程不需要频繁切换状态（上下文切换，系统调用）
-* CAS 是基于乐观锁的思想
-
-CAS缺点：
-
-- 循环时间长，开销大（因为执行的是do while，如果比较不成功一直在循环，最差的情况某个线程一直取到的值和预期值都不一样，就会无限循环导致饥饿），**使用CAS线程数不要超过CPU的核心数**
-- 只能保证一个共享变量的原子操作
-  - 对于一个共享变量执行操作时，可以通过循环CAS的方式来保证原子操作
-  - 对于多个共享变量操作时，循环CAS就无法保证操作的原子性，这个时候只能用锁来保证原子性
-- 引出来ABA问题
-
-
-
-
-
-***
-
-
-
-#### 乐观锁
-
-CAS与Synchronized总结：
-
-* Synchronized是从悲观的角度出发：
-  总是假设最坏的情况，每次去拿数据的时候都认为别人会修改，所以每次在拿数据的时候都会上锁，这样别人想拿这个数据就会阻塞直到它拿到锁。（**共享资源每次只给一个线程使用，其它线程阻塞，用完后再把资源转让给其它线程**），因此Synchronized我们也将其称之为悲观锁。jdk中的ReentrantLock也是一种悲观锁，**性能较差**
-* CAS是从乐观的角度出发:
-  总是假设最好的情况，每次去拿数据的时候都认为别人不会修改，所以不会上锁，但是在更新的时候会判断一下在此期间别人有没有去更新这个数据。**如果别人修改过，则获取现在最新的值。如果别人没修改过，直接修改共享数据的值**，CAS这种机制我们也可以将其称之为乐观锁。**综合性能较好**！
-
-
-
-
-
-***
-
-
-
-### Atomic
-
-#### 常用API
-
-常见原子类：AtomicInteger、AtomicBoolean、AtomicLong
-
-构造方法：
-
-* `public AtomicInteger()`：初始化一个默认值为0的原子型Integer
-* `public AtomicInteger(int initialValue)`：初始化一个指定值的原子型Integer
-
-常用API：
-
-| 方法                                  | 作用                                                         |
-| ------------------------------------- | ------------------------------------------------------------ |
-| public final int get()                | 获取AtomicInteger的值                                        |
-| public final int getAndIncrement()    | 以原子方式将当前值加1，返回的是自增前的值                    |
-| public final int incrementAndGet()    | 以原子方式将当前值加1，返回的是自增后的值                    |
-| public final int getAndSet(int value) | 以原子方式设置为newValue的值，返回旧值                       |
-| public final int addAndGet(int data)  | 以原子方式将输入的数值与实例中的值相加并返回<br />实例：AtomicInteger里的value |
-
-
-
-***
-
-
-
-#### 原理分析
-
-**AtomicInteger原理**：自旋锁  + CAS 算法
-
-CAS算法：有3个操作数（内存值V， 旧的预期值A，要修改的值B）
-
-* 当旧的预期值A == 内存值V   此时可以修改，将V改为B
-* 当旧的预期值A !=  内存值V   此时不能修改，并重新获取现在的最新值，重新获取的动作就是自旋 
-
-分析getAndSet方法：
-
-* AtomicInteger：
-
-  ```java
-  public final int getAndSet(int newValue) {
-      /**
-      * this: 		当前对象
-      * valueOffset:	内存偏移量，内存地址
-      */
-      return unsafe.getAndSetInt(this, valueOffset, newValue);
-  }
-  ```
-
-  valueOffset：表示该变量值在内存中的偏移地址，Unsafe就是根据内存偏移地址获取数据
-
-  ```java
-  valueOffset = unsafe.objectFieldOffset
-                  (AtomicInteger.class.getDeclaredField("value"));
-  //调用本地方法   -->
-  public native long objectFieldOffset(Field var1);
-  ```
-
-* unsafe类：
-
-  ```java
-  //val1: AtomicInteger对象本身  var2: 该对象值得引用地址 var4: 需要变动的数
-  public final int getAndSetInt(Object var1, long var2, int var4) {
-      int var5;
-      do {
-          //var5: 用var1和var2找到的内存中的真实值
-          var5 = this.getIntVolatile(var1, var2);
-      } while(!this.compareAndSwapInt(var1, var2, var5, var4));
-  
-      return var5;
-  }
-  ```
-
-  var5：从主内存中拷贝到工作内存中的值（每次都要从主内存拿到最新的值到自己的本地内存），然后执行`compareAndSwapInt()`再和主内存的值进行比较，假设方法返回false，那么就一直执行 while方法，直到期望的值和真实值一样，修改数据
-
-* 变量value用volatile修饰，保证了多线程之间的内存可见性，避免线程从自己的工作缓存中查找变量
-
-  ```java
-  private volatile int value
-  ```
-
-  CAS 必须借助 volatile 才能读取到共享变量的最新值来实现**比较并交换**的效果
-
-分析getAndUpdate方法：
-
-* getAndUpdate：
-
-  ```java
-  public final int getAndUpdate(IntUnaryOperator updateFunction) {
-      int prev, next;
-      do {
-          prev = get();	//当前值，cas的期望值
-          next = updateFunction.applyAsInt(prev);//期望值更新到该值
-      } while (!compareAndSet(prev, next));//自旋
-      return prev;
-  }
-  ```
-
-  函数式接口：可以自定义操作逻辑
-
-  ```java
-  AtomicInteger a = new AtomicInteger();
-  a.getAndUpdate(i -> i + 10);
-  ```
-
-* compareAndSet：
-
-  ```java
-  public final boolean compareAndSet(int expect, int update) {
-      /**
-      * this: 		当前对象
-      * valueOffset:	内存偏移量，内存地址
-      * expect:		期望的值
-      * update: 		更新的值
-      */
-      return unsafe.compareAndSwapInt(this, valueOffset, expect, update);
-  }
-  ```
-
-  <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-compareAndSet方法.png" style="zoom:67%;" />
-
-
-
-***
-
-
-
-#### 原子引用
-
-原子引用：对Object进行原子操作，提供一种读和写都是原子性的对象引用变量
-
-原子引用类：AtomicReference、AtomicStampedReference、AtomicMarkableReference
-
-AtomicReference类：
-
-* 构造方法：`AtomicReference<T> atomicReference = new AtomicReference<T>();`
-
-* 常用API：
-
-  `public final boolean compareAndSet(V expectedValue, V newValue)`：CAS操作
-  `public final void set(V newValue)`：将值设置为 newValue 
-  `public final V get()`：返回当前值
-
-```java
-public class AtomicReferenceDemo {
-    public static void main(String[] args) {
-        Student s1 = new Student(33,"z3");
         
-        //创建原子引用包装类
-        AtomicReference<Student> atomicReference = new AtomicReference<>();
-        //设置主内存共享变量为s1
-        atomicReference.set(s1);
-
-        //比较并交换，如果现在主物理内存的值为z3，那么交换成l4
-        while (true) {
-            Student s2 = new Student(44,"l4");
-            if (atomicReference.compareAndSet(s1, s2)) {
-                break;
+        int left = low;
+        int right = high;
+        
+        int temp = arr[left];//基准数
+        while (left < right) {
+            // 用 >= 可以防止多余的交换
+            while (arr[right] >= temp && right > left) {
+                right--;
+            }
+            // 做判断防止相等
+            if (right > left) {
+                // 到这里说明 arr[right] < temp 
+                arr[left] = arr[right];//此时把arr[right]元素视为空
+                left++;
+            }
+            while (arr[left] <= temp && left < right) {
+                left++;
+            }
+            if (right > left) {
+                arr[right] = arr[left];
+                right--;
             }
         }
-        System.out.println(atomicReference.get());
-    }
-}
-
-class Student {
-    private int id;
-    private String name;
-    //。。。。
-}
-```
-
-
-
-***
-
-
-
-#### 原子数组
-
-原子数组类：AtomicIntegerArray、AtomicLongArray、AtomicReferenceArray
-
-AtomicIntegerArray类方法：
-
-```java
-/**
-*   i		the index
-* expect 	the expected value
-* update 	the new value
-*/
-public final boolean compareAndSet(int i, int expect, int update) {
-    return compareAndSetRaw(checkedByteOffset(i), expect, update);
-}
-```
-
-
-
-***
-
-
-
-#### 原子更新器
-
-原子更新器类：AtomicReferenceFieldUpdater、AtomicIntegerFieldUpdater、AtomicLongFieldUpdater
-
-利用字段更新器，可以针对对象的某个域（Field）进行原子操作，只能配合 volatile 修饰的字段使用，否则会出现异常`IllegalArgumentException: Must be volatile type`
-
-常用API：
-`static <U> AtomicIntegerFieldUpdater<U> newUpdater(Class<U> c, String fieldName)`：构造
-`abstract boolean compareAndSet(T obj, int expect, int update)`：CAS
-
-```java
-public class UpdateDemo {
-    private volatile int field;
-    
-    public static void main(String[] args) {
-        AtomicIntegerFieldUpdater fieldUpdater = AtomicIntegerFieldUpdater
-            		.newUpdater(UpdateDemo.class, "field");
-        UpdateDemo updateDemo = new UpdateDemo();
-        fieldUpdater.compareAndSet(updateDemo, 0, 10);
-        System.out.println(updateDemo.field);//10
+        // left == right
+        arr[left] = temp;
+        quickSort(arr, low, left-1);
+        quickSort(arr, right + 1, high);
     }
 }
 ```
 
+快速排序和归并排序的区别：
 
+* 快速排序是另外一种分治的排序算法，将一个数组分成两个子数组，将两部分独立的排序
+* 归并排序的处理过程是由下到上的，先处理子问题，然后再合并。而快排正好相反，它的处理过程是由上到下的，先分区，然后再处理子问题
+* 快速排序和归并排序是互补的：归并排序将数组分成两个子数组分别排序，并将有序的子数组归并从而将整个数组排序，而快速排序的方式则是当两个数组都有序时，整个数组自然就有序了
+* 在归并排序中，一个数组被等分为两半，归并调用发生在处理整个数组之前，在快速排序中，切分数组的位置取决于数组的内容，递归调用发生在处理整个数组之后
 
-***
+时间复杂度：
 
+* 最优情况：每一次切分选择的基准数字刚好将当前序列等分。把数组的切分看做是一个树，共切分了 logn 次，所以，最优情况下快速排序的时间复杂度为 O(nlogn)
 
+* 最坏情况：每一次切分选择的基准数字是当前序列中最大数或者最小数，这使得每次切分都会有一个子组，那么总共就得切分n次，所以最坏情况下，快速排序的时间复杂度为 O(n^2)
 
-#### 原子累加器
+  <img src="https://gitee.com/seazean/images/raw/master/Java/Sort-快排时间复杂度.png" style="zoom: 50%;" />
 
-原子累加器类：LongAdder、DoubleAdder、LongAccumulator、DoubleAccumulator
+* 平均情况：每一次切分选择的基准数字不是最大值和最小值，也不是中值，这种情况用数学归纳法证明，快速排序的时间复杂度为 O(nlogn)
 
-LongAdder和LongAccumulator区别：
 
-相同点：
 
-* LongAddr与LongAccumulator类都是使用非阻塞算法CAS实现的，
-* LongAddr类是LongAccumulator类的一个特例，只是LongAccumulator提供了更强大的功能，可以自定义累加规则，当accumulatorFunction为null时就等价于LongAddr
+推荐视频：https://www.bilibili.com/video/BV1b7411N798?t=1001&p=81
 
-不同点：
+参考文章：https://blog.csdn.net/nrsc272420199/article/details/82587933
 
-* 调用casBase时，LongAccumulator使用function.applyAsLong(b = base, x)来计算，LongAddr使用casBase(b = base, b + x)来计算
-* LongAccumulator类功能更加强大，构造方法参数中
 
-  * accumulatorFunction是一个双目运算器接口，可以指定累加规则，比如累加或者相乘，其根据输入的两个参数返回一个计算值，LongAdder内置累加规则
-  * identity则是LongAccumulator累加器的初始值，LongAccumulator可以为累加器提供非0的初始值，而LongAdder只能提供默认的0
-
-
-
-
-***
-
-
-
-### Adder
-
-#### 优化CAS
-
-LongAdder是Java8提供的类，跟AtomicLong有相同的效果，但对CAS机制进行了优化，尝试使用分段CAS以及自动分段迁移的方式来大幅度提升多线程高并发执行CAS操作的性能
-
-CAS底层实现是在一个循环中不断地尝试修改目标值，直到修改成功。如果竞争不激烈修改成功率很高，否则失败率很高，失败后这些重复的原子性操作会耗费性能（导致大量线程**空循环，自旋转**）
-
-优化核心思想：数据分离，将AtomicLong的单点的**更新压力分担到各个节点**，在低并发的时候直接更新，可以保障和AtomicLong的性能基本一致，而在高并发的时候通过分散提高了性能
-
-
-
-***
-
-
-
-#### 优化机制
-
-##### 分段机制
-
-分段 CAS 机制：
-
-* 在发生竞争时，创建Cell数组用于将不同线程的操作离散（通过hash等算法映射）到不同的节点上
-* 设置多个累加单元（会根据需要扩容，最大为CPU核数），Therad-0 累加 Cell[0]，而 Thread-1 累加 Cell[1] 等，最后将结果汇总
-* 在累加时操作的不同的 Cell 变量，因此减少了 CAS 重试失败，从而提高性能
-
-
-
-***
-
-
-
-##### 分段迁移
-
-自动分段迁移机制：某个Cell的value执行CAS失败，就会自动寻找另一个Cell分段内的value值进行CAS操作
-
-```java
-// 累加单元数组, 懒惰初始化
-transient volatile Cell[] cells;
-// 基础值, 如果没有竞争, 则用 cas 累加这个域
-transient volatile long base;
-// 在 cells 创建或扩容时, 置为 1, 表示加锁
-transient volatile int cellsBusy;
-```
-
-Cells占用内存是相对比较大的，是惰性加载的，在无竞争的情况下直接更新base域，在第一次发生竞争的时候（CAS失败）就会创建一个大小为2的cells数组，每次扩容都是加倍
-
-扩容数组等行为只能有一个线程执行，因此需要一个锁，这里通过 CAS 更新 cellsBusy 来实现一个简单的lock
-
-CAS锁：
-
-```java
-// 不要用于实践！！！
-public class LockCas {
-    private AtomicInteger state = new AtomicInteger(0);
-    public void lock() {
-        while (true) {
-            if (state.compareAndSet(0, 1)) {
-                break;
-            }
-    	}
-    }
-    public void unlock() {
-        System.out.println("unlock...");
-        state.set(0);
-    }
-}
-```
-
-
-
-***
-
-
-
-##### 伪共享
-
-Cell为累加单元：数组访问索引是通过Thread里的threadLocalRandomProbe域取模实现的，这个域是ThreadLocalRandom更新的
-
-```java
-@sun.misc.Contended static final class Cell {
-    volatile long value;
-    Cell(long x) { value = x; }
-    // 最重要的方法, 用来 cas 方式进行累加, prev 表示旧值, next 表示新值
-    final boolean cas(long prev, long next) {
-    	return UNSAFE.compareAndSwapLong(this, valueOffset, prev, next);
-    }
-    // 省略不重要代码
-}
-```
-
-@sun.misc.Contended注解：防止缓存行伪共享
-
-Cell 是数组形式，**在内存中是连续存储的**，一个 Cell 为 24 字节（16 字节的对象头和 8 字节的 value），每一个 cache line 为 64 字节，因此缓存行可以存下 2 个的 Cell 对象，当Core-0 要修改 Cell[0]、Core-1 要修改 Cell[1]，无论谁修改成功都会导致对方 Core 的缓存行失效，需要重新去主存获取
-
-![](https://gitee.com/seazean/images/raw/master/Java/JUC-伪共享1.png)
-
-@sun.misc.Contended：在使用此注解的对象或字段的前后各增加 128 字节大小的padding，使用2倍于大多数硬件缓存行让 CPU 将对象预读至缓存时占用不同的缓存行，这样就不会造成对方缓存行的失效
-
-![](https://gitee.com/seazean/images/raw/master/Java/JUC-伪共享2.png)
-
-
-
-
-
-***
-
-
-
-#### 成员方法
-
-* add：累加方法
-
-  ```java
-  public void add(long x) {
-      // as 为累加单元数组  b 为基础值  x 为累加值
-      Cell[] as; long b, v; int m; Cell a;
-      // 1. as 有值, 表示已经发生过竞争, 进入 if
-      // 2. cas 给 base 累加时失败了, 表示 base 发生了竞争, 进入 if
-      if ((as = cells) != null || !casBase(b = base, b + x)) {
-          // uncontended 表示 cell 没有竞争
-          boolean uncontended = true;
-          if (
-              // as 还没有创建
-              as == null || (m = as.length - 1) < 0 ||
-              // 当前线程对应的 cell 还没有创建
-              (a = as[getProbe() & m]) == null ||
-              // 当前线程的cell累加失败，a为当前线程的cell
-              !(uncontended = a.cas(v = a.value, v + x))
-              //uncontended = false代表有竞争
-          ) {
-              // 进入 cell 数组创建、cell 创建的流程
-              longAccumulate(x, null, uncontended);
-          }
-      }
-  }
-  ```
-
-* longAccumulate：cell数组创建
-
-  ```java
-  							// x  			null 			false
-  final void longAccumulate(long x, LongBinaryOperator fn, boolean w...ed) {
-      int h;
-      // 当前线程还没有对应的 cell, 需要随机生成一个 h 值用来将当前线程绑定到 cell
-      if ((h = getProbe()) == 0) {
-          ThreadLocalRandom.current(); // 初始化 probe
-          h = getProbe();	//h 对应新的 probe 值, 用来对应 cell
-          wasUncontended = true;
-      }
-      //collide 为 true 表示需要扩容
-      boolean collide = false; 
-      for (;;) {
-          Cell[] as; Cell a; int n; long v;
-          // cells已经创建
-          if ((as = cells) != null && (n = as.length) > 0) {
-              // 线程对应的cell还没被创建
-              if ((a = as[(n - 1) & h]) == null) {
-                  // 判断 cellsBusy 是否被锁
-                  if (cellsBusy == 0) {   
-                      // 创建 cell, 初始累加值为 x
-                      Cell r = new Cell(x);  
-                      // 为 cellsBusy 加锁,
-                      if (cellsBusy == 0 && casCellsBusy()) {
-                          boolean created = false;
-                          try {
-                              Cell[] rs; int m, j;
-                              if ((rs = cells) != null &&
-                                  (m = rs.length) > 0 &&
-                                  rs[j = (m - 1) & h] == null) {
-                                  rs[j] = r;
-                                  created = true;
-                              }
-                          } finally {
-                              cellsBusy = 0;
-                          }
-                          if (created)
-                              break;// 成功则 break, 否则继续 continue 循环
-                          continue;
-                      }
-                  }
-                  collide = false;
-              }
-              // 有竞争, 改变线程对应的 cell 来重试 cas
-              else if (!wasUncontended)
-                  wasUncontended = true;
-              //cas尝试累加, fn配合LongAccumulator不为null, 配合LongAdder为null
-              else if (a.cas(v = a.value, ((fn == null) ? v + x :
-                                           fn.applyAsLong(v, x))))
-                  break;
-              // cells长度已经超过了最大长度或者已经扩容, 改变线程对应的cell来重试cas
-              else if (n >= NCPU || cells != as)
-                  collide = false;            // At max size or stale
-              // collide 为 false 进入此分支, 就不会进入下面的 else if 进行扩容了
-              else if (!collide)
-                  collide = true;
-              //加锁扩容
-              else if (cellsBusy == 0 && casCellsBusy()) {
-                  try {
-                      if (cells == as) {      // Expand table unless stale
-                          Cell[] rs = new Cell[n << 1];
-                          for (int i = 0; i < n; ++i)
-                              rs[i] = as[i];
-                          cells = rs;
-                      }
-                  } finally {
-                      cellsBusy = 0;
-                  }
-                  collide = false;
-                  continue;、
-              }
-              h = advanceProbe(h);
-          }
-          //还没有 cells, 尝试给 cellsBusy 加锁
-          else if (cellsBusy == 0 && cells == as && casCellsBusy()) {
-              boolean init = false;
-              try { 
-                  // 初始化 cells, 最开始长度为2, 填充一个初始累加值为x的cell
-                  if (cells == as) {
-                      Cell[] rs = new Cell[2];
-                      rs[h & 1] = new Cell(x);//填充线程对应的cell
-                      cells = rs;
-                      init = true;
-                  }
-              } finally {
-                  cellsBusy = 0;
-              }
-              if (init)
-                  break;
-          }
-          // 上两种情况失败, 尝试给 base 累加
-          else if (casBase(v = base, ((fn == null) ? v + x :
-                                      fn.applyAsLong(v, x))))
-              break;                          // Fall back on using base
-      }
-  }
-  ```
-
-* sum：获取最终结果通过 sum 整合
-
-
-
-***
-
-
-
-### ABA
-
-ABA问题：当进行获取主内存值时，该内存值在写入主内存时已经被修改了N次，但是最终又改成原来的值
-
-其他线程先把A改成B又改回A，主线程仅能判断出共享变量的值与最初值 A 是否相同，不能感知到这种从 A 改为 B 又 改回 A 的情况，这时CAS虽然成功，但是过程存在问题
-
-* 构造方法
-  `public AtomicStampedReference(V initialRef, int initialStamp)`：初始值和初始版本号
-
-* 常用API：
-  ` public boolean compareAndSet(V expectedReference, V newReference, int expectedStamp, int newStamp)`：CAS
-  `public void set(V newReference, int newStamp)`：设置值和版本号
-
-  `public V getReference()`：返回引用的值
-  `public int getStamp()`：返回当前版本号
-
-```java
-public static void main(String[] args) {
-    AtomicStampedReference<Integer> atomicReference = new AtomicStampedReference<>(100,1);
-    int startStamp = atomicReference.getStamp();
-    new Thread(() ->{
-        int stamp = atomicReference.getStamp();
-        atomicReference.compareAndSet(100, 101, stamp, stamp + 1);
-        stamp = atomicReference.getStamp();
-        atomicReference.compareAndSet(101, 100, stamp, stamp + 1);
-    },"t1").start();
-
-    new Thread(() ->{
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        if (!atomicReference.compareAndSet(100, 200, startStamp, startStamp + 1)) {
-            System.out.println(atomicReference.getReference());//100
-            System.out.println(Thread.currentThread().getName() + "线程修改失败");
-        }
-    },"t2").start();
-}
-```
-
-
-
-
-
-***
-
-
-
-### Unsafe
-
-Unsafe是CAS的核心类，由于Java无法直接访问底层系统，需要通过本地 (Native) 方法来访问
-
-Unsafe类存在sun.misc包，其中所有方法都是native修饰的，都是直接调用操作系统底层资源执行相应的任务，基于该类可以直接操作特定的内存数据，其内部方法操作类似C的指针
-
-模拟实现原子整数：
-
-```java
-public static void main(String[] args) {
-    MyAtomicInteger atomicInteger = new MyAtomicInteger(10);
-    if (atomicInteger.compareAndSwap(20)) {
-        System.out.println(atomicInteger.getValue());
-    }
-}
-
-class MyAtomicInteger {
-    private static final Unsafe UNSAFE;
-    private static final long VALUE_OFFSET;
-    private volatile int value;
-
-    static {
-        try {
-            Field theUnsafe = Unsafe.class.getDeclaredField("theUnsafe");
-            theUnsafe.setAccessible(true);
-            UNSAFE = (Unsafe) theUnsafe.get(null);
-            VALUE_OFFSET = UNSAFE.objectFieldOffset(
-                		   MyAtomicInteger.class.getDeclaredField("value"));
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            e.printStackTrace();
-            throw new RuntimeException();
-        }
-    }
-
-    public MyAtomicInteger(int value) {
-        this.value = value;
-    }
-    public int getValue() {
-        return value;
-    }
-
-    public boolean compareAndSwap(int update) {
-        while (true) {
-            int prev = this.value;
-            int next = update;
-            //							当前对象  内存偏移量    期望值 更新值
-            if (UNSAFE.compareAndSwapInt(this, VALUE_OFFSET, prev, update)) {
-                System.out.println("CAS成功");
-                return true;
-            }
-        }
-    }
-}
-```
-
-
-
-***
-
-
-
-### final
-
-#### 原理
-
-```java
-public class TestFinal {
-	final int a = 20;
-}
-```
-
-字节码：
-
-```java
-0: aload_0
-1: invokespecial #1 // Method java/lang/Object."<init>":()V
-4: aload_0
-5: bipush 20	//将值直接放入栈中
-7: putfield #2 // Field a:I
-<-- 写屏障
-10: return
-```
-
-final 变量的赋值通过 putfield 指令来完成，在这条指令之后也会加入写屏障，保证在其它线程读到它的值时不会出现为 0 的情况
-
-其他线程访问final修饰的变量会复制一份放入栈中，效率更高
-
-
-
-***
-
-
-
-#### 不可变
-
-不可变：如果一个对象不能够修改其内部状态（属性），那么就是不可变对象
-
-不可变对象线程安全的，因为不存在并发修改，是另一种避免竞争的方式
-
-String 类也是不可变的，该类和类中所有属性都是 final 的
-
-* 类用 final 修饰保证了该类中的方法不能被覆盖，防止子类无意间破坏不可变性保
-
-* 属性用 final 修饰保证了该属性是只读的，不能修改
-
-  ```java
-  public final class String
-      implements java.io.Serializable, Comparable<String>, CharSequence {
-      /** The value is used for character storage. */
-      private final char value[];
-      //....
-  }
-  ```
-
-更改 String 类数据时，会构造新字符串对象，生成新的 char[] value，这种通过创建副本对象来避免共享的方式称之为**保护性拷贝（defensive copy）**
-
-
-
-***
-
-
-
-### State
-
-无状态：成员变量保存的数据也可以称为状态信息，无状态就是没有成员变量
-
-Servlet 为了保证其线程安全，一般不为 Servlet 设置成员变量，这种没有任何成员变量的类是线程安全的
-
-
-
-***
-
-
-
-### Local
-
-#### 基本介绍
-
-ThreadLocal类用来提供线程内部的局部变量，这种变量在多线程环境下访问（通过get和set方法访问）时能保证各个线程的变量相对独立于其他线程内的变量
-
-ThreadLocal实例通常来说都是 `private static` 类型的，属于一个线程的本地变量，用于关联线程和线程上下文。每个线程都会在 ThreadLocal 中保存一份该线程独有的数据，所以是线程安全的
-
-ThreadLocal 作用：
-
-* 线程并发：应用在多线程并发的场景下
-
-* 传递数据：通过ThreadLocal实现在同一线程不同函数或组件中传递公共变量，减少传递复杂度
-
-* 线程隔离：每个线程的变量都是独立的，不会互相影响
-
-对比synchronized：
-
-|        | synchronized                                                 | ThreadLocal                                                  |
-| ------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| 原理   | 同步机制采用**以时间换空间**的方式，只提供了一份变量，让不同的线程排队访问 | ThreadLocal采用**以空间换时间**的方式，为每个线程都提供了一份变量的副本，从而实现同时访问而相不干扰 |
-| 侧重点 | 多个线程之间访问资源的同步                                   | 多线程中让每个线程之间的数据相互隔离                         |
-
-
-
-***
-
-
-
-#### 基本使用
-
-##### 常用方法
-
-| 方法                       | 描述                         |
-| -------------------------- | ---------------------------- |
-| ThreadLocal<>()            | 创建ThreadLocal对象          |
-| protected T initialValue() | 返回当前线程局部变量的初始值 |
-| public void set( T value)  | 设置当前线程绑定的局部变量   |
-| public T get()             | 获取当前线程绑定的局部变量   |
-| public void remove()       | 移除当前线程绑定的局部变量   |
-
-```java
-public class MyDemo {
-
-    private static ThreadLocal<String> tl = new ThreadLocal<>();
-
-    private String content;
-
-    private String getContent() {
-        // 获取当前线程绑定的变量
-        return tl.get();
-    }
-
-    private void setContent(String content) {
-        // 变量content绑定到当前线程
-        tl.set(content);
-    }
-
-    public static void main(String[] args) {
-        MyDemo demo = new MyDemo();
-        for (int i = 0; i < 5; i++) {
-            Thread thread = new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    // 设置数据
-                    demo.setContent(Thread.currentThread().getName() + "的数据");
-                    System.out.println("-----------------------");
-                    System.out.println(Thread.currentThread().getName() + "--->" + demo.getContent());
-                }
-            });
-            thread.setName("线程" + i);
-            thread.start();
-        }
-    }
-}
-```
-
-
-
-***
-
-
-
-##### 应用场景
-
-ThreadLocal 适用于如下两种场景
-
-- 每个线程需要有自己单独的实例
-- 实例需要在多个方法中共享，但不希望被多线程共享
-
-**事务管理**，ThreadLocal方案有两个突出的优势： 
-
-1. 传递数据：保存每个线程绑定的数据，在需要的地方可以直接获取，避免参数直接传递带来的代码耦合问题
-
-2. 线程隔离：各线程之间的数据相互隔离却又具备并发性，避免同步方式带来的性能损失
-
-```java
-public class JdbcUtils {
-    // ThreadLocal对象，将connection绑定在当前线程中
-    private static final ThreadLocal<Connection> tl = new ThreadLocal();
-    // c3p0 数据库连接池对象属性
-    private static final ComboPooledDataSource ds = new ComboPooledDataSource();
-    // 获取连接
-    public static Connection getConnection() throws SQLException {
-        //取出当前线程绑定的connection对象
-        Connection conn = tl.get();
-        if (conn == null) {
-            //如果没有，则从连接池中取出
-            conn = ds.getConnection();
-            //再将connection对象绑定到当前线程中，非常重要的操作
-            tl.set(conn);
-        }
-        return conn;
-    }
-	// ...
-}
-```
-
-用 ThreadLocal 使 SimpleDateFormat 从独享变量变成单个线程变量：
-
-```java
-public class ThreadLocalDateUtil {
-    private static ThreadLocal<DateFormat> threadLocal = new ThreadLocal<DateFormat>() {
-        @Override
-        protected DateFormat initialValue() {
-            return new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        }
-    };
-
-    public static Date parse(String dateStr) throws ParseException {
-        return threadLocal.get().parse(dateStr);
-    }
-
-    public static String format(Date date) {
-        return threadLocal.get().format(date);
-    }
-}
-```
 
 
 
@@ -21310,25 +14678,79 @@ public class ThreadLocalDateUtil {
 
 
 
-#### 底层结构
+### 基数排序
 
-JDK8以前：每个ThreadLocal都创建一个Map，然后用线程作为Map的key，要存储的局部变量作为Map的value，这样就能达到各个线程的局部变量隔离的效果
+基数排序（Radix Sort）：又叫桶排序和箱排序，借助多关键字排序的思想对单逻辑关键字进行排序的方法
 
-![](https://gitee.com/seazean/images/raw/master/Java/JUC-ThreadLocal数据结构JDK8前.png)
+计数排序其实是桶排序的一种特殊情况，当要排序的 n 个数据，所处的范围并不大的时候，比如最大值是 k，我们就可以把数据划分成 k 个桶，每个桶内的数据值都是相同的，省掉了桶内排序的时间
 
-JDK8以后：每个Thread维护一个ThreadLocalMap，这个Map的key是ThreadLocal实例本身，value才是真正要存储的值Object
+按照低位先排序，然后收集；再按照高位排序，然后再收集；依次类推，直到最高位。有时候有些属性是有优先级顺序的，先按低优先级排序，再按高优先级排序。最后的次序就是高优先级高的在前，高优先级相同的低优先级高的在前
 
-* 每个Thread线程内部都有一个Map (ThreadLocalMap)
-* Map里面存储ThreadLocal对象（key）和线程的变量副本（value）
-* Thread内部的Map是由ThreadLocal维护的，由ThreadLocal负责向map获取和设置线程的变量值。
-* 对于不同的线程，每次获取副本值时，别的线程并不能获取到当前线程的副本值，形成副本的隔离，互不干扰
+解释：先排低位再排高位，可以说明在高位相等的情况下低位是递增的，如果高位也是递增，则数据有序
 
-![](https://gitee.com/seazean/images/raw/master/Java/JUC-ThreadLocal数据结构JDK8后.png)
+<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-基数排序.gif" style="zoom:67%;" />
 
-JDK8前后对比：
+实现思路：
 
-* 每个Map存储的Entry数量会变少，因为之前的存储数量由Thread的数量决定，现在由ThreadLocal的数量决定，在实际编程当中，往往ThreadLocal的数量要少于Thread的数量
-*  当Thread销毁之后，对应的ThreadLocalMap也会随之销毁，能减少内存的使用
+- 获得最大数的位数，可以通过将最大数变为String类型，再求长度
+- 将所有待比较数值（正整数）统一为同样的数位长度，**位数较短的数前面补零**
+- 从最低位开始，依次进行一次排序
+- 从最低位排序一直到最高位（个位 → 十位 → 百位 → … →最高位）排序完成以后，数列就变成一个有序序列
+
+```java
+public class BucketSort {
+    public static void main(String[] args) {
+        int[] arr = new int[]{576, 22, 26, 548, 1, 3, 843, 536, 735, 43, 3, 912, 88};
+        bucketSort(arr);
+        System.out.println(Arrays.toString(arr));
+    }
+
+    private static void bucketSort(int[] arr) {
+        // 桶的个数固定为10个（个位是0~9），数组长度为了防止所有的数在同一行
+        int[][] bucket = new int[10][arr.length];
+        //记录每个桶中的有多少个元素
+        int[] elementCounts = new int[10];
+
+        //获取数组的最大元素
+        int max = arr[0];
+        for (int i = 1; i < arr.length; i++) {
+            max = max > arr[i] ? max : arr[i];
+        }
+        String maxEle = Integer.toString(max);
+        //将数组中的元素放入桶中，最大数的位数相当于需要几次放入桶中
+        for (int i = 0, step = 1; i < maxEle.length(); i++, step *= 10) {
+            for (int j = 0; j < arr.length; j++) {
+                //获取最后一位的数据，也就是索引
+                int index = (arr[j] / step) % 10;
+                //放入具体位置
+                bucket[index][elementCounts[index]] = arr[j];
+                //存储每个桶的数量
+                elementCounts[index]++;
+            }
+            //收集回数组
+            for (int j = 0, index = 0; j < 10; j++) {
+                //先进先出
+                int position = 0;
+                //桶中有元素就取出
+                while (elementCounts[j] > 0) {
+                    arr[index] = bucket[j][position];
+                    elementCounts[j]--;
+                    position++;
+                    index++;
+                }
+            }
+        }
+    }
+}
+```
+
+空间换时间
+
+
+
+推荐视频：https://www.bilibili.com/video/BV1b7411N798?p=86
+
+参考文章：https://www.toutiao.com/a6593273307280179715/?iid=6593273307280179715
 
 
 
@@ -21336,156 +14758,463 @@ JDK8前后对比：
 
 
 
-#### 成员方法
+### 稳定性
 
-* set()
+稳定性：在待排序的记录序列中，存在多个具有相同的关键字的记录，若经过排序，这些记录的相对次序保持不变，即在原序列中 `r[i]=r[j]`，且 r[i] 在 r[j] 之前，而在排序后的序列中，r[i] 仍在 r[j] 之前，则称这种排序算法是稳定的，否则称为不稳定的
 
-  * 获取当前线程，并根据当前线程获取一个Map
-  * 获取的Map不为空，则将参数设置到Map中（当前ThreadLocal的引用作为key）
-  * 如果Map为空，则给该线程创建 Map，并设置初始值
+如果一组数据只需要一次排序，则稳定性一般是没有意义的，如果一组数据需要多次排序，稳定性是有意义的。
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-稳定性.png" style="zoom:50%;" />
+
+* 冒泡排序：只有当 `arr[i]>arr[i+1]` 的时候，才会交换元素的位置，而相等的时候并不交换位置，所以冒泡排序是一种稳定排序算法
+* 选择排序：是给每个位置选择当前元素最小的，例如有数据{5(1)，8 ，5(2)， 3， 9 }，第一遍选择到的最小元素为3，所以5(1)会和3进行交换位置，此时5(1)到了5(2)后面，破坏了稳定性，所以是不稳定的排序算法
+* 插入排序：比较是从有序序列的末尾开始，也就是想要插入的元素和已经有序的最大者开始比起，如果比它大则直接插入在其后面，否则一直往前找直到找到它该插入的位置。如果碰见一个和插入元素相等的，那么把要插入的元素放在相等元素的后面。相等元素的前后顺序没有改变，从原无序序列出去的顺序就是排好序后的顺序，所以插入排序是稳定的
+* 希尔排序：按照不同步长对元素进行插入排序，虽然一次插入排序是稳定的，但在不同的插入排序过程中，相同的元素可能在各自的插入排序中移动，最后其稳定性就会被打乱，所以希尔排序是不稳定的
+* 归并排序在归并的过程中，只有 `arr[i]<arr[i+1]` 的时候才会交换位置，如果两个元素相等则不会交换位置，所以它并不会破坏稳定性，归并排序是稳定的
+* 快速排序：快排需要一个基准值，在基准值的右侧找一个比基准值小的元素，在基准值的左侧找一个比基准值大的元素，然后交换这两个元素，此时会破坏稳定性，所以快速排序是一种不稳定的算法
+
+记忆口诀：
+
+* 情绪不稳定，快些选一堆好友来聊天
+
+* 快：快速排序、些：希尔排序、选：选择排序、堆：堆排序
+
+
+
+
+
+***
+
+
+
+### 算法对比
+
+![](https://gitee.com/seazean/images/raw/master/Java/Sort-排序算法对比.png)
+
+
+
+
+
+***
+
+
+
+## 查找
+
+正常查找：从第一个元素开始遍历，一个一个的往后找，综合查找比较耗时。
+
+二分查找也称折半查找（Binary Search）是一种效率较高的查找方法，数组必须是有序数组
+
+过程：每次先与中间的元素进行比较，如果大于往右边找，如果小于往左边找，如果等于就返回该元素索引位置！如果没有该元素，返回-1
+
+时间复杂度：O(logn)
+
+```java
+/*定义一个方法，记录开始的索引位置和结束的索引位置。
+取出中间索引位置的值，拿元素与中间位置的值进行比较，如果小于中间值，结束位置=中间索引-1.
+取出中间索引位置的值，拿元素与中间位置的值进行比较，如果大于中间值，开始位置=中间索引+1.
+循环正常执行的条件：开始位置索引<=结束位置索引。否则说明寻找完毕但是没有该元素值返回-1.*/
+public class binarySearch {
+    public static void main(String[] args) {
+        int[] arr = {10, 14, 21, 38, 45, 47, 53, 81, 87, 99};
+        System.out.println("81的索引是：" + binarySearch(arr,81));
+
+    }
+
+    public static int binarySearch(int[] arr, int des) {
+        int start = 0;
+        int end = arr.length - 1;
+
+        //确保不会出现重复查找，越界
+        while (start <= end) {
+            //计算出中间索引值
+            int mid = (start + end) / 2;
+            if (des == arr[mid]) {
+                return mid;
+            } else if (des > arr[mid]) {
+                start = mid + 1;
+            } else if (des < arr[mid]) {
+                end = mid - 1;
+            }
+        }
+        // 如果上述循环执行完毕还没有返回索引，说明根本不存在该元素值，直接返回-1
+        return -1;
+    }
+}
+```
+
+![](https://gitee.com/seazean/images/raw/master/Java/二分查找.gif)
+
+查找第一个匹配的元素：
+
+```java
+public static int binarySearch(int[] arr, int des) {
+        int start = 0;
+        int end = arr.length - 1;
+
+        while (start <= end) {
+            int mid = (start + end) / 2;
+            if (des == arr[mid]) {
+                //如果 mid 等于 0，那这个元素已经是数组的第一个元素，那肯定是我要找的
+                if (mid == 0 || a[mid - 1] != des) {
+                    return mid;
+                } else {
+                    //a[mid]前面的一个元素 a[mid-1]也等于 value，
+                    //要找的元素肯定出现在[low, mid-1]之间
+                    high = mid - 1
+                }
+            } else if (des > arr[mid]) {
+                start = mid + 1;
+            } else if (des < arr[mid]) {
+                end = mid - 1;
+            }
+        }
+        return -1;
+    }
+```
+
+
+
+
+
+***
+
+
+
+## 匹配
+
+### BF
+
+Brute Force 暴力匹配算法：
+
+```java
+public static void main(String[] args) {
+    String s = "seazean";
+    String t = "az";
+    System.out.println(match(s,t));//2
+}
+
+public static int match(String s,String t) {
+    int k = 0;
+    int i = k, j = 0;
+    //防止越界
+    while (i < s.length() && j < t.length()) {
+        if (s.charAt(i) == t.charAt(j)) {
+            ++i;
+            ++j;
+        } else {
+            k++;
+            i = k;
+            j = 0;
+        }
+    }
+    //说明是匹配成功
+    if (j >= t.length()) {
+        return k;
+    }
+    return 0;
+}
+```
+
+平均时间复杂度：O(m+n)，最坏时间复杂度：O(m*n)
+
+
+
+***
+
+
+
+### RK
+
+把主串得长度记为 n，模式串得长度记为 m，通过哈希算法对主串中的 n-m+1 个子串分别求哈希值，然后逐个与模式串的哈希值比较大小，如果某个子串的哈希值与模式串相等，再去对比值是否相等（防止哈希冲突），那就说明对应的子串和模式串匹配了
+
+因为哈希值是一个数字，数字之间比较是否相等是非常快速的
+
+第一部分计算哈希值的时间复杂度为 O(n)，第二部分对比的时间复杂度为 O(1)，整体平均时间复杂度为 O(n)，最坏为 O(n*m)
+
+
+
+***
+
+
+
+### KMP
+
+KMP匹配：
+
+* next 数组的核心就是自己匹配自己，主串代表后缀，模式串代表前缀
+* nextVal 数组的核心就是回退失配
+
+```java
+public class Kmp {
+    public static void main(String[] args) {
+        String s = "acababaabc";
+        String t = "abaabc";
+        //[-1, 0, 0, 1, 1, 2]
+        System.out.println(Arrays.toString(getNext(t)));
+        //[-1, 0, -1, 1, 0, 2]
+        System.out.println(Arrays.toString(getNextVal(t)));
+        //5
+        System.out.println(kmp(s, t));
+    }
+
+    private static int kmp(String s, String t) {
+        int[] next = getNext(t);
+        int i = 0, j = 0;
+        while (i < s.length() && j < t.length()) {
+            //j==-1时说明第一个位置匹配失败，所以将s的下一个和t的首字符比较
+            if (j == -1 || s.charAt(i) == t.charAt(j)) {
+                i++;
+                j++;
+            } else {
+                //模式串右移，比较s的当前位置与t的next[j]位置
+                j = next[j];
+            }
+        }
+        if (j >= t.length()) {
+            return i - j + 1;
+        }
+        return -1;
+    }
+	//next数组
+    private static int[] getNext(String t) {
+        int[] next = new int[t.length()];
+        next[0] = -1;
+        int j = -1;
+        int i = 0;
+        while (i < t.length() - 1) {
+            // 根据已知的前j位推测第j+1位
+            // j=-1说明首位就没有匹配，即t[0]!=t[i]，说明next[i+1]没有最大前缀，为0
+            if (j == -1 || t.charAt(i) == t.charAt(j)) {
+                // 因为模式串已经匹配到了索引j处，说明之前的位都是相等的
+                // 因为是自己匹配自己，所以模式串就是前缀，主串就是后缀，j就是最长公共前缀
+                // 当i+1位置不匹配时（i位之前匹配），可以跳转到j+1位置对比，next[i+1]=j+1
+                i++;
+                j++;
+                next[i] = j;
+            } else {
+                //i位置的数据和j位置的不相等，所以回退对比i和next[j]位置的数据
+                j = next[j];
+            }
+
+        }
+        return next;
+    }
+	//nextVal
+    private static int[] getNextVal(String t) {
+        int[] nextVal = new int[t.length()];
+        nextVal[0] = -1;
+        int j = -1;
+        int i = 0;
+        while (i < t.length() - 1) {
+            if (j == -1 || t.charAt(i) == t.charAt(j)) {
+                i++;
+                j++;
+                // 如果t[i+1] == t[next(i+1)]=next[j+1]，回退后仍然失配，所以要继续回退
+                if (t.charAt(i) == t.charAt(j)) {
+                    nextVal[i] = nextVal[j];
+                } else {
+                    nextVal[i] = j;
+                }
+            } else {
+                j = nextVal[j];
+            }
+        }
+        return nextVal;
+    }
+    /*根据next求nextVal
+    private static int[] getNextVal(String t, int[] next) {
+        int[] nextVal = new int[next.length];
+        nextVal[0] = -1;
+        for (int i = 1; i < nextVal.length; i++) {
+            if (t.charAt(i) == t.charAt(next[i])) {
+                nextVal[i] = nextVal[next[i]];
+            } else {
+                nextVal[i] = next[i];
+            }
+        }
+        return nextVal;
+    }*/
+}
+```
+
+平均和最坏时间复杂度都是 O(m+n)
+
+
+
+参考文章：https://www.cnblogs.com/tangzhengyue/p/4315393.html
+
+
+
+***
+
+
+
+## 树
+
+### 二叉树
+
+二叉树中，任意一个节点的度要小于等于 2
+
++ 节点：在树结构中,每一个元素称之为节点
++ 度：每一个节点的子节点数量称之为度
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/二叉树结构图.png" alt="二叉树结构图" style="zoom:80%;" />
+
+
+
+****
+
+
+
+### 排序树
+
+#### 存储结构
+
+二叉排序树（BST），又称二叉查找树或者二叉搜索树
+
++ 每一个节点上最多有两个子节点
++ 左子树上所有节点的值都小于根节点的值
++ 右子树上所有节点的值都大于根节点的值
++ 不存在重复的节点
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/二叉查找树结构图.png" alt="二叉查找树" style="zoom: 80%;" />
+
+
+
+
+
+***
+
+
+
+#### 代码实现
+
+* 节点类：
 
   ```java
-  // 设置当前线程对应的ThreadLocal的值
-  public void set(T value) {
-      // 获取当前线程对象
-      Thread t = Thread.currentThread();
-      // 获取此线程对象中维护的ThreadLocalMap对象
-      ThreadLocalMap map = getMap(t);
-      // 判断map是否存在
-      if (map != null)
-          // 存在则调用map.set设置此实体entry
-          map.set(this, value);
-      else
-          // 调用createMap进行ThreadLocalMap对象的初始化
-          createMap(t, value);
-  }
+  private static class TreeNode {
+      int key;
+      TreeNode left;  //左节点
+      TreeNode right; //右节点
   
-  // 获取当前线程Thread对应维护的ThreadLocalMap 
-  ThreadLocalMap getMap(Thread t) {
-      return t.threadLocals;
-  }
-  // 创建当前线程Thread对应维护的ThreadLocalMap 
-  void createMap(Thread t, T firstValue) {
-      //这里的this是调用此方法的threadLocal
-      t.threadLocals = new ThreadLocalMap(this, firstValue);
+      private TreeNode(int key) {
+          this.key = key;
+      }
   }
   ```
 
-* get()
+* 查找节点：
 
   ```java
-  // 获取当前线程的 ThreadLocalMap 变量，如果存在则返回值，不存在则创建并返回初始值
-  public T get() {
-      // 获取当前线程对象
-      Thread t = Thread.currentThread();
-      // 获取此线程对象中维护的ThreadLocalMap对象
-      ThreadLocalMap map = getMap(t);
-      // 如果此map存在
-      if (map != null) {
-          // 以当前的ThreadLocal 为 key，调用getEntry获取对应的存储实体e
-          ThreadLocalMap.Entry e = map.getEntry(this);
-          // 对e进行判空 
-          if (e != null) {
-              @SuppressWarnings("unchecked")
-              // 获取存储实体 e 对应的 value值
-              T result = (T)e.value;
-              return result;
+   // 递归查找
+  private static TreeNode search(TreeNode root, int key) {
+      //递归结束的条件
+      if (root == null) {
+          return null;
+      }
+      if (key == root.key) {
+          return root;
+      } else if (key > root.key) {
+          return search(root.right, key);
+      } else {
+          return search(root.left, key);
+      }
+  }
+  
+  // 非递归
+  private static TreeNode search1(TreeNode root, int key) {
+      while (root != null) {
+          if (key == root.key) {
+              return root;
+          } else if (key > root.key) {
+              root = root.right;
+          } else {
+              root = root.left;
           }
       }
-      /*初始化 : 有两种情况有执行当前代码
-        第一种情况: map不存在，表示此线程没有维护的ThreadLocalMap对象
-        第二种情况: map存在, 但是没有与当前ThreadLocal关联的entry*/
-      return setInitialValue();
-  }
-  
-  // 初始化
-  private T setInitialValue() {
-      // 调用initialValue获取初始化的值，此方法可以被子类重写, 如果不重写默认返回null
-      T value = initialValue();
-      Thread t = Thread.currentThread();
-      ThreadLocalMap map = getMap(t);
-      // 判断map是否存在
-      if (map != null)
-          // 存在则调用map.set设置此实体entry
-          map.set(this, value);
-      else
-          // 调用createMap进行ThreadLocalMap对象的初始化中
-          createMap(t, value);
-      // 返回设置的值value
-      return value;
-  }
-  ```
-
-* remove()
-
-  ```java
-  // 删除当前线程中保存的ThreadLocal对应的实体entry
-  public void remove() {
-      // 获取当前线程对象中维护的ThreadLocalMap对象
-      ThreadLocalMap m = getMap(Thread.currentThread());
-      // 如果此map存在
-      if (m != null)
-          // 存在则调用map.remove，以当前ThreadLocal为key删除对应的实体entry
-          m.remove(this);
-  }
-  ```
-
-* initialValue()
-
-  作用：返回该线程局部变量的初始值。
-
-  * 延迟调用的方法，在set方法还未调用而先调用了get方法时才执行，并且仅执行1次
-
-  * 该方法缺省（默认）实现直接返回一个``null``
-
-  * 如果想要一个初始值，可以重写此方法， 该方法是一个``protected``的方法，为了让子类覆盖而设计的
-
-  ```java
-  protected T initialValue() {
       return null;
   }
   ```
 
+* 插入节点：
+
+  ```java
+  private static int insert(TreeNode root, int key) {
+      if (root == null) {
+          root = new TreeNode(key);
+          root.left = null;
+          root.right = null;
+          return 1;
+      } else {
+          if (key == root.key) {
+              return 0;
+          } else if (key > root.key) {
+              return insert(root.right, key);
+          } else {
+              return insert(root.left, key);
+          }
+      }
+  }
+  ```
+
+* 构造函数：
+
+  ```java
+  // 构造函数，返回根节点
+  private static TreeNode createBST(int[] arr) {
+      if (arr.length > 0) {
+          TreeNode root = new TreeNode(arr[0]);
+          for (int i = 1; i < arr.length; i++) {
+              insert(root, arr[i]);
+          }
+          return root;
+      }
+      return null;
+  }
+  ```
+
+* 删除节点：要删除节点12，先找到节点19，然后移动并替换节点12<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-二叉查找树删除节点.png" style="zoom: 50%;" />
+
+  代码链接：https://leetcode-cn.com/submissions/detail/190232548/
+
   
+
+参考视频：https://www.bilibili.com/video/BV1iJ411E7xW?t=756&p=86
+
+图片来源：https://leetcode-cn.com/problems/delete-node-in-a-bst/solution/tu-jie-yi-dong-jie-dian-er-bu-shi-xiu-ga-edtn/
+
+
 
 ***
 
 
 
-#### LocalMap
+### 平衡树
 
-##### 成员属性
+平衡二叉树（AVL）的特点：
 
-ThreadLocalMap是ThreadLocal的内部类，没有实现Map接口，用独立的方式实现了Map的功能，其内部Entry也是独立实现
++ 二叉树左右两个子树的高度差不超过1
++ 任意节点的左右两个子树都是一颗平衡二叉树
 
-```java
-// 初始容量 —— 2的整次幂
-private static final int INITIAL_CAPACITY = 16;
+平衡二叉树旋转：
 
-// 存放数据的table，Entry类的定义在下面分析，同样，数组长度必须是2的整次幂。
-private Entry[] table;
++ 旋转触发时机：当添加一个节点之后，该树不再是一颗平衡二叉树
 
-//数组里面entrys的个数，可以用于判断table当前使用量是否超过阈值
-private int size = 0;
++ 平衡二叉树和二叉查找树对比结构图
 
-// 进行扩容的阈值，表使用量大于它的时候进行扩容。
-private int threshold; // Default to 0
-```
+![平衡二叉树和二叉查找树对比](https://gitee.com/seazean/images/raw/master/Java/平衡二叉树和二叉查找树对比结构图.png)
 
-存储结构 Entry：
++ 左旋：将根节点的右侧往左拉，原先的右子节点变成新的父节点，并把多余的左子节点出让，给已经降级的根节点当右子节点
 
-* Entry继承WeakReference，key是弱引用，目的是将ThreadLocal对象的生命周期和线程生命周期解绑
-* Entry限制只能用ThreadLocal作为key，key为null (entry.get() == null) 意味着key不再被引用，entry也可以从table中清除
+  ![平衡二叉树左旋](https://gitee.com/seazean/images/raw/master/Java/平衡二叉树左旋01.png)
 
-```java
-static class Entry extends WeakReference<ThreadLocal<?>> {
-    Object value;
-    Entry(ThreadLocal<?> k, Object v) {
-        super(k);
-        value = v;
-    }
-}
-```
+* 右旋：将根节点的左侧往右拉，左子节点变成了新的父节点，并把多余的右子节点出让，给已经降级根节点当左子节点
+
+  ![平衡二叉树右旋](https://gitee.com/seazean/images/raw/master/Java/平衡二叉树右旋01.png)
+
+推荐文章：https://pdai.tech/md/algorithm/alg-basic-tree-balance.html
+
 
 
 
@@ -21493,1894 +15222,175 @@ static class Entry extends WeakReference<ThreadLocal<?>> {
 
 
 
-##### 成员方法
+### 红黑树
 
-* 构造方法
+红黑树的特点：
+
+* 每一个节点可以是红或者黑
+
++ 红黑树不是高度平衡的，它的平衡是通过"自己的红黑规则"进行实现的
+
+红黑树的红黑规则有哪些：
+
+1. 每一个节点或是红色的，或者是黑色的
+2. 根节点必须是黑色
+3. 如果一个节点没有子节点或者父节点，则该节点相应的指针属性值为 Nil，这些 Nil 视为叶节点，每个叶节点(Nil) 是黑色的
+4. 如果某一个节点是红色，那么它的子节点必须是黑色（不能出现两个红色节点相连的情况）
+5. 对每一个节点，从该节点到其所有后代叶节点的简单路径上，均包含相同数目的黑色节点
+
+红黑树与 AVL 树的比较：
+
+* AVL树是更加严格的平衡，可以提供更快的查找速度，适用于读取查找密集型任务
+* 红黑树只是做到了近似平衡，并不是严格的平衡，红黑树的插入删除比AVL树更便于控制操作，红黑树更适合于插入修改密集型任务
+
+- 红黑树整体性能略优于AVL树，AVL树的旋转比红黑树的旋转多，更加难以平衡和调试，插入和删除的效率比红黑树慢。
+
+![红黑树](https://gitee.com/seazean/images/raw/master/Java/红黑树结构图.png)
+
+
+
+红黑树添加节点的默认颜色为红色，效率高
+![](https://gitee.com/seazean/images/raw/master/Java/红黑树添加节点颜色.png)
+
+
+
+**红黑树添加节点后如何保持红黑规则：**
+
++ 根节点位置
+  + 直接变为黑色
++ 非根节点位置
+  + 父节点为黑色
+    + 不需要任何操作,默认红色即可
+  + 父节点为红色
+    + 叔叔节点为红色
+      1. 将"父节点"设为黑色,将"叔叔节点"设为黑色
+      2. 将"祖父节点"设为红色
+      3. 如果"祖父节点"为根节点,则将根节点再次变成黑色
+    + 叔叔节点为黑色
+      1. 将"父节点"设为黑色
+      2. 将"祖父节点"设为红色
+      3. 以"祖父节点"为支点进行旋转
+
+
+
+
+
+***
+
+
+
+### 并查集
+
+#### 基本实现
+
+并查集是一种树型的数据结构，有以下特点：
+
+* 每个元素都唯一的对应一个结点
+* 每一组数据中的多个元素都在同一颗树中
+* 一个组中的数据对应的树和另外一个组中的数据对应的树之间没有任何联系
+* 元素在树中并没有子父级关系的硬性要求
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-并查集.png" style="zoom:50%;" />
+
+可以高效地进行如下操作：
+
+* 查询元素 p 和元素 q 是否属于同一组
+* 合并元素 p 和元素 q 所在的组
+
+存储结构：
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-并查集存储结构.png" style="zoom:67%;" />
+
+合并方式：
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-并查集合并.png" style="zoom:67%;" />
+
+
+
+代码实现：
+
+* 类实现：
 
   ```java
-  ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
-      // 初始化table，创建一个长度为16的Entry数组
-      table = new Entry[INITIAL_CAPACITY];
-      // 计算索引
-      int i = firstKey.threadLocalHashCode & (INITIAL_CAPACITY - 1);
-      // 设置值
-      table[i] = new Entry(firstKey, firstValue);
-      size = 1;
-      // 设置阈值
-      setThreshold(INITIAL_CAPACITY);
-  }
-  ```
-
-* hashcode
-
-  ```java
-  private final int threadLocalHashCode = nextHashCode();
-  // 通过线程安全的方式操作加减，适合多线程情况下的使用
-  private static AtomicInteger nextHashCode =  new AtomicInteger();
-  //特殊的hash值
-  private static final int HASH_INCREMENT = 0x61c88647;
+  public class UF {
+      //记录节点元素和该元素所在分组的标识
+      private int[] eleAndGroup;
+      //记录分组的个数
+      private int count;
   
-  private static int nextHashCode() {
-      return nextHashCode.getAndAdd(HASH_INCREMENT);
-  }
-  ```
-
-  ThreadLocal 的散列方式称之为 **斐波那契散列**。这里定义了一个AtomicInteger，每次获取当前值并加上HASH_INCREMENT，这个值跟斐波那契数列（黄金分割数）有关，这样做可以尽量避免hash冲突，让哈希码能均匀的分布在2的n次方的数组里
-
-* set()
-
-  ```java
-  private void set(ThreadLocal<?> key, Object value) {
-      ThreadLocal.ThreadLocalMap.Entry[] tab = table;
-      int len = tab.length;
-      // 计算索引
-      int i = key.threadLocalHashCode & (len-1);
-      // 使用线性探测法查找元素
-      for (ThreadLocal.ThreadLocalMap.Entry e = tab[i];
-           e != null;
-           e = tab[i = nextIndex(i, len)]) {
-          ThreadLocal<?> k = e.get();
-          // ThreadLocal 对应的 key 存在，直接覆盖之前的值
-          if (k == key) {
-              e.value = value;
+      //初始化并查集
+      public UF(int N) {
+          //初始化分组数量
+          this.count = N;
+          //初始化eleAndGroup数量
+          this.eleAndGroup = new int[N];
+          //初始化eleAndGroup中的元素及其所在分组的标识符，eleAndGroup索引作为每个节点的元素
+          //每个索引处的值就是该组的索引，就是该元素所在的组的标识符
+          for (int i = 0; i < eleAndGroup.length; i++) {
+              eleAndGroup[i] = i;
+          }
+      }
+  
+      //查询p所在的分组的标识符
+      public int find(int p) {
+          return eleAndGroup[p];
+      }
+  
+      //判断并查集中元素p和元素q是否在同一分组中
+      public boolean connect(int p, int q) {
+          return find(p) == find(q);
+      }
+  
+      //把p元素所在分组和q元素所在分组合并
+      public void union(int p, int q) {
+          //判断元素q和p是否已经在同一个分组中，如果已经在同一个分组中，则结束方法就可以了
+          if (connect(p, q)) {
               return;
           }
-          // key为 null，但是值不为 null，说明之前的 ThreadLocal 对象已经被回收了，
-          // 当前数组中的 Entry 是一个陈旧（stale）的元素
-          if (k == null) {
-              //用新元素替换陈旧的元素，这个方法进行了不少的垃圾清理动作，防止内存泄漏
-              replaceStaleEntry(key, value, i);
-              return;
+          int pGroup = find(p);//找到p所在分组的标识符
+          int qGroup = find(q);//找到q所在分组的标识符
+  
+          //合并组，让p所在组的 所有元素 的组标识符变为q所在分组的标识符
+          for (int i = 0; i < eleAndGroup.length; i++) {
+              if (eleAndGroup[i] == pGroup) {
+                  eleAndGroup[i] = qGroup;
+              }
           }
-      }
-  
-      //ThreadLocal对应的key不存在并且没有找到陈旧的元素，则在空元素的位置创建一个新的Entry。
-      tab[i] = new Entry(key, value);
-      int sz = ++size;
-      
-      // 清除e.get()==null的元素，
-      // 如果没有清除任何entry并且当前使用量达到了负载因子所定义，那么进行 rehash
-      if (!cleanSomeSlots(i, sz) && sz >= threshold)
-          rehash();
-  }
-  
-  // 获取环形数组的下一个索引
-  private static int nextIndex(int i, int len) {
-      return ((i + 1 < len) ? i + 1 : 0);
-  }
-  
-  ```
-  
-  ThreadLocalMap 使用**线性探测法来解决哈希冲突**：
-  
-  * 该方法一次探测下一个地址，直到有空的地址后插入，若整个空间都找不到空余的地址，则产生溢出
-  * 在探测过程中 ThreadLocal 会释放 key 为 NULL，value 不为 NULL 的脏 Entry对象，防止内存泄漏
-  * 假设当前table长度为16，计算出来key的hash值为14，如果table[14]上已经有值，并且其key与当前key不一致，那么就发生了hash冲突，这个时候将14加1得到15，取table[15]进行判断，如果还是冲突会回到0，取table[0]，以此类推，直到可以插入，可以把Entry[]  table看成一个**环形数组**
-  
-  线性探测法会出现**堆积问题**，一般采取平方探测法解决
-  
-* 扩容：
-
-  rehash 会触发一次全量清理，如果数组长度大于等于长度的(2/3 * 3/4 = 1/2)，则进行 resize
-
-  ```java
-  // rehash 条件
-  private void setThreshold(int len) {
-    threshold = len * 2 / 3;
-  }
-  // 扩容条件
-  private void rehash() {
-    expungeStaleEntries();
-    if (size >= threshold - threshold / 4)
-      resize();
-  }
-  ```
-
-  Entry 数组为扩容为 原来的2倍 ，重新计算 key 的散列值，如果遇到 key 为 NULL 的情况，会将其 value 也置为 NULL，帮助虚拟机进行GC
-
-  ```java
-  // 具体的扩容函数
-  private void resize() {
-  }
-  ```
-
-
-
-***
-
-
-
-#### 内存泄漏
-
-Memory leak：内存泄漏是指程序中动态分配的堆内存由于某种原因未释放或无法释放，造成系统内存的浪费，导致程序运行速度减慢甚至系统崩溃等严重后果，内存泄漏的堆积终将导致内存溢出
-
-*  如果key使用强引用：
-
-  使用完 ThreadLocal ，threadLocal Ref 被回收，但是 threadLocalMap 的 Entry 强引用了 threadLocal，造成 threadLocal 无法被回收，无法完全避免内存泄漏
-
-  <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-ThreadLocal内存泄漏强引用.png" style="zoom:67%;" />
-
-* 如果key使用弱引用：
-
-  使用完 ThreadLocal ，threadLocal Ref 被回收，ThreadLocalMap 只持有 ThreadLocal 的弱引用，所以threadlocal 也可以被回收，此时 Entry 中的 key=null。但没有手动删除这个 Entry 或者 CurrentThread 依然运行，依然存在强引用链，value 不会被回收，而这块 value 永远不会被访问到，导致 value 内存泄漏
-
-  <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-ThreadLocal内存泄漏弱引用.png" style="zoom:67%;" />
-
-* 两个主要原因：
-  * 没有手动删除这个 Entry
-  * CurrentThread 依然运行
-
-根本原因：ThreadLocalMap 是 Thread的一个属性，生命周期跟 Thread 一样长，如果没有手动删除对应 Entry 就会导致内存泄漏
-
-解决方法：使用完 ThreadLocal 中存储的内容后将它 **remove** 掉就可以
-
-ThreadLocal 内部解决方法：在 ThreadLocalMap 中的 set/getEntry 方法中，会对 key 进行判断，如果为null (ThreadLocal 为 null) 的话，那么会对Entry进行垃圾回收。所以**使用弱引用比强引用多一层保障**，就算不调用remove，也有机会进行GC
-
-
-
-***
-
-
-
-#### 变量传递
-
-##### 基本使用
-
-父子线程：创建子线程的线程是父线程，比如实例中的 main 线程就是父线程
-
-ThreadLocal 中存储的是线程的局部变量，如果想实现线程间局部变量传递可以使用 InheritableThreadLocal 类
-
-```java
-public static void main(String[] args) {
-    ThreadLocal<String> threadLocal = new InheritableThreadLocal<>();
-    threadLocal.set("父线程设置的值");
-
-    new Thread(() -> System.out.println("子线程输出：" + threadLocal.get())).start();
-}
-// 子线程输出：父线程设置的值
-```
-
-
-
-***
-
-
-
-##### 实现原理
-
-InheritableThreadLocal 源码：
-
-```java
-public class InheritableThreadLocal<T> extends ThreadLocal<T> {
-    protected T childValue(T parentValue) {
-        return parentValue;
-    }
-    ThreadLocalMap getMap(Thread t) {
-       return t.inheritableThreadLocals;
-    }
-    void createMap(Thread t, T firstValue) {
-        t.inheritableThreadLocals = new ThreadLocalMap(this, firstValue);
-    }
-}
-```
-
-实现父子线程间的局部变量共享需要追溯到 Thread 对象的构造方法：
-
-```java
-private void init(ThreadGroup g, Runnable target, String name,
-                  long stackSize, AccessControlContext acc,
-                  // 该参数默认是 true
-                  boolean inheritThreadLocals) {
-  // ...
-    Thread parent = currentThread();
-
-    //判断父线程（创建子线程的线程）的 inheritableThreadLocals 属性不为 NULL
-    if (inheritThreadLocals && parent.inheritableThreadLocals != null) {
-        //复制父线程的 inheritableThreadLocals 属性，实现父子线程局部变量共享
-        this.inheritableThreadLocals =
-            ThreadLocal.createInheritedMap(parent.inheritableThreadLocals); 
-    }
-    // ..
-}
-static ThreadLocalMap createInheritedMap(ThreadLocalMap parentMap) {
-    return new ThreadLocalMap(parentMap);
-}
-```
-
-```java
-private ThreadLocalMap(ThreadLocalMap parentMap) {
-    Entry[] parentTable = parentMap.table;
-    int len = parentTable.length;
-    setThreshold(len);
-    table = new Entry[len];
-	// 逐个复制父线程 ThreadLocalMap 中的数据
-    for (int j = 0; j < len; j++) {
-        Entry e = parentTable[j];
-        if (e != null) {
-            @SuppressWarnings("unchecked")
-            ThreadLocal<Object> key = (ThreadLocal<Object>) e.get();
-            if (key != null) {
-                // 调用的是 InheritableThreadLocal#childValue(T parentValue)
-                Object value = key.childValue(e.value);
-                Entry c = new Entry(key, value);
-                int h = key.threadLocalHashCode & (len - 1);
-                while (table[h] != null)
-                    h = nextIndex(h, len);
-                table[h] = c;
-                size++;
-            }
-        }
-    }
-}
-```
-
-
-
-参考文章：https://blog.csdn.net/feichitianxia/article/details/110495764
-
-
-
-***
-
-
-
-## 线程池
-
-### 基本概述
-
-线程池：一个容纳多个线程的容器，容器中的线程可以重复使用，省去了频繁创建和销毁线程对象的操作
-
-线程池作用：
-
-1. 降低资源消耗，减少了创建和销毁线程的次数，每个工作线程都可以被重复利用，可执行多个任务
-2. 提高响应速度，当任务到达时，如果有线程可以直接用，不会出现系统僵死
-3. 提高线程的可管理性，如果无限制的创建线程，不仅会消耗系统资源，还会降低系统的稳定性，使用线程池可以进行统一的分配，调优和监控
-
-线程池的核心思想：**线程复用**，同一个线程可以被重复使用，来处理多个任务
-
-池化技术 (Pool) ：一种编程技巧，核心思想是资源复用，在请求量大时能优化应用性能，降低系统频繁建连的资源开销
-
-
-
-***
-
-
-
-### 阻塞队列
-
-#### 基本介绍
-
-有界队列和无界队列：
-
-* 有界队列：有固定大小的队列，比如设定了固定大小的 LinkedBlockingQueue，又或者大小为 0
-
-* 无界队列：没有设置固定大小的队列，这些队列可以直接入队，直到溢出，一般不会有到这么大的容量（超过 Integer.MAX_VALUE），所以相当于 “无界”
-
-java.util.concurrent.BlockingQueue 接口有以下阻塞队列的实现：**FIFO 队列** 
-
-- ArrayBlockQueue：由数组结构组成的有界阻塞队列
-- LinkedBlockingQueue：由链表结构组成的无界（默认大小 Integer.MAX_VALUE）的阻塞队列
-- PriorityBlockQueue：支持优先级排序的无界阻塞队列
-- DelayQueue：使用优先级队列实现的延迟无界阻塞队列
-- SynchronousQueue：不存储元素的阻塞队列，每一个生产线程会阻塞到有一个put的线程放入元素为止
-- LinkedTransferQueue：由链表结构组成的无界阻塞队列
-- LinkedBlockingDeque：由链表结构组成的**双向**阻塞队列
-
-与普通队列(LinkedList、ArrayList等)的不同点在于阻塞队列中阻塞添加和阻塞删除方法，以及线程安全：
-
-* 阻塞添加 take()：当阻塞队列元素已满时，添加队列元素的线程会被阻塞，直到队列元素不满时才重新唤醒线程执行
-* 阻塞删除 put()：在队列元素为空时，删除队列元素的线程将被阻塞，直到队列不为空再执行删除操作(一般都会返回被删除的元素)
-
-
-
-***
-
-
-
-#### 核心方法
-
-| 方法类型         | 抛出异常  | 特殊值   | 阻塞   | 超时               |
-| ---------------- | --------- | -------- | ------ | ------------------ |
-| 插入             | add(e)    | offer(e) | put(e) | offer(e,time,unit) |
-| 移除             | remove()  | poll()   | take() | poll(time,unit)    |
-| 检查（队首元素） | element() | peek()   | 不可用 | 不可用             |
-
-* 抛出异常组：
-  * 当阻塞队列满时：在往队列中 add 插入元素会抛出 IIIegalStateException: Queue full
-  * 当阻塞队列空时：再往队列中remove移除元素，会抛出 NoSuchException
-* 特殊值组：
-  * 插入方法：成功 true，失败 false
-  * 移除方法：成功返回出队列元素，队列没有就返回 null
-* 阻塞组：
-  * 当阻塞队列满时，生产者继续往队列里 put 元素，队列会一直阻塞生产线程直到 put 数据或响应中断退出
-  * 当阻塞队列空时，消费者线程试图从队列里 take 元素，队列会一直阻塞消费者线程直到队列可用
-* 超时退出：当阻塞队列满时，队里会阻塞生产者线程一定时间，超过限时后生产者线程会退出
-
-
-
-***
-
-
-
-#### 链表队列
-
-##### 入队出队
-
-LinkedBlockingQueue源码：
-
-```java
-public class LinkedBlockingQueue<E> extends AbstractQueue<E>
-			implements BlockingQueue<E>, java.io.Serializable {
-	static class Node<E> {
-        E item;
-        /**
-        * 下列三种情况之一
-        * - 真正的后继节点
-        * - 自己, 发生在出队时
-        * - null, 表示是没有后继节点, 是最后了
-        */
-        Node<E> next;
-
-        Node(E x) { item = x; }
-    }
-}
-```
-
-入队：
-
-* 初始化链表 `last = head = new Node<E>(null)`，Dummy 节点用来占位，item 为 null
-  <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-LinkedBlockingQueue初始节点.png" style="zoom:80%;" />
-* 当一个节点入队 `last = last.next = node`
-  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-LinkedBlockingQueue入队流程.png)
-
-* 再来一个节点入队`last = last.next = node`
-
-出队：出队首节点，先入先出
-
-* 源码：
-
-  ```java
-  Node<E> h = head;
-  Node<E> first = h.next;
-  h.next = h; // help GC
-  head = first;
-  E x = first.item;// 保存数据
-  first.item = null;
-  return x;
-  ```
-
-* `h = head` -> `first = h.next` 
-
-  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-LinkedBlockingQueue出队流程1.png)
-
-* `h.next = h` -> `head = first`
-
-  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-LinkedBlockingQueue出队流程2.png)
-
-* `E x = first.item` -> `first.item = null`（**head.item = null**）
-
-  <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-LinkedBlockingQueue出队流程3.png"  />
-
-  
-
-***
-
-
-
-##### 加锁分析
-
-用了两把锁和 dummy 节点：
-
-* 用一把锁，同一时刻，最多只允许有一个线程（生产者或消费者，二选一）执行
-* 用两把锁，同一时刻，可以允许两个线程同时（一个生产者与一个消费者）执行
-  * 消费者与消费者线程仍然串行
-  * 生产者与生产者线程仍然串行
-
-线程安全分析：
-
-* 当节点总数大于 2 时（包括 dummy 节点），putLock 保证的是 last 节点的线程安全，takeLock 保证的是
-  head 节点的线程安全，两把锁保证了入队和出队没有竞争
-
-* 当节点总数等于 2 时（即一个 dummy 节点，一个正常节点）这时候，仍然是两把锁锁两个对象，不会竞争
-
-* 当节点总数等于 1 时（就一个 dummy 节点）这时 take 线程会被 notEmpty 条件阻塞，有竞争，会阻塞
-
-  ```java
-  // 用于 put(阻塞) offer(非阻塞)
-  private final ReentrantLock putLock = new ReentrantLock();
-  // 用户 take(阻塞) poll(非阻塞)
-  private final ReentrantLock takeLock = new ReentrantLock();
-  ```
-
-入队出队：
-
-* put 操作：
-
-  ```java
-  public void put(E e) throws InterruptedException {
-      if (e == null) throw new NullPointerException();
-      int c = -1;
-      Node<E> node = new Node<E>(e);
-      final ReentrantLock putLock = this.putLock;
-      // count 用来维护元素计数
-      final AtomicInteger count = this.count;
-      putLock.lockInterruptibly();
-      try {
-      	// 队列满了等待
-          while (count.get() == capacity) {
-              // 等待不满，就可以生产数据
-              notFull.await();
-          }
-          // 有空位, 入队且计数加一，尾插法
-          enqueue(node);
-          // 返回自增前的数字
-          c = count.getAndIncrement();
-          // 除了自己 put 以外, 队列还有空位, 唤醒其他生产put线程
-          if (c + 1 < capacity)
-              notFull.signal();
-      } finally {
-          putLock.unlock();
-      }
-      // 如果还有一个元素，唤醒 take 线程
-      if (c == 0)
-          signalNotEmpty();
-  }
-  private void signalNotEmpty() {
-      final ReentrantLock takeLock = this.takeLock;
-      takeLock.lock();
-      try {
-          // 调用的是 notEmpty.signal()，而不是 notEmpty.signalAll()，是为了减少竞争
-          // 因为只剩下一个元素
-          notEmpty.signal();
-      } finally {
-          takeLock.unlock();
+          //分组个数-1
+          this.count--;
       }
   }
   ```
 
-* take 操作：
-
-  ```java
-  public E take() throws InterruptedException {
-      E x;
-      int c = -1;
-      // 元素个数
-      final AtomicInteger count = this.count;
-      final ReentrantLock takeLock = this.takeLock;
-      takeLock.lockInterruptibly();
-      try {
-          //没有元素可以出队
-          while (count.get() == 0) {
-              // 等待不空，就可以消费数据
-              notEmpty.await();
-          }
-          // 出队，计数减一，Removes a node from head of queue，FIFO
-          x = dequeue();
-          // 返回自减前的数子
-          c = count.getAndDecrement();
-          // 队列还有元素
-          if (c > 1)
-              // 唤醒其他消费take线程
-              notEmpty.signal();
-      } finally {
-          takeLock.unlock();
-      }
-      // 如果队列中只有一个空位时, 叫醒 put 线程
-  	// 如果有多个线程进行出队, 第一个线程满足 c == capacity, 但后续线程 c < capacity
-      if (c == capacity)
-          // 调用的是 notFull.signal() 而不是 notFull.signalAll() 是为了减少竞争
-          signalNotFull();
-      return x;
-  }
-  ```
-
-
-
-***
-
-
-
-##### 性能比较
-
-主要列举 LinkedBlockingQueue 与 ArrayBlockingQueue 的性能比较：
-
-* Linked 支持有界，Array 强制有界
-* Linked 实现是链表，Array 实现是数组
-* Linked 是懒惰的，而 Array 需要提前初始化 Node 数组
-* Linked 每次入队会生成新 Node，而 Array 的 Node 是提前创建好的
-* Linked 两把锁，Array 一把锁
-
-
-
-
-
-***
-
-
-
-#### 同步队列
-
-与其他BlockingQueue不同，SynchronousQueue是一个不存储元素的BlockingQueue
-
-（待更新）
-
-
-
-***
-
-
-
-#### 延迟队列
-
-##### 延迟阻塞
-
-DelayQueue 是一个支持延时获取元素的阻塞队列， 内部采用优先队列 PriorityQueue 存储元素，同时元素必须实现 Delayed 接口；在创建元素时可以指定多久才可以从队列中获取当前元素，只有在延迟期满时才能从队列中提取元素
-
-DelayQueue 只能添加（offer/put/add）实现了 Delayed 接口的对象，不能添加 int、String
-
-API：
-
-* `getDelay()`：获取元素在队列中的剩余时间，只有当剩余时间为0时元素才可以出队列。
-* `compareTo()`：用于排序，确定元素出队列的顺序
-
-```java
-class DelayTask implements Delayed {
-    private String name;
-    private long time;
-    private long start = System.currentTimeMillis();
-    // construct set get 
-
-    // 需要实现的接口，获得延迟时间   用过期时间-当前时间
-    @Override
-    public long getDelay(TimeUnit unit) {
-        return unit.convert((start + time) - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
-    }
-
-    // 用于延迟队列内部比较排序   当前时间的延迟时间 - 被比较对象的延迟时间
-    @Override
-    public int compareTo(Delayed o) {
-        DelayTask obj = (DelayTask) o;
-        return (int) (this.getDelay(TimeUnit.MILLISECONDS) - o.getDelay(TimeUnit.MILLISECONDS));
-    }
-}
-```
-
-
-
-****
-
-
-
-##### 优先队列
-
-
-
-***
-
-
-
-### 操作Pool
-
-#### 创建方法
-
-##### Executor
-
-存放线程的容器：
-
-```java
-private final HashSet<Worker> workers = new HashSet<Worker>();
-```
-
-构造方法：
-
-```java
-public ThreadPoolExecutor(int corePoolSize,
-                          int maximumPoolSize,
-                          long keepAliveTime,
-                          TimeUnit unit,
-                          BlockingQueue<Runnable> workQueue,
-                          ThreadFactory threadFactory,
-                          RejectedExecutionHandler handler)
-```
-
-参数介绍：
-
-* corePoolSize：核心线程数，定义了最小可以同时运行的线程数量
-
-* maximumPoolSize：最大线程数，当队列中存放的任务达到队列容量时，当前可以同时运行的数量变为最大线程数，创建线程并立即执行最新的任务，与核心线程数之间的差值又叫救急线程数
-
-* keepAliveTime：救急线程最大存活时间，当线程池中的线程数量大于 `corePoolSize` 的时候，如果这时没有新的任务提交，核心线程外的线程不会立即销毁，而是会等到`keepAliveTime`时间超过销毁
-
-* unit：`keepAliveTime` 参数的时间单位
-
-* workQueue：阻塞队列，被提交但尚未被执行的任务
-
-* threadFactory：线程工厂，创建新线程时用到，可以为线程创建时起名字
-
-* handler：拒绝策略，线程到达最大线程数仍有新任务时会执行拒绝策略
-
-  RejectedExecutionHandler下有4个实现类：
-
-  * AbortPolicy：让调用者抛出 RejectedExecutionException 异常，默认策略
-  * CallerRunsPolicy："调用者运行"的调节机制，将某些任务回退到调用者，从而降低新任务的流量
-  * DiscardPolicy：直接丢弃任务，不予任何处理也不抛出异常
-  * DiscardOldestPolicy：放弃队列中最早的任务，把当前任务加入队列中尝试再次提交当前任务
-
-  补充：其他框架拒绝策略
-
-  * Dubbo：在抛出 RejectedExecutionException 异常前记录日志，并 dump 线程栈信息，方便定位问题
-  * Netty：创建一个新线程来执行任务
-  * ActiveMQ：带超时等待（60s）尝试放入队列
-  * PinPoint：它使用了一个拒绝策略链，会逐一尝试策略链中每种拒绝策略
-
-工作原理：
-
-![](https://gitee.com/seazean/images/raw/master/Java/JUC-线程池工作原理.png)
-
-1. 创建线程池，这时没有创建线程（**懒惰**），等待提交过来的任务请求，调用execute方法才会创建线程
-
-2. 当调用 execute() 方法添加一个请求任务时，线程池会做如下判断：
-   * 如果正在运行的线程数量小于 corePoolSize，那么马上创建线程运行这个任务
-   * 如果正在运行的线程数量大于或等于 corePoolSize，那么将这个任务放入队列
-   * 如果这时队列满了且正在运行的线程数量还小于 maximumPoolSize，那么会创建非核心线程**立刻运行**这个任务（对于阻塞队列中的任务不公平）
-   * 如果队列满了且正在运行的线程数量大于或等于 maximumPoolSize，那么线程池会启动饱和**拒绝策略**来执行
-3. 当一个线程完成任务时，会从队列中取下一个任务来执行
-
-4. 当一个线程无事可做超过一定的时间（keepAliveTime）时，线程池会判断：如果当前运行的线程数大于corePoolSize，那么这个线程就被停掉，所以线程池的所有任务完成后最终会收缩到 corePoolSize 大小
-
-
-
-
-
-***
-
-
-
-##### Executors
-
-Executors提供了四种线程池的创建：newCachedThreadPool、newFixedThreadPool、newSingleThreadExecutor、newScheduledThreadPool
-
-* newFixedThreadPool：创建一个拥有 n 个线程的线程池
-
-  ```java
-  public static ExecutorService newFixedThreadPool(int nThreads) {
-      return new ThreadPoolExecutor(nThreads, nThreads, 0L, TimeUnit.MILLISECONDS,
-                                    new LinkedBlockingQueue<Runnable>());
-  }
-  ```
-
-  * 核心线程数 == 最大线程数（没有救急线程被创建），因此也无需超时时间
-  * LinkedBlockingQueue是一个单向链表实现的阻塞队列，默认大小为`Integer.MAX_VALUE`，也就是无界队列，可以放任意数量的任务，在任务比较多的时候会导致 OOM（内存溢出）
-  * 适用于任务量已知，相对耗时的长期任务
-
-* newCachedThreadPool：创建一个可扩容的线程池
-
-  ```java
-  public static ExecutorService newCachedThreadPool() {
-      return new ThreadPoolExecutor(0, Integer.MAX_VALUE, 60L, TimeUnit.SECONDS,
-                                    new SynchronousQueue<Runnable>());
-  }
-  ```
-
-  * 核心线程数是 0， 最大线程数是 Integer.MAX_VALUE，全部都是救急线程（60s 后可以回收），可能会创建大量线程，从而导致 **OOM**
-  * SynchronousQueue 作为阻塞队列，没有容量，对于每一个take的线程会阻塞直到有一个put的线程放入元素为止（类似一手交钱、一手交货）
-
-  * 适合任务数比较密集，但每个任务执行时间较短的情况
-
-* newSingleThreadExecutor：创建一个只有1个线程的单线程池
-
-  ```java
-  public static ExecutorService newSingleThreadExecutor() {
-      return new FinalizableDelegatedExecutorService
-          (new ThreadPoolExecutor(1, 1,0L, TimeUnit.MILLISECONDS,
-                                  new LinkedBlockingQueue<Runnable>()));
-  }
-  ```
-
-  * 保证所有任务按照**指定顺序执行**，线程数固定为 1，任务数多于 1 时会放入无界队列排队，任务执行完毕，这唯一的线程也不会被释放
-
-  对比：
-
-  * 创建一个单线程串行执行任务，如果任务执行失败而终止那么没有任何补救措施，而线程池还会新建一
-    个线程，保证池的正常工作
-
-  * Executors.newSingleThreadExecutor() 线程个数始终为1，不能修改。F...D..ExecutorService 应用的是装饰器模式，只对外暴露了 ExecutorService 接口，因此不能调用 ThreadPoolExecutor 中特有的方法
-
-    原因：父类不能直接调用子类中的方法，需要反射或者创建对象的方式，可以调用子类静态方法
-
-  * Executors.newFixedThreadPool(1) 初始时为1，可以修改。对外暴露的是 ThreadPoolExecutor 对象，可以强转后调用 setCorePoolSize 等方法进行修改
-
-  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-newSingleThreadExecutor.png)
-
-***
-
-
-
-#### 开发要求
-
-阿里巴巴 Java 开发手册要求：
-
-- **线程资源必须通过线程池提供，不允许在应用中自行显式创建线程**
-
-  - 使用线程池的好处是减少在创建和销毁线程上所消耗的时间以及系统资源的开销，解决资源不足的问题
-  - 如果不使用线程池，有可能造成系统创建大量同类线程而导致消耗完内存或者“过度切换”的问题
-
-- 线程池不允许使用Executors去创建，而是通过 ThreadPoolExecutor 的方式，这样的处理方式更加明确线程池的运行规则，规避资源耗尽的风险
-
-  Executors返回的线程池对象弊端如下：
-
-  - FixedThreadPool 和 SingleThreadPool：
-    - 运行的请求队列长度为 Integer.MAX_VALUE，可能会堆积大量的请求，从而导致OOM
-  - CacheThreadPool 和 ScheduledThreadPool：
-    - 允许的创建线程数量为 Integer.MAX_VALUE，可能会创建大量的线程，从而导致 OOM
-
-创建多大容量的线程池合适？
-
-* 一般来说池中**总线程数是核心池线程数量两倍**，确保当核心池有线程停止时，核心池外有线程进入核心池
-
-* 过小会导致程序不能充分地利用系统资源、容易导致饥饿
-
-* 过大会导致更多的线程上下文切换，占用更多内存
-  上下文切换：当前任务在执行完 CPU 时间片切换到另一个任务之前会先保存自己的状态，以便下次再切换回这个任务时，可以再加载这个任务的状态，任务从保存到再加载的过程就是一次上下文切换
-
-核心线程数常用公式：
-
-- **CPU 密集型任务(N+1)：** 这种任务消耗的是 CPU 资源，可以将核心线程数设置为 N (CPU 核心数)+1，比 CPU 核心数多出来的一个线程是为了防止线程发生缺页中断，或者其它原因导致的任务暂停而带来的影响。一旦任务暂停，CPU 就会处于空闲状态，而在这种情况下多出来的一个线程就可以充分利用 CPU 的空闲时间
-
-  CPU 密集型简单理解就是利用 CPU 计算能力的任务比如你在内存中对大量数据进行分析
-
-- **I/O 密集型任务：** 这种系统 CPU 处于阻塞状态，用大部分的时间来处理 I/O 交互，而线程在处理 I/O 的时间段内不会占用 CPU 来处理，这时就可以将 CPU 交出给其它线程使用，因此在 I/O 密集型任务的应用中，我们可以多配置一些线程，具体的计算方法是 2N 或 CPU核数/ (1-阻塞系数)，阻塞系数在0.8~0.9之间
-
-  IO 密集型就是涉及到网络读取，文件读取此类任务 ，特点是 CPU 计算耗费时间相比于等待 IO 操作完成的时间来说很少，大部分时间都花在了等待 IO 操作完成上
-
-
-
-
-
-***
-
-
-
-#### 提交方法
-
-ExecutorService类API：
-
-| 方法                                                         | 说明                                                         |
-| ------------------------------------------------------------ | ------------------------------------------------------------ |
-| void execute(Runnable command)                               | 执行任务（Executor类API）                                    |
-| Future<?> submit(Runnable task)                              | 提交任务 task()                                              |
-| <T> Future<T> submit(Callable<T> task)                       | 提交任务 task，用返回值Future获得任务执行结果                |
-| <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) | 提交 tasks 中所有任务                                        |
-| <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) | 提交 tasks 中所有任务，超时时间针对所有task，超时会取消没有执行完的任务，并抛出超时异常 |
-| <T> T invokeAny(Collection<? extends Callable<T>> tasks)     | 提交 tasks 中所有任务，哪个任务先成功执行完毕，返回此任务执行结果，其它任务取消 |
-
-execute和submit都属于线程池的方法，对比：
-
-* execute只能提交Runnable类型的任务，而submit既能提交Runnable类型任务也能提交Callable类型任务
-
-* execute会直接抛出任务执行时的异常，submit会吞掉异常，可通过Future的get方法将任务执行时的异常重新抛出
-
-
-
-***
-
-
-
-#### 关闭方法
-
-ExecutorService类API：
-
-| 方法                                                  | 说明                                                         |
-| ----------------------------------------------------- | ------------------------------------------------------------ |
-| void shutdown()                                       | 线程池状态变为 SHUTDOWN，等待任务执行完后关闭线程池，不会接收新任务，但已提交任务会执行完 |
-| List<Runnable> shutdownNow()                          | 线程池状态变为 STOP，用 interrupt 中断正在执行的任务，直接关闭线程池，不会接收新任务，会将队列中的任务返回， |
-| boolean isShutdown()                                  | 不在 RUNNING 状态的线程池，此执行者已被关闭，方法返回 true   |
-| boolean isTerminated()                                | 线程池状态是否是 TERMINATED，如果所有任务在关闭后完成，返回true |
-| boolean awaitTermination(long timeout, TimeUnit unit) | 调用 shutdown 后，由于调用线程不会等待所有任务运行结束，如果它想在线程池 TERMINATED 后做些事情，可以利用此方法等待 |
-
-
-
-***
-
-
-
-#### 处理异常
-
-execute会直接抛出任务执行时的异常，submit会吞掉异常，有两种处理方法
-
-方法1：主动捉异常
-
-```java
-ExecutorService executorService = Executors.newFixedThreadPool(1);
-pool.submit(() -> {
-    try {
-        System.out.println("task1");
-        int i = 1 / 0;
-    } catch (Exception e) {
-        e.printStackTrace();
-    }
-});
-```
-
-方法2：使用 Future
-
-```java
-ExecutorService executorService = Executors.newFixedThreadPool(1);
-Future<?> future = pool.submit(() -> {
-    System.out.println("task1");
-    int i = 1 / 0;
-    return true;
-});
-System.out.println(future.get());
-```
-
-
-
-***
-
-
-
-#### 状态信息
-
-ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位表示线程数量
-
-| 状态       | 高3位 | 接收新任务 | 处理阻塞任务队列 | 说明                                    |
-| ---------- | ----- | ---------- | ---------------- | --------------------------------------- |
-| RUNNING    | 111   | Y          | Y                |                                         |
-| SHUTDOWN   | 000   | N          | Y                | 不接收新任务，但处理阻塞队列剩余任务    |
-| STOP       | 001   | N          | N                | 中断正在执行的任务，并抛弃阻塞队列任务  |
-| TIDYING    | 010   | -          | -                | 任务全执行完毕，活动线程为0即将进入终结 |
-| TERMINATED | 011   | -          | -                | 终止状态                                |
-
-这些信息存储在一个原子变量 ctl 中，目的是将线程池状态与线程个数合二为一，这样就可以用一次 cas 原子操作
-进行赋值
-
-```java
-// c为旧值， ctlOf返回结果为新值
-ctl.compareAndSet(c, ctlOf(targetState, workerCountOf(c))));
-// rs为高3位代表线程池状态， wc为低29位代表线程个数，ctl是合并它们
-private static int ctlOf(int rs, int wc) { return rs | wc; }
-```
-
-![](https://gitee.com/seazean/images/raw/master/Java/JUC-线程池状态转换图.png)
-
-
-
-
-
-***
-
-
-
-### 任务调度
-
-#### Timer
-
-Timer 实现定时功能，Timer 的优点在于简单易用，但由于所有任务都是由同一个线程来调度，因此所有任务都是串行执行的，同一时间只能有一个任务在执行，前一个任务的延迟或异常都将会影响到之后的任务
-
-```java
-private static void method1() {
-    Timer timer = new Timer();
-    TimerTask task1 = new TimerTask() {
-        @Override
-        public void run() {
-            System.out.println("task 1");
-            //int i = 1 / 0;//任务一的出错会导致任务二无法执行
-            Thread.sleep(2000);
-        }
-    };
-    TimerTask task2 = new TimerTask() {
-        @Override
-        public void run() {
-            System.out.println("task 2");
-        }
-    };
-    // 使用 timer 添加两个任务，希望它们都在 1s 后执行
-	// 但由于 timer 内只有一个线程来顺序执行队列中的任务，因此任务1的延时，影响了任务2的执行
-    timer.schedule(task1,1000);//17:45:56 c.ThreadPool [Timer-0] - task 1
-    timer.schedule(task2,1000);//17:45:58 c.ThreadPool [Timer-0] - task 2
-}
-```
-
-
-
-***
-
-
-
-#### Scheduled
-
-任务调度线程池 ScheduledThreadPoolExecutor 继承 ThreadPoolExecutor：
-
-构造方法：`Executors.newScheduledThreadPool(int corePoolSize)`
-
-```java
-public ScheduledThreadPoolExecutor(int corePoolSize) {
-    super(corePoolSize, Integer.MAX_VALUE, 0, NANOSECONDS,
-          new DelayedWorkQueue());
-}
-```
-
-常用API：
-
-* `ScheduledFuture<?> schedule(Runnable/Callable<V>, long delay, TimeUnit u)`：延迟执行任务
-* `ScheduledFuture<?> scheduleAtFixedRate(Runnable/Callable<V>, long initialDelay, long period, TimeUnit unit)`：定时执行任务，参数为初始延迟时间、间隔时间、单位
-* `ScheduledFuture<?> scheduleWithFixedDelay(Runnable/Callable<V>, long initialDelay, long delay, TimeUnit unit)`：定时执行任务，参数为初始延迟时间、间隔时间、单位
-
-基本使用：
-
-* 延迟任务，但是出现异常并不会在控制台打印，也不会影响其他线程的执行
-
-  ```java
-  public static void main(String[] args){
-      // 线程池大小为1时也是串行执行
-      ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
-      // 添加两个任务，都在 1s 后同时执行
-      executor.schedule(() -> {
-      	System.out.println("任务1，执行时间：" + new Date());
-          //int i = 1 / 0;
-      	try { Thread.sleep(2000); } catch (InterruptedException e) { }
-      }, 1000, TimeUnit.MILLISECONDS);
-      
-      executor.schedule(() -> {
-      	System.out.println("任务2，执行时间：" + new Date());
-      }, 1000, TimeUnit.MILLISECONDS);
-  }
-  ```
-
-* 定时任务 scheduleAtFixedRate：**一个任务的启动到下一个任务的启动**之间只要大于间隔时间，抢占到CPU就会立即执行
+* 测试代码：
 
   ```java
   public static void main(String[] args) {
-      ScheduledExecutorService pool = Executors.newScheduledThreadPool(1);
-      System.out.println("start..." + new Date());
-      
-      pool.scheduleAtFixedRate(() -> {
-          System.out.println("running..." + new Date());
-          Thread.sleep(2000);
-      }, 1, 1, TimeUnit.SECONDS);
-  }
+      //创建并查集对象
+      UF uf = new UF(5);
+      System.out.println(uf);
   
-  /*start...Sat Apr 24 18:08:12 CST 2021
-  running...Sat Apr 24 18:08:13 CST 2021
-  running...Sat Apr 24 18:08:15 CST 2021
-  running...Sat Apr 24 18:08:17 CST 2021
-  ```
-
-* 定时任务 scheduleWithFixedDelay：**一个任务的结束到下一个任务的启动之间**等于间隔时间，抢占到CPU就会立即执行，这个方法才是真正的设置两个任务之间的间隔
-
-  ```java
-  public static void main(String[] args){
-      ScheduledExecutorService pool = Executors.newScheduledThreadPool(3);
-      System.out.println("start..." + new Date());
-      
-      pool.scheduleWithFixedDelay(() -> {
-          System.out.println("running..." + new Date());
-          Thread.sleep(2000);
-      }, 1, 1, TimeUnit.SECONDS);
-  }
-  /*start...Sat Apr 24 18:11:41 CST 2021
-  running...Sat Apr 24 18:11:42 CST 2021
-  running...Sat Apr 24 18:11:45 CST 2021
-  running...Sat Apr 24 18:11:48 CST 2021
-  ```
-
-
-
-***
-
-
-
-#### 定时任务
-
-让每周四 18:00:00 定时执行任务
-
-```java
-public class ThreadPoolDemo04 {
-    //每周四 18:00:00 执行定时任务
-    public static void main(String[] args) {
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime time = now.withHour(18).withMinute(0).withSecond(0).withNano(0).with(DayOfWeek.THURSDAY);
-
-        //如果当前时间 > 本周周四 ，必须找下周周四
-        if (now.compareTo(time) > 0) {
-            time = time.plusWeeks(1);
-        }
-
-        // initialDelay 当前时间和周四的时间差
-        // period 每周的间隔
-        Duration between = Duration.between(now, time);
-        long initialDelay = between.toMillis();
-        long period = 1000 * 60 * 60 * 24 * 7;
-        ScheduledExecutorService pool = Executors.newScheduledThreadPool(1);
-        pool.scheduleAtFixedRate(() -> {
-            System.out.println("running...");
-        },initialDelay,period, TimeUnit.MILLISECONDS);
-    }
-}
-```
-
-
-
-***
-
-
-
-### ForkJoin
-
-Fork/Join：线程池的实现，体现是分治思想，适用于能够进行任务拆分的 cpu 密集型运算，用于**并行计算**
-
-任务拆分：是将一个大任务拆分为算法上相同的小任务，直至不能拆分可以直接求解。跟递归相关的一些计算，如归并排序、斐波那契数列都可以用分治思想进行求解
-
-* Fork/Join 在分治的基础上加入了多线程，把每个任务的分解和合并交给不同的线程来完成，提升了运算效率
-
-* ForkJoin 使用 ForkJoinPool 来启动，是一个特殊的线程池，默认会创建与 cpu 核心数大小相同的线程池
-* 任务有返回值继承 RecursiveTask，没有返回值继承 RecursiveAction
-
-```java
-public static void main(String[] args) {
-    ForkJoinPool pool = new ForkJoinPool(4);
-    System.out.println(pool.invoke(new MyTask(5)));
-    //拆分  5 + MyTask(4) --> 4 + MyTask(3) -->
-}
-
-// 1~ n 之间整数的和
-class MyTask extends RecursiveTask<Integer> {
-    private int n;
-
-    public MyTask(int n) {
-        this.n = n;
-    }
-
-    @Override
-    public String toString() {
-        return "MyTask{" + "n=" + n + '}';
-    }
-
-    @Override
-    protected Integer compute() {
-        // 如果 n 已经为 1，可以求得结果了
-        if (n == 1) {
-            return n;
-        }
-        // 将任务进行拆分(fork)
-        MyTask t1 = new MyTask(n - 1);
-        t1.fork();
-        // 合并(join)结果
-        int result = n + t1.join();
-        return result;
-    }
-}
-```
-
-继续拆分优化：
-
-```java
-class AddTask extends RecursiveTask<Integer> {
-    int begin;
-    int end;
-    public AddTask(int begin, int end) {
-        this.begin = begin;
-        this.end = end;
-    }
-    
-    @Override
-    public String toString() {
-        return "{" + begin + "," + end + '}';
-    }
-    
-    @Override
-    protected Integer compute() {
-        // 5, 5
-        if (begin == end) {
-            return begin;
-        }
-        // 4, 5  防止多余的拆分  提高效率
-        if (end - begin == 1) {
-            return end + begin;
-        }
-        // 1 5
-        int mid = (end + begin) / 2; // 3
-        AddTask t1 = new AddTask(begin, mid); // 1,3
-        t1.fork();
-        AddTask t2 = new AddTask(mid + 1, end); // 4,5
-        t2.fork();
-        int result = t1.join() + t2.join();
-        return result;
-    }
-}
-```
-
-ForkJoinPool 实现了**工作窃取算法**来提高 CPU 的利用率：
-
-* 每个线程都维护了一个双端队列，用来存储需要执行的任务
-* 工作窃取算法允许空闲的线程从其它线程的双端队列中窃取一个任务来执行
-* 窃取的必须是**最晚的任务**，避免和队列所属线程发生竞争，但是队列中只有一个任务时还是会发生竞争
-
-
-
-***
-
-
-
-### 享元模式
-
-享元模式 (Flyweight pattern)： 用于减少创建对象的数量，以减少内存占用和提高性能，这种类型的设计模式属于结构型模式，它提供了减少对象数量从而改善应用所需的对象结构的方式
-
-异步模式：让有限的工作线程（Worker Thread）来轮流异步处理无限多的任务，也可将其归类为分工模式，典型实现就是线程池
-
-工作机制：享元模式尝试重用现有的同类对象，如果未找到匹配的对象，则创建新对象
-
-自定义连接池：
-
-```java
-public static void main(String[] args) {
-    Pool pool = new Pool(2);
-    for (int i = 0; i < 5; i++) {
-        new Thread(() -> {
-            Connection con = pool.borrow();
-            try {
-                Thread.sleep(new Random().nextInt(1000));
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            pool.free(con);
-        }).start();
-    }
-}
-class Pool {
-    //连接池的大小
-    private final int poolSize;
-    //连接对象的数组
-    private Connection[] connections;
-    //连接状态数组 0表示空闲  1表示繁忙
-    private AtomicIntegerArray states;  //int[] -> AtomicIntegerArray
-
-    //构造方法
-    public Pool(int poolSize) {
-        this.poolSize = poolSize;
-        this.connections = new Connection[poolSize];
-        this.states = new AtomicIntegerArray(new int[poolSize]);
-        for (int i = 0; i < poolSize; i++) {
-            connections[i] = new MockConnection("连接" + (i + 1));
-        }
-    }
-
-    //使用连接
-    public Connection borrow() {
-        while (true) {
-            for (int i = 0; i < poolSize; i++) {
-                if (states.get(i) == 0) {
-                    if (states.compareAndSet(i, 0, 1)) {
-                        System.out.println(Thread.currentThread().getName() + " borrow " +  connections[i]);
-                        return connections[i];
-                    }
-                }
-            }
-            //如果没有空闲连接，当前线程等待
-            synchronized (this) {
-                try {
-                    System.out.println(Thread.currentThread().getName() + " wait...");
-                    this.wait();
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-    }
-
-    //归还连接
-    public void free(Connection con) {
-        for (int i = 0; i < poolSize; i++) {
-            if (connections[i] == con) {//判断是否是同一个对象
-                states.set(i, 0);//不用cas的原因是只会有一个线程使用该连接
-                synchronized (this) {
-                    System.out.println(Thread.currentThread().getName() + " free " + con);
-                    this.notifyAll();
-                }
-                break;
-            }
-        }
-    }
-
-}
-
-class MockConnection implements Connection {
-    private String name;
-    //.....
-}
-```
-
-
-
-
-
-***
-
-
-
-
-
-## 同步器
-
-### AQS
-
-#### 思想
-
-AQS：AbstractQueuedSynchronizer，是阻塞式锁和相关的同步器工具的框架，许多同步类实现都依赖于它
-
-* 用 state 属性来表示资源的状态（分**独占模式和共享模式**），子类需要定义如何维护这个状态，控制如何获取
-  锁和释放锁
-  * 独占模式是只有一个线程能够访问资源，如ReentrantLock
-  * 共享模式允许多个线程访问资源，如Semaphore，ReentrantReadWriteLock是组合式
-* 提供了基于 FIFO 的等待队列，类似于 Monitor 的 EntryList（**同步队列：双向，便于出队入队**）
-* 条件变量来实现等待、唤醒机制，支持多个条件变量，类似于 Monitor 的 WaitSet（**条件队列：单向**）
-
-AQS 核心思想：
-
-* 如果被请求的共享资源空闲，则将当前请求资源的线程设置为有效的工作线程，并将共享资源设置锁定状态
-
-* 被请求的共享资源被占用，AQS 用 CLH 队列实现线程阻塞等待以及被唤醒时锁分配的（park）机制，即将暂时获取不到锁的线程加入到队列中
-
-  CLH是一种基于单向链表的**高性能、公平的自旋锁**，AQS 是将每条请求共享资源的线程封装成一个 CLH 锁队列的一个结点（Node）来实现锁的分配
-
-  <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-AQS原理图.png" style="zoom: 80%;" />
-
-
-
-***
-
-
-
-#### 原理
-
-设计思想：
-
-* 获取锁：
-
-  ```java
-  while(state 状态不允许获取) {//tryAcquire(arg)
-      if(队列中还没有此线程) {
-          入队并阻塞 park unpark
-      }
-  }
-  当前线程出队
-  ```
-
-* 释放锁：
-
-  ```java
-  if(state 状态允许了) {//tryRelease(arg)
-  	恢复阻塞的线程(s)
-  }
-  ```
-
-state设计：
-
-* state 使用了 32bit int 来维护同步状态
-* state **使用 volatile 修饰配合 cas** 保证其修改时的原子性
-* state 表示线程重入的次数或者许可进入的线程数
-* state API：
-  `protected final int getState()`：获取 state 状态
-  `protected final void setState(int newState)`：设置 state 状态
-  `protected final boolean compareAndSetState(int expect,int update)`：**CAS**设置 state
-
-waitstate设计：
-
-* 使用**volatile 修饰配合 cas**保证其修改时的原子性
-
-* 表示Node节点的状态，有以下几种状态：
-
-  ```java
-  //由于超时或中断，此节点被取消，不会再改变状态
-  static final int CANCELLED =  1;
-  //此节点后面的节点已（或即将）被阻止（通过park），当前节点在释放或取消时必须唤醒后面的节点
-  static final int SIGNAL    = -1;
-  //此节点当前在条件队列中
-  static final int CONDITION = -2;
-  //将releaseShared传播到其他节点
-  static final int PROPAGATE = -3;
-  ```
-
-阻塞恢复设计：
-
-* 使用 park & unpark 来实现线程的暂停和恢复，因为命令的先后顺序不影响结果
-* park & unpark 是针对线程的，而不是针对同步器的，因此控制粒度更为精细
-* park 线程可以通过 interrupt 打断
-
-队列设计：
-
-* 使用了 FIFO 先入先出队列，并不支持优先级队列
-
-* 设计时借鉴了 CLH 队列，CLH是一种单向无锁队列
-
-  <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-AQS队列设计.png" style="zoom: 80%;" />
-
-  ```java
-  // node 放入 AQS 队列尾部，返回尾节点的前驱节点
-  private Node enq(final Node node) {
-      for (;;) {
-          Node t = tail;
-          // 队列中还没有元素 tail 为 null
-          if (t == null) { 
-              // 设置 head 为哨兵节点（不对应线程，状态为 0）
-              if (compareAndSetHead(new Node()))
-                  tail = head;
-          } else {
-              // 将 node 的 prev 设置为原来的 tail  双向队列
-              node.prev = t;
-              // 将 tail 从原来的 tail 设置为 node
-              if (compareAndSetTail(t, node)) {
-                  t.next = node;
-                  return t;
-              }
+      //从控制台录入两个合并的元素，调用union方法合并，观察合并后并查集的分组
+      Scanner sc = new Scanner(System.in);
+  
+      while (true) {
+          System.out.println("输入第一个要合并的元素");
+          int p = sc.nextInt();
+          System.out.println("输入第二个要合并的元素");
+          int q = sc.nextInt();
+          if (uf.connect(p, q)) {
+              System.out.println(p + "元素已经和" + q + "元素已经在同一个组");
+              continue;
           }
+          uf.union(p, q);
+          System.out.println("当前并查集中还有：" + uf.count() + "个分组");
+          System.out.println(uf);
+          System.out.println("********************");
       }
   }
   ```
 
-  
-
-***
-
-
-
-#### 模板
-
-同步器的设计是基于模板方法模式，该模式是基于”继承“的，主要是为了在不改变模板结构的前提下在子类中重新定义模板中的内容以实现复用代码
-
-* 使用者继承 `AbstractQueuedSynchronizer` 并重写指定的方法
-* 将 AQS 组合在自定义同步组件的实现中，并调用其模板方法，这些模板方法会调用使用者重写的方法
-
-AQS 使用了模板方法模式，自定义同步器时需要重写下面几个 AQS 提供的模板方法：
-
-```java
-isHeldExclusively()//该线程是否正在独占资源。只有用到condition才需要去实现它。
-tryAcquire(int)//独占方式。尝试获取资源，成功则返回true，失败则返回false。
-tryRelease(int)//独占方式。尝试释放资源，成功则返回true，失败则返回false。
-tryAcquireShared(int)//共享方式。尝试获取资源。负数表示失败；0表示成功，但没有剩余可用资源；正数表示成功，且有剩余资源。
-tryReleaseShared(int)//共享方式。尝试释放资源，成功则返回true，失败则返回false。
-```
-
-* 默认情况下，每个方法都抛出 `UnsupportedOperationException`
-* 这些方法的实现必须是内部线程安全的
-* AQS 类中的其他方法都是 final ，所以无法被其他类使用，只有这几个方法可以被其他类使用
-
-
-
-***
-
-
-
-#### 自定义
-
-```java
-// 自定义锁（不可重入锁）
-class MyLock implements Lock {
-    //独占锁 不可重入
-    class MySync extends AbstractQueuedSynchronizer {
-        @Override
-        protected boolean tryAcquire(int arg) {
-            if (compareAndSetState(0, 1)) {
-                // 加上锁 设置 owner 为当前线程
-                setExclusiveOwnerThread(Thread.currentThread());
-                return true;
-            }
-            return false;
-        }
-        @Override   //解锁
-        protected boolean tryRelease(int arg) {
-            setExclusiveOwnerThread(null);
-            setState(0);//volatile 修饰的变量放在后面，防止指令重排
-            return true;
-        }
-        @Override   //是否持有独占锁
-        protected boolean isHeldExclusively() {
-            return getState() == 1;
-        }
-        public Condition newCondition() {
-            return new ConditionObject();
-        }
-    }
-
-    private MySync sync = new MySync();
-
-    @Override   //加锁（不成功进入等待队列等待）
-    public void lock() {
-        sync.acquire(1);
-    }
-
-    @Override   //加锁 可打断
-    public void lockInterruptibly() throws InterruptedException {
-        sync.acquireInterruptibly(1);
-    }
-
-    @Override   //尝试加锁，尝试一次
-    public boolean tryLock() {
-        return sync.tryAcquire(1);
-    }
-
-    @Override   //尝试加锁，带超时
-    public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
-        return sync.tryAcquireNanos(1, unit.toNanos(time));
-    }
-    
-    @Override   //解锁
-    public void unlock() {
-        sync.release(1);
-    }
-    
-    @Override   //条件变量
-    public Condition newCondition() {
-        return sync.newCondition();
-    }
-}
-```
-
-
-
-
-
-***
-
-
-
-### Re-Lock
-
-#### 锁对比
-
-ReentrantLock相对于 synchronized 它具备如下特点：
-
-1. 锁的实现：synchronized 是 JVM 实现的，而 ReentrantLock 是 JDK 实现的
-2. 性能：新版本 Java 对 synchronized 进行了很多优化，synchronized 与 ReentrantLock 大致相同
-3. 使用：ReentrantLock 需要手动解锁，synchronized 执行完代码块自动解锁
-4. 可中断：ReentrantLock 可中断，而 synchronized 不行
-5. **公平锁**：公平锁是指多个线程在等待同一个锁时，必须按照申请锁的时间顺序来依次获得锁
-   * ReentrantLock 可以设置公平锁，synchronized 中的锁是非公平的
-6. 锁超时：尝试获取锁，超时获取不到直接放弃，不进入阻塞队列
-   * ReentrantLock 可以设置超时时间，synchronized会一直等待
-7. 锁绑定多个条件：一个 ReentrantLock 可以同时绑定多个 Condition 对象 
-8. 两者都是可重入锁
-
-
-
-***
-
-
-
-#### 使用锁
-
-构造方法：`ReentrantLock lock = new ReentrantLock();`
-
-ReentrantLock类API：
-
-* `public void lock()`：获得锁
-  * 如果锁没有被另一个线程占用，则将锁定计数设置为1。
-
-  * 如果当前线程已经保持锁定，则保持计数增加1 
-
-  * 如果锁被另一个线程保持，则当前线程被禁用线程调度，并且在锁定已被获取之前处于休眠状态
-
-* `public void unlock()`：尝试释放锁
-  * 如果当前线程是该锁的持有者，则保持计数递减
-  * 如果保持计数现在为零，则锁定被释放
-  * 如果当前线程不是该锁的持有者，则抛出异常
-
-基本语法：
-
-```java
-// 获取锁
-reentrantLock.lock();
-try {
-    // 临界区
-} finally {
-	// 释放锁
-	reentrantLock.unlock();
-}
-```
-
-
-
-***
-
-
-
-#### 公平锁
-
-##### 基本使用
-
-构造方法：`ReentrantLock lock = new ReentrantLock(true)`
-
-```java
-public ReentrantLock(boolean fair) {
-    sync = fair ? new FairSync() : new NonfairSync();
-}
-```
-
-ReentrantLock 默认是不公平的：
-
-```java
-public ReentrantLock() {
-    sync = new NonfairSync();
-}
-```
-
-说明：公平锁一般没有必要，会降低并发度
-
-
-
-***
-
-
-
-##### 非公原理
-
-###### 加锁
-
-NonfairSync 继承自 AQS
-
-没有竞争：ExclusiveOwnerThread属于 Thread-0，state设置为1
-
-```java
-final void lock() {
-    //首先用 cas 尝试（仅尝试一次）将 state 从 0 改为 1, 如果成功表示获得了独占锁
-    if (compareAndSetState(0, 1))
-        setExclusiveOwnerThread(Thread.currentThread());
-    else
-        acquire(1);//失败进入
-}
-```
-
-第一个竞争出现：
-
-```java
-public final void acquire(int arg) {    
-    // 当 tryAcquire 返回为 false 时, 先调用addWaiter, 接着 acquireQueued    
-    if (!tryAcquire(arg) && acquireQueued(addWaiter(Node.EXCLUSIVE), arg))        			selfInterrupt();
-}
-```
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantLock-非公平锁1.png" style="zoom:80%;" />
-
-Thread-1执行：
-
-* CAS 尝试将 state 由 0 改为 1，结果失败（第一次）
-
-* 进入 tryAcquire 逻辑，这时 state 已经是1，结果仍然失败（第二次）
-
-  ```java
-  protected final boolean tryAcquire(int acquires) {    
-      return nonfairTryAcquire(acquires);
-  }
-  final boolean nonfairTryAcquire(int acquires) {    
-      final Thread current = Thread.currentThread();    
-      int c = getState();    
-      if (c == 0) {        
-          //如果还没有获得锁，尝试用cas获得，这里体现非公平性: 不去检查 AQS 队列        
-      	if (compareAndSetState(0, acquires)) {            
-              setExclusiveOwnerThread(current);            
-              return true;        
-           }    
-  	}    
-     	// 如果已经获得了锁, 线程还是当前线程, 表示发生了锁重入    
-  	else if (current == getExclusiveOwnerThread()) {        
-          int nextc = c + acquires;        
-          if (nextc < 0) // overflow            
-              throw new Error("Maximum lock count exceeded");        
-          setState(nextc);        
-          return true;    
-      }    
-      return false;//获取失败
-  }
-  ```
-
-* 接下来进入 addWaiter 逻辑，构造 Node 队列
-
-  * 图中黄色三角表示该 Node 的 waitStatus 状态，其中 0 为默认正常状态
-  * Node 的创建是懒惰的
-  * 其中第一个 Node 称为 Dummy（哑元）或哨兵，用来占位，并不关联线程
-
-  ```java
-  private Node addWaiter(Node mode) {    
-      // 将当前线程关联到一个 Node 对象上, 模式为独占模式    
-      Node node = new Node(Thread.currentThread(), mode);    
-      Node pred = tail;    
-      // 如果 tail 不为 null, cas 尝试将 Node 对象加入 AQS 队列尾部    
-      if (pred != null) {        
-          node.prev = pred;        
-          if (compareAndSetTail(pred, node)) {            
-              pred.next = node;// 双向链表            
-              return node;        
-          }    
-      }    
-      enq(node);//添加到尾节点    
-      return node;
-  }
-  ```
-
-  <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantLock-非公平锁2.png" style="zoom:80%;" />
-
-* 线程进入 acquireQueued 逻辑
-
-  * acquireQueued 会在一个死循环中不断尝试获得锁，失败后进入 park 阻塞
-
-  * 如果当前线程是在head节点后，会再次 tryAcquire 尝试获取锁，state 仍为 1 则失败（第三次）
-
-  ```java
-  final boolean acquireQueued(final Node node, int arg) {
-      boolean failed = true;
-      try {
-          boolean interrupted = false;
-          for (;;) {
-              final Node p = node.predecessor();
-              // 上一个节点是 head, 表示轮到自己获取锁
-              if (p == head && tryAcquire(arg)) {
-                  // 获取成功, 设置自己（当前线程对应的 node）为 head
-                  setHead(node);
-                  p.next = null; // help GC
-                  failed = false;
-                  return interrupted;
-              }
-              // 判断是否应当 park，返回false后需要新一轮的循环
-              if (shouldParkAfterFailedAcquire(p, node) &&
-                  parkAndCheckInterrupt())
-                  interrupted = true;
-          }
-      } finally {
-          if (failed)
-              cancelAcquire(node);
-      }
-  }
-  ```
-
-  * 进入 shouldParkAfterFailedAcquire 逻辑，将前驱 node，即 head 的 waitStatus 改为 -1，返回 false；waitStatus 为 -1 的节点用来唤醒下一个节点
-
-  ```java
-  private static boolean shouldParkAfterFailedAcquire(Node pred, Node node) {
-      int ws = pred.waitStatus;
-      if (ws == Node.SIGNAL)
-          // 上一个节点都在阻塞, 那么当前线程也阻塞
-          return true;
-      if (ws > 0) {
-          // 上一个节点取消, 那么重构删除前面所有取消的节点, 返回到外层循环重试
-          do {
-              node.prev = pred = pred.prev;
-          } while (pred.waitStatus > 0);
-          pred.next = node;
-      } else {
-          // 设置上一个节点状态为 Node.SIGNAL，返回外层循环重试
-          compareAndSetWaitStatus(pred, ws, Node.SIGNAL);
-      }
-      return false;
-  }
-  ```
-
-  * shouldParkAfterFailedAcquire 执行完毕回到 acquireQueued ，再次 tryAcquire 尝试获取锁，这时state 仍为 1 获取失败（第四次）
-  * 当再次进入 shouldParkAfterFailedAcquire 时，这时其前驱 node 的 waitStatus 已经是 -1，返回true
-  * 进入 parkAndCheckInterrupt， Thread-1 park（灰色表示），再有多个线程经历竞争失败后：
-
-  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantLock-非公平锁3.png)
-
-  ```java
-  private final boolean parkAndCheckInterrupt() {
-      // 阻塞当前线程，如果打断标记已经是 true, 则 park 会失效
-      LockSupport.park(this);
-      // 判断当前线程是否被打断，清除打断标记
-      return Thread.interrupted();
-  }
-  ```
-
-  
-
-
-
-###### 解锁
-
-```java
-public void unlock() {
-    sync.release(1);
-}
-```
-
-Thread-0 释放锁，进入 release 流程
-
-* 进入 tryRelease
-
-  * 设置exclusiveOwnerThread 为 null
-  * state = 0
-
-* 当前队列不为 null，并且 head 的 waitStatus = -1，进入 unparkSuccessor 
-
-  ```java
-  public final boolean release(int arg) {    
-      if (tryRelease(arg)) {       
-          // 队列头节点 unpark        
-          Node h = head;        
-          if (h != null && h.waitStatus != 0)            
-              unparkSuccessor(h);        
-          return true;    
-      }    
-      return false;
-  }
-  ```
-
-  ```java
-  protected final boolean tryRelease(int releases) {    
-      int c = getState() - releases;    
-      if (Thread.currentThread() != getExclusiveOwnerThread())        
-          throw new IllegalMonitorStateException();    
-      boolean free = false;    
-      // 支持锁重入, 只有 state 减为 0, 才释放成功    
-      if (c == 0) {        
-          free = true;        
-          setExclusiveOwnerThread(null);    
-      }    
-      setState(c);    
-      return free;
-  }
-  ```
-
-* 进入unparkSuccessor 方法
-
-  * 找到队列中离 head 最近的一个 Node（没取消的），unpark 恢复其运行，本例中即为 Thread-1
-  * 回到 Thread-1 的 acquireQueued 流程
-
-  ```java
-  private void unparkSuccessor(Node node) {    
-      int ws = node.waitStatus;    
-      if (ws < 0)        
-          // 尝试重置状态为 0        
-          compareAndSetWaitStatus(node, ws, 0);    
-      // 找到需要 unpark 的节点，头节点的下一个    
-      Node s = node.next;    
-      // 不考虑已取消的节点    
-      if (s == null || s.waitStatus > 0) {        
-          s = null;        
-          // 从 AQS 队列从后至前找到队列需要 unpark 的节点        
-          for (Node t = tail; t != null && t != node; t = t.prev)            
-              if (t.waitStatus <= 0)                
-                  s = t;    
-      }    
-      if (s != null)        
-          LockSupport.unpark(s.thread);
-  }
-  ```
-
-* 如果加锁成功（没有竞争），会设置
-
-  * exclusiveOwnerThread 为 Thread-1，state = 1
-  * head 指向刚刚 Thread-1 所在的 Node，该 Node 清空 Thread
-  * 原本的 head 因为从链表断开，而可被垃圾回收
-
-  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantLock-非公平锁4.png)
-
-* 如果这时候有其它线程来竞争（非公平），例如这时有 Thread-4 来了并抢占了锁
-
-  * Thread-4 被设置为 exclusiveOwnerThread，state = 1
-  * Thread-1 再次进入 acquireQueued 流程，获取锁失败，重新进入 park 阻塞
-
-  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantLock-非公平锁5.png)
-
-
-
-***
-
-
-
-##### 公平原理
-
-与非公平锁主要区别在于 tryAcquire 方法：先检查 AQS 队列中是否有前驱节点，没有才去CAS竞争
-
-```java
-static final class FairSync extends Sync {
-    private static final long serialVersionUID = -3000897897090466540L;
-    final void lock() {
-        acquire(1);
-    }
-
-    protected final boolean tryAcquire(int acquires) {
-        final Thread current = Thread.currentThread();
-        int c = getState();
-        if (c == 0) {
-            // 先检查 AQS 队列中是否有前驱节点, 没有(false)才去竞争
-            if (!hasQueuedPredecessors() &&
-                compareAndSetState(0, acquires)) {
-                setExclusiveOwnerThread(current);
-                return true;
-            }
-        }
-        // 锁重入
-        return false;
-    }
-}
-```
-
-```java
-public final boolean hasQueuedPredecessors() {    
-    Node t = tail;     
-    Node h = head;    
-    Node s;    
-    //头尾指向一个节点，列表为空，返回false，    
-    return h != t &&        
-        // 头尾之间有节点，判断头节点的下一个是不是空        
-        // 不是空进入最后的判断，第二个节点的线程是否是本线程        
-        ((s = h.next) == null || s.thread != Thread.currentThread());}
-```
-
-
-
-***
-
-
-
-#### 可重入
-
-可重入是指同一个线程如果首次获得了这把锁，那么它是这把锁的拥有者，因此有权利再次获取这把锁，如果不可重入锁，那么第二次获得锁时，自己也会被锁挡住
-
-源码解析参考：`nonfairTryAcquire(int acquires)) `和 `tryRelease(int releases)`
-
-```java
-static ReentrantLock lock = new ReentrantLock();
-public static void main(String[] args) {	
-    method1();
-}
-public static void method1() {    
-    lock.lock();    
-    try {        
-        System.out.println(Thread.currentThread().getName() + " execute method1");
-        method2();    
-    } finally {    	
-        lock.unlock();    
-    }
-}
-public static void method2() {    
-    lock.lock();    
-    try {        
-        System.out.println(Thread.currentThread().getName() + " execute method2");
-    } finally {    	
-        lock.unlock();    
-    }
-}
-```
-
-面试题：在Lock方法加两把锁会是什么情况呢？
-
-* 加锁两次解锁两次：正常执行
-* 加锁两次解锁一次：程序直接卡死，线程不能出来，也就说明**申请几把锁，最后需要解除几把锁**
-* 加锁一次解锁两次：运行程序会直接报错
-
-```java
-public void getLock() {    
-    lock.lock();    
-    lock.lock();    
-    try {        
-        System.out.println(Thread.currentThread().getName() + "\t get Lock");
-    } finally {
-        lock.unlock();        
-        //lock.unlock();    
-    }
-}
-```
+最坏情况下 union 算法的时间复杂度也是 O(N^2)
 
 
 
@@ -23388,260 +15398,96 @@ public void getLock() {
 
 
 
-#### 可打断
+#### 优化实现
 
-##### 基本使用
+让每个索引处的节点都指向它的父节点，当 eleGroup[i] = i 时，说明 i 是根节点
 
-`public void lockInterruptibly()`：获得可打断的锁
-
-* 如果没有竞争此方法就会获取lock对象锁
-* 如果有竞争就进入阻塞队列，可以被其他线程用interrupt打断
-
-注意：如果是不可中断模式，那么即使使用了 interrupt 也不会让等待中断
+<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-并查集优化.png" style="zoom: 67%;" />
 
 ```java
-public static void main(String[] args) throws InterruptedException {    
-    ReentrantLock lock = new ReentrantLock();    
-    Thread t1 = new Thread(() -> {        
-        try {            
-            System.out.println("尝试获取锁");            
-            lock.lockInterruptibly();        
-        } catch (InterruptedException e) {            
-            System.out.println("没有获取到锁，被打断，直接返回");            
-            return;        
-        }        
-        try {            
-            System.out.println("获取到锁");        
-        } finally {            
-            lock.unlock();        
-        }    
-    }, "t1");    
-    lock.lock();    
-    t1.start();    
-    Thread.sleep(2000);    
-    System.out.println("主线程进行打断锁");    
-    t1.interrupt();
+//查询p所在的分组的标识符，递归寻找父标识符，直到找到根节点
+public int findRoot(int p) {
+    while (p != eleAndGroup[p]) {
+        p = eleAndGroup[p];
+    }
+    //p == eleGroup[p]，说明p是根节点
+    return p;
+}
+
+//判断并查集中元素p和元素q是否在同一分组中
+public boolean connect(int p, int q) {
+    return findRoot(p) == findRoot(q);
+}
+
+//把p元素所在分组和q元素所在分组合并
+public void union(int p, int q) {
+    //找到p q对应的根节点
+    int pRoot = findRoot(p);
+    int qRoot = findRoot(q);
+    if (pRoot == qRoot) {
+        return;
+    }
+    //让p所在树的节点根节点为q的所在的根节点，只需要把根节点改一下，时间复杂度 O(1)
+    eleAndGroup[pRoot] = qRoot;
 }
 ```
 
+平均时间复杂度为 O(N)，最坏时间复杂度是 O(N^2)
 
+<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-并查集时间复杂度.png" style="zoom:67%;" />
 
-##### 实现原理
-
-* 不可打断模式：即使它被打断，仍会驻留在 AQS 队列中，一直要等到获得锁后方能得知自己被打断了
-
-  ```java
-  public final void acquire(int arg) {    
-      if (!tryAcquire(arg) &&        
-          acquireQueued(addWaiter(Node.EXCLUSIVE), arg))//阻塞等待        
-          // 如果acquireQueued返回true，打断状态interrupted = true        
-          selfInterrupt();
-  }
-  static void selfInterrupt() {    
-      // 知道自己被打断了，需要重新产生一次中断完成中断效果    
-      Thread.currentThread().interrupt();
-  }
-  ```
-
-  ```java
-  final boolean acquireQueued(final Node node, int arg) {    
-      try {        
-          boolean interrupted = false;        
-          for (;;) {            
-              final Node p = node.predecessor();            
-              if (p == head && tryAcquire(arg)) {                
-                  setHead(node);                
-                  p.next = null; // help GC                
-                  failed = false;                
-                  // 还是需要获得锁后, 才能返回打断状态                
-                  return interrupted;            
-              }            
-              if (shouldParkAfterFailedAcquire(p, node) &&                
-                  parkAndCheckInterrupt())//被打断 返回true                
-                  interrupted = true;        
-          }
-      }
-      private final boolean parkAndCheckInterrupt() {    
-          // 阻塞当前线程，如果打断标记已经是 true, 则 park 会失效    
-          LockSupport.park(this);    
-          // 判断当前线程是否被打断，清除打断标记，被打断返回true    
-          return Thread.interrupted();
-      }
-  }
-  ```
-
-* 可打断模式：
-
-  ```java
-  public void lockInterruptibly() throws InterruptedException {    
-      sync.acquireInterruptibly(1);
-  }
-  public final void acquireInterruptibly(int arg) {    
-      if (Thread.interrupted())//被其他线程打断了       
-  		throw new InterruptedException();    
-      if (!tryAcquire(arg))        
-          // 没获取到锁，进入这里        
-          doAcquireInterruptibly(arg);
-  }
-  ```
-  
-  ```java
-  private void doAcquireInterruptibly(int arg) {    
-      final Node node = addWaiter(Node.EXCLUSIVE);    
-      boolean failed = true;    
-      try {        
-          for (;;) {            
-              //...            
-              if (shouldParkAfterFailedAcquire(p, node)&&parkAndCheckInterrupt())
-                  throw new InterruptedException();				
-              // 在 park 过程中如果被 interrupt 会抛出异常, 而不会再次进入循环        
-          }    
-      }
-  }
-  ```
-
-
-
-***
-
-
-
-#### 锁超时
-
-##### 基本使用
-
-`public boolean tryLock()`：尝试获取锁，获取到返回true，获取不到直接放弃，不进入阻塞队列
-
-`public boolean tryLock(long timeout, TimeUnit unit)`：在给定时间内获取锁，获取不到就退出
-
-注意：tryLock期间也可以被打断
+继续优化：路径压缩，保证每次把小树合并到大树
 
 ```java
-public static void main(String[] args) {
-    ReentrantLock lock = new ReentrantLock();
-    Thread t1 = new Thread(() -> {
-        try {
-            if (!lock.tryLock(2, TimeUnit.SECONDS)) {
-                System.out.println("获取不到锁");
-                return;
-            }
-        } catch (InterruptedException e) {
-            System.out.println("被打断，获取不到锁");
+public class UF_Tree_Weighted {
+    private int[] eleAndGroup;
+    private int count;
+    private int[] size;//存储每一个根结点对应的树中的保存的节点的个数
+
+    //初始化并查集
+    public UF_Tree_Weighted(int N) {
+        this.count = N;
+        this.eleAndGroup = new int[N];
+        for (int i = 0; i < eleAndGroup.length; i++) {
+            eleAndGroup[i] = i;
+        }
+        this.size = new int[N];
+        //默认情况下，size中每个索引处的值都是1
+        for (int i = 0; i < size.length; i++) {
+            size[i] = 1;
+        }
+    }
+	//查询p所在的分组的标识符，父标识符
+    public int findRoot(int p) {
+        while (p != eleAndGroup[p]) {
+            p = eleAndGroup[p];
+        }
+        return p;
+    }
+
+    //判断并查集中元素p和元素q是否在同一分组中
+    public boolean connect(int p, int q) {
+        return findRoot(p) == findRoot(q);
+    }
+
+    //把p元素所在分组和q元素所在分组合并
+    public void union(int p, int q) {
+        //找到p q对应的根节点
+        int pRoot = findRoot(p);
+        int qRoot = findRoot(q);
+        if (pRoot == qRoot) {
             return;
         }
-        try {
-            log.debug("获取到锁");
-        } finally {
-            lock.unlock();
+        //判断pRoot对应的树大还是qRoot对应的树大，最终需要把较小的树合并到较大的树中
+        if (size[pRoot] < size[qRoot]) {
+            eleAndGroup[pRoot] = qRoot;
+            size[qRoot] += size[pRoot];
+        } else {
+            eleAndGroup[qRoot] = pRoot;
+            size[pRoot] += size[qRoot];
         }
-    }, "t1");
-    lock.lock();
-    System.out.println("主线程获取到锁");
-    t1.start();
-    
-    Thread.sleep(1000);
-    try {
-        System.out.println("主线程释放了锁");
-    } finally {
-        lock.unlock();
-    }
-}
-```
-
-
-
-##### 实现原理
-
-* tryLock()
-
-  ```java
-  public boolean tryLock() {    
-      return sync.nonfairTryAcquire(1);//只尝试一次
-  }
-  ```
-
-* tryLock(long timeout, TimeUnit unit)
-
-  ```java
-  public final boolean tryAcquireNanos(int arg, long nanosTimeout) {    
-      if (Thread.interrupted())        
-          throw new InterruptedException();    
-      //tryAcquire 尝试一次    
-      return tryAcquire(arg) || doAcquireNanos(arg, nanosTimeout);
-  }
-  protected final boolean tryAcquire(int acquires) {    
-      return nonfairTryAcquire(acquires);
-  }
-  ```
-  
-  ```java
-  private boolean doAcquireNanos(int arg, long nanosTimeout) {    
-      if (nanosTimeout <= 0L)        
-          return false;    
-      final long deadline = System.nanoTime() + nanosTimeout;    
-      //...    
-      try {        
-          for (;;) {   
-              //...
-              nanosTimeout = deadline - System.nanoTime();            
-              if (nanosTimeout <= 0L)	//时间已到                
-                  return false;            
-              if (shouldParkAfterFailedAcquire(p, node) &&                
-                  nanosTimeout > spinForTimeoutThreshold)                
-                  LockSupport.parkNanos(this, nanosTimeout);            
-              if (Thread.interrupted())                
-                  throw new InterruptedException();        
-          }    
-      }
-  }
-  ```
-
-
-
-##### 哲学家就餐
-
-```java
-public static void main(String[] args) {    
-    Chopstick c1 = new Chopstick("1");//...  
-    Chopstick c5 = new Chopstick("5");    
-    new Philosopher("苏格拉底", c1, c2).start();    
-    new Philosopher("柏拉图", c2, c3).start();    
-    new Philosopher("亚里士多德", c3, c4).start();    
-    new Philosopher("赫拉克利特", c4, c5).start();    
-    new Philosopher("阿基米德", c5, c1).start();
-}
-class Philosopher extends Thread {    
-    Chopstick left;    
-    Chopstick right;    
-    public void run() {        
-        while (true) {            
-            // 尝试获得左手筷子            
-            if (left.tryLock()) {                
-                try {                    
-                    // 尝试获得右手筷子                    
-                    if (right.tryLock()) {                        
-                        try {							
-                            System.out.println("eating...");       
-                            Thread.sleep(1000);                        
-                        } finally {                            
-                            right.unlock();                        
-                        }                    
-                    }                
-                } finally {                    
-                    left.unlock();                
-                }            
-            }        
-        }	
-    }
-}
-class Chopstick extends ReentrantLock {    
-    String name;    
-    public Chopstick(String name) {        
-        this.name = name;    
-    }    
-    @Override    
-    public String toString() {        
-        return "筷子{" + name + '}';    
+        //组的数量-1、
+        this.count--;
     }
 }
 ```
@@ -23652,729 +15498,47 @@ class Chopstick extends ReentrantLock {
 
 
 
-#### 条件变量
+#### 应用场景
 
-##### 基本使用
+并查集存储的每一个整数表示的是一个大型计算机网络中的计算机：
 
-synchronized 中的条件变量，就是当条件不满足时进入 waitSet 等待
-ReentrantLock 的条件变量比 synchronized 强大之处在于，它支持多个条件变量
+* 可以通过 connected(int p, int q) 来检测该网络中的某两台计算机之间是否连通
+* 可以调用 union(int p,int q) 使得 p 和 q 之间连通，这样两台计算机之间就可以通信
 
-ReentrantLock类获取Condition对象：`public Condition newCondition()`
+畅通工程：某省调查城镇交通状况，得到现有城镇道路统计表，表中列出了每条道路直接连通的城镇。省政府畅通工程的目标是使全省任何两个城镇间都可以实现交通，但不一定有直接的道路相连，只要互相间接通过道路可达即可，问最少还需要建设多少条道路？
 
-Condition类API：
+<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-应用场景.png" style="zoom:67%;" />
 
-* `void await()`：当前线程从运行状态进入等待状态，释放锁
-* `void signal()`：唤醒一个等待在Condition上的线程，但是必须获得与该Condition相关的锁
+解题思路：
 
-使用流程：
-
-* **await / signal 前需要获得锁**
-* await 执行后，会释放锁进入 conditionObject 等待
-* await 的线程被唤醒（打断、超时）去重新竞争 lock 锁
-* 竞争 lock 锁成功后，从 await 后继续执行
+1. 创建一个并查集 UF_Tree_Weighted(20)
+2. 分别调用 union(0,1)、union(6,9)、union(3,8)、union(5,11)、union(2,12)、union(6,10)、union(4,8)，表示已经修建好的道路把对应的城市连接起来
+3. 如果城市全部连接起来，那么并查集中剩余的分组数目为 1，所有的城市都在一个树中，只需要获取当前并查集中剩余的数目减去 1，就是还需要修建的道路数目
 
 ```java
-public static void main(String[] args) throws InterruptedException {    
-    ReentrantLock lock = new ReentrantLock();    
-    //创建一个新的条件变量    
-    Condition condition1 = lock.newCondition();    
-    Condition condition2 = lock.newCondition();    
-    new Thread(() -> {        
-        try {            
-            lock.lock();                      
-            System.out.println("进入等待");     
-            //进入休息室等待  
-            condition1.await();            
-            System.out.println("被唤醒了");        
-        } catch (InterruptedException e) {            
-            e.printStackTrace();        
-        } finally {            
-            lock.unlock();        
-        }    
-    }).start();    
-    Thread.sleep(1000);    
-    //叫醒    
-    new Thread(() -> {        
-        try {            
-            lock.lock();            
-            //唤醒           
-            condition2.signal();        
-        } finally {            
-            lock.unlock();        
-        }    
-    }).start();
-}
-```
-
-
-
-##### 实现原理
-
-await流程：
-
-* 开始 Thread-0 持有锁，调用 await，进入 ConditionObject 的 addConditionWaiter 流程
-
-  ```java
-  // 等待，直到被唤醒或打断
-  public final void await() throws InterruptedException {
-      if (Thread.interrupted())
-          throw new InterruptedException();
-      // 添加一个 Node 至等待队列,
-      Node node = addConditionWaiter();
-      // 释放节点持有的锁
-      int savedState = fullyRelease(node);
-      int interruptMode = 0;
-      // 如果该节点还没有转移至 AQS 队列, park 阻塞
-      while (!isOnSyncQueue(node)) {
-          LockSupport.park(this);
-          // 如果被打断, 退出等待队列，判断打断模式
-          if ((interruptMode = checkInterruptWhileWaiting(node)) != 0)
-              break;
-      }
-      // 退出等待队列后, 还需要获得 AQS 队列的锁
-      if (acquireQueued(node, savedState) && interruptMode != THROW_IE)
-          interruptMode = REINTERRUPT;
-      // 所有已取消的 Node 从队列链表删除
-      if (node.nextWaiter != null)
-          unlinkCancelledWaiters();
-      // 应用打断模式
-      if (interruptMode != 0)
-          reportInterruptAfterWait(interruptMode);
-  }
-  ```
-
-  ```java
-  // 打断模式 - 在退出等待时重新设置打断状态
-  private static final int REINTERRUPT = 1;
-  // 打断模式 - 在退出等待时抛出异常
-  private static final int THROW_IE = -1;
-  ```
-
-* 创建新的 Node 状态为 -2（Node.CONDITION），关联 Thread-0，加入等待队列尾部
-
-  ```java
-  // 添加一个 Node 至等待队列
-  private Node addConditionWaiter() {
-      Node t = lastWaiter;
-      // 所有已取消的 Node 从队列链表删除,
-      if (t != null && t.waitStatus != Node.CONDITION) {
-          unlinkCancelledWaiters();
-          t = lastWaiter;
-      }
-      // 创建一个关联当前线程的新 Node, 添加至队列尾部
-      Node node = new Node(Thread.currentThread(), Node.CONDITION);
-      if (t == null)
-          firstWaiter = node;
-      else
-          t.nextWaiter = node;
-      lastWaiter = node;// 单向链表
-      return node;
-  }
-  ```
-
-  ```java
-  private void unlinkCancelledWaiters() {    
-      Node t = firstWaiter;   
-      Node trail = null;    
-      while (t != null) {        
-          Node next = t.nextWaiter;        
-          // 判断 t 节点不是 CONDITION 节点        
-          if (t.waitStatus != Node.CONDITION) {            
-              // t 与下一个节点断开            
-              t.nextWaiter = null;            
-              // 如果第一次循环就进入if语句，说明 t 是首节点            
-              if (trail == null)                
-                  firstWaiter = next;            
-              else                
-                  // t 的前节点和后节点相连，删除 t                
-                  trail.nextWaiter = next;            
-              // t 是尾节点了            
-              if (next == null)                
-                  lastWaiter = trail;        
-          } else           
-              trail = t;        
-          t = next; // 把 t.next 赋值给 t     
-      }
-  }
-  ```
-
-* 接下来进入 AQS 的 fullyRelease 流程，释放同步器上的锁
-
-  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantLock-条件变量1.png)
-
-  ```java
-  // 线程可能重入，需要将 state 全部释放
-  final int fullyRelease(Node node) {    
-      boolean failed = true;    
-      try {        
-          int savedState = getState();        
-          // release -> tryRelease 公平锁解锁，会解锁重入锁        
-          if (release(savedState)) {            
-              failed = false;            
-              return savedState;        
-          } else {            
-              throw new IllegalMonitorStateException();        
-          }    
-      } finally {        
-          // 没有释放成功，设置为取消状态        
-          if (failed)            
-              node.waitStatus = Node.CANCELLED;    
-      }
-  }
-  ```
-
-* unpark AQS 队列中的下一个节点，竞争锁，假设没有其他竞争线程，那么 Thread-1 竞争成功
-
-* park 阻塞 Thread-0
-
-  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantLock-条件变量2.png)
-
-
-
-signal 流程：
-
-* 假设 Thread-1 要来唤醒 Thread-0，进入 ConditionObject 的 doSignal 流程，取得等待队列中第一个 Node，即 Thread-0 所在 Node
-
-  ```java
-  // 唤醒 - 必须持有锁才能唤醒, 因此 doSignal 内无需考虑加锁
-  public final void signal() {    
-      // 调用方法的线程是否是资源的持有线程    
-      if (!isHeldExclusively())        
-          throw new IllegalMonitorStateException();    
-      // 取得等待队列中第一个 Node   
-      Node first = firstWaiter;    
-      if (first != null)        
-          doSignal(first);
-  }
-  ```
-
-  ```java
-  // 唤醒 - 将没取消的第一个节点转移至 AQS 队列尾部
-  private void doSignal(Node first) {
-      do {
-          // 当前节点是尾节点
-          if ((firstWaiter = first.nextWaiter) == null)
-              lastWaiter = null;
-          first.nextWaiter = null;
-      // 将等待队列中的 Node 转移至 AQS 队列, 不成功且还有节点则继续循环
-      } while (!transferForSignal(first) &&
-               (first = firstWaiter) != null);
-  }
-  private void doSignalAll(Node first) {
-      lastWaiter = firstWaiter = null;
-      do {
-          Node next = first.nextWaiter;
-          first.nextWaiter = null;
-          transferForSignal(first);
-          first = next;
-      } while (first != null);
-  }
-  ```
-
-* 执行 transferForSignal 流程，将该 Node 加入 AQS 队列尾部，将 Thread-0 的 waitStatus 改为 0，Thread-3 的waitStatus 改为 -1
-
-  ```java
-  // 如果节点状态是取消, 返回 false 表示转移失败, 否则转移成功
-  final boolean transferForSignal(Node node) {
-      // 如果状态已经不是 Node.CONDITION, 说明被取消了
-      if (!compareAndSetWaitStatus(node, Node.CONDITION, 0))
-          return false;
-      // 加入 AQS 队列尾部
-      Node p = enq(node);
-      int ws = p.waitStatus;
-      // 上一个节点被取消  上一个节点不能设置状态为 Node.SIGNAL
-      if (ws > 0 || !compareAndSetWaitStatus(p, ws, Node.SIGNAL))
-          // unpark 取消阻塞, 让线程重新同步状态
-          LockSupport.unpark(node.thread);
-      return true;
-  }
-  ```
-
-  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantLock-条件变量3.png)
-
-* Thread-1 释放锁，进入 unlock 流程
-
-
-
-
-
-***
-
-
-
-### ReadWrite
-
-#### 读写锁
-
-独占锁：指该锁一次只能被一个线程所持有，对ReentrantLock和Synchronized而言都是独占锁
-共享锁：指该锁可以被多个线程锁持有
-
-ReentrantReadWriteLock 其读锁是共享，其写锁是独占
-
-作用：多个线程同时读一个资源类没有任何问题，为了满足并发量，读取共享资源应该同时进行，但是如果一个线程想去写共享资源，就不应该再有其它线程可以对该资源进行读或写
-
-使用规则：
-
-* 加锁解锁格式：
-
-  ```java
-  r.lock();
-  try {
-      // 临界区
-  } finally {
-  	r.unlock();
-  }
-  ```
-
-* 读-读 能共存、读-写 不能共存、写-写 不能共存
-
-* 读锁不支持条件变量
-
-* **重入时升级不支持**：持有读锁的情况下去获取写锁会导致获取写锁永久等待，需要先释放读，再去获得写
-
-* **重入时降级支持**：持有写锁的情况下去获取读锁
-
-  ```java
-  w.lock();
-  try {
-      r.lock();// 降级为读锁, 释放写锁, 这样能够让其它线程读取缓存
-      try {
-          // ...
-      } finally{
-      	w.unlock();// 要在写锁释放之前获取读锁
-      }
-  } finally{
-  	r.unlock();
-  }
-  ```
-
-构造方法：
-	`public ReentrantReadWriteLock()`：默认构造方法，非公平锁
-	`public ReentrantReadWriteLock(boolean fair)`：true 为公平锁
-
-常用API：
-	`public ReentrantReadWriteLock.ReadLock readLock()`：返回读锁
-	`public ReentrantReadWriteLock.WriteLock writeLock()`：返回写锁
-	`public void lock()`：加锁
-	`public void unlock()`：解锁
-	`public boolean tryLock()`：尝试获取锁
-
-读读并发：
-
-```java
-public static void main(String[] args) {
-    ReentrantReadWriteLock rw = new ReentrantReadWriteLock();
-    ReentrantReadWriteLock.ReadLock r = rw.readLock();
-    ReentrantReadWriteLock.WriteLock w = rw.writeLock();
-
-    new Thread(() -> {
-        r.lock();
-        try {
-            Thread.sleep(2000);
-            System.out.println("Thread 1 running " + new Date());
-        } finally {
-            r.unlock();
-        }
-    },"t1").start();
-    new Thread(() -> {
-        r.lock();
-        try {
-            Thread.sleep(2000);
-            System.out.println("Thread 2 running " + new Date());
-        } finally {
-            r.unlock();
-        }
-    },"t2").start();
-}
-```
-
-
-
-***
-
-
-
-#### 缓存应用
-
-缓存更新时，是先清缓存还是先更新数据库
-
-* 先清缓存：可能造成刚清理缓存还没有更新数据库，线程直接查询了数据库更新缓存
-
-* 先更新据库：可能造成刚更新数据库，还没清空缓存就有线程从缓存拿到了旧数据
-
-* 补充情况：查询线程 A 查询数据时恰好缓存数据由于时间到期失效，或是第一次查询
-
-  <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantReadWriteLock缓存.png" style="zoom:80%;" />
-
-可以使用读写锁进行操作
-
-
-
-***
-
-
-
-#### 实现原理
-
-##### 加锁原理
-
-读写锁用的是同一个 Sycn 同步器，因此等待队列、state 等也是同一个，原理与 ReentrantLock 加锁相比没有特殊之处，不同是写锁状态占了 state 的低 16 位，而读锁使用的是 state 的高 16 位
-
-* t1 w.lock（写锁），成功上锁 state = 0_1
-
-  ```java
-  //lock()  -> sync.acquire(1);
-  public final void acquire(int arg) {
-      // 尝试获得写锁
-      if (!tryAcquire(arg) &&
-          // 获得写锁失败，将当前线程关联到一个 Node 对象上, 模式为独占模式
-          acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
-          selfInterrupt();
-  }
-  ```
-
-  ```java
-  protected final boolean tryAcquire(int acquires) {
-      Thread current = Thread.currentThread();
-      int c = getState();
-      // 获得低 16 位, 代表写锁的 state 计数
-      int w = exclusiveCount(c);
-      if (c != 0) {
-          // c != 0 and w == 0 表示r != 0，有读锁，并且写锁的拥有者不是自己，获取失败
-          if (w == 0 || current != getExclusiveOwnerThread())
-              return false;
-          // 锁重入计数超过低 16 位, 报异常
-          if (w + exclusiveCount(acquires) > MAX_COUNT)
-              throw new Error("Maximum lock count exceeded");
-          // 写锁重入, 获得锁成功
-          setState(c + acquires);
-          return true;
-      }
-      // c == 0，没有任何锁，判断写锁是否该阻塞
-      if (writerShouldBlock() ||
-          !compareAndSetState(c, c + acquires))
-          return false;
-      // 获得锁成功
-      setExclusiveOwnerThread(current);
-      return true;
-  }
-  // 非公平锁 writerShouldBlock 总是返回 false, 无需阻塞
-  final boolean writerShouldBlock() {
-      return false; 
-  }
-  // 公平锁会检查 AQS 队列中是否有前驱节点, 没有(false)才去竞争
-  final boolean writerShouldBlock() {
-      return hasQueuedPredecessors();
-  }
-  ```
-
-* t2 r.lock（读锁），进入 tryAcquireShared 流程，如果有写锁占据，那么 tryAcquireShared 
-
-  * 返回 -1 表示失败
-  * 如果返回 0 表示成功
-  * 返回正数表示还有多少后继节点支持共享模式，读写锁返回1
-
-  ```java
-  public void lock() {
-      sync.acquireShared(1);
-  }
-  public final void acquireShared(int arg) {
-      // tryAcquireShared 返回负数, 表示获取读锁失败
-      if (tryAcquireShared(arg) < 0)
-          doAcquireShared(arg);
-  }
-  ```
-
-  ```java
-  // 尝试以共享模式获取
-  protected final int tryAcquireShared(int unused) {
-      Thread current = Thread.currentThread();
-      int c = getState();
-      // 如果是其它线程持有写锁, 并且写锁的持有者不是当前线程，获取读锁失败
-      if (exclusiveCount(c) != 0 && //低 16 位, 代表写锁的 state
-          getExclusiveOwnerThread() != current)
-          return -1;
-      // 高 16 位，代表读锁的 state
-      int r = sharedCount(c);
-      if (!readerShouldBlock() &&	// 读锁不该阻塞
-          r < MAX_COUNT &&		// 小于读锁计数	
-          compareAndSetState(c, c + SHARED_UNIT)) {// 尝试增加计数成功
-          // ....
-          // 读锁加锁成功
-          return 1;
-      }
-      // 与 tryAcquireShared 功能类似, 但会不断尝试 for (;;) 获取读锁, 执行过程中无阻塞
-      return fullTryAcquireShared(current);
-  }
-  // 非公平锁 readerShouldBlock 看 AQS 队列中第一个节点是否是写锁，是则阻塞，反之不阻塞
-  // true 则该阻塞, false 则不阻塞
-  final boolean readerShouldBlock() {
-      return apparentlyFirstQueuedIsExclusive();
-  }
-  ```
-
-* 进入 sync.doAcquireShared(1) 流程，首先也是调用 addWaiter 添加节点，不同之处在于节点被设置为Node.SHARED 模式而非 Node.EXCLUSIVE 模式，注意此时 t2 仍处于活跃状态
-
-  ```java
-  private void doAcquireShared(int arg) {
-      // 将当前线程关联到一个 Node 对象上, 模式为共享模式
-      final Node node = addWaiter(Node.SHARED);
-      boolean failed = true;
-      try {
-          boolean interrupted = false;
-          for (;;) {
-              // 获取前驱节点
-              final Node p = node.predecessor();
-              if (p == head) {
-                  // 再一次尝试获取读锁
-                  int r = tryAcquireShared(arg);
-                  // r >= 0 表示获取成功
-                  if (r >= 0) {
-                      setHeadAndPropagate(node, r);
-                      p.next = null; // help GC
-                      if (interrupted)
-                          selfInterrupt();
-                      failed = false;
-                      return;
-                  }
-              }
-              // 是否在获取读锁失败时阻塞
-              if (shouldParkAfterFailedAcquire(p, node) &&
-                  // park 当前线程
-                  parkAndCheckInterrupt())
-                  interrupted = true;
-          }
-      } finally {
-          if (failed)
-              cancelAcquire(node);
-      }
-  }
-  ```
-
-  ```java
-  private void setHeadAndPropagate(Node node, int propagate) {
-      Node h = head; 
-      // 设置自己为 head 节点
-      setHead(node);
-      // propagate 表示有共享资源（例如共享读锁或信号量），为 0 就没有资源
-      if (propagate > 0 || h == null || h.waitStatus < 0 ||
-          (h = head) == null || h.waitStatus < 0) {
-          Node s = node.next;
-          // 如果是最后一个节点或者是等待共享读锁的节点
-          if (s == null || s.isShared())
-              // 用来唤醒后继节点
-              doReleaseShared();
-      }
-  }
-  ```
-
-  ```java
-  private void doReleaseShared() {
-      // 如果 head.waitStatus == Node.SIGNAL ==> 0 成功, 下一个节点 unpark
-  	// 如果 head.waitStatus == 0 ==> Node.PROPAGATE
-      for (;;) {
-          Node h = head;
-          if (h != null && h != tail) {
-              int ws = h.waitStatus;
-              if (ws == Node.SIGNAL) {
-                  // 因为读锁共享，如果其它线程也在释放读锁，那么需要将 waitStatus 先改为 0
-              	// 防止 unparkSuccessor 被多次执行
-                  if (!compareAndSetWaitStatus(h, Node.SIGNAL, 0))
-                      continue;  
-                  // 唤醒后继节点
-                  unparkSuccessor(h);
-              }
-              // 如果已经是 0 了，改为 -3，用来解决传播性
-              else if (ws == 0 &&
-                       !compareAndSetWaitStatus(h, 0, Node.PROPAGATE))
-                  continue;                
-          }
-          if (h == head)                   
-              break;
-      }
-  }
-  ```
-
-* 如果没有成功，在 doAcquireShared 内 for (;;) 循环一次，shouldParkAfterFailedAcquire 内把前驱节点的 waitStatus 改为 -1，再 for (;;) 循环一次尝试 tryAcquireShared，不成功在parkAndCheckInterrupt() 处 park
-
-  <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantReadWriteLock加锁1.png" style="zoom: 80%;" />
-
-* 这种状态下，假设又有t3 r.lock，t4 w.lock，这期间 t1 仍然持有锁，就变成了下面的样子
-
-  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantReadWriteLock加锁2.png)
-
-
-
-***
-
-
-
-##### 解锁原理
-
-* t1 w.unlock， 调用 sync.tryRelease(1) 成功
-
-  ```java
-  // sync.release(1) -> tryRelease(1)
-  protected final boolean tryRelease(int releases) {
-      if (!isHeldExclusively())
-          throw new IllegalMonitorStateException();
-      int nextc = getState() - releases;
-      // 因为可重入的原因, 写锁计数为 0, 才算释放成功
-      boolean free = exclusiveCount(nextc) == 0;
-      if (free)
-          setExclusiveOwnerThread(null);
-      setState(nextc);
-      return free;
-  }
-  ```
-
-* 唤醒流程 sync.unparkSuccessor，这时 t2 在 doAcquireShared 的 parkAndCheckInterrupt() 处恢复运行，继续循环，执行 tryAcquireShared 成功则让读锁计数加一
-
-* 接下来 t2 调用 setHeadAndPropagate(node, 1)，它原本所在节点被置为头节点；还会检查下一个节点是否是 shared，如果是则调用 doReleaseShared() 将 head 的状态从 -1 改为 0 并唤醒下一个节点，这时 t3 在 doAcquireShared 内 parkAndCheckInterrupt() 处恢复运行
-
-  <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantReadWriteLock解锁1.png" style="zoom: 67%;" />
-
-* 下一个节点不是 shared 了，因此不会继续唤醒 t4 所在节点
-
-* t2 进入 sync.releaseShared(1) 中，调用 tryReleaseShared(1) 让计数减一，但计数还不为零
-  t3 同样让计数减一，计数为零，进入doReleaseShared() 将头节点从 -1 改为 0 并唤醒下一个节点
-
-  ```java
-  public void unlock() {
-      sync.releaseShared(1);
-  }
-  public final boolean releaseShared(int arg) {
-      if (tryReleaseShared(arg)) {
-          doReleaseShared();
-          return true;
-      }
-      return false;
-  }
-  ```
-
-  ```java
-  protected final boolean tryReleaseShared(int unused) {
-      //  
-      for (;;) {
-          int c = getState();
-          int nextc = c - SHARED_UNIT;
-          // 读锁的计数不会影响其它获取读锁线程, 但会影响其它获取写锁线程
-  		// 计数为 0 才是真正释放
-          if (compareAndSetState(c, nextc))
-              return nextc == 0;
-      }
-  }
-  ```
-
-* t4 在 acquireQueued 中 parkAndCheckInterrupt 处恢复运行，再次 for (;;) 这次自己是头节点的临节点，并且没有其他节点竞争，tryAcquire(1) 成功，修改头结点，流程结束
-
-  <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantReadWriteLock解锁2.png" style="zoom: 67%;" />
-
-
-
-***
-
-
-
-#### Stamped
-
-StampedLock：读写锁，该类自 JDK 8 加入，是为了进一步优化读性能
-
-特点：
-
-* 在使用读锁、写锁时都必须配合戳使用
-
-* StampedLock 不支持条件变量
-* StampedLock **不支持可重入**
-
-基本用法
-
-* 加解读锁：
-
-  ```java
-  long stamp = lock.readLock();
-  lock.unlockRead(stamp);
-  ```
-
-* 加解写锁：
-
-  ```java
-  long stamp = lock.writeLock();
-  lock.unlockWrite(stamp);
-  ```
-
-* 乐观读，StampedLock 支持`tryOptimisticRead()`方法，读取完毕后做一次**戳校验**，如果校验通过，表示这期间没有其他线程的写操作，数据可以安全使用，如果校验没通过，需要重新获取读锁，保证数据安全
-
-  ```java
-  long stamp = lock.tryOptimisticRead();
-  // 验戳
-  if(!lock.validate(stamp)){
-  	// 锁升级
-  }
-  ```
-
-提供一个数据容器类内部分别使用读锁保护数据的 read() 方法，写锁保护数据的 write() 方法：
-
-* 读-读 可以优化
-* 读-写 优化读，补加读锁
-
-```java
-public static void main(String[] args) throws InterruptedException {
-    DataContainerStamped dataContainer = new DataContainerStamped(1);
-    new Thread(() -> {
-    	dataContainer.read(1000);
-    },"t1").start();
-    Thread.sleep(500);
-    
-    new Thread(() -> {
-        dataContainer.write(1000);
-    },"t2").start();
-}
-
-class DataContainerStamped {
-    private int data;
-    private final StampedLock lock = new StampedLock();
-
-    public int read(int readTime) throws InterruptedException {
-        long stamp = lock.tryOptimisticRead();
-        System.out.println(new Date() + " optimistic read locking" + stamp);
-        Thread.sleep(readTime);
-        if (lock.validate(stamp)) {
-            Sout(new Date() + " optimistic read finish..." + stamp);
-            return data;
-        }
-
-        //锁升级
-        System.out.println(new Date() + " updating to read lock" + stamp);
-        try {
-            stamp = lock.readLock();
-            System.out.println(new Date() + " read lock" + stamp);
-            Thread.sleep(readTime);
-            System.out.println(new Date() + " read finish..." + stamp);
-            return data;
-        } finally {
-            System.out.println(new Date() + " read unlock " +  stamp);
-            lock.unlockRead(stamp);
-        }
+public static void main(String[] args)throws Exception {
+    Scanner sc = new Scanner(System.in);
+    //读取城市数目，初始化并查集
+    int number = sc.nextInt();
+    //读取已经修建好的道路数目
+    int roadNumber = sc.nextInt();
+    UF_Tree_Weighted uf = new UF_Tree_Weighted(number);
+    //循环读取已经修建好的道路，并调用union方法
+    for (int i = 0; i < roadNumber; i++) {
+        int p = sc.nextInt();
+        int q = sc.nextInt();
+        uf.union(p,q);
     }
-
-    public void write(int newData) {
-        long stamp = lock.writeLock();
-        System.out.println(new Date() + " write lock " + stamp);
-        try {
-            Thread.sleep(2000);
-            this.data = newData;
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } finally {
-            System.out.println(new Date() + " write unlock " + stamp);
-            lock.unlockWrite(stamp);
-        }
-    }
+    //获取剩余的分组数量
+    int groupNumber = uf.count();
+    //计算出还需要修建的道路
+    System.out.println("还需要修建"+(groupNumber-1)+"道路，城市才能相通");
 }
 ```
 
 
+
+参考视频：https://www.bilibili.com/video/BV1iJ411E7xW?p=142
 
 
 
@@ -24382,51 +15546,82 @@ class DataContainerStamped {
 
 
 
+### 字典树
+
+#### 基本介绍
+
+Trie 树，也叫字典树，是一种专门处理字符串匹配的树形结构，用来解决在一组字符串集合中快速查找某个字符串的问题，Trie 树的本质就是利用字符串之间的公共前缀，将重复的前缀合并在一起
+
+* 根节点不包含任何信息
+* 每个节点表示一个字符串中的字符，从**根节点到红色节点的一条路径表示一个字符串**
+* 红色节点并不都是叶子节点
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-字典树构造过程1.png" style="zoom: 50%;" />
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-字典树构造过程2.png" style="zoom:50%;" />
+
+注意：要查找的是字符串“he”，从根节点开始，沿着某条路径来匹配，可以匹配成功。但是路径的最后一个节点“e”并不是红色的，也就是说，“he”是某个字符串的前缀子串，但并不能完全匹配任何字符串
 
 
-## 并发包
 
-（源码分析待更新）
+***
 
-### Semaphore
 
-#### 信号量
 
-synchronized 可以起到锁的作用，但某个时间段内，只能有一个线程允许执行
+#### 实现Trie
 
-Semaphore（信号量）用来限制能同时访问共享资源的线程上限，非重入锁
+通过一个下标与字符一一映射的数组，来存储子节点的指针
 
-构造方法：
+<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-字典树存储结构.png" style="zoom:50%;" />
 
-* `public Semaphore(int permits)`：permits 表示许可线程的数量（state）
-* `public Semaphore(int permits, boolean fair)`：fair 表示公平性，如果这个设为 true 的话，下次执行的线程会是等待最久的线程
-
-常用API：
-
-* `public void acquire()`：表示获取许可
-* `public void release()`：表示释放许可，acquire()和release()方法之间的代码为同步代码
+时间复杂度是 O(n)（n 表示要查找字符串的长度）
 
 ```java
-public static void main(String[] args) {
-    // 1.创建Semaphore对象
-    Semaphore semaphore = new Semaphore(3);
+public class Trie {
+    private TrieNode root = new TrieNode('/');
 
-    // 2. 10个线程同时运行
-    for (int i = 0; i < 10; i++) {
-        new Thread(() -> {
-            try {
-                // 3. 获取许可
-                semaphore.acquire();
-                sout(Thread.currentThread().getName() + " running...");
-                Thread.sleep(1000);
-                sout(Thread.currentThread().getName() + " end...");
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } finally {
-                // 4. 释放许可
-                semaphore.release();
+    //插入一个字符
+    public void insert(char[] chars) {
+        TrieNode p = root;
+        for (int i = 0; i < chars.length; i++) {
+            //获取字符的索引位置
+            int index = chars[i] - 'a';
+            if (p.children[index] == null) {
+                TrieNode node = new TrieNode(chars[i]);
+                p.children[index] = node;
             }
-        }).start();
+            p = p.children[index];
+        }
+        p.isEndChar = true;
+    }
+
+    //查找一个字符串
+    public boolean find(char[] chars) {
+        TrieNode p = root;
+        for (int i = 0; i < chars.length; i++) {
+            int index = chars[i] - 'a';
+            if (p.children[index] == null) {
+                return false;
+            }
+            p = p.children[index];
+        }
+        if (p.isEndChar) {
+            //完全匹配
+            return true;
+        } else {
+            // 不能完全匹配，只是前缀
+            return false;
+        }
+    }
+
+
+    private class TrieNode {
+        char data;
+        TrieNode[] children = new TrieNode[26];//26个英文字母
+        boolean isEndChar = false;//结尾字符为true
+        public TrieNode(char data) {
+            this.data = data;
+        }
     }
 }
 ```
@@ -24437,2216 +15632,228 @@ public static void main(String[] args) {
 
 
 
-#### 实现原理
+#### 优化Trie
 
-加锁流程：
+Trie 树是非常耗内存，采取空间换时间的思路。Trie 树的变体有很多，可以在一定程度上解决内存消耗的问题。比如缩点优化，对只有一个子节点的节点，而且此节点不是一个串的结束节点，可以将此节点与子节点合并
 
-* Semaphore 的 permits（state）为 3，这时 5 个线程来获取资源
+![](https://gitee.com/seazean/images/raw/master/Java/Tree-字典树缩点优化.png)
 
-  ```java
-  Sync(int permits) {
-      setState(permits);
-  }
-  ```
 
-  假设其中 Thread-1，Thread-2，Thread-4 CAS 竞争成功，permits 变为 0，而 Thread-0 和 Thread-3 竞争失败，进入 AQS 队列park 阻塞
 
-  ```java
-  // acquire() -> sync.acquireSharedInterruptibly(1);
-  public final void acquireSharedInterruptibly(int arg) {
-      if (Thread.interrupted())
-          throw new InterruptedException();
-      if (tryAcquireShared(arg) < 0)
-          doAcquireSharedInterruptibly(arg);
-  }
-  
-  // tryAcquireShared() -> nonfairTryAcquireShared()
-  // 非公平，公平锁会在循环内 hasQueuedPredecessors()方法判断是否有临头节点(第二个节点)
-  final int nonfairTryAcquireShared(int acquires) {
-      for (;;) {
-          int available = getState();
-          int remaining = available - acquires;
-          // 如果许可已经用完, 返回负数, 表示获取失败,
-          if (remaining < 0 ||
-              // 如果 cas 重试成功, 返回正数, 表示获取成功
-              compareAndSetState(available, remaining))
-              return remaining;
-      }
-  }
-  ```
+参考文章：https://time.geekbang.org/column/article/72414
 
-  ```java
-  private void doAcquireSharedInterruptibly(int arg) {
-      final Node node = addWaiter(Node.SHARED);
-      boolean failed = true;
-      try {
-          for (;;) {
-              final Node p = node.predecessor();
-              if (p == head) {
-                  // 再次尝试获取许可
-                  int r = tryAcquireShared(arg);
-                  if (r >= 0) {
-                      // 成功后本线程出队（AQS）, 所在 Node设置为 head
-                      // r 表示可用资源数, 为 0 则不会继续传播
-                      setHeadAndPropagate(node, r); //参考 PROPAGATE
-                      p.next = null; // help GC
-                      failed = false;
-                      return;
-                  }
-              }
-              // 不成功, 设置上一个节点 waitStatus = Node.SIGNAL, 下轮进入 park 阻塞
-              if (shouldParkAfterFailedAcquire(p, node) &&
-                  parkAndCheckInterrupt())
-                  throw new InterruptedException();
-          }
-      } finally {
-          if (failed)
-              cancelAcquire(node);
-      }
-  }
-  ```
 
-  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-Semaphore工作流程1.png)
 
-* 这时 Thread-4 释放了 permits，状态如下
+***
 
-  ```java
-  // release() -> releaseShared()
-  public final boolean releaseShared(int arg) {    
-      if (tryReleaseShared(arg)) {        
-          doReleaseShared();        
-          return true;    
-      }    
-      return false;
-  }
-  protected final boolean tryReleaseShared(int releases) {    
-      for (;;) {        
-          int current = getState();        
-          int next = current + releases;        
-          if (next < current)            
-              throw new Error("Maximum permit count exceeded");        
-          // 释放锁        
-          if (compareAndSetState(current, next))            
-              return true;    
-      }
-  }
-  private void doReleaseShared() {    
-      // PROPAGATE 详解    
-      // 如果 head.waitStatus == Node.SIGNAL ==> 0 成功, 下一个节点 unpark	
-      // 如果 head.waitStatus == 0 ==> Node.PROPAGATE
-  }
-  ```
 
-  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-Semaphore工作流程2.png)
 
-* 接下来 Thread-0 竞争成功，permits 再次设置为 0，设置自己为 head 节点，unpark 接下来的 Thread-3 节点，但由于 permits 是 0，因此 Thread-3 在尝试不成功后再次进入 park 状态
+## 图
+
+图的邻接表形式：
+
+```java
+public class AGraph {
+    private VertexNode[] adjList;   //邻接数组
+    private int vLen, eLen;         //顶点数和边数
+
+    public AGraph(int vLen, int eLen) {
+        this.vLen = vLen;
+        this.eLen = eLen;
+        adjList = new VertexNode[vLen];
+    }
+    //弧节点
+    private class ArcNode {
+        int adjVex;         //该边所指向的顶点的位置
+        ArcNode nextArc;    //下一条边（弧）
+        //int info  		//添加权值
+
+        public ArcNode(int adjVex) {
+            this.adjVex = adjVex;
+            nextArc = null;
+        }
+    }
+
+    //表顶点
+    private class VertexNode {
+        char data;      	//顶点信息
+        ArcNode firstArc;  	//指向第一条边的指针
+
+        public VertexNode(char data) {
+            this.data = data;
+            firstArc = null;
+        }
+    }
+}
+```
+
+图的邻接矩阵形式：
+
+```java
+public class MGraph {
+    private int[][] edges;      //邻接矩阵定义，有权图将int改为float
+    private int vLen;           //顶点数
+    private int eLen;           //边数
+    private VertexNode[] vex;   //存放节点信息
+
+    public MGraph(int vLen, int eLen) {
+        this.vLen = vLen;
+        this.eLen = eLen;
+        this.edges = new int[vLen][vLen];
+        this.vex = new VertexNode[vLen];
+    }
+
+    private class VertexNode {
+        int num;    //顶点编号
+        String info;  //顶点信息
+
+        public VertexNode(int num) {
+            this.num = num;
+            this.info = null;
+        }
+    }
+}
+```
+
+
+
+图相关的算法需要很多的流程图，此处不再一一列举，推荐参考书籍《数据结构高分笔记》
+
+
+
+***
+
+
+
+## 位图
+
+### 基本介绍
+
+布隆过滤器：一种数据结构，是一个很长的二进制向量（位数组）和一系列随机映射函数（哈希函数），既然是二进制，每个空间存放的不是0就是1，但是初始默认值都是0，所以布隆过滤器不存数据只存状态
+
+<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-Bitmaps数据结构.png" style="zoom: 80%;" />
+
+这种数据结构是高效且性能很好的，但缺点是具有一定的错误识别率和删除难度。并且，理论情况下，添加到集合中的元素越多，误报的可能性就越大
+
+
+
+***
+
+
+
+### 工作流程
+
+向布隆过滤器中添加一个元素key时，会通过多个hash函数得到多个哈希值，在位数组中把对应下标的值置为 1
+
+![](https://gitee.com/seazean/images/raw/master/DB/Redis-布隆过滤器添加数据.png)
+
+布隆过滤器查询一个数据，是否在二进制的集合中，查询过程如下：
+
+- 通过 K 个哈希函数计算该数据，对应计算出的 K 个hash值
+- 通过 hash 值找到对应的二进制的数组下标
+- 判断方法：如果存在一处位置的二进制数据是0，那么该数据不存在。如果都是1，该数据存在集合中
+
+布隆过滤器优缺点：
+
+* 优点：
+  * 二进制组成的数组，占用内存极少，并且插入和查询速度都足够快
+  * 去重方便：当字符串第一次存储时对应的位数组下标设置为 1，当第二次存储相同字符串时，因为对应位置已设置为 1，所以很容易知道此值已经存在
+* 缺点：
+  * 随着数据的增加，误判率会增加：添加数据是通过计算数据的hash值，不同的字符串可能哈希出来的位置相同，导致无法确定到底是哪个数据存在，**这种情况可以适当增加位数组大小或者调整哈希函数**
+  * 无法删除数据：可能存在几个数据占据相同的位置，所以删除一位会导致很多数据失效
+
+* 总结：**布隆过滤器判断某个元素存在，小概率会误判。如果判断某个元素不在，那这个元素一定不在**
+
+
+
+参考文章：https://www.cnblogs.com/ysocean/p/12594982.html
+
+
+
+***
+
+
+
+### Guava
+
+引入 Guava 的依赖：
+
+```xml
+<dependency>
+    <groupId>com.google.guava</groupId>
+    <artifactId>guava</artifactId>
+    <version>28.0-jre</version>
+</dependency>
+```
+
+指定误判率为（0.01）：
+
+```java
+public static void main(String[] args) {
+    // 创建布隆过滤器对象
+    BloomFilter<Integer> filter = BloomFilter.create(
+        Funnels.integerFunnel(),
+        1500,
+        0.01);
+    // 判断指定元素是否存在
+    System.out.println(filter.mightContain(1));
+    System.out.println(filter.mightContain(2));
+    // 将元素添加进布隆过滤器
+    filter.put(1);
+    filter.put(2);
+    System.out.println(filter.mightContain(1));
+    System.out.println(filter.mightContain(2));
+}
+```
+
+
+
+***
+
+
+
+### 实现布隆
+
+```java
+class MyBloomFilter {
+    //布隆过滤器容量
+    private static final int DEFAULT_SIZE = 2 << 28;
+    //bit数组，用来存放key
+    private static BitSet bitSet = new BitSet(DEFAULT_SIZE);
+    //后面hash函数会用到，用来生成不同的hash值，随意设置
+    private static final int[] ints = {1, 6, 16, 38, 58, 68};
+
+    //add方法，计算出key的hash值，并将对应下标置为true
+    public void add(Object key) {
+        Arrays.stream(ints).forEach(i -> bitSet.set(hash(key, i)));
+    }
+
+    //判断key是否存在，true不一定说明key存在，但是false一定说明不存在
+    public boolean isContain(Object key) {
+        boolean result = true;
+        for (int i : ints) {
+            //短路与，只要有一个bit位为false，则返回false
+            result = result && bitSet.get(hash(key, i));
+        }
+        return result;
+    }
+
+    //hash函数，借鉴了hashmap的扰动算法
+    private int hash(Object key, int i) {
+        int h;
+        return key == null ? 0 : (i * (DEFAULT_SIZE - 1) & ((h = key.hashCode()) ^ (h >>> 16)));
+    }
+}
+
+```
+
+
+
+
 
 
 
 ****
-
-
-
-#### PROPAGATE
-
-假设存在某次循环中队列里排队的结点情况为 `head(-1)->t1(-1)->t2(0)`
-假设存在将要信号量释放的 T3 和 T4，释放顺序为先 T3 后 T4
-
-```java
-// 老版本代码
-private void setHeadAndPropagate(Node node, int propagate) {    
-    setHead(node);    
-    // 有空闲资源    
-    if (propagate > 0 && node.waitStatus != 0) {    	
-        Node s = node.next;        
-        // 下一个        
-        if (s == null || s.isShared())            
-            unparkSuccessor(node);        
-    }
-}
-```
-
-正常流程：
-
-* T3 调用 releaseShared(1)，直接调用了 unparkSuccessor(head)，head.waitStatus 从 -1 变为 0
-* T1 由于 T3 释放信号量被唤醒，然后T4 释放，唤醒 T2
-
-BUG流程：
-
-* T3 调用 releaseShared(1)，直接调用了 unparkSuccessor(head)，head.waitStatus 从 -1 变为 0
-* T1 由于 T3 释放信号量被唤醒，调用 tryAcquireShared，返回值为 0（获取锁成功，但没有剩余资源量）
-* T1 还没调用setHeadAndPropagate方法，T4 调用 releaseShared(1)，此时 head.waitStatus 为 0（此时读到的 head 和 1 中为同一个head），不满足条件，因此不调用 unparkSuccessor(head)
-* T1 获取信号量成功，调用 setHeadAndPropagate(t1.node, 0) 时，因为不满足 propagate > 0（剩余资源量 == 0），从而不会唤醒后继结点， **T2 线程得不到唤醒**
-
-
-
-更新后流程：
-
-* T3 调用 releaseShared(1)，直接调用了 unparkSuccessor(head)，head.waitStatus 从 -1 变为 0
-* T1 由于 T3 释放信号量被唤醒，调用 tryAcquireShared，返回值为 0（获取锁成功，但没有剩余资源量）
-
-* T1 还没调用setHeadAndPropagate方法，T4 调用 releaseShared()，此时 head.waitStatus 为 0（此时读到的 head 和 1 中为同一个 head），调用 doReleaseShared() 将等待状态置为**PROPAGATE（-3）**
-* T1 获取信号量成功，调用 setHeadAndPropagate 时，读到 h.waitStatus < 0，从而调用 doReleaseShared() 唤醒 T2
-
-```java
-private void setHeadAndPropagate(Node node, int propagate) {    
-    Node h = head;     
-    // 设置自己为 head 节点    
-    setHead(node);    
-    // propagate 表示有共享资源（例如共享读锁或信号量）    
-    // head waitStatus == Node.SIGNAL 或 Node.PROPAGATE    
-    if (propagate > 0 || h == null || h.waitStatus < 0 ||
-        (h = head) == null || h.waitStatus < 0) {        
-        Node s = node.next;        
-        // 如果是最后一个节点或者是等待共享读锁的节点，做一次唤醒        
-        if (s == null || s.isShared())            
-            doReleaseShared();    
-    
-    }}
-```
-
-```java
-// 唤醒
-private void doReleaseShared() {    
-    // 如果 head.waitStatus == Node.SIGNAL ==> 0 成功, 下一个节点 unpark	
-    // 如果 head.waitStatus == 0 ==> Node.PROPAGATE    
-    for (;;) {        
-        Node h = head;        
-        if (h != null && h != tail) {            
-            int ws = h.waitStatus;            
-            if (ws == Node.SIGNAL) {            	
-                // 防止 unparkSuccessor 被多次执行                
-                if (!compareAndSetWaitStatus(h, Node.SIGNAL, 0))                   
-                    continue;                  
-                // 唤醒后继节点                
-                unparkSuccessor(h);            
-            }            
-            // 如果已经是 0 了，改为 -3，用来解决传播性            
-            else if (ws == 0 && !compareAndSetWaitStatus(h, 0, Node.PROPAGATE))      				continue;                        
-        }        
-        if (h == head)                               
-            break;    
-    }
-}
-```
-
-
-
-
-
-***
-
-
-
-### CountDown
-
-CountDownLatch：计数器，用来进行线程同步协作，等待所有线程完成
-
-构造器：
-
-* `public CountDownLatch(int count)`：初始化唤醒需要的down几步
-
-常用API：
-
-* `public void await() `：让当前线程等待，必须down完初始化的数字才可以被唤醒，否则进入无限等待
-* `public void countDown()`：计数器进行减1（down 1）
-
-应用：同步等待多个 Rest 远程调用结束
-
-```java
-// LOL 10人进入游戏倒计时
-public static void main(String[] args) throws InterruptedException {
-    CountDownLatch latch = new CountDownLatch(10);
-    ExecutorService service = Executors.newFixedThreadPool(10);
-    String[] all = new String[10];
-    Random random = new Random();
-
-    for (int j = 0; j < 10; j++) {
-        int finalJ = j;//常量
-        service.submit(() -> {
-            for (int i = 0; i <= 100; i++) {
-                Thread.sleep(random.nextInt(100));//随机休眠
-                all[finalJ] = i + "%";
-                System.out.print("\r" + Arrays.toString(all));// \r代表覆盖
-            }
-            latch.countDown();
-        });
-    }
-    latch.await();
-    System.out.println("\n游戏开始");
-    service.shutdown();
-}
-/*
-[100%, 100%, 100%, 100%, 100%, 100%, 100%, 100%, 100%, 100%]
-游戏开始
-```
-
-
-
-***
-
-
-
-### CyclicBarrier
-
-CyclicBarrier作用：循环屏障，用来进行线程协作，等待线程满足某个计数，才能触发自己执行
-
-常用方法：
-
-* `public CyclicBarrier(int parties, Runnable barrierAction)`：用于在线程到达屏障parties时，执行barrierAction
-  * parties：代表多少个线程到达屏障开始触发线程任务
-  * barrierAction：线程任务
-* `public int await()`：线程调用 await 方法通知 CyclicBarrier 本线程已经到达屏障
-
-与 CountDownLatch 的区别：CyclicBarrier 是可以重用的
-
-应用：可以实现多线程中，某个任务在等待其他线程执行完毕以后触发
-
-```java
-public static void main(String[] args) {
-    ExecutorService service = Executors.newFixedThreadPool(2);
-    CyclicBarrier barrier = new CyclicBarrier(2, () -> {
-        System.out.println("task1 task2 finish...");
-    });
-
-    for (int i = 0; i < 3; i++) {// 循环重用
-        service.submit(() -> {
-            System.out.println("task1 begin...");
-            try {
-                Thread.sleep(1000);
-                barrier.await();    // 2 - 1 = 1
-            } catch (InterruptedException | BrokenBarrierException e) {
-                e.printStackTrace();
-            }
-        });
-
-        service.submit(() -> {
-            System.out.println("task2 begin...");
-            try {
-                Thread.sleep(2000);
-                barrier.await();    // 1 - 1 = 0
-            } catch (InterruptedException | BrokenBarrierException e) {
-                e.printStackTrace();
-            }
-        });
-    }
-    service.shutdown();
-}
-```
-
-
-
-***
-
-
-
-### Exchanger
-
-Exchanger：交换器，是一个用于线程间协作的工具类，用于进行线程间的数据交换
-
-工作流程：两个线程通过exchange方法交换数据，如果第一个线程先执行exchange()方法，它会一直等待第二个线程也执行exchange方法，当两个线程都到达同步点时，这两个线程就可以交换数据
-
-常用方法：
-
-* `public Exchanger()`：创建一个新的交换器
-* `public V exchange(V x)`：等待另一个线程到达此交换点
-* `public V exchange(V x, long timeout, TimeUnit unit)`：等待一定的时间
-
-```java
-public class ExchangerDemo {
-    public static void main(String[] args) {
-        // 创建交换对象（信使）
-        Exchanger<String> exchanger = new Exchanger<>();
-        new ThreadA(exchanger).start();
-        new ThreadA(exchanger).start();
-    } 
-}
-class ThreadA extends Thread{
-    private Exchanger<String> exchanger();
-    public ThreadA(Exchanger<String> exchanger){this.exchanger = exchanger;}
-     @Override
-    public void run() {
-        try{
-            sout("线程A，做好了礼物A，等待线程B送来的礼物B");
-            //如果等待了5s还没有交换就死亡（抛出异常）！
-            String s = exchanger.exchange("礼物A",5,TimeUnit.SECONDS);
-            sout("线程A收到线程B的礼物：" + s);
-        } catch (Exception e) {
-            System.out.println("线程A等待了5s，没有收到礼物,最终就执行结束了!");
-        }
-    }
-}
-class ThreadB extends Thread{
-    private Exchanger<String> exchanger;
-    public ThreadB(Exchanger<String> exchanger) {
-        this.exchanger = exchanger;
-    }
-    @Override
-    public void run() {
-        try {
-            sout("线程B,做好了礼物B,等待线程A送来的礼物A.....");
-            // 开始交换礼物。参数是送给其他线程的礼物!
-            sout("线程B收到线程A的礼物：" + exchanger.exchange("礼物B"));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-}
-```
-
-
-
-***
-
-
-
-### ConHashMap
-
-（待更新）
-
-#### 并发集合
-
-##### 集合对比
-
-三种集合：
-
-* HashMap是线程不安全的，性能好
-* Hashtable线程安全基于synchronized，综合性能差，已经被淘汰
-* ConcurrentHashMap保证了线程安全，综合性能较好，不止线程安全，而且效率高，性能好
-
-集合对比：
-
-1. Hashtable继承Dictionary类，HashMap、ConcurrentHashMap继承AbstractMap，均实现Map接口
-2. Hashtable底层是数组+链表，JDK8以后HashMap和ConcurrentHashMap底层是数组+链表+红黑树
-3. HashMap线程非安全，Hashtable线程安全，Hashtable的方法都加了synchronized关来确保线程同步
-4. ConcurrentHashMap、Hashtable不允许null值，HashMap允许null值
-5. ConcurrentHashMap、HashMap的初始容量为16，Hashtable初始容量为11，填充因子默认都是0.75，两种Map扩容是当前容量翻倍：capacity * 2，Hashtable扩容时是容量翻倍+1：capacity*2 + 1
-
-![ConcurrentHashMap数据结构](https://gitee.com/seazean/images/raw/master/Java/ConcurrentHashMap数据结构.png)
-
-工作步骤：
-
-1. 初始化，使用 cas 来保证并发安全，懒惰初始化 table
-2. 树化，当 table.length < 64 时，先尝试扩容，超过 64 时，并且 bin.length > 8 时，会将链表树化，树化过程
-   会用 synchronized 锁住链表头
-3. put，如果该 bin 尚未创建，只需要使用 cas 创建 bin；如果已经有了，锁住链表头进行后续 put 操作，元素
-   添加至 bin 的尾部
-4. get，无锁操作仅需要保证可见性，扩容过程中 get 操作拿到的是 ForwardingNode 会让 get 操作在新 table 进行搜索
-5. 扩容，扩容时以 bin 为单位进行，需要对 bin 进行 synchronized，但这时其它竞争线程也不是无事可做，它们会帮助把其它 bin 进行扩容
-6. size，元素个数保存在 baseCount 中，并发时的个数变动保存在 CounterCell[] 当中，最后统计数量时累加
-
-```java
-//需求：多个线程同时往HashMap容器中存入数据会出现安全问题
-public class ConcurrentHashMapDemo{
-    public static Map<String,String> map = new ConcurrentHashMap();
-    
-    public static void main(String[] args){
-        new AddMapDataThread().start();
-        new AddMapDataThread().start();
-        
-        Thread.sleep(1000 * 5);//休息5秒，确保两个线程执行完毕
-        System.out.println("Map大小：" + map.size());//20万
-    }
-}
-
-public class AddMapDataThread extends Thread{
-    @Override
-    public void run() {
-        for(int i = 0 ; i < 1000000 ; i++ ){
-            ConcurrentHashMapDemo.map.put("键："+i , "值"+i);
-        }
-    }
-}
-```
-
-
-
-****
-
-
-
-##### 并发死链
-
-JDK1.7的 HashMap 采用的头插法（拉链法）进行节点的添加，HashMap 的扩容长度为原来的 2 倍
-
-resize() 中 节点（Entry）转移的源代码：
-
-```java
-void transfer(Entry[] newTable, boolean rehash) {
-    int newCapacity = newTable.length;//得到新数组的长度   
-    //遍历整个数组对应下标下的链表，e代表一个节点
-    for (Entry<K,V> e : table) {   
-        //当e == null时，则该链表遍历完了，继续遍历下一数组下标的链表 
-        while(null != e) { 
-            //先把e节点的下一节点存起来
-            Entry<K,V> next = e.next; 
-            if (rehash) {              //得到新的hash值
-                e.hash = null == e.key ? 0 : hash(e.key);  
-            }
-            //在新数组下得到新的数组下标
-            int i = indexFor(e.hash, newCapacity);  
-             //将e的next指针指向新数组下标的位置
-            e.next = newTable[i];   
-            //将该数组下标的节点变为e节点
-            newTable[i] = e; 
-            //遍历链表的下一节点
-            e = next;                                   
-        }
-    }
-}
-```
-
-B站视频解析：https://www.bilibili.com/video/BV1n541177Ea
-
-文章参考：https://www.jianshu.com/p/c4c4ff869149
-
-JDK 8 虽然将扩容算法做了调整，改用了尾插法，但仍不意味着能够在多线程环境下能够安全扩容，还会出现其它问题（如扩容丢数据）
-
-
-
-***
-
-
-
-#### JDK8源码
-
-（待更新）
-
-##### 成员属性
-
-1. 扩容阈值
-
-   ```java
-   // 默认为 0、当初始化时为 -1、当扩容时为 -(1 + 扩容线程数)
-   // 当初始化或扩容完成后，为下一次的扩容的阈值大小，当前数组大小的0.75
-   private transient volatile int sizeCtl;
-   ```
-
-2. Node节点
-
-   ```java
-   static class Node<K,V> implements Map.Entry<K,V> {
-       final int hash;
-       final K key;
-       volatile V val;	// 保证并发的可见性
-       volatile Node<K,V> next;
-       Node(int hash, K key, V val, Node<K,V> next){//构造方法}
-   }
-   ```
-
-3. Hash表
-
-   ```java
-   transient volatile Node<K,V>[] table;
-   private transient volatile Node<K,V>[] nextTable; //扩容时的新 hash 表
-   ```
-
-4. 扩容时如果某个 bin 迁移完毕，用 ForwardingNode 作为旧 table bin 的头结点
-
-   ```java
-   static final class ForwardingNode<K,V> extends Node<K,V> {
-       ForwardingNode(Node<K,V>[] tab) {
-           super(MOVED, null, null, null);// MOVE = -1
-           this.nextTable = tab;
-   	}
-   	//super -> Node节点构造方法：Node(int hash, K key, V val, Node<K,V> next)
-   }
-   ```
-
-5. compute 以及 computeIfAbsent 时，用来占位，计算完成后替换为普通 Node
-
-   ```java
-   static final class ReservationNode<K,V> extends Node<K,V>{
-       ReservationNode() {
-           super(RESERVED, null, null, null);// RESERVED = -3
-       }
-   }
-   ```
-
-6. treebin 的头节点, 存储 root 和 first
-
-   ```java
-   static final class TreeBin<K,V> extends Node<K,V>{}
-   ```
-
-7. treebin 的节点, 存储 parent、left、right
-
-   ```java
-   static final class TreeNode<K,V> extends Node<K,V>{}
-   ```
-
-   
-
-***
-
-
-
-##### 构造方法
-
-懒惰初始化，在构造方法中仅计算了 table 的大小，在第一次使用时才会真正创建：
-
-```java
-public ConcurrentHashMap(int initialCapacity,float loadFactor,int concurrencyLevel){
-    // 参数校验
-    if (!(loadFactor > 0.0f) || initialCapacity < 0 || concurrencyLevel <= 0)
-        throw new IllegalArgumentException();
-    // 检验并发级别
-    if (initialCapacity < concurrencyLevel)   
-        initialCapacity = concurrencyLevel;
-    long size = (long)(1.0 + (long)initialCapacity / loadFactor);
-    // tableSizeFor 仍然是保证计算的大小是 2^n, 即 16,32,64 ...
-    int cap = (size >= (long)MAXIMUM_CAPACITY) ?
-        MAXIMUM_CAPACITY : tableSizeFor((int)size);
-    this.sizeCtl = cap;
-}
-```
-
-
-
-***
-
-
-
-##### 成员方法
-
-1. put()：数组简称（table），链表简称（bin）
-   
-   ```java
-   public V put(K key, V value) {
-       return putVal(key, value, false);
-   }
-   final V putVal(K key, V value, boolean onlyIfAbsent) {
-       // 不允许存null，和hashmap不同
-       if (key == null || value == null) throw new NullPointerException();
-       // spread 方法会综合高位低位, 具有更好的 hash 性
-       int hash = spread(key.hashCode());
-       int binCount = 0;
-       for (Node<K,V>[] tab = table;;) {
-           // f 是链表头节点、fh 是链表头结点的 hash、i 是链表在 table 中的下标
-           Node<K,V> f; int n, i, fh;
-           if (tab == null || (n = tab.length) == 0)
-               // 初始化 table 使用 cas 创建成功, 进入下一轮循环
-               tab = initTable();
-           // 创建头节点
-           else if ((f = tabAt(tab, i = (n - 1) & hash)) == null) {
-               if (casTabAt(tab, i, null, new Node<K,V>(hash, key, value, null)))
-                   break;
-           }
-           // 旧table的某个bin的头节点 hash 为-1，表明正在扩容，可以帮忙扩容
-           else if ((fh = f.hash) == MOVED)
-               tab = helpTransfer(tab, f);
-           else {
-               V oldVal = null;
-               // 锁住链表头节点
-               synchronized (f) {
-                   if (tabAt(tab, i) == f) {	// 确认链表头节点没有被移动
-                       // 链表
-                       if (fh >= 0) {
-                           binCount = 1;
-                           // 遍历链表   binCount 对应 链表节点的个数
-                           for (Node<K,V> e = f;; ++binCount) {
-                               K ek;
-                               if (e.hash == hash &&
-                                   ((ek = e.key) == key ||
-                                    (ek != null && key.equals(ek)))) {
-                                   oldVal = e.val;
-                                   // 是否允许更新旧值
-                                   if (!onlyIfAbsent)
-                                       e.val = value;
-                                   break;
-                               }
-                               Node<K,V> pred = e;
-                               // 最后的节点, 新增 Node 追加至链表尾
-                               if ((e = e.next) == null) {
-                                   pred.next = new Node<K,V>(hash,key,value,null);
-                                   break;
-                               }
-                           }
-                       }
-                       // 红黑树
-                       else if (f instanceof TreeBin) {
-                           Node<K,V> p;
-                           binCount = 2;
-                           // 检查 key 是否已经在树中, 是,则返回对应的 TreeNode
-                           if ((p = ((TreeBin<K,V>)f).putTreeVal(hash, key,
-                                                                 value)) != null) {
-                               oldVal = p.val;
-                               if (!onlyIfAbsent)
-                                   p.val = value;
-                           }
-                       }
-                   }
-               }
-               if (binCount != 0) {
-                   // 如果链表长度 >= 树化阈值(8), 进行链表转为红黑树
-                   if (binCount >= TREEIFY_THRESHOLD)
-                       treeifyBin(tab, i);
-                   if (oldVal != null)
-                       return oldVal;
-                   break;
-               }
-           }
-       }
-       addCount(1L, binCount);
-       return null;
-   }
-   ```
-   
-2. initTable
-
-   ```java
-   private final Node<K,V>[] initTable() {
-       Node<K,V>[] tab; int sc;
-       while ((tab = table) == null || tab.length == 0) {
-           if ((sc = sizeCtl) < 0)
-               // 只允许一个线程对表进行初始化，让掉当前线程 CPU 的时间片，
-               Thread.yield();
-           // 尝试将 sizeCtl 设置为 -1（表示初始化 table）
-           else if (U.compareAndSwapInt(this, SIZECTL, sc, -1)) {
-               // 获得锁, 其它线程会在 while() 循环中 yield 直至 table 创建
-               try {
-                   if ((tab = table) == null || tab.length == 0) {
-                       int n = (sc > 0) ? sc : DEFAULT_CAPACITY;//16
-                       @SuppressWarnings("unchecked")
-                       Node<K,V>[] nt = (Node<K,V>[])new Node<?,?>[n];
-                       table = tab = nt;
-                       sc = n - (n >>> 2);// 16 - 4;n - n/4 = 0.75n
-                   }
-               } finally {
-                   sizeCtl = sc;
-               }
-               break;
-           }
-       }
-       return tab;
-   }
-   ```
-
-3. get
-
-   ```java
-   public V get(Object key) {
-       Node<K,V>[] tab; Node<K,V> e, p; int n, eh; K ek;
-       // spread 方法能确保返回结果是正数
-       int h = spread(key.hashCode());
-       if ((tab = table) != null && (n = tab.length) > 0 &&
-           (e = tabAt(tab, (n - 1) & h)) != null) {
-           // 如果头结点已经是要查找的 key
-           if ((eh = e.hash) == h) {
-               if ((ek = e.key) == key || (ek != null && key.equals(ek)))
-                   return e.val;
-           }
-           // hash 为负数表示该 bin 在扩容中或是 treebin, 这时调用 find 方法来查找
-           else if (eh < 0)
-               return (p = e.find(h, key)) != null ? p.val : null;
-           // 正常遍历链表，用equals比较
-           while ((e = e.next) != null) {
-               if (e.hash == h &&
-                   ((ek = e.key) == key || (ek != null && key.equals(ek))))
-                   return e.val;
-           }
-       }
-       return null;
-   }
-   ```
-
-4. size
-
-   size 计算实际发生在 put，remove 改变集合元素的操作之中
-
-   * 没有竞争发生，向 baseCount 累加计数
-   * 有竞争发生，新建 counterCells，向其中的一个 cell 累加计数
-     * counterCells 初始有两个 cell
-     * 如果计数竞争比较激烈，会创建新的 cell 来累加计数
-
-   ```java
-   public int size() {
-       long n = sumCount();
-       return ((n < 0L) ? 0 :
-               (n > (long)Integer.MAX_VALUE) ? Integer.MAX_VALUE :
-               (int)n);
-   }
-   final long sumCount() {
-       CounterCell[] as = counterCells; CounterCell a;
-       // 将 baseCount 计数与所有 cell 计数累加
-       long sum = baseCount;
-       if (as != null) {
-           for (int i = 0; i < as.length; ++i) {
-               if ((a = as[i]) != null)
-                   sum += a.value;
-           }
-       }
-   }
-   ```
-
-   
-
-***
-
-
-
-#### JDK7源码
-
-##### 分段锁
-
-ConcurrentHashMap 对锁粒度进行了优化，**分段锁技术**，将整张表分成了多个数组（Segment），每个数组又是一个类似 HashMap 数组的结构。`ConcurrentHashMap`允许多个修改操作并发进行，并发时锁住的是每个Segment，其他Segment还是可以操作的，这样不同Segment之间就可以实现并发，大大提高效率
-
-底层结构： **Segment 数组 + HashEntry 数组 + 链表**（数组+链表是HashMap的结构）
-
-* 优点：如果多个线程访问不同的 segment，实际是没有冲突的，这与 jdk8 中是类似的
-
-* 缺点：Segments 数组默认大小为16，这个容量初始化指定后就不能改变了，并且不是懒惰初始化
-
-  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ConcurrentHashMap 1.7底层结构.png)
-
-
-
-
-
-##### 成员方法
-
-1. segment：是一种可重入锁，继承ReentrantLock 
-
-   ```java
-   static final class Segment<K,V> extends ReentrantLock implements Serializable {
-        transient volatile HashEntry<K,V>[] table; //可以理解为包含一个HashMap
-   }
-   ```
-   
-2. 构造方法
-
-   无参构造：
-
-   ```java
-   public ConcurrentHashMap() {
-       this(DEFAULT_INITIAL_CAPACITY, DEFAULT_LOAD_FACTOR, DEFAULT_CONCURRENCY_LEVEL);
-   }
-   ```
-
-   ```java
-   // 默认初始化容量
-   static final int DEFAULT_INITIAL_CAPACITY = 16;
-   // 默认负载因子
-   static final float DEFAULT_LOAD_FACTOR = 0.75f;
-   // 默认并发级别
-   static final int DEFAULT_CONCURRENCY_LEVEL = 16;
-   ```
-
-   说明：并发度就是程序运行时能够**同时更新**ConccurentHashMap且不产生锁竞争的最大线程数，实际上就是ConcurrentHashMap中的分段锁个数。如果并发度设置的过小，会带来严重的锁竞争问题；如果并发度设置的过大，原本位于同一个Segment内的访问会扩散到不同的Segment中，**CPU cache命中率**会下降
-
-   ```java
-   public ConcurrentHashMap(int initialCapacity, float loadFactor, int concurrencyLevel) {
-       // 参数校验
-       if (!(loadFactor > 0) || initialCapacity < 0 || concurrencyLevel <= 0)
-           throw new IllegalArgumentException();
-       // 校验并发级别大小，大于 1<<16，重置为 65536
-       if (concurrencyLevel > MAX_SEGMENTS)
-           concurrencyLevel = MAX_SEGMENTS;
-   	// ssize 必须是 2^n, 即 2, 4, 8, 16 ... 表示了 segments 数组的大小
-       int sshift = 0;
-       int ssize = 1;
-       // 这个循环可以找到 concurrencyLevel 之上最近的 2的次方值 ！！！
-       while (ssize < concurrencyLevel) {
-           ++sshift;
-           ssize <<= 1;
-       }
-   	// 记录段偏移量 默认是 32 - 4 = 28
-       this.segmentShift = 32 - sshift;
-   	// 记录段掩码 默认是 15 即 0000 0000 0000 1111
-       this.segmentMask = ssize - 1;
-       // 最大容量
-       if (initialCapacity > MAXIMUM_CAPACITY)
-           initialCapacity = MAXIMUM_CAPACITY;
-       // c = 容量/ssize ，默认16/16 = 1，计算每个Segment中的类似于HashMap的容量
-       int c = initialCapacity / ssize;
-       if (c * ssize < initialCapacity)
-           ++c; //确保向上取值
-       int cap = MIN_SEGMENT_TABLE_CAPACITY;
-       // Segment 中的类似于 HashMap 的容量至少是2或者2的倍数
-       while (cap < c)
-           cap <<= 1;
-   	// 创建 segment数组，设置segments[0]
-       Segment<K,V> s0 = new Segment<K,V>(loadFactor, (int)(cap * loadFactor),
-                       (HashEntry<K,V>[])new HashEntry[cap]);
-       // 默认大小为 2，负载因子 0.75，扩容阀值是 2*0.75=1.5，插入第二个值时才会进行扩容
-       Segment<K,V>[] ss = (Segment<K,V>[])new Segment[ssize];
-       UNSAFE.putOrderedObject(ss, SBASE, s0);
-       this.segments = ss;
-   }
-   ```
-
-3. put：头插法
-
-   segmentShift 和 segmentMask 的作用是决定将 key 的 hash 结果匹配到哪个 segment，将 hash 值 高位向低位移动 segmentShift 位，结果再与 segmentMask 做位于运算
-
-   ```java
-   public V put(K key, V value) {
-       Segment<K,V> s;
-       if (value == null)
-           throw new NullPointerException();
-       int hash = hash(key);
-       // 计算出 segment 下标
-       int j = (hash >>> segmentShift) & segmentMask;
-       // 获得 segment 对象, 判断是否为 null, 是则创建该 segment
-       if ((s = (Segment<K,V>)UNSAFE.getObject          
-            (segments, (j << SSHIFT) + SBASE)) == null)
-           // 这时不能确定是否真的为 null, 因为其它线程也发现该 segment 为 null,
-   		// 因此在 ensureSegment 里用 cas 方式保证该 segment 安全性
-           s = ensureSegment(j);
-       // 进入 segment 的put 流程
-       return s.put(key, hash, value, false);
-   }
-   ```
-
-   ```java
-   private Segment<K,V> ensureSegment(int k) {
-       final Segment<K,V>[] ss = this.segments;
-       long u = (k << SSHIFT) + SBASE; 
-       Segment<K,V> seg;
-       // 判断 u 位置的 Segment 是否为null
-       if ((seg = (Segment<K,V>)UNSAFE.getObjectVolatile(ss, u)) == null) {
-           Segment<K,V> proto = ss[0]; // use segment 0 as prototype
-           // 获取0号 segment 的 HashEntry<K,V> 初始化长度
-           int cap = proto.table.length;
-           // 获取0号 segment 的 hash 表里的扩容负载因子，所有的 segment 因子是相同的
-           float lf = proto.loadFactor;
-           // 计算扩容阀值
-           int threshold = (int)(cap * lf);
-           // 创建一个 cap 容量的 HashEntry 数组
-           HashEntry<K,V>[] tab = (HashEntry<K,V>[])new HashEntry[cap];
-           // 再次检查 u 位置的 Segment 是否为null，因为这时可能有其他线程进行了操作
-           if ((seg = (Segment<K,V>)UNSAFE.getObjectVolatile(ss, u)) == null) {
-               // 初始化 Segment
-               Segment<K,V> s = new Segment<K,V>(lf, threshold, tab);
-               // 自旋检查 u 位置的 Segment 是否为null
-               while ((seg = (Segment<K,V>)UNSAFE.getObjectVolatile(ss, u))==null) {
-                   // 使用CAS 赋值，只会成功一次
-                   if (UNSAFE.compareAndSwapObject(ss, u, null, seg = s))
-                       break;
-               }
-           }
-       }
-       return seg;
-   }
-   ```
-
-   ConcurrentHashMap 在 put 一个数据时的处理流程：
-
-   * 计算要 put 的 key 的位置，获取指定位置的 Segment
-   * 如果指定位置的 Segment 为空，则初始化这个 Segment
-     * 检查计算得到的位置的 Segment 是否为null，为 null 继续初始化，使用 Segment[0] 的容量和负载因子创建一个 HashEntry 数组
-     * 再次检查计算得到的指定位置的 Segment 是否为null，使用创建的 HashEntry 数组初始化这个 Segment
-     * 自旋判断指定位置的 Segment 是否为null，使用 CAS 在这个位置赋值为 Segment
-   * Segment.put 插入 key value 值
-
-   segment 继承了可重入锁（ReentrantLock），它的 put 方法：
-
-   ```java
-   final V put(K key, int hash, V value, boolean onlyIfAbsent) {
-       // 获取 ReentrantLock 独占锁，获取不到，scanAndLockForPut 获取
-       // 如果是多核 cpu 最多 tryLock 64 次, 进入 lock 流程
-       // 在尝试期间, 还可以顺便看该节点在链表中有没有, 如果没有顺便创建出来
-       HashEntry<K,V> node = tryLock() ? null : scanAndLockForPut(key, hash, value);
-       
-       // 执行到这里 segment 已经被成功加锁, 可以安全执行
-       V oldValue;
-       try {
-           HashEntry<K,V>[] tab = table;
-           // 计算要put的数据位置
-           int index = (tab.length - 1) & hash;
-           // CAS 获取 index 坐标的值
-           HashEntry<K,V> first = entryAt(tab, index);
-           for (HashEntry<K,V> e = first;;) {
-               if (e != null) {
-                   // 检查是否 key 已经存在，如果存在，则遍历链表寻找位置，找到后替换
-                   K k;
-                   if ((k = e.key) == key ||
-                       (e.hash == hash && key.equals(k))) {
-                       oldValue = e.value;
-                       if (!onlyIfAbsent) {
-                           e.value = value;
-                           ++modCount;
-                       }
-                       break;
-                   }
-                   e = e.next;
-               }
-               else {
-                   // first 有值没说明 index 位置已经有值了，有冲突，链表头插法
-                   // 之前等待锁时, node 已经被创建, next 指向链表头
-                   if (node != null)
-                       node.setNext(first);
-                   else
-                       node = new HashEntry<K,V>(hash, key, value, first);
-                   int c = count + 1;
-                   // 容量大于扩容阀值，小于最大容量，进行扩容
-                   if (c > threshold && tab.length < MAXIMUM_CAPACITY)
-                       rehash(node);
-                   else
-                       // 将 node 作为链表头
-                       setEntryAt(tab, index, node);
-                   ++modCount;
-                   count = c;
-                   oldValue = null;
-                   break;
-               }
-           }
-       } finally {
-           unlock();
-       }
-       return oldValue;
-   }
-   ```
-
-4. rehash
-
-   发生在 put 中，因为此时已经获得了锁，因此 rehash 时不需要考虑线程安全
-
-   扩容扩容到原来的两倍，老数组里的数据移动到新的数组时，位置要么不变，要么变为 index+ oldSize，参数里的 node 会在扩容之后使用链表**头插法**插入到指定位置
-
-   ```java
-   private void rehash(HashEntry<K,V> node) {
-       HashEntry<K,V>[] oldTable = table;
-       // 老容量
-       int oldCapacity = oldTable.length;
-       // 新容量，扩大两倍
-       int newCapacity = oldCapacity << 1;
-       // 新的扩容阀值 
-       threshold = (int)(newCapacity * loadFactor);
-       // 创建新的数组
-       HashEntry<K,V>[] newTable = (HashEntry<K,V>[]) new HashEntry[newCapacity];
-       // 新的掩码，比如2扩容后是4，-1是3，二进制就是11
-       int sizeMask = newCapacity - 1;
-       // 遍历老数组
-       for (int i = 0; i < oldCapacity ; i++) {
-           HashEntry<K,V> e = oldTable[i];
-           if (e != null) {
-               HashEntry<K,V> next = e.next;
-               // 计算新的位置，新的位置只可能是不变或者是老的位置+老的容量
-               int idx = e.hash & sizeMask;
-               // next为空，只有一个节点，直接赋值
-               if (next == null)  
-                   newTable[idx] = e;
-               else { 
-                   // 如果是链表
-                   HashEntry<K,V> lastRun = e;
-                   int lastIdx = idx;
-                   // 遍历
-                   for (HashEntry<K,V> last = next; last != null; last = last.next) {
-                       int k = last.hash & sizeMask;
-                       // 与下一个节点位置相等直接继续循环，不相等进入if逻辑块
-                       if (k != lastIdx) {
-                           // 新位置
-                           lastIdx = k;
-                           // 把下一个作为新的链表的首部
-                           lastRun = last;
-                       }
-                   }
-                   // lastRun 后面的元素位置都是相同的，直接作为链表赋值到新位置
-                   newTable[lastIdx] = lastRun;
-                   
-                   // 遍历剩余元素，头插法到指定 k 位置，需要新建节点
-                   for (HashEntry<K,V> p = e; p != lastRun; p = p.next) {
-                       V v = p.value;
-                       int h = p.hash;
-                       int k = h & sizeMask;
-                       HashEntry<K,V> n = newTable[k];
-                       newTable[k] = new HashEntry<K,V>(h, p.key, v, n);
-                   }
-               }
-           }
-       }
-       // 头插法插入新的节点，put的节点，因为是put节点超过阈值才扩容
-       int nodeIndex = node.hash & sizeMask;
-       node.setNext(newTable[nodeIndex]);
-       newTable[nodeIndex] = node;
-       
-       // 替换为新的 HashEntry table
-       table = newTable;
-   }
-   ```
-
-   * 第一个 for 是为了寻找一个节点，该节点后面的所有 next 节点的新位置都是相同的，然后把这个作为一个链表搬迁到新位置
-   * 第二个 for 循环是为了把剩余的元素通过头插法插入到指定位置链表
-
-5. get
-
-   计算得到 key 的存放位置、遍历指定位置查找相同 key 的 value 值
-
-   用于存储键值对数据的`HashEntry`，它的成员变量value跟`next`都是`volatile`类型的，这样就保证别的线程对value值的修改，get方法可以马上看到
-
-   ```java
-   public V get(Object key) {
-       Segment<K,V> s; 
-       HashEntry<K,V>[] tab;
-       int h = hash(key);
-       // u 为 segment 对象在数组中的偏移量
-       long u = (((h >>> segmentShift) & segmentMask) << SSHIFT) + SBASE;
-       // 计算得到 key 的存放位置
-       if ((s = (Segment<K,V>)UNSAFE.getObjectVolatile(segments, u)) != null &&
-           (tab = s.table) != null) {
-           for (HashEntry<K,V> e = (HashEntry<K,V>) UNSAFE.getObjectVolatile
-                    (tab, ((long)(((tab.length - 1) & h)) << TSHIFT) + TBASE);
-                e != null; e = e.next) {
-               // 如果是链表，遍历查找到相同 key 的 value。
-               K k;
-               if ((k = e.key) == key || (e.hash == h && key.equals(k)))
-                   return e.value;
-           }
-       }
-       return null;
-   }
-   ```
-
-6. size
-
-   * 计算元素个数前，先不加锁计算两次，如果前后两次结果如一样，认为个数正确返回
-   * 如果不一样，进行重试，重试次数超过 3，将所有 segment 锁住，重新计算个数返回
-
-   ```java
-   public int size() {
-       final Segment<K,V>[] segments = this.segments;
-       int size;
-       boolean overflow;
-       long sum;
-       long last = 0L;
-       int retries = -1;
-       try {
-           for (;;) {
-               if (retries++ == RETRIES_BEFORE_LOCK) {
-                   // 超过重试次数, 需要创建所有 segment 并加锁
-                   for (int j = 0; j < segments.length; ++j)
-                       ensureSegment(j).lock(); 
-               }
-               sum = 0L;
-               size = 0;
-               overflow = false;
-               for (int j = 0; j < segments.length; ++j) {
-                   Segment<K,V> seg = segmentAt(segments, j);
-                   if (seg != null) {
-                       sum += seg.modCount;
-                       int c = seg.count;
-                       if (c < 0 || (size += c) < 0)
-                           overflow = true;
-                   }
-               }
-               if (sum == last)
-                   break;
-               last = sum;
-           }
-       } finally {
-           if (retries > RETRIES_BEFORE_LOCK) {
-               for (int j = 0; j < segments.length; ++j)
-                   segmentAt(segments, j).unlock();
-           }
-       }
-       return overflow ? Integer.MAX_VALUE : size;
-   }
-   ```
-
-
-
-
-
-***
-
-
-
-### CopyOnWrite
-
-#### 原理分析
-
-CopyOnWriteArrayList 采用了**写入时拷贝**的思想，增删改操作会将底层数组拷贝一份，更改操作在新数组上执行，不影响其它线程的**并发读，读写分离**
-
-CopyOnWriteArraySet 底层对 CopyOnWriteArrayList 进行了包装，装饰器模式
-
-```java
-public CopyOnWriteArraySet() {
-    al = new CopyOnWriteArrayList<E>();
-}
-```
-
-* 存储结构：
-
-  ```java
-  private transient volatile Object[] array;//保证了读写线程之间的可见性
-  ```
-  
-* 新增数据：
-
-  ```java
-  public boolean add(E e) {
-      final ReentrantLock lock = this.lock;
-      lock.lock();
-      try {
-          // 获取旧的数组
-          Object[] elements = getArray();
-          int len = elements.length;
-          // 拷贝新的数组（这里是比较耗时的操作，但不影响其它读线程）
-          Object[] newElements = Arrays.copyOf(elements, len + 1);
-          // 添加新元素
-          newElements[len] = e;
-          // 替换旧的数组
-          setArray(newElements);
-          return true;
-      } finally {
-          lock.unlock();
-      }
-  }
-  ```
-
-* 读操作：
-
-  ```java
-  public void forEach(Consumer<? super E> action) {
-      if (action == null) throw new NullPointerException();
-      // 获取数据集合，放入
-      Object[] elements = getArray();// 返回当前存储数据的数组
-      int len = elements.length;
-      for (int i = 0; i < len; ++i) {
-          //遍历
-          @SuppressWarnings("unchecked") E e = (E) elements[i];
-          // 对给定的参数执行此操作
-          action.accept(e);
-      }
-  }
-  ```
-
-  适合读多写少的应用场景
-  
-* 迭代器：
-
-  CopyOnWriteArrayList 在返回一个迭代器时，会基于创建这个迭代器时内部数组所拥有的数据，创建一个该内部数组当前的快照，然后迭代器遍历的是该快照，而不是内部的数组，所以这种实现方式也存在一定的数据延迟性，即对其他线程并行添加的数据不可见
-
-  ```java
-  public Iterator<E> iterator() {
-      return new COWIterator<E>(getArray(), 0);
-  }
-  
-  // 迭代器会创建一个底层array的快照，故主类的修改不影响该快照
-  static final class COWIterator<E> implements ListIterator<E> {
-      // 内部数组快照
-      private final Object[] snapshot;
-  
-  	//...
-      // 不支持写操作
-      public void remove() {
-          throw new UnsupportedOperationException();
-      } 
-  }
-  ```
-
-  
-
-***
-
-
-
-#### 弱一致性
-
-##### get方法
-
-数据一致性就是读到最新更新的数据：
-
-* 强一致性：当更新操作完成之后，任何多个后续进程或者线程的访问都会返回最新的更新过的值
-
-* 弱一致性：系统并不保证进程或者线程的访问都会返回最新的更新过的值，也不会承诺多久之后可以读到
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/JUC-CopyOnWriteArrayList弱一致性.png" style="zoom:80%;" />
-
-| 时间点 | 操作                         |
-| ------ | ---------------------------- |
-| 1      | Thread-0 getArray()          |
-| 2      | Thread-1 getArray()          |
-| 3      | Thread-1 setArray(arrayCopy) |
-| 4      | Thread-0 array[index]        |
-
-Thread-0读到了脏数据
-
-
-
-##### 迭代器
-
-```java
-public static void main(String[] args) throws InterruptedException {
-    CopyOnWriteArrayList<Integer> list = new CopyOnWriteArrayList<>();
-    list.add(1);
-    list.add(2);
-    list.add(3);
-    Iterator<Integer> iter = list.iterator();
-    new Thread(() -> {
-        list.remove(0);
-        System.out.println(list);[2,3]
-    }).start();
-    
-    Thread.sleep(1000);
-    while (iter.hasNext()) {
-        System.out.println(iter.next());// 1 2 3
-    }
-}
-```
-
-不一定弱一致性就不好
-
-* 数据库的事务隔离级别都是弱一致性的表现
-* 并发高和一致性是矛盾的，需要权衡
-
-
-
-***
-
-
-
-#### 安全失败
-
-在 java.util 包的集合类就都是快速失败的，而 java.util.concurrent 包下的类都是安全失败
-
-* 快速失败：在 A 线程使用**迭代器**对集合进行遍历的过程中，此时 B 线程对集合进行修改（增删改），或者 A 线程在遍历过程中对集合进行修改，都会导致 A 线程抛出 ConcurrentModificationException 异常
-  * AbstractList 类中的成员变量 modCount，用来记录 List 结构发生变化的次数，**结构发生变化**是指添加或者删除至少一个元素的操作，或者是调整内部数组的大小，仅仅设置元素的值不算结构发生变化
-  * 在进行序列化或者迭代等操作时，需要比较操作前后 modCount 是否改变，如果改变了抛出 CME 异常
-* 安全失败：采用安全失败机制的集合容器，在**迭代器**遍历时不是直接在集合内容上访问的，而是先复制原有集合内容，在复制集合上进行遍历。由于迭代时不是对原集合进行遍历，所以在遍历过程中对原集合所作的修改并不能被迭代器检测到，故不会抛 ConcurrentModificationException 异常
-
-
-
-***
-
-
-
-### Collections
-
-Collections类是用来操作集合的工具类，提供了集合转换成线程安全的方法：
-
-```java
- public static <T> Collection<T> synchronizedCollection(Collection<T> c) {
-     return new SynchronizedCollection<>(c);
- }
-public static <K,V> Map<K,V> synchronizedMap(Map<K,V> m) {
-    return new SynchronizedMap<>(m);
-}
-```
-
-源码：底层也是对方法进行加锁
-
-```java
-public boolean add(E e) {
-    synchronized (mutex) {return c.add(e);}
-}
-```
-
-
-
-***
-
-
-
-### SkipListMap
-
-#### 底层结构
-
-跳表 SkipList 是一个**有序的链表**，默认升序，底层是链表加多级索引的结构。跳表可以对元素进行快速查询，类似于平衡树，是一种利用空间换时间的算法
-
-对于单链表，即使链表是有序的，如果查找数据也只能从头到尾遍历链表，所以采用链表上建索引的方式提高效率，跳表的查询时间复杂度是 **O(logn)**，空间复杂度 O(n)
-
-ConcurrentSkipListMap 提供了一种线程安全的并发访问的排序映射表，内部是跳表结构实现，通过 CAS +　volatile 保证线程安全
-
-平衡树和跳表的区别：
-
-* 对平衡树的插入和删除往往很可能导致平衡树进行一次全局的调整；而对跳表的插入和删除，只需要对整个数据结构的局部进行操作
-* 在高并发的情况下，保证整个平衡树的线程安全需要一个全局锁；对于跳表则只需要部分锁，拥有更好的性能
-
-![](https://gitee.com/seazean/images/raw/master/Java/JUC-ConcurrentSkipListMap数据结构.png)
-
-BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引指向链表最下面的节点**
-
-
-
-***
-
-
-
-#### 成员变量
-
-* 标识索引头节点位置
-
-  ```java
-  private static final Object BASE_HEADER = new Object();
-  ```
-
-* 跳表的顶层索引
-
-  ```java
-  private transient volatile HeadIndex<K,V> head;
-  ```
-
-* 比较器，为 null 则使用自然排序
-
-  ```java
-  final Comparator<? super K> comparator;
-  ```
-
-* Node 节点
-
-  ```java
-  static final class Node<K, V>{
-      final K key;  // key 是 final 的, 说明节点一旦定下来, 除了删除, 不然不会改动 key
-      volatile Object value; // 对应的 value
-      volatile Node<K, V> next; // 下一个节点
-  }
-  ```
-
-* 索引节点 Index
-
-  ```java
-  static class Index<K, V>{
-      final Node<K, V> node; // 索引指向的节点, 
-      final Index<K, V> down; // 下边level层的Index，分层索引
-      volatile Index<K, V> right; // 右边的Index
-  
-      // 在index本身和succ之间插入一个新的节点newSucc
-      final boolean link(Index<K, V> succ, Index<K, V> newSucc){
-          Node<K, V> n = node;
-          newSucc.right = succ;
-          return n.value != null && casRight(succ, newSucc);
-      }
-  
-      // 将当前的节点 index 设置其的 right 为 succ.right 等于删除 succ 节点
-      final boolean unlink(Index<K, V> succ){
-          return node.value != null && casRight(succ, succ.right);
-      }
-  }
-  ```
-
-* 头索引节点 HeadIndex
-
-  ```java
-  static final class HeadIndex<K,V> extends Index<K,V> {
-      final int level;// 标示索引层级，所有的HeadIndex都指向同一个Base_header节点
-      HeadIndex(Node<K,V> node, Index<K,V> down, Index<K,V> right, int level) {
-          super(node, down, right);
-          this.level = level;
-      }
-  }
-  ```
-
-
-
-***
-
-
-
-#### 成员方法
-
-##### 其他方法
-
-* 构造方法：
-
-  ```java
-  public ConcurrentSkipListMap() {
-      this.comparator = null;	// comparator为null，使用key的自然序，如字典序
-      initialize();
-  }
-  ```
-
-  ```java
-  private void initialize() {
-      keySet = null;
-      entrySet = null;
-      values = null;
-      descendingMap = null;
-      //初始化索引头节点，Node的Key为null，value为BASE_HEADER对象，下一个节点为null
-      //head的分层索引down为null，链表的后续索引right为null，层级level为第一层。
-      head = new HeadIndex<K,V>(new Node<K,V>(null, BASE_HEADER, null),
-                                null, null, 1);
-  }
-  ```
-
-* cpr：排序
-
-  ```java
-  //　x是比较者，y是被比较者，比较者大于被比较者 返回正数，小于返回负数，相等返回0
-  static final int cpr(Comparator c, Object x, Object y) {
-      return (c != null) ? c.compare(x, y) : ((Comparable)x).compareTo(y);
-  }
-  ```
-
-
-
-***
-
-
-
-##### 添加方法
-
-* findPredecessor()：寻找前驱节点
-
-  从最上层的头索引开始向右查找（链表的后续索引），如果后续索引的节点的Key大于要查找的Key，则头索引移到下层链表，在下层链表查找，以此反复，一直查找到没有下层的分层索引为止，返回该索引的节点。如果后续索引的节点的Key小于要查找的Key，则在该层链表中向后查找。由于查找的key可能永远大于索引节点的 key，所以只能找到目标的前置索引节点。如果遇到空值索引的存在，通过CAS来断开索引
-
-  ```java
-  private Node<K,V> findPredecessor(Object key, Comparator<? super K> cmp) {
-      if (key == null)
-          throw new NullPointerException(); // don't postpone errors
-      for (;;) {
-          // 1.初始化数据q是head，r是最顶层h的右Index节点
-          for (Index<K,V> q = head, r = q.right, d;;) {
-              //2.右索引节点不为空，则进行向下查找
-              if (r != null) {
-                  Node<K,V> n = r.node;
-                  K k = n.key;
-                  //3.n.value为null说明节点n正在删除的过程中
-                  if (n.value == null) {
-                      //在index层直接删除r索引节点，用在删除节点中
-                      if (!q.unlink(r))
-                          break;//重新从 head 节点开始查找，break到步骤1
-                      //删除节点r成功，获取新的r节点, 回到步骤 2 
-  					//还是从这层索引开始向右遍历, 直到 r == null
-                      r = q.right;
-                      continue;
-                  }
-                  //4.若参数key > r.node.key，则继续向右遍历, continue到步骤2处
-                  //  若参数key < r.node.key，直接跳到步骤5
-                  if (cpr(cmp, key, k) > 0) {
-                      q = r;
-                      r = r.right;
-                      continue;
-                  }
-              }
-              //5.先让d指向q的下一层，判断是否是null，是则说明已经到了数据层，也就是第一层
-              if ((d = q.down) == null) 
-                  return q.node;
-              //6.未到数据层, 进行重新赋值向下扫描
-              q = d;	//q指向d
-              r = d.right;//r指向q的后续索引节点
-          }
-      }
-  }
-  ```
-
-  ```java
-  final boolean unlink(Index<K,V> succ) {
-      return node.value != null && casRight(succ, succ.right);
-      //   this.node = q
-  }
-  ```
-
-  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ConcurrentSkipListMap-Put流程.png)
-
-* put()
-
-  ```java
-  public V put(K key, V value) {
-      // 非空判断，value不能为空
-      if (value == null)
-          throw new NullPointerException();
-      return doPut(key, value, false);
-  }
-  ```
-
-  ```java
-  private V doPut(K key, V value, boolean onlyIfAbsent) {
-      Node<K,V> z;
-      if (key == null)// 非空判断，key不能为空
-          throw new NullPointerException();
-      Comparator<? super K> cmp = comparator;
-      // outer循环，处理并发冲突等其他需要重试的情况
-      outer: for (;;) {
-          //0.for (;;)
-          //1.将 key 对应的前继节点找到, b为前继节点, n是前继节点的next, 
-  		//  若没发生条件竞争，最终key在b与n之间 (找到的b在base_level上)
-          for (Node<K,V> b = findPredecessor(key, cmp), n = b.next;;) {
-              // 2.n不为null时b不是链表的最后一个节点
-              if (n != null) {
-                  Object v; int c;
-                  //3.获取 n 的右节点
-                  Node<K,V> f = n.next;
-                  //4.条件竞争
-  				//  并发下其他线程在b之后插入节点或直接删除节点n, break到步骤0
-                  if (n != b.next)              
-                      break;
-                  //  若节点n已经删除, 则调用helpDelete进行帮助删除
-                  if ((v = n.value) == null) {
-                      n.helpDelete(b, f);
-                      break;
-                  }
-                  //5.节点b被删除中，则break到步骤0,
-  				//  调用findPredecessor帮助删除index层的数据, 
-  				//  node层的数据会通过helpDelete方法进行删除
-                  if (b.value == null || v == n) 
-                      break;
-                  //6.若key > n.key，则进行向后扫描
-                  //  若key < n.key，则证明key应该存储在b和n之间
-                  if ((c = cpr(cmp, key, n.key)) > 0) {
-                      b = n;
-                      n = f;
-                      continue;
-                  }
-                  //7.key的值和n.key相等，则可以直接覆盖赋值
-                  if (c == 0) {
-                      // onlyIfAbsent默认false，
-                      if (onlyIfAbsent || n.casValue(v, value)) {
-                          @SuppressWarnings("unchecked") V vv = (V)v;
-                          return vv;//返回被覆盖的值
-                      }
-                      // cas失败，返回0，重试
-                      break;
-                  }
-                  // else c < 0; fall through
-              }
-              //8.此时的情况n.key > key > b.key，对应流程图1中的7
-              //  创建z节点指向n
-              z = new Node<K,V>(key, value, n);
-              //9.尝试把b.next从n设置成z
-              if (!b.casNext(n, z))
-                  // cas失败，返回到步骤0，重试
-                  break;
-              //10.break outer后, 上面的for循环不会再执行, 而后执行下面的代码
-              break outer;
-          }
-      }
-  	// 以上插入节点已经完成，剩下的任务要根据随机数的值来表示是否向上增加层数与上层索引
-      
-      // 随机数
-      int rnd = ThreadLocalRandom.nextSecondarySeed();
-      
-      //如果随机数的二进制与10000000000000000000000000000001进行与运算为0
-      //即随机数的二进制最高位与最末尾必须为0，其他位无所谓，就进入该循环
-      //如果随机数的二进制最高位与最末位不为0，不增加新节点的层数
-      //11.判断是否需要添加level
-      if ((rnd & 0x80000001) == 0) {
-          //索引层level，从1开始
-          int level = 1, max;
-          //12.判断最低位前面有几个1，有几个leve就加几：0..0 0001 1110，这是4个，则1+4=5
-          //   最大有30个就是 1 + 30
-          while (((rnd >>>= 1) & 1) != 0)
-              ++level;
-          Index<K,V> idx = null;//最终指向z节点，就是添加的节点 
-          HeadIndex<K,V> h = head;//指向头索引节点
-          //13.判断level是否比当前最高索引小，图中max为3
-          if (level <= (max = h.level)) {
-              for (int i = 1; i <= level; ++i)
-                  //根据层数level不断创建新增节点的上层索引，索引的后继索引留空
-                  //第一次idx为null，也就是下层索引为空，第二次把上次的索引作为下层索引
-                  idx = new Index<K,V>(z, idx, null);
-              // 循环以后的索引结构
-              // index-3	← idx
-              //   ↓
-              // index-2
-              //   ↓
-              // index-1
-              //   ↓
-              //  z-node
-          }
-          //14.若level > max，则只增加一层index索引层，3+1=4
-          else { 
-              level = max + 1;
-              //创建一个index数组，长度是level+1，假设level是4，创建的数组长度为5
-              @SuppressWarnings("unchecked")Index<K,V>[] idxs =
-                  (Index<K,V>[])new Index<?,?>[level+1];
-              //index[0]的数组slot 并没有使用，只使用 [1,level]这些数组slot了
-              for (int i = 1; i <= level; ++i)
-                  idxs[i] = idx = new Index<K,V>(z, idx, null);
-                		// index-4   ← idx
-                      //   ↓
-                      // index-3
-                      //   ↓
-                      // index-2
-                      //   ↓
-                      // index-1
-                      //   ↓
-                      //  z-node
-              
-              for (;;) {
-                  h = head;
-                  //获取头索引的层数
-                  int oldLevel = h.level;
-                  // 如果level <= oldLevel，说明其他线程进行了index层增加操作，退出循环
-                  if (level <= oldLevel)
-                      break;
-                  //定义一个新的头索引节点
-                  HeadIndex<K,V> newh = h;
-                  //获取头索引的节点，就是BASE_HEADER
-                  Node<K,V> oldbase = h.node;
-                  // 升级baseHeader索引，升高一级，并发下可能升高多级
-                  for (int j = oldLevel+1; j <= level; ++j)
-                      newh = new HeadIndex<K,V>(oldbase, newh, idxs[j], j);
-                  // 执行完for循环之后，baseHeader 索引长这个样子..
-                  // index-4             →             index-4	← idx
-                  //   ↓                                  ↓
-                  // index-3                           index-3     
-                  //   ↓                                  ↓
-                  // index-2                           index-2
-                  //   ↓                                  ↓
-                  // index-1                           index-1
-                  //   ↓                                  ↓
-                  // baseHeader    →    ....      →     z-node
-                  
-                  //cas成功后，map.head字段指向最新的headIndex，baseHeader的index-4s
-                  if (casHead(h, newh)) {
-                      //h指向最新的 index-4 节点
-                      h = newh;
-                      //idx指向z-node的index-3节点，
-  					//因为从index-3-index-1的这些z-node索引节点 都没有插入到索引链表
-                      idx = idxs[level = oldLevel];
-                      break;
-                  }
-              }
-          }
-          //15.把新加的索引插入索引链表中，有上述两种情况，一种索引高度不变，另一种是高度加1
-          splice: for (int insertionLevel = level;;) {
-              //获取头索引的层数， 情况1是3，情况2是4
-              int j = h.level;
-              for (Index<K,V> q = h, r = q.right, t = idx;;) {
-                  //如果头索引为null或者新增节点索引为null，退出插入索引的总循环
-                  if (q == null || t == null)
-                      //此处表示有其他线程删除了头索引或者新增节点的索引
-                      break splice;
-                  //头索引的链表后续索引存在，如果是新层则为新节点索引，如果是老层则为原索引
-                  if (r != null) {
-                      //获取r的节点
-                      Node<K,V> n = r.node;
-                      //插入的key和n.key的比较值
-                      int c = cpr(cmp, key, n.key);
-                      //删除空值索引
-                      if (n.value == null) {
-                          if (!q.unlink(r))
-                              break;
-                          r = q.right;
-                          continue;
-                      }
-                      //key > n.key，向右扫描
-                      if (c > 0) {
-                          q = r;
-                          r = r.right;
-                          continue;
-                      }
-                  }
-                  // 执行到这里，说明key < n.key，判断是否第j层插入新增节点的前置索引
-                  if (j == insertionLevel) {
-                      // 将新索引节点t插入q r之间
-                      if (!q.link(r, t))
-                          break; 
-                      //如果新增节点的值为null，表示该节点已经被其他线程删除
-                      if (t.node.value == null) {
-                          findNode(key);
-                          break splice;
-                      }
-                      // 插入层逐层自减，当为最底层时退出循环
-                      if (--insertionLevel == 0)
-                          break splice;
-                  }
-  				//其他节点随着插入节点的层数下移而下移
-                  if (--j >= insertionLevel && j < level)
-                      t = t.down;
-                  q = q.down;
-                  r = q.right;
-              }
-          }
-      }
-      return null;
-  }
-  ```
-
-* findNode()
-
-  ```java
-  private Node<K,V> findNode(Object key) {
-      //原理与doGet相同，无非是findNode返回节点，doGet返回value
-      if ((c = cpr(cmp, key, n.key)) == 0)
-          return n;
-  }
-  ```
-
-
-
-
-***
-
-
-
-##### 获取方法
-
-* get(key)
-
-  寻找 key 的前继节点 b (这时b.next = null || b.next > key, 则说明不存key对应的 Node)
-
-  接着就判断 b, b.next 与 key之间的关系(其中有些 helpDelete操作)
-
-  ```java
-  public V get(Object key) {
-      return doGet(key);
-  }
-  ```
-
-* doGet()
-
-  ```java
-  private V doGet(Object key) {
-      if (key == null)
-          throw new NullPointerException();
-      Comparator<? super K> cmp = comparator;
-      outer: for (;;) {
-          //1.找到最底层节点的前置节点
-          for (Node<K,V> b = findPredecessor(key, cmp), n = b.next;;) {
-              Object v; int c;
-              //2.如果该前置节点的链表后续节点为null，说明不存在该节点
-              if (n == null)
-                  break outer;
-              //b → n → f
-              Node<K,V> f = n.next;
-              //3.如果n不为前置节点的后续节点，表示已经有其他线程删除了该节点
-              if (n != b.next) 
-                  break;
-              //4.如果后续节点的值为null，删除该节点
-              if ((v = n.value) == null) {
-                  n.helpDelete(b, f);
-                  break;
-              }
-              //5.如果前置节点已被其他线程删除，重新循环
-              if (b.value == null || v == n)
-                  break;
-               //6.如果要获取的key与后续节点的key相等，返回节点的value
-              if ((c = cpr(cmp, key, n.key)) == 0) {
-                  @SuppressWarnings("unchecked") V vv = (V)v;
-                  return vv;
-              }
-              //7.key < n.key，说明被其他线程删除了，或者不存在该节点
-              if (c < 0)
-                  break outer;
-              b = n;
-              n = f;
-          }
-      }
-      return null;
-  }
-  ```
-
-  
-
-****
-
-
-
-##### 删除方法
-
-* remove()
-
-  ```java
-  public V remove(Object key) {
-      return doRemove(key, null);
-  }
-  final V doRemove(Object key, Object value) {
-      if (key == null)
-          throw new NullPointerException();
-      Comparator<? super K> cmp = comparator;
-      outer: for (;;) {
-          //1.找到最底层目标节点的前置节点，b.key < key
-          for (Node<K,V> b = findPredecessor(key, cmp), n = b.next;;) {
-              Object v; int c;
-              //2.如果该前置节点的链表后续节点为null，退出循环
-              if (n == null)
-                  break outer;
-              //b → n → f
-              Node<K,V> f = n.next;
-              if (n != b.next)                    // inconsistent read
-                  break;
-              if ((v = n.value) == null) {        // n is deleted
-                  n.helpDelete(b, f);
-                  break;
-              }
-              if (b.value == null || v == n)      // b is deleted
-                  break;
-              //3.key < n.key，说明被其他线程删除了，或者不存在该节点
-              if ((c = cpr(cmp, key, n.key)) < 0)
-                  break outer;
-              //4.key > n.key，继续向后扫描
-              if (c > 0) {
-                  b = n;
-                  n = f;
-                  continue;
-              }
-              //5.到这里是 key = n.key，value是n.value
-              if (value != null && !value.equals(v))
-                  break outer;
-              //6.把n节点的value置空
-              if (!n.casValue(v, null))
-                  break;
-              //7.给n添加一个删除标志mark，mark.next=f，然后把b.next设置为f，成功后n出队
-              if (!n.appendMarker(f) || !b.casNext(n, f))
-                  //对key对应的index进行删除
-                  findNode(key);
-              else {
-                  //进行操作失败后通过findPredecessor中进行index的删除
-                  findPredecessor(key, cmp);
-                  if (head.right == null)
-                      //进行headIndex 对应的index 层的删除
-                      tryReduceLevel();
-              }
-              @SuppressWarnings("unchecked") V vv = (V)v;
-              return vv;
-          }
-      }
-      return null;
-  }
-  ```
-
-  经过 findPredecessor() 中的 unlink() 后索引已经被删除
-
-  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ConcurrentSkipListMap-remove流程.png)
-
-* appendMarker()
-
-  ```java
-  //添加删除标记节点
-  boolean appendMarker(Node<K,V> f) {
-      //通过CAS生成一个key为null，value为this，next为f的标记节点
-      return casNext(f, new Node<K,V>(f));
-  }
-  ```
-  
-* helpDelete()
-
-  ```java
-  //将添加了删除标记的节点清除
-  void helpDelete(Node<K,V> b, Node<K,V> f) {
-      //this节点的后续节点为f，且本身为b的后续节点，一般都是正确的，除非被别的线程删除
-      if (f == next && this == b.next) {
-          //如果n还还没有被标记
-          if (f == null || f.value != f) 
-              casNext(f, new Node<K,V>(f));
-          else
-              //通过CAS，将b的下一个节点n变成f.next，即成为图中的样式
-              b.casNext(this, f.next);
-      }
-  }
-  ```
-  
-* tryReduceLevel()
-
-  ```java
-  private void tryReduceLevel() {
-      HeadIndex<K,V> h = head;
-      HeadIndex<K,V> d;
-      HeadIndex<K,V> e;
-      if (h.level > 3 &&
-          (d = (HeadIndex<K,V>)h.down) != null &&
-          (e = (HeadIndex<K,V>)d.down) != null &&
-          e.right == null &&
-          d.right == null &&
-          h.right == null &&
-          //设置头索引
-          casHead(h, d) && 
-          //重新检查
-          h.right != null) 
-          //重新检查返回true，说明其他线程增加了索引层级，把索引头节点设置回来
-          casHead(d, h);   
-  }
-  ```
-
-
-
-参考文章：https://my.oschina.net/u/3768341/blog/3135659
-
-参考视频：https://www.bilibili.com/video/BV1Er4y1P7k1
-
-
-
-
-
-***
-
-
-
-### NoBlocking
-
-#### 非阻塞队列
-
-并发编程中，需要用到安全的队列，实现安全队列可以使用2种方式：
-
-* 加锁，这种实现方式是阻塞队列
-* 使用循环CAS算法实现，这种方式是非阻塞队列
-
-ConcurrentLinkedQueue是一个基于链接节点的无界线程安全队列，采用先进先出的规则对节点进行排序，当添加一个元素时，会添加到队列的尾部，当获取一个元素时，会返回队列头部的元素
-
-补充：ConcurrentLinkedDeque 是双向链表结构的无界并发队列
-
-ConcurrentLinkedQueue使用约定：
-
-1. 不允许null入列
-2. 队列中所有未删除的节点的item都不能为null且都能从head节点遍历到
-3. 删除节点是将item设置为null，队列迭代时跳过item为null节点
-4. head节点跟tail不一定指向头节点或尾节点，可能存在滞后性
-
-ConcurrentLinkedQueue由head节点和tail节点组成，每个节点（Node）由节点元素（item）和指向下一个节点的引用(next)组成，组成一张链表结构的队列
-
-```java
-private transient volatile Node<E> head;
-private transient volatile Node<E> tail;
-
-private static class Node<E> {
-    volatile E item;
-    volatile Node<E> next;
-    //.....
-}
-```
-
-
-
-***
-
-
-
-#### 构造方法
-
-* 无参构造方法：
-
-  ```java
-  public ConcurrentLinkedQueue() {
-      // 默认情况下head节点存储的元素为空，tail节点等于head节点
-      head = tail = new Node<E>(null);
-  }
-  ```
-
-* 有参构造方法
-
-  ```java
-  public ConcurrentLinkedQueue(Collection<? extends E> c) {
-      Node<E> h = null, t = null;
-      // 遍历节点
-      for (E e : c) {
-          checkNotNull(e);
-          Node<E> newNode = new Node<E>(e);
-          if (h == null)
-              h = t = newNode;
-          else {
-              // 单向链表
-              t.lazySetNext(newNode);
-              t = newNode;
-          }
-      }
-      if (h == null)
-          h = t = new Node<E>(null);
-      head = h;
-      tail = t;
-  }
-  ```
-
-
-
-***
-
-
-
-#### 入队方法
-
-与传统的链表不同，单线程入队的工作流程：
-
-* 将入队节点设置成当前队列尾节点的下一个节点
-* 更新tail节点，如果tail节点的next节点不为空，则将入队节点设置成tail节点；如果tail节点的next节点为空，则将入队节点设置成tail的next节点，所以tail节点不总是尾节点，**存在滞后性**
-
-```java
-public boolean offer(E e) {
-    checkNotNull(e);
-    // 创建入队节点
-    final Node<E> newNode = new Node<E>(e);
-	
-    // 循环CAS直到入队成功
-    for (Node<E> t = tail, p = t;;) {
-        // p用来表示队列的尾节点，初始情况下等于tail节点，q 是p的next节点
-        Node<E> q = p.next;
-        // 判断p是不是尾节点
-        if (q == null) {
-            // p是尾节点，设置p节点的下一个节点为新节点
-            // 设置成功则casNext返回true，否则返回false，说明有其他线程更新过尾节点
-            // 继续寻找尾节点，继续CAS
-            if (p.casNext(null, newNode)) {
-                // 首次添加时，p等于t，不进行尾节点更新，所以所尾节点存在滞后性
-                if (p != t)
-                    // 将tail设置为新入队的节点，设置失败表示其他线程更新了tail节点
-                    casTail(t, newNode); 
-                return true;
-            }
-        }
-        else if (p == q)
-            // 当tail不指向最后节点时，如果执行出列操作，可能将tail也移除，tail不在链表中 
-        	// 此时需要对tail节点进行复位，复位到head节点
-            p = (t != (t = tail)) ? t : head;
-        else
-            // 推动tail尾节点往队尾移动
-            p = (p != t && t != (t = tail)) ? t : q;
-    }
-}
-```
-
-图解入队：
-
-![](https://gitee.com/seazean/images/raw/master/Java/JUC-ConcurrentLinkedQueue入队操作1.png)
-
-![](https://gitee.com/seazean/images/raw/master/Java/JUC-ConcurrentLinkedQueue入队操作2.png)
-
-![](https://gitee.com/seazean/images/raw/master/Java/JUC-ConcurrentLinkedQueue入队操作3.png)
-
-当tail节点和尾节点的距离**大于等于1**时(每入队两次)更新tail，可以减少CAS更新tail节点的次数，提高入队效率
-
-线程安全问题：
-
-* 线程1线程2同时入队，无论从哪个位置开始并发入队，都可以循环CAS，直到入队成功，线程安全
-* 线程1遍历，线程2入队，所以造成 ConcurrentLinkedQueue 的size是变化，需要加锁保证安全
-* 线程1线程2同时出列，线程也是安全的
-
-
-
-***
-
-
-
-#### 出队方法
-
-出队列的就是从队列里返回一个节点元素，并清空该节点对元素的引用，并不是每次出队都更新head节点
-
-* 当head节点里有元素时，直接弹出head节点里的元素，而不会更新head节点
-* 当head节点里没有元素时，出队操作才会更新head节点
-
-**批处理方式**可以减少使用CAS更新head节点的消耗，从而提高出队效率
-
-```java
-public E poll() {
-    restartFromHead:
-    for (;;) {
-        // p节点表示首节点，即需要出队的节点
-        for (Node<E> h = head, p = h, q;;) {
-            E item = p.item;
-			// 如果p节点的元素不为null，则通过CAS来设置p节点引用元素为null，成功返回item
-            if (item != null && p.casItem(item, null)) {
-                if (p != h)
-                   	// 对head进行移动
-                    updateHead(h, ((q = p.next) != null) ? q : p);
-                return item;
-            }
-           	// 如果头节点的元素为空或头节点发生了变化，这说明头节点被另外一个线程修改了
-            // 那么获取p节点的下一个节点，如果p节点的下一节点为null，则表明队列已经空了
-            else if ((q = p.next) == null) {
-                updateHead(h, p);
-                return null;
-            }
-      		// 第一轮操作失败，下一轮继续，调回到循环前
-            else if (p == q)
-                continue restartFromHead;
-            // 如果下一个元素不为空，则将头节点的下一个节点设置成头节点
-            else
-                p = q;
-        }
-    }
-}
-final void updateHead(Node<E> h, Node<E> p) {
-    if (h != p && casHead(h, p))
-        // 将旧结点h的next域指向为h
-        h.lazySetNext(h);
-}
-```
-
-在更新完head之后，会将旧的头结点h的next域指向为h，图中所示的虚线也就表示这个节点的自引用，被移动的节点(item为null的节点)会被GC回收
-
-![](https://gitee.com/seazean/images/raw/master/Java/JUC-ConcurrentLinkedQueue出队操作1.png)
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/JUC-ConcurrentLinkedQueue出队操作2.png" style="zoom: 67%;" />
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/JUC-ConcurrentLinkedQueue出队操作3.png" style="zoom:67%;" />
-
-如果这时，有一个线程来添加元素，通过tail获取的next节点则仍然是它本身，这就出现了**p == q** 的情况，出现该种情况之后，则会触发执行head的更新，将p节点重新指向为head
-
-参考文章：https://www.jianshu.com/p/231caf90f30b
-
-
-
-***
-
-
-
-#### 成员方法
-
-* peek()
-
-  peek操作会改变head指向，执行peek()方法后head会指向第一个具有非空元素的节点
-
-  ```java
-  // 获取链表的首部元素，只读取而不移除
-  public E peek() {
-      restartFromHead:
-      for (;;) {
-          for (Node<E> h = head, p = h, q;;) {
-              E item = p.item;
-              if (item != null || (q = p.next) == null) {
-                  // 更改h的位置为非空元素节点
-                  updateHead(h, p);
-                  return item;
-              }
-              else if (p == q)
-                  continue restartFromHead;
-              else
-                  p = q;
-          }
-      }
-  }
-  ```
-
-* size()
-
-  用来获取当前队列的元素个数，因为整个过程都没有加锁，在并发环境中从调用size方法到返回结果期间有可能增删元素，导致统计的元素个数不精确
-
-  ```java
-  public int size() {
-      int count = 0;
-      // first()获取第一个具有非空元素的节点，若不存在，返回null
-      // succ(p)方法获取p的后继节点，若p == p的后继节点，则返回head
-      // 类似遍历链表
-      for (Node<E> p = first(); p != null; p = succ(p))
-          if (p.item != null)
-              // 最大返回Integer.MAX_VALUE
-              if (++count == Integer.MAX_VALUE)
-                  break;
-      return count;
-  }
-  ```
-
-* remove()
-
-  ```java
-  public boolean remove(Object o) {
-      // 删除的元素不能为null
-      if (o != null) {
-          Node<E> next, pred = null;
-          for (Node<E> p = first(); p != null; pred = p, p = next) {
-              boolean removed = false;
-              E item = p.item;
-              // 节点元素不为null
-              if (item != null) {
-                  // 若不匹配，则获取next节点继续匹配
-                  if (!o.equals(item)) {
-                      next = succ(p);
-                      continue;
-                  }
-                  // 若匹配，则通过CAS操作将对应节点元素置为null
-                  removed = p.casItem(item, null);
-              }
-              // 获取删除节点的后继节点
-              next = succ(p);
-              // 将被删除的节点移除队列
-              if (pred != null && next != null) // unlink
-                  pred.casNext(p, next);
-              if (removed)
-                  return true;
-          }
-      }
-      return false;
-  }
-  ```
-
-
-
-
-
-
-
-***
 
 
 
@@ -28054,23 +17261,11 @@ Java中 的 Object 类中提供了 `clone()` 方法来实现浅克隆，实现 C
 
 ## 结构型
 
-### 代理模式
-
-#### 基本介绍
+### 模式分类
 
 结构型模式描述如何将类或对象按某种布局组成更大的结构，分为类结构型模式和对象结构型模式，前者采用继承机制来组织接口和类，后者釆用组合或聚合方式来组合对象。由于组合关系或聚合关系比继承关系耦合度低，满足合成复用原则，所以对象结构型模式比类结构型模式具有更大的灵活性
 
 结构型模式分为 7 种：代理模式、适配器模式、装饰者模式、桥接模式、外观模式、组合模式、享元模式
-
-代理模式：由于某些原因需要给某对象提供一个代理以控制对该对象的访问，访问对象不适合或者不能直接引用为目标对象，代理对象作为访问对象和目标对象之间的中介
-
-Java中的代理按照代理类生成时机不同又分为静态代理和动态代理，静态代理代理类在编译期就生成，而动态代理代理类则是在Java运行时动态生成，动态代理又有JDK代理和CGLib代理两种
-
-代理（Proxy）模式分为三种角色：
-
-* 抽象主题（Subject）类：通过接口或抽象类声明真实主题和代理对象实现的业务方法
-* 真实主题（Real Subject）类： 实现了抽象主题中的具体业务，是代理对象所代表的真实对象，是最终要引用的对象
-* 代理（Proxy）类：提供了与真实主题相同的接口，其内部含有对真实主题的引用，可以访问、控制或扩展真实主题的功能
 
 
 
@@ -28078,27 +17273,40 @@ Java中的代理按照代理类生成时机不同又分为静态代理和动态�
 
 
 
+### 代理模式
+
 #### 静态代理
+
+代理模式：由于某些原因需要给某对象提供一个代理以控制对该对象的访问，访问对象不适合或者不能直接引用为目标对象，代理对象作为访问对象和目标对象之间的中介
+
+Java 中的代理按照代理类生成时机不同又分为静态代理和动态代理，静态代理代理类在编译期就生成，而动态代理代理类则是在 Java 运行时动态生成，动态代理又有 JDK 代理和 CGLib 代理两种
+
+代理（Proxy）模式分为三种角色：
+
+* 抽象主题（Subject）类：通过接口或抽象类声明真实主题和代理对象实现的业务方法
+* 真实主题（Real Subject）类： 实现了抽象主题中的具体业务，是代理对象所代表的真实对象，是最终要引用的对象
+* 代理（Proxy）类：提供了与真实主题相同的接口，其内部含有对真实主题的引用，可以访问、控制或扩展真实主题的功能
 
 买票案例，火车站是目标对象，代售点是代理对象
 
 * 卖票接口：
 
   ```java
-  public interface SellTickets {    void sell();}
+  public interface SellTickets {
+      void sell();
+  }
   ```
 
 * 火车站，具有卖票功能，需要实现SellTickets接口
 
   ```java
   public class TrainStation implements SellTickets {
-  
       public void sell() {
           System.out.println("火车站卖票");
       }
   }
   ```
-
+  
 * 代售点：
 
   ```java
@@ -28137,7 +17345,7 @@ Java中的代理按照代理类生成时机不同又分为静态代理和动态�
 
 Java 中提供了一个动态代理类 Proxy，Proxy 并不是代理对象的类，而是提供了一个创建代理对象的静态方法 newProxyInstance() 来获取代理对象
 
-`static Object newProxyInstance(ClassLoader loader,Class[] interfaces, InvocationHandler h) `
+`static Object newProxyInstance(ClassLoader loader,Class[] interfaces,InvocationHandler h) `
 
 * 参数一：类加载器，负责加载代理类
 * 参数二：被代理业务对象的**全部实现的接口**，代理对象与真实对象实现相同接口，知道为哪些方法做代理
@@ -28158,7 +17366,7 @@ Java 中提供了一个动态代理类 Proxy，Proxy 并不是代理对象的类
                   station.getClass().getInterfaces(),
                   new InvocationHandler() {
                       public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                          System.out.println("代理点收取服务费用(JDK动态代理方式)");
+                          System.out.println("代理点(JDK动态代理方式)");
                           //执行真实对象
                           Object result = method.invoke(station, args);
                           return result;
@@ -28190,11 +17398,11 @@ Java 中提供了一个动态代理类 Proxy，Proxy 并不是代理对象的类
 
 ##### 原理解析
 
-JDK动态代理方式的优缺点：
+JDK 动态代理方式的优缺点：
 
 - 优点：可以为任意的接口实现类对象做代理，也可以为被代理对象的所有接口的所有方法做代理，动态代理可以在不改变方法源码的情况下，实现对方法功能的增强，提高了软件的可扩展性，Java 反射机制可以生成任意类型的动态代理类
 - 缺点：**只能针对接口或者接口的实现类对象做代理对象**，普通类是不能做代理对象的
-- 原因：**生成的代理类继承了Proxy**，java 是单继承的，所以JDK动态代理只能代理接口
+- 原因：**生成的代理类继承了 Proxy**，java 是单继承的，所以 JDK 动态代理只能代理接口
 
 ProxyFactory 不是代理模式中的代理类，而代理类是程序在运行过程中动态的在内存中生成的类，可以通过 Arthas 工具查看代理类结构：
 
@@ -28299,8 +17507,8 @@ CGLIB 的优缺点
 * 优点：
   * CGLIB 动态代理**不限定**是否具有接口，可以对任意操作进行增强
   * CGLIB 动态代理无需要原始被代理对象，动态创建出新的代理对象
-  * JDKProxy仅对接口方法做增强，cglib对所有方法做增强，包括Object类中的方法 (toString、hashCode)
-* 缺点：CGLIB 不能对声明为 final 的类或者方法进行代理，因为 CGLIB 原理是动态生成被代理类的子类，继承被代理类
+  * JDKProxy 仅对接口方法做增强，CGLIB 对所有方法做增强，包括 Object 类中的方法，toString、hashCode 等
+* 缺点：CGLIB 不能对声明为 final 的类或者方法进行代理，因为 CGLIB 原理是**动态生成被代理类的子类，继承被代理类**
 
 
 
@@ -28320,9 +17528,10 @@ CGLIB 的优缺点
 
 * 动态代理和静态代理
 
-  动态代理与静态代理相比较，最大的好处是接口中声明的所有方法都被转移到调用处理器一个集中的方法中处理（InvocationHandler.invoke），在接口方法数量比较多的时候，可以进行灵活处理，而不需要像静态代理那样每一个方法进行中转
+  * 动态代理将接口中声明的所有方法都被转移到一个集中的方法中处理（InvocationHandler.invoke），在接口方法数量比较多的时候，可以进行灵活处理，不需要像静态代理那样每一个方法进行中转
 
-  如果接口增加一个方法，静态代理模式除了所有实现类需要实现这个方法外，所有代理类也需要实现此方法。增加了代码维护的复杂度。而动态代理不会出现该问题
+  * 静态代理是在编译时就已经将接口、代理类、被代理类的字节码文件确定下来
+  * 动态代理是程序在运行后通过反射创建字节码文件交由 JVM 加载
 
 代理模式的优缺点：
 
