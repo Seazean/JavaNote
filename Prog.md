@@ -4070,13 +4070,13 @@ static class Entry extends WeakReference<ThreadLocal<?>> {
 
 Memory leak：内存泄漏是指程序中动态分配的堆内存由于某种原因未释放或无法释放，造成系统内存的浪费，导致程序运行速度减慢甚至系统崩溃等严重后果，内存泄漏的堆积终将导致内存溢出
 
-* 如果key使用强引用：
+* 如果 key 使用强引用：
 
   使用完 ThreadLocal ，threadLocal Ref 被回收，但是 threadLocalMap 的 Entry 强引用了 threadLocal，造成 threadLocal 无法被回收，无法完全避免内存泄漏
 
   <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-ThreadLocal内存泄漏强引用.png" style="zoom:67%;" />
 
-* 如果key使用弱引用：
+* 如果 key 使用弱引用：
 
   使用完 ThreadLocal ，threadLocal Ref 被回收，ThreadLocalMap 只持有 ThreadLocal 的弱引用，所以threadlocal 也可以被回收，此时 Entry 中的 key=null。但没有手动删除这个 Entry 或者 CurrentThread 依然运行，依然存在强引用链，value 不会被回收，而这块 value 永远不会被访问到，导致 value 内存泄漏
 
@@ -4091,7 +4091,7 @@ Memory leak：内存泄漏是指程序中动态分配的堆内存由于某种原
 
 解决方法：使用完 ThreadLocal 中存储的内容后将它 **remove** 掉就可以
 
-ThreadLocal 内部解决方法：在 ThreadLocalMap 中的 set/getEntry 方法中，会对 key 进行判断，如果为null (ThreadLocal 为 null) 的话，那么会对Entry进行垃圾回收。所以**使用弱引用比强引用多一层保障**，就算不调用remove，也有机会进行GC
+ThreadLocal 内部解决方法：在 ThreadLocalMap 中的 set/getEntry 方法中，会对 key 进行判断，如果为 null (ThreadLocal 为 null) 的话，那么会对 Entry 进行垃圾回收。所以**使用弱引用比强引用多一层保障**，就算不调用 remove，也有机会进行 GC
 
 
 
@@ -4103,7 +4103,7 @@ ThreadLocal 内部解决方法：在 ThreadLocalMap 中的 set/getEntry 方法�
 
 ##### 基本使用
 
-父子线程：创建子线程的线程是父线程，比如实例中的 main 线程就是父线程
+父子线程：**创建子线程的线程是父线程**，比如实例中的 main 线程就是父线程
 
 ThreadLocal 中存储的是线程的局部变量，如果想实现线程间局部变量传递可以使用 InheritableThreadLocal 类
 
@@ -10439,7 +10439,7 @@ NIO 和 BIO 的比较：
 
 
 
-### NIO原理
+### 实现原理
 
 NIO 三大核心部分：**Channel( 通道) ，Buffer( 缓冲区), Selector( 选择器)**
 
@@ -10455,7 +10455,7 @@ NIO 三大核心部分：**Channel( 通道) ，Buffer( 缓冲区), Selector( 选
 
   Selector 是一个 Java NIO 组件，能够检查一个或多个 NIO 通道，并确定哪些通道已经准备好进行读取或写入，这样一个单独的线程可以管理多个channel，从而管理多个网络连接，提高效率
 
-NIO的实现框架：
+NIO 的实现框架：
 
 ![](https://gitee.com/seazean/images/raw/master/Java/NIO框架.png)
 
@@ -10613,11 +10613,49 @@ public class TestBuffer {
 
 
 
-#### 直接内存
+### 直接内存
 
-##### 源码分析
+#### 基本介绍
 
-Byte Buffer 可以是两种类型，一种是基于直接内存（也就是非堆内存），另一种是非直接内存（也就是堆内存）。对于直接内存来说，JVM将会在IO操作上具有更高的性能，因为直接作用于本地系统的IO操作，而非直接内存，也就是堆内存中的数据，如果要作IO操作，会先从本进程内存复制到直接内存，再利用本地IO处理
+Byte Buffer 有两种类型，一种是基于直接内存（也就是非堆内存），另一种是非直接内存（也就是堆内存）
+
+Direct Memory 优点：
+
+* Java 的 NIO 库允许 Java 程序使用直接内存，用于数据缓冲区，使用 native 函数直接分配堆外内存
+* 读写性能高，读写频繁的场合可能会考虑使用直接内存
+* 大大提高 IO 性能，避免了在 Java 堆和 native 堆来回复制数据
+
+直接内存缺点：
+
+* 分配回收成本较高，不受 JVM 内存回收管理
+* 可能导致 OutOfMemoryError 异常：OutOfMemoryError: Direct buffer memory
+* 回收依赖 System.gc() 的调用，但这个调用 JVM 不保证执行、也不保证何时执行，行为是不可控的。程序一般需要自行管理，成对去调用 malloc、free
+
+应用场景：
+
+- 有很大的数据需要存储，数据的生命周期很长
+- 适合频繁的 IO 操作，比如网络并发场景
+
+数据流的角度：
+
+* 非直接内存的作用链：本地IO → 内核缓冲区→ 用户缓冲区 →内核缓冲区 → 本地IO
+* 直接内存是：本地IO → 直接内存 → 本地IO
+
+JVM 直接内存图解：
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-直接内存直接缓冲区.png" style="zoom: 50%;" />
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-直接内存非直接缓冲区.png" style="zoom:50%;" />
+
+
+
+
+
+***
+
+
+
+#### 源码解析
 
 直接内存创建 Buffer 对象：`static XxxBuffer allocateDirect(int capacity)`
 
@@ -10652,24 +10690,13 @@ Byte Buffer 可以是两种类型，一种是基于直接内存（也就是非�
   }
   ```
 
-数据流的角度：
-
-* 非直接内存的作用链：本地IO → 直接内存 → 非直接内存 → 直接内存 → 本地IO
-* 直接内存是：本地IO → 直接内存 → 本地IO
-
-JVM 直接内存图解：
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-直接内存直接缓冲区.png" style="zoom: 50%;" />
-
-<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-直接内存非直接缓冲区.png" style="zoom:50%;" />
-
 
 
 ***
 
 
 
-##### 分配回收
+#### 分配回收
 
 DirectByteBuffer 源码分析：
 
