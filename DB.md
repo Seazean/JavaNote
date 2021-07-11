@@ -3168,7 +3168,7 @@ LOOP 实现简单的循环，退出循环的条件需要使用其他的语句定
   CLOSE 游标名称;
   ```
 
-* Mysql通过一个Error handler声明来判断指针是否到尾部，并且必须和创建游标的SQL语句声明在一起：
+* Mysql 通过一个 Error handler 声明来判断指针是否到尾部，并且必须和创建游标的 SQL 语句声明在一起：
 
    ```mysql
    DECLARE EXIT HANDLER FOR NOT FOUND (do some action，一般是设置标志变量)
@@ -3178,7 +3178,7 @@ LOOP 实现简单的循环，退出循环的条件需要使用其他的语句定
 
 游标的基本使用
 
-* 数据准备：表student
+* 数据准备：表 student
 
   ```mysql
   id	NAME	age		gender	score
@@ -3188,7 +3188,7 @@ LOOP 实现简单的循环，退出循环的条件需要使用其他的语句定
   4	赵六		26		女		90
   ```
 
-* 创建stu_score表
+* 创建 stu_score 表
 
   ```mysql
   CREATE TABLE stu_score(
@@ -6569,9 +6569,9 @@ long_query_time=10
 
 JDBC（Java DataBase Connectivity，java数据库连接）是一种用于执行SQL语句的Java API，可以为多种关系型数据库提供统一访问，是由一组用Java语言编写的类和接口组成的。
 
-JDBC其实就是java官方提供的一套规范(接口)，用于帮助开发人员快速实现不同关系型数据库的连接
+JDBC 是 java 官方提供的一套规范（接口），用于帮助开发人员快速实现不同关系型数据库的连接
 
-使用JDBC需要导包
+使用 JDBC 需要导包
 
 
 
@@ -6590,7 +6590,7 @@ DriverManager：驱动管理对象
 
   * 代码实现语法：`Class.forName("com.mysql.jdbc.Driver)`
 
-  * com.mysql.jdbc.Driver中存在静态代码块
+  * com.mysql.jdbc.Driver 中存在静态代码块
 
     ```java
     static {
@@ -6602,15 +6602,17 @@ DriverManager：驱动管理对象
     }
     ```
 
-  * 不需要通过DriverManager调用静态方法registerDriver，因为Driver类被使用，则自动执行静态代码块完成注册驱动
+  * 不需要通过 DriverManager 调用静态方法 registerDriver，因为 Driver 类被使用，则自动执行静态代码块完成注册驱动
 
-  * jar包中META-INF目录下存在一个java.sql.Driver配置文件，文件中指定了com.mysql.jdbc.Driver
+  * jar 包中 META-INF 目录下存在一个 java.sql.Driver 配置文件，文件中指定了 com.mysql.jdbc.Driver
 
 * 获取数据库连接并返回连接对象
-  * `public static Connection getConnection(String url, String user, String password)`
-    * url：指定连接的路径。语法：`jdbc:mysql://ip地址(域名):端口号/数据库名称`
-    * user：用户名
-    * password：密码
+
+  `public static Connection getConnection(String url, String user, String password)`
+
+  * url：指定连接的路径。语法：`jdbc:mysql://ip地址(域名):端口号/数据库名称`
+  * user：用户名
+  * password：密码
 
 
 
@@ -6640,16 +6642,16 @@ Connection：数据库连接对象
 
 ### Statement
 
-Statement：执行sql语句的对象
+Statement：执行 sql 语句的对象
 
-- 执行DML语句：`int executeUpdate(String sql)`
-  - 返回值int：返回影响的行数
-  - 参数sql：可以执行insert、update、delete语句
+- 执行 DML 语句：`int executeUpdate(String sql)`
+  - 返回值 int：返回影响的行数
+  - 参数 sql：可以执行 insert、update、delete 语句
 - 执行DQL语句：`ResultSet executeQuery(String sql)`
-  - 返回值ResultSet：封装查询的结果
-  - 参数sql：可以执行select语句
+  - 返回值 ResultSet：封装查询的结果
+  - 参数 sql：可以执行 select 语句
 - 释放资源
-  - 释放此Statement对象的数据库和JDBC资源：`void close()`
+  - 释放此 Statement 对象的数据库和 JDBC 资源：`void close()`
 
 
 
@@ -6659,16 +6661,16 @@ Statement：执行sql语句的对象
 
 ### ResultSet
 
-ResultSet：结果集对象，ResultSet对象维护了一个游标，指向当前的数据行，初始在第一行
+ResultSet：结果集对象，ResultSet 对象维护了一个游标，指向当前的数据行，初始在第一行
 
 - 判断结果集中是否有数据：`boolean next()`
-  - 有数据返回true，并将索引**向下移动一行**
-  - 没有数据返回false
+  - 有数据返回 true，并将索引**向下移动一行**
+  - 没有数据返回 false
 - 获取结果集中**当前行**的数据：`XXX getXxx("列名")`
-  - XXX代表数据类型（要获取某列数据，这一列的数据类型）
-  - 例如：String getString("name");       int getInt("age");
+  - XXX 代表数据类型（要获取某列数据，这一列的数据类型）
+  - 例如：String getString("name");   int getInt("age");
 - 释放资源
-  - 释放ResultSet对象的数据库和JDBC资源：`void close()`
+  - 释放 ResultSet 对象的数据库和 JDBC 资源：`void close()`
 
 
 
@@ -6687,7 +6689,6 @@ CREATE DATABASE db14;
 -- 使用db14数据库
 USE db14;
 
-
 -- 创建student表
 CREATE TABLE student(
 	sid INT PRIMARY KEY AUTO_INCREMENT,	-- 学生id
@@ -6701,7 +6702,7 @@ INSERT INTO student VALUES (NULL,'张三',23,'1999-09-23'),(NULL,'李四',24,'19
 (NULL,'王五',25,'1996-06-06'),(NULL,'赵六',26,'1994-10-20');
 ```
 
-JDBC连接代码：
+JDBC 连接代码：
 
 ```java
 public class JDBCDemo01 {
@@ -6744,7 +6745,7 @@ public class JDBCDemo01 {
 
 ## 工具类
 
-* 配置文件(在src下创建config.properties)
+* 配置文件（在 src 下创建 config.properties）
 
   ```properties
   driverClass=com.mysql.jdbc.Driver
@@ -6974,7 +6975,7 @@ SQL注入攻击演示
 
   ![](https://gitee.com/seazean/images/raw/master/DB/SQL注入攻击演示.png)
 
-* 原理：我们在密码处输入的所有内容，都应该认为是密码的组成，但是Statement对象在执行sql语句时，将一部分内容当做查询条件来执行
+* 原理：我们在密码处输入的所有内容，都应该认为是密码的组成，但是 Statement 对象在执行 sql 语句时，将一部分内容当做查询条件来执行
 
   ```mysql
   SELECT * FROM user WHERE loginname='aaa' AND password='aaa' OR '1'='1';
@@ -6989,16 +6990,16 @@ SQL注入攻击演示
 
 ### 攻击解决
 
-PreparedStatement：预编译sql语句的执行者对象，继承`PreparedStatement extends Statement`
+PreparedStatement：预编译 sql 语句的执行者对象，继承`PreparedStatement extends Statement`
 
-* 在执行sql语句之前，将sql语句进行提前编译。明确sql语句的格式，剩余的内容都会认为是参数
-* sql语句中的参数使用?作为占位符
+* 在执行 sql 语句之前，将 sql 语句进行提前编译。明确 sql 语句的格式，剩余的内容都会认为是参数
+* sql 语句中的参数使用 ? 作为占位符
 
-为?占位符赋值的方法：setXxx(参数1,参数2);
+为 ? 占位符赋值的方法：setXxx（参数1,参数2）
 
-- 参数1：?的位置编号(编号从1开始)
+- 参数1：? 的位置编号(编号从1开始)
 
-- 参数2：?的实际参数
+- 参数2：? 的实际参数
 
   ```java
   String sql = "SELECT * FROM user WHERE loginname=? AND password=?";
@@ -7007,10 +7008,10 @@ PreparedStatement：预编译sql语句的执行者对象，继承`PreparedStatem
   pst.setString(2,password);
   ```
 
-执行sql语句的方法
+执行 sql 语句的方法
 
-- 执行insert、update、delete语句：`int executeUpdate()`
-- 执行select语句：`ResultSet executeQuery()`
+- 执行 insert、update、delete 语句：`int executeUpdate()`
+- 执行 select 语句：`ResultSet executeQuery()`
 
 
 
@@ -7042,10 +7043,10 @@ PreparedStatement：预编译sql语句的执行者对象，继承`PreparedStatem
 
 ### 自定义池
 
-DataSource接口概述：
+DataSource 接口概述：
 
-* java.sql.DataSource接口：数据源(数据库连接池)。
-* Java中DataSource是一个标准的数据源接口，官方提供的数据库连接池规范，连接池类实现该接口。
+* java.sql.DataSource 接口：数据源（数据库连接池）
+* Java 中 DataSource 是一个标准的数据源接口，官方提供的数据库连接池规范，连接池类实现该接口
 * 获取数据库连接对象：`Connection getConnection()`
 
 自定义连接池：
@@ -7128,11 +7129,11 @@ public class MyDataSourceTest {
 
 #### 继承方式
 
-继承(无法解决)
+继承（无法解决）
 
-- 通过打印连接对象，发现DriverManager获取的连接实现类是JDBC4Connection
-- 自定义一个类，继承JDBC4Connection这个类，重写close()方法
-- 通过查看JDBC工具类获取连接的方法我们发现：我们虽然自定义了一个子类，完成了归还连接的操作。但是DriverManager获取的还是JDBC4Connection这个对象，并不是我们的子类对象。
+- 通过打印连接对象，发现 DriverManager 获取的连接实现类是 JDBC4Connection
+- 自定义一个类，继承 JDBC4Connection 这个类，重写 close() 方法
+- 通过查看 JDBC 工具类获取连接的方法我们发现：我们虽然自定义了一个子类，完成了归还连接的操作。但是DriverManager 获取的还是 JDBC4Connection 这个对象，并不是我们的子类对象。
 
 代码实现
 
@@ -7185,11 +7186,11 @@ public class MyDataSourceTest {
 
 
 
-#### 装饰设计模式
+#### 装饰者
 
-自定义类实现Connection接口，通过装饰设计模式，实现和mysql驱动包中的Connection实现类相同的功能
+自定义类实现 Connection 接口，通过装饰设计模式，实现和 mysql 驱动包中的 Connection 实现类相同的功能
 
-在实现类对每个获取的Connection进行装饰：把连接和连接池参数传递进行包装
+在实现类对每个获取的 Connection 进行装饰：把连接和连接池参数传递进行包装
 
 特点：通过装饰设计模式连接类我们发现，有很多需要重写的方法，代码太繁琐
 
@@ -7246,9 +7247,9 @@ public class MyDataSourceTest {
 
 
 
-#### 适配器设计
+#### 适配器
 
-使用适配器设计模式改进，提供一个适配器类，实现Connection接口，将所有功能进行实现(除了close方法)，自定义连接类只需要继承这个适配器类，重写需要改进的close()方法即可。
+使用适配器设计模式改进，提供一个适配器类，实现 Connection 接口，将所有功能进行实现（除了 close 方法），自定义连接类只需要继承这个适配器类，重写需要改进的 close() 方法即可。
 
 特点：自定义连接类中很简洁。剩余所有的方法抽取到了适配器类中，但是适配器这个类还是我们自己编写。
 
@@ -7383,17 +7384,13 @@ public class MyDataSource implements DataSource {
 
 
 
-### 开源连接池
+### 开源项目
 
 #### C3P0
 
-使用C3P0连接池
-    1.导入jar包
-    2.导入配置文件到src目录下
-    3.创建c3p0连接池对象
-    4.获取数据库连接进行使用
+使用 C3P0 连接池：
 
-* 配置文件名称：c3p0-config.xml。必须放在src目录下
+* 配置文件名称：c3p0-config.xml，必须放在 src 目录下
 
   ```xml
   <c3p0-config>
@@ -7454,12 +7451,7 @@ public class MyDataSource implements DataSource {
 
 #### Druid
 
-Druid连接池
-    1.导入jar包
-    2.编写配置文件，放在src目录下
-    3.通过Properties集合加载配置文件
-    4.通过Druid连接池工厂类获取数据库连接池对象
-    5.获取数据库连接，进行使用
+Druid 连接池：
 
 * 配置文件：druid.properties，必须放在src目录下
 
@@ -7510,7 +7502,7 @@ Druid连接池
 
 
 
-### 连接池工具类
+### 工具类
 
 数据库连接池的工具类：
 
@@ -8329,6 +8321,18 @@ Redis 所有操作都是**原子性**的，采用**单线程**机制，命令是
 #### 实现
 
 Redis 字符串对象底层的数据结构实现主要是 int 和简单动态字符串 SDS，是可以修改的字符串，内部结构实现上类似于 Java 的 ArrayList，采用预分配冗余空间的方式来减少内存的频繁分配
+
+```c
+struct sdshdr{
+     //记录buf数组中已使用字节的数量
+     //等于 SDS 保存字符串的长度
+     int len;
+     //记录 buf 数组中未使用字节的数量
+     int free;
+     //字节数组，用于保存字符串
+     char buf[];
+}
+```
 
 ![](https://gitee.com/seazean/images/raw/master/DB/Redis-string数据结构.png)
 

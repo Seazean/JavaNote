@@ -573,24 +573,24 @@ Linux 文件系统目录结构和熟知的 windows 系统有较大区别，没�
 
 #### NAT
 
-首先设置虚拟机中NAT模式的选项，打开VMware，点击“编辑”下的“虚拟网络编辑器”，设置NAT参数
+首先设置虚拟机中 NAT 模式的选项，打开 VMware，点击“编辑”下的“虚拟网络编辑器”，设置 NAT 参数
 	![](https://gitee.com/seazean/images/raw/master/Tool/配置NAT.jpg)
 
-**注意**：VMware Network Adapter VMnet8保证是启用状态
+**注意**：VMware Network Adapter VMnet8 保证是启用状态
 
 ​	![](https://gitee.com/seazean/images/raw/master/Tool/本地主机网络连接.jpg)
 
+
+
 #### 静态IP
 
-在普通用户下不能修改网卡的配置信息；所以我们要切换到root用户进行ip配置：su root/su
+在普通用户下不能修改网卡的配置信息；所以我们要切换到 root 用户进行 ip 配置：su root/su
 
-* 修改网卡配置文件：
-  vi /etc/sysconfig/network-scripts/ifcfg-ens33
-  或者命令前加sudo
-
+* 修改网卡配置文件：`vim /etc/sysconfig/network-scripts/ifcfg-ens33`
+  
 * 修改文件内容
 
-  ```
+  ```sh
   TYPE=Ethernet
   PROXY_METHOD=none
   BROWSER_ONLY=no
@@ -609,7 +609,7 @@ Linux 文件系统目录结构和熟知的 windows 系统有较大区别，没�
   UUID=2c2371f1-ef29-4514-a568-c4904bd11c82
   DEVICE=ens33
   ONBOOT=true
-  *************************************
+  ###########################
   BOOTPROTO设置为静态static
   IPADDR设置ip地址
   NETMASK设置子网掩码
@@ -625,8 +625,8 @@ Linux 文件系统目录结构和熟知的 windows 系统有较大区别，没�
 * 重启网络：systemctl restart network
 
 * 查看IP：ifconfig
-* 宿主机ping虚拟机，虚拟机ping宿主机
-* 在虚拟机中访问网络，需要增加一块NAT网卡
+* 宿主机 ping 虚拟机，虚拟机 ping 宿主机
+* 在虚拟机中访问网络，需要增加一块 NAT 网卡
   * 【虚拟机】--【设置】--【添加】
   * <img src="https://gitee.com/seazean/images/raw/master/Tool/两块NAT网卡.jpg" style="zoom:80%;" />
 

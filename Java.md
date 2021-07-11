@@ -2491,7 +2491,7 @@ s = s + "cd"; //s = abccd 新对象
 `public boolean equalsIgnoreCase(String anotherString)` : 比较字符串的内容，忽略大小写
 `public int length()` : 返回此字符串的长度
 `public String trim()` : 返回一个字符串，其值为此字符串，并删除任何前导和尾随空格
-`public String[] split(String regex)` : 将字符串按给定的正则表达式分割成字符串数组 
+`public String[] split(String regex)` : 将字符串按给定的正则表达式分割成字符串数组
 `public char charAt(int index)` : 取索引处的值
 `public char[] toCharArray()` : 将字符串拆分为字符数组后返回
 `public boolean startsWith(String prefix)` : 测试此字符串是否以指定的前缀开头
@@ -2741,9 +2741,10 @@ private void ensureCapacityInternal(int minimumCapacity) {
         value = Arrays.copyOf(value, newCapacity(minimumCapacity));
     }
 }
- public void getChars(int srcBegin, int srcEnd, char dst[], int dstBegin) {
-	//将字符串中的字符复制到目标字符数组中
-	System.arraycopy(value, srcBegin, dst, dstBegin, srcEnd - srcBegin);
+public void getChars(int srcBegin, int srcEnd, char dst[], int dstBegin) {
+    //将字符串中的字符复制到目标字符数组中
+	// 字符串调用该方法，此时value是字符串的值，dst是目标字符数组
+    System.arraycopy(value, srcBegin, dst, dstBegin, srcEnd - srcBegin);
 }
 ```
 
@@ -3927,6 +3928,7 @@ public class ArrayList<E> extends AbstractList<E>
   //判断是否需要扩容
   private void ensureExplicitCapacity(int minCapacity) {
       modCount++;
+      //索引越界
       if (minCapacity - elementData.length > 0)
           //调用grow方法进行扩容，调用此方法代表已经开始扩容了
           grow(minCapacity);
@@ -4014,7 +4016,7 @@ public class ArrayList<E> extends AbstractList<E>
 
 ##### Vector
 
-同步：Vector的实现与 ArrayList 类似，但是使用了 synchronized 进行同步
+同步：Vector的实现与 ArrayList 类似，但是方法上使用了 synchronized 进行同步
 
 构造：默认长度为10的数组
 
@@ -4094,19 +4096,19 @@ public class ListDemo {
 
 ###### 源码
 
-LinkedList是一个实现了List接口的**双端链表**，支持高效的插入和删除操作，另外也实现了Deque接口，使得LinkedList类也具有队列的特性
+LinkedList 是一个实现了 List 接口的**双端链表**，支持高效的插入和删除操作，另外也实现了 Deque 接口，使得LinkedList 类也具有队列的特性
 
 ![](https://gitee.com/seazean/images/raw/master/Java/LinkedList底层结构.png)
 
 核心方法：
 
-* 使LinkedList变成线程安全的，可以调用静态类Collections类中的synchronizedList方法：
+* 使 LinkedList 变成线程安全的，可以调用静态类 Collections 类中的 synchronizedList 方法：
 
   ```java
   List list = Collections.synchronizedList(new LinkedList(...));
   ```
 
-* 私有内部类Node：这个类代表双端链表的节点Node
+* 私有内部类 Node：这个类代表双端链表的节点 Node
 
   ```java
   private static class Node<E> {
@@ -4143,21 +4145,21 @@ LinkedList是一个实现了List接口的**双端链表**，支持高效的插�
   * remove()、removeFirst()、pop()：删除头节点
   * removeLast()、pollLast()：删除尾节点，removeLast()在链表为空时抛出NoSuchElementException，而pollLast()方法返回null
 
-对比ArrayList
+对比 ArrayList
 
-1. 是否保证线程安全：ArrayList和LinkedList都是不同步的，也就是不保证线程安全
+1. 是否保证线程安全：ArrayList 和 LinkedList 都是不同步的，也就是不保证线程安全
 2. 底层数据结构： 
-   * Arraylist底层使用的是 `Object` 数组
-   * LinkedList 底层使用的是 双向链表 数据结构（JDK1.6 之前为循环链表，JDK1.7 取消了循环）
+   * Arraylist 底层使用的是 `Object` 数组
+   * LinkedList 底层使用的是双向链表数据结构（JDK1.6 之前为循环链表，JDK1.7 取消了循环）
 3. 插入和删除是否受元素位置的影响：
-   * ArrayList采用数组存储，所以插入和删除元素受元素位置的影响
-   * LinkedList采用链表存储，所以对于`add(E e)`方法的插入，删除元素不受元素位置的影响
+   * ArrayList 采用数组存储，所以插入和删除元素受元素位置的影响
+   * LinkedList采 用链表存储，所以对于`add(E e)`方法的插入，删除元素不受元素位置的影响
 4. 是否支持快速随机访问：
-   * LinkedList不支持高效的随机元素访问，ArrayList支持
+   * LinkedList 不支持高效的随机元素访问，ArrayList 支持
    * 快速随机访问就是通过元素的序号快速获取元素对象(对应于`get(int index)`方法)。
 5. 内存空间占用：
-   * ArrayList的空间浪费主要体现在在 list 列表的结尾会预留一定的容量空间
-   * LinkedList的空间花费则体现在它的每一个元素都需要消耗比 ArrayList更多的空间（因为要存放直接后继和直接前驱以及数据）
+   * ArrayList 的空间浪费主要体现在在 list 列表的结尾会预留一定的容量空间
+   * LinkedList 的空间花费则体现在它的每一个元素都需要消耗比 ArrayList更多的空间（因为要存放直接后继和直接前驱以及数据）
 
 
 
@@ -8404,7 +8406,7 @@ public class AnnotationDemo01{
 
 ### 注解解析
 
-开发中经常要知道一个类的成分上面到底有哪些注解，注解有哪些属性数据，这都需要进行注解的解析。
+开发中经常要知道一个类的成分上面到底有哪些注解，注解有哪些属性数据，这都需要进行注解的解析
 
 注解解析相关的接口：
 
@@ -9007,29 +9009,32 @@ person.xsd
 
 #### 解析
 
-* 概述：xml解析就是从xml中获取到数据。DOM是解析思想。
+* 概述：xml 解析就是从 xml 中获取到数据，DOM 是解析思想。
 
 * DOM(Document Object Model)文档对象模型:就是把文档的各个组成部分看做成对应的对象。
   会把xml文件全部加载到内存,在内存中形成一个树形结构,再获取对应的值
 
-* 工具：dom4j属于第三方技术，必须导入该框架
+* 工具：dom4j 属于第三方技术，必须导入该框架
   	https://dom4j.github.io/ 去下载dom4j，在idea中当前模块下新建一个lib文件夹,将jar包复制到文件夹中
   	选中jar包 -> 右键 -> 选择add as library即可
 
-* dom4j实现
-  * dom4j解析器构造方法：`SAXReader saxReader = new SAXReader();`
+* dom4j 实现
+  * dom4j 解析器构造方法：`SAXReader saxReader = new SAXReader();`
+  
   * SAXReader常用API：
+  
     `public Document read(File file)` : Reads a Document from the given File
     `public Document read(InputStream in)` : Reads a Document from the given stream using SAX
-  * Java Class类API
+  
+  * Java Class类API：
+    
     `public InputStream getResourceAsStream(String path)`：加载文件成为一个字节输入流返回
 
 
 
-#### 解析根元素
+#### 根元素
 
-Document方法：
-     Element getRootElement()：获取根元素。
+Document 方法：Element getRootElement() 获取根元素。
 
 ```java
 // 需求：解析books.xml文件成为一个Document文档树对象，得到根元素对象。
@@ -9074,13 +9079,14 @@ public class Dom4JDemo {
 
 
 
-#### 解析子元素
+#### 子元素
 
-Element元素的API:
-    String getName() : 取元素的名称。
-    List<Element> elements() : 获取当前元素下的全部子元素（一级）
-    List<Element> elements(String name) : 获取当前元素下的指定名称的全部子元素（一级）
-    Element element(String name) : 获取当前元素下的指定名称的某个子元素，默认取第一个（一级）
+Element 元素的 API:
+
+* String getName()：取元素的名称。
+* List<Element> elements()：获取当前元素下的全部子元素（一级）
+* List<Element> elements(String name)：获取当前元素下的指定名称的全部子元素（一级）
+* Element element(String name)：获取当前元素下的指定名称的某个子元素，默认取第一个（一级）
 
 ```java
 public class Dom4JDemo {
@@ -9115,16 +9121,22 @@ public class Dom4JDemo {
 
 
 
-#### 解析属性
+***
 
-Element元素的API:
-    List<Attribute> attributes() : 获取元素的全部属性对象。
-    Attribute attribute(String name) : 根据名称获取某个元素的属性对象。
-    String attributeValue(String var) : 直接获取某个元素的某个属性名称的值。
 
-Attribute对象的API:
-    String getName() :  获取属性名称。
-    String getValue() : 获取属性值。
+
+#### 属性
+
+Element 元素的 API：
+
+* List<Attribute> attributes()：获取元素的全部属性对象。
+* Attribute attribute(String name)：根据名称获取某个元素的属性对象。
+* String attributeValue(String var)：直接获取某个元素的某个属性名称的值。
+
+Attribute 对象的API：
+
+* String getName()：获取属性名称。
+* String getValue()：获取属性值。
 
 ```java
 public class Dom4JDemo {
@@ -9154,13 +9166,18 @@ public class Dom4JDemo {
 
 
 
-#### 解析文本
+***
 
-Element:
-    String elementText(String name) : 可以直接获取当前元素的子元素的文本内容
-    String elementTextTrim(String name) : 去前后空格,直接获取当前元素的子元素的文本内容
-    String getText() : 直接获取当前元素的文本内容。
-    String getTextTrim() : 去前后空格,直接获取当前元素的文本内容。
+
+
+#### 文本
+
+Element：
+
+* String elementText(String name)：可以直接获取当前元素的子元素的文本内容
+* String elementTextTrim(String name)：去前后空格,直接获取当前元素的子元素的文本内容
+* String getText()：直接获取当前元素的文本内容。
+* String getTextTrim()：去前后空格,直接获取当前元素的文本内容。
 
 ```java
 public class Dom4JDemo {
@@ -9189,70 +9206,6 @@ public class Dom4JDemo {
 
 
 
-****
-
-
-
-#### 案例
-
-Dom4j解析XML文件:Contacts.xml成为一个Java的对象
-Contacts.xml 解析成===> List<Contact>
-
-```java
-public class Dom4JDemo {
-    public static void main(String[] args) throws Exception {
-        SAXReader saxReader = new SAXReader();
-        Document document = saxReader.read(new File("Day13Demo/src/Contacts.xml"));
-        Element root = docment.getRootElement();
-        // 4.获取根元素下的全部子元素
-        List<Element> sonElements = root.elements();
-        // 5.遍历子元素 封装成List集合对象
-        List<Contact> contactList = new ArrayList<>();
-        if(sonElements != null && sonElements.size() > 0) {
-            for (Element sonElement : sonElements) {
-                Contact c = new Contact();
-                c.setID(Integer.valueOf(sonElement.attributeValue("id")));
-                contact.setVip(Boolean.valueOf(sonElement.attributeValue("vip")));
-                contact.setName(sonElement.elementText("name"));
-                contact.setSex(sonElement.elementText("gender").charAt(0));
-                contact.setEmail(sonElement.elementText("email"));
-                contactList.add(contact);
-            }
-        }
-        System.out.println(contactList);
-    }
-}  
-public class Contact {
-    private int id ;
-    private boolean vip;
-    private String name ;
-    private char sex ;
-    private String email ;
-    //构造器
-}
-```
-
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<contactList>
-    <contact id="1" vip="true">
-        <name>潘金莲</name>
-        <gender>女</gender>
-        <email>panpan@seazean.cn</email>
-    </contact>
-    <contact id="2" vip="false">
-        <name>武松</name>
-        <gender>男</gender>
-        <email>wusong@seazean.cn</email>
-    </contact>
-    <contact id="3" vip="false">
-        <name>武大狼</name>
-        <gender>男</gender>
-        <email>wuda@seazean.cn</email>
-    </contact>
-</contactList>
-```
-
 
 
 ****
@@ -9261,7 +9214,7 @@ public class Contact {
 
 ### XPath
 
-Dom4J 可以用于解析整个XML的数据。但是如果要检索XML中的某些信息，建议使用XPath
+Dom4J 可以用于解析整个 XML 的数据，但是如果要检索 XML 中的某些信息，建议使用 XPath
 
 XPath常用API：
 
@@ -11570,7 +11523,11 @@ public class Test {
 
 补充：
 
-接口中不可以使用静态语句块，但仍然有类变量初始化的赋值操作，因此接口与类一样都会生成 <clinit>() 方法。但两者不同的是，执行接口的 <clinit>() 方法不需要先执行父接口的 <clinit>() 方法，只有当父接口中定义的变量使用时，父接口才会初始化；接口的实现类在初始化时也一样不会执行接口的 <clinit>() 方法
+接口中不可以使用静态语句块，但仍然有类变量初始化的赋值操作，因此接口与类一样都会生成 <clinit>() 方法。但两者不同的是，
+
+* 在初始化一个接口时，并不会先初始化它的父接口，所以执行接口的 <clinit>() 方法不需要先执行父接口的 <clinit>() 方法
+* 在初始化一个类时，不会先初始化所实现的接口，所以接口的实现类在初始化时不会执行接口的 <clinit>() 方法
+* 只有当父接口中定义的变量使用时，父接口才会初始化
 
 
 
@@ -11590,9 +11547,7 @@ public class Test {
   * putstatic：程序给类的静态变量赋值
   * invokestatic ：调用一个类的静态方法
 * 使用 java.lang.reflect 包的方法对类进行反射调用时，如果类没有进行初始化，则需要先触发其初始化
-* 当初始化一个类的时候，如果发现其父类还没有进行过初始化，则需要先触发其父类的初始化，但这条规则并不适用于接口，只有当程序首次使用特定接口的静态字段时，才会导致该接口的初始化
-  - 在初始化一个类时，并不会先初始化所实现的接口
-  - 在初始化一个接口时，并不会先初始化它的父接口
+* 当初始化一个类的时候，如果发现其父类还没有进行过初始化，则需要先触发其父类的初始化，但这条规则并**不适用于接口**
 * 当虚拟机启动时，需要指定一个要执行的主类（包含 main() 方法的那个类），虚拟机会先初始化这个主类
 * MethodHandle 和 VarHandle 可以看作是轻量级的反射调用机制，而要想使用这两个调用， 就必须先使用 findStaticVarHandle 来初始化要调用的类
 * 补充：当一个接口中定义了 JDK8 新加入的默认方法（被default关键字修饰的接口方法）时，如果有这个接口的实现类发生了初始化，那该接口要在其之前被初始化
@@ -15427,10 +15382,10 @@ public class Kmp {
 
 红黑树与 AVL 树的比较：
 
-* AVL树是更加严格的平衡，可以提供更快的查找速度，适用于读取查找密集型任务
-* 红黑树只是做到了近似平衡，并不是严格的平衡，红黑树的插入删除比AVL树更便于控制操作，红黑树更适合于插入修改密集型任务
+* AVL 树是更加严格的平衡，可以提供更快的查找速度，适用于读取查找密集型任务
+* 红黑树只是做到了近似平衡，并不是严格的平衡，红黑树的插入删除比 AVL 树更便于控制操作，红黑树更适合于插入修改密集型任务
 
-- 红黑树整体性能略优于AVL树，AVL树的旋转比红黑树的旋转多，更加难以平衡和调试，插入和删除的效率比红黑树慢。
+- 红黑树整体性能略优于 AVL 树，AVL 树的旋转比红黑树的旋转多，更加难以平衡和调试，插入和删除的效率比红黑树慢。
 
 ![红黑树](https://gitee.com/seazean/images/raw/master/Java/红黑树结构图.png)
 
@@ -16406,7 +16361,7 @@ UML 从目标系统的不同角度出发，定义了用例图、类图、对象�
   }
   ```
 
-* 枚举方式：枚举类型是所用单例实现中唯一一种不会被破坏的单例实现模式
+* 枚举方式：枚举类型是所用单例实现中**唯一一种**不会被破坏的单例实现模式
 
   ```java
   public enum Singleton {
@@ -16511,6 +16466,9 @@ UML 从目标系统的不同角度出发，定义了用例图、类图、对象�
   ```
 
   * 内部类属于懒汉式，类加载本身就是懒惰的，首次调用时加载，然后对单例进行初始化
+  
+    类加载的时候方法不会被调用，所以不会触发 getInstance 方法调用 invokestatic 指令对内部类进行加载；加载的时候字节码常量池会被加入类的运行时常量池，解析工作是将常量池中的符号引用解析成直接引用，但是解析过程不一定非得在类加载时完成，可以延迟到运行时进行，所以静态内部类实现单例会**延迟加载**
+  
   * 没有线程安全问题，静态变量初始化在类加载时完成，由 JVM 保证线程安全
 
 
@@ -19353,7 +19311,9 @@ public class Thread implements Runnable {
 
 #### 应用场景
 
-在 JavaWeb应用开发中，FilterChain是职责链（过滤器）模式的典型应用，以下是 Filter 的模拟实现：
+在 JavaWeb 应用开发中，FilterChain是职责链（过滤器）模式的典型应用，以下是 Filter 的模拟实现：
+
+类似于栈的执行流程，先进先出
 
 * 模拟 web 请求 Request 以及 web 响应 Response：
 
