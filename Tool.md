@@ -618,9 +618,6 @@ Linux 文件系统目录结构和熟知的 windows 系统有较大区别，没�
   执行保存 :wq!
   ```
 
-  <img src="https://gitee.com/seazean/images/raw/master/Tool/配置IP.jpg"  />
-
-
 
 * 重启网络：systemctl restart network
 
@@ -640,18 +637,20 @@ Linux 文件系统目录结构和熟知的 windows 系统有较大区别，没�
 
 ### 远程登陆
 
-**服务器维护工作** 都是在 远程 通过SSH客户端 来完成的， 并没有图形界面， 所有的维护工作都需要通过命令来完成，Linux 服务器需要安装SSH 相关服务。
+**服务器维护工作** 都是在 远程 通过 SSH 客户端 来完成的， 并没有图形界面， 所有的维护工作都需要通过命令来完成，Linux 服务器需要安装 SSH 相关服务。
 首先执行 sudo apt-get install openssh-server 指令。接下来用 xshell 连接。
 
 ![](https://gitee.com/seazean/images/raw/master/Tool/远程连接Linux.png)
 
-先用普通用户登录，然后转成root
+先用普通用户登录，然后转成 root
 
 
 
 
 
 ***
+
+
 
 
 
@@ -843,7 +842,11 @@ gpasswd 是 Linux 工作组文件 /etc/group 和 /etc/gshadow 管理工具，用
 
 
 
+
+
 ***
+
+
 
 
 
@@ -1194,6 +1197,8 @@ exit命令用于退出目前的shell。执行exit可使shell以指定的状态�
 
 
 ***
+
+
 
 
 
@@ -2171,6 +2176,8 @@ ll
 
 
 
+
+
 ## 进程管理
 
 ### 查看进程
@@ -2304,6 +2311,8 @@ pid_t waitpid(pid_t pid, int *status, int options)
 
 
 
+
+
 ## 网络管理
 
 ### network
@@ -2401,6 +2410,8 @@ netstat [-acCeFghilMnNoprstuvVwx][-A<网络类型>][--ip]
 
 
 ***
+
+
 
 
 
@@ -2514,11 +2525,15 @@ mount [-fnrsvw] [-t vfstype] [-o options] device dir
   ![挂载成功](https://gitee.com/seazean/images/raw/master/Tool/挂载成功.png)
 
 * 查看挂载内容：`ls -l -a ./mnt/cdrom/`
-* 卸载cdrom：`umount /mnt/cdrom/`
+* 卸载 cdrom：`umount /mnt/cdrom/`
+
+
 
 
 
 ***
+
+
 
 
 
@@ -2567,8 +2582,8 @@ mount [-fnrsvw] [-t vfstype] [-o options] device dir
 
 ## Shell
 
-> shell脚本类似于我们在Windows中编写的批处理文件，它的扩展名是.bat，比如我们启动Tomcat（后面的课程我们会详细讲解）的时候经常启动的startup.bat，就是Windows下的批处理文件。
-> 而在Linux中，shell脚本编写的文件是以.sh结尾的。比如Tomcat下我们经常使用startup.sh来启动我们的Tomcat，这个startup.sh文件就是shell编写的。
+> shell 脚本类似于我们在 Windows 中编写的批处理文件，它的扩展名是.bat，比如我们启动 Tomcat（后面的课程我们会详细讲解）的时候经常启动的 startup.bat，就是 Windows 下的批处理文件。
+> 而在 Linux 中，shell脚本编写的文件是以 .sh 结尾的。比如 Tomcat 下我们经常使用 startup.sh 来启动我们的 Tomcat，这个 startup.sh 文件就是 shell 编写的。
 
 ### 入门
 

@@ -2299,7 +2299,7 @@ MyBatis 提供了 org.apache.ibatis.jdbc.SQL 功能类，专门用于构建 SQL 
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/MyBatis-执行流程.png)
 
-MyBatis运行原理：
+MyBatis 运行原理：
 
 1. 通过加载 mybatis 全局配置文件以及 mapper 映射文件初始化 configuration 对象 和 Executor 对象（通过全局配置文件中的 defaultExecutorType 初始化）
 
@@ -2421,7 +2421,7 @@ executor.query()：开始执行查询语句，参数要被包装成集合类
 
 * `CachingExecutor.query()`：先执行
 
-  * `MappedStatement.getBoundSql(parameterObject)`：把 **parameterObject** 封装成 BoundSql 对象
+  * `MappedStatement.getBoundSql(parameterObject)`：**把 parameterObject 封装成 BoundSql 对象**
     构造函数中有：`this.parameterObject = parameterObject`
 
     ![](https://gitee.com/seazean/images/raw/master/Frame/MyBatis-boundSql对象.png)
@@ -2442,7 +2442,7 @@ executor.query()：开始执行查询语句，参数要被包装成集合类
     * 判断 BoundSql 是否被创建，没有创建会重新封装参数信息到 BoundSql
     * 创建 StatementHandler 的构造方法中，创建了 ParameterHandler 和 ResultSetHandler 对象
     * `interceptorChain.pluginAll(statementHandler)`：拦截器链
-  * `prepareStatement(StatementHandler, Log)`：**创建 JDBC 的 Statement 对象**，底层通过 JDBC 创建
+  * `prepareStatement()`：通过 StatementHandler **创建 JDBC 的 Statement 对象**
     * `getConnection()`：获取 JDBC 的 Connection 对象
     * `handler.prepare()`：初始化 Statement 对象
       * `instantiateStatement(Connection connection)`：**Connection**  中的方法实例化对象
@@ -6388,7 +6388,7 @@ Spirng可以通过配置的形式控制使用的代理形式，Spring会先判�
 
 ## 事务
 
-### 基本介绍
+### 事务机制
 
 #### 事务介绍
 
@@ -6409,7 +6409,7 @@ Spring在事务开始时，根据当前环境中设置的隔离级别，调整�
 * 在 MySQL 中，恢复机制是通过**回滚日志（undo log）** 实现，所有事务进行的修改都会先先记录到这个回滚日志中，然后再执行相关的操作。如果执行过程中遇到异常的话，直接利用回滚日志中的信息将数据回滚到修改之前的样子即可
 * 回滚日志会先于数据持久化到磁盘上，这样保证了即使遇到数据库突然宕机等情况，当用户再次启动数据库的时候，数据库还能够通过查询回滚日志来回滚将之前未完成的事务
 
-事务不生效的问题：--> **Transactional注解**
+事务不生效的问题：参考 **Transactional注解**
 
 
 
@@ -6425,14 +6425,14 @@ TransactionDefinition 接口中定义了五个表示隔离级别的常量：
 - **TransactionDefinition.ISOLATION_READ_UNCOMMITTED**：最低的隔离级别，允许读取尚未提交的数据变更，可能会导致脏读、幻读或不可重复读
 - **TransactionDefinition.ISOLATION_READ_COMMITTED**：允许读取并发事务已经提交的数据，可以阻止脏读，但是幻读或不可重复读仍有可能发生
 - **TransactionDefinition.ISOLATION_REPEATABLE_READ**：对同一字段的多次读取结果都是一致的，除非数据是被本身事务自己所修改，可以阻止脏读和不可重复读，但幻读仍有可能发生。
-- **TransactionDefinition.ISOLATION_SERIALIZABLE**：最高的隔离级别，完全服从ACID的隔离级别。所有的事务依次逐个执行，这样事务之间就完全不可能产生干扰，也就是说，该级别可以防止脏读、不可重复读以及幻读。但是这将严重影响程序的性能。通常情况下也不会用到该级别
+- **TransactionDefinition.ISOLATION_SERIALIZABLE**：最高的隔离级别，完全服从 ACID 的隔离级别。所有的事务依次逐个执行，这样事务之间就完全不可能产生干扰，也就是说，该级别可以防止脏读、不可重复读以及幻读。但是这将严重影响程序的性能。通常情况下也不会用到该级别
 
 MySQL InnoDB 存储引擎的默认支持的隔离级别是 **REPEATABLE-READ（可重读）**
 
 **分布式事务**：允许多个独立的事务资源（transactional resources）参与到一个全局的事务中
 事务资源通常是关系型数据库系统，但也可以是其他类型的资源，全局事务要求在其中的所有参与的事务要么都提交，要么都回滚，这对于事务原有的ACID要求又有了提高
 
-在使用分布式事务时，InnoDB存储引擎的事务隔离级别必须设置为SERIALIZABLE
+在使用分布式事务时，InnoDB 存储引擎的事务隔离级别必须设置为 SERIALIZABLE
 
 
 
@@ -6477,7 +6477,7 @@ MySQL InnoDB 存储引擎的默认支持的隔离级别是 **REPEATABLE-READ（�
 
 **其他情况：**
 
-* **TransactionDefinition.PROPAGATION_NESTED：** 如果当前存在事务，则创建一个事务作为当前事务的嵌套事务来运行；如果当前没有事务，则该取值等价于TransactionDefinition.PROPAGATION_REQUIRED 
+* TransactionDefinition.PROPAGATION_NESTED： 如果当前存在事务，则创建一个事务作为当前事务的嵌套事务来运行；如果当前没有事务，则该取值等价于 TransactionDefinition.PROPAGATION_REQUIRED 
 
 
 
@@ -6577,9 +6577,9 @@ PlatformTransactionManager，平台事务管理器实现类：
   String transient4; // not persistent because of @Transient
   ```
 
-- JDO(Java Data Object )是Java对象持久化规范，用于存取某种数据库中的对象，并提供标准化API。与JDBC相比，JDBC仅针对关系数据库进行操作，JDO可以扩展到关系数据库、文件、XML、对象数据库（ODBMS）等，可移植性更强
+- JDO（Java Data Object）是Java对象持久化规范，用于存取某种数据库中的对象，并提供标准化API。JDBC 仅针对关系数据库进行操作，JDO 可以扩展到关系数据库、XML、对象数据库等，可移植性更强
 
-- JTA（Java Transaction API）Java EE 标准之一，允许应用程序执行分布式事务处理。与JDBC相比，JDBC事务则被限定在一个单一的数据库连接，而一个JTA事务可以有多个参与者，比如JDBC连接、JDO 都可以参与到一个JTA事务中
+- JTA（Java Transaction API）Java EE 标准之一，允许应用程序执行分布式事务处理。与 JDBC 相比，JDBC 事务则被限定在一个单一的数据库连接，而一个 JTA 事务可以有多个参与者，比如 JDBC 连接、JDO 都可以参与到一个 JTA 事务中
 
 此接口定义了事务的基本操作：
 
@@ -6632,7 +6632,7 @@ TransactionStatus 此接口定义了事务在执行过程中某个时间点上�
 
 
 
-### 编程式事务
+### 编程式
 
 #### 控制方式
 
@@ -6867,13 +6867,13 @@ TransactionStatus 此接口定义了事务在执行过程中某个时间点上�
 
 
 
-### 声明式事务
+### 声明式
 
 #### XML
 
 ##### tx使用
 
-* 删除TxAdvice通知类，开启tx命名空间，配置applicationContext.xml
+* 删除 TxAdvice 通知类，开启 tx 命名空间，配置 applicationContext.xml
 
   ```xml
   <!--配置平台事务管理器-->
@@ -11666,6 +11666,8 @@ public class ProjectExceptionAdivce {
 # Boot
 
 ## 基本概述
+
+（这部分笔记做的非常一般，更新完 Spring 源码马上就会完善）
 
 SpringBoot提供了一种快速使用Spring的方式，基于约定优于配置的思想，可以让开发人员不必在配置与逻辑业务之间进行思维的切换，全身心的投入到逻辑业务的代码编写中，从而大大提高了开发的效率
 

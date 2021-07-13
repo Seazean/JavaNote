@@ -28,6 +28,8 @@
 
 参考视频：https://www.bilibili.com/video/BV16J411h7Rd（推荐观看）
 
+笔记的整体内容依据视频编写，并且随着不断的学习补充了很多新知识
+
 
 
 ***
@@ -272,11 +274,11 @@ Java 中 main 方法启动的是一个进程也是一个主线程，main 方法�
 
 
 
-### 常用API
+### 线程API
 
 #### API
 
-Thread类API：
+Thread 类 API：
 
 | 方法                                        | 说明                                                         |
 | ------------------------------------------- | ------------------------------------------------------------ |
@@ -311,7 +313,7 @@ start：使用 start 是启动新的线程，此线程处于就绪（可运行�
 
 说明：**线程控制资源类**
 
-**面试问题**：run()方法中的异常不能抛出，只能try/catch
+**面试问题**：run() 方法中的异常不能抛出，只能 try/catch
 
 * 因为父类中没有抛出任何异常，子类不能比父类抛出更多的异常
 * 异常不能跨线程传播回 main() 中，因此必须在本地进行处理
@@ -327,7 +329,7 @@ start：使用 start 是启动新的线程，此线程处于就绪（可运行�
 sleep：
 
 * 调用 sleep 会让当前线程从 Running 进入 `Timed Waiting` 状态（阻塞）
-* sleep()方法的过程中，线程不会释放对象锁
+* sleep() 方法的过程中，线程不会释放对象锁
 * 其它线程可以使用 interrupt 方法打断正在睡眠的线程，这时 sleep 方法会抛出 InterruptedException
 * 睡眠结束后的线程未必会立刻得到执行
 * 建议用 TimeUnit 的 sleep 代替 Thread 的 sleep 来获得更好的可读性
@@ -336,7 +338,7 @@ yield：
 
 * 调用 yield 会让提示线程调度器让出当前线程对CPU的使用
 * 具体的实现依赖于操作系统的任务调度器
-* **会放弃CPU资源，锁资源不会释放**
+* **会放弃 CPU 资源，锁资源不会释放**
 
 
 
@@ -346,8 +348,9 @@ yield：
 
 #### priority
 
-* 线程优先级会提示（hint）调度器优先调度该线程，但这仅仅是一个提示，调度器可以忽略它
-* 如果 cpu 比较忙，那么优先级高的线程会获得更多的时间片，但 cpu 闲时，优先级几乎没作
+线程优先级会提示（hint）调度器优先调度该线程，但这仅仅是一个提示，调度器可以忽略它
+
+如果 cpu 比较忙，那么优先级高的线程会获得更多的时间片，但 cpu 闲时，优先级几乎没作用
 
 
 
@@ -416,7 +419,7 @@ public class Test {
 ##### 打断线程
 
 `public void interrupt()`：中断这个线程，异常处理机制
-`public static boolean interrupted()`：判断当前线程是否被打断，清除打断标记
+`public static boolean interrupted()`：判断当前线程是否被打断，，打断返回 true，清除打断标记
 `public boolean isInterrupted()`：判断当前线程是否被打断，不清除打断标记
 
 * sleep，wait，join 方法都会让线程进入阻塞状态，打断进程**会清空打断状态** (false)
@@ -490,7 +493,9 @@ LockSupport.park();//失效，不会阻塞
 System.out.println("unpark...");//和上一个unpark同时执行
 ```
 
-可以修改获取打断状态方法，使用`Thread.interrupted()`，清除打断标记
+可以修改获取打断状态方法，使用 `Thread.interrupted()`，清除打断标记
+
+LockSupport 类在 同步 → park-un 详解
 
 
 
@@ -689,7 +694,7 @@ Java：
 
 
 
-## 管程
+## 同步
 
 ### 临界区
 
@@ -709,7 +714,7 @@ Java：
 * 阻塞式的解决方案：synchronized，Lock
 * 非阻塞式的解决方案：原子变量
 
-管程（monitor）：由局部于自己的若干公共变量和所有访问这些公共变量的过程所组成的软件模块，保证同一时刻只有一个进程在管程内活动，即管程内定义的操作在同一时刻只被一个进程调用(由编译器实现)
+管程（monitor）：由局部于自己的若干公共变量和所有访问这些公共变量的过程所组成的软件模块，保证同一时刻只有一个进程在管程内活动，即管程内定义的操作在同一时刻只被一个进程调用（由编译器实现）
 
 **synchronized：对象锁，保证了临界区内代码的原子性**，采用互斥的方式让同一时刻至多只有一个线程能持有对象锁，其它线程获取这个对象锁时会阻塞，保证拥有锁的线程可以安全的执行临界区内的代码，不用担心线程上下文切换
 
@@ -1648,9 +1653,11 @@ public class demo {
 
 ### park-un
 
+LockSupport 是用来创建锁和其他同步类的线程阻塞原语
+
 LockSupport 类方法：
 
-* `LockSupport.park()`：暂停当前线程
+* `LockSupport.park()`：暂停当前线程，原语
 * `LockSupport.unpark(暂停的线程对象)`：恢复某个线程的运行
 
 ```java
@@ -1670,16 +1677,16 @@ public static void main(String[] args) {
 }
 ```
 
-对比wait & notify：
+LockSupport 出现就是为了增强 wait & notify 的功能：
 
-* wait，notify 和 notifyAll 必须配合 Object Monitor 一起使用，而park、unpark不需要
+* wait，notify 和 notifyAll 必须配合 Object Monitor 一起使用，而 park、unpark 不需要
 * park & unpark以线程为单位来阻塞和唤醒线程，而notify 只能随机唤醒一个等待线程，notifyAll是唤醒所有等待线程
 * **park & unpark 可以先 unpark**，而 wait & notify 不能先 notify。类比生产消费，先消费发现有产品就消费，没有就等待；先生产就直接产生商品，然后线程直接消费
-* wait 会释放锁资源进入等待队列，park 不会释放锁资源，只负责阻塞当前线程，会释放CPU
+* wait 会释放锁资源进入等待队列，park 不会释放锁资源，只负责阻塞当前线程，会释放 CPU
 
 原理：
 
-* 先park：
+* 先 park：
   1. 当前线程调用 Unsafe.park() 方法
   2. 检查 _counter ，本情况为 0，这时获得 _mutex 互斥锁
   3. 线程进入 _cond 条件变量阻塞
@@ -1688,7 +1695,7 @@ public static void main(String[] args) {
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JUC-park原理1.png)
 
-* 先unpark：
+* 先 unpark：
 
   1. 调用 Unsafe.unpark(Thread_0) 方法，设置 _counter 为 1
   2. 当前线程调用 Unsafe.park() 方法
@@ -1720,7 +1727,7 @@ public static void main(String[] args) {
   * 如果该对象没有逃离方法的作用访问，它是线程安全的（每一个方法有一个栈帧）
   * 如果该对象逃离方法的作用范围，需要考虑线程安全问题（暴露引用）
 
-常见线程安全类：String、Integer、StringBuffer、Random、Vector、Hashtable、java.util.concurrent包
+常见线程安全类：String、Integer、StringBuffer、Random、Vector、Hashtable、java.util.concurrent 包
 
 * 线程安全的是指，多个线程调用它们同一个实例的某个方法时，是线程安全的
 
@@ -5200,8 +5207,8 @@ AQS：AbstractQueuedSynchronizer，是阻塞式锁和相关的同步器工具的
 
 * 用 state 属性来表示资源的状态（分**独占模式和共享模式**），子类需要定义如何维护这个状态，控制如何获取
   锁和释放锁
-  * 独占模式是只有一个线程能够访问资源，如ReentrantLock
-  * 共享模式允许多个线程访问资源，如Semaphore，ReentrantReadWriteLock是组合式
+  * 独占模式是只有一个线程能够访问资源，如 ReentrantLock
+  * 共享模式允许多个线程访问资源，如 Semaphore，ReentrantReadWriteLock 是组合式
 * 提供了基于 FIFO 的等待队列，类似于 Monitor 的 EntryList（**同步队列：双向，便于出队入队**）
 * 条件变量来实现等待、唤醒机制，支持多个条件变量，类似于 Monitor 的 WaitSet（**条件队列：单向**）
 
@@ -5211,7 +5218,7 @@ AQS 核心思想：
 
 * 被请求的共享资源被占用，AQS 用 CLH 队列实现线程阻塞等待以及被唤醒时锁分配的（park）机制，即将暂时获取不到锁的线程加入到队列中
 
-  CLH是一种基于单向链表的**高性能、公平的自旋锁**，AQS 是将每条请求共享资源的线程封装成一个 CLH 锁队列的一个结点（Node）来实现锁的分配
+  CLH 是一种基于单向链表的**高性能、公平的自旋锁**，AQS 是将每条请求共享资源的线程封装成一个 CLH 锁队列的一个结点（Node）来实现锁的分配
 
   <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-AQS原理图.png" style="zoom: 80%;" />
 
@@ -5244,21 +5251,21 @@ AQS 核心思想：
   }
   ```
 
-state设计：
+AQS 中 state 设计：
 
 * state 使用了 32bit int 来维护同步状态
 * state **使用 volatile 修饰配合 cas** 保证其修改时的原子性
-* state 表示线程重入的次数或者许可进入的线程数
+* state 表示**线程重入的次数或者许可进入的线程数**
 * state API：
   `protected final int getState()`：获取 state 状态
   `protected final void setState(int newState)`：设置 state 状态
-  `protected final boolean compareAndSetState(int expect,int update)`：**CAS**设置 state
+  `protected final boolean compareAndSetState(int expect,int update)`：**cas** 设置 state
 
-waitstate设计：
+Node 节点中 waitstate 设计：
 
-* 使用**volatile 修饰配合 cas**保证其修改时的原子性
+* 使用 **volatile 修饰配合 CAS** 保证其修改时的原子性
 
-* 表示Node节点的状态，有以下几种状态：
+* 表示 Node 节点的状态，有以下几种状态：
 
   ```java
   //由于超时或中断，此节点被取消，不会再改变状态
@@ -5300,6 +5307,7 @@ waitstate设计：
               node.prev = t;
               // 将 tail 从原来的 tail 设置为 node
               if (compareAndSetTail(t, node)) {
+                  //将原来的尾节点（哑元节点）的 next 指向新节点
                   t.next = node;
                   return t;
               }
@@ -5307,7 +5315,7 @@ waitstate设计：
       }
   }
   ```
-
+  
   
 
 ***
@@ -5419,7 +5427,7 @@ class MyLock implements Lock {
 
 #### 锁对比
 
-ReentrantLock相对于 synchronized 它具备如下特点：
+ReentrantLock 相对于 synchronized 它具备如下特点：
 
 1. 锁的实现：synchronized 是 JVM 实现的，而 ReentrantLock 是 JDK 实现的
 2. 性能：新版本 Java 对 synchronized 进行了很多优化，synchronized 与 ReentrantLock 大致相同
@@ -5509,7 +5517,7 @@ public ReentrantLock() {
 
 NonfairSync 继承自 AQS
 
-没有竞争：ExclusiveOwnerThread属于 Thread-0，state设置为1
+没有竞争：ExclusiveOwnerThread属于 Thread-0，state 设置为1
 
 ```java
 final void lock() {
@@ -5566,13 +5574,14 @@ Thread-1执行：
 
 * 接下来进入 addWaiter 逻辑，构造 Node 队列
 
-  * 图中黄色三角表示该 Node 的 waitStatus 状态，其中 0 为默认正常状态
+  * 图中黄色三角表示该 Node 的 waitStatus 状态，其中 0 为默认**正常状态**
   * Node 的创建是懒惰的
-  * 其中第一个 Node 称为 Dummy（哑元）或哨兵，用来占位，并不关联线程
+  * 其中第一个 Node 称为 **Dummy（哑元）或哨兵**，用来占位，并不关联线程
 
   ```java
   private Node addWaiter(Node mode) {    
-      // 将当前线程关联到一个 Node 对象上, 模式为独占模式    
+      // 将当前线程关联到一个 Node 对象上, 模式为独占模式   
+      // Node.EXCLUSIVE for exclusive, Node.SHARED for shared
       Node node = new Node(Thread.currentThread(), mode);    
       Node pred = tail;    
       // 如果 tail 不为 null, cas 尝试将 Node 对象加入 AQS 队列尾部    
@@ -5594,7 +5603,7 @@ Thread-1执行：
 
   * acquireQueued 会在一个死循环中不断尝试获得锁，失败后进入 park 阻塞
 
-  * 如果当前线程是在head节点后，会再次 tryAcquire 尝试获取锁，state 仍为 1 则失败（第三次）
+  * 如果当前线程是在 head 节点后，会再次 tryAcquire 尝试获取锁，state 仍为 1 则失败（第三次）
 
   ```java
   final boolean acquireQueued(final Node node, int arg) {
@@ -5646,7 +5655,7 @@ Thread-1执行：
   ```
 
   * shouldParkAfterFailedAcquire 执行完毕回到 acquireQueued ，再次 tryAcquire 尝试获取锁，这时state 仍为 1 获取失败（第四次）
-  * 当再次进入 shouldParkAfterFailedAcquire 时，这时其前驱 node 的 waitStatus 已经是 -1，返回true
+  * 当再次进入 shouldParkAfterFailedAcquire 时，这时其前驱 node 的 waitStatus 已经是 -1，返回 true
   * 进入 parkAndCheckInterrupt， Thread-1 park（灰色表示），再有多个线程经历竞争失败后：
 
   ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantLock-非公平锁3.png)
@@ -5676,7 +5685,7 @@ Thread-0 释放锁，进入 release 流程
 
 * 进入 tryRelease
 
-  * 设置exclusiveOwnerThread 为 null
+  * 设置 exclusiveOwnerThread 为 null
   * state = 0
 
 * 当前队列不为 null，并且 head 的 waitStatus = -1，进入 unparkSuccessor 
@@ -5710,7 +5719,7 @@ Thread-0 释放锁，进入 release 流程
   }
   ```
 
-* 进入unparkSuccessor 方法
+* 进入 unparkSuccessor 方法
 
   * 找到队列中离 head 最近的一个 Node（没取消的），unpark 恢复其运行，本例中即为 Thread-1
   * 回到 Thread-1 的 acquireQueued 流程
@@ -5759,7 +5768,7 @@ Thread-0 释放锁，进入 release 流程
 
 ##### 公平原理
 
-与非公平锁主要区别在于 tryAcquire 方法：先检查 AQS 队列中是否有前驱节点，没有才去CAS竞争
+与非公平锁主要区别在于 tryAcquire 方法：先检查 AQS 队列中是否有前驱节点，没有才去 CAS 竞争
 
 ```java
 static final class FairSync extends Sync {
@@ -5833,7 +5842,7 @@ public static void method2() {
 }
 ```
 
-面试题：在Lock方法加两把锁会是什么情况呢？
+面试题：在 Lock 方法加两把锁会是什么情况呢？
 
 * 加锁两次解锁两次：正常执行
 * 加锁两次解锁一次：程序直接卡死，线程不能出来，也就说明**申请几把锁，最后需要解除几把锁**
@@ -6126,10 +6135,9 @@ class Chopstick extends ReentrantLock {
 
 ##### 基本使用
 
-synchronized 中的条件变量，就是当条件不满足时进入 waitSet 等待
-ReentrantLock 的条件变量比 synchronized 强大之处在于，它支持多个条件变量
+synchronized 的条件变量，是当条件不满足时进入 waitSet 等待；ReentrantLock 的条件变量比 synchronized 强大之处在于，它支持多个条件变量
 
-ReentrantLock类获取Condition对象：`public Condition newCondition()`
+ReentrantLock 类获取 Condition 对象：`public Condition newCondition()`
 
 Condition类API：
 

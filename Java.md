@@ -1082,7 +1082,7 @@ public class ClassDemo {
 1. **成员变量应该私有，用private修饰，只能在本类中直接访问**
 2. **提供成套的getter和setter方法暴露成员变量的取值和赋值**
 
-为什么使用private修饰成员变量：实现数据封装，不想让别人使用修改你的数据，比较安全
+使用 private 修饰成员变量的原因：实现数据封装，不想让别人使用修改你的数据，比较安全
 
 
 
@@ -1092,12 +1092,12 @@ public class ClassDemo {
 
 ### this
 
-this关键字的作用：
+this 关键字的作用：
 
-* this关键字代表了当前对象的引用
-* this出现在方法中：**哪个对象调用这个方法this就代表谁**
-* this可以出现在构造器中：代表构造器正在初始化的那个对象
-* this可以区分变量是访问的成员变量还是局部变量
+* this 关键字代表了当前对象的引用
+* this 出现在方法中：**哪个对象调用这个方法this就代表谁**
+* this 可以出现在构造器中：代表构造器正在初始化的那个对象
+* this 可以区分变量是访问的成员变量还是局部变量
 
 
 
@@ -2439,6 +2439,35 @@ s = s + "cd"; //s = abccd 新对象
 
 
 
+#### 常用方法
+
+`public boolean equals(String s)` : 比较两个字符串内容是否相同、区分大小写
+`public boolean equalsIgnoreCase(String anotherString)` : 比较字符串的内容，忽略大小写
+`public int length()` : 返回此字符串的长度
+`public String trim()` : 返回一个字符串，其值为此字符串，并删除任何前导和尾随空格
+`public String[] split(String regex)` : 将字符串按给定的正则表达式分割成字符串数组
+`public char charAt(int index)` : 取索引处的值
+`public char[] toCharArray()` : 将字符串拆分为字符数组后返回
+`public boolean startsWith(String prefix)` : 测试此字符串是否以指定的前缀开头
+`public int indexOf(String str)` : 返回指定子字符串第一次出现的字符串内的索引，没有返回-1
+`public int lastIndexOf(String str)` : 返回字符串最后一次出现str的索引，没有返回-1
+`public String substring(int beginIndex)` : 返回子字符串，以原字符串指定索引处到结尾
+`public String substring(int beginIndex, int endIndex)` : 返回原字符串指定索引处的字符串
+`public String toLowerCase()` : 将此String所有字符转换为小写，使用默认语言环境的规则
+`public String toUpperCase()` : 使用默认语言环境的规则将此String所有字符转换为大写
+`public String replace(CharSequence target, CharSequence replacement)` : 使用新值，将字符串中的旧值替换，得到新的字符串
+
+```java
+String s = 123-78;
+s.replace("-","");//12378
+```
+
+
+
+***
+
+
+
 #### 构造方式
 
 构造方法：
@@ -2484,36 +2513,6 @@ s = s + "cd"; //s = abccd 新对象
 
 
 
-
-#### 常用方法
-
-`public boolean equals(String s)` : 比较两个字符串内容是否相同、区分大小写
-`public boolean equalsIgnoreCase(String anotherString)` : 比较字符串的内容，忽略大小写
-`public int length()` : 返回此字符串的长度
-`public String trim()` : 返回一个字符串，其值为此字符串，并删除任何前导和尾随空格
-`public String[] split(String regex)` : 将字符串按给定的正则表达式分割成字符串数组
-`public char charAt(int index)` : 取索引处的值
-`public char[] toCharArray()` : 将字符串拆分为字符数组后返回
-`public boolean startsWith(String prefix)` : 测试此字符串是否以指定的前缀开头
-`public int indexOf(String str)` : 返回指定子字符串第一次出现的字符串内的索引，没有返回-1
-`public int lastIndexOf(String str)` : 返回字符串最后一次出现str的索引，没有返回-1
-`public String substring(int beginIndex)` : 返回子字符串，以原字符串指定索引处到结尾
-`public String substring(int beginIndex, int endIndex)` : 返回原字符串指定索引处的字符串
-`public String toLowerCase()` : 将此String所有字符转换为小写，使用默认语言环境的规则
-`public String toUpperCase()` : 使用默认语言环境的规则将此String所有字符转换为大写
-`public String replace(CharSequence target, CharSequence replacement)` : 使用新值，将字符串中的旧值替换，得到新的字符串
-
-```java
-String s = 123-78;
-s.replace("-","");//12378
-```
-
-
-
-***
-
-
-
 #### String Pool
 
 ##### 基本介绍
@@ -2521,18 +2520,24 @@ s.replace("-","");//12378
 **字符串常量池（String Pool / StringTable / 串池）**保存着所有字符串字面量（literal strings），这些字面量在编译时期就确定，常量池类似于Java系统级别提供的**缓存**，存放对象和引用
 
 * StringTable，hashtable （哈希表 + 链表）结构，不能扩容，默认值大小长度是1009
-
 * 常量池中的字符串仅是符号，第一次使用时才变为对象，可以避免重复创建字符串对象
 * 字符串**变量**的拼接的原理是StringBuilder（jdk1.8），append 效率要比字符串拼接高很多
 * 字符串**常量**拼接的原理是编译期优化，结果在常量池
 * 可以使用 String 的 intern() 方法在运行过程将字符串添加到 String Pool 中
 
- **intern()** ：
 
-* jdk1.8：当一个字符串调用 intern() 方法时，如果 String Pool 中：
-  * 存在一个字符串和该字符串值相等，就会返回 String Pool 中字符串的引用（需要变量接收）
-  * 不存在，会把对象的**引用地址**复制一份放入串池，并返回串池中的引用地址，前提是堆内存有该对象，因为 Pool 在堆中，为了节省内存不再创建新对象
-* jdk1.6：将这个字符串对象尝试放入串池，如果有就不放入，返回已有的串池中的对象的地址；如果没有会把此对象复制一份，放入串池，把串池中的对象返回
+
+***
+
+
+
+##### intern()
+
+jdk1.8：当一个字符串调用 intern() 方法时，如果 String Pool 中：
+* 存在一个字符串和该字符串值相等，就会返回 String Pool 中字符串的引用（需要变量接收）
+* 不存在，会把对象的**引用地址**复制一份放入串池，并返回串池中的引用地址，前提是堆内存有该对象，因为 Pool 在堆中，为了节省内存不再创建新对象
+
+jdk1.6：将这个字符串对象尝试放入串池，如果有就不放入，返回已有的串池中的对象的地址；如果没有会把此对象复制一份，放入串池，把串池中的对象返回
 
 ```java
 public class Demo {
@@ -2564,14 +2569,24 @@ public class Demo {
 - == 比较基本数据类型：比较的是具体的值
 - == 比较引用数据类型：比较的是对象地址值
 
-面试问题：
+结论：
 
 ```java
 String s1 = "ab";	//串池
 String s2 = new String("a") + new String("b");	//堆
-//上面两条指令的结果和下面的效果相同
+//上面两条指令的结果和下面的 效果 相同
 String s = new String("ab");
 ```
+
+
+
+****
+
+
+
+##### 面试问题
+
+问题一：
 
 ```java
 public static void main(String[] args) {
@@ -2586,6 +2601,43 @@ public static void main(String[] args) {
     System.out.println(s == "ab");//jdk6:false  jdk8:true
 }
 ```
+
+问题二：
+
+```java
+public static void main(String[] args) {
+    String str1 = new StringBuilder("58").append("tongcheng").toString();
+    System.out.println(str1 == str1.intern());//true
+
+    String str2 = new StringBuilder("ja").append("va").toString();
+    System.out.println(str2 == str2.intern());//false
+}
+```
+
+原因：
+
+* System 类当调用 Version 的静态方法，导致 Version 初始化：
+
+  ```java
+  private static void initializeSystemClass() {
+      sun.misc.Version.init();
+  }
+  ```
+
+* Version类初始化时需要对静态常量字段初始化，被 launcher_name 静态常量字段所引用的"java"字符串字面量就被放入的字符串常量池：
+
+  ```java
+  package sun.misc;
+  
+  public class Version {
+      private static final String launcher_name = "java";
+      private static final String java_version = "1.8.0_221";
+      private static final String java_runtime_name = "Java(TM) SE Runtime Environment";
+      private static final String java_profile_name = "";
+      private static final String java_runtime_version = "1.8.0_221-b11";
+      //...
+  }
+  ```
 
 
 
@@ -4171,13 +4223,17 @@ LinkedList 是一个实现了 List 接口的**双端链表**，支持高效的�
 
 ##### 概述
 
-Set系列集合：添加的元素是无序，不重复，无索引的。
+Set系列集合：添加的元素是无序，不重复，无索引的
 
-* HashSet：添加的元素是无序，不重复，无索引的。
-*  LinkedHashSet：添加的元素是有序，不重复，无索引的。
-* TreeSet：不重复，无索引，按照大小默认升序排序!!
+* HashSet：添加的元素是无序，不重复，无索引的
+*  LinkedHashSet：添加的元素是有序，不重复，无索引的
+* TreeSet：不重复，无索引，按照大小默认升序排序
 
-**面试问题**：没有索引,不能使用普通for循环遍历
+**面试问题**：没有索引，不能使用普通 for 循环遍历
+
+
+
+***
 
 
 
@@ -4262,13 +4318,13 @@ TreeSet 集合自排序的方式：
 自定义的引用数据类型，TreeSet 默认无法排序，需要定制排序的规则，方案有2种：
 
    * 直接为**对象的类**实现比较器规则接口 Comparable，重写比较方法：
-           
-           方法：`public int compareTo(Employee o): this是比较者, o是被比较者     `
-          
+     
+          方法：`public int compareTo(Employee o): this是比较者, o是被比较者     `
+         
            * 比较者大于被比较者，返回正数
            * 比较者小于被比较者，返回负数
            * 比较者等于被比较者，返回0
-          
+         
    * 直接为**集合**设置比较器 Comparator 对象，重写比较方法：
      
      方法：`public int compare(Employee o1, Employee o2): o1比较者, o2被比较者`
@@ -4371,7 +4427,7 @@ public class Student{
 >Collection是单值集合体系。
 >Map集合是一种双列集合，每个元素包含两个值。
 
-Map集合的每个元素的格式：key=value(键值对元素)。Map集合也被称为“键值对集合”
+Map集合的每个元素的格式：key=value（键值对元素），Map集合也被称为“键值对集合”
 
 Map集合的完整格式：`{key1=value1 , key2=value2 , key3=value3 , ...}`
 
@@ -4412,14 +4468,14 @@ System.out.println(maps);
 #### 常用API
 
 Map集合的常用API
-     `public V put(K key, V value)` :  把指定的键与值添加到Map集合中，**重复的键会覆盖前面的值元素**
-     `public V remove(Object key)` : 把指定的键对应的键值对元素在集合中删除，返回被删除元素的值
-     `public V get(Object key)` : 根据指定的键，在Map集合中获取对应的值。
-     `public Set<K> keySet()` : 获取Map集合中所有的键，存储到**Set集合**中。
-     `public Collection<V> values()` : 获取全部值的集合，存储到**Collection集合**
-     `public Set<Map.Entry<K,V>> entrySet()` : 获取Map集合中所有的键值对对象的集合(Set集合)
-     `public boolean containKey(Object key)` : 判断该集合中是否有此键。
-	 `public boolean containsKey(Object key)` : 判断集合是否为空。
+
+* `public V put(K key, V value)`：把指定的键与值添加到 Map 集合中，**重复的键会覆盖前面的值元素**
+* `public V remove(Object key)`：把指定的键对应的键值对元素在集合中删除，返回被删除元素的值
+* `public V get(Object key)`：根据指定的键，在 Map 集合中获取对应的值
+* `public Set<K> keySet()`：获取 Map 集合中所有的键，存储到 **Set 集合**中
+* `public Collection<V> values()`：获取全部值的集合，存储到 **Collection 集合**
+* `public Set<Map.Entry<K,V>> entrySet()`：获取Map集合中所有的键值对对象的集合
+* `public boolean containsKey(Object key)`：判断该集合中是否有此键
 
 ```java
 public class MapDemo {
@@ -4445,11 +4501,12 @@ public class MapDemo {
 #### 遍历方式
 
 Map集合的遍历方式有：3种。
-    （1）“键找值”的方式遍历：先获取Map集合全部的键，再根据遍历键找值。
-    （2）“键值对”的方式遍历：难度较大，采用增强for或者迭代器
-    （3）JDK 1.8开始之后的新技术：foreach，采用Lambda表达式
 
-集合可以直接输出内容，因为底层重写了toString()方法。
+1. “键找值”的方式遍历：先获取 Map 集合全部的键，再根据遍历键找值。
+2. “键值对”的方式遍历：难度较大，采用增强 for 或者迭代器
+3. JDK 1.8 开始之后的新技术：foreach，采用 Lambda表 达式
+
+集合可以直接输出内容，因为底层重写了 toString() 方法
 
 ```java
 public static void main(String[] args){
@@ -4491,22 +4548,22 @@ public static void main(String[] args){
 
 ##### 基本介绍
 
-HashMap基于哈希表的Map接口实现，是以key-value存储形式存在，主要用来存放键值对
+HashMap 基于哈希表的 Map 接口实现，是以 key-value 存储形式存在，主要用来存放键值对
 
 特点：
 
 * HashMap的实现不是同步的，这意味着它不是线程安全的
-* key是唯一不重复的，底层的哈希表结构，依赖hashCode方法和equals方法保证键的唯一
-* key、value都可以为null，但是key位置只能是一个null
+* key是唯一不重复的，底层的哈希表结构，依赖 hashCode 方法和 equals 方法保证键的唯一
+* key、value 都可以为null，但是 key 位置只能是一个null
 * HashMap中的映射不是有序的，即存取是无序的
 * **key要存储的是自定义对象，需要重写hashCode和equals方法，防止出现地址不同内容相同的key**
 
-JDK7对比JDK8：
+JDK7 对比 JDK8：
 
 * 7 = 数组 + 链表，8 = 数组 + 链表 + 红黑树
-* 7中是头插法，多线程容易造成环，8中是尾插法
-* 7的扩容是全部数据重新定位，8中是位置不变或者当前位置 + 旧size大小来实现
-* 7是先判断是否要扩容再插入，8中是先插入再看是否要扩容
+* 7 中是头插法，多线程容易造成环，8 中是尾插法
+* 7 的扩容是全部数据重新定位，8 中是位置不变或者当前位置 + 旧 size 大小来实现
+* 7 是先判断是否要扩容再插入，8 中是先插入再看是否要扩容
 
 底层数据结构：
 
@@ -4747,9 +4804,8 @@ HashMap继承关系如下图所示：
 
      有些人会觉得这里是一个bug应该这样书写：
      `this.threshold = tableSizeFor(initialCapacity) * this.loadFactor;`
-     这样才符合threshold的概念（当HashMap的size到达threshold这个阈值时会扩容）。
-     但是在jdk8以后的构造方法中，并没有对table这个成员变量进行初始化，table的初始化被推迟到了put方法中，在put方法中会对threshold重新计算
-
+     这样才符合 threshold 的概念，但是在 jdk8 以后的构造方法中，并没有对 table 这个成员变量进行初始化，table 的初始化被推迟到了 put 方法中，在 put 方法中会对 threshold 重新计算
+   
 4. 包含另一个`Map`的构造函数 
 
    ```java
@@ -4890,7 +4946,7 @@ HashMap继承关系如下图所示：
    
 
 4. tableSizeFor
-   创建HashMap指定容量时，HashMap通过位移运算和或运算得到比指定初始化容量大的最小的2的n次幂
+   创建 HashMap 指定容量时，HashMap 通过位移运算和或运算得到比指定初始化容量大的最小的2的 n 次幂
 
    ```java
    static final int tableSizeFor(int cap) {//int cap = 10
@@ -4906,12 +4962,12 @@ HashMap继承关系如下图所示：
 
    分析算法：
 
-   1. `int n = cap - 1;`：防止cap已经是2的幂。如果cap已经是2的幂， 不执行减1操作，则执行完后面的无符号右移操作之后，返回的capacity将是这个cap的2倍
-   2. n=0 (cap-1之后)，则经过后面的几次无符号右移依然是0，返回的capacity是1，最后有n+1
-   3. |（按位或运算）：相同的二进制数位上，都是0的时候，结果为0，否则为1
-   4. 核心思想：把最高位是1的位以及右边的位全部置 1，结果加 1 后就是最小的2的n次幂
+   1. `int n = cap - 1`：防止 cap 已经是 2 的幂。如果 cap 已经是 2 的幂， 不执行减 1 操作，则执行完后面的无符号右移操作之后，返回的 capacity 将是这个 cap 的 2 倍
+   2. n=0 （cap-1 之后），则经过后面的几次无符号右移依然是 0，返回的 capacity 是 1，最后有 n+1
+   3. |（按位或运算）：相同的二进制数位上，都是 0 的时候，结果为 0，否则为 1
+   4. 核心思想：把最高位是 1 的位以及右边的位全部置 1，结果加 1 后就是最小的2的 n 次幂
 
-   例如初始化的值为10：
+   例如初始化的值为 10：
 
    * 第一次右移
 
@@ -4930,21 +4986,21 @@ HashMap继承关系如下图所示：
      ```java
      n |= n >>> 2;//n通过第一次右移变为了：n=13
      00000000 00000000 00000000 00001101  // 13
-     00000000 00000000 00000000 00000011  //13右移之后变为3
+     00000000 00000000 00000000 00000011  // 13右移之后变为3
      -------------------------------------------------
      00000000 00000000 00000000 00001111	 //按位或之后是15
      //无符号右移两位，会将最高位两个连续的1右移两位，然后再与原来的n做或操作，这样n的二进制表示的高位中会有4个连续的1
      ```
 
-     注意：容量最大是32bit的正数，因此最后`n |= n >>> 16`，最多是32个1（但是这已经是负数了）。在执行tableSizeFor之前，对initialCapacity做了判断，如果大于MAXIMUM_CAPACITY(2 ^ 30)，则取MAXIMUM_CAPACITY；如果小于MAXIMUM_CAPACITY(2 ^ 30)，会执行移位操作，所以移位操作之后，最大30个1，加1之后得2 ^ 30
+     注意：容量最大是 32bit 的正数，因此最后 `n |= n >>> 16`，最多是 32 个 1（但是这已经是负数了）。在执行 tableSizeFor 之前，对 initialCapacity 做了判断，如果大于 MAXIMUM_CAPACITY(2 ^ 30)，则取 MAXIMUM_CAPACITY；如果小于 MAXIMUM_CAPACITY(2 ^ 30)，会执行移位操作，所以移位操作之后，最大 30 个 1，加 1 之后得 2 ^ 30
 
-   * 得到的capacity被赋值给了threshold
+   * 得到的 capacity 被赋值给了 threshold
 
      ```java
      this.threshold = tableSizeFor(initialCapacity);//initialCapacity=10
      ```
 
-   * JDK11
+   * JDK 11
 
      ```java
      static final int tableSizeFor(int cap) {
@@ -4974,24 +5030,36 @@ HashMap继承关系如下图所示：
 
    当 HashMap 中的元素个数超过`(数组长度)*loadFactor(负载因子)`或者链表过长时，就会进行数组扩容，创建新的数组，伴随一次重新 hash 分配，并且遍历 hash 表中所有的元素非常耗时，所以要尽量避免 resize
 
-   扩容机制为扩容为原来容量的2倍：
+   扩容机制为扩容为原来容量的 2 倍：
 
    ```java
-   else if ((newCap = oldCap << 1) < MAXIMUM_CAPACITY &&
-            oldCap >= DEFAULT_INITIAL_CAPACITY)
-       newThr = oldThr << 1; // double threshold
+   if (oldCap > 0) {
+       if (oldCap >= MAXIMUM_CAPACITY) {
+           threshold = Integer.MAX_VALUE;
+           return oldTab;
+       }
+       else if ((newCap = oldCap << 1) < MAXIMUM_CAPACITY &&
+                oldCap >= DEFAULT_INITIAL_CAPACITY)
+           newThr = oldThr << 1; // double threshold
+   }
+   else if (oldThr > 0) // 初始化的threshold赋值给newCap
+       newCap = oldThr;
+   else {               // zero initial threshold signifies using defaults
+       newCap = DEFAULT_INITIAL_CAPACITY;
+       newThr = (int)(DEFAULT_LOAD_FACTOR * DEFAULT_INITIAL_CAPACITY);
+   }
    ```
-
+   
    HashMap 在进行扩容后，节点**要么就在原来的位置，要么就被分配到"原位置+旧容量"的位置**
-
+   
    判断：e.hash 与 oldCap 对应的有效高位上的值是 1，即当前数组长度 n 为 1 的位为  x，如果 key 的哈希值 x 位也为 1，则扩容后的索引为 now + n
-
-   注意：这里也要求**数组长度2的幂**
-
+   
+   注意：这里也要求**数组长度 2 的幂**
+   
    ![](https://gitee.com/seazean/images/raw/master/Java/HashMap-resize扩容.png)
-
+   
    普通节点：
-
+   
    ```java
    //oldCap旧数组大小
    if ((e.hash & oldCap) == 0) {
@@ -5472,11 +5540,14 @@ public class MapDemo{
 #### 概述
 
 泛型（Generic）：
-    泛型就是一个标签：<数据类型>
-    泛型可以在编译阶段约束只能操作某种数据类型。
 
-注意： JDK 1.7开始之后，泛型后面的申明可以省略不写!!
-    		**泛型和集合都只能支持引用数据类型，不支持基本数据类型。**
+* 泛型就是一个标签：<数据类型>
+* 泛型可以在编译阶段约束只能操作某种数据类型。
+
+注意：
+
+* JDK 1.7 开始之后，泛型后面的申明可以省略不写
+* **泛型和集合都只能支持引用数据类型，不支持基本数据类型。**
 
 ```java
 {
@@ -5491,7 +5562,7 @@ public class MapDemo{
 ```
 
 优点：泛型在编译阶段约束了操作的数据类型，从而不会出现类型转换异常
-			体现的是Java的严谨性和规范性，数据类型，经常需要进行统一！
+			体现的是 Java 的严谨性和规范性，数据类型，经常需要进行统一
 
 
 
@@ -5501,7 +5572,7 @@ public class MapDemo{
 
 #### 自定义
 
-##### 自定义泛型类
+##### 泛型类
 
 泛型类：使用了泛型定义的类就是泛型类。
 
@@ -5530,9 +5601,14 @@ class MyArrayList<E>{
 
 
 
-##### 自定义泛型方法
+****
 
-泛型方法：定义了泛型的方法就是泛型方法。
+
+
+##### 泛型方法
+
+泛型方法：定义了泛型的方法就是泛型方法
+
 泛型方法的定义格式：
 
 ```java
@@ -5542,6 +5618,7 @@ class MyArrayList<E>{
 ```
 
 方法定义了是什么泛型变量，后面就只能用什么泛型变量。
+
 泛型类的核心思想：把出现泛型变量的地方全部替换成传输的真实数据类型
 
 ```java
@@ -5598,15 +5675,17 @@ class StudentData implements Data<Student>{重写所有方法}
 
 
 
-#### 泛型通配符
+#### 通配符
 
-* 通配符：？
-      ?可以用在使用泛型的时候代表一切类型。
-      E , T , K , V是在定义泛型的时候使用代表一切类型。
+通配符：？
 
-* 泛型的上下限：
-      ? extends Car : 那么?必须是Car或者其子类。(泛型的上限)
-      ? super  Car :那么?必须是Car或者其父类。（泛型的下限。不是很常见）
+* ? 可以用在使用泛型的时候代表一切类型
+* E、T、K、V 是在定义泛型的时候使用代表一切类型
+
+泛型的上下限：
+
+* ? extends Car：那么 ? 必须是 Car 或者其子类（泛型的上限）
+* ? super  Car：那么 ? 必须是 Car 或者其父类（泛型的下限，不是很常见）
 
 ```java
 //需求：开发一个极品飞车的游戏，所有的汽车都能一起参与比赛。
@@ -5638,11 +5717,12 @@ class Dog{}
 
 ### 不可变
 
-+ 在List、Set、Map接口中都存在of方法，可以创建一个不可变的集合
-  + 这个集合不能添加，不能删除，不能修改
-  + 但是可以结合集合的带参构造，实现集合的批量添加
-+ 在Map接口中，还有一个ofEntries方法可以提高代码的阅读性
-  + 首先会把键值对封装成一个Entry对象，再把这个Entry对象添加到集合当中
+在 List、Set、Map 接口中都存在 of 方法，可以创建一个不可变的集合
++ 这个集合不能添加，不能删除，不能修改
++ 但是可以结合集合的带参构造，实现集合的批量添加
+
+在Map接口中，还有一个ofEntries方法可以提高代码的阅读性
++ 首先会把键值对封装成一个Entry对象，再把这个Entry对象添加到集合当中
 
 ````java
 public class MyVariableParameter4 {
@@ -5699,7 +5779,7 @@ public class MyVariableParameter4 {
 
 ## 异常
 
-### 概述
+### 基本介绍
 
 异常：程序在"编译"或者"执行"的过程中可能出现的问题，Java为常见的代码异常都设计一个类来代表。
 
@@ -5717,12 +5797,10 @@ Java中异常继承的根类是：Throwable
                    
 ```
 
-Exception异常的分类:
+Exception 异常的分类:
 
-* 编译时异常：继承自Exception的异常或者其子类，编译阶段就会报错，
-                必须程序员处理的。否则代码编译就不能通过！！
-* 运行时异常: 继承自RuntimeException的异常或者其子类，编译阶段是不会出错的，它是在
-            运行时阶段可能出现，编译阶段是不会出错的，但是运行阶段可能出现，建议提前处理！！
+* 编译时异常：继承自Exception的异常或者其子类，编译阶段就会报错
+* 运行时异常: 继承自RuntimeException的异常或者其子类，编译阶段是不会出错的，在运行时阶段可能出现，编译阶段是不会出错的，但是运行阶段可能出现，建议提前处理
 
 
 
@@ -5732,13 +5810,13 @@ Exception异常的分类:
 
 ### 处理过程
 
-异常的产生默认的处理过程解析。(自动处理的过程！)
+异常的产生默认的处理过程解析：（自动处理的过程）
 
-（1）默认会在出现异常的代码那里自动的创建一个异常对象：ArithmeticException（算术异常）
-（2）异常会从方法中出现的点这里抛出给调用者，调用者最终抛出给JVM虚拟机。
-（3）虚拟机接收到异常对象后，先在控制台直接输出**异常栈**信息数据。
-（4）直接从当前执行的异常点干掉当前程序。
-（5）后续代码没有机会执行了，因为程序已经死亡。
+1. 默认会在出现异常的代码那里自动的创建一个异常对象：ArithmeticException（算术异常）
+2. 异常会从方法中出现的点这里抛出给调用者，调用者最终抛出给JVM虚拟机
+3. 虚拟机接收到异常对象后，先在控制台直接输出**异常栈**信息数据
+4. 直接从当前执行的异常点干掉当前程序
+5. 后续代码没有机会执行了，因为程序已经死亡
 
 ```java
 public class ExceptionDemo {
@@ -5760,17 +5838,16 @@ public class ExceptionDemo {
 
 
 
-### 编译时异常
+### 编译异常
 
-#### 概念
+#### 基本介绍
 
-编译时异常：继承自Exception的异常或者其子类，没有继承RuntimeException
-           "编译时异常是编译阶段就会报错"，
-            必须程序员编译阶段就处理的。否则代码编译就报错！！
+编译时异常：继承自Exception的异常或者其子类，没有继承 RuntimeException，编译时异常是编译阶段就会报错，必须程序员编译阶段就处理的。否则代码编译就报错
 
 编译时异常的作用是什么：
-        是担心程序员的技术不行，在编译阶段就爆出一个错误, 目的在于提醒!
-        提醒程序员这里很可能出错，请检查并注意不要出bug。
+
+* 是担心程序员的技术不行，在编译阶段就爆出一个错误, 目的在于提醒
+* 提醒程序员这里很可能出错，请检查并注意不要出bug
 
 ```java
 public static void main(String[] args) throws ParseException {
@@ -5783,12 +5860,15 @@ public static void main(String[] args) throws ParseException {
 
 
 
+****
+
+
+
 #### 处理机制
 
 ##### throws
 
-在出现编译时异常的地方层层把异常抛出去给调用者，调用者最终抛出给JVM虚拟机。
-JVM虚拟机输出异常信息，直接干掉程序，这种方式与默认方式是一样的。
+在出现编译时异常的地方层层把异常抛出去给调用者，调用者最终抛出给JVM虚拟机，JVM 虚拟机输出异常信息，直接干掉程序，这种方式与默认方式是一样的。
 
 * 优点：可以解决代码编译时的错误
 * 运行时出现异常，程序还是会立即死亡！
@@ -5804,6 +5884,10 @@ public static void main(String[] args) throws Exception {
     System.out.println("程序结束。。。。。");
 }
 ```
+
+
+
+***
 
 
 
@@ -5858,7 +5942,11 @@ public static void main(String[] args) {
 
 
 
-##### 方法三
+***
+
+
+
+##### 规范做法
 
 在出现异常的地方把异常一层一层的抛出给最外层调用者，最外层调用者集中捕获处理！（**规范做法**）
 这种方案最外层调用者可以知道底层执行的情况，同时程序在出现异常后也不会立即死亡（最好的方案）
@@ -5884,22 +5972,20 @@ public class ExceptionDemo{
 
 
 
-### 运行时异常
+### 运行异常
 
-#### 概念
+#### 基本介绍
 
-​    继承自RuntimeException的异常或者其子类，
-​    编译阶段是不会出错的，它是在运行时阶段可能出现的错误
-​    运行时异常编译阶段可以处理也可以不处理,代码编译都能通过！！
+继承自RuntimeException的异常或者其子类，编译阶段是不会出错的，它是在运行时阶段可能出现的错误，运行时异常编译阶段可以处理也可以不处理,代码编译都能通过！！
 
-**常见的运行时异常。（面试题）**
+**常见的运行时异常**：
 
-​    1.数组索引越界异常: ArrayIndexOutOfBoundsException
-​    2.空指针异常 : NullPointerException，直接输出没问题，调用空指针的变量的功能就会报错！
-​    3.类型转换异常：ClassCastException
-​    4.迭代器遍历没有此元素异常：NoSuchElementException
-​    5.算术异常（数学操作异常）：ArithmeticException
-​    6.数字转换异常： NumberFormatException
+1. 数组索引越界异常: ArrayIndexOutOfBoundsException
+2. 空指针异常 : NullPointerException，直接输出没问题，调用空指针的变量的功能就会报错！
+3. 类型转换异常：ClassCastException
+4. 迭代器遍历没有此元素异常：NoSuchElementException
+5. 算术异常（数学操作异常）：ArithmeticException
+6. 数字转换异常： NumberFormatException
 
 ```java
 public class ExceptionDemo {
@@ -5932,11 +6018,13 @@ public class ExceptionDemo {
 
 
 
+****
+
+
+
 #### 处理机制
 
-运行时异常在编译阶段是不会报错，在运行阶段才会出错。
-运行时异常在编译阶段不处理不会报错，但是运行时出错了程序还是会死亡，运行时异常也建议要处理。
-运行时异常是自动往外抛出的，不需要我们手工抛出。
+运行时异常在编译阶段是不会报错，在运行阶段才会出错，运行时出错了程序还是会停止，运行时异常也建议要处理，运行时异常是自动往外抛出的，不需要手工抛出
 
 **运行时异常的处理规范**：直接在最外层捕获处理即可，底层会自动抛出！！
 
@@ -5985,7 +6073,7 @@ finally: 0-1次
 
 **finally的作用**：可以在代码执行完毕以后进行资源的释放操作
 
-资源：资源都是实现了Closeable接口的，都自带close()关闭方法！
+资源：资源都是实现了 Closeable 接口的，都自带 close() 关闭方法！
 
 注意：如果在 finally 中出现了 return，会吞掉异常
 
@@ -6028,43 +6116,20 @@ public class FinallyDemo {
 
 
 
-****
-
-
-
-### 注意事项
-
-异常的语法注意：
-
-1. 运行时异常被抛出可以不处理，可以自动抛出；**编译时异常必须处理**；按照规范都应该处理
-2.  **重写方法申明抛出的异常，应该与父类被重写方法申明抛出的异常一样或者范围更小**
-3. 方法默认都可以自动抛出运行时异常， throws RuntimeException可以省略不写
-4. 当多异常处理时，捕获处理，前面的异常类不能是后面异常类的父类。
-5. 在try/catch后可以追加finally代码块，其中的代码一定会被执行，通常用于资源回收操作。 
-
-
-
 ***
 
 
 
-### 自定义异常
+### 自定义
 
 自定义异常:
 
-* 自定义编译时异常.
-  1. 定义一个异常类继承Exception.
-  2. 重写构造器。
-  3. 在出现异常的地方用throw new 自定义对象抛出!
-* 自定义运行时异常.
-    1. 定义一个异常类继承RuntimeException.
-    2. 重写构造器。
-    3. 在出现异常的地方用throw new 自定义对象抛出! 
+* 自定义编译时异常：定义一个异常类继承 Exception，重写构造器，在出现异常的地方用throw new 自定义对象抛出
+* 自定义运行时异常：定义一个异常类继承 RuntimeException，重写构造器，在出现异常的地方用 throw new  自定义对象抛出!
 
-**throws: 用在方法上，用于抛出方法中的异常。**
-				用于告诉调用者,本方法内部可能会抛出异常,请你处理一下
-**throw:  用在出现异常的地方，创建异常对象且立即从此处抛出。**
-				将这个异常对象传递到调用者处，并结束当前方法的执行
+**throws: 用在方法上，用于抛出方法中的异常**
+
+**throw:  用在出现异常的地方，创建异常对象且立即从此处抛出**
 
 ```java
 //需求：认为年龄小于0岁，大于200岁就是一个异常。
@@ -6106,10 +6171,21 @@ public class AgeIllegalRuntimeException extends RuntimeException{
 
 
 
-### 异常作用
+### 异常规范
 
-1、可以处理代码问题，防止程序出现异常后的死亡。
-2、提高了程序的健壮性和安全性。
+异常的语法注意：
+
+1. 运行时异常被抛出可以不处理，可以自动抛出；**编译时异常必须处理**；按照规范都应该处理
+2. **重写方法申明抛出的异常，子类方法抛出的异常类型必须是父类抛出异常类型或为其子类型**
+3. 方法默认都可以自动抛出运行时异常， throws RuntimeException 可以省略不写
+4. 当多异常处理时，捕获处理，前面的异常类不能是后面异常类的父类。
+5. 在 try/catch 后可以追加 finally 代码块，其中的代码一定会被执行，通常用于资源回收操作
+
+异常的作用：
+
+1. 可以处理代码问题，防止程序出现异常后的死亡
+
+2. 提高了程序的健壮性和安全性
 
 ```java
 public class Demo{
@@ -6434,7 +6510,7 @@ public class ConstructorDemo {
 
 
 
-## IO
+## I/O
 
 ### Stream
 
@@ -10267,7 +10343,7 @@ GC Roots说明：
    * 将本对象引用到的其他对象全部挪到灰色集合中
    * 将本对象挪到黑色集合里面
 4. 重复步骤3，直至灰色集合为空时结束
-5. 结束后，仍在白色集合的对象即为GC Roots 不可达，可以进行回收
+5. 结束后，仍在白色集合的对象即为 GC Roots 不可达，可以进行回收
 
 <img src="https://gitee.com/seazean/images/raw/master/Java/JVM-三色标记法过程.gif" style="zoom: 67%;" />
 
@@ -11537,7 +11613,7 @@ public class Test {
 
 ##### 时机
 
-类的初始化是懒惰的，只有在首次使用时才会被装载，JVM 不会无条件地装载 Class 类型，Java虚拟机规定，一个类或接口在初次使用前，必须要进行初始化
+类的初始化是懒惰的，只有在首次使用时才会被装载，JVM 不会无条件地装载 Class 类型，Java 虚拟机规定，一个类或接口在初次使用前，必须要进行初始化
 
 **主动引用**：虚拟机规范中并没有强制约束何时进行加载，但是规范严格规定了有且只有下列情况必须对类进行初始化（加载、验证、准备都会随之发生）：
 
@@ -12810,7 +12886,7 @@ JVM 提供的操作数栈管理指令，可以用于直接操作操作数栈的�
 
 抛出异常指令：athrow 指令
 
-JVM 处理异常（catch语句）不是由字节码指令来实现的，而是**采用异常表来完成**的
+JVM 处理异常（catch 语句）不是由字节码指令来实现的，而是**采用异常表来完成**的
 
 * 代码：
 
@@ -12819,16 +12895,14 @@ JVM 处理异常（catch语句）不是由字节码指令来实现的，而是**
       int i = 0;    
       try {    	
           i = 10;    
-      } catch (ArithmeticException e) {    	
-          i = 30;    
-      } catch (NullPointerException e) {    	
-          i = 40;  
       } catch (Exception e) {   
-          i = 50;   
+          i = 20;   
+      } finally {
+          i = 30;
       }
   }
   ```
-
+  
 * 字节码：
 
   * 多出一个 **Exception table** 的结构，[from, to) 是**前闭后开**的检测范围，一旦这个范围内的字节码执行出现异常，则通过 type 匹配异常类型，如果一致，进入 target 所指示行号
@@ -12875,7 +12949,7 @@ JVM 处理异常（catch语句）不是由字节码指令来实现的，而是**
 
 ###### finally
 
-finally 中的代码被复制了 3 份，分别放入 try 流程，catch 流程以及 catch 剩余的异常类型流程
+finally 中的代码被**复制了 3 份**，分别放入 try 流程，catch 流程以及 catch 剩余的异常类型流程（上节案例）
 
 * 代码：
 
@@ -14398,7 +14472,7 @@ public class BubbleSort {
                     flag = 1;//发生了交换
                 }
             }
-            //没有发生交换，证明已经有序，不需要继续排序
+            //没有发生交换，证明已经有序，不需要继续排序，节省时间
             if(flag == 0) {
                 break;
             }
@@ -14438,7 +14512,6 @@ public class BubbleSort {
 <img src="https://gitee.com/seazean/images/raw/master/Java/Sort-选择排序.gif" style="zoom: 80%;" />
 
 ```java
-// 0 1位置比较，小的放0位置，然后0 2位置比，小的继续放0位置，一轮循环0位置是最小值
 public class SelectSort {
     public static void main(String[] args) {
         int[] arr = {55, 22, 2, 5, 1, 3, 8, 5, 7, 4, 3, 99, 88};
@@ -14496,19 +14569,20 @@ floor：向下取整
 public class HeapSort {
     public static void main(String[] args) {
         int[] arr = {55, 22, 2, 5, 1, 3, 8, 5, 7, 4, 3, 99, 88};
-        heapSort(arr, arr.length);
+        heapSort(arr, arr.length - 1);
         System.out.println(Arrays.toString(arr));
     }
 
     //len为数组长度
     private static void heapSort(int[] arr, int len) {
         //建堆，逆排序，因为堆排序定义的交换顺序是从当前结点往下交换，逆序排可以避免多余的交换
-        for (int i = len / 2 - 1; i >= 0; i--) {
+        //i初始值是最后一个节点的父节点，如果是数组长度len，则 i = len / 2 -1
+        for (int i = (len - 1) / 2; i >= 0; i--) {
             //调整函数
-            sift(arr, i, len - 1);
+            sift(arr, i, len);
         }
         //从尾索引开始排序
-        for (int i = len - 1; i > 0; i--) {
+        for (int i = len; i > 0; i--) {
             //将最大的节点放入末尾
             int temp = arr[0];
             arr[0] = arr[i];
@@ -14600,9 +14674,9 @@ public class InsertSort {
 
 实现思路：
 
-1. 选定一个增长量h，按照增长量h作为数据分组的依据，对数据进行分组
+1. 选定一个增长量 h，按照增长量 h 作为数据分组的依据，对数据进行分组
 2. 对分好组的每一组数据完成插入排序
-3. 减小增长量，最小减为1，重复第二步操作
+3. 减小增长量，最小减为 1，重复第二步操作
 
 <img src="https://gitee.com/seazean/images/raw/master/Java/Sort-希尔排序.png" style="zoom:67%;" />
 
@@ -14639,7 +14713,7 @@ public class ShellSort {
 }
 ```
 
-在希尔排序中，增长量h并没有固定的规则，有很多论文研究了各种不同的递增序列，但都无法证明某个序列是最好的，所以对于希尔排序的时间复杂度分析就认为 O(nlogn)
+在希尔排序中，增长量 h 并没有固定的规则，有很多论文研究了各种不同的递增序列，但都无法证明某个序列是最好的，所以对于希尔排序的时间复杂度分析就认为 O(nlogn)
 
 
 
