@@ -595,9 +595,9 @@ Linux 文件系统目录结构和熟知的 windows 系统有较大区别，没�
   PROXY_METHOD=none
   BROWSER_ONLY=no
   BOOTPROTO=static
-  IPADDR=192.168.23.129
-  NETMASK=255.255.255.0
-  GATEWAY=192.168.23.2
+  IPADDR=10.2.111.62
+  NETMASK=255.255.252.0
+  GATEWAY=10.2.111.254
   DEFROUTE=yes
   IPV4_FAILURE_FATAL=no
   IPV6INIT=yes

@@ -624,16 +624,16 @@ t.start();
 
 进程的状态参考操作系统：创建态、就绪态、运行态、阻塞态、终止态
 
-线程由生到死的完整过程（生命周期）：当线程被创建并启动以后，它既不是一启动就进入了执行状态，也不是一直处于执行状态，在API中`java.lang.Thread.State`这个枚举中给出了六种线程状态：
+线程由生到死的完整过程（生命周期）：当线程被创建并启动以后，它既不是一启动就进入了执行状态，也不是一直处于执行状态，在 API 中 `java.lang.Thread.State` 这个枚举中给出了六种线程状态：
 
 | 线程状态                | 导致状态发生条件                                             |
 | ----------------------- | ------------------------------------------------------------ |
-| NEW(新建)               | 线程刚被创建，但是并未启动。还没调用start方法。MyThread t = new MyThread只有线程对象，没有线程特征。 |
-| Runnable(可运行)        | 线程可以在java虚拟机中运行的状态，可能正在运行自己代码，也可能没有，这取决于操作系统处理器。调用了t.start()方法：就绪（经典叫法） |
-| Blocked(锁阻塞)         | 当一个线程试图获取一个对象锁，而该对象锁被其他的线程持有，则该线程进入Blocked状态；当该线程持有锁时，该线程将变成Runnable状态 |
-| Waiting(无限等待)       | 一个线程在等待另一个线程执行一个（唤醒）动作时，该线程进入Waiting状态，进入这个状态后不能自动唤醒，必须等待另一个线程调用notify或者notifyAll方法才能唤醒 |
-| Timed Waiting(计时等待) | 有几个方法有超时参数，调用将进入Timed Waiting状态，这一状态将一直保持到超时期满或者接收到唤醒通知。带有超时参数的常用方法有Thread.sleep 、Object.wait |
-| Teminated(被终止)       | run方法正常退出而死亡，或者因为没有捕获的异常终止了run方法而死亡 |
+| NEW(新建)               | 线程刚被创建，但是并未启动，还没调用 start 方法，只有线程对象，没有线程特征 |
+| Runnable(可运行)        | 线程可以在 java 虚拟机中运行的状态，可能正在运行自己代码，也可能没有，这取决于操作系统处理器，调用了 t.start() 方法：就绪（经典叫法） |
+| Blocked(锁阻塞)         | 当一个线程试图获取一个对象锁，而该对象锁被其他的线程持有，则该线程进入 Blocked 状态；当该线程持有锁时，该线程将变成 Runnable 状态 |
+| Waiting(无限等待)       | 一个线程在等待另一个线程执行一个（唤醒）动作时，该线程进入 Waiting 状态，进入这个状态后不能自动唤醒，必须等待另一个线程调用 notify 或者 notifyAll 方法才能唤醒 |
+| Timed Waiting(计时等待) | 有几个方法有超时参数，调用将进入 Timed Waiting 状态，这一状态将一直保持到超时期满或者接收到唤醒通知。带有超时参数的常用方法有 Thread.sleep 、Object.wait |
+| Teminated(被终止)       | run 方法正常退出而死亡，或者因为没有捕获的异常终止了 run 方法而死亡 |
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JUC-线程6种状态.png)
 
@@ -3640,9 +3640,9 @@ Servlet 为了保证其线程安全，一般不为 Servlet 设置成员变量，
 
 #### 基本介绍
 
-ThreadLocal类用来提供线程内部的局部变量，这种变量在多线程环境下访问（通过get和set方法访问）时能保证各个线程的变量相对独立于其他线程内的变量
+ThreadLocal 类用来提供线程内部的局部变量，这种变量在多线程环境下访问（通过get和set方法访问）时能保证各个线程的变量相对独立于其他线程内的变量，分配在 TLAB
 
-ThreadLocal实例通常来说都是 `private static` 类型的，属于一个线程的本地变量，用于关联线程和线程上下文。每个线程都会在 ThreadLocal 中保存一份该线程独有的数据，所以是线程安全的
+ThreadLocal 实例通常来说都是 `private static` 类型的，属于一个线程的本地变量，用于关联线程和线程上下文。每个线程都会在 ThreadLocal 中保存一份该线程独有的数据，所以是线程安全的
 
 ThreadLocal 作用：
 
@@ -3652,7 +3652,7 @@ ThreadLocal 作用：
 
 * 线程隔离：每个线程的变量都是独立的，不会互相影响
 
-对比synchronized：
+对比 synchronized：
 
 |        | synchronized                                                 | ThreadLocal                                                  |
 | ------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
@@ -6860,12 +6860,6 @@ class DataContainerStamped {
 
 
 
-
-
-## 并发包
-
-（源码分析待更新）
-
 ### Semaphore
 
 #### 信号量
@@ -7222,7 +7216,7 @@ public static void main(String[] args) {
 
 Exchanger：交换器，是一个用于线程间协作的工具类，用于进行线程间的数据交换
 
-工作流程：两个线程通过exchange方法交换数据，如果第一个线程先执行exchange()方法，它会一直等待第二个线程也执行exchange方法，当两个线程都到达同步点时，这两个线程就可以交换数据
+工作流程：两个线程通过 exchange 方法交换数据，如果第一个线程先执行 exchange() 方法，它会一直等待第二个线程也执行 exchange 方法，当两个线程都到达同步点时，这两个线程就可以交换数据
 
 常用方法：
 
@@ -7241,8 +7235,12 @@ public class ExchangerDemo {
 }
 class ThreadA extends Thread{
     private Exchanger<String> exchanger();
-    public ThreadA(Exchanger<String> exchanger){this.exchanger = exchanger;}
-     @Override
+    
+    public ThreadA(Exchanger<String> exchanger){
+        this.exchanger = exchanger;
+    }
+    
+    @Override
     public void run() {
         try{
             sout("线程A，做好了礼物A，等待线程B送来的礼物B");
@@ -7256,9 +7254,11 @@ class ThreadA extends Thread{
 }
 class ThreadB extends Thread{
     private Exchanger<String> exchanger;
+    
     public ThreadB(Exchanger<String> exchanger) {
         this.exchanger = exchanger;
     }
+    
     @Override
     public void run() {
         try {
@@ -7274,9 +7274,17 @@ class ThreadB extends Thread{
 
 
 
+
+
+
+
 ***
 
 
+
+
+
+## 并发包
 
 ### ConHashMap
 
