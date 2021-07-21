@@ -2208,7 +2208,7 @@ pstree -A	#查看所有进程树
 
 父进程 ID 为 0 的进程通常是内核进程，它们作为系统自举过程的一部分而启动，init 进程是个例外，它的父进程是0，但它是用户进程
 
-主存 = RAM + BIOS部分的 ROM
+主存 = RAM + BIOS 部分的 ROM
 
 自举程序存储在内存中 ROM（BIOS 芯片），用来加载操作系统。CPU 的程序计数器指向 ROM 中自举程序第一条指令所对应的位置，当计算机通电，CPU 开始读取并执行自举程序，将操作系统（不是全部，只是启动计算机的那部分程序）装入RAM中，这个过程是自举过程。装入完成后 CPU 的程序计数器就被设置为 RAM 中操作系统的第一条指令所对应的位置，接下来 CPU 将开始执行操作系统的指令
 
@@ -2331,9 +2331,9 @@ pid_t waitpid(pid_t pid, int *status, int options)
 
 ### ifconfig
 
-ifconfig是Linux中用于显示或配置网络设备的命令，英文全称是network interfaces configuring
+ifconfig 是 Linux 中用于显示或配置网络设备的命令，英文全称是 network interfaces configuring
 
-ifconfig命令用于显示或设置网络设备。ifconfig可设置网络设备的状态，或是显示目前的设置。
+ifconfig 命令用于显示或设置网络设备。ifconfig 可设置网络设备的状态，或是显示目前的设置
 
 ```sh
 ifconfig [网络设备][down up -allmulti -arp -promisc][add<地址>][del<地址>][<hw<网络设备类型><硬件地址>][io_addr<I/O地址>][irq<IRQ地址>][media<网络媒介类型>][mem_start<内存地址>][metric<数目>][mtu<字节>][netmask<子网掩码>][tunnel<地址>][-broadcast<地址>][-pointopoint<地址>][IP地址]
@@ -2343,7 +2343,7 @@ ifconfig [网络设备][down up -allmulti -arp -promisc][add<地址>][del<地址
   <img src="https://gitee.com/seazean/images/raw/master/Tool/网卡信息.png"  />
 
   **ens33（有的是eth0）**表示第一块网卡。
-  表示ens33网卡的 IP地址是 192.168.0.137，广播地址，broadcast 192.168.0.255，掩码地址netmask:255.255.255.0 ，inet6对应的是ipv6
+  表示 ens33 网卡的 IP地址是 192.168.0.137，广播地址，broadcast 192.168.0.255，掩码地址netmask:255.255.255.0 ，inet6 对应的是ipv6
 
   **lo** 是表示主机的回坏地址，这个一般是用来测试一个网络程序，但又不想让局域网或外网的用户能够查看，只能在此台主机上运行和查看所用的网络接口 
 
@@ -2358,9 +2358,9 @@ ifconfig [网络设备][down up -allmulti -arp -promisc][add<地址>][del<地址
 
 ### ping
 
-ping命令用于检测主机。
+ping 命令用于检测主机。
 
-执行ping指令会使用ICMP传输协议，发出要求回应的信息，若远端主机的网络功能没有问题，就会回应该信息，因而得知该主机运作正常。
+执行 ping 指令会使用 ICMP 传输协议，发出要求回应的信息，若远端主机的网络功能没有问题，就会回应该信息，因而得知该主机运作正常。
 
 ```shell
 ping [-dfnqrRv][-c<完成次数>][-i<间隔秒数>][-I<网络界面>][-l<前置载入>][-p<范本样式>][-s<数据包大小>][-t<存活数值>][主机名称或IP地址]
@@ -2371,9 +2371,9 @@ ping [-dfnqrRv][-c<完成次数>][-i<间隔秒数>][-I<网络界面>][-l<前置�
 * `ping -c 2 www.baidu.com`
   ![](https://gitee.com/seazean/images/raw/master/Tool/ping百度.png)
 
-  icmp_seq：ping序列，从1开始
+  icmp_seq：ping 序列，从1开始
 
-  ttl：IP生存时间值
+  ttl：IP 生存时间值
 
   time：响应时间,数值越小，联通速度越快
 
@@ -2385,7 +2385,7 @@ ping [-dfnqrRv][-c<完成次数>][-i<间隔秒数>][-I<网络界面>][-l<前置�
 
 ### netstat
 
-netstat命令用于显示网络状态
+netstat 命令用于显示网络状态
 
 ```sh
 netstat [-acCeFghilMnNoprstuvVwx][-A<网络类型>][--ip]

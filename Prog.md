@@ -3671,7 +3671,7 @@ ThreadLocal 作用：
 
 | 方法                       | 描述                         |
 | -------------------------- | ---------------------------- |
-| ThreadLocal<>()            | 创建ThreadLocal对象          |
+| ThreadLocal<>()            | 创建 ThreadLocal 对象        |
 | protected T initialValue() | 返回当前线程局部变量的初始值 |
 | public void set( T value)  | 设置当前线程绑定的局部变量   |
 | public T get()             | 获取当前线程绑定的局部变量   |
@@ -3783,23 +3783,23 @@ public class ThreadLocalDateUtil {
 
 #### 底层结构
 
-JDK8以前：每个ThreadLocal都创建一个Map，然后用线程作为Map的key，要存储的局部变量作为Map的value，这样就能达到各个线程的局部变量隔离的效果
+JDK8 以前：每个 ThreadLocal 都创建一个 Map，然后用线程作为 Map 的 key，要存储的局部变量作为 Map 的 value，这样就能达到各个线程的局部变量隔离的效果
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ThreadLocal数据结构JDK8前.png)
 
-JDK8以后：每个Thread维护一个ThreadLocalMap，这个Map的key是ThreadLocal实例本身，value才是真正要存储的值Object
+JDK8 以后：每个 Thread 维护一个 ThreadLocalMap，这个 Map 的 key 是 ThreadLocal 实例本身，value 才是真正要存储的值 Object
 
-* 每个Thread线程内部都有一个Map (ThreadLocalMap)
-* Map里面存储ThreadLocal对象（key）和线程的变量副本（value）
-* Thread内部的Map是由ThreadLocal维护的，由ThreadLocal负责向map获取和设置线程的变量值。
+* 每个 Thread 线程内部都有一个 Map (ThreadLocalMap)
+* Map 里面存储 ThreadLocal 对象（key）和线程的变量副本（value）
+* Thread 内部的 Map 是由 ThreadLocal 维护的，由 ThreadLocal 负责向 map 获取和设置线程的变量值。
 * 对于不同的线程，每次获取副本值时，别的线程并不能获取到当前线程的副本值，形成副本的隔离，互不干扰
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ThreadLocal数据结构JDK8后.png)
 
-JDK8前后对比：
+JDK8 前后对比：
 
-* 每个Map存储的Entry数量会变少，因为之前的存储数量由Thread的数量决定，现在由ThreadLocal的数量决定，在实际编程当中，往往ThreadLocal的数量要少于Thread的数量
-* 当Thread销毁之后，对应的ThreadLocalMap也会随之销毁，能减少内存的使用
+* 每个 Map 存储的 Entry 数量会变少，因为之前的存储数量由 Thread 的数量决定，现在由 ThreadLocal 的数量决定，在实际编程当中，往往 ThreadLocal 的数量要少于 Thread 的数量
+* 当 Thread 销毁之后，对应的 ThreadLocalMap 也会随之销毁，能减少内存的使用
 
 
 
@@ -9676,11 +9676,11 @@ epoll 的特点：
 
 用户空间：用户代码、用户堆栈
 
-内核空间：内核代码、内核调度程序、进程描述符（内核堆栈、thread_info进程描述符）
+内核空间：内核代码、内核调度程序、进程描述符（内核堆栈、thread_info 进程描述符）
 
 * 进程描述符和用户的进程是一一对应的
 * SYS_API 系统调用：如 read、write，系统调用就是 0X80 中断
-* 进程描述符pd：进程从用户态切换到内核态时，需要保存用户态时的上下文信息，
+* 进程描述符 pd：进程从用户态切换到内核态时，需要保存用户态时的上下文信息，
 * 线程上下文：用户程序基地址，程序计数器、cpu cache、寄存器等，方便程序切回用户态时恢复现场
 * 内核堆栈：系统调用函数也是要创建变量的，这些变量在内核堆栈上分配
 
@@ -9701,7 +9701,7 @@ epoll 的特点：
   - 发起 `0X80` 中断
   - 程序执行碰到除 0 异常
 
-系统调用 system_call 函数所对应的中断指令编号是 0X80（十进制是8×16=128），而该指令编号对应的就是系统调用程序的入口，所以称系统调用为 80 中断
+系统调用 system_call 函数所对应的中断指令编号是 0X80（十进制是 8×16=128），而该指令编号对应的就是系统调用程序的入口，所以称系统调用为 80 中断
 
 系统调用的流程：
 
@@ -9713,8 +9713,6 @@ epoll 的特点：
 ![](https://gitee.com/seazean/images/raw/master/Java/IO-系统调用的过程.jpg)
 
 
-
-参考文章：https://blog.csdn.net/hancoder/article/details/112149121
 
 
 
@@ -9778,7 +9776,7 @@ read 调用图示：read、write 都是系统调用指令
 
 #### mmap
 
-mmap（Memory Mapped Files）加 write 实现零拷贝，零拷贝就是没有数据从内核空间复制到用户空间
+mmap（Memory Mapped Files）加 write 实现零拷贝，**零拷贝就是没有数据从内核空间复制到用户空间**
 
 用户空间和内核空间都使用内存，所以可以共享同一块物理内存地址，省去用户态和内核态之间的拷贝。写网卡时，共享空间的内容拷贝到 socket 缓冲区，然后交给 DMA 发送到网卡，只需要 3 次复制
 
@@ -9811,7 +9809,7 @@ sendfile 实现零拷贝，打开文件的文件描述符 fd 和 socket 的 fd �
 
 sendfile2.4 之后，sendfile 实现了更简单的方式，文件到达内核缓冲区后，不必再将数据全部复制到 socket buffer 缓冲区，而是只**将记录数据位置和长度相关等描述符信息**保存到 socket buffer，DMA 根据 socket 缓冲区中描述符提供的位置和偏移量信息直接将内核空间缓冲区中的数据拷贝到协议引擎上（2 次复制 2 次切换）
 
-Java NIO 对 sendfile 的支持是 `FileChannel.transferTo()/transferFrom()`，把磁盘文件读取 OS 内核缓冲区后的 fileChannel，直接转给 socketChannel 发送，底层就是sendfile
+Java NIO 对 sendfile 的支持是 `FileChannel.transferTo()/transferFrom()`，把磁盘文件读取 OS 内核缓冲区后的 fileChannel，直接转给 socketChannel 发送，底层就是 sendfile
 
 
 

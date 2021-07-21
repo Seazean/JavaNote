@@ -15,11 +15,9 @@ ORM（Object Relational Mapping）： 对象关系映射
 
 * MyBatis通过 xml 或注解的方式将要执行的各种 Statement 配置起来，并通过 Java 对象和 Statement 中 SQL 的动态参数进行映射生成最终执行的 sql 语句。
 
-* MyBatis 框架执行 SQL 并将结果映射为 Java 对象并返回。采用 ORM 思想解决了实体和数据库映射的问题，对 JDBC 进行了封装，屏蔽了JDBC底层API的调用细节，使我们不用操作 JDBC API，就可以完成对数据库的持久化操作。
+* MyBatis 框架执行 SQL 并将结果映射为 Java 对象并返回。采用 ORM 思想解决了实体和数据库映射的问题，对 JDBC 进行了封装，屏蔽了 JDBC 底层 API 的调用细节，使我们不用操作 JDBC API，就可以完成对数据库的持久化操作。
 
 MyBatis官网地址：http://www.mybatis.org/mybatis-3/
-
-
 
 
 
@@ -2301,7 +2299,7 @@ MyBatis 提供了 org.apache.ibatis.jdbc.SQL 功能类，专门用于构建 SQL 
 
 MyBatis 运行原理：
 
-1. 通过加载 mybatis 全局配置文件以及 mapper 映射文件初始化 configuration 对象 和 Executor 对象（通过全局配置文件中的 defaultExecutorType 初始化）
+1. 通过加载 mybatis 全局配置文件以及 mapper 映射文件初始化 configuration 对象和 Executor 对象（通过全局配置文件中的 defaultExecutorType 初始化）
 
 2. 创建一个 defaultSqlSession 对象，将 configuration 和 Executor 对象注入到 defaulSqlSession 对象
 
@@ -2609,7 +2607,7 @@ public class MyFirstPlugin implements Interceptor{
 
 PageInfo构造方法：
 
-* `PageInfo<Student> info = new PageInfo<>(list)` : list是SQL执行返回的结果集合，参考上一节
+* `PageInfo<Student> info = new PageInfo<>(list)` : list 是 SQL 执行返回的结果集合，参考上一节
 
 PageInfo相关API：
 
@@ -2662,20 +2660,28 @@ PageInfo相关API：
 
 
 
+笔记的总体架构基于黑马程序员的视频进行制作
+
+
+
+****
+
+
+
 ### Spring
 
-Spring是分层的 JavaSE/EE 应用 full-stack 轻量级开源框架
+Spring 是分层的 JavaSE/EE 应用 full-stack 轻量级开源框架
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/Spring框架介绍.png)
 
-Spring优点：
+Spring 优点：
 
 * 方便解耦，简化开发
 * 方便集成各种框架
 * 方便程序测试
-* AOP编程难过的支持
+* AOP 编程难过的支持
 * 声明式事务的支持
-* 降低JavaEE API的使用难度
+* 降低 JavaEE API 的使用难度
 
 体系结构：
 
@@ -2692,8 +2698,8 @@ Spring优点：
 ### 基本概述
 
 - IoC（Inversion Of Control）控制反转，Spring反向控制应用程序所需要使用的外部资源
-- **Spring控制的资源全部放置在Spring容器中，该容器称为IoC容器**
-- 官方网站：https://spring.io/ -->Projects --> spring-framework --> LEARN --> Reference Doc
+- **Spring 控制的资源全部放置在 Spring 容器中，该容器称为 IoC 容器**
+- 官方网站：https://spring.io/ → Projects → spring-framework → LEARN → Reference Doc
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/Spring_ioc介绍.png)
 
@@ -2717,7 +2723,7 @@ Spring优点：
 
 模拟三层架构中表现层调用业务层功能
 
-- 表现层：UserApp模拟UserServlet（使用main方法模拟）
+- 表现层：UserApp 模拟 UserServlet（使用 main 方法模拟）
 
 - 业务层：UserService
 
@@ -2733,7 +2739,7 @@ Spring优点：
    </dependency>
    ```
 
-2. 编写业务层与表现层（模拟）接口与实现类—service.UserService，service.impl.UserServiceImpl
+2. 编写业务层与表现层（模拟）接口与实现类 service.UserService，service.impl.UserServiceImpl
 
    ```java
    public interface UserService {
@@ -2752,7 +2758,7 @@ Spring优点：
 
 3. 建立spring配置文件：resources.**applicationContext**.xml (名字一般使用该格式)
 
-4. 配置所需资源（Service）为spring控制的资源
+4. 配置所需资源（Service）为 spring 控制的资源
 
    ```xml
    <?xml version="1.0" encoding="UTF-8"?>
@@ -2793,9 +2799,9 @@ Spring优点：
 
 ##### 基本属性
 
-标签：<bean>标签，<beans>的子标签
+标签：<bean> 标签，<beans> 的子标签
 
-作用：定义spring中的资源，受此标签定义的资源将受到spring控制
+作用：定义 Spring 中的资源，受此标签定义的资源将受到 Spring 控制
 
 格式：
 
@@ -2807,9 +2813,9 @@ Spring优点：
 
 基本属性
 
-* id：bean的名称，通过id值获取bean (首字母小写)
-* class：bean的类型，使用完全限定类名
-* name：bean的名称，可以通过name值获取bean，用于多人配合时给bean起别名
+* id：bean 的名称，通过id值获取bean (首字母小写)
+* class：bean 的类型，使用完全限定类名
+* name：bean 的名称，可以通过 name值获取bean，用于多人配合时给bean起别名
 
 ```xml
 <bean id="beanId" name="beanName1,beanName2" class="ClassName"></bean>
@@ -2823,7 +2829,7 @@ ctx.getBean("beanId") == ctx.getBean("beanName1") == ctx.getBean("beanName2")
 
 ##### 作用范围
 
-作用：定义bean的作用范围
+作用：定义 bean 的作用范围
 
 格式：
 
@@ -2833,9 +2839,9 @@ ctx.getBean("beanId") == ctx.getBean("beanName1") == ctx.getBean("beanName2")
 
 取值：
 
-- singleton：设定创建出的对象保存在spring容器中，是一个单例的对象
-- prototype：设定创建出的对象保存在spring容器中，是一个非单例的对象
-- request、session、application、 websocket ：设定创建出的对象放置在web容器对应的位置
+- singleton：设定创建出的对象保存在 Spring 容器中，是一个单例的对象
+- prototype：设定创建出的对象保存在 Spring 容器中，是一个非单例的对象
+- request、session、application、 websocket ：设定创建出的对象放置在 web 容器对应的位置
 
 
 
@@ -2845,7 +2851,7 @@ ctx.getBean("beanId") == ctx.getBean("beanName1") == ctx.getBean("beanName2")
 
 ##### 生命周期
 
-作用：定义bean对象在初始化或销毁时完成的工作
+作用：定义 bean 对象在初始化或销毁时完成的工作
 
 格式：
 
@@ -2853,14 +2859,14 @@ ctx.getBean("beanId") == ctx.getBean("beanName1") == ctx.getBean("beanName2")
 <bean init-method="init" destroy-method="destroy></bean>
 ```
 
-取值：bean对应的类中对应的具体方法名
+取值：bean 对应的类中对应的具体方法名
 
 注意事项：
 
-- 当scope=“singleton”时，spring容器中有且仅有一个对象，init方法在创建容器时仅执行一次
-- 当scope=“prototype”时，spring容器要创建同一类型的多个对象，init方法在每个对象创建时均执行一次
-- 当scope=“singleton”时，关闭容器 (.close()) 会导致bean实例的销毁，调用destroy方法一次
-- 当scope=“prototype”时，对象的销毁由垃圾回收机制gc()控制，destroy方法将不会被执行
+- 当 scope=“singleton” 时，Spring 容器中有且仅有一个对象，init 方法在创建容器时仅执行一次
+- 当 scope=“prototype” 时，Spring 容器要创建同一类型的多个对象，init 方法在每个对象创建时均执行一次
+- 当 scope=“singleton” 时，关闭容器 (.close()) 会导致bean实例的销毁，调用 destroy 方法一次
+- 当 scope=“prototype” 时，对象的销毁由垃圾回收机制 gc() 控制，destroy 方法将不会被执行
 
 bean配置：
 
@@ -2907,7 +2913,7 @@ UserService userService = (UserService)ctx.getBean("userService3");
 
 * factory-bean
 
-  作用：定义bean对象创建方式，使用静态工厂的形式创建bean，兼容早期遗留系统的升级工作
+  作用：定义 bean 对象创建方式，使用静态工厂的形式创建 bean，兼容早期遗留系统的升级工作
 
   格式：
 
@@ -2915,9 +2921,9 @@ UserService userService = (UserService)ctx.getBean("userService3");
   <bean class="FactoryClassName" factory-method="factoryMethodName"></bean>
   ```
 
-  取值：工厂bean中用于获取对象的静态方法名
+  取值：工厂 bean 中用于获取对象的静态方法名
 
-  注意事项：class属性必须配置成静态工厂的类名
+  注意事项：class 属性必须配置成静态工厂的类名
 
   bean配置：
 
@@ -2947,7 +2953,7 @@ UserService userService = (UserService)ctx.getBean("userService3");
 
 * factory-bean，factory-method
 
-  作用：定义bean对象创建方式，使用实例工厂的形式创建bean，兼容早期遗留系统的升级工作
+  作用：定义 bean 对象创建方式，使用实例工厂的形式创建 bean，兼容早期遗留系统的升级工作
 
   格式：
 
@@ -2959,9 +2965,9 @@ UserService userService = (UserService)ctx.getBean("userService3");
 
   注意事项：
 
-  - 使用实例工厂创建bean首先需要将实例工厂配置bean，交由spring进行管理
+  - 使用实例工厂创建 bean 首先需要将实例工厂配置 bean，交由 Spring 进行管理
 
-  - factory-bean是实例工厂的beanId
+  - factory-bean 是实例工厂的 beanId
 
   bean配置：
 
@@ -3012,13 +3018,13 @@ ApplicationContext子类相关API：
 
 ##### 依赖注入
 
-- IoC（Inversion Of Control）控制翻转，Spring反向控制应用程序所需要使用的外部资源
+- IoC（Inversion Of Control）控制翻转，Spring 反向控制应用程序所需要使用的外部资源
 
-- DI（Dependency Injection）依赖注入，应用程序运行依赖的资源由Spring为其提供，资源进入应用程序的方式称为注入。简单说就是利用反射机制为类的属性赋值的操作
+- DI（Dependency Injection）依赖注入，应用程序运行依赖的资源由 Spring 为其提供，资源进入应用程序的方式称为注入。简单说就是利用反射机制为类的属性赋值的操作
 
   ![](https://gitee.com/seazean/images/raw/master/Frame/DI介绍.png)
 
-IoC 和 DI 的关系：IoC 与 DI是同一件事站在不同角度看待问题
+IoC 和 DI 的关系：IoC 与 DI 是同一件事站在不同角度看待问题
 
 
 
@@ -3028,9 +3034,9 @@ IoC 和 DI 的关系：IoC 与 DI是同一件事站在不同角度看待问题
 
 ##### set注入
 
-标签：<property>标签，<bean>的子标签
+标签：<property> 标签，<bean> 的子标签
 
-作用：使用set方法的形式为bean提供资源
+作用：使用 set 方法的形式为 bean 提供资源
 
 格式：
 
@@ -3044,10 +3050,10 @@ IoC 和 DI 的关系：IoC 与 DI是同一件事站在不同角度看待问题
 
 基本属性：
 
-* name：对应bean中的属性名，要注入的变量名，要求该属性必须提供可访问的set方法
-  			 (严格规范此名称是set方法对应名称，首字母必须小写)
-* value：设定非引用类型属性对应的值，不能与ref同时使用
-* ref：设定引用类型属性对应bean的id ，不能与value同时使用
+* name：对应 bean 中的属性名，要注入的变量名，要求该属性必须提供可访问的 set 方法
+  			 (严格规范此名称是 set 方法对应名称，首字母必须小写)
+* value：设定非引用类型属性对应的值，不能与 ref 同时使用
+* ref：设定引用类型属性对应 bean 的 id ，不能与 value 同时使用
 
 ```xml
 <property name="propertyName" value="propertyValue" ref="beanId"/>
@@ -3352,7 +3358,7 @@ IoC 和 DI 的关系：IoC 与 DI是同一件事站在不同角度看待问题
 
 标签：<p:propertyName>，<p:propertyName-ref>
 
-作用：为bean注入属性值
+作用：为 bean 注入属性值
 
 格式：
 
@@ -3360,7 +3366,7 @@ IoC 和 DI 的关系：IoC 与 DI是同一件事站在不同角度看待问题
 <bean p:propertyName="propertyValue" p:propertyName-ref="beanId"/>
 ```
 
-开启p命令空间：开启spring对p命令空间的的支持，在beans标签中添加对应空间支持
+开启p命令空间：开启Spring对p命令空间的的支持，在beans标签中添加对应空间支持
 
 ```xml
 <beans xmlns="http://www.springframework.org/schema/beans"   		
@@ -3392,9 +3398,9 @@ IoC 和 DI 的关系：IoC 与 DI是同一件事站在不同角度看待问题
 
 #### SpEL
 
-Spring提供了对EL表达式的支持，统一属性注入格式
+Spring 提供了对 EL 表达式的支持，统一属性注入格式
 
-作用：为bean注入属性值
+作用：为 bean 注入属性值
 
 格式：
 
@@ -3624,9 +3630,9 @@ Spring容器加载多个配置文件：
   new ClassPathXmlApplicationContext("applicationContext.xml");
   ```
 
-Spring容器中的bean定义冲突问题
+Spring 容器中的 bean 定义冲突问题
 
-- 同id的bean，后定义的覆盖先定义的
+- 同 id 的 bean，后定义的覆盖先定义的
 
 - 导入配置文件可以理解为将导入的配置文件复制粘贴到对应位置，程序执行选择最下面的配置使用
 
@@ -3676,21 +3682,23 @@ Spring容器中的bean定义冲突问题
 
 
 
+****
+
 
 
 ##### Mybatis
 
-Mybatis核心配置文件消失
+Mybatis 核心配置文件消失
 
-- 环境environment转换成数据源对象
+- 环境 environment 转换成数据源对象
 
-- 映射Mapper扫描工作交由spring处理
+- 映射 Mapper 扫描工作交由 spring 处理
 
-- 类型别名交由spring处理
+- 类型别名交由 spring 处理
 
 业务发起使用spring上下文对象获取对应的bean
 
-**原理**：DAO接口不需要去创建实现类，因为MyBatis-Spring提供了一个动态代理的实现**MapperFactoryBean**，这个类可以让你直接注入数据映射器接口到service层 bean 中，底层将会动态代理创建类
+**原理**：DAO 接口不需要创建实现类，MyBatis-Spring 提供了一个动态代理的实现 **MapperFactoryBean**，这个类可以让直接注入数据映射器接口到 service 层 bean 中，底层将会动态代理创建类
 
 * pom.xml，导入坐标
 
@@ -3822,8 +3830,6 @@ Mybatis核心配置文件消失
   
   ```
 
-  
-
 * 测试类
 
   ```java
@@ -3875,16 +3881,20 @@ Mybatis核心配置文件消失
 
 - 扫描过程是以文件夹递归迭代的形式进行的
 
-- 扫描过程仅读取合法的java文件
+- 扫描过程仅读取合法的 java 文件
 
-- 扫描时仅读取spring可识别的注解
+- 扫描时仅读取 spring 可识别的注解
 
-- 扫描结束后会将可识别的有效注解转化为spring对应的资源加入IoC容器
+- 扫描结束后会将可识别的有效注解转化为 spring 对应的资源加入 IoC 容器
 
 注意：
 
-- 无论是注解格式还是XML配置格式，最终都是将资源加载到IoC容器中，差别仅仅是数据读取方式不同
-- 从加载效率上来说注解优于XML配置文件
+- 无论是注解格式还是 XML 配置格式，最终都是将资源加载到 IoC 容器中，差别仅仅是数据读取方式不同
+- 从加载效率上来说注解优于 XML 配置文件
+
+
+
+***
 
 
 
@@ -3938,6 +3948,10 @@ public class MainTest {
     }
 }
 ```
+
+
+
+***
 
 
 
@@ -4005,7 +4019,7 @@ public class ClassName{}
 
 属性：
 
-- value（默认）：定义bean的访问id
+- value（默认）：定义 bean 的访问 id
 
 
 
@@ -4015,7 +4029,7 @@ public class ClassName{}
 
 类型：类注解，写在类定义上方
 
-作用：设置该类作为bean对应的scope属性
+作用：设置该类作为 bean 对应的 scope 属性
 
 格式：
 
@@ -4026,7 +4040,7 @@ public class ClassName{}
 
 相关属性
 
-- value（默认）：定义bean的作用域，默认为singleton，非单例取值prototype
+- value（默认）：定义 bean 的作用域，默认为 singleton，非单例取值 prototype
 
 
 
@@ -4036,7 +4050,7 @@ public class ClassName{}
 
 类型：方法注解，写在方法定义上方
 
-作用：设置该类作为bean对应的生命周期方法
+作用：设置该类作为 bean 对应的生命周期方法
 
 示例：
 
@@ -4061,8 +4075,12 @@ public class UserServiceImpl implements UserService {
 
 拓展方式：
 
-* 实现InitializingBean，定义初始化逻辑
-* 实现DisposableBean，定义销毁逻辑
+* 实现 InitializingBean，定义初始化逻辑
+* 实现 DisposableBean，定义销毁逻辑
+
+
+
+***
 
 
 
@@ -4159,14 +4177,13 @@ private UserDao userDao;
 
 说明：
 
-- @Autowired默认按类型装配，指定@Qualifier后可以指定自动装配的bean的id
+- @Autowired 默认按类型装配，指定 @Qualifier 后可以指定自动装配的 bean 的 id
 
 相关属性：
 
-- required：定义该属性是否允许为null
+- required：定义该属性是否允许为 null
 
-注意：
-在使用@Autowired时，首先在容器中查询对应类型的bean，如果查询结果刚好为一个，就将该bean装配给@Autowired指定的数据，如果查询的结果不止一个，那么@Autowired会根据名称来查找。如果查询的结果为空，那么会抛出异常。解决方法：使用required=false
+注意：在使用 @Autowired 时，首先在容器中查询对应类型的 bean，如果查询结果刚好为一个，就将该 bean 装配给 @Autowired 指定的数据，如果查询的结果不止一个，那么 @Autowired 会根据名称来查找。如果查询的结果为空，那么会抛出异常。解决方法：使用 required=false
 
 
 
@@ -4268,7 +4285,7 @@ public class ClassName {
 
 - 类型：类注解、方法注解
 
-- 作用：控制bean的加载顺序，使其在指定bean加载完毕后再加载
+- 作用：控制 bean 的加载顺序，使其在指定 bean 加载完毕后再加载
 
 - 格式：
 
@@ -4280,15 +4297,15 @@ public class ClassName {
 
 - 说明：
 
-  - 配置在方法上，使@DependsOn指定的bean优先于@Bean配置的bean进行加载
+  - 配置在方法上，使 @DependsOn 指定的 bean 优先于 @Bean 配置的 bean 进行加载
 
-  - 配置在类上，使@DependsOn指定的bean优先于当前类中所有@Bean配置的bean进行加载
+  - 配置在类上，使 @DependsOn 指定的 bean 优先于当前类中所有 @Bean 配置的 bean 进行加载
 
-  - 配置在类上，使@DependsOn指定的bean优先于@Component等配置的bean进行加载
+  - 配置在类上，使 @DependsOn 指定的 bean 优先于 @Component 等配置的bean进行加载
 
 - 相关属性
 
-  - value（默认）：设置当前bean所依赖的bean的id
+  - value（默认）：设置当前 bean 所依赖的 bean 的 id
 
 @Order
 
@@ -4476,32 +4493,30 @@ pom.xml
 
 ApplicationContext：
 
-1. ApplicationContext是一个接口，提供了访问spring容器的API
+1. ApplicationContext 是一个接口，提供了访问 Spring 容器的API
 
-2. ClassPathXmlApplicationContext是一个类，实现了上述功能
+2. ClassPathXmlApplicationContext 是一个类，实现了上述功能
 
-3. ApplicationContext的顶层接口是BeanFactory
+3. ApplicationContext 的顶层接口是 BeanFactory
 
-4. BeanFactory定义了bean相关的最基本操作
+4. BeanFactory 定义了 bean 相关的最基本操作
 
-5. ApplicationContext在BeanFactory基础上追加了若干新功能
+5. ApplicationContext 在 BeanFactory 基础上追加了若干新功能
 
 **ApplicationContext和BeanFactory对比：**
 
-* BeanFactory和ApplicationContext是Spring的两大核心接口，都可以当做Spring的容器
-* BeanFactory是Spring里面最底层的接口，是IoC的核心，定义了IoC的基本功能，包含了各种Bean的定义、加载、实例化，依赖注入和生命周期管理。ApplicationContext接口作为BeanFactory的子类，除了提供BeanFactory所具有的功能外，还提供了更完整的框架功能：
+* BeanFactory 和 ApplicationContext 是 Spring 的两大核心接口，都可以当做 Spring 的容器
+* BeanFactory 是 Spring 里面最底层的接口，是 IoC 的核心，定义了 IoC 的基本功能，包含了各种 Bean 的定义、加载、实例化，依赖注入和生命周期管理。ApplicationContext 接口作为 BeanFactory 的子类，除了提供 BeanFactory 所具有的功能外，还提供了更完整的框架功能：
 
-  * 继承MessageSource，因此支持国际化
-  * 资源文件访问，如URL和文件（ResourceLoader）。
-  * 载入多个（有继承关系）上下文（即同时加载多个配置文件） ，使得每一个上下文都专注于一个特定的层次，比如应用的web层
-  * 提供在监听器中注册bean的事件
-* BeanFactory创建的bean采用延迟加载形式，只有在使用到某个Bean时(调用getBean())，才对该Bean进行加载实例化（Spring早期使用该方法获取bean），这样就不能提前发现一些存在的Spring的配置问题；ApplicationContext是在容器启动时，一次性创建了所有的Bean，容器启动时，就可以发现Spring中存在的配置错误，这样有利于检查所依赖属性是否注入
-* ApplicationContext启动后预载入所有的单实例Bean，所以程序启动慢，运行时速度快
-* 两者都支持BeanPostProcessor、BeanFactoryPostProcessor的使用，但两者之间的区别是：BeanFactory需要手动注册，而ApplicationContext则是自动注册
+  * 继承 MessageSource，因此支持国际化
+  * 资源文件访问，如 URL 和文件（ResourceLoader）。
+  * 载入多个（有继承关系）上下文（即同时加载多个配置文件） ，使得每一个上下文都专注于一个特定的层次，比如应用的 web 层
+  * 提供在监听器中注册 bean 的事件
+* BeanFactory 创建的 bean 采用延迟加载形式，只有在使用到某个 Bean 时（调用 getBean），才对该 Bean 进行加载实例化（Spring 早期使用该方法获取 bean），这样就不能提前发现一些存在的 Spring 的配置问题；ApplicationContext 是在容器启动时，一次性创建了所有的 Bean，容器启动时，就可以发现 Spring 中存在的配置错误，这样有利于检查所依赖属性是否注入
+* ApplicationContext 启动后预载入所有的单实例 Bean，所以程序启动慢，运行时速度快
+* 两者都支持 BeanPostProcessor、BeanFactoryPostProcessor 的使用，但两者之间的区别是：BeanFactory 需要手动注册，而 ApplicationContext 则是自动注册
 
-
-
-FileSystemXmlApplicationContext：加载文件系统中任意位置的配置文件，而ClassPathXmlApplicationContext只能加载类路径下的配置文件
+FileSystemXmlApplicationContext：加载文件系统中任意位置的配置文件，而 ClassPathXmlApplicationContext 只能加载类路径下的配置文件
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/ApplicationContext层级结构图.png)
 
@@ -4634,15 +4649,15 @@ UserService userService = (UserService)bf.getBean("userService");
 
 #### 导入器
 
-- bean只有通过配置才可以进入spring容器，被spring加载并控制
+- bean 只有通过配置才可以进入 spring 容器，被 spring 加载并控制
 
-- 配置bean的方式如下：
+- 配置 bean 的方式如下：
 
-  - XML文件中使用<bean/>标签配置
+  - XML 文件中使用 <bean/> 标签配置
 
-  - 使用@Component及衍生注解配置
+  - 使用 @Component 及衍生注解配置
 
-- **快速高效导入大量bean的方式，替代@Import({a.class,b.class})，无需在每个类上添加@Bean**
+- **快速高效导入大量 bean 的方式，替代 @Import({a.class,b.class})，无需在每个类上添加 @Bean**
 
 名称： ImportSelector
 
@@ -7520,9 +7535,9 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
 
 
 
-### 循环依赖
+### 依赖
 
-解决循环依赖：提前引用，提前暴露创建中的Bean
+解决循环依赖：提前引用，提前暴露创建中的 Bean
 
 * 循环依赖的三级缓存：
 

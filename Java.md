@@ -13401,7 +13401,7 @@ HotSpot VM 可以通过 VM 参数设置程序执行方式：
 
 - -Xint：完全采用解释器模式执行程序
 - -Xcomp：完全采用即时编译器模式执行程序。如果即时编译出现问题，解释器会介入执行
-- -Xmixed：采用解释器+即时编译器的混合模式共同执行程序
+- -Xmixed：采用解释器 + 即时编译器的混合模式共同执行程序
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JVM-执行引擎工作流程.png)
 
@@ -13422,11 +13422,11 @@ OSR 替换循环代码体的入口，C1、C2 替换的是方法调用的入口�
 
 热点探测：JIT 编译器在运行时会针热点代码做出深度优化，将其直接编译为对应平台的本地机器指令进行缓存，以提升 Java 程序的执行性能
 
-CodeCache 用于缓存编译后的机器码，动态生成的代码和本地方法代码 JNI，如果 CodeCache 区域被占满，编译器被停用，字节码将不会编译为机器码，应用程序继续运行，但运行速度会降低一个数量级，严重影响系统性能
+CodeCache 用于缓存编译后的机器码、动态生成的代码和本地方法代码 JNI，如果 CodeCache 区域被占满，编译器被停用，字节码将不会编译为机器码，应用程序继续运行，但运行速度会降低一个数量级，严重影响系统性能
 
-HotSpot VM 采用的热点探测方式是基于计数器的热点探测，为每一个方法都建立2个不同类型的计数器：方法调用计数器（Invocation Counter）和回边计数器（BackEdge Counter）
+HotSpot VM 采用的热点探测方式是基于计数器的热点探测，为每一个方法都建立 2 个不同类型的计数器：方法调用计数器（Invocation Counter）和回边计数器（BackEdge Counter）
 
-* 方法调用计数器：用于统计方法被调用的次数，默认阈值在Client 模式 下是1500 次，在 Server 模式下是10000 次，超过这个阈值，就会触发 JIT 编译，阈值可以通过虚拟机参数 `-XX:CompileThreshold` 设置
+* 方法调用计数器：用于统计方法被调用的次数，默认阈值在 Client 模式 下是 1500 次，在 Server 模式下是10000 次，超过这个阈值，就会触发 JIT 编译，阈值可以通过虚拟机参数 `-XX:CompileThreshold` 设置
 
   工作流程：当一个方法被调用时， 会先检查该方法是否存在被 JIT 编译过的版本，存在则使用编译后的本地代码来执行；如果不存在则将此方法的调用计数器值加 1，然后判断方法调用计数器与回边计数器值之和是否超过方法调用计数器的阈值，如果超过阈值会向即时编译器提交一个该方法的代码编译请求
 
@@ -13477,7 +13477,7 @@ VM 参数设置：
 
 - -client：指定 Java 虚拟机运行在 Client 模式下，并使用 C1 编译器
 - -server：指定 Java 虚拟机运行在 Server 模式下，并使用 C2 编译器
-- `-server -XX:+TieredCompilation`：在1.8之前，分层编译默认是关闭的，可以添加该参数开启
+- `-server -XX:+TieredCompilation`：在 1.8 之前，分层编译默认是关闭的，可以添加该参数开启
 
 分层编译策略 (Tiered Compilation)：程序解释执行可以触发 C1 编译，将字节码编译成机器码，加上性能监控，C2 编译会根据性能监控信息进行激进优化，JVM 将执行状态分成了 5 个层次：
 
@@ -13554,7 +13554,7 @@ public static int invoke(Object... args) {
 
 - 静态语言是判断变量自身的类型信息；动态类型语言是判断变量值的类型信息，变量没有类型信息
 
-- **Java是静态类型语言**（尽管lambda表达式为其增加了动态特性），js，python是动态类型语言
+- **Java 是静态类型语言**（尽管 lambda 表达式为其增加了动态特性），js，python是动态类型语言
 
   ```java
   String s = "abc";   //Java
@@ -14735,15 +14735,6 @@ jstatd 是一个 RMI 服务端程序，相当于代理服务器，建立本地�
 
 添加 JVM 参数选项：进入 Run/Debug Configurations → VM options 设置参数
 
-程序运行中：
-
-```sh
-# 设置Boolean类型参数
-jinfo -flag [+|-]<name> <pid>
-# 设置非Boolean类型参数
-jinfo -flag <name>=<value> <pid>
-```
-
 * 标准参数选项：`java [-options] class [args...]` 或 `java [-options] -jar jarfile [args...]`
 
   命令：`-? -help` 可以输出此命令的相关选项
@@ -14800,7 +14791,17 @@ jinfo -flag <name>=<value> <pid>
   -XX:<option>=<string>  	设置option字符值
   ```
 
-  
+
+程序运行中：
+
+```sh
+# 设置Boolean类型参数
+jinfo -flag [+|-]<name> <pid>
+# 设置非Boolean类型参数
+jinfo -flag <name>=<value> <pid>
+```
+
+
 
 ****
 
@@ -14861,10 +14862,10 @@ jinfo -flag <name>=<value> <pid>
 #### OOM参数
 
 ```sh
--XX:+HeapDumpOnOutMemoryError 内存出现OOM时生成Heap转储文件，两者互斥
--XX:+HeapDumpBeforeFullGC 出现FullGC时生成Heap转储文件，两者互斥
--XX:HeapDumpPath=<path> 指定heap转储文件的存储路径，默认当前目录
--XX:OnOutOfMemoryError=<path> 指定可行性程序或脚本的路径，当发生OOM时执行脚本
+-XX:+HeapDumpOnOutMemoryError 	内存出现OOM时生成Heap转储文件，两者互斥
+-XX:+HeapDumpBeforeFullGC 		出现FullGC时生成Heap转储文件，两者互斥
+-XX:HeapDumpPath=<path> 		指定heap转储文件的存储路径，默认当前目录
+-XX:OnOutOfMemoryError=<path> 	指定可行性程序或脚本的路径，当发生OOM时执行脚本
 ```
 
 
@@ -15016,7 +15017,7 @@ Full GC 日志：
 
 -  括号外：GC 回收前年轻代和老年代大小 -> 回收后大小（年轻代和老年代总大小） 
 
-* Minor GC 堆内存总容量 = 9/10 年轻代 + 老年代，Survivor区只计算 from 部分，而 JVM 默认年轻代中 Eden 区和 Survivor 区的比例关系：Eden:S0:S1=8:1:1
+* Minor GC 堆内存总容量 = 9/10 年轻代 + 老年代，Survivor 区只计算 from 部分，而 JVM 默认年轻代中 Eden 区和 Survivor 区的比例关系：Eden:S0:S1=8:1:1
 
 通过日志看 GC 时间：GC 日志中有三个时间 user、sys、real
 
@@ -15605,18 +15606,19 @@ public class MergeSort {
     }
 
     private static void merge(int[] arr, int low, int mid, int high) {
-        int m = 0;
+        int index = 0;
         //定义左右指针
         int left = low, right = mid + 1;
         int[] assist = new int[high - low + 1];
+        
         while (left <= mid && right <= high) {
-            assist[m++] = arr[left] < arr[right] ? arr[left++] : arr[right++];
+            assist[index++] = arr[left] < arr[right] ? arr[left++] : arr[right++];
         }
         while (left <= mid) {
-            assist[m++] = arr[left++];
+            assist[index++] = arr[left++];
         }
         while (right <= high) {
-            assist[m++] = arr[right++];
+            assist[index++] = arr[right++];
         }
 
         for (int k = 0; k < assist.length; k++) {
@@ -16479,6 +16481,7 @@ public void union(int p, int q) {
     }
     //让p所在树的节点根节点为q的所在的根节点，只需要把根节点改一下，时间复杂度 O(1)
     eleAndGroup[pRoot] = qRoot;
+    this.count-
 }
 ```
 
@@ -16793,7 +16796,7 @@ public class MGraph {
 
 ### 工作流程
 
-向布隆过滤器中添加一个元素key时，会通过多个hash函数得到多个哈希值，在位数组中把对应下标的值置为 1
+向布隆过滤器中添加一个元素 key 时，会通过多个 hash 函数得到多个哈希值，在位数组中把对应下标的值置为 1
 
 ![](https://gitee.com/seazean/images/raw/master/DB/Redis-布隆过滤器添加数据.png)
 
