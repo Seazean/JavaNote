@@ -3896,7 +3896,7 @@ JDK8 前后对比：
       ThreadLocalMap m = getMap(Thread.currentThread());
       // 如果此map存在
       if (m != null)
-          // 存在则调用map.remove，以当前ThreadLocal为key删除对应的实体entry
+          // 存在则调用map.remove，this时当前ThreadLocal，以this为key删除对应的实体
           m.remove(this);
   }
   ```
@@ -4106,7 +4106,7 @@ Memory leak：内存泄漏是指程序中动态分配的堆内存由于某种原
 
 解决方法：使用完 ThreadLocal 中存储的内容后将它 **remove** 掉就可以
 
-ThreadLocal 内部解决方法：在 ThreadLocalMap 中的 set/getEntry 方法中，会对 key 进行判断，如果为 null (ThreadLocal 为 null) 的话，那么会对 Entry 进行垃圾回收。所以**使用弱引用比强引用多一层保障**，就算不调用 remove，也有机会进行 GC
+ThreadLocal 内部解决方法：在 ThreadLocalMap 中的 set/getEntry 方法中，会对 key 进行判断，如果为 null（ThreadLocal 为 null）的话，会对 Entry 进行垃圾回收。所以**使用弱引用比强引用多一层保障**，就算不调用 remove，也有机会进行 GC
 
 
 

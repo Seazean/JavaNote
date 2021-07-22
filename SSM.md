@@ -1591,8 +1591,8 @@ public void testFirstLevelCache(){
 
 1. select 标签的 useCache 属性
 
-   映射文件中的`<select>`标签中设置`useCache=”true”`代表当前statement要使用二级缓存。
-   注意：针对每次查询都需要最新的数据 sql，要设置成useCache=false，禁用二级缓存
+   映射文件中的 `<select>` 标签中设置 `useCache="true"` 代表当前 statement 要使用二级缓存。
+   注意：针对每次查询都需要最新的数据 sql，要设置成 useCache=false，禁用二级缓存
 
    ```xml
    <select id="findAll" resultType="user" useCache="true">
@@ -2336,11 +2336,11 @@ MyBatis 运行原理：
 
 SqlSessionFactoryBuilder.build(InputStream, String,  Properties)：构建工厂
 
-XMLConfigBuilder.parse()：解析核心配置文件每个标签的信息
+XMLConfigBuilder.parse()：解析核心配置文件每个标签的信息（**XPath**）
 
 * `parseConfiguration(parser.evalNode("/configuration"))`：读取节点内数据，<configuration>是 MyBatis 配置文件中的顶层标签
 * `mapperElement(root.evalNode("mappers"))`：解析 mappers 信息，分为 package 和 单个注册两种
-* `Configuration.addMappers()`：将 mapper 接口添加到 mapperRegistry 中，用来获取代理对象
+* `Configuration.addMappers()`：将 mapper 接口添加到 mapperRegistry 中，用来**获取代理对象**
 
 * `XMLMapperBuilder.parse()`：解析 mapper 的标签的信息
   * `configurationElement(parser.evalNode("/mapper"))`：解析 mapper 文件，顶层节点 <mapper>
@@ -2370,7 +2370,7 @@ DefaultSqlSessionFactory.openSessionFromDataSource(...)：ExecutorType 为 Execu
 
 * `configuration.newExecutor(tx, execType)`：根据参数创建指定类型的 Executor
   * 批量操作笔记的部分有讲解到 <setting> 的属性 defaultExecutorType，根据设置的创建对象
-  * 如果开启了二级缓存，会包装 Executor 对象 `BaseExecutor.setExecutorWrapper(executor)`
+  * 二级缓存默认开启，会包装 Executor 对象 `BaseExecutor.setExecutorWrapper(executor)`
 
  return new DefaultSqlSession(configuration, executor, autoCommit)：返回 DefaultSqlSession 对象
 
@@ -2405,7 +2405,7 @@ MapperRegistry.getMapper(Class, SqlSession)：MapperRegistry 是 Configuration �
 
 ### 执行SQL
 
-MapperProxy.invoke()：执行 SQL 语句
+MapperProxy.invoke()：执行 SQL 语句，Object 类的方法直接执行
 
 cachedMapperMethod(method)：包装成一个 MapperMethod 对象并初始化该对象
 
@@ -2415,11 +2415,11 @@ sqlSession.selectOne(String, Object)：查询数据，底层调用 DefaultSqlSes
 
 configuration.getMappedStatement(statement)：获取执行者对象
 
-executor.query()：开始执行查询语句，参数要被包装成集合类
+executor.query()：开始执行查询语句，参数通过 wrapCollection() 包装成集合类
 
 * `CachingExecutor.query()`：先执行
 
-  * `MappedStatement.getBoundSql(parameterObject)`：**把 parameterObject 封装成 BoundSql 对象**
+  * `MappedStatement.getBoundSql(parameterObject)`：**把 parameterObject 封装成 BoundSql**
     构造函数中有：`this.parameterObject = parameterObject`
 
     ![](https://gitee.com/seazean/images/raw/master/Frame/MyBatis-boundSql对象.png)
@@ -2438,7 +2438,7 @@ executor.query()：开始执行查询语句，参数要被包装成集合类
   * `configuration.newStatementHandler()`：创建 StatementHandler 对象
     * 根据 select 标签的 statementType 属性，根据属性选择创建哪种对象
     * 判断 BoundSql 是否被创建，没有创建会重新封装参数信息到 BoundSql
-    * 创建 StatementHandler 的构造方法中，创建了 ParameterHandler 和 ResultSetHandler 对象
+    * StatementHandler 的构造方法中，**创建了 ParameterHandler 和 ResultSetHandler 对象**
     * `interceptorChain.pluginAll(statementHandler)`：拦截器链
   * `prepareStatement()`：通过 StatementHandler **创建 JDBC 的 Statement 对象**
     * `getConnection()`：获取 JDBC 的 Connection 对象
@@ -2449,7 +2449,7 @@ executor.query()：开始执行查询语句，参数要被包装成集合类
     * `handler.parameterize()`：进行参数的设置
       * `ParameterHandler.setParameters()`：**通过 ParameterHandler 设置参数**
       * `typeHandler.setParameter()`：**通过 TypeHandler 预编译 SQL**
-  * `StatementHandler.query()`：**封装成 PreparedStatement 执行 SQL**
+  * `StatementHandler.query()`：**封装成 java 原生的 PreparedStatement 执行 SQL**
 
   * `resultSetHandler.handleResultSets(ps)`：**通过 ResultSetHandler 对象封装结果集**
 
@@ -2827,6 +2827,10 @@ ctx.getBean("beanId") == ctx.getBean("beanName1") == ctx.getBean("beanName2")
 
 
 
+***
+
+
+
 ##### 作用范围
 
 作用：定义 bean 的作用范围
@@ -2840,7 +2844,7 @@ ctx.getBean("beanId") == ctx.getBean("beanName1") == ctx.getBean("beanName2")
 取值：
 
 - singleton：设定创建出的对象保存在 Spring 容器中，是一个单例的对象
-- prototype：设定创建出的对象保存在 Spring 容器中，是一个非单例的对象
+- prototype：设定创建出的对象保存在 Spring 容器中，是一个非单例（原型）的对象
 - request、session、application、 websocket ：设定创建出的对象放置在 web 容器对应的位置
 
 
@@ -2911,7 +2915,7 @@ UserService userService = (UserService)ctx.getBean("userService3");
 
 ##### 创建方式
 
-* factory-bean
+* 静态工厂
 
   作用：定义 bean 对象创建方式，使用静态工厂的形式创建 bean，兼容早期遗留系统的升级工作
 
@@ -2951,7 +2955,7 @@ UserService userService = (UserService)ctx.getBean("userService3");
 
 
 
-* factory-bean，factory-method
+* 实例工厂
 
   作用：定义 bean 对象创建方式，使用实例工厂的形式创建 bean，兼容早期遗留系统的升级工作
 
@@ -2961,22 +2965,20 @@ UserService userService = (UserService)ctx.getBean("userService3");
   <bean factory-bean="factoryBeanId" factory-method="factoryMethodName"></bean>
   ```
 
-  取值：工厂bean中用于获取对象的实例方法名
-
   注意事项：
 
   - 使用实例工厂创建 bean 首先需要将实例工厂配置 bean，交由 Spring 进行管理
 
-  - factory-bean 是实例工厂的 beanId
+  - factory-bean 是实例工厂的 Id
 
-  bean配置：
+  bean 配置：
 
   ```xml
   <!--实例工厂创建bean，依赖工厂对象对应的bean-->
   <bean id="factoryBean" class="service.UserServiceFactory2"/>
   <bean id="userService5" factory-bean="factoryBean" factory-method="getService"/>
   ```
-
+  
   工厂类：
 
   ```java
@@ -3187,9 +3189,9 @@ IoC 和 DI 的关系：IoC 与 DI 是同一件事站在不同角度看待问题
   }
   ```
 
-* Service业务层：参考set注入
+* Service 业务层：参考 set 注入
 
-* 配置applicationContext.xml
+* 配置 applicationContext.xml
 
   ```xml
   <bean id="userDao" class="dao.impl.UserDaoImpl">
@@ -3206,7 +3208,7 @@ IoC 和 DI 的关系：IoC 与 DI 是同一件事站在不同角度看待问题
   </bean>
   ```
 
-  方式二：使用UserServiceImpl的构造方法注入
+  方式二：使用 UserServiceImpl 的构造方法注入
 
   ```xml
   <bean id="userService" class="service.impl.UserServiceImpl">
@@ -3215,7 +3217,7 @@ IoC 和 DI 的关系：IoC 与 DI 是同一件事站在不同角度看待问题
   </bean>
   ```
 
-* 测试类：参考set注入
+* 测试类：参考 set 注入
 
 
 
@@ -4121,7 +4123,7 @@ public DruidDataSource createDataSource() {    return ……;    }
 
 #### 属性注入
 
-##### 非引用类型
+##### 基本类型
 
 名称：@Value
 
@@ -4139,13 +4141,13 @@ private String username;
 
 说明：
 
-- value值仅支持非引用类型数据，赋值时对方法的所有参数全部赋值
+- value 值仅支持非引用类型数据，赋值时对方法的所有参数全部赋值
 
-- value值支持读取properties文件中的属性值，通过类属性将properties中数据传入类中
+- value 值支持读取 properties 文件中的属性值，通过类属性将 properties 中数据传入类中
 
-- value值支持SpEL
+- value 值支持 SpEL
 
-- @value注解如果添加在属性上方，可以省略set方法（set方法的目的是为属性赋值）
+- @value 注解如果添加在属性上方，可以省略 set 方法（set 方法的目的是为属性赋值）
 
 相关属性：
 
@@ -4157,9 +4159,7 @@ private String username;
 
 
 
-##### 引用类型
-
-###### 属性引入
+##### 属性引入
 
 名称：@Autowired、@Qualifier
 
@@ -4187,13 +4187,17 @@ private UserDao userDao;
 
 
 
-###### 属性设置
+***
+
+
+
+##### 属性设置
 
 名称：@Primary
 
 类型：类注解
 
-作用：设置类对应的bean按类型装配时优先装配
+作用：设置类对应的 bean 按类型装配时优先装配
 
 范例：
 
@@ -4208,26 +4212,24 @@ public class ClassName{}
 
 
 
+***
 
 
-###### 拓展
+
+##### 注解对比
 
 名称：@Inject、@Named、@Resource
 
-说明：
-
-- @Inject与@Named是JSR330规范中的注解，功能与@Autowired和@Qualifier完全相同，适用于不同架构场景
-- @Resource是JSR250规范中的注解，可以简化书写格式
+- @Inject 与 @Named 是 JSR330 规范中的注解，功能与 @Autowired 和 @Qualifier 完全相同，适用于不同架构场景
+- @Resource 是 JSR250 规范中的注解，可以简化书写格式
 
 @Resource相关属性
 
-- name：设置注入的bean的id
+- name：设置注入的 bean 的 id
 
-- type：设置注入的bean的类型，接收的参数为Class类型
+- type：设置注入的 bean 的类型，接收的参数为 Class 类型
 
-
-
-注：**@Autowired和@Resource之间的区别**：
+**@Autowired和@Resource之间的区别**：
 
 *  @Autowired默认是按照类型装配注入的，默认情况下它要求依赖对象必须存在（可以设置它required属性为false）
 
@@ -4503,7 +4505,7 @@ ApplicationContext：
 
 5. ApplicationContext 在 BeanFactory 基础上追加了若干新功能
 
-**ApplicationContext和BeanFactory对比：**
+**ApplicationContext 和 BeanFactory对比：**
 
 * BeanFactory 和 ApplicationContext 是 Spring 的两大核心接口，都可以当做 Spring 的容器
 * BeanFactory 是 Spring 里面最底层的接口，是 IoC 的核心，定义了 IoC 的基本功能，包含了各种 Bean 的定义、加载、实例化，依赖注入和生命周期管理。ApplicationContext 接口作为 BeanFactory 的子类，除了提供 BeanFactory 所具有的功能外，还提供了更完整的框架功能：
@@ -4912,17 +4914,17 @@ SmartInitializingSingleton 原理：-> afterSingletonsInstantiated()
 
 繁琐的bean初始化过程处理：
 
-* FactoryBean：对单一的bean的初始化过程进行封装，达到简化配置的目的
+* FactoryBean：对单一的 bean 的初始化过程进行封装，达到简化配置的目的
 
-FactoryBean与BeanFactory区别：
+FactoryBean与BeanFactory 区别：
 
-- FactoryBean：封装单个bean的创建过程
+- FactoryBean：封装单个 bean 的创建过程
 
-- BeanFactory：Spring容器顶层接口，定义了bean相关的获取操作
+- BeanFactory：Spring容器顶层接口，定义了 bean 相关的获取操作
 
 代码实现：
 
-* FactoryBean，实现类一般是MapperFactoryBean
+* FactoryBean，实现类一般是 MapperFactoryBean
 
   ```java
   public class EquipmentDaoImplFactoryBean implements FactoryBean {
@@ -7254,18 +7256,120 @@ TransactionManagementConfigurationSelector类：
 
 ## 原理
 
+（整理中，一周之内整理完成）
+
+### XML
+
+三大对象：
+
+* **BeanDefinition**：是 Spring 中极其重要的一个概念，它存储了 bean 对象的所有特征信息，如是否单例、是否懒加载、factoryBeanName 等
+
+* **BeanDefinationRegistry**：存放 BeanDefination 的容器，是一种键值对的形式，通过特定的 Bean 定义的id，映射到相应的 BeanDefination
+
+* **BeanDefinitionReader**：读取配置文件，比如 xml 用 dom4j 解析，配置文件用 io 流
+
+程序：
+
+```java
+BeanFactory bf = new XmlBeanFactory(new ClassPathResource("applicationContext.xml"));
+UserService userService1 = (UserService)bf.getBean("userService");
+```
+
+源码解析：
+
+```java
+public XmlBeanFactory(Resource resource, BeanFactory parentBeanFactory) {
+    super(parentBeanFactory);
+    this.reader.loadBeanDefinitions(resource);
+}
+public int loadBeanDefinitions(Resource resource) {
+    //将 resource 包装成带编码格式的 EncodedResource
+    //EncodedResource 中 getReader()方法，调用java.io包下的 转换流 创建指定编码的输入流对象
+    return loadBeanDefinitions(new EncodedResource(resource));
+}
+```
+
+* XmlBeanDefinitionReader.loadBeanDefinitions()：把 Resource 解析成 BeanDefinition 对象
+
+  * `currentResources = this.resourcesCurrentlyBeingLoaded.get()`：拿到当前线程已经加载过的所有 EncodedResoure 资源，用 ThreadLocal 保证线程安全
+  * `if (currentResources == null)`：判断 currentResources 是否为空，为空则进行初始化
+  * `if (!currentResources.add(encodedResource))`：如果已经加载过该资源会报错，防止重复加载
+  * `inputSource = new InputSource(inputStream)`：资源对象包装成 InputSource，InputSource使 SAX 中的资源对象，用来进行 XML 文件的解析
+  * `return doLoadBeanDefinitions()`：**加载返回**
+  * `currentResources.remove(encodedResource)`：加载完成移除当前 encodedResource
+  * `resourcesCurrentlyBeingLoaded.remove()`：ThreadLocal 为空时移除元素，防止内存泄露
+
+* XmlBeanDefinitionReader.doLoadBeanDefinitions(inputSource, resource)：真正的加载函数
+
+  `Document doc = doLoadDocument(inputSource, resource)`：转换成有层次结构的 Document 对象
+
+  * `getEntityResolver()`：获取用来解析 DTD、XSD 约束的解析器
+
+  * `getValidationModeForResource(resource)`：获取验证模式
+
+  `int count = registerBeanDefinitions(doc, resource)`：将 Document 解析成 BD 对象，注册（添加）到  BeanDefinationRegistry 中，返回新注册的数量
+
+  * `createBeanDefinitionDocumentReader()`：创建 DefaultBeanDefinitionDocumentReader 对象
+  * `getRegistry().getBeanDefinitionCount()`：获取解析前 BeanDefinationRegistry 中的 bd 数量
+  * `registerBeanDefinitions(doc, readerContext)`：注册 BD
+    * `this.readerContext = readerContext`：保存上下文对象
+    * `doRegisterBeanDefinitions(doc.getDocumentElement())`：真正的注册 BD 函数
+      * `doc.getDocumentElement()`：拿出顶层标签 <beans></beans>
+  * `return getRegistry().getBeanDefinitionCount() - countBefore`：返回新加入的数量
+
+* DefaultBeanDefinitionDocumentReader.doRegisterBeanDefinitions()：注册 BD 到 BR
+
+  * `createDelegate(getReaderContext(), root, parent)`：beans 是标签的解析器对象
+  * `delegate.isDefaultNamespace(root)`：判断 beans 标签是否是默认的属性
+  * `root.getAttribute(PROFILE_ATTRIBUTE)`：解析 profile 属性
+  * `parseBeanDefinitions(root, this.delegate)`：**解析 beans 标签中的子标签**
+    * `parseDefaultElement(ele, delegate)`：如果是默认的标签，用该方法解析子标签
+      * 判断标签名称，进行相应的解析
+      * `processBeanDefinition(ele, delegate)`：解析 bean 标签
+    * `delegate.parseCustomElement(ele)`：解析自定义的标签
+
+* DefaultBeanDefinitionDocumentReader.processBeanDefinition()：解析 bean 并注册到注册中心
+
+  * `delegate.parseBeanDefinitionElement(ele)`：解析 bean 标签封装为 BeanDefinitionHolder
+
+    * `if (!StringUtils.hasText(beanName) && !aliases.isEmpty())`：条件一成立说明 name 没有值，条件二成立说明别名有值，
+
+      `beanName = aliases.remove(0)`：拿别名列表的第一个元素当作 beanName
+
+    * `parseBeanDefinitionElement(ele, beanName, containingBean)`：**解析 bean 标签**
+
+      * `parseState.push(new BeanEntry(beanName))`：当前解析器的状态设置为 BeanEntry
+      * class 和 parent 属性存在一个，parent 是作为父标签为了被继承
+      * `createBeanDefinition(className, parent)`：设置了class 的 GenericBeanDefinition对象
+      * `parseBeanDefinitionAttributes()`：解析 bean 标签的属性
+      * 接下来解析子标签
+
+    * `beanName = this.readerContext.generateBeanName(beanDefinition)`：生成 className + # + 序号的名称赋值给 beanName 
+
+    * `return new BeanDefinitionHolder(beanDefinition, beanName, aliasesArray)`：包装成 BeanDefinitionHolder 对象
+
+  * `registerBeanDefinition(bdHolder, getReaderContext().getRegistry())`：**注册到容器**
+
+    * `beanName = definitionHolder.getBeanName()`：获取beanName
+    * `this.beanDefinitionMap.put(beanName, beanDefinition)`：添加到注册中心
+
+  * `getReaderContext().fireComponentRegistered`：发送注册完成事件
+
+  
+
+
+
+****
+
+
+
 ### 容器
 
-Spring ioc容器就是很多Map集合，保存了单实例Bean，环境信息等资源
+Spring ioc 容器就是很多 Map 集合，保存了单实例 Bean，环境信息等资源
 
-* **BeanDefinition**：是Spring中极其重要的一个概念，它存储了 bean 对象的所有特征信息，如是否单例、是否懒加载、factoryBeanName等
-* **BeanDefinationRegistry**：存放BeanDefination的容器，是一种键值对的形式，通过特定的Bean定义的id，映射到相应的BeanDefination
+Spring 容器的启动流程：三个步骤
 
-* **BeanDefinitionReader**：读取配置文件，比如xml用dom4j解析，配置文件用io流
-
-Spring容器的启动流程：三个步骤
-
-ClassPathXmlApplicationContext同AnnotationConfigApplicationContext
+ClassPathXmlApplicationContext 同 AnnotationConfigApplicationContext
 
 ```java
 public AnnotationConfigApplicationContext(Class<?>... annotatedClasses) {
@@ -7359,7 +7463,7 @@ public AnnotationConfigApplicationContext(Class<?>... annotatedClasses) {
        * initLifecycleProcessor()：初始化和生命周期有关的后置处理器，容器中有就返回，没有就new
        * getLifecycleProcessor().onRefresh()：获取该生命周期后置处理器 (BeanFactory) 回调onRefresh()
        * publishEvent(new ContextRefreshedEvent(this))：发布容器刷新完成事件
-       * liveBeansView.registerApplicationContext(this)：暴露Mbean
+       * liveBeansView.registerApplicationContext(this)：暴露 Mbean
 
 **总结：**
 
@@ -7399,13 +7503,17 @@ public AnnotationConfigApplicationContext(Class<?>... annotatedClasses) {
 
 多实例：在每次获取的时候创建对象
 
-Bean的获取：**获取Bean时先从单例池获取，如果没有则创建并添加至单例池**
+Bean 的获取：**获取 Bean 时先从单例池获取，如果没有则进行第二次获取，带上工厂类创建并添加至单例池**
 
-Bean的生命周期：实例化instantiation，填充属性populate，初始化initialization，销毁destruction
+Bean 的生命周期：实例化 instantiation，填充属性 populate，初始化 initialization，销毁 destruction
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/Spring-getBean.png)
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/Sprin-AOP+循环依赖.png)
+
+
+
+参考视频：https://www.bilibili.com/video/BV1ET4y1N7Sp
 
 
 
@@ -7415,21 +7523,19 @@ Bean的生命周期：实例化instantiation，填充属性populate，初始化i
 
 #### 源码解析
 
-Java启动Spring代码：
+Java 启动 Spring代码：
 
 ```java
 ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.xml");
 ```
 
-* **获取**`AbstractBeanFactory.doGetBean`
+* 获取 `AbstractBeanFactory.doGetBean`
 
   **第一次查询**：`DefaultSingletonBeanRegistry.getSingleton()`：从缓存池获取，获取不到继续进行
 
   * 获取到以后进行实例化，然后直接return 循环依赖阶段有代码详解
 
   查询成功：`getObjectForBeanInstance`获取给定bean实例的对象，最后详解
-
-  依次进行：循环依赖检查、父工厂检查、标记Bean已经创建、读取XML配置文件初始化bean的属性
 
   **第二次查询**：`DefaultSingletonBeanRegistry.getSingleton(String, ObjectFactory<?>)`
 
@@ -7468,28 +7574,29 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
   **开始创建**：`doCreateBean(beanName, RootBeanDefinition, Object[] args)`
 
   * 清除缓存：如果bean是单例，就先清除缓存中的bean信息
-  
+
   * **创建实例**：`createBeanInstance(beanName, RootBeanDefinition, Object[] args)`
-    
+
     * 优先级从高到低：工厂方法、有参**构造函数**、无参构造函数 
     * Spring给所有创建的Bean实例包装成BeanWrapper，BeanWrapper是对反射相关API的简单封装，使得上层使用反射完成相关的业务逻辑大大简化
-    
+
   * 后置处理：`applyMergedBeanDefinitionPostProcessors()`
+
     * 将所有的后置处理器拿出来，并且把名字叫beanName的类中的变量都封装到InjectionMetadata的injectedElements集合里面，目的是以后从中获取，创建实例，通过反射注入到相应类
     * `AutowiredAnnotationBeanPostProcessor.postProcessMergedBeanDefinition`
-    
+
   * 添加工厂：`DefaultSingletonBeanRegistry.addSingletonFactory()`
-    
+
     * 允许提前引用才执行，用来解决**循环依赖**
-    
+
   * **填充属性 (依赖注入)**：`populateBean(beanName, RootBeanDefinition, BeanWrapper)`
-    
+
     * 填充准备：通过awareBeanPostProcessor拦截，判断控制程序是否继续进行属性填充
     * 获取依赖：根据autowire类型 (Type/Name)提取依赖，存入PropertyValues并给bean注册依赖
     * 后置处理：判断是否需要进行 BeanPostProcessor 和 依赖检查
-      
+
       * `postProcessProperties`：转入**AutowiredAnnotationBeanPostProcessor（注解**）
-      
+
       * `findAutowiringMetadata()`：找到需要注入的元数据
       * `InjectionMetadata.InjectedElement.inject()`：注入数据（重写实现，注入变量或方法）
         * `DefaultListableBeanFactory.resolveDependency()`：解决依赖
@@ -7498,9 +7605,9 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
         * `ReflectionUtils.makeAccessible()`：修改访问权限，true代表暴力破解
         * `method.invoke()`：利用反射为此对象赋值
     * 填充属性：`applyPropertyValues()`，将所有解析的PropertyValues的属性填充至BeanWrapper 
-    
+
   * **初始化**：`initializeBean(String, Object, RootBeanDefinition)`
-    
+
     * 填充Aware接口属性：`invokeAwareMethods(beanName,bean)`
       * BeanName、ClassLoader对象实例、Spring工厂、Spring上下文ApplicationContext
     * 前置处理：`applyBeanPostProcessorsBeforeInitialization()`
@@ -7511,11 +7618,11 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
     * 后置处理：`applyBeanPostProcessorsAfterInitialization()`
       * **AOP，跳转注解**，`AbstractAutoProxyCreatorwrapIfNecessary -> creatProxy`
       * 如果不存在循环依赖，动态代理在此处完成，否则会提前创建
-    
+
   * 循环依赖检查：如果存在循环依赖，在属性填充阶段会生成Bean对象的动态代理，则缓存中放置了提前生成的代理对象，然后使用原始bean继续执行初始化，所以返回最终bean前，把原始bean置换为代理对象返回
-  
+
     存在循环依赖，在初始化的后置处理中不会重新创建代理对象，真正创建动态代理Bean的阶段是在获取提前引用阶段，**循环依赖**详解，看后置处理源码：  
-  
+
     ```java
     public Object postProcessAfterInitialization() {。。。。。
         //去提前代理引用池中寻找该key，如果存在就不会创建动态代理
@@ -7524,9 +7631,9 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
             return wrapIfNecessary(bean, beanName, cacheKey);
     //。。。。。。
     ```
-  
+
   * **注册销毁**：`AbstractBeanFactory.registerDisposableBeanIfNecessary`，
-    
+
     * 根据不同的scope进行disposableBean的注册，在销毁对象时调用destory()
 
 
@@ -7537,12 +7644,20 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
 
 ### 依赖
 
+循环依赖：是一个或多个对象实例之间存在直接或间接的依赖关系，这种依赖关系构成一个环形调用
+
+Spring 循环依赖有三种：
+
+* 原型模式循环依赖【无法解决】
+* 单例Bean循环依赖-构造参数产生依赖【无法解决】
+* 单例Bean循环依赖-setter产生依赖【可以解决】
+
 解决循环依赖：提前引用，提前暴露创建中的 Bean
 
 * 循环依赖的三级缓存：
 
   ```java
-  //一级缓存：存放所有初始化完成单实例bean，单例池
+  //一级缓存：存放所有初始化完成单实例bean，单例池，key是beanName，value是对应的单实例对象引用
   private final Map<String, Object> singletonObjects = new ConcurrentHashMap<>(256);
   
   //二级缓存：存放实例化未进行初始化的Bean，提前引用池
@@ -7551,12 +7666,12 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
   /** Cache of singleton factories: bean name to ObjectFactory. 3*/
   private final Map<String, ObjectFactory<?>> singletonFactories = new HashMap<>(16);
   ```
-  
+
   为什么需要三级缓存？
 
-  * 循环依赖解决需要提前引用动态代理对象，AOP动态代理是在Bean初始化后的后置处理中进行，这时的bean已经是成品对象，需要提前进行动态代理，三级缓存的ObjectFactory可以提前产生需要代理的对象
+  * 循环依赖解决需要提前引用动态代理对象，AOP 动态代理是在 Bean 初始化后的后置处理中进行，这时的 bean 已经是成品对象，需要提前进行动态代理，三级缓存的 ObjectFactory 提前产生需要代理的对象
   * 若存在循环依赖，**后置处理不创建代理对象，真正创建代理对象的过程是在getBean(B)的阶段中**
-  
+
   一定会提前引用吗？
 
   * 出现循环依赖才去使用，不出现就不使用
@@ -7565,7 +7680,7 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
 
   * 存在增强器会创建动态代理，不需要增强就不需要创建动态代理对象
   * 不创建就会把最原始的实例化的Bean放到二级缓存，因为 addSingletonFactory 参数中传入了实例化的Bean，在singletonFactory.getObject()中返回给singletonObject，放入二级缓存
-  
+
   什么时候将Bean的引用提前暴露给第三级缓存的ObjectFactory持有？
 
   * 实例化之后，依赖注入之前
@@ -7576,7 +7691,7 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
 
 解决循环依赖，源码解析：
 
-* 假如A依赖B，B依赖A
+* 假如 A 依赖 B，B 依赖 A
 
   当A创建实例后填充属性前，执行`addSingletonFactory(beanName, () -> getEarlyBeanReference(beanName, mbd, bean));`方法，注意lambda表达式，getObject()时调用
 
@@ -7598,7 +7713,7 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
 
   填充属性时A依赖B，这时需要getBean(B)，接着B填充属性时发现依赖A，去进行**第一次**getSingleton(A)
 
-  <img src="https://gitee.com/seazean/images/raw/master/Frame/Spring-三级缓存getSingleton()方法.png" style="zoom:67%;" />
+  （待补充源码）
 
   从三级缓存获取A的Bean：`singletonFactory.getObject();`，相当于调用了Lambda表达式的方法：
 
@@ -7621,9 +7736,9 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
   	//创建代理对象，createProxy
   }
   ```
-  
+
   wrapIfNecessary
-  
+
   ```java
   // Create proxy if we have advice.获取增强方法
   Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, null);///
@@ -7665,9 +7780,9 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
       return beanDefinitions;
   }
   ```
-  
+
   ClassPathScanningCandidateComponentProvider.findCandidateComponents()
-  
+
   ```java
   public Set<BeanDefinition> findCandidateComponents(String basePackage) {
       if (this.componentsIndex != null && indexSupportsIncludeFilters()) {
@@ -7678,18 +7793,19 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
       }
   }
   ```
-  
+
   ```java
   private Set<BeanDefinition> scanCandidateComponents(String basePackage) {}
   ```
+
     * `String packageSearchPath = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX resolveBasePackage(basePackage) + '/' + this.resourcePattern` ：将package转化为ClassLoader类资源搜索路径packageSearchPath，例如：`com.wl.spring.boot`转化为`classpath*:com/wl/spring/boot/**/*.class`
     * `Resource[] resources = getResourcePatternResolver().getResources(packageSearchPath)`：加载搜素路径下的资源
     * `MetadataReader metadataReader = getMetadataReaderFactory().getMetadataReader(resource)`：获取元数据阅读器
     * isCandidateComponent：判断是否是备选组件
     * candidates.add(sbd)：添加到返回结果的list
-  
+
     isCandidateComponent源码：
-  
+
   ```java
   protected boolean isCandidateComponent(MetadataReader m) throws IOException {
       //....
@@ -7699,17 +7815,17 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
               //....
           }
   ```
-  
+
   ```java
   protected void registerDefaultFilters() {
       this.includeFilters.add(new AnnotationTypeFilter(Component.class));//...
   }
   ```
-  
+
    includeFilters由`registerDefaultFilters()`设置初始值，有@Component，没有@Service
-  
+
     因为@Component是@Service的元注解，Spring在读取@Service，也读取了它的元注解，并将@Service作为@Component处理
-  
+
   ```java
   @Target({ElementType.TYPE})
   @Retention(RetentionPolicy.RUNTIME)
@@ -7717,7 +7833,7 @@ ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.
   @Component
   public @interface Service {}
   ```
-  
+
 * **@Component派生性流程：**
 
   metadataReader本质上：`MetadataReader metadataReader =new SimpleMetadataReader(...);`
@@ -7825,6 +7941,10 @@ AnnotationAwareAspectJAutoProxyCreator是这种类型的后置处理器：Instan
 
 
 
+***
+
+
+
 ##### 实现流程
 
 1. 创建IOC容器，调用refresh()刷新容器
@@ -7854,15 +7974,17 @@ AnnotationAwareAspectJAutoProxyCreator是这种类型的后置处理器：Instan
    `if(是否实现接口)`为真进入：`applyBeanPostProcessorsBeforeInstantiation`方法
 
    * `this.advisedBeans.containsKey(cacheKey)`：判断当前bean是否在advisedBeans中（保存了所有需要增强bean）
+
 * `isInfrastructureClass`：判断当前bean是否是基础类型的Advice、Pointcut、Advisor、AopInfrastructureBean，或者（子类中）是否是切面Aspect
-   * 是否需要跳过：子类`AspectJAwareAdvisorAutoProxyCreator.shouldSkip()`
 
-     * `findCandidateAdvisors()`：获取候选的增强器（切面里面的通知方法）每一个封装的通知方法的增强器是 InstantiationModelAwarePointcutAdvisor**（AAAPC）**
+  * 是否需要跳过：子类`AspectJAwareAdvisorAutoProxyCreator.shouldSkip()`
 
-     * `if()`：判断每一个增强器是否是 AspectJPointcutAdvisor 类型的，返回true，否则继续执行
+    * `findCandidateAdvisors()`：获取候选的增强器（切面里面的通知方法）每一个封装的通知方法的增强器是 InstantiationModelAwarePointcutAdvisor**（AAAPC）**
+
+    * `if()`：判断每一个增强器是否是 AspectJPointcutAdvisor 类型的，返回true，否则继续执行
   * `return super.shouldSkip(beanClass, beanName)`：永远返回false  
    * `getCustomTargetSource(beanClass, beanName)`：返回为空，doCreateBean()
-  
+
    
 
 **进入applyBeanPostProcessorsAfterInitialization：后置处理器创建AOP**
@@ -7887,25 +8009,25 @@ AnnotationAwareAspectJAutoProxyCreator是这种类型的后置处理器：Instan
 注释：Create proxy if we have advice
 
 * `getAdvicesAndAdvisorsForBean()`：获取当前bean的所有增强器 (通知方法)，**为空就直接返回**
-  
+
   * findEligibleAdvisors()：找到哪些通知方法是需要切入当前bean方法的
-     * AopUtils.findAdvisorsThatCanApply()：获取到能在bean使用的增强器
-     * sortAdvisors(eligibleAdvisors)：给增强器排序
-  
+    * AopUtils.findAdvisorsThatCanApply()：获取到能在bean使用的增强器
+    * sortAdvisors(eligibleAdvisors)：给增强器排序
+
 * `this.advisedBeans.put(cacheKey, Boolean.TRUE)`：保存当前bean在advisedBeans中
-  
+
 * `Object proxy = createProxy(...)`：如果增强器不为空就创建代理，创建当前bean的代理对象
-  
+
   * buildAdvisors(beanName, specificInterceptors)：获取所有增强器（通知方法）
-  
+
   * 保存到proxyFactory
-  
+
   * `return proxyFactory.getProxy(getProxyClassLoader())`：返回代理对象
-  
+
   * ProxyFactory类：`return createAopProxy().getProxy(classLoader)`
-  
+
   DefaultAopProxyFactory类：给容器中返回当前组件使用增强了的代理对象
-  
+
   ```java
      @Override
      public AopProxy createAopProxy(AdvisedSupport config) throws AopConfigException {
@@ -7922,9 +8044,14 @@ AnnotationAwareAspectJAutoProxyCreator是这种类型的后置处理器：Instan
          }
      }
   ```
+
 4. 给容器中返回使用cglib增强了的代理对象，**初始化完成，加入容器**
 
 5. 以后容器中获取到的就是这个组件的代理对象，执行目标方法的时候，代理对象就会执行通知方法的流程
+
+
+
+***
 
 
 
@@ -7954,7 +8081,7 @@ AnnotationAwareAspectJAutoProxyCreator是这种类型的后置处理器：Instan
 
 4. 如果有拦截器链，把需要执行的目标对象、目标方法、拦截器链等信息传入CglibMethodInvocation 对象
 
-5.  `Object retVal =  ReflectiveMethodInvocation.proceed`：拦截器链的触发过程
+5. `Object retVal =  ReflectiveMethodInvocation.proceed`：拦截器链的触发过程
 
    * 如果没有拦截器执行执行目标方法，或者拦截器的索引和拦截器数组-1大小一样（指定到了最后一个拦截器）执行目标方法
    * 链式获取每一个拦截器，拦截器执行invoke方法，每一个拦截器等待下一个拦截器执行完成返回以后再来执行；拦截器链的机制，保证通知方法与目标方法的执行顺序
@@ -7971,8 +8098,6 @@ AnnotationAwareAspectJAutoProxyCreator是这种类型的后置处理器：Instan
 
 
 #### Transactional
-
-（源码解析待更新）
 
 如果一个类或者一个类中的 public 方法上被标注@Transactional 注解的话，Spring 容器就会在启动的时候为其创建一个代理类，在调用被@Transactional注解的 public 方法的时候，实际调用的是TransactionInterceptor类中的 invoke()方法。这个方法的作用就是在目标方法之前开启事务，方法执行过程中如果遇到异常的时候回滚事务，方法调用完成之后提交事务
 

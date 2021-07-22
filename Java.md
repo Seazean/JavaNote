@@ -4916,10 +4916,19 @@ HashMap继承关系如下图所示：
    ```java
    final V putVal(int hash, K key, V value, boolean onlyIfAbsent, boolean evict) {
    	//。。。。。。。。。。。。。。
-   	if ((p = tab[i = (n - 1) & hash]) == null)//这里的n表示数组长度16
-   	//。。。。。。。。。。。。。。
+   	if ((p = tab[i = (n - 1) & hash]) == null){//这里的n表示数组长度16
+   		//.....
+       } else {
+           if (e != null) { // existing mapping for key
+               V oldValue = e.value;
+               //onlyIfAbsent默认为false，所以可以覆盖已经存在的数据，如果为true说明不能覆盖
+               if (!onlyIfAbsent || oldValue == null)
+                   e.value = value;
+               afterNodeAccess(e);
+               return oldValue;
+           }
+       }
    }
-   
    ```
 
    * `(n - 1) & hash`：计算下标位置
@@ -6930,41 +6939,31 @@ public static void searchFiles(File dir , String fileName){
 
 ### Character
 
-字符集：各个国家为自己国家的字符取的一套编号规则
+字符集：为字符编制的一套编号规则
 
-计算机的底层是不能直接存储字符的，只能存储二进制，010101。
+计算机的底层是不能直接存储字符的，只能存储二进制，010101
 
-美国人：
-    8个开关一组就可以编码字符，1个字节。
-    2^8 = 256
-    一个字节存储一个字符完全够用了。
+ASCII 编码：8 个开关一组就可以编码字符，1 个字节 2^8 = 256， 一个字节存储一个字符完全够用，英文和数字在底层存储都是采用 1 个字节存储的
 
-​    a  97
-​    b  98
+```
+a  97
+b  98
 
-​    A  65
-​    B  66
+A  65
+B  66
 
-​    0  48
-​    1  49
-​    这套编码是ASCII编码。
-​	英文和数字在底层存储的时候都是采用1个字节存储的。
+0  48
+1  49
+```
 
-中国人：
-    中国人的字符很多：9万左右字符。
-    2个字节编码一个中文字符，1个字节编码一个英文字符。
-    这套编码叫：GBK编码。
-    它也必须兼容ASCII编码表。
+中国人：中国人有 9 万左右字符，2 个字节编码一个中文字符，1 个字节编码一个英文字符，这套编码叫：GBK 编码，兼容 ASCII 编码表
 
-美国人：
-    我来收集全球所有的字符，统一编号。这套编码叫 Unicode编码（万国码）
-	一个英文等于两个字节，一个中文（含繁体）等于两个字节。中文标点占两个字节，英文标点占两个字节
+美国人：收集全球所有的字符，统一编号，这套编码叫 Unicode编码（万国码），一个英文等于两个字节，一个中文（含繁体）等于两个字节，中文标点占两个字节，英文标点占两个字节
 
-​    UTF-8就是变种形式，它也必须兼容ASCII编码表。
-​    UTF-8一个中文一般占3个字节，中文标点占3个。英文字母和数字1个字节
-​    
+* UTF-8 是变种形式，也必须兼容ASCII编码表
+* UTF-8一个中文一般占 3 个字节，中文标点占 3 个，英文字母和数字 1 个字节
 
-编码前与编码后的编码集必须一致才不会乱码!!
+编码前与编码后的编码集必须一致才不会乱码
 
 
 
@@ -7098,7 +7097,7 @@ System.out.println(rs);
 
 ##### 字节输出
 
-FileOutputStream文件字节输出流：
+FileOutputStream 文件字节输出流：
 
 * 作用：以内存为基准，把内存中的数据，按照字节的形式写出到磁盘文件中去
 
@@ -7112,8 +7111,6 @@ FileOutputStream文件字节输出流：
   `public void write(byte[] buffer)` :写一个字节数组出去
   `public void write(byte[] buffer , int pos , int len)` : 写一个字节数组的一部分出去
                       参数一，字节数组；参数二：起始字节索引位置，参数三：写多少个字节数出去。
-
-
 
 * FileOutputStream字节输出流每次启动写数据的时候都会先清空之前的全部数据，重新写入：
   `OutputStream os = new FileOutputStream("Day09Demo/out05")` : 覆盖数据管道
@@ -7459,12 +7456,13 @@ public static void main(String[] args) throws Exception {
 
 ##### 乱码问题
 
-```
 字符流读取：
-    代码编码            文件编码         中文情况。
-    UTF-8              UTF-8           不乱码!
-    GBK                GBK             不乱码!
-    UTF-8              GBK             乱码!
+
+```
+代码编码            文件编码         中文情况。
+UTF-8              UTF-8           不乱码!
+GBK                GBK             不乱码!
+UTF-8              GBK             乱码!
 ```
 
 如果代码编码和读取的文件编码一致。字符流读取的时候不会乱码。
@@ -7472,15 +7470,19 @@ public static void main(String[] args) throws Exception {
 
 
 
+***
+
+
+
 ##### 字符输入转换流
 
-字符输入转换流InputStreamReader
+字符输入转换流：InputStreamReader
 
 作用：解决字符流读取不同编码的乱码问题，把原始的**字节流**按照默认的编码或指定的编码**转换成字符输入流**
 
 构造器：
 
-* `public InputStreamReader(InputStream is)` : 使用当前代码默认编码(UTF-8)转换成字符流
+* `public InputStreamReader(InputStream is)` : 使用当前代码默认编码 UTF-8 转换成字符流
 * `public InputStreamReader(InputStream is,String charset)` : 指定编码把字节流转换成字符流
 
 ```java
@@ -7511,7 +7513,7 @@ public class InputStreamReaderDemo{
 
 构造器：
 
-* `public OutputStreamWriter(OutputStream os)` : 用默认编码UTF-8把字节输出流转换成字符输出流
+* `public OutputStreamWriter(OutputStream os)` : 用默认编码 UTF-8 把字节输出流转换成字符输出流
 * `public OutputStreamWriter(OutputStream os ,String charset)` : 指定编码把字节输出流转换成
 
 ```Java
@@ -7529,13 +7531,17 @@ osw.close();
 
 #### 序列化
 
-##### 介绍
+##### 基本介绍
 
 对象序列化：把Java对象转换成字节序列的过程，将对象写入到IO流中。     对象 => 文件中
 
 对象反序列化：把字节序列恢复为Java对象的过程，从IO流中恢复对象。     文件中 => 对象
 
 transient 关键字修饰的成员变量，将不参与序列化！
+
+
+
+***
 
 
 
@@ -7772,7 +7778,7 @@ public class PropertiesDemo02 {
 
 ### RandomIO
 
-RandomAccessFile类：该类的实例支持读取和写入随机访问文件
+RandomAccessFile 类：该类的实例支持读取和写入随机访问文件
 
 构造器：
 RandomAccessFile(File file, String mode)：创建随机访问文件流，从File参数指定的文件读取，可选择写入
@@ -8322,8 +8328,8 @@ public class ReflectDemo {
 
 注解：类的组成部分，可以给类携带一些额外的信息，提供一种安全的类似注释标记的机制，用来将任何信息或元数据（metadata）与程序元素（类、方法、成员变量等）进行关联
 
-* 注解是JDK1.5的新特性
-* 注解是给编译器或JVM看的，编译器或JVM可以根据注解来完成对应的功能
+* 注解是 JDK1.5 的新特性
+* 注解是给编译器或 JVM 看的，编译器或 JVM 可以根据注解来完成对应的功能
 * 注解类似修饰符，应用于包、类型、构造方法、方法、成员变量、参数及本地变量的声明语句中
 
 注解作用：
@@ -8487,15 +8493,16 @@ public class AnnotationDemo01{
 
 注解解析相关的接口：
 
-* Annotation：注解类型，该类是所有注解的父类，注解都是一个Annotation的对象
+* Annotation：注解类型，该类是所有注解的父类，注解都是一个 Annotation 的对象
 * AnnotatedElement：该接口定义了与注解解析相关的方法
-* Class、Method、Field、Constructor类成分：实现AnnotatedElement接口，拥有解析注解的能力
+* Class、Method、Field、Constructor 类成分：实现 AnnotatedElement 接口，拥有解析注解的能力
 
 API ：
-  `Annotation[] getDeclaredAnnotations()` : 获得当前对象上使用的所有注解，返回注解数组
-  `T getDeclaredAnnotation(Class<T> annotationClass)` : 根据注解类型获得对应注解对象
-  `T getAnnotation(Class<T> annotationClass)` : 根据注解类型获得对应注解对象
-  `boolean isAnnotationPresent(Class<Annotation> class)` : 判断对象是否使用了指定的注解
+
+* `Annotation[] getDeclaredAnnotations()` : 获得当前对象上使用的所有注解，返回注解数组
+* `T getDeclaredAnnotation(Class<T> annotationClass)` : 根据注解类型获得对应注解对象
+* `T getAnnotation(Class<T> annotationClass)` : 根据注解类型获得对应注解对象
+* `boolean isAnnotationPresent(Class<Annotation> class)` : 判断对象是否使用了指定的注解
 
 注解原理：注解本质是一个继承了`Annotation` 的特殊接口，其具体实现类是 Java 运行时生成的**动态代理类**，通过反射获取注解时，返回的是 Java 运行时生成的动态代理对象 `$Proxy1`，通过代理对象调用自定义注解（接口）的方法，会最终调用 `AnnotationInvocationHandler` 的 `invoke` 方法，该方法会从 `memberValues`  这个Map 中找出对应的值，而 `memberValues` 的来源是 Java 常量池
 
@@ -8550,10 +8557,10 @@ class BookStore{
 
 ### 注解模拟
 
-注解模拟写一个Junit框架的基本使用
+注解模拟写一个 Junit 框架的基本使用
 
-1. 定义一个自定义注解MyTest，只能注解方法，存活范围一直都在。
-2. 定义若干个方法，只要有@MyTest注解的方法就能被触发执行，没有这个注解的方法不能执行！！
+1. 定义一个自定义注解 MyTest，只能注解方法，存活范围一直都在。
+2. 定义若干个方法，只要有 @MyTest 注解的方法就能被触发执行，没有这个注解的方法不能执行！！
 
 ```java
 public class TestDemo{
@@ -8738,7 +8745,7 @@ XML文件中常见的组成元素有:文档声明、元素、属性、注释、�
 
 ##### DTD定义
 
-DTD是文档类型定义（Document Type Definition）。DTD 可以定义在 XML 文档中出现的元素、这些元素出现的次序、它们如何相互嵌套以及XML文档结构的其它详细信息。
+DTD 是文档类型定义（Document Type Definition）。DTD 可以定义在 XML 文档中出现的元素、这些元素出现的次序、它们如何相互嵌套以及XML文档结构的其它详细信息。
 
 ##### DTD规则
 
@@ -8943,17 +8950,17 @@ persondtd.dtd文件
 
 #### Schema
 
-##### 定义
+##### XSD定义
 
 1.Schema 语言也可作为 XSD（XML Schema Definition）
-2.schema约束文件本身也是一个xml文件，符合xml的语法，这个文件的后缀名.xsd
-3.一个xml中可以引用多个schema约束文件，多个schema使用名称空间区分（名称空间类似于java包名）
-4.dtd里面元素类型的取值比较单一常见的是PCDATA类型，但是在schema里面可以支持很多个数据类型
-**5.Schema文件约束xml文件的同时也被别的文件约束着**
+2.schema 约束文件本身也是一个 xml 文件，符合 xml 的语法，这个文件的后缀名.xsd
+3.一个 xml 中可以引用多个 schema 约束文件，多个 schema 使用名称空间区分（名称空间类似于java包名）
+4.dtd 里面元素类型的取值比较单一常见的是 PCDATA 类型，但是在 schema 里面可以支持很多个数据类型
+**5.Schema 文件约束 xml 文件的同时也被别的文件约束着**
 
 
 
-##### 规则
+##### XSD规则
 
 1、创建一个文件，这个文件的后缀名为.xsd。
 2、定义文档声明
@@ -9000,7 +9007,7 @@ person.xsd
 
 
 
-##### 引入
+##### XSD引入
 
 1、在根标签上定义属性xmlns="http://www.w3.org/2001/XMLSchema-instance"
 2、**通过xmlns引入约束文件的名称空间**
@@ -9027,7 +9034,7 @@ person.xsd
 
 
 
-##### Sc属性
+##### XSD属性
 
 ```scheme
 <?xml version="1.0" encoding="UTF-8" ?>
@@ -9086,26 +9093,25 @@ person.xsd
 
 #### 解析
 
-* 概述：xml 解析就是从 xml 中获取到数据，DOM 是解析思想。
+xml 解析就是从 xml 中获取到数据，DOM 是解析思想
 
-* DOM(Document Object Model)文档对象模型:就是把文档的各个组成部分看做成对应的对象。
-  会把xml文件全部加载到内存,在内存中形成一个树形结构,再获取对应的值
+DOM(Document Object Model)：文档对象模型，把文档的各个组成部分看做成对应的对象，把 xml 文件全部加载到内存，在内存中形成一个树形结构，再获取对应的值
 
-* 工具：dom4j 属于第三方技术，必须导入该框架
-  	https://dom4j.github.io/ 去下载dom4j，在idea中当前模块下新建一个lib文件夹,将jar包复制到文件夹中
-  	选中jar包 -> 右键 -> 选择add as library即可
+dom4j 实现
+* dom4j 解析器构造方法：`SAXReader saxReader = new SAXReader();`
 
-* dom4j 实现
-  * dom4j 解析器构造方法：`SAXReader saxReader = new SAXReader();`
+* SAXReader 常用API：
+
+  `public Document read(File file)` : Reads a Document from the given File
+  `public Document read(InputStream in)` : Reads a Document from the given stream using SAX
+
+* Java Class 类API：
   
-  * SAXReader常用API：
-  
-    `public Document read(File file)` : Reads a Document from the given File
-    `public Document read(InputStream in)` : Reads a Document from the given stream using SAX
-  
-  * Java Class类API：
-    
-    `public InputStream getResourceAsStream(String path)`：加载文件成为一个字节输入流返回
+  `public InputStream getResourceAsStream(String path)`：加载文件成为一个字节输入流返回
+
+
+
+****
 
 
 
@@ -9340,7 +9346,7 @@ public class XPathDemo {
         //4.3 在全文检索包含该属性的元素且属性值为该值的元素对象
         Node nodeEle = document.selectSingleNode("//contact[@id=2]");
         Element ele = (Element)nodeEle;
-        System.out.println(ele.elementTextTrim("name"));//武松
+        System.out.println(ele.elementTextTrim("name"));//xi
     }
 }
 ```
@@ -9349,22 +9355,22 @@ public class XPathDemo {
 <?xml version="1.0" encoding="UTF-8"?>
 <contactList>
 <contact id="1">
-    <name>潘金莲</name>
+    <name>小白</name>
     <gender>女</gender>
-    <email>panpan@seazean.cn</email>
+    <email>bai@seazean.cn</email>
 </contact>
 <contact id="2">
-    <name>武松</name>
+    <name>小黑</name>
     <gender>男</gender>
-    <email>wusong@seazean.cn</email>
+    <email>hei@seazean.cn</email>
     <sql id="sql4">
         <name>sql语句</name>
     </sql>
 </contact>
 <contact id="3">
-    <name>武大狼</name>
+    <name>小虎</name>
     <gender>男</gender>
-    <email>wuda@seazean.cn</email>
+    <email>hu@seazean.cn</email>
 </contact>
 <contact></contact>
 <name>外面的名称</name>
@@ -9871,14 +9877,14 @@ public class Demo1_8 extends ClassLoader { // 可以用来加载类的二进制�
 
 静态内部类和其他内部类：
 
-* **一个class文件只能对应一个public类型的类**，这个类可以有内部类，但不会生成新的class文件
+* **一个 class 文件只能对应一个 public 类型的类**，这个类可以有内部类，但不会生成新的 class 文件
 
 * 静态内部类属于类本身，加载到方法区，其他内部类属于内部类的属性，加载到栈（待考证）
 
 类变量：
 
-* 类变量是用static修饰符修饰，定义在方法外的变量，随着java进程产生和销毁
-* 在java8之前把静态变量存放于方法区，在java8时存放在**堆中的静态变量区**
+* 类变量是用 static 修饰符修饰，定义在方法外的变量，随着 java 进程产生和销毁
+* 在 java8 之前把静态变量存放于方法区，在 java8 时存放在**堆中的静态变量区**
 
 
 实例变量：
@@ -9893,7 +9899,7 @@ public class Demo1_8 extends ClassLoader { // 可以用来加载类的二进制�
 
 类常量池、运行时常量池、字符串常量池有什么关系？有什么区别？
 
-* 类常量池与运行时常量池都存储在方法区，而字符串常量池在jdk7时就已经从方法区迁移到了java堆中
+* 类常量池与运行时常量池都存储在方法区，而字符串常量池在 jdk7 时就已经从方法区迁移到了 java 堆中
 * 在类编译过程中，会把类元信息放到方法区，类元信息的其中一部分便是类常量池，主要存放字面量和符号引用，而字面量的一部分便是文本字符
 * 在类加载时将字面量和符号引用解析为直接引用存储在运行时常量池
 * 对于文本字符来说，会在解析时查找字符串常量池，查出这个文本字符对应的字符串对象的直接引用，将直接引用存储在运行时常量池
@@ -9909,7 +9915,7 @@ public class Demo1_8 extends ClassLoader { // 可以用来加载类的二进制�
 
 * 符号引用：在编译过程中并不知道每个类的地址，因为可能这个类还没有加载，如果在一个类中引用了另一个类，无法知道它的内存地址，只能用他的类名作为符号引用，在类加载完后用这个符号引用去获取内存地址
 
-  例如：在com.demo.Solution类中引用了com.test.Quest，把`com.test.Quest`作为符号引用存进类常量池，在类加载完后，用这个符号引用去方法区找这个类的内存地址
+  例如：在 com.demo.Solution 类中引用了 com.test.Quest，把 `com.test.Quest` 作为符号引用存进类常量池，在类加载完后，用这个符号引用去方法区找这个类的内存地址
 
 
 
@@ -10178,15 +10184,15 @@ public void localvarGC4() {
 - 抢先式中断：没有虚拟机采用，首先中断所有线程，如果有线程不在安全点，就恢复线程让线程运行到安全点
 - 主动式中断：设置一个中断标志，各个线程运行到各个 Safe Point 时就轮询这个标志，如果中断标志为真，则将自己进行中断挂起
 
-问题：Safepoint 保证程序执行时，在不太长的时间内就会遇到可进入GC 的 Safepoint，但是当线程处于 Waiting 状态或 Blocked 状态，线程无法响应 JVM 的中断请求，运行到安全点去中断挂起，JVM 也不可能等待线程被唤醒，对于这种情况，需要安全区域来解决
+问题：Safepoint 保证程序执行时，在不太长的时间内就会遇到可进入 GC 的 Safepoint，但是当线程处于 Waiting 状态或 Blocked 状态，线程无法响应 JVM 的中断请求，运行到安全点去中断挂起，JVM 也不可能等待线程被唤醒，对于这种情况，需要安全区域来解决
 
 安全区域 (Safe Region)：指在一段代码片段中，对象的引用关系不会发生变化，在这个区域中的任何位置开始 GC 都是安全的
 
 运行流程：
 
-- 当线程运行到 Safe Region 的代码时，首先标识已经进入了 Safe Region，如果这段时间内发生GC，JVM会忽略标识为 Safe Region 状态的线程
+- 当线程运行到 Safe Region 的代码时，首先标识已经进入了 Safe Region，如果这段时间内发生GC，JVM 会忽略标识为 Safe Region 状态的线程
 
-- 当线程即将离开 Safe Region 时，会检查JVM是否已经完成GC，如果完成了则继续运行，否则线程必须等待GC 完成，收到可以安全离开 SafeRegion 的信号
+- 当线程即将离开 Safe Region 时，会检查 JVM 是否已经完成 GC，如果完成了则继续运行，否则线程必须等待GC 完成，收到可以安全离开 SafeRegion 的信号
 
 
 
@@ -11987,6 +11993,7 @@ ClassLoader 类常用方法：
 * `findLoadedClass(String name)`：查找名称为 name 的已经被加载过的类，final 修饰无法重写
 * `defineClass(String name,byte[] b,int off,int len)`：将字节流解析成 JVM 能够识别的类对象
 * `resolveclass(Class<?> c)`：链接指定的 Java 类，可以使类的 Class 对象创建完成的同时也被解析
+* `InputStream getResourceAsStream(String name)`：指定资源名称获取输入流
 
 
 
@@ -15408,16 +15415,16 @@ public class HeapSort {
         System.out.println(Arrays.toString(arr));
     }
 
-    //len为数组长度
-    private static void heapSort(int[] arr, int len) {
+    //high为数组最大索引
+    private static void heapSort(int[] arr, int high) {
         //建堆，逆排序，因为堆排序定义的交换顺序是从当前结点往下交换，逆序排可以避免多余的交换
-        //i初始值是最后一个节点的父节点，如果是数组长度len，则 i = len / 2 -1
-        for (int i = (len - 1) / 2; i >= 0; i--) {
+        //i初始值是最后一个节点的父节点，如果参数是数组长度len，则 i = len / 2 -1
+        for (int i = (high - 1) / 2; i >= 0; i--) {
             //调整函数
-            sift(arr, i, len);
+            sift(arr, i, high);
         }
         //从尾索引开始排序
-        for (int i = len; i > 0; i--) {
+        for (int i = high; i > 0; i--) {
             //将最大的节点放入末尾
             int temp = arr[0];
             arr[0] = arr[i];
@@ -15597,6 +15604,7 @@ public class MergeSort {
     }
 	//low 为arr最小索引，high为最大索引
     public static void mergeSort(int[] arr, int low, int high) {
+        // low == high 时说明只有一个元素了，直接返回
         if (low < high) {
             int mid = (low + high) / 2;
             mergeSort(arr, low, mid);//归并排序前半段
@@ -15992,7 +16000,7 @@ public static int match(String s,String t) {
 
 ### KMP
 
-KMP匹配：
+KMP 匹配：
 
 * next 数组的核心就是自己匹配自己，主串代表后缀，模式串代表前缀
 * nextVal 数组的核心就是回退失配
@@ -16074,19 +16082,6 @@ public class Kmp {
         }
         return nextVal;
     }
-    /*根据next求nextVal
-    private static int[] getNextVal(String t, int[] next) {
-        int[] nextVal = new int[next.length];
-        nextVal[0] = -1;
-        for (int i = 1; i < nextVal.length; i++) {
-            if (t.charAt(i) == t.charAt(next[i])) {
-                nextVal[i] = nextVal[next[i]];
-            } else {
-                nextVal[i] = next[i];
-            }
-        }
-        return nextVal;
-    }*/
 }
 ```
 
