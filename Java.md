@@ -524,17 +524,17 @@ public class Test1 {
 
 ### 运算
 
-* i++与++i的区别？
-  i++表示先将i放在表达式中运算，然后再加1
-  ++i表示先将i加1，然后再放在表达式中运算
+* i++ 与++i 的区别？
+  i++ 表示先将 i 放在表达式中运算，然后再加 1
+  ++i 表示先将 i 加 1，然后再放在表达式中运算
 
-* ||和|，&&和&的区别，逻辑运算符
+* || 和 |，&& 和& 的区别，逻辑运算符
 
   **&和| 称为布尔运算符，位运算符。&&和|| 称为条件布尔运算符,也叫短路运算符**。
 
   两种运算符得到的结果完全相同，但得到结果的方式又一个重要区别：条件布尔运算符性能比较好。他检查第一个操作数的值，再根据该操作数的值进行操作，可能根本就不处理第二个操作数。
 
-  结论：如果&&运算符的第一个操作数是false，就不需要考虑第二个操作数的值了，因为无论第二个操作数的值是什么，其结果都是false；同样，如果第一个操作数是true，||运算符就返回true，无需考虑第二个操作数的值。但&和|却不是这样，它们总是要计算两个操作数。为了提高性能，**尽可能使用&&和||运算符**
+  结论：如果 && 运算符的第一个操作数是 false，就不需要考虑第二个操作数的值了，因为无论第二个操作数的值是什么，其结果都是 false；同样，如果第一个操作数是 true，|| 运算符就返回 true，无需考虑第二个操作数的值。但 & 和 | 却不是这样，它们总是要计算两个操作数。为了提高性能，**尽可能使用 && 和 || 运算符**
 
 * switch
 
@@ -560,7 +560,7 @@ public class Test1 {
 
 * 移位运算
   
-  计算机里一般用**补码表示数字**，正数、负数的表示区别就是最高位是0还是1
+  计算机里一般用**补码表示数字**，正数、负数的表示区别就是最高位是 0 还是 1
   
   * 正数的原码反码补码相同
   
@@ -1268,11 +1268,11 @@ class Animal{
 
 
 
-#### 继承访问
+#### 变量访问
 
 继承后成员变量的访问特点：**就近原则**，子类有找子类，子类没有找父类，父类没有就报错
 
-如果要申明访问父类的成员变量可以使用：super.父类成员变量。super指父类引用
+如果要申明访问父类的成员变量可以使用：super.父类成员变量，super指父类引用
 
 ```java
 public class ExtendsDemo {
@@ -1305,9 +1305,11 @@ class Animal{
 
 
 
-#### 方法重写
+#### 方法访问
 
-方法重写：子类继承了父类就得到了父类的方法，子类重写一个与父类申明一样的方法来**覆盖**父类的该方法
+子类继承了父类就得到了父类的方法，可以直接调用，受权限修饰符的限制，也可以重写方法
+
+**方法重写**：子类重写一个与父类申明一样的方法来**覆盖**父类的该方法
 
 方法重写的校验注解：@Override
 
@@ -4374,6 +4376,34 @@ public class Student implements Comparable<Student>{
 
 
 ***
+
+
+
+#### Queue
+
+Queue：队列，先进先出的特性
+
+PriorityQueue 是优先级队列，底层存储结构为 Object[]，默认实现为小顶堆
+
+构造方法：
+
+* `public PriorityQueue()`：构造默认长度为 11 的队列（数组）
+
+* `public PriorityQueue(Comparator<? super E> comparator)`：带比较器实现，可以自定义堆排序的规则
+
+  ```java
+  Queue<Integer> pq = new PriorityQueue<>((v1, v2) -> v2 - v1);//实现大顶堆
+
+常用 API：
+
+* `public boolean offer(E e)`：将指定的元素插入到此优先级队列中尾部
+* `public E poll() `：检索并删除此队列的头元素，如果此队列为空，则返回 null 
+* `public E peek()`：检索但不删除此队列的头，如果此队列为空，则返回 null
+* `public boolean remove(Object o)`：从该队列中删除指定元素（如果存在），删除元素 e 使用 o.equals(e) 比较，如果队列包含多个这样的元素，删除第一个
+
+
+
+****
 
 
 
@@ -7993,13 +8023,13 @@ public class UserServiceTest {
 
 #### 获取类
 
-反射技术的第一步是先得到Class类对象，有三种方式获取：
+反射技术的第一步是先得到 Class 类对象，有三种方式获取：
 
 * 类名.class
-* 通过类的对象.getClass()方法
+* 类的对象.getClass()
 * Class.forName("类的全限名")：`public static Class<?> forName(String className) `
 
-Class类下的方法：
+Class 类下的方法：
 
 | 方法                   | 作用                                                         |
 | ---------------------- | ------------------------------------------------------------ |
@@ -8040,22 +8070,22 @@ class Student{}
 
 #### 获取构造
 
-获取构造器的API：
+获取构造器的 API：
 
-* Constructor getConstructor(Class... parameterTypes)：根据参数匹配获取某个构造器，只能拿public修饰的构造器，几乎不用！
+* Constructor getConstructor(Class... parameterTypes)：根据参数匹配获取某个构造器，只能拿 public 修饰的构造器
 * **Constructor getDeclaredConstructor(Class... parameterTypes)**：根据参数匹配获取某个构造器，只要申明就可以定位，不关心权限修饰符
-* Constructor[] getConstructors()：获取所有的构造器，只能拿public修饰的构造器，几乎不用！
-* **Constructor[] getDeclaredConstructors()**：获取所有构造器，只要申明就可以定位，不关心权限修饰符。
+* Constructor[] getConstructors()：获取所有的构造器，只能拿 public 修饰的构造器
+* **Constructor[] getDeclaredConstructors()**：获取所有构造器，只要申明就可以定位，不关心权限修饰符
 
-Constructor的常用API：
+Constructor 的常用 API：
 
-| 方法                              | 作用                                   |
-| --------------------------------- | -------------------------------------- |
-| T newInstance(Object... initargs) | 创建对象，注入构造器需要的数据         |
-| void setAccessible(true)          | 修改访问权限，true攻破权限（暴力反射） |
-| String getName()                  | 以字符串形式返回此构造函数的名称       |
-| int getParameterCount()           | 返回参数数量                           |
-| Class<?>[] getParameterTypes      | 返回参数类型数组                       |
+| 方法                              | 作用                                    |
+| --------------------------------- | --------------------------------------- |
+| T newInstance(Object... initargs) | 创建对象，注入构造器需要的数据          |
+| void setAccessible(true)          | 修改访问权限，true 攻破权限（暴力反射） |
+| String getName()                  | 以字符串形式返回此构造函数的名称        |
+| int getParameterCount()           | 返回参数数量                            |
+| Class<?>[] getParameterTypes      | 返回参数类型数组                        |
 
 ```java
 public class TestStudent01 {
@@ -8141,12 +8171,12 @@ public class TestStudent02 {
 
 获取Field成员变量API：
 
-* Field getField(String name) : 根据成员变量名获得对应Field对象，只能获得public修饰
-* Field getDeclaredField(String name) : 根据成员变量名获得对应Field对象，所有申明的变量
-* Field[] getFields() : 获得所有的成员变量对应的Field对象，只能获得public的
-* Field[] getDeclaredFields() : 获得所有的成员变量对应的Field对象，只要申明了就可以得到 
+* Field getField(String name) : 根据成员变量名获得对应 Field 对象，只能获得 public 修饰
+* Field getDeclaredField(String name) : 根据成员变量名获得对应 Field 对象，所有申明的变量
+* Field[] getFields() : 获得所有的成员变量对应的Field对象，只能获得 public 的
+* Field[] getDeclaredFields() : 获得所有的成员变量对应的 Field 对象，只要申明了就可以得到 
 
-Field的方法：给成员变量赋值和取值
+Field 的方法：给成员变量赋值和取值
 
 | 方法                               | 作用                                                      |
 | ---------------------------------- | --------------------------------------------------------- |
@@ -8225,15 +8255,15 @@ public class FieldDemo02 {
 
 #### 获取方法
 
-获取Method方法API：
+获取 Method 方法 API：
 
-* Method getMethod(String name,Class...args)：根据方法名和参数类型获得方法对象，public修饰
-* Method getDeclaredMethod(String name,Class...args)：根据方法名和参数类型获得方法对象，包括private
-* Method[] getMethods()：获得类中的所有成员方法对象返回数组，只能获得public修饰且包含父类的
+* Method getMethod(String name,Class...args)：根据方法名和参数类型获得方法对象，public 修饰
+* Method getDeclaredMethod(String name,Class...args)：根据方法名和参数类型获得方法对象，包括 private
+* Method[] getMethods()：获得类中的所有成员方法对象返回数组，只能获得 public 修饰且包含父类的
 * Method[] getDeclaredMethods()：获得类中的所有成员方法对象，返回数组，只获得本类申明的方法
 
-Method常用API：
-`public Object invoke(Object obj, Object... args) `：使用指定的参数调用由此方法对象，obj对象名
+Method 常用 API：
+`public Object invoke(Object obj, Object... args) `：使用指定的参数调用由此方法对象，obj 对象名
 
 ```java
 public class MethodDemo{
@@ -13715,7 +13745,7 @@ Java 虚拟机中关于方法重写的判定基于方法描述符，如果子类
 
 1. 找到操作数栈的第一个元素所执行的对象的实际类型，记作 C
 
-2. 如果在类型 C 中找到与常量中的描述符和名称都相符的方法，则进行访问权限校验，如果通过则返回这个方法的直接引用，查找过程结束；如果不通过，则返回 java.lang.IllegalAccessError 异常
+2. 如果在类型 C 中找到与常量中的描述符和名称都相符的方法，则进行访问**权限校验**（私有的），如果通过则返回这个方法的直接引用，查找过程结束；如果不通过，则返回 java.lang.IllegalAccessError 异常
 
    IllegalAccessError：表示程序试图访问或修改一个属性或调用一个方法，这个属性或方法没有权限访问，一般会引起编译器异常。如果这个错误发生在运行时，就说明一个类发生了不兼容的改变
 
@@ -13738,7 +13768,7 @@ Java 虚拟机中关于方法重写的判定基于方法描述符，如果子类
   2. Class 结构中有 vtable，查表得到方法的具体地址，执行方法的字节码
 * invokeinterface 所使用的接口方法表（interface method table，itable）
 
-虚方法表会在类加载的链接阶段被创建并开始初始化，类的变量初始值准备完成之后，jvm会把该类的方法表也初始化完毕
+虚方法表会在类加载的链接阶段被创建并开始初始化，类的变量初始值准备完成之后，JVM 会把该类的方法表也初始化完毕
 
 虚方法表的执行过程：
 
@@ -13747,12 +13777,12 @@ Java 虚拟机中关于方法重写的判定基于方法描述符，如果子类
 
 为了优化对象调用方法的速度，方法区的类型信息会增加一个指针，该指针指向一个记录该类方法的方法表。每个类中都有一个虚方法表，本质上是一个数组，每个数组元素指向一个当前类及其祖先类中非私有的实例方法
 
-方法表满足两个特质：
+方法表满足以下的特质：
 
-* 其一，子类方法表中包含父类方法表中的所有方法
-* 其二，子类方法在方法表中的索引值，与它所重写的父类方法的索引值相同
+* 其一，子类方法表中包含父类方法表中的**所有方法**，并且在方法表中的索引值与父类方法表种的索引值相同
+* 其二，**非重写的方法指向父类的方法表项**，与父类共享一个方法表项，**重写的方法指向本身自己的实现**
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-方法调用虚方法表.png" style="zoom: 80%;" />
+<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-虚方法表.png" style="zoom: 80%;" />
 
 Passenger 类的方法表包括两个方法，分别对应 0 号和 1 号。方法表调换了 toString 方法和 passThroughImmigration 方法的位置，是因为 toString 方法的索引值需要与 Object 类中同名方法的索引值一致，为了保持简洁，这里不考虑 Object 类中的其他方法。
 
@@ -13761,7 +13791,37 @@ Passenger 类的方法表包括两个方法，分别对应 0 号和 1 号。方�
 * 使用了方法表的动态绑定与静态绑定相比，仅仅多出几个内存解引用操作：访问栈上的调用者、读取调用者的动态类型、读取该类型的方法表、读取方法表中某个索引值所对应的目标方法，但是相对于创建并初始化 Java 栈帧这操作的开销可以忽略不计
 * 上述优化的效果看上去不错，但实际上**仅存在于解释执行**中，或者即时编译代码的最坏情况。因为即时编译还拥有另外两种性能更好的优化手段：内联缓存（inlining cache）和方法内联（method inlining）
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-方法调用虚方法表图.png" style="zoom: 67%;" />
+```java
+class Person {
+    public String toString() {
+        return "I'm a person.";
+    }
+    public void eat() {}
+    public void speak() {}
+}
+
+class Boy extends Person {
+    public String toString() {
+        return "I'm a boy";
+    }
+    public void speak() {}
+    public void fight() {}
+}
+
+class Girl extends Person {
+    public String toString() {
+        return "I'm a girl";
+    }
+    public void speak() {}
+    public void sing() {}
+}
+```
+
+![](https://gitee.com/seazean/images/raw/master/Java/JVM-虚方法表指向.png)
+
+
+
+参考文档：https://www.cnblogs.com/kaleidoscope/p/9790766.html
 
 
 
@@ -14528,7 +14588,7 @@ jstat（JVM Statistics Monitoring Tool）：用于监视 JVM 各种运行状态�
 
   类装载相关：
 
-  - -class：显示ClassLoader的相关信息：类的装载、卸载数量、总空间、类装载所消耗的时间等
+  - -class：显示 ClassLoader 的相关信息，类的装载、卸载数量、总空间、类装载所消耗的时间等
 
   垃圾回收相关：
 
