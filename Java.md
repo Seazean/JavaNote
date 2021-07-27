@@ -2144,7 +2144,7 @@ abstract class Animal{
 | 四种修饰符访问权限 | private | 缺省 | protected | public |
 | ------------------ | :-----: | :--: | :-------: | :----: |
 | 本类中             |    √    |  √   |     √     |   √    |
-| 子类中             |    X    |  √   |     √     |   √    |
+| 本包下的子类中     |    X    |  √   |     √     |   √    |
 | 本包下其他类中     |    X    |  √   |     √     |   √    |
 | 其他包下的子类中   |    X    |  X   |     √     |   √    |
 | 其他包下的其他类中 |    X    |  X   |     X     |   √    |
@@ -2473,9 +2473,10 @@ s.replace("-","");//12378
 #### 构造方式
 
 构造方法：
-	`public String()` : 创建一个空白字符串对象，不含有任何内容
-	`public String(char[] chs)` : 根据字符数组的内容，来创建字符串对象
-	`public String(String original)` : 根据传入的字符串内容，来创建字符串对象
+
+* `public String()` : 创建一个空白字符串对象，不含有任何内容
+* `public String(char[] chs)` : 根据字符数组的内容，来创建字符串对象
+* `public String(String original)` : 根据传入的字符串内容，来创建字符串对象
 
 直接赋值：`String s = “abc”` 直接赋值的方式创建字符串对象，内容就是abc
 
@@ -4411,11 +4412,12 @@ PriorityQueue 是优先级队列，底层存储结构为 Object[]，默认实现
 
 java.utils.Collections：集合**工具类**，Collections并不属于集合，是用来操作集合的工具类
 Collections有几个常用的API：
-`public static <T> boolean addAll(Collection<? super T> c, T... e)` : 给集合对象批量添加元素
-`public static void shuffle(List<?> list)` : 打乱集合顺序。
-`public static <T> void sort(List<T> list)` : 将集合中元素按照默认规则排序。
-`public static <T> void sort(List<T> list,Comparator<? super T> )` : 集合中元素按照指定规则排序
-`public static <T> List<T> synchronizedList(List<T> list)` : 返回由指定 list 支持的线程安全 list
+`public static <T> boolean addAll(Collection<? super T> c, T... e)`：给集合对象批量添加元素
+`public static void shuffle(List<?> list)`：打乱集合顺序。
+`public static <T> void sort(List<T> list)`：将集合中元素按照默认规则排序。
+`public static <T> void sort(List<T> list,Comparator<? super T> )`：集合中元素按照指定规则排序
+`public static <T> List<T> synchronizedList(List<T> list)`：返回由指定 list 支持的线程安全 list
+`public static <T> Set<T> singleton(T o)`：返回一个只包含指定对象的不可变组
 
 ```java
 public class CollectionsDemo {
@@ -4584,7 +4586,7 @@ HashMap 基于哈希表的 Map 接口实现，是以 key-value 存储形式存�
 特点：
 
 * HashMap的实现不是同步的，这意味着它不是线程安全的
-* key是唯一不重复的，底层的哈希表结构，依赖 hashCode 方法和 equals 方法保证键的唯一
+* key 是唯一不重复的，底层的哈希表结构，依赖 hashCode 方法和 equals 方法保证键的唯一
 * key、value 都可以为null，但是 key 位置只能是一个null
 * HashMap中的映射不是有序的，即存取是无序的
 * **key要存储的是自定义对象，需要重写hashCode和equals方法，防止出现地址不同内容相同的key**
@@ -7887,17 +7889,17 @@ public class CommonsIODemo01 {
 
 单元测试的经典框架：Junit
 
-* Junit : 是Java语言编写的第三方单元测试框架，可以帮助我们方便快速的测试我们代码的正确性。
+* Junit : 是 Java 语言编写的第三方单元测试框架，可以帮助我们方便快速的测试我们代码的正确性。
 * 单元测试：
-  * 单元：在Java中，一个类就是一个单元
-  *  单元测试：Junit编写的一小段代码，用来对某个类中的某个方法进行功能测试或业务逻辑测试	
+  * 单元：在 Java 中，一个类就是一个单元
+  *  单元测试：Junit 编写的一小段代码，用来对某个类中的某个方法进行功能测试或业务逻辑测试	
 
-Junit单元测试框架的作用：
+Junit 单元测试框架的作用：
 
 * 用来对类中的方法功能进行有目的的测试，以保证程序的正确性和稳定性
 * 能够**独立的**测试某个方法或者所有方法的预期正确性
 
-测试方法注意事项：**必须是public修饰的，没有返回值，没有参数，使用注解@Test修饰**
+测试方法注意事项：**必须是 public 修饰的，没有返回值，没有参数，使用注解@Test修饰**
 
 Junit常用注解(Junit 4.xxxx版本)，@Test 测试方法：
 
@@ -11915,8 +11917,8 @@ init 指的是实例构造器，主要作用是在类实例化过程中执行，
   * 创建类对象、使用类的静态域、创建子类对象、使用子类的静态域
   * 在 JVM 启动时，通过三大类加载器加载 class
 * 显式加载：
-  * ClassLoader.loadClass(className)，只加载和连接，**不会进行初始化**
-  * Class.forName(String name, boolean initialize,ClassLoader loader)，使用 loader 进行加载和连接，根据参数 initialize 决定是否初始化
+  * ClassLoader.loadClass(className)：只加载和连接，**不会进行初始化**
+  * Class.forName(String name, boolean initialize,ClassLoader loader)：使用 loader 进行加载和连接，根据参数 initialize 决定是否初始化
 
 类的唯一性：
 
@@ -11932,8 +11934,8 @@ init 指的是实例构造器，主要作用是在类实例化过程中执行，
 
 基本特征：
 
-* 可见性，子类加载器可以访问父加载器加载的类型，但是反过来是不允许的
-* 单一性，由于父加载器的类型对于子加载器是可见的，所以父加载器中加载过的类型，不会在子加载器中重复加载
+* **可见性**，子类加载器可以访问父加载器加载的类型，但是反过来是不允许的
+* **单一性**，由于父加载器的类型对于子加载器是可见的，所以父加载器中加载过的类型，不会在子加载器中重复加载
 
 
 
@@ -12076,10 +12078,9 @@ ClassLoader 类常用方法：
   }
   ```
   
-  此时执行main函数，会出现异常，在类 java.lang.String 中找不到 main 方法，防止恶意篡改核心 API 库
-  出现该信息是因为双亲委派的机制，java.lang.String 的在启动类加载器（Bootstrap）得到加载，启动类加载器优先级更高，在核心 jre 库中有其相同名字的类文件，但该类中并没有 main 方法
+  此时执行 main 函数，会出现异常，在类 java.lang.String 中找不到 main 方法，防止恶意篡改核心 API 库。出现该信息是因为双亲委派的机制，java.lang.String 的在启动类加载器（Bootstrap）得到加载，启动类加载器优先级更高，在核心 jre 库中有其相同名字的类文件，但该类中并没有 main 方法
 
-双亲委派机制的缺点：检查类是否加载的委托过程是单向的，这个方式虽然从结构上看比较清晰，使各个 ClassLoader 的职责非常明确，但顶层的 ClassLoader 无法访问底层的 ClassLoader 所加载的类
+双亲委派机制的缺点：检查类是否加载的委托过程是单向的，这个方式虽然从结构上看比较清晰，使各个 ClassLoader 的职责非常明确，但**顶层的 ClassLoader 无法访问底层的 ClassLoader 所加载的类**
 
 <img src="https://gitee.com/seazean/images/raw/master/Java/JVM-双亲委派模型.png" style="zoom: 50%;" />
 
@@ -12095,7 +12096,7 @@ ClassLoader 类常用方法：
 protected Class<?> loadClass(String name, boolean resolve)
     throws ClassNotFoundException {
     synchronized (getClassLoadingLock(name)) {
-       //调用当前类加载器的findLoadedClass(name)，检查当前类加载器是否已加载过指定name的类
+       //调用当前类加载器的 findLoadedClass(name)，检查当前类加载器是否已加载过指定 name 的类
         Class c = findLoadedClass(name);
         
         //当前类加载器如果没有加载过
@@ -12104,22 +12105,19 @@ protected Class<?> loadClass(String name, boolean resolve)
             try {
                 //判断当前类加载器是否有父类加载器
                 if (parent != null) {
-                    //如果当前类加载器有父类加载器，则调用父类加载器的loadClass(name,false)
-         			//父类加载器的loadClass方法，又会检查自己是否已经加载过
+                    //如果当前类加载器有父类加载器，则调用父类加载器的 loadClass(name,false)
+         			//父类加载器的 loadClass 方法，又会检查自己是否已经加载过
                     c = parent.loadClass(name, false);
                 } else {
-                    //当前类加载器没有父类加载器，说明当前类加载器是BootStrapClassLoader
-          			//则调用BootStrap ClassLoader的方法加载类
+                    //当前类加载器没有父类加载器，说明当前类加载器是 BootStrapClassLoader
+          			//则调用 BootStrap ClassLoader 的方法加载类
                     c = findBootstrapClassOrNull(name);
                 }
-            } catch (ClassNotFoundException e) {
-                // ClassNotFoundException thrown if class not found
-                // from the non-null parent class loader
-            }
+            } catch (ClassNotFoundException e) { }
 
             if (c == null) {
-                // 如果调用父类的类加载器无法对类进行加载，则用自己的findClass()方法进行加载
-                // k自定义findClass()方法
+                // 如果调用父类的类加载器无法对类进行加载，则用自己的 findClass() 方法进行加载
+                // 可以自定义 findClass() 方法
                 long t1 = System.nanoTime();
                 c = findClass(name);
 
@@ -12154,7 +12152,7 @@ protected Class<?> loadClass(String name, boolean resolve)
   * 如果不想破坏双亲委派模型，只需要重写 findClass 方法
   * 如果想要去破坏双亲委派模型，需要去**重写 loadClass **方法
 
-* 引入线程上下文类加载器
+* 引入线程**上下文类加载器**
 
   Java 提供了很多服务提供者接口（Service Provider Interface，SPI），允许第三方为这些接口提供实现。常见的 SPI 有 JDBC、JCE、JNDI 等。这些 SPI 接口由 Java 核心库来提供，而 SPI 的实现代码则是作为 Java 应用所依赖的 jar 包被包含进类路径 classpath 里，SPI 接口中的代码需要加载具体的实现类：
 
@@ -12167,7 +12165,7 @@ protected Class<?> loadClass(String name, boolean resolve)
 
   IBM 公司主导的 JSR一291（OSGiR4.2）实现模块化热部署的关键是它自定义的类加载器机制的实现，每一个程序模块（OSGi 中称为 Bundle）都有一个自己的类加载器，当更换一个 Bundle 时，就把 Bundle 连同类加载器一起换掉以实现代码的热替换，在 OSGi 环境下，类加载器不再双亲委派模型推荐的树状结构，而是进一步发展为更加复杂的网状结构
 
-  当收到类加载请求时，OSGi将按照下面的顺序进行类搜索:
+  当收到类加载请求时，OSGi 将按照下面的顺序进行类搜索:
 
   1. 将以 java.* 开头的类，委派给父类加载器加载
   2. 否则，将委派列表名单内的类，委派给父类加载器加载
@@ -12176,16 +12174,8 @@ protected Class<?> loadClass(String name, boolean resolve)
   5. 否则，查找类是否在自己的 Fragment Bundle 中，如果在就委派给 Fragment Bundle 类加载器加载
   6. 否则，查找 Dynamic Import 列表的 Bundle，委派给对应 Bundle 的类加载器加载
   7. 否则，类查找失败
-
-
-
-****
-
-
-
-##### 热替换
-
-热替换是指在程序的运行过程中，不停止服务，只通过替换程序文件来修改程序的行为，**热替换的关键需求在于服务不能中断**，修改必须立即表现正在运行的系统之中
+  
+  热替换是指在程序的运行过程中，不停止服务，只通过替换程序文件来修改程序的行为，**热替换的关键需求在于服务不能中断**，修改必须立即表现正在运行的系统之中
 
 <img src="https://gitee.com/seazean/images/raw/master/Java/JVM-热替换.png" style="zoom: 33%;" />
 
@@ -12206,7 +12196,7 @@ protected Class<?> loadClass(String name, boolean resolve)
 * JDK1.2：改进了安全机制，增加了代码签名，不论本地代码或是远程代码都会按照用户的安全策略设定，由类加载器加载到虚拟机中权限不同的运行空间，来实现差异化的代码执行权限控制
 * JDK1.6：当前最新的安全机制，引入了域（Domain）的概念。虚拟机会把所有代码加载到不同的系统域和应用域，不同的保护域对应不一样的权限。系统域部分专门负责与关键资源进行交互，而各个应用域部分则通过系统域的部分代理来对各种需要的资源进行访问
 
-![](https://gitee.com/seazean/images/raw/master/Java/JVM-沙箱机制.png)
+<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-沙箱机制.png" style="zoom:67%;" />
 
 
 
@@ -12302,7 +12292,7 @@ public static void main(String[] args) {
 
 为了保证兼容性，JDK9 没有改变三层类加载器架构和双亲委派模型，但为了模块化系统的顺利运行做了一些变动：
 
-* 扩展机制被移除，扩展类加载器由于向后兼容性的原因被保留，不过被重命名为平台类加载器（platform classloader），可以通过 ClassLoader 的新方法 getPlatformClassLoader() 来获取
+* 扩展机制被移除，扩展类加载器由于**向后兼容性**的原因被保留，不过被重命名为平台类加载器（platform classloader），可以通过 ClassLoader 的新方法 getPlatformClassLoader() 来获取
 
 * JDK9 基于模块化进行构建（原来的 rt.jar 和 tools.jar 被拆分成数十个JMOD文件），其中的 Java 类库就满足了可扩展的需求，那就无须再保留 `<JAVA_HOME>\lib\ext` 目录，此前使用这个目录或者 `java.ext.dirs` 系统变量来扩展 JDK 功能的机制就不需要继续存在
 
@@ -14386,7 +14376,7 @@ public class Reflect1 {
 }
 ```
 
-foo.invoke 0 ~ 15次调用的是 MethodAccessor 的实现类`NativeMethodAccessorImpl.invoke0()`，本地方法执行速度慢；当调用到第 16 次时，会采用运行时生成的类`sun.reflect.GeneratedMethodAccessor1`代替
+foo.invoke 0 ~ 15次调用的是 MethodAccessor 的实现类 `NativeMethodAccessorImpl.invoke0()`，本地方法执行速度慢；当调用到第 16 次时，会采用运行时生成的类 `sun.reflect.GeneratedMethodAccessor1` 代替
 
 ```java
 public Object invoke(Object obj, Object[] args)throws Exception {
@@ -18474,7 +18464,7 @@ Java 中提供了一个动态代理类 Proxy，Proxy 并不是代理对象的类
       private TrainStation station = new TrainStation();
   	//也可以在参数中提供 getProxyObject(TrainStation station)
       public SellTickets getProxyObject() {
-          //使用Proxy获取代理对象
+          //使用 Proxy 获取代理对象
           SellTickets sellTickets = (SellTickets) Proxy.newProxyInstance(
               	station.getClass().getClassLoader(),
                   station.getClass().getInterfaces(),
@@ -18498,6 +18488,7 @@ Java 中提供了一个动态代理类 Proxy，Proxy 并不是代理对象的类
       public static void main(String[] args) {
           //获取代理对象
           ProxyFactory factory = new ProxyFactory();
+          //必须时代理ji
           SellTickets proxyObject = factory.getProxyObject();
           proxyObject.sell();
       }
@@ -18510,7 +18501,7 @@ Java 中提供了一个动态代理类 Proxy，Proxy 并不是代理对象的类
 
 
 
-##### 原理解析
+##### 实现原理
 
 JDK 动态代理方式的优缺点：
 
@@ -18561,13 +18552,150 @@ public class Proxy implements java.io.Serializable {
 
 
 
+****
+
+
+
+##### 源码解析
+
+```java
+public static Object newProxyInstance(ClassLoader loader,
+                                      Class<?>[] interfaces,
+                                      InvocationHandler h){
+    // InvocationHandler 为空则抛出异常
+    Objects.requireNonNull(h);
+
+    // 复制一份 interfaces
+    final Class<?>[] intfs = interfaces.clone();
+    final SecurityManager sm = System.getSecurityManager();
+    if (sm != null) {
+        checkProxyAccess(Reflection.getCallerClass(), loader, intfs);
+    }
+
+    //从缓存中查找 class 类型的代理对象，参数二是代理需要实现的接口
+    Class<?> cl = getProxyClass0(loader, intfs);
+	//proxyClassCache = new WeakCache<>(new KeyFactory(), new ProxyClassFactory())
+ 
+    try {
+        if (sm != null) {
+            checkNewProxyPermission(Reflection.getCallerClass(), cl);
+        }
+
+        //获取代理类的构造方法，根据参数 InvocationHandler 匹配获取某个构造器
+        final Constructor<?> cons = cl.getConstructor(constructorParams);
+        final InvocationHandler ih = h;
+        if (!Modifier.isPublic(cl.getModifiers())) {
+            AccessController.doPrivileged(new PrivilegedAction<Void>() {
+                public Void run() {
+                    //设置可访问的权限
+                    cons.setAccessible(true);
+                    return null;
+                }
+            });
+        }
+       	//cons 是构造方法，并且内部持有 InvocationHandler，在 InvocationHandler 中持有 target 目标对象
+        return cons.newInstance(new Object[]{h});
+    } catch (IllegalAccessException|InstantiationException e) {}
+}
+```
+
+```java
+private static final class ProxyClassFactory {
+    // 代理类型的名称前缀
+    private static final String proxyClassNamePrefix = "$Proxy";
+
+    //生成唯一数字使用，结合上面的代理类型名称前缀一起生成
+    private static final AtomicLong nextUniqueNumber = new AtomicLong();
+
+	//参数一：Proxy.newInstance 时传递的
+    //参数二：Proxy.newInstance 时传递的接口集合
+    @Override
+    public Class<?> apply(ClassLoader loader, Class<?>[] interfaces) {
+		
+        Map<Class<?>, Boolean> interfaceSet = new IdentityHashMap<>(interfaces.length);
+        // 遍历接口集合
+        for (Class<?> intf : interfaces) {
+            Class<?> interfaceClass = null;
+            try {
+                // 加载接口类到 JVM
+                interfaceClass = Class.forName(intf.getName(), false, loader);
+            } catch (ClassNotFoundException e) {
+            }
+            if (interfaceClass != intf) {
+                throw new IllegalArgumentException(
+                    intf + " is not visible from class loader");
+            }
+            // 如果 interfaceClass 不是接口 直接报错，保证集合内都是接口
+            if (!interfaceClass.isInterface()) {
+                throw new IllegalArgumentException(
+                    interfaceClass.getName() + " is not an interface");
+            }
+            // 保证接口 interfaces 集合中没有重复的接口
+            if (interfaceSet.put(interfaceClass, Boolean.TRUE) != null) {
+                throw new IllegalArgumentException(
+                    "repeated interface: " + interfaceClass.getName());
+            }
+        }
+
+        //生成的代理类的包名
+        String proxyPkg = null;   
+        //生成的代理类访问修饰符 pulic final 
+        int accessFlags = Modifier.PUBLIC | Modifier.FINAL;
+
+        // 检查接口集合内的接口，看看有没有某个接口的访问修饰符不是 public 的  如果不是 public 的接口，
+        //生成的代理类 class 就必须和它在一个包下，否则访问出现问题
+        for (Class<?> intf : interfaces) {
+            // 获取访问修饰符
+            int flags = intf.getModifiers();
+            if (!Modifier.isPublic(flags)) {
+                accessFlags = Modifier.FINAL;
+                //获取当前接口的全限定名 包名.类名
+                String name = intf.getName();
+                int n = name.lastIndexOf('.');
+                //获取包名
+                String pkg = ((n == -1) ? "" : name.substring(0, n + 1));
+                if (proxyPkg == null) {
+                    proxyPkg = pkg;
+                } else if (!pkg.equals(proxyPkg)) {
+                    throw new IllegalArgumentException(
+                        "non-public interfaces from different packages");
+                }
+            }
+        }
+
+        if (proxyPkg == null) {
+            // if no non-public proxy interfaces, use com.sun.proxy package
+            proxyPkg = ReflectUtil.PROXY_PACKAGE + ".";
+        }
+
+        // 获取唯一的编号
+        long num = nextUniqueNumber.getAndIncrement();
+        // 包名+ $proxy + 数字，比如 $proxy1
+        String proxyName = proxyPkg + proxyClassNamePrefix + num;
+
+        // 生成二进制字节码，这个字节码写入到文件内，就是编译好的 class 文件
+        byte[] proxyClassFile = ProxyGenerator.generateProxyClass(
+            proxyName, interfaces, accessFlags);
+        try {
+            //使用加载器加载二进制到 jvm，并且返回 class
+            return defineClass0(loader, proxyName,
+                                proxyClassFile, 0, proxyClassFile.length);
+        } catch (ClassFormatError e) { }
+    }
+}
+```
+
+
+
+
+
+
+
 ***
 
 
 
 #### CGLIB
-
-##### 使用方式
 
 CGLIB 是一个功能强大，高性能的代码生成包，为没有实现接口的类提供代理，为 JDK 动态代理提供了补充
 
@@ -18607,14 +18735,6 @@ CGLIB 是一个功能强大，高性能的代码生成包，为没有实现接�
       }
   }
   ```
-
-
-
-***
-
-
-
-##### 原理分析
 
 CGLIB 的优缺点
 

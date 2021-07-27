@@ -4602,7 +4602,7 @@ FactoryBean与 BeanFactory 区别：
 
 ##### 数据准备
 
-* DAO层 UserDao、AccountDao、BookDao、EquipmentDao
+* DAO 层 UserDao、AccountDao、BookDao、EquipmentDao
 
   ```java
   public interface UserDao {
@@ -4986,13 +4986,13 @@ SmartInitializingSingleton 原理：→ afterSingletonsInstantiated()
 
 ### 基本概述
 
-AOP(Aspect Oriented Programing)：面向切面编程，一种编程**范式**，指导开发者如何组织程序结构
+AOP（Aspect Oriented Programing）：面向切面编程，一种编程**范式**，指导开发者如何组织程序结构
 
-AOP弥补了OOP的不足，基于OOP基础之上进行横向开发：
+AOP 弥补了 OOP 的不足，基于 OOP 基础之上进行横向开发：
 
-- uOOP规定程序开发以类为主体模型，一切围绕对象进行，完成某个任务先构建模型
+- uOOP 规定程序开发以类为主体模型，一切围绕对象进行，完成某个任务先构建模型
 
-- uAOP程序开发主要关注基于OOP开发中的共性功能，一切围绕共性功能进行，完成某个任务先构建可能遇到的所有共性功能（当所有功能都开发出来也就没有共性与非共性之分），将软件开发由手工制作走向半自动化/全自动化阶段，实现“插拔式组件体系结构”搭建
+- uAOP 程序开发主要关注基于 OOP 开发中的共性功能，一切围绕共性功能进行，完成某个任务先构建可能遇到的所有共性功能（当所有功能都开发出来也就没有共性与非共性之分），将软件开发由手工制作走向半自动化/全自动化阶段，实现“插拔式组件体系结构”搭建
 
 AOP作用：
 
@@ -5017,21 +5017,21 @@ AOP开发思想：
 
 #### 概念详解
 
-- Joinpoint(连接点)：就是方法
+- Joinpoint（连接点）：就是方法
 
-- Pointcut(切入点)：就是挖掉共性功能的方法
+- Pointcut（切入点）：就是挖掉共性功能的方法
 
-- Advice(通知)：就是共性功能，最终以一个方法的形式呈现
+- Advice（通知）：就是共性功能，最终以一个方法的形式呈现
 
-- Aspect(切面)：就是共性功能与挖的位置的对应关系
+- Aspect（切面）：就是共性功能与挖的位置的对应关系
 
-- Target(目标对象)：就是挖掉功能的方法对应的类产生的对象，这种对象是无法直接完成最终工作的
+- Target（目标对象）：就是挖掉功能的方法对应的类产生的对象，这种对象是无法直接完成最终工作的
 
-- Weaving(织入)：就是将挖掉的功能回填的动态过程
+- Weaving（织入）：就是将挖掉的功能回填的动态过程
 
-- Proxy(代理)：目标对象无法直接完成工作，需要对其进行功能回填，通过创建原始对象的代理对象实现
+- Proxy（代理）：目标对象无法直接完成工作，需要对其进行功能回填，通过创建原始对象的代理对象实现
 
-- Introduction(引入/引介) ：就是对原始对象无中生有的添加成员变量或成员方法
+- Introduction（引入/引介）：就是对原始对象无中生有的添加成员变量或成员方法
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/AOP连接点.png)
 
@@ -5055,17 +5055,17 @@ AOP开发思想：
 
   - 将非共性功能开发到对应的目标对象类中，并制作成切入点方法
 
-  - 将共性功能独立开发出来，制作成**通知**
+  - 将共性功能独立开发出来，制作成通知
 
-  - 在配置文件中，声明**切入点**
+  - 在配置文件中，声明切入点
 
-  - 在配置文件中，声明**切入点**与**通知**间的关系（含**通知类型**），即**切面**
+  - 在配置文件中，声明切入点与通知间的关系（含通知类型），即切面
 
-- 运行阶段(AOP完成)
+- 运行阶段（AOP 完成）
 
-  - Spring容器加载配置文件，监控所有配置的**切入点**方法的执行
+  - Spring 容器加载配置文件，监控所有配置的**切入点**方法的执行
 
-  - 当监控到切入点方法被运行，使用**代理**机制，动态创建**目标对象**的**代理对象**，根据**通知类别**，在**代理对象**的对应位置将通知对应的功能**织入**，完成完整的代码逻辑并运行
+  - 当监控到切入点方法被运行，**使用代理机制，动态创建目标对象的代理对象，根据通知类别，在代理对象的对应位置将通知对应的功能织入**，完成完整的代码逻辑并运行
 
 1. 导入坐标 pom.xml
 
@@ -5104,7 +5104,7 @@ AOP开发思想：
 
    ```java
    //1.制作通知类，在类中定义一个方法用于完成共性功能
-   public class AOPAdvice{
+   public class AOPAdvice {
        //共性功能抽取后职称独立的方法
        public void function(){
            System.out.println("共性功能");
@@ -5153,7 +5153,7 @@ AOP开发思想：
        public static void main(String[] args) {
            ApplicationContext ctx = new ClassPathXmlApplicationContext("applicationContext.xml");
            UserService userService = (UserService) ctx.getBean("userService");
-           userService.save();//先输出共性功能，然后user service running...
+           userService.save();//先输出共性功能，然后 user service running...
        }
    }
    ```
@@ -5168,9 +5168,13 @@ AOP开发思想：
 
 #### AspectJ
 
-Aspect（切面）用于描述切入点与通知间的关系，是AOP编程中的一个概念
+Aspect（切面）用于描述切入点与通知间的关系，是 AOP 编程中的一个概念
 
-AspectJ是基于java语言对Aspect的实现
+AspectJ 是基于 java 语言对 Aspect 的实现
+
+
+
+***
 
 
 
@@ -5180,7 +5184,7 @@ AspectJ是基于java语言对Aspect的实现
 
 标签：<aop:config>，<beans>的子标签
 
-作用：设置AOP
+作用：设置 AOP
 
 格式：
 
@@ -5194,9 +5198,13 @@ AspectJ是基于java语言对Aspect的实现
 
 
 
+***
+
+
+
 ##### pointcut
 
-标签：<aop:pointcut>，归属于aop:config标签和aop:aspect标签
+标签：<aop:pointcut>，归属于 aop:config 标签和 aop:aspect 标签
 
 作用：设置切入点
 
@@ -5213,7 +5221,7 @@ AspectJ是基于java语言对Aspect的实现
 
 说明：
 
-* 一个aop:config标签中可以配置多个aop:pointcut标签，且该标签可以配置在aop:aspect标签内
+* 一个 aop:config 标签中可以配置多个 aop:pointcut 标签，且该标签可以配置在 aop:aspect 标签内
 
 属性：
 
@@ -5223,11 +5231,15 @@ AspectJ是基于java语言对Aspect的实现
 
 
 
+***
+
+
+
 ##### aspect
 
-标签：<aop:aspect>，aop:config的子标签
+标签：<aop:aspect>，aop:config 的子标签
 
-作用：设置具体的AOP通知对应的切入点（切面）
+作用：设置具体的 AOP 通知对应的切入点（切面）
 
 格式：
 
@@ -5241,7 +5253,7 @@ AspectJ是基于java语言对Aspect的实现
 
 属性：
 
-- ref ：通知所在的bean的id
+- ref ：通知所在的 bean 的 id
 
 
 
@@ -5259,6 +5271,10 @@ AspectJ是基于java语言对Aspect的实现
 
 
 
+***
+
+
+
 ##### 表达式
 
 格式：
@@ -5270,8 +5286,8 @@ AspectJ是基于java语言对Aspect的实现
 示例：
 
 ```java
-execution(public User service.UserService.findById(int))
 //匹配UserService中只含有一个参数的findById方法
+execution(public User service.UserService.findById(int))
 ```
 
 格式解析：
@@ -5295,22 +5311,22 @@ execution(public User service.UserService.findById(int))
 * *：单个独立的任意符号，可以独立出现，也可以作为前缀或者后缀的匹配符出现
 
   ```java
-  execution(public * com.seazean.*.UserService.find*(*)
   //匹配com.seazean包下的任意包中的UserService类或接口中所有find开头的带有一个任意参数的方法
+  execution(public * com.seazean.*.UserService.find*(*)
   ```
 
 * .. ：多个连续的任意符号，可以独立出现，常用于简化包名与参数
 
   ```java
-  execution(public User com..UserService.findById(..))
   //匹配com包下的任意包中的UserService类或接口中所有名称为findById参数任意数量和类型的方法
+  execution(public User com..UserService.findById(..))
   ```
 
 * +：专用于匹配子类类型
 
   ```java
-  execution(* *..*Service+.*(..))
   //匹配任意包下的Service结尾的类或者接口的子类或者实现类
+  execution(* *..*Service+.*(..))
   ```
 
 逻辑运算符：
@@ -5334,8 +5350,8 @@ execution(public void com.seazean.service.*.*(..))
 execution(public void com.seazean.service.User*.*(..))
 execution(public void com.seazean.service.*Service.*(..))
 execution(public void com.seazean.service.UserService.*(..))
-execution(public User com.seazean.service.UserService.find*(..))
-execution(public User com.seazean.service.UserService.*Id(..))
+execution(public User com.seazean.service.UserService.find*(..))	//find开头
+execution(public User com.seazean.service.UserService.*Id(..))		//I
 execution(public User com.seazean.service.UserService.findById(..))
 execution(public User com.seazean.service.UserService.findById(int))
 execution(public User com.seazean.service.UserService.findById(int,int))
@@ -5343,6 +5359,10 @@ execution(public User com.seazean.service.UserService.findById(int,*))
 execution(public User com.seazean.service.UserService.findById())
 execution(List com.seazean.service.*Service+.findAll(..))
 ```
+
+
+
+***
 
 
 
@@ -5358,7 +5378,7 @@ XML配置规则：
 
 - 代码走查过程中检测切入点是否存在非包含性进驻
 
-- 设定AOP执行检测程序，在单元测试中监控通知被执行次数与预计次数是否匹配（不绝对正确：加进一个不该加的，删去一个不该删的相当于结果不变）
+- 设定 AOP 执行检测程序，在单元测试中监控通知被执行次数与预计次数是否匹配（不绝对正确：加进一个不该加的，删去一个不该删的相当于结果不变）
 
 - 设定完毕的切入点如果发生调整务必进行回归测试
 
@@ -5969,7 +5989,7 @@ AOP的通知类型共5种：前置通知，后置通知、返回后通知、抛�
 
 #### AOP注解
 
-AOP注解简化xml：
+AOP 注解简化 xml：
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/AOP注解开发.png)
 
@@ -5981,7 +6001,7 @@ AOP注解简化xml：
 
 3. 切面类中定义的切入点只能在当前类中使用，如果想引用其他类中定义的切入点使用“类名.方法名()”引用
 
-4. 可以在通知类型注解后添加参数，实现XML配置中的属性，例如after-returning后的returning属性
+4. 可以在通知类型注解后添加参数，实现 XML 配置中的属性，例如 after-returning 后的 returning 性
 
 
 
@@ -5995,7 +6015,7 @@ AOP注解简化xml：
 
 ##### XML
 
-开启AOP注解支持：
+开启 AOP 注解支持：
 
 ```xml
 <aop:aspectj-autoproxy/>
@@ -6004,11 +6024,11 @@ AOP注解简化xml：
 
 开发步骤：
 
-1. 导入坐标（伴随spring-context坐标导入已经依赖导入完成）
-2. 开启AOP注解支持
-3. 配置切面@Aspect
-4. 定义专用的切入点方法，并配置切入点@Pointcut
-5. 为通知方法配置通知类型及对应切入点@Before
+1. 导入坐标（伴随 spring-context 坐标导入已经依赖导入完成）
+2. 开启 AOP 注解支持
+3. 配置切面 @Aspect
+4. 定义专用的切入点方法，并配置切入点 @Pointcut
+5. 为通知方法配置通知类型及对应切入点 @Before
 
 
 
@@ -6016,9 +6036,9 @@ AOP注解简化xml：
 
 注解：@EnableAspectJAutoProxy
 
-位置：Spring注解配置类定义上方
+位置：Spring 注解配置类定义上方
 
-作用：设置当前类开启AOP注解驱动的支持，加载AOP注解
+作用：设置当前类开启 AOP 注解驱动的支持，加载 AOP 注解
 
 格式：
 
@@ -6276,7 +6296,7 @@ public class UserServiceDecorator implements UserService{
 
 #### Proxy
 
-JDKProxy动态代理是针对对象做代理，要求原始对象具有接口实现，并对接口方法进行增强，因为**代理类继承Proxy**
+JDKProxy 动态代理是针对对象做代理，要求原始对象具有接口实现，并对接口方法进行增强，因为**代理类继承Proxy**
 
 静态代理和动态代理的区别：
 
@@ -6381,13 +6401,13 @@ CGLIB 特点：
 
 #### 代理选择
 
-Spirng可以通过配置的形式控制使用的代理形式，Spring会先判断是否实现了接口，如果实现了接口就使用JDK动态代理，如果没有实现接口则使用Cglib动态代理，通过配置可以修改为使用cglib
+Spirng 可以通过配置的形式控制使用的代理形式，Spring 会先判断是否实现了接口，如果实现了接口就使用 JDK 动态代理，如果没有实现接口则使用 Cglib 动态代理，通过配置可以修改为使用 Cglib
 
 - XML配置
 
   ```xml
   <!--XML配置AOP-->
-  <aop:config proxy-target-class="false"></aop:config>
+  <aop:config proxy-target-class="false"></aop:config>
   ```
 
 - XML注解支持
@@ -6404,11 +6424,11 @@ Spirng可以通过配置的形式控制使用的代理形式，Spring会先判�
   @EnableAspectJAutoProxy(proxyTargetClass = true)
   ```
 
-* JDK动态代理和Cglib动态代理的区别：
+* JDK 动态代理和 Cglib 动态代理的区别：
 
-  * JDK动态代理只能对实现了接口的类生成代理，没有实现接口的类不能使用。
-  * Cglib动态代理即使被代理的类没有实现接口也可以使用，因为Cglib动态代理是使用继承被代理类的方式进行扩展
-  * Cglib动态代理是通过继承的方式，覆盖被代理类的方法来进行代理，所以如果方法是被final修饰的话，就不能进行代理
+  * JDK 动态代理只能对实现了接口的类生成代理，没有实现接口的类不能使用。
+  * Cglib 动态代理即使被代理的类没有实现接口也可以使用，因为 Cglib 动态代理是使用继承被代理类的方式进行扩展
+  * Cglib 动态代理是通过继承的方式，覆盖被代理类的方法来进行代理，所以如果方法是被 final 修饰的话，就不能进行代理
 
 
 
