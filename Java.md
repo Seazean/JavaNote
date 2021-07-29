@@ -8378,7 +8378,7 @@ public class ReflectDemo {
 
 ### 注解格式
 
-定义格式：自定义注解用@interface关键字，注解默认可以标记很多地方
+定义格式：自定义注解用 @interface 关键字，注解默认可以标记很多地方
 
 ```java
 修饰符 @interface 注解名{
@@ -18588,6 +18588,7 @@ public static Object newProxyInstance(ClassLoader loader,
         //获取代理类的构造方法，根据参数 InvocationHandler 匹配获取某个构造器
         final Constructor<?> cons = cl.getConstructor(constructorParams);
         final InvocationHandler ih = h;
+        //构造方法不是 pubic 的需要启用权限
         if (!Modifier.isPublic(cl.getModifiers())) {
             AccessController.doPrivileged(new PrivilegedAction<Void>() {
                 public Void run() {
@@ -18602,6 +18603,8 @@ public static Object newProxyInstance(ClassLoader loader,
     } catch (IllegalAccessException|InstantiationException e) {}
 }
 ```
+
+Proxy 的静态内部类：
 
 ```java
 private static final class ProxyClassFactory {
@@ -18693,8 +18696,6 @@ private static final class ProxyClassFactory {
 
 
 
-
-
 ***
 
 
@@ -18745,7 +18746,7 @@ CGLIB 的优缺点
 * 优点：
   * CGLIB 动态代理**不限定**是否具有接口，可以对任意操作进行增强
   * CGLIB 动态代理无需要原始被代理对象，动态创建出新的代理对象
-  * JDKProxy 仅对接口方法做增强，CGLIB 对所有方法做增强，包括 Object 类中的方法，toString、hashCode 等
+  * **JDKProxy 仅对接口方法做增强，CGLIB 对所有方法做增强**，包括 Object 类中的方法，toString、hashCode 等
 * 缺点：CGLIB 不能对声明为 final 的类或者方法进行代理，因为 CGLIB 原理是**动态生成被代理类的子类，继承被代理类**
 
 
@@ -18830,7 +18831,7 @@ CGLIB 的优缺点
 
 例如：现有一台电脑只能读取 SD 卡，而要读取 TF 卡中的内容的话就需要使用到适配器模式
 
-* SD卡：
+* SD 卡：
 
   ```java
   //接口
@@ -18930,7 +18931,7 @@ CGLIB 的优缺点
 * 适配器类：
 
   ```java
-  public class SDAdapterTF  implements SDCard {
+  public class SDAdapterTF implements SDCard {
       private TFCard tfCard;
       public SDAdapterTF(TFCard tfCard) {
           this.tfCard = tfCard;
