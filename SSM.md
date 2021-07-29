@@ -7768,6 +7768,8 @@ AbstractBeanFactory.doGetBean()：获取 Bean，context.getBean() 追踪到此
 
 * `convertIfNecessary()`：**依赖检查**，检查所需的类型是否与实际 bean 实例的类型匹配
 
+* `return (T) bean`：返回创建完成的 bean
+
 
 
 
@@ -7806,17 +7808,17 @@ AbstractAutowireCapableBeanFactory.**doCreateBean**(beanName, RootBeanDefinition
 
   `applyMergedBeanDefinitionPostProcessors()`：后置处理器，合并 bd 信息，接下来要属性填充了
 
-  `AutowiredAnnotationBeanPostProcessor.postProcessMergedBeanDefinition()`：进入后置处理逻辑
+  `AutowiredAnnotationBeanPostProcessor.postProcessMergedBeanDefinition()`：后置处理逻辑**（@Autowired）**
 
   * `metadata = findAutowiringMetadata(beanName, beanType, null)`：提取出当前 beanType 类型整个继承体系内的 **@Autowired、@Value、@Inject** 信息，存入一个 InjectionMetadata 对象的 injectedElements 中并放入缓存
 
     * `metadata = buildAutowiringMetadata(clazz)`：查询当前 clazz 感兴趣的注解信息
 
-      * `ReflectionUtils.doWithLocalFields()`：提取字段的注解信息
+      * `ReflectionUtils.doWithLocalFields()`：提取**字段**的注解的属性信息
 
-        `findAutowiredAnnotation(field)`：代表感兴趣的注解就是那三种
+        `findAutowiredAnnotation(field)`：代表感兴趣的注解就是那三种注解
 
-      * `ReflectionUtils.doWithLocalMethods()`：提取方法的注解信息
+      * `ReflectionUtils.doWithLocalMethods()`：提取**方法**的注解的属性信息
 
       * `do{} while (targetClass != null && targetClass != Object.class)`：循环从父类中解析，直到 Object 类
 
@@ -7836,7 +7838,7 @@ AbstractAutowireCapableBeanFactory.**doCreateBean**(beanName, RootBeanDefinition
 
 * ` populateBean(beanName, mbd, instanceWrapper)`：**属性填充，依赖注入，整体逻辑是先处理标签再处理注解，填充至 pvs 中，最后通过 apply 方法最后完成属性依赖注入到 BeanWrapper **
 
-  * `if (!ibp.postProcessAfterInstantiation(bw.getWrappedInstance(), beanName))`：实例化后的后置处理器，默认返回 true，继承 InstantiationAwareBeanPostProcessor 修改返回值为 false，会造成 continueWithPropertyPopulation 为 false
+  * `if (!ibp.postProcessAfterInstantiation(bw.getWrappedInstance(), beanName))`：实例化后的后置处理器，默认返回 true，自定义继承 InstantiationAwareBeanPostProcessor 修改返回值为 false，使 continueWithPropertyPopulation 为 false
 
   * `if (!continueWithPropertyPopulation)`：自定义方法返回值会造成该条件成立，逻辑为直接返回，不能进行依赖注入
 
@@ -7877,7 +7879,7 @@ AbstractAutowireCapableBeanFactory.**doCreateBean**(beanName, RootBeanDefinition
 
   * `pvsToUse = ibp.postProcessProperties(pvs, bw.getWrappedInstance(), beanName)`：**@Autowired 注解的注入**
 
-    * `findAutowiringMetadata()`：包装着当前 bd 需要注入的注解信息集合，**三种注解的元数据**
+    * `findAutowiringMetadata()`：包装着当前 bd 需要注入的注解信息集合，**三种注解的元数据**，直接缓存获取
     * `InjectionMetadata.InjectedElement.inject()`：将注解信息解析后注入到 pvs，方法和字段的注入的实现不同
       * `ReflectionUtils.makeAccessible()`：修改访问权限，true 代表暴力破解
       * `method.invoke()`：利用反射为此对象赋值
@@ -7941,28 +7943,26 @@ AbstractAutowireCapableBeanFactory.**doCreateBean**(beanName, RootBeanDefinition
 
 * `if (earlySingletonExposure)`：是否循序提前引用
 
-  `earlySingletonReference = getSingleton(beanName, false)`：从二级缓存获取实例
+  `earlySingletonReference = getSingleton(beanName, false)`：**从二级缓存获取实例**，放入一级缓存是在 doGetBean 中的sharedInstance = getSingleton() 方法中，此时在 createBean 的逻辑还没有返回。
 
   `if (earlySingletonReference != null)`：当前 bean 实例从二级缓存中获取到了，说明产生了循环依赖，在属性填充阶段会提前调用三级缓存中的工厂生成 Bean 对象的动态代理，放入二级缓存中，然后使用原始 bean 继续执行初始化
 
-  * ` if (exposedObject == bean)`：初始化后的 bean == 创建的原始实例，条件成立的两种情况：当前的真实实例不需要被代理、当前实例已经被代理过了，后处理器直接返回 bean 原实例
+  * ` if (exposedObject == bean)`：初始化后的 bean == 创建的原始实例，条件成立的两种情况：当前的真实实例不需要被代理；当前实例已经被代理过了，初始化时的后置处理器直接返回 bean 原实例
 
-    `exposedObject = earlySingletonReference`：把代理后的 Bean 传给 exposedObject 用来 return
+    `exposedObject = earlySingletonReference`：**把代理后的 Bean 传给 exposedObject 用来返回，因为只有代理对象才封装了增强的拦截器链，main 方法中用代理对象调用方法时，会进行增强，代理是对原始对象的包装，所以这里返回的代理对象中含有完整的原实例（属性填充和初始化后的），是一个完整的代理对象**
 
-  * **下面逻辑是动态代理提前创建，导致当前 bean 无法增强的情况**
-
-  * `!this.allowRawInjectionDespiteWrapping && hasDependentBean(beanName)`：是否有其他 bean 依赖当前 bean
+  * `else if (!this.allowRawInjectionDespiteWrapping && hasDependentBean(beanName))`：是否有其他 bean 依赖当前 bean，执行到这里说明是不存在循环依赖、存在增强代理的逻辑
 
     * `dependentBeans = getDependentBeans(beanName)`：取到依赖当前 bean 的其他 beanName
 
     * `if (!removeSingletonIfCreatedForTypeCheckOnly(dependentBean))`：判断 dependentBean 是否创建完成
 
       * `if (!this.alreadyCreated.contains(beanName))`：成立当前 bean 尚未创建完成，当前 bean 是依赖exposedObject 的 bean，返回 true
-      * `return false`：创建完成返回 false
-
+    * `return false`：创建完成返回 false
+  
       `actualDependentBeans.add(dependentBean)`：创建完成的 dependentBean 加入该集合
 
-    * `if (!actualDependentBeans.isEmpty())`：条件成立说明有依赖于当前 bean 的 bean 实例创建完成，但是当前对象的 AOP 操作是在 initializeBean 逻辑里完成的，在之前外部 bean 持有到的当前 bean 都是尚未增强的，所以报错
+    * `if (!actualDependentBeans.isEmpty())`：条件成立说明有依赖于当前 bean 的 bean 实例创建完成，但是当前的 bean 还没创建完成返回，依赖当前 bean 的外部 bean 持有的是不完整的 bean，所以需要报错
 
 * `registerDisposableBeanIfNecessary`：判断当前 bean 是否需要注册析构回调，当容器销毁时进行回调
 
@@ -8196,11 +8196,12 @@ private final Map<String, ObjectFactory<?>> singletonFactories = new HashMap<>(1
 * 为什么需要三级缓存？
 
   * 循环依赖解决需要提前引用动态代理对象，AOP 动态代理是在 Bean 初始化后的后置处理中进行，这时的 bean 已经是成品对象，需要提前进行动态代理，三级缓存的 ObjectFactory 提前产生需要代理的对象
-  * 若存在循环依赖，**后置处理不创建代理对象，真正创建代理对象的过程是在getBean(B)的阶段中**
+  * 若存在循环依赖，**后置处理不创建代理对象，真正创建代理对象的过程是在 getBean(B) 的阶段中**
 
-* 一定会提前引用吗？
+* 三级缓存一定会创建提前引用吗？
 
-  * 出现循环依赖才去使用，不出现就不使用
+  * 出现循环依赖就会去三级缓存获取提前引用，不出现就不会
+  * 如果当前有增强方法，就创建代理对象放入二级缓存，如果没有代理对象就返回 createBeanInstance 创建的实例
 
 * wrapIfNecessary 一定创建代理对象吗？（AOP 动态代理部分有源码解析）
 
@@ -8249,7 +8250,7 @@ private final Map<String, ObjectFactory<?>> singletonFactories = new HashMap<>(1
   }
   ```
 
-  填充属性时 A 依赖 B，这时需要 getBean(B)，接着 B 填充属性时发现依赖 A，去进行**第一次 ** getSingleton(A)
+* 填充属性时 A 依赖 B，这时需要 getBean(B)，也会把 B 的工厂放入三级缓存，接着 B 填充属性时发现依赖 A，去进行**第一次 ** getSingleton(A)
 
   ```java
   public Object getSingleton(String beanName) {
@@ -8282,7 +8283,7 @@ private final Map<String, ObjectFactory<?>> singletonFactories = new HashMap<>(1
   }
   ```
 
-  从三级缓存获取 A 的 Bean：`singletonFactory.getObject()`，调用了 Lambda 表达式的 getEarlyBeanReference 方法：
+* 从三级缓存获取 A 的 Bean：`singletonFactory.getObject()`，调用了 Lambda 表达式的 getEarlyBeanReference 方法：
 
   ```java
   public Object getEarlyBeanReference(Object bean, String beanName) {
@@ -8294,7 +8295,7 @@ private final Map<String, ObjectFactory<?>> singletonFactories = new HashMap<>(1
   }
   ```
 
-  B 填充了代理后的 A 后初始化完成，**返回原始 A 的逻辑继续执行，这时的 A 还不是代理后的 A**
+* B 填充了 A 的提前引用后会继续初始化直到完成，**返回原始 A 的逻辑继续执行，这时的 A 还不是代理后增强的 A**
 
 
 
@@ -8644,6 +8645,8 @@ AbstractAutoProxyCreator.createProxy()：根据增强方法创建代理对象
 
 #### 方法增强
 
+main() 函数中调用用户方法，会进入该逻辑
+
 JdkDynamicAopProxy 类中的 invoke 方法是真正执行代理方法
 
 ```java
@@ -8747,8 +8750,6 @@ public Object invoke(Object proxy, Method method, Object[] args)
   
 * `return retVal`：返回执行的结果
 
-proceed() 链式获取每一个拦截器，拦截器执行 invoke方法，每一个拦截器等待下一个拦截器执行完成返回以后再来执行；拦截器链的机制，保证通知方法与目标方法的执行顺序
-
 图示先从上往下建立链，然后从下往上依次执行，责任链模式
 
 * 正常执行：（环绕通知）→ 前置通知 → 目标方法 → 后置通知 → 返回通知
@@ -8802,7 +8803,7 @@ proceed() 链式获取每一个拦截器，拦截器执行 invoke方法，每一
 
   打开源码注释：@see org.....ClassPathBeanDefinitionScanner.doScan()
 
-  findCandidateComponents()：从classPath扫描组件，并转换为备选BeanDefinition
+  findCandidateComponents()：从 classPath 扫描组件，并转换为备选 BeanDefinition
 
   ```java
   protected Set<BeanDefinitionHolder> doScan(String... basePackages) {
@@ -12452,9 +12453,9 @@ public class ProjectExceptionAdivce {
 
 注解：@Param
 
-作用：当SQL语句需要多个（大于1）参数时，用来指定参数的对应规则
+作用：当 SQL 语句需要多个（大于1）参数时，用来指定参数的对应规则
 
-* 注解替代UserDao映射配置文件：dao.UserDao
+* 注解替代 UserDao 映射配置文件：dao.UserDao
 
   ```java
   public interface UserDao {
@@ -12633,7 +12634,7 @@ public class ProjectExceptionAdivce {
 
 ### web.xml
 
-* 注解替代web.xml：ServletContainersInitConfig
+* 注解替代 web.xml：ServletContainersInitConfig
 
   ```java
   public class ServletContainersInitConfig extends AbstractDispatcherServletInitializer {
@@ -12677,10 +12678,10 @@ public class ProjectExceptionAdivce {
   }
   ```
 
-* WebApplicationContext，生成Spring核心容器（主容器/父容器/跟容器）
+* WebApplicationContext，生成 Spring 核心容器（主容器/父容器/跟容器）
 
-  * 父容器：Spring环境加载后形成的容器，包含Spring环境下的所有的bean
-  * 子容器：当前mvc环境加载后形成的容器，不包含Spring环境下的bean
+  * 父容器：Spring 环境加载后形成的容器，包含 Spring 环境下的所有的 bean
+  * 子容器：当前 mvc 环境加载后形成的容器，不包含 Spring 环境下的 bean
   * 子容器可以访问父容器中的资源，父容器不可以访问子容器的资源
 
 
@@ -12697,1392 +12698,5 @@ public class ProjectExceptionAdivce {
 
 # Boot
 
-## 基本概述
-
-（这部分笔记做的非常一般，更新完 Spring 源码马上就会完善）
-
-SpringBoot提供了一种快速使用Spring的方式，基于约定优于配置的思想，可以让开发人员不必在配置与逻辑业务之间进行思维的切换，全身心的投入到逻辑业务的代码编写中，从而大大提高了开发的效率
-
-SpringBoot功能：
-
-* 自动配置：
-
-  Spring Boot的自动配置是一个运行时（更准确地说，是应用程序启动时）的过程，考虑了众多因素选择使用哪个配置，该过程是SpringBoot自动完成的。
-
-* 起步依赖
-
-  起步依赖本质上是一个Maven项目对象模型（Project Object Model，POM），定义了对其他库的传递依赖，这些东西加在一起即支持某项功能。
-
-  简单的说，起步依赖就是将具备某种功能的坐标打包到一起，并提供一些默认的功能。
-
-* 辅助功能
-
-  提供了一些大型项目中常见的非功能性特性，如嵌入式服务器、安全、指标，健康检测、外部配置等。
-
-**注意：Spring Boot 并不是对 Spring 功能上的增强，而是提供了一种快速使用 Spring 的方式**
-
-
-
-***
-
-
-
-## 构建工程
-
-普通构建：
-
-1. 创建Maven项目
-
-2. 导入SpringBoot起步依赖
-
-   ```xml
-   <!--springboot工程需要继承的父工程-->
-   <parent>
-       <groupId>org.springframework.boot</groupId>
-       <artifactId>spring-boot-starter-parent</artifactId>
-       <version>2.1.8.RELEASE</version>
-   </parent>
-   
-   <dependencies>
-       <!--web开发的起步依赖-->
-       <dependency>
-           <groupId>org.springframework.boot</groupId>
-           <artifactId>spring-boot-starter-web</artifactId>
-       </dependency>
-   </dependencies>
-   ```
-
-3. 定义Controller
-
-   ```java
-   @RestController
-   public class HelloController {
-       @RequestMapping("/hello")
-       public String hello(){
-           return " hello Spring Boot !";
-       }
-   }
-   ```
-
-4. 编写引导类
-
-   ```java
-   //引导类。 SpringBoot项目的入口
-   @SpringBootApplication
-   public class HelloApplication {
-       public static void main(String[] args) {
-           SpringApplication.run(HelloApplication.class,args);
-       }
-   }
-   ```
-
-快速构建：
-
-![](https://gitee.com/seazean/images/raw/master/Frame/SpringBoot-IDEA构建工程1.png)
-
-![](https://gitee.com/seazean/images/raw/master/Frame/SpringBoot-IDEA构建工程2.png)
-
-
-
-
-
-***
-
-
-
-## 基本配置
-
-### 起步依赖
-
-- 在spring-boot-starter-parent中定义了各种技术的版本信息，组合了一套最优搭配的技术版本。
-
-- 在各种starter中，定义了完成该功能需要的坐标合集，其中大部分版本信息来自于父工程。
-
-- 我们的工程继承parent，引入starter后，通过依赖传递，就可以简单方便获得需要的jar包，并且不会存在版本冲突等问题
-
-
-
-### 配置文件
-
-SpringBoot是基于约定的，很多配置都有默认值，如果想使用自己的配置替换默认配置，可以使用application.properties或者application.yml（application.yaml）进行配置。
-
-1. 默认配置文件名称：application
-
-2. 在同一级目录下优先级为：properties>yml > yaml
-
-例如：配置内置Tomcat的端口
-
-* properties：
-
-  ```properties
-  server.port=8080
-  ```
-
-* yml：
-
-  ```yaml
-  server: port: 8080
-  ```
-
-* yaml：
-
-  ```yaml
-  server: port: 8080
-  ```
-
-  
-
-***
-
-
-
-### yaml语法
-
-yml文件优势：
-
-1. YAML配置有序，支持数组，数组中的元素可以是基本数据类型也可以是对象
-
-2. YAML数据在编程语言之间是可移植的
-
-3. YAML匹配敏捷语言的本机数据结构
-
-4. YAML具有一致的模型来支持通用工具
-
-5. YAML支持单程处理
-
-6. YAML具有表现力和可扩展性
-
-7. YAML易于实现和使用
-
-基本语法：
-
-- 大小写敏感
-
-- **数据值前边必须有空格，作为分隔符**
-
-- 使用缩进表示层级关系
-
-- 缩进时不允许使用Tab键，只允许使用空格（各个系统 Tab对应空格数目可能不同，导致层次混乱）
-
-- 缩进的空格数目不重要，只要相同层级的元素左侧对齐即可
-
-- ''#" 表示注释，从这个字符一直到行尾，都会被解析器忽略
-
-  ```yaml
-  server: 
-  	port: 8080  
-      address: 127.0.0.1
-  name: abc
-  ```
-
-
-
-数据格式：
-
-* 对象(map)：键值对的集合。
-
-  ```yaml
-  person:  
-     name: zhangsan
-     age: 20
-  # 行内写法
-  person: {name: zhangsan}
-  ```
-
-  注意：不建议使用 JSON，应该使用 yaml 语法
-
-* 数组：一组按次序排列的值
-
-  ```yaml
-  address:
-    - beijing
-    - shanghai
-  # 行内写法
-  address: [beijing,shanghai]
-  ```
-
-* 纯量：单个的、不可再分的值
-
-  ```yaml
-  msg1: 'hello \n world'  # 单引忽略转义字符
-  msg2: "hello \n world"  # 双引识别转义字符
-  ```
-
-* 参数引用：
-
-  ```yaml
-  name: lisi 
-  person:
-    name: ${name} # 引用上边定义的name值
-  ```
-
-
-
-***
-
-
-
-### 获取配置
-
-* 注解@Value
-
-  ```java
-  @RestController
-  public class HelloController {
-      @Value("${name}")
-      private String name;
-  
-      @Value("${person.name}")
-      private String name2;
-  
-      @Value("${address[0]}")
-      private String address1;
-  
-      @Value("${msg1}")
-      private String msg1;
-  
-      @Value("${msg2}")
-      private String msg2;
-      
-      @RequestMapping("/hello")
-      public String hello(){
-          System.out.println("所有的数据");
-          return " hello Spring Boot !";
-      }
-  }
-  ```
-  
-* Evironment对象
-
-  ```java
-  @Autowired
-  private Environment env;
-  
-  @RequestMapping("/hello")
-  public String hello() {
-      System.out.println(env.getProperty("person.name"));
-      System.out.println(env.getProperty("address[0]"));
-      return " hello Spring Boot !";
-  }
-  ```
-
-* 注解@ConfigurationProperties 
-
-  **注意**：参数prefix一定要指定
-
-  ```java
-  @Component
-  @ConfigurationProperties(prefix = "person")
-  public class Person {
-      private String name;
-      private int age;
-      private String[] address;
-  }
-  ```
-
-  ```java
-  @Autowired
-  private Person person;
-  
-  @RequestMapping("/hello")
-  public String hello() {
-      System.out.println(person);
-      //Person{name='zhangsan', age=20, address=[beijing, shanghai]}
-      return " hello Spring Boot !";
-  }
-  ```
-
-  
-
-***
-
-
-
-### Profile
-
-@Profile：指定组件在哪个环境的情况下才能被注册到容器中，不指定，任何环境下都能注册这个组件
-
- * 加了环境标识的bean，只有这个环境被激活的时候才能注册到容器中。默认是default环境
- * 写在配置类上，只有是指定的环境的时候，整个配置类里面的所有配置才能开始生效
- * 没有标注环境标识的bean在，任何环境下都是加载的
-
-Profile的配置：
-
-1. **profile是用来完成不同环境下，配置动态切换功能**
-
-2. **profile配置方式**
-
-   多profile文件方式：提供多个配置文件，每个代表一种环境
-
-   * application-dev.properties/yml 开发环境
-   * application-test.properties/yml 测试环境
-   * sapplication-pro.properties/yml 生产环境
-
-   yml多文档方式：在yml中使用  --- 分隔不同配置
-
-   ```yaml
-   ---
-   server:
-     port: 8081
-   spring:
-     profiles:dev
-   ---
-   server:
-     port: 8082
-   spring:
-     profiles:test
-   ---
-   server:
-     port: 8083
-   spring:
-     profiles:pro
-   ---
-   ```
-
-3. **profile激活方式**
-
-- 配置文件：在配置文件中配置：spring.profiles.active=dev
-
-  ```properties
-  spring.profiles.active=dev
-  ```
-
-- 虚拟机参数：在VM options 指定：`-Dspring.profiles.active=dev`
-
-  ![](https://gitee.com/seazean/images/raw/master/Frame/SpringBoot-profile激活方式虚拟机参数.png)
-
-- 命令行参数：`java –jar xxx.jar  --spring.profiles.active=dev`
-
-  在Program arguments里输入，也可以先package
-
-
-
-***
-
-
-
-### 加载顺序
-
-项目内部配置文件加载顺序：加载顺序为上文的排列顺序，高优先级配置的属性会生效
-
-- file:./config/：当前项目下的/config目录下
-
-- file:./           ：当前项目的根目录
-
-  ```yaml
-  file = Project工程目录
-  ```
-
-- classpath:/config/：classpath的/config目录
-
-- classpath:/  ：classpath的根目录
-
-  ```yaml
-  classpath = resoureces
-  ```
-
-项目外部配置文件加载顺序：外部配置文件的使用是为了对能不文件的配合
-
-* 命令行：在package打包后的target目录下，使用该命令
-
-  ```sh
-  java -jar myproject.jar --server.port=9000
-  ```
-
-* 指定配置文件位置
-
-  ```sh
-  java -jar myproject.jar --spring.config.location=e://application.properties
-  ```
-
-* 外部不带profile的properties文件
-
-  ```sh
-  classpath:/config/application.properties#优先级更高
-  classpath:/application.properties		#和jar同等级的配置文件，无需配置，默认加载
-  ```
-
-  加载命令：`java -jar myproject.jar`
-
-
-
-***
-
-
-
-## 整合框架
-
-### Junit
-
-1. 搭建工程
-
-2. 导入坐标
-
-   ```xml
-   <!--不加可能Runwith无法使用-->
-   <dependency>
-       <groupId>junit</groupId>
-       <artifactId>junit</artifactId>
-       <version>4.12</version>
-   </dependency>
-   ```
-   
-3. 测试类
-
-   ```java
-   @RunWith(SpringRunner.class)
-   @SpringBootTest(classes = SpringbootJunitApplication.class )
-   public class UserServiceTest {
-       @Test
-       public void test(){
-           System.out.println(111);
-       }
-   }
-   ```
-
-   
-
-***
-
-
-
-### Mybatis
-
-1. 搭建SpringBoot工程
-
-2. 引入mybatis起步依赖，添加mysql驱动
-
-   ```xml
-   <dependencies>
-       <dependency>
-           <groupId>org.mybatis.spring.boot</groupId>
-           <artifactId>mybatis-spring-boot-starter</artifactId>
-           <version>2.1.0</version>
-       </dependency>
-   
-       <dependency>
-           <groupId>mysql</groupId>
-           <artifactId>mysql-connector-java</artifactId>
-           <!--<scope>runtime</scope>  防止编译时报红-->
-       </dependency>
-       <dependency>
-           <groupId>org.springframework.boot</groupId>
-           <artifactId>spring-boot-starter-test</artifactId>
-           <scope>test</scope>
-       </dependency>
-   </dependencies>
-   ```
-
-3. 编写DataSource和MyBatis相关配置：application.yml
-
-   ```yaml
-   #datasource
-   spring:
-     datasource:
-       url: jdbc:mysql://192.168.0.137:3306/springboot #?serverTimezone=UTC
-       username: root
-       password: 123456
-       driver-class-name: com.mysql.cj.jdbc.Driver
-   
-   
-   #mybatis
-   mybatis:
-     mapper-locations: classpath:mapper/*Mapper.xml #mapper映射配置文件
-     type-aliases-package: com.example.springbootmybatis.domain
-   
-   
-   #  config-location: 指定mybatis的核心配置文件
-   ```
-
-4. 定义表和实体类
-
-   ```java
-   public class User {
-       private int id;
-       private String username;
-       private String password;
-   }
-   ```
-
-5. 编写dao和mapper文件/纯注解开发
-
-   编写dao
-
-   ```java
-   @Mapper  //必须加Mapper
-   @Repository
-   public interface UserXmlMapper {
-       public List<User> findAll();
-   }
-   ```
-
-   mapper.xml
-
-   ```xml
-   <?xml version="1.0" encoding="UTF-8" ?>
-   <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-   <mapper namespace="com.seazean.springbootmybatis.mapper.UserXmlMapper">
-       <select id="findAll" resultType="user">
-           select * from t_user
-       </select>
-   </mapper>
-   ```
-
-6. 纯注解开发
-
-   ```java
-   @Mapper
-   @Repository
-   public interface UserMapper {
-       @Select("select * from t_user")
-       public List<User> findAll();
-   }
-   ```
-
-
-
-***
-
-
-
-### Redis
-
-1. 搭建SpringBoot工程
-
-2. 引入redis起步依赖
-
-   ```xml
-   <dependencies>
-       <dependency>
-           <groupId>org.springframework.boot</groupId>
-           <artifactId>spring-boot-starter-data-redis</artifactId>
-       </dependency>
-   
-       <dependency>
-           <groupId>org.springframework.boot</groupId>
-           <artifactId>spring-boot-starter-test</artifactId>
-           <scope>test</scope>
-       </dependency>
-   </dependencies>
-   ```
-
-3. 配置redis相关属性
-
-   ```yaml
-   spring:
-     redis:
-       host: 127.0.0.1 # redis的主机ip
-       port: 6379
-   ```
-
-4. 注入RedisTemplate模板
-
-   ```java
-   @RunWith(SpringRunner.class)
-   @SpringBootTest
-   public class SpringbootRedisApplicationTests {
-       @Autowired
-       private RedisTemplate redisTemplate;
-   
-       @Test
-       public void testSet() {
-           //存入数据
-           redisTemplate.boundValueOps("name").set("zhangsan");
-       }
-       @Test
-       public void testGet() {
-           //获取数据
-           Object name = redisTemplate.boundValueOps("name").get();
-           System.out.println(name);
-       }
-   }
-   ```
-
-
-
-
-
-***
-
-
-
-## 自动配置
-
-### Condition
-
-#### 条件注解
-
-Condition是Spring4.0后引入的条件化配置接口，通过实现Condition接口可以完成有条件的加载相应的Bean
-
-注解：@Conditional
-
-作用：按照一定的条件进行判断，满足条件给容器注册bean
-
-使用：@Conditional要配合Condition的实现类（ClassCondition）进行使用
-
-ConditionContext类API：
-
-| 方法                                                | 说明                       |
-| --------------------------------------------------- | -------------------------- |
-| ConfigurableListableBeanFactory  getBeanFactory（） | 获取到ioc使用的beanfactory |
-| ClassLoader getClassLoader()                        | 获取类加载器               |
-| Environment getEnvironment()                        | 获取当前环境信息           |
-| BeanDefinitionRegistry getRegistry()                | 获取到bean定义的注册类     |
-
-* ClassCondition
-
-  ```java
-  public class ClassCondition implements Condition {
-      /**
-       * context 上下文对象。用于获取环境，IOC容器，ClassLoader对象
-       * metadata 注解元对象。 可以用于获取注解定义的属性值
-       */
-      @Override
-      public boolean matches(ConditionContext context, AnnotatedTypeMetadata metadata) {
-        
-          //1.需求： 导入Jedis坐标后创建Bean
-          //思路：判断redis.clients.jedis.Jedis.class文件是否存在
-          boolean flag = true;
-          try {
-              Class<?> cls = Class.forName("redis.clients.jedis.Jedis");
-          } catch (ClassNotFoundException e) {
-              flag = false;
-          }
-          return flag;
-      }
-  }
-  ```
-
-* UserConfig
-
-  ```java
-  @Configuration
-  public class UserConfig {
-      @Bean
-      @Conditional(ClassCondition.class)
-      public User user(){
-          return new User();
-      }
-  }
-  ```
-
-* 启动类：
-
-  ```java
-  @SpringBootApplication
-  public class SpringbootConditionApplication {
-      public static void main(String[] args) {
-          //启动SpringBoot应用，返回Spring的IOC容器
-          ConfigurableApplicationContext context = SpringApplication.run(SpringbootConditionApplication.class, args);
-  
-          Object user = context.getBean("user");
-          System.out.println(user);
-      }
-  }
-  ```
-
-
-
-***
-
-
-
-#### 自定义注解
-
-需求：将类的判断定义为动态的，判断哪个字节码文件存在可以动态指定
-
-* 自定义条件注解类
-
-  ```java
-  @Target({ElementType.TYPE, ElementType.METHOD})
-  @Retention(RetentionPolicy.RUNTIME)
-  @Documented
-  @Conditional(ClassCondition.class)
-  public @interface ConditionOnClass {
-      String[] value();
-  }
-  ```
-
-* ClassCondition
-
-  ```java
-  public class ClassCondition implements Condition {
-      @Override
-      public boolean matches(ConditionContext conditionContext, AnnotatedTypeMetadata metadata) {
-  
-          //需求：通过注解属性值value指定坐标后创建bean
-          Map<String, Object> map = metadata.getAnnotationAttributes
-              					(ConditionOnClass.class.getName());
-          //map = {value={属性值}}
-          //获取所有的
-          String[] value = (String[]) map.get("value");
-  
-          boolean flag = true;
-          try {
-              for (String className : value) {
-                  Class<?> cls = Class.forName(className);
-              }
-          } catch (Exception e) {
-              flag = false;
-          }
-          return flag;
-      }
-  }
-  ```
-
-* UserConfig
-
-  ```java
-  @Configuration
-  public class UserConfig {
-      @Bean
-      @ConditionOnClass("com.alibaba.fastjson.JSON")
-      public User user(){
-          return new User();
-      }
-  }
-  ```
-
-* 测试User对象的创建
-
-
-
-***
-
-
-
-#### 常用注解
-
-SpringBoot 提供的常用条件注解：
-
-ConditionalOnProperty：判断**配置文件**中是否有对应属性和值才初始化Bean
-
-```java
-@Configuration
-public class UserConfig {
-    @Bean
-    @ConditionalOnProperty(name = "it",havingValue = "seazean")
-    public User user() {
-        return new User();
-    }
-}
-```
-
-```properties
-it=seazean
-```
-
-ConditionalOnClass：判断环境中是否有对应字节码文件才初始化Bean
-
-ConditionalOnMissingBean：判断环境中没有对应Bean才初始化Bean
-
-
-
-
-
-***
-
-
-
-### 内置web
-
-pom文件中的排除依赖效果
-
-```xml
- <dependency>
-     <groupId>org.springframework.boot</groupId>
-     <artifactId>spring-boot-starter-web</artifactId>
-     <!--排除tomcat依赖-->
-     <exclusions>
-         <exclusion>
-             <artifactId>spring-boot-starter-tomcat</artifactId>
-             <groupId>org.springframework.boot</groupId>
-         </exclusion>
-     </exclusions>
-</dependency>
-
-<!--引入jetty的依赖-->
-<dependency>
-    <artifactId>spring-boot-starter-jetty</artifactId>
-    <groupId>org.springframework.boot</groupId>
-</dependency>
-```
-
-
-
-***
-
-
-
-### Enable
-
-SpringBoot不能直接获取在其他工程中定义的Bean（pom导入springboot-enable-other坐标）
-
-@ComponentScan 扫描范围：当前引导类所在包及其子包
-
-* 所在包：com.example.springbootenable;
-* 配置包：com.example.config;
-
-三种解决办法：
-
-1. 使用@ComponentScan扫描com.example.config包
-2. 使用Import注解，加载类，这些类都会被Spring创建并放入ioc容器
-3. 对Import注解进行封装
-   **重点：Enable注解底层原理是使用@Import注解实现Bean的动态加载**
-
-```java
-//1.@ComponentScan("com.example.config")
-//2.@Import(UserConfig.class)
-@EnableUser
-@SpringBootApplication
-public class SpringbootEnableApplication {
-
-    public static void main(String[] args) {
-        ConfigurableApplicationContext context = SpringApplication.run(SpringbootEnableApplication.class, args);
-    	//获取Bean
-        Object user = context.getBean("user");
-        System.out.println(user);
-
-	}
-}
-```
-
-**UserConfig：**
-
-```java
-@Configuration
-public class UserConfig {
-    @Bean
-    public User user() {
-        return new User();
-    }
-}
-```
-
-**EnableUser注解类：**
-
-```java
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-@Documented
-@Import(UserConfig.class)//@Import注解实现Bean的动态加载
-public @interface EnableUser {
-}
-```
-
-
-
-***
-
-
-
-### Import
-
-@Enable底层依赖于@Import注解导入一些类，使用@Import导入的类会被Spring加载到IOC容器中
-@Import提供4中用法：
-
-1. 导入Bean：`@Import(User.class)`
-
-2. 导入配置类：`@Import(UserConfig.class)`
-
-3. 导入 ImportSelector 实现类，一般用于加载配置文件中的类
-
-   MyImportSelector，配置在springboot-enable-other项目，环境采用Enable，
-
-   ```java
-   public class MyImportSelector implements ImportSelector {
-       @Override
-       public String[] selectImports(AnnotationMetadata importingClassMetadata) {
-           return new String[]{"com.example.domain.User",
-                               "com.example.domain.Role"};
-       }
-   }
-   ```
-
-   ```java
-   @Import(MyImportSelector.class)
-   @SpringBootApplication
-   public class SpringbootEnableApplication {
-   
-       public static void main(String[] args) {
-           ConfigurableApplicationContext context = SpringApplication.run(SpringbootEnableApplication.class, args);
-       	//获取Bean
-           Object user = context.getBean("user");
-           System.out.println(user);
-   
-   	}
-   }
-   ```
-
-4. 导入 ImportBeanDefinitionRegistrar实现类：@Import({MyImportBeanDefinitionRegistrar.class})
-
-   ```java
-   public class MyImportBeanDefinitionRegistrar implements ImportBeanDefinitionRegistrar {
-       @Override
-       public void registerBeanDefinitions(AnnotationMetadata importingClassMetadata, BeanDefinitionRegistry registry) {
-           AbstractBeanDefinition beanDefinition = BeanDefinitionBuilder.rootBeanDefinition(User.class).getBeanDefinition();
-           registry.registerBeanDefinition("user",beanDefinition);
-       }
-   }
-   ```
-
-   
-
-***
-
-
-
-### Scheduled
-
-@Scheduled注解：SpringBoot提供的用于定时任务控制的注解
-
-@EnableScheduling：启动定时任务，Scheduled配合此注解使用，在启动类上添加该注解
-
-作用：用于控制任务在某个指定时间执行，或者每隔一段时间执行
-
-注意：@Scheduled不能修饰私有方法
-
-参数：cron，cron表达式有7个域，每个域之间用空格隔开，7个域分别是：秒 分钟 小时 日 月 星期
-
-
-
-<img src="https://gitee.com/seazean/images/raw/master/Frame/SpringBoot-Scheduled注解cron参数.jpg" style="zoom:150%;" />
-
-例如：
-
-* 每隔5秒执行一次：*/5 * * * * ?
-* 每隔5分钟的40秒执行一次：40 */5 * * * ?
-
-
-
-
-
-***
-
-
-
-### EAConfig
-
-注解：@SpringBootApplication
-
-```java
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-@Documented
-@Inherited
-@SpringBootConfiguration
-@EnableAutoConfiguration
-@ComponentScan(excludeFilters = { @Filter(type = FilterType.CUSTOM, classes = TypeExcludeFilter.class),
-		@Filter(type = FilterType.CUSTOM, classes = AutoConfigurationExcludeFilter.class) })
-public @interface SpringBootApplication {
-}
-```
-
-注解：@EnableAutoConfiguration
-
-```java
-@Target(ElementType.TYPE)
-@Retention(RetentionPolicy.RUNTIME)
-@Documented
-@Inherited
-@AutoConfigurationPackage	
-@Import(AutoConfigurationImportSelector.class)//Import第三种方式
-public @interface EnableAutoConfiguration {
-}
-```
-
-![](https://gitee.com/seazean/images/raw/master/Frame/SpringBoot-解析EnableAutoConfiguration.png)
-
-- @EnableAutoConfiguration 注解内部使用 @Import(AutoConfigurationImportSelector.**class**)来加载配置类。 
-
-- 配置文件位置：META-INF/spring.factories，该配置文件中定义了大量的配置类，当 SpringBoot 应用启动时，会自动加载这些配置类，初始化Bean
-
-- 并不是所有的Bean都会被初始化，在配置类中使用Condition来加载满足条件的Bean
-
-
-
-***
-
-
-
-### starter
-
-#### 步骤分析
-
-需求：自定义redis-starter，要求当导入redis坐标时，SpringBoot自动创建Jedis的Bean
-
-步骤：
-
-* redis-spring-boot-autoconfigure 模块
-
-* 创建 redis-spring-boot-starter 模块，依赖 redis-spring-boot-autoconfigure的模块
-
-* 在redis-spring-boot-autoconfigure模块中初始化Jedis的Bean，并定义META-INF/spring.factories文件
-
-* 在测试模块中引入自定义的 redis-starter 依赖，测试获取 Jedis 的Bean，操作 redis
-
-
-
-#### 功能实现
-
-* 创建redis-spring-boot-starter工程
-
-  ```xml
-   <!--引入configure-->
-   <dependency>
-       <groupId>com.example</groupId>
-       <artifactId>redis-spring-boot-autoconfigure</artifactId>
-       <version>0.0.1-SNAPSHOT</version>
-   </dependency>
-  ```
-
-* 创建redis-spring-boot-autoconfigure配置工程
-
-  创建RedisProperties配置文件参数绑定类：
-
-  ```java
-  @ConfigurationProperties(prefix = "redis")
-  //读取配置文件中redis下的配置，封装到RedisProperties
-  public class RedisProperties {
-      private String host = "127.0.0.1";//配置文件没有配置的情况下的默认值
-      private int port = 6379;		//默认值
-      
-  }
-  ```
-
-  创建RedisAutoConfiguration自动配置类：
-
-  ```java
-  @Configuration
-  @EnableConfigurationProperties(RedisProperties.class)
-  public class RedisAutoConfiguration {
-      //提供Jedis的bean
-      @Bean
-      public Jedis jedis(RedisProperties redisProperties) {
-          return new Jedis(redisProperties.getHost(),redisProperties.getPort());
-  
-      }
-  }
-  ```
-
-  在resource目录下创建META-INF文件夹并创建spring.factories
-
-  注意：”\ “是换行使用的
-
-  ```properties
-  org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-    com.example.redis.config.RedisAutoConfiguration
-  ```
-
-  在springboot-enable工程中引入自定义的redis的starter，进行测试：
-
-  ```java
-  Jedis jedis = context.getBean(Jedis.class);
-  System.out.println(jedis);
-  ```
-
-  
-
-***
-
-
-
-### actuator
-
-SpringBoot监控actuator基本使用
-
-1. 导入依赖坐标
-
-   ```xml
-   <dependency>
-   	<groupId>org.springframework.boot</groupId>
-       <artifactId>spring-boot-starter-actuator</artifactId>
-   </dependency>
-   ```
-
-2. 访问http://localhost:8080/acruator，json字符串转换
-
-   ```json
-   {
-       "_links":{
-           "self":{
-               "href":"http://localhost:8080/actuator",
-               "templated":false
-           },
-           "health":{
-               "href":"http://localhost:8080/actuator/health",
-               "templated":false
-           },
-           "health-component-instance":{
-               "href":"http://localhost:8080/actuator/health/{component}/{instance}",
-               "templated":true
-           },
-           "health-component":{
-               "href":"http://localhost:8080/actuator/health/{component}",
-               "templated":true
-           },
-           "info":{
-               "href":"http://localhost:8080/actuator/info",
-               "templated":false
-           }
-       }
-   }
-   ```
-
-   * http://localhost:8080/actuator/info
-
-     在application.properties中配置
-
-     ```properties
-     info.name=lucy
-     info.age=99
-     ```
-
-   * http://localhost:8080/actuator/health
-
-     开启健康检查详细信息
-
-     ```properties
-     management.endpoint.health.show-details=always
-     ```
-
-3. 开启所有endpoint，在application.properties中配置：
-
-   ```properties
-   management.endpoints.web.exposure.include=*
-   ```
-
-   
-
-***
-
-
-
-### admin
-
-SpringBoot监控-springboot admin图形化界面使用：
-
-SpringBoot Admin 有两个角色，客户端(Client)和服务端(Server)。
-
-admin-server：
-
-1. 创建 admin-server 模块
-
-2. 导入依赖坐标 admin-starter-server，web
-
-   ![](https://gitee.com/seazean/images/raw/master/Frame/SpringBoot-监控界面admin-server依赖导入.png)
-
-3. 在引导类上启用监控功能@EnableAdminServer
-
-   ```java
-   @EnableAdminServer
-   @SpringBootApplication
-   public class SpringbootAdminServerApplication {
-       public static void main(String[] args) {
-           SpringApplication.run(SpringbootAdminServerApplication.class, args);
-       }
-   }
-   ```
-
-admin-client：
-
-1. 创建 admin-client 模块
-
-2. 导入依赖坐标 admin-starter-client
-
-3. 配置相关信息：server地址等
-
-   ```properties
-   # 执行admin.server地址
-   spring.boot.admin.client.url=http://localhost:9000
-   
-   management.endpoint.health.show-details=always
-   management.endpoints.web.exposure.include=*
-   ```
-
-4. 启动server和client服务，访问server
-
-
-
-***
-
-
-
-### 事件监听
-
- Java中的事件监听机制定义了以下几个角色：
-
-* 事件：Event，继承 java.util.EventObject 类的对象
-
-* 事件源：Source ，任意对象Object
-
-* 监听器：Listener，实现 java.util.EventListener 接口 的对象
-
-SpringBoot 在项目启动时，会对几个监听器进行回调，可以实现监听器接口，在项目启动时完成一些操作
-
-ApplicationContextInitializer, SpringApplicationRunListener, CommandLineRunner, ApplicationRunner
-
-* MyApplicationRunner
-
-  **自定义监听器的启动时机**：MyApplicationRunner和MyCommandLineRunner都是当项目启动后执行，使用@Component放入容器即可使用
-
-  ```java
-  //当项目启动后执行run方法
-  @Component
-  public class MyApplicationRunner implements ApplicationRunner {
-      @Override
-      public void run(ApplicationArguments args) throws Exception {
-          System.out.println("ApplicationRunner...run");
-          System.out.println(Arrays.asList(args.getSourceArgs()));//properties配置信息
-      }
-  } 
-  ```
-
-* MyCommandLineRunner
-
-  ```java
-  @Component
-  public class MyCommandLineRunner implements CommandLineRunner {
-      @Override
-      public void run(String... args) throws Exception {
-          System.out.println("CommandLineRunner...run");
-          System.out.println(Arrays.asList(args));
-      }
-  }
-  ```
-
-* MyApplicationContextInitializer的启用要**在resource文件夹下添加META-INF/spring.factories**
-
-  ```properties
-  org.springframework.context.ApplicationContextInitializer=com.example.springbootlistener.listener.MyApplicationContextInitializer
-  ```
-
-  ```java
-  @Component
-  public class MyApplicationContextInitializer implements ApplicationContextInitializer {
-      @Override
-      public void initialize(ConfigurableApplicationContext applicationContext) {
-          System.out.println("ApplicationContextInitializer....initialize");
-      }
-  }
-  ```
-
-* MySpringApplicationRunListener的使用要添加**构造器**
-
-  ```java
-  public class MySpringApplicationRunListener implements SpringApplicationRunListener {
-  	//构造器
-      public MySpringApplicationRunListener(SpringApplication sa, String[] args) {
-      }
-  
-      @Override
-      public void starting() {
-          System.out.println("starting...项目启动中");//输出SPRING之前
-      }
-  
-      @Override
-      public void environmentPrepared(ConfigurableEnvironment environment) {
-          System.out.println("environmentPrepared...环境对象开始准备");
-      }
-  
-      @Override
-      public void contextPrepared(ConfigurableApplicationContext context) {
-          System.out.println("contextPrepared...上下文对象开始准备");
-      }
-  
-      @Override
-      public void contextLoaded(ConfigurableApplicationContext context) {
-          System.out.println("contextLoaded...上下文对象开始加载");
-      }
-  
-      @Override
-      public void started(ConfigurableApplicationContext context) {
-          System.out.println("started...上下文对象加载完成");
-      }
-  
-      @Override
-      public void running(ConfigurableApplicationContext context) {
-          System.out.println("running...项目启动完成，开始运行");
-      }
-  
-      @Override
-      public void failed(ConfigurableApplicationContext context, Throwable exception) {
-          System.out.println("failed...项目启动失败");
-      }
-  }
-  ```
-
-  
-
-***
-
-
-
-### 初始化
-
-1. 配置启动引导类（判断是否有启动主类），判断是否是Web环境，获取初始化类、监听器类
-
-   ![](https://gitee.com/seazean/images/raw/master/Frame/SpringBoot-初始化.png)
-
-2. 启动计时器
-
-3. 执行监听器
-
-4. 准备环境
-
-5. 打印banner：可以resource下粘贴自定义的banner
-
-6. 创建context：`refreshContext(context);`，执行refreshContext方法后才真正创建Bean
-
-   ![](https://gitee.com/seazean/images/raw/master/Frame/SpringBoot-初始化run方法.png)
-
-
-
-
-
-***
-
-
-
-## 部署
-
-SpringBoot 项目开发完毕后，支持两种方式部署到服务器：
-
-* jar包 (官方推荐，默认)
-* war包
-
-**更改pom文件中的打包方式为war**
-
-* 修改启动类
-
-  ```java
-  @SpringBootApplication
-  public class SpringbootDeployApplication extends SpringBootServletInitializer {
-      public static void main(String[] args) {
-          SpringApplication.run(SpringbootDeployApplication.class, args);
-      }
-  
-      @Override
-      protected SpringApplicationBuilder configure(SpringApplicationBuilder b) {
-          return b.sources(SpringbootDeployApplication.class);
-      }
-  }
-  ```
-
-* 指定打包的名称
-
-  ```xml
-  <packaging>war</packaging>
-  <build>
-       <finalName>springboot</finalName>
-       <plugins>
-           <plugin>
-               <groupId>org.springframework.boot</groupId>
-               <artifactId>spring-boot-maven-plugin</artifactId>
-           </plugin>
-       </plugins>
-  </build>
-  ```
-
-  
+（这部分笔记做的非常一般，一周内完善）
 
