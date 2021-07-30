@@ -3915,7 +3915,7 @@ Mybatis 核心配置文件消失
 
 类型：类注解
 
-作用：**设置当前类为spring核心配置加载类**
+作用：**设置当前类为 Spring 核心配置加载类**
 
 格式：
 
@@ -3928,8 +3928,8 @@ public class SpringConfigClassName{
 
 说明：
 
-- 核心配合类用于替换spring核心配置文件，此类可以设置空的，不设置变量与属性
-- bean扫描工作使用注解@ComponentScan替代，多个包用`{}和,`隔开
+- 核心配合类用于替换 Spring 核心配置文件，此类可以设置空的，不设置变量与属性
+- bean 扫描工作使用注解 @ComponentScan 替代，多个包用`{}和,`隔开
 
 加载纯注解格式上下文对象，需要使用**AnnotationConfigApplicationContext**
 
@@ -7326,7 +7326,7 @@ public int loadBeanDefinitions(Resource resource) {
   * `currentResources = this.resourcesCurrentlyBeingLoaded.get()`：拿到当前线程已经加载过的所有 EncodedResoure 资源，用 ThreadLocal 保证线程安全
   * `if (currentResources == null)`：判断 currentResources 是否为空，为空则进行初始化
   * `if (!currentResources.add(encodedResource))`：如果已经加载过该资源会报错，防止重复加载
-  * `inputSource = new InputSource(inputStream)`：资源对象包装成 InputSource，InputSource 使 SAX 中的资源对象，用来进行 XML 文件的解析
+  * `inputSource = new InputSource(inputStream)`：资源对象包装成 InputSource，InputSource 是 **SAX** 中的资源对象，用来进行 XML 文件的解析
   * `return doLoadBeanDefinitions()`：**加载返回**
   * `currentResources.remove(encodedResource)`：加载完成移除当前 encodedResource
   * `resourcesCurrentlyBeingLoaded.remove()`：ThreadLocal 为空时移除元素，防止内存泄露
@@ -7362,7 +7362,7 @@ public int loadBeanDefinitions(Resource resource) {
     * `delegate.parseCustomElement(ele)`：解析自定义的标签
   * `postProcessXml(root)`：解析后置处理
 
-* `DefaultBeanDefinitionDocumentReader.processBeanDefinition()`：**解析 bean 并注册到注册中心**
+* `DefaultBeanDefinitionDocumentReader.processBeanDefinition()`：**解析 bean 标签并注册到注册中心**
 
   * `delegate.parseBeanDefinitionElement(ele)`：解析 bean 标签封装为 BeanDefinitionHolder
 
@@ -7409,12 +7409,18 @@ ClassPathXmlApplicationContext 与 AnnotationConfigApplicationContext 差不多�
 
 ```java
 public AnnotationConfigApplicationContext(Class<?>... annotatedClasses) {
-    // 1. 注册 Spring 内置的后置处理器的 BeanDefinition 到容器，
-    // 	  方法：AnnotationConfigUtils#registerAnnotationConfigProcessors()
-    // 2. 实例化路径扫描器，用于对指定的包目录进行扫描查找 bean 对象
     this();
     register(annotatedClasses);// 解析配置类，封装成一个 BeanDefinitionHolder，并注册到容器
     refresh();// 加载刷新容器中的 Bean
+}
+```
+
+```java
+public AnnotationConfigApplicationContext() {
+    // 注册 Spring 的注解解析器到容器
+    this.reader = new AnnotatedBeanDefinitionReader(this);
+    // 实例化路径扫描器，用于对指定的包目录进行扫描查找 bean 对象
+    this.scanner = new ClassPathBeanDefinitionScanner(this);
 }
 ```
 
@@ -7428,8 +7434,9 @@ AbstractApplicationContext.refresh()：
   * `earlyApplicationEvents= new LinkedHashSet<ApplicationEvent>()`：保存容器中早期的事件
 
 * obtainFreshBeanFactory()：获取一个**全新的 BeanFactory 接口实例**
+  
   `refreshBeanFactory()`：创建 BeanFactory，设置序列化 ID、读取 BeanDefinition 并加载到工厂
-
+  
   * `if (hasBeanFactory())`：applicationContext 内部拥有一个 beanFactory 实例，需要将该实例完全释放销毁
   * `destroyBeans()`：销毁原 beanFactory 实例，将 beanFactory 内部维护的单实例 bean 全部清掉，如果哪个 bean 实现了 Disposablejie接口，还会进行 bean distroy 方法的调用处理
     * `this.singletonsCurrentlyInDestruction = true`：设置当前 beanFactory 状态为销毁状态
@@ -7449,9 +7456,9 @@ AbstractApplicationContext.refresh()：
   * `customizeBeanFactory(beanFactory)`：设置是否允许覆盖和循环引用
   * `loadBeanDefinitions(beanFactory)`：**加载 BeanDefinition 信息，注册到 BeanFactory 中**
   * `this.beanFactory = beanFactory`：把 beanFactory 填充至容器中
-
+  
   `getBeanFactory()`：返回创建的 DefaultListableBeanFactory 对象，该对象继承 BeanDefinitionRegistry
-
+  
 * prepareBeanFactory(beanFactory)：**BeanFactory 的预准备**工作，向容器中添加一些组件
 
   * `setBeanClassLoader(getClassLoader())`：给当前 bf 设置一个类加载器，加载 bd 的 class 信息
@@ -7463,8 +7470,6 @@ AbstractApplicationContext.refresh()：
   * `addBeanPostProcessor()`：将配置的监听者注册到容器中，当前 bean 实现 ApplicationListener 接口就是**监听器事件**
 
 * postProcessBeanFactory(beanFactory)：BeanFactory 准备工作完成后进行的后置处理工作，通过重写这个方法来在 BeanFactory 创建并预准备完成以后做进一步的设置
-
-**以上是 BeanFactory 的创建及预准备工作，接下来进入 Bean 的流程**
 
 * invokeBeanFactoryPostProcessors(beanFactory)：**执行 BeanFactoryPostProcessor 的方法**
 
@@ -7484,9 +7489,9 @@ AbstractApplicationContext.refresh()：
 
   * 获取到所有 BeanDefinitionRegistryPostProcessor 和 BeanFactoryPostProcessor  接口类型了，首先回调 bdrpp 类
 
-    * 执行实现了 PriorityOrdered（主排序接口）接口的 bdrpp，再执行实现了 Ordered（次排序接口）接口的 bdrpp
+    * **执行实现了 PriorityOrdered（主排序接口）接口的 bdrpp，再执行实现了 Ordered（次排序接口）接口的 bdrpp**
 
-    * 最后执行没有实现任何优先级或者是顺序接口 bdrpp
+    * **最后执行没有实现任何优先级或者是顺序接口 bdrpp**
 
       `boolean reiterate = true`：控制 while 是否需要再次循环，循环内是查找并执行 bdrpp 后处理器的 registry 相关的接口方法，接口方法执行以后会向 bf 内注册 bd，注册的 bd 也有可能是 bdrpp 类型，所以需要该变量控制循环
 
@@ -7496,13 +7501,16 @@ AbstractApplicationContext.refresh()：
 
   * `beanFactory.clearMetadataCache()`：清除缓存中合并的 bean 定义，因为后置处理器可能更改了元数据
 
+
+**以上是 BeanFactory 的创建及预准备工作，接下来进入 Bean 的流程**
+
 * registerBeanPostProcessors(beanFactory)：**注册 Bean 的后置处理器**，为了干预 Spring 初始化 bean 的流程，这里仅仅是向容器中**注入而非使用**
 
   * `beanFactory.getBeanNamesForType(BeanPostProcessor.class)`：**获取配置中实现了 BeanPostProcessor 接口类型**
 
   * `int beanProcessorTargetCount`：后置处理器的数量，已经注册的 + 未注册的 + 即将要添加的一个
 
-  * `beanFactory.addBeanPostProcessor(new BeanPostProcessorChecker())`：添加一个后置处理器
+  * `beanFactory.addBeanPostProcessor(new BeanPostProcessorChecker())`：添加一个检查器
 
     `BeanPostProcessorChecker.postProcessAfterInitialization()`：初始化后的后处理器方法
 
@@ -7510,17 +7518,17 @@ AbstractApplicationContext.refresh()：
     * `!isInfrastructureBean(beanName)`：成立说明当前 beanName 是用户级别的 bean  不是 Spring 框架的
     * `this.beanFactory.getBeanPostProcessorCount() < this.beanPostProcessorTargetCount`：BeanFactory 上面注册后处理器数量 < 后处理器数量，说明后处理框架尚未初始化完成
 
-  * `for (String ppName : postProcessorNames)`：遍历 PostProcessor 集合，**根据实现不同的接口类型添加到不同集合**
+  * `for (String ppName : postProcessorNames)`：遍历 PostProcessor 集合，**根据实现不同的顺序接口添加到不同集合**
 
   * `sortPostProcessors(priorityOrderedPostProcessors, beanFactory)`：实现 PriorityOrdered 接口的后处理器排序
 
-    `registerBeanPostProcessors(beanFactory, priorityOrderedPostProcessors)`：注册到 beanFactory 中
+    `registerBeanPostProcessors(beanFactory, priorityOrderedPostProcessors)`：**注册到 beanFactory 中**
 
   * 接着排序注册实现 Ordered 接口的后置处理器，然后注册普通的（ 没有实现任何优先级接口）后置处理器
 
   * 最后排序 MergedBeanDefinitionPostProcessor 类型的处理器，根据实现的排序接口，排序完注册到 beanFactory 中
 
-  * `beanFactory.addBeanPostProcessor(new ApplicationListenerDetector(applicationContext))`：重新注册 ApplicationListenerDetector 后处理器，用于在 Bean 创建完成后检查是否属于 ApplicationListener 类型，如果是就把 Bean 放到监听器容器中保存起来
+  * `beanFactory.addBeanPostProcessor(new ApplicationListenerDetector(applicationContext))`：重新注册 ApplicationListenerDetector 后处理器，用于在 Bean 创建完成后检查是否属于 ApplicationListener 类型，如果是就把 Bean 放到**监听器容器**中保存起来
 
 * initMessageSource()：初始化 MessageSource 组件，主要用于做国际化功能，消息绑定与消息解析
 
@@ -7561,7 +7569,7 @@ AbstractApplicationContext.refresh()：
 
       * `getBean(FACTORY_BEAN_PREFIX + beanName)`：获取工厂 FactoryBean 实例本身
       * `isEagerInit`：控制 FactoryBean 内部管理的 Bean 是否也初始化
-      * `getBean(beanName)`：初始化 Bean，获取 Bean 详解此函数
+      * `getBean(beanName)`：**初始化 Bean，获取 Bean 详解此函数**
 
       `getBean(beanName)`：不是工厂 bean 直接获取
 
@@ -7576,11 +7584,11 @@ AbstractApplicationContext.refresh()：
     * ` beanFactory.registerSingleton()`：将生命周期处理器注册到 bf 的一级缓存和注册单例集合中
   * `getLifecycleProcessor().onRefresh()`：获取该**生命周期后置处理器回调 onRefresh()**，调用 `startBeans(true)`
     * `lifecycleBeans = getLifecycleBeans()`：获取到所有实现了 Lifecycle 接口的对象包装到 Map 内，key 是beanName， value 是 Lifecycle 对象
-    * `int phase = getPhase(bean)`：获取当前 Lifecycle 的 phase 值，当前生命周期对象可能**依赖**其他生命周期对象的执行结果，所以需要 phase 决定执行顺序，数值越低的优先执行
+    * `int phase = getPhase(bean)`：获取当前 Lifecycle 的 phase 值，当前生命周期对象可能依赖其他生命周期对象的执行结果，所以需要 **phase 决定执行顺序，数值越低的优先执行**
     * `LifecycleGroup group = phases.get(phase)`：把 phsae 相同的 Lifecycle 存入 LifecycleGroup
     * `if (group == null)`：group 为空则创建，初始情况下是空的
     * `group.add(beanName, bean)`：将当前 Lifecycle 添加到当前 phase 值一样的 group 内
-    * `Collections.sort(keys)`：从小到大排序，按优先级启动
+    * `Collections.sort(keys)`：**从小到大排序，按优先级启动**
     * `phases.get(key).start()`：遍历所有的 Lifecycle 对象开始启动
     * `doStart(this.lifecycleBeans, member.name, this.autoStartupOnly)`：底层调用该方法启动
       * `bean = lifecycleBeans.remove(beanName)`： 确保 Lifecycle 只被启动一次，在一个分组内被启动了在其他分组内就看不到 Lifecycle 了
@@ -7852,7 +7860,7 @@ AbstractAutowireCapableBeanFactory.**doCreateBean**(beanName, RootBeanDefinition
 
       * 拿到配置的 property 信息和 bean 的所有字段信息
 
-      * `pd.getWriteMethod() != null`：**当前字段是否有 setter 方法**
+      * `pd.getWriteMethod() != null`：**当前字段是否有 setter 方法，配置类注入的方式需要 set 方法**
 
         `!isExcludedFromDependencyCheck(pd)`：当前字段类型是否在忽略自动注入的列表中
 
@@ -7907,15 +7915,17 @@ AbstractAutowireCapableBeanFactory.**doCreateBean**(beanName, RootBeanDefinition
 
     * `if (mbd != null && bean.getClass() != NullBean.class)`：成立说明是配置文件的方式
 
-      `if(!(接口条件))`表示**如果通过接口实现了初始化方法的话，就不会在调用 init-method 定义的方法**，
+      `if(!(接口条件))`表示**如果通过接口实现了初始化方法的话，就不会在调用配置类中 init-method 定义的方法**
+
+      `((InitializingBean) bean).afterPropertiesSet()`：调用方法
 
       `invokeCustomInitMethod`：执行自定义的方法
-
+      
       * `initMethodName = mbd.getInitMethodName()`：获取方法名
       * `Method initMethod = ()`：根据方法名获取到 init-method 方法
       * ` methodToInvoke = ClassUtils.getInterfaceMethodIfPossible(initMethod)`：将方法转成从接口层面获取
       * `ReflectionUtils.makeAccessible(methodToInvoke)`：访问权限设置成可访问
-      * ` methodToInvoke.invoke(bean)`：**反射调用 init-method 方法**，以当前 bean 为角度去调用
+      * ` methodToInvoke.invoke(bean)`：**反射调用初始化方法**，以当前 bean 为角度去调用
 
   * `wrappedBean = applyBeanPostProcessorsAfterInitialization`：初始化后的后置处理器
 
@@ -8799,25 +8809,27 @@ public Object invoke(Object proxy, Method method, Object[] args)
 
 解析 @Component 和 @Service 都是常用的注解
 
-* **@Component 解析流程：**
+**@Component 解析流程：**
 
-  打开源码注释：@see org.....ClassPathBeanDefinitionScanner.doScan()
-
-  findCandidateComponents()：从 classPath 扫描组件，并转换为备选 BeanDefinition
+* 注解类启动容器的时，注册 ClassPathBeanDefinitionScanner 到容器，用来扫描 Bean 的相关信息
 
   ```java
   protected Set<BeanDefinitionHolder> doScan(String... basePackages) {
       Set<BeanDefinitionHolder> beanDefinitions = new LinkedHashSet<>();
+      // 遍历指定的所有的包
       for (String basePackage : basePackages) {
-          //findCandidateComponents 读资源装换为BeanDefinition
+          // 读取当前包下的资源装换为 BeanDefinition，字节流的方式
           Set<BeanDefinition> candidates = findCandidateComponents(basePackage);
-          for (BeanDefinition candidate : candidates) {//....}
-              //.......
+          for (BeanDefinition candidate : candidates) {
+              //遍历，封装，类似于 XML 的解析方式
+              // 注册到容器中
+              registerBeanDefinition(definitionHolder, this.registry)
+          }
       return beanDefinitions;
   }
   ```
 
-  ClassPathScanningCandidateComponentProvider.findCandidateComponents()
+* ClassPathScanningCandidateComponentProvider.findCandidateComponents()
 
   ```java
   public Set<BeanDefinition> findCandidateComponents(String basePackage) {
@@ -8834,104 +8846,31 @@ public Object invoke(Object proxy, Method method, Object[] args)
   private Set<BeanDefinition> scanCandidateComponents(String basePackage) {}
   ```
 
-    * `String packageSearchPath = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX resolveBasePackage(basePackage) + '/' + this.resourcePattern` ：将package转化为ClassLoader类资源搜索路径packageSearchPath，例如：`com.wl.spring.boot`转化为`classpath*:com/wl/spring/boot/**/*.class`
-    * `Resource[] resources = getResourcePatternResolver().getResources(packageSearchPath)`：加载搜素路径下的资源
-    * `MetadataReader metadataReader = getMetadataReaderFactory().getMetadataReader(resource)`：获取元数据阅读器
-    * isCandidateComponent：判断是否是备选组件
-    * candidates.add(sbd)：添加到返回结果的list
+    * `String packageSearchPath = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX resolveBasePackage(basePackage) + '/' + this.resourcePattern` ：将 package 转化为 ClassLoader 类资源搜索路径 packageSearchPath，例如：`com.wl.spring.boot` 转化为 `classpath*:com/wl/spring/boot/**/*.class`
 
-    isCandidateComponent源码：
+    * `resources = getResourcePatternResolver().getResources(packageSearchPath)`：加载搜素路径下的资源
 
-  ```java
-  protected boolean isCandidateComponent(MetadataReader m) throws IOException {
-      //....
-      for (TypeFilter tf : this.includeFilters) {
-          if (tf.match(m, getMetadataReaderFactory())) {
-              return isConditionMatch(metadataReader);
-              //....
-          }
-  ```
+    * `for (Resource resource : resources) `：遍历所有的资源
 
-  ```java
-  protected void registerDefaultFilters() {
-      this.includeFilters.add(new AnnotationTypeFilter(Component.class));//...
-  }
-  ```
+      `metadataReader = getMetadataReaderFactory().getMetadataReader(resource)`：获取元数据阅读器
 
-   includeFilters由`registerDefaultFilters()`设置初始值，有@Component，没有@Service
+      `if (isCandidateComponent(metadataReader))`：**当前类不匹配任何排除过滤器，并且匹配一个包含过滤器**，返回 true
 
-    因为@Component是@Service的元注解，Spring在读取@Service，也读取了它的元注解，并将@Service作为@Component处理
+        * includeFilters 由 `registerDefaultFilters()` 设置初始值，方法有 @Component，没有 @Service，因为 @Component 是 @Service 的元注解，Spring 在读取 @Service 时也读取了元注解，并将 @Service 作为 @Component 处理
 
-  ```java
-  @Target({ElementType.TYPE})
-  @Retention(RetentionPolicy.RUNTIME)
-  @Documented
-  @Component
-  public @interface Service {}
-  ```
+          ```java
+          this.includeFilters.add(new AnnotationTypeFilter(Component.class))
+          ```
 
-* **@Component 派生性流程：**
+          ```java
+          @Target({ElementType.TYPE})
+          @Retention(RetentionPolicy.RUNTIME)
+          @Documented
+          @Component
+          public @interface Service {}
+          ```
 
-  metadataReader本质上：`MetadataReader metadataReader =new SimpleMetadataReader(...);`
-
-  `isCandidateComponent.match()`方法：`TypeFilter.match` -->`AnnotationTypeFilter.matchSelf()`
-
-  ```java
-  @Override
-  protected boolean matchSelf(MetadataReader metadataReader) {
-      AnnotationMetadata metadata = metadataReader.getAnnotationMetadata();
-      return metadata.hasAnnotation(this.annotationType.getName()) ||
-          (this.considerMetaAnnotations && metadata.hasMetaAnnotation(this.annotationType.getName()));
-  }
-  ```
-
-  * `metadata = new SimpleMetadataReader(...).getAnnotationMetadata()`
-
-    ```java
-    @Override
-    public AnnotationMetadata getAnnotationMetadata() {
-        return this.annotationMetadata;
-    }
-    ```
-
-    观察源码：`annotationMetadata = new AnnotationMetadataReadingVisitor(classLoader);`
-
-  * `metadata.hasMetaAnnotation=AnnotationMetadataReadingVisitor.hasMetaAnnotation`
-
-    判断该注解的元注解在不在metaAnnotationMap中，如果在就返回true
-
-    ```java
-    @Override
-    public boolean hasMetaAnnotation(String metaAnnotationType) {
-        Collection<Set<String>> allMetaTypes = this.metaAnnotationMap.values();
-        for (Set<String> metaTypes : allMetaTypes) {
-            if (metaTypes.contains(metaAnnotationType)) {
-                return true;
-            }
-        }
-        return false;
-    }
-    ```
-
-    metaAnnotationMap 怎么赋值的？
-
-    metaAnnotationMap 赋值方法在`SimpleMetadataReader.SimpleMetadataReader`中：
-
-    ```java
-    classReader.accept(visitor, ClassReader.SKIP_DEBUG);
-    ```
-
-    然后通过 readElementValues 方法中：
-
-    ```java
-    annotationVisitor.visitEnd();
-    ```
-
-    追踪方法：`AnnotationAttributesReadingVisitor.visitEnd()`
-
-    递归读取：内部方法`recursivelyCollectMetaAnnotations()`递归的读取注解，与注解的元注解（读@Service，再读元注解@Component）
-
-    添加数据：`this.metaAnnotationMap.put(annotationClass.getName(), metaAnnotationTypeNames);`
+      `candidates.add(sbd)`：添加到返回结果的 list
 
 
 
@@ -8949,8 +8888,8 @@ AutowiredAnnotationBeanPostProcessor 间接实现 InstantiationAwareBeanPostProc
 
 作用时机：
 
-* Spring 在每个 Bean 实例化之后，调用 AutowiredAnnotationBeanPostProcessor 的 `postProcessMergedBeanDefinition()` 方法，查找该 Bean 是否有 @Autowired 注解
-* Spring 在每个 Bean 调用 `populateBean()` 进行属性注入的时候，即调用 `postProcessProperties()` 方法，查找该 Bean 属性是否有 @Autowired 注解
+* Spring 在每个 Bean 实例化之后，调用 AutowiredAnnotationBeanPostProcessor 的 `postProcessMergedBeanDefinition()` 方法，查找该 Bean 是否有 @Autowired 注解，进行相关数据的获取
+* Spring 在每个 Bean 调用 `populateBean()` 进行属性注入的时候，即调用 `postProcessProperties()` 方法，查找该 Bean 属性是否有 @Autowired 注解，进行相关数据的填充
 
 
 
@@ -9010,11 +8949,11 @@ ProxyTransactionManagementConfiguration：是一个 Spring 的配置类，注册
 
 # MVC
 
-## 概述
+## 基本介绍
 
-SpringMVC：是一种基于Java实现MVC模型的轻量级Web框架
+SpringMVC：是一种基于 Java 实现 MVC 模型的轻量级 Web 框架
 
-SpringMVC优点：
+SpringMVC 优点：
 
 * 使用简单
 * 性能突出（对比现有的框架技术）
@@ -9073,24 +9012,24 @@ MVC（Model View Controller），一种用于设计创建Web应用程序表现�
 
 ### 工作原理
 
-在Spring容器初始化时会建立所有的URL和Controller的对应关系，保存到Map<URL,Controller>中，这样request就能快速根据URL定位到Controller。实现：
+在 Spring 容器初始化时会建立所有的 URL 和 Controller 的对应关系，保存到 Map<URL,Controller> 中，这样 request 就能快速根据 URL 定位到 Controller。实现：
 
-1. 在SpringIOC容器初始化完所有单例bean后
-2. SpringMVC会遍历所有的bean，获取controller中对应的URL（这里获取URL的实现类有多个，用于处理不同形式配置的Controller）
-3. 将每一个URL对应一个controller存入Map<URL,Controller>中
+1. 在 Spring IOC 容器初始化完所有单例 bean 后
+2. SpringMVC 会遍历所有的 bean，获取 controller 中对应的 URL（这里获取 URL 的实现类有多个，用于处理不同形式配置的 Controller）
+3. 将每一个 URL 对应一个 controller 存入 Map<URL,Controller> 中
 
-注意：将Controller类的注解换成@Component，启动时不会报错，但是在浏览器中输入路径时会出现404，说明Spring没有对所有的bean进行URL映射
+注意：将 Controller 类的注解换成 @Component，启动时不会报错，但是在浏览器中输入路径时会出现 404，说明 Spring 没有对所有的 bean 进行 URL 映射
 
-**一个Request来了：**
+**一个 Request 来了：**
 
-1. 监听端口，获得请求：Tomcat监听8080端口的请求，进行接收、解析、封装，根据路径调用了web.xml中配置的核心控制器DispatcherServlet
-2. 获取Handler：进入DispatcherServlet，核心控制器调用HandlerMapping去根据请求的URL获取对应的Handler。这里有个问题，如果获取的Handler为null则返回404
-3. 调用适配器执行Handler：
-   * 适配器根据request的URL去Handler中寻找对应的处理方法 (Controller的URL与方法的URL拼接后对比)
-   * 获取到对应方法后，需要将request中的参数与方法参数上的数据进行绑定，根据反射获取方法的参数名和注解，再根据注解或者根据参数名对照进行绑定(找到对应的参数，然后在反射调用方法时传入)
-   * 绑定完参数后，反射调用方法获取ModelAndView（如果Handler中返回的是String、View等对象，SpringMVC也会将它们重新封装成一个ModelAndView）
-4. 调用视图解析器解析：将ModelAndView解析成View对象
-5. 渲染视图：将View对象中的返回地址、参数信息等放入RequestDispatcher，最后进行转发
+1. 监听端口，获得请求：Tomcat 监听 8080 端口的请求，进行接收、解析、封装，根据路径调用了 web.xml 中配置的核心控制器 DispatcherServlet
+2. 获取 Handler：进入 DispatcherServlet，核心控制器调用 HandlerMapping 去根据请求的 URL 获取对应的 Handler。这里有个问题，如果获取的 Handler 为 null 则返回 404
+3. 调用适配器执行 Handler：
+   * 适配器根据 request 的 URL 去 Handler 中寻找对应的处理方法 (Controller 的 URL 与方法的 URL 拼接后对比)
+   * 获取到对应方法后，需要将 request 中的参数与方法参数上的数据进行绑定，根据反射获取方法的参数名和注解，再根据注解或者根据参数名对照进行绑定(找到对应的参数，然后在反射调用方法时传入)
+   * 绑定完参数后，反射调用方法获取 ModelAndView（如果 Handler 中返回的是 String、View 等对象，SpringMVC 也会将它们重新封装成一个 ModelAndView）
+4. 调用视图解析器解析：将 ModelAndView 解析成 View 对象
+5. 渲染视图：将 View 对象中的返回地址、参数信息等放入 RequestDispatcher，最后进行转发
 
 
 
@@ -9107,14 +9046,14 @@ MVC（Model View Controller），一种用于设计创建Web应用程序表现�
 流程分析：
 
 * 服务器启动
-  1. 加载web.xml中DispatcherServlet
-  2. 读取spring-mvc.xml中的配置，加载所有controller包中所有标记为bean的类
-  3. 读取bean中方法上方标注@RequestMapping的内容
+  1. 加载 web.xml 中 DispatcherServlet
+  2. 读取 spring-mvc.xml 中的配置，加载所有 controller 包中所有标记为 bean 的类
+  3. 读取 bean 中方法上方标注 @RequestMapping 的内容
 * 处理请求
-  1. DispatcherServlet配置拦截所有请求 /
-  2. 使用请求路径与所有加载的@RequestMapping的内容进行比对
+  1. DispatcherServlet 配置拦截所有请求 /
+  2. 使用请求路径与所有加载的 @RequestMapping 的内容进行比对
   3. 执行对应的方法
-  4. 根据方法的返回值在webapp目录中查找对应的页面并展示  
+  4. 根据方法的返回值在 webapp 目录中查找对应的页面并展示  
 
 代码实现：
 
@@ -9250,9 +9189,9 @@ MVC（Model View Controller），一种用于设计创建Web应用程序表现�
 
 ### 加载控制
 
-Controller加载控制：SpringMVC的处理器对应的bean必须按照规范格式开发，未避免加入无效的bean可通过bean加载过滤器进行包含设定或排除设定，表现层bean标注通常设定为@Controller  
+Controller 加载控制：SpringMVC 的处理器对应的 bean 必须按照规范格式开发，未避免加入无效的 bean 可通过 bean 加载过滤器进行包含设定或排除设定，表现层 bean 标注通常设定为 @Controller  
 
-* resources / spring-mvc.xml配置
+* resources / spring-mvc.xml 配置
 
   ```xml
   <context:component-scan base-package="com.seazean">
@@ -9262,7 +9201,7 @@ Controller加载控制：SpringMVC的处理器对应的bean必须按照规范格
   </context:component-scan>
   ```
 
-* 静态资源加载（webapp目录下的相关资源），spring-mvc.xml配置，开启mvc命名空间
+* 静态资源加载（webapp 目录下的相关资源），spring-mvc.xml 配置，开启 mvc 命名空间
 
   ```xml
   <!--放行指定类型静态资源配置方式-->
@@ -9274,7 +9213,7 @@ Controller加载控制：SpringMVC的处理器对应的bean必须按照规范格
   <mvc:default-servlet-handler/>
   ```
 
-* 中文乱码处理 SpringMVC提供专用的中文字符过滤器，用于处理乱码问题。配置在 web.xml 里面
+* 中文乱码处理 SpringMVC 提供专用的中文字符过滤器，用于处理乱码问题。配置在 web.xml 里面
 
   ```xml
   <!--乱码处理过滤器，与Servlet中使用的完全相同，差异之处在于处理器的类由Spring提供-->
@@ -9302,7 +9241,7 @@ Controller加载控制：SpringMVC的处理器对应的bean必须按照规范格
 
 纯注解开发：
 
-* 使用注解形式转化SpringMVC核心配置文件为配置类 java / config /  SpringMVCConfiguration.java
+* 使用注解形式转化 SpringMVC 核心配置文件为配置类 java / config /  SpringMVCConfiguration.java
 
   ```java
   @Configuration
@@ -9324,7 +9263,7 @@ Controller加载控制：SpringMVC的处理器对应的bean必须按照规范格
   }
   ```
 
-* 基于servlet3.0规范，自定义Servlet容器初始化配置类，加载SpringMVC核心配置类  
+* 基于 servlet3.0 规范，自定义 Servlet 容器初始化配置类，加载 SpringMVC 核心配置类  
 
   ```java
   public class ServletContainersInitConfig extends AbstractDispatcherServletInitializer {
@@ -9373,7 +9312,9 @@ Controller加载控制：SpringMVC的处理器对应的bean必须按照规范格
 ### 请求映射
 
 名称：@RequestMapping
+
 类型：方法注解、类注解
+
 位置：处理器类中的方法定义上方、处理器类定义上方
 
 * 方法注解
@@ -9392,10 +9333,11 @@ Controller加载控制：SpringMVC的处理器对应的bean必须按照规范格
   ```
 
 * 类注解
+  
   作用：为当前处理器中所有方法设定公共的访问路径前缀
   带有类映射地址访问格式，将类映射地址作为前缀添加在实际映射地址前面：**/user/requestURL1**
   最终返回的页面如果未设定绝对访问路径，将从类映射地址所在目录中查找 **webapp/user/page.jsp**
-
+  
   ```java
   @Controller
   @RequestMapping("/user")
@@ -9406,7 +9348,7 @@ Controller加载控制：SpringMVC的处理器对应的bean必须按照规范格
       }
   } 
   ```
-
+  
 * 常用属性
 
   ```java
@@ -10046,11 +9988,11 @@ ModelAndView 是SpringMVC提供的一个对象，该对象可以用作控制器�
 
 注解：@ResponseBody
 
-作用：将Controller的方法返回的对象通过适当的转换器转换为指定的格式之后，写入到Response的body区。如果返回值是字符串，那么直接将字符串返回客户端；如果是一个对象，会**将对象转化为Json**，返回客户端
+作用：将 Controller 的方法返回的对象通过适当的转换器转换为指定的格式之后，写入到 Response 的 body 区。如果返回值是字符串，那么直接将字符串返回客户端；如果是一个对象，会**将对象转化为 Json**，返回客户端
 
-注意：当方法上面没有写ResponseBody，底层会将方法的返回值封装为ModelAndView对象。
+注意：当方法上面没有写 ResponseBody，底层会将方法的返回值封装为 ModelAndView 对象。
 
-* 使用HttpServletResponse对象响应数据
+* 使用 HttpServletResponse 对象响应数据
 
   ```java
   @Controller
@@ -10072,7 +10014,7 @@ ModelAndView 是SpringMVC提供的一个对象，该对象可以用作控制器�
   }
   ```
 
-* 使用jackson进行json数据格式转化
+* 使用 jackson 进行 json 数据格式转化
 
   导入坐标：
 
@@ -10110,7 +10052,7 @@ ModelAndView 是SpringMVC提供的一个对象，该对象可以用作控制器�
   }
   ```
 
-* 使用SpringMVC提供的消息类型转换器将对象与集合数据自动转换为JSON数据
+* 使用 SpringMVC 提供的消息类型转换器将对象与集合数据自动转换为JSON数据
 
   ```java
   //使用SpringMVC注解驱动，对标注@ResponseBody注解的控制器方法进行结果转换，由于返回值为引用类型，自动调用jackson提供的类型转换器进行格式转换
@@ -10138,7 +10080,7 @@ ModelAndView 是SpringMVC提供的一个对象，该对象可以用作控制器�
     </bean
     ```
 
-  * 使用SpringMVC注解驱动：
+  * 使用 SpringMVC 注解驱动：
 
     ```xml
     <!--开启springmvc注解驱动，对@ResponseBody的注解进行格式增强，追加其类型转换的功能，具体实现由MappingJackson2HttpMessageConverter进行-->
@@ -10172,9 +10114,11 @@ ModelAndView 是SpringMVC提供的一个对象，该对象可以用作控制器�
 
 
 
-## Servlet
+### Servlet
 
-* spring-mvc.xml配置
+SpringMVC 提供访问原始 Servlet 接口的功能
+
+* spring-mvc.xml 配置
 
   ```xml
   <?xml version="1.0" encoding="UTF-8"?>
@@ -10195,7 +10139,7 @@ ModelAndView 是SpringMVC提供的一个对象，该对象可以用作控制器�
   </beans>
   ```
 
-* SpringMVC提供访问原始Servlet接口API的功能，通过形参声明即可 
+* SpringMVC 提供访问原始 Servlet 接口 API 的功能，通过形参声明即可 
 
   ```java
   @RequestMapping("/servletApi")
@@ -10210,7 +10154,7 @@ ModelAndView 是SpringMVC提供的一个对象，该对象可以用作控制器�
   }
   ```
 
-* Head数据获取快捷操作方式
+* Head 数据获取快捷操作方式
   名称：@RequestHeader
   类型：形参注解
   位置：处理器类中的方法形参前方
@@ -10225,11 +10169,11 @@ ModelAndView 是SpringMVC提供的一个对象，该对象可以用作控制器�
   }  
   ```
 
-* Cookie数据获取快捷操作方式
+* Cookie 数据获取快捷操作方式
   名称：@CookieValue
   类型：形参注解
   位置：处理器类中的方法形参前方
-  作用：绑定请求Cookie数据与对应处理方法形参间的关系
+  作用：绑定请求 Cookie 数据与对应处理方法形参间的关系
   范例：
 
   ```java
@@ -10240,7 +10184,7 @@ ModelAndView 是SpringMVC提供的一个对象，该对象可以用作控制器�
   }  
   ```
 
-* Session数据获取
+* Session 数据获取
   名称：@SessionAttribute
   类型：形参注解
   位置：处理器类中的方法形参前方
@@ -10261,9 +10205,9 @@ ModelAndView 是SpringMVC提供的一个对象，该对象可以用作控制器�
   }
   ```
 
-* Session数据设置
-  名称： @SessionAttributes
-  类型： 类注解
+* Session 数据设置
+  名称：@SessionAttributes
+  类型：类注解
   位置：处理器类上方
   作用：声明放入session范围的变量名称，适用于Model类型数据传参
   范例：

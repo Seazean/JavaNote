@@ -169,8 +169,8 @@ G-->H[double]
 
 包装类的作用：
 
-* 包装类作为类首先拥有了Object类的方法。
-* 包装类作为引用类型的变量可以存储null值。
+* 包装类作为类首先拥有了 Object 类的方法
+* 包装类作为引用类型的变量可以**存储 null 值**
 
 
 ```java
@@ -185,12 +185,12 @@ double                    Double
 char                      Character(特殊)
 boolean                   Boolean
 ```
-Java为包装类做了一些特殊功能，具体来看特殊功能主要有：
+Java 为包装类做了一些特殊功能，具体来看特殊功能主要有：
 
 * 可以把基本数据类型的值转换成字符串类型的值
-  1. 调用toString()方法
-  2. 调用Integer.toString(基本数据类型的值)得到字符串
-  3. 直接把基本数据类型+空字符串就得到了字符串（推荐使用）
+  1. 调用 toString() 方法
+  2. 调用 Integer.toString(基本数据类型的值) 得到字符串
+  3. 直接把基本数据类型 + 空字符串就得到了字符串（推荐使用）
 
 * 把字符串类型的数值转换成对应的基本数据类型的值（**重要**）
 
@@ -259,6 +259,18 @@ public class PackegeClass {
 }
 ```
 
+**自动装箱**反编译后底层调用 `Integer.valueOf()` 实现，源码：
+
+```java
+public static Integer valueOf(int i) {
+    if (i >= IntegerCache.low && i <= IntegerCache.high)
+        return IntegerCache.cache[i + (-IntegerCache.low)];
+    return new Integer(i);
+}
+```
+
+
+
 
 
 ***
@@ -296,27 +308,15 @@ valueOf() 方法的实现比较简单，就是先判断值是否在缓存池中�
 在 jdk 1.8 所有的数值类缓冲池中，Integer 的缓存池 IntegerCache 很特殊，这个缓冲池的下界是 -128，上界默认是 127，但是上界是可调的，在启动 jvm 的时候，通过 AutoBoxCacheMax=<size> 来指定这个缓冲池的大小，该选项在 JVM 初始化的时候会设定一个名为 java.lang.IntegerCache.high 系统属性，然后 IntegerCache 初始化的时候就会读取该系统属性来决定上界
 
 ```java
-Integer x = Integer.valueOf(100);
-Integer y = Integer.valueOf(100);
+Integer x = 100;	//自动装箱，底层调用 Integer.valueOf(1)
+Integer y = 100;
 System.out.println(x == y);   // true
 
-Integer x = Integer.valueOf(1000);
-Integer y = Integer.valueOf(1000);
+Integer x = 1000;
+Integer y = 1000;
 System.out.println(x == y);   // false
 //因为缓存池最大127
 ```
-
-反编译后底层调用 `Integer.valueOf()` 实现自动装箱，源码：
-
-```java
-public static Integer valueOf(int i) {
-    if (i >= IntegerCache.low && i <= IntegerCache.high)
-        return IntegerCache.cache[i + (-IntegerCache.low)];
-    return new Integer(i);
-}
-```
-
-
 
 
 
@@ -4390,7 +4390,7 @@ PriorityQueue 是优先级队列，底层存储结构为 Object[]，默认实现
 
 * `public PriorityQueue()`：构造默认长度为 11 的队列（数组）
 
-* `public PriorityQueue(Comparator<? super E> comparator)`：带比较器实现，可以自定义堆排序的规则
+* `public PriorityQueue(Comparator<? super E> comparator)`：利用比较器自定义堆排序的规则
 
   ```java
   Queue<Integer> pq = new PriorityQueue<>((v1, v2) -> v2 - v1);//实现大顶堆
@@ -5428,18 +5428,18 @@ class LRUCache<K, V> extends LinkedHashMap<K, V> {
 
 #### TreeMap
 
-TreeMap 实现了 SotredMap 接口，是有序不可重复的键值对集合，基于红黑树（Red-Black tree）实现，每个 key-value 都作为一个红黑树的节点。如果构造 TreeMap 没有指定比较器，则根据key执行自然排序（默认升序），如果指定了比较器则按照比较器来进行排序
+TreeMap 实现了 SotredMap 接口，是有序不可重复的键值对集合，基于红黑树（Red-Black tree）实现，每个 key-value 都作为一个红黑树的节点。如果构造 TreeMap 没有指定比较器，则根据 key 执行自然排序（默认升序），如果指定了比较器则按照比较器来进行排序
 
 TreeSet 集合的底层是基于TreeMap，只是键的附属值为空对象而已
 
-TreeMap集合指定大小规则有2种方式：
+TreeMap 集合指定大小规则有 2 种方式：
 
-* 直接为对象的类实现比较器规则接口Comparable，重写比较方法（拓展方式）
-* 直接为集合设置比较器Comparator对象，重写比较方法
+* 直接为对象的类实现比较器规则接口 Comparable，重写比较方法（拓展方式）
+* 直接为集合设置比较器 Comparator 对象，重写比较方法
 
 成员属性：
 
-* Entry节点
+* Entry 节点
 
   ```java
    static final class Entry<K,V> implements Map.Entry<K,V> {
@@ -5457,7 +5457,7 @@ TreeMap集合指定大小规则有2种方式：
   ```java
   //如果comparator为null，采用comparable.compartTo进行比较，否则采用指定比较器比较大小
   final int compare(Object k1, Object k2) {
-      return comparator==null ? ((Comparable<? super K>)k1).compareTo((K)k2)
+      return comparator == null ? ((Comparable<? super K>)k1).compareTo((K)k2)
           : comparator.compare((K)k1, (K)k2);
   }
   ```
