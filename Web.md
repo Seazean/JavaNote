@@ -2377,7 +2377,11 @@ HTTP 和 HTTPS 的区别：
 
 `JavaEE`的版本是延续了`J2EE`的版本，但是没有继续采用其命名规则。`J2EE`的版本从1.0开始到1.4结束，而`JavaEE`版本是从`JavaEE 5`版本开始，目前最新的的版本是`JavaEE 8`。
 
-详情请参考：[JavaEE8规范概览](https://www.oracle.com/technetwork/cn/java/javaee/overview/index.html)
+详情请参考：[JavaEE8 规范概览](https://www.oracle.com/technetwork/cn/java/javaee/overview/index.html)
+
+
+
+***
 
 
 
@@ -2395,6 +2399,10 @@ Web，在计算机领域指网络。像我们接触的`WWW`，它是由3个单�
 
 * 广域网指的就是万维网，也就是我们说的互联网。
 * 局域网是指的是在一定范围之内可以访问的网络，出了这个范围，就不能再使用的网络。
+
+
+
+***
 
 
 
@@ -2455,6 +2463,10 @@ Web，在计算机领域指网络。像我们接触的`WWW`，它是由3个单�
 
 
 
+***
+
+
+
 ### 基本介绍
 
 #### Windows安装
@@ -2466,6 +2478,8 @@ Web，在计算机领域指网络。像我们接触的`WWW`，它是由3个单�
 ![](https://gitee.com/seazean/images/raw/master/Web/Tomcat目录结构详解.png)
 
 
+
+***
 
 
 
@@ -2485,6 +2499,8 @@ Web，在计算机领域指网络。像我们接触的`WWW`，它是由3个单�
 
 
 
+***
+
 
 
 #### 启动停止
@@ -2497,23 +2513,31 @@ Tomcat服务器的停止文件也在二进制文件目录bin中：shutdown.bat�
 
 
 
+***
+
+
+
 #### 常见问题
 
 * 启动一闪而过
 
-  没有配置环境变量，配置上JAVA_HOME环境变量。
+  没有配置环境变量，配置上 JAVA_HOME 环境变量。
 
-* Tomcat启动后控制台输出乱码
+* Tomcat 启动后控制台输出乱码
 
-  打开`/conf/logging.properties`，设置gbk`java.util.logging.ConsoleHandler.encoding = gbk`
+  打开 `/conf/logging.properties`，设置 gbk `java.util.logging.ConsoleHandler.encoding = gbk`
 
 * Address already in use : JVM_Bind：端口被占用，找到占用该端口的应用
 
-  * 进程不重要：使用cmd命令：netstat -a -o 查看pid  在任务管理器中结束占用端口的进程
+  * 进程不重要：使用cmd命令：netstat -a -o 查看 pid  在任务管理器中结束占用端口的进程
 
-  * 进程很重要：修改自己的端口号。修改的是Tomcat目录下`\conf\server.xml`中的配置。
+  * 进程很重要：修改自己的端口号。修改的是 Tomcat 目录下`\conf\server.xml`中的配置。
 
     ![](https://gitee.com/seazean/images/raw/master/Web/Tomcat-server.xml端口配置.png)
+    
+    
+
+***
 
 
 
@@ -2533,19 +2557,25 @@ Run -> Edit Configurations -> Templates -> Tomcat Server -> Local
 
 #### 虚拟目录
 
-在`server.xml`的`<Host>`元素中加一个`<Context path="" docBase=""/>`元素。
-				    `path`：访问资源URI。URI名称可以随便起，但是必须在前面加上一个/
-					`docBase`：资源所在的磁盘物理地址。
+在 `server.xml` 的 `<Host>` 元素中加一个 `<Context path="" docBase=""/>` 元素
+
+* `path`：访问资源URI，URI名称可以随便起，但是必须在前面加上一个/
+* `docBase`：资源所在的磁盘物理地址
+
+
+
+***
 
 
 
 #### 虚拟主机
 
 在`<Engine>`元素中添加一个`<Host name="" appBase="" unparkWARs="" autoDeploy="" />`，其中：
-		`name`：指定主机的名称
-		`appBase`：当前主机的应用发布目录
-		`unparkWARs`：启动时是否自动解压war包
-		`autoDeploy`：是否自动发布
+
+* `name`：指定主机的名称
+* `appBase`：当前主机的应用发布目录
+* `unparkWARs`：启动时是否自动解压war包
+* `autoDeploy`：是否自动发布
 
 ```xml
 <Host name="www.itcast.cn" appBase="D:\itcastapps" unpackWARs="true" autoDeploy="true"/>
@@ -2554,6 +2584,8 @@ Run -> Edit Configurations -> Templates -> Tomcat Server -> Local
 ```
 
 
+
+****
 
 
 
@@ -2569,15 +2601,17 @@ Run -> Edit Configurations -> Templates -> Tomcat Server -> Local
 
   
 
+***
+
 
 
 #### IDEA发布
 
-把资源移动到Tomcat工程下web目录中，两种访问方式
+把资源移动到 Tomcat 工程下 web 目录中，两种访问方式
 
 * 直接访问：http://localhost:8080/Tomcat/login/login.html
 
-* 在web.xml中配置默认主页
+* 在 web.xml 中配置默认主页
 
   ```xml
   <welcome-file-list>
@@ -2597,13 +2631,14 @@ Run -> Edit Configurations -> Templates -> Tomcat Server -> Local
 
 ### Socket
 
-Socket是使用TCP/IP或者UDP协议在服务器与客户端之间进行传输的技术，是网络编程的基础
+Socket 是使用 TCP/IP 或者 UDP 协议在服务器与客户端之间进行传输的技术，是网络编程的基础
 
-- **Servlet是使用HTTP协议在服务器与客户端之间通信的技术，是Socket的一种应用**
-- **HTTP协议：是在TCP/IP协议之上进一步封装的一层协议，关注数据传输的格式是否规范，底层的数据传输还是运用了Socket和TCP/IP**
+- **Servlet 是使用 HTTP 协议在服务器与客户端之间通信的技术，是 Socket 的一种应用**
+- **HTTP 协议：是在 TCP/IP 协议之上进一步封装的一层协议，关注数据传输的格式是否规范，底层的数据传输还是运用了 Socket 和 TCP/IP**
 
-Tomcat和Servlet的关系：
-Servlet的运行环境叫做Web容器或Servlet服务器，**Tomcat 是Web应用服务器，是一个Servlet/JSP容器**。Tomcat 作为Servlet容器，负责处理客户请求，把请求传送给Servlet，并将Servlet的响应传送回给客户。而Servlet是一种运行在支持Java语言的服务器上的组件，Servlet最常见的用途是扩展Java Web服务器功能，提供非常安全的、可移植的、易于使用的CGI替代品
+Tomcat 和 Servlet 的关系：
+
+Servlet 的运行环境叫做 Web 容器或 Servlet 服务器，**Tomcat 是 Web 应用服务器，是一个 Servlet/JSP 容器**。Tomcat 作为 Servlet 容器，负责处理客户请求，把请求传送给 Servlet，并将 Servlet 的响应传送回给客户。而 Servlet 是一种运行在支持Java语言的服务器上的组件，Servlet 最常见的用途是扩展 Java Web 服务器功能，提供非常安全的、可移植的、易于使用的 CGI 替代品
 ![](https://gitee.com/seazean/images/raw/master/Web/Tomcat与Servlet的关系.png)
 
 
@@ -2636,7 +2671,7 @@ Servlet是SUN公司提供的一套规范，名称就叫Servlet规范，它也是
 
 #### 执行流程
 
-创建Web工程-->编写普通类继承Servlet相关类-->重写方法
+创建 Web 工程 → 编写普通类继承 Servlet 相关类 → 重写方法
 
 ![](https://gitee.com/seazean/images/raw/master/Web/Servlet入门案例执行.png)
 
@@ -2650,19 +2685,21 @@ Servlet执行过程分析：
 
 
 
+***
+
 
 
 #### 实现方式
 
-实现Servlet功能时，可以选择以下三种方式：
+实现 Servlet 功能时，可以选择以下三种方式：
 
-* 第一种：实现Servlet接口，接口中的方法必须全部实现。
+* 第一种：实现 Servlet 接口，接口中的方法必须全部实现。
   使用此种方式，表示接口中的所有方法在需求方面都有重写的必要。此种方式支持最大程度的自定义。
 
-* 第二种：继承GenericServlet，service方法必须重写，其他方可根据需求，选择性重写。
-  使用此种方式，表示只在接收和响应客户端请求这方面有重写的需求，而其他方法可根据实际需求选择性重写，使我们的开发Servlet变得简单。但是，此种方式是和HTTP协议无关的。
+* 第二种：继承 GenericServlet，service 方法必须重写，其他方可根据需求，选择性重写。
+  使用此种方式，表示只在接收和响应客户端请求这方面有重写的需求，而其他方法可根据实际需求选择性重写，使我们的开发Servlet变得简单。但是，此种方式是和 HTTP 协议无关的。
 
-* 第三种：继承HttpServlet，它是javax.servlet.http包下的一个抽象类，是GenericServlet的子类。选择继承HttpServlet时，**需要重写doGet和doPost方法**，来接收get方式和post方式的请求，不要覆盖service方法。使用此种方式，表示我们的请求和响应需要和HTTP协议相关，我们是通过HTTP协议来访问。每次请求和响应都符合HTTP协议的规范。请求的方式就是HTTP协议所支持的方式（GET POST PUT DELETE TRACE OPTIONS HEAD )。
+* 第三种：继承 HttpServlet，它是 javax.servlet.http 包下的一个抽象类，是 GenericServlet 的子类。选择继承 HttpServlet 时，**需要重写 doGet 和 doPost 方法**，来接收 get 方式和 post 方式的请求，不要覆盖 service 方法。使用此种方式，表示我们的请求和响应需要和 HTTP 协议相关，我们是通过 HTTP 协议来访问。每次请求和响应都符合 HTTP 协议的规范。请求的方式就是 HTTP 协议所支持的方式（GET POST PUT DELETE TRACE OPTIONS HEAD )。
 
 
 
@@ -2690,21 +2727,21 @@ Servlet 3.0 中的异步处理指的是允许Servlet重新发起一条新线程�
 
 servlet从创建到销毁的过程：
 
-* 出生：（初始化）请求第一次到达Servlet时，创建对象，并且初始化成功。Only one time
+* 出生：（初始化）请求第一次到达 Servlet 时，创建对象，并且初始化成功。Only one time
 
-* 活着：（服务）服务器提供服务的整个过程中，该对象一直存在，每次只是执行service方法
+* 活着：（服务）服务器提供服务的整个过程中，该对象一直存在，每次只是执行 service 方法
 
 * 死亡：（销毁）当服务停止时，或者服务器宕机时，对象删除，
 
 serrvlet生命周期方法:
-`init(ServletConfig config)`-->`service(ServletRequest req, ServletResponse res)`-->`destroy()`
+`init(ServletConfig config)` → `service(ServletRequest req, ServletResponse res)` → `destroy()`
 
-默认情况下, 有了第一次请求, 会调用init()方法进行初始化【调用一次】，任何一次请求，都会调用service()方法处理这个请求，服务器正常关闭或者项目从服务器移除, 调用destory()方法进行销毁【调用一次】
+默认情况下, 有了第一次请求, 会调用 init() 方法进行初始化【调用一次】，任何一次请求，都会调用 service() 方法处理这个请求，服务器正常关闭或者项目从服务器移除, 调用 destory() 方法进行销毁【调用一次】
 
-**扩展**：servlet是单例多线程的，尽量不要在servlet里面使用全局(成员)变量，可能会导致线程不安全
+**扩展**：servlet 是单例多线程的，尽量不要在 servlet 里面使用全局(成员)变量，可能会导致线程不安全
 
-* 单例：Servlet对象只会创建一次，销毁一次，Servlet对象只有一个实例。
-* 多线程：服务器会针对每次请求, 开启一个线程调用service()方法处理这个请求
+* 单例：Servlet 对象只会创建一次，销毁一次，Servlet 对象只有一个实例。
+* 多线程：服务器会针对每次请求, 开启一个线程调用 service() 方法处理这个请求
 
 
 
@@ -3529,18 +3566,20 @@ request域：可以在一次请求范围内进行共享数据
 
 #### 请求转发
 
-请求转发：客户端的一次请求到达后，需要借助其他Servlet来实现功能，进行请求转发。特点：
+请求转发：客户端的一次请求到达后，需要借助其他 Servlet 来实现功能，进行请求转发。特点：
 
 * 浏览器地址栏不变
 * 域对象中的数据不丢失
-* 负责转发的Servlet转发前后响应正文会丢失
+* 负责转发的 Servlet 转发前后响应正文会丢失
 * 由转发目的地来响应客户端
 
-HttpServletRequest类方法：
-    `RequestDispatcher getRequestDispatcher(String path) ` : 获取任务调度对象
+HttpServletRequest 类方法：
 
-RequestDispatcher类方法：
-	`void forward(ServletRequest request, ServletResponse response)` : 实现转发。将请求从servlet转发到服务器上的另一个资源（servlet，JSP文件或HTML文件）
+* `RequestDispatcher getRequestDispatcher(String path) ` : 获取任务调度对象
+
+RequestDispatcher 类方法：
+
+* `void forward(ServletRequest request, ServletResponse response)` : 实现转发。将请求从servlet转发到服务器上的另一个资源（servlet，JSP文件或HTML文件）
 
 过程：浏览器访问http://localhost:8080/request/servletDemo09，/servletDemo10也会执行
 
@@ -3991,7 +4030,7 @@ public class ServletDemo06 extends HttpServlet {
 
 
 
-#### 请求重定向
+#### 重定向
 
 ##### 实现重定向
 
@@ -4050,6 +4089,8 @@ public class ServletDemo08 extends HttpServlet {
 ```
 
 
+
+***
 
 
 
@@ -4133,7 +4174,7 @@ public class ServletDemo08 extends HttpServlet {
 
 浏览器和服务器可能产生多次的请求和响应，从浏览器访问服务器开始，到访问服务器结束（关闭浏览器、到了过期时间），这期间产生的多次请求和响应加在一起称为浏览器和服务器之间的一次对话
 
-**作用**：保存用户各自的数据（以浏览器为单位），在多次请求间实现数据共享
+作用：保存用户各自的数据（以浏览器为单位），在多次请求间实现数据共享
 
 **常用的会话管理技术**：
 
@@ -4194,19 +4235,21 @@ Cookie：客户端会话管理技术，把要共享的数据保存到了客户�
   | version  | cookie的版本号           | 不重要   |
   | comment  | cookie的说明             | 不重要   |
 
-  注意：Cookie有大小，个数限制。每个网站最多只能存20个cookie，且大小不能超过4kb。同时，所有网站的cookie总数不超过300个。
+  注意：Cookie 有大小，个数限制。每个网站最多只能存20个 Cookie，且大小不能超过 4kb。同时所有网站的 Cookie 总数不超过300个。
 
 * **Cookie类API：**
 
-  * `Cookie(String name, String value)` : 构造方法创建Cookie对象
+  * `Cookie(String name, String value)` : 构造方法创建 Cookie 对象
 
-  * Cookie 属性对应的set和get方法，name属性被final修饰，没有set方法    
+  * Cookie 属性对应的 set 和 get 方法，name 属性被 final 修饰，没有 set 方法    
 
-* HttpServletResponse类API：
-  	`void addCookie(Cookie cookie)` : 向客户端添加Cookie，Adds the specified cookie to the response.
-
+* HttpServletResponse 类 API：
+  
+  * `void addCookie(Cookie cookie)`：向客户端添加 Cookie，Adds cookie to the response
+  
 * HttpServletRequest类API：
-  	`Cookie[] getCookies()` : 获取所有的Cookie对象，client sent with this request
+
+  * `Cookie[] getCookies()`：获取所有的 Cookie 对象，client sent with this request
 
 
 
@@ -4216,14 +4259,14 @@ Cookie：客户端会话管理技术，把要共享的数据保存到了客户�
 
 #### 有效期
 
-如果不设置过期时间，表示这个cookie生命周期为浏览器会话期间，只要关闭浏览器窗口cookie就消失，这种生命期为浏览会话期的cookie被称为会话cookie，会话cookie一般不保存在硬盘上而是保存在内存里。
+如果不设置过期时间，表示这个 Cookie 生命周期为浏览器会话期间，只要关闭浏览器窗口 Cookie 就消失，这种生命期为浏览会话期的 Cookie 被称为会话 Cookie，会话 Cookie 一般不保存在硬盘上而是保存在内存里。
 
-如果设置过期时间，浏览器就会把cookie保存到硬盘上，关闭后再次打开浏览器，这些cookie依然有效直到超过设定的过期时间。存储在硬盘上的cookie可以在**不同的浏览器进程间共享**，比如两个IE窗口，而对于保存在内存的cookie，不同的浏览器有不同的处理方式
+如果设置过期时间，浏览器就会把 Cookie 保存到硬盘上，关闭后再次打开浏览器，这些 Cookie 依然有效直到超过设定的过期时间。存储在硬盘上的 Cookie 可以在**不同的浏览器进程间共享**，比如两个 IE 窗口，而对于保存在内存的 Cookie，不同的浏览器有不同的处理方式
 
-设置Cookie存活时间API：`void setMaxAge(int expiry)` 
+设置 Cookie 存活时间 API：`void setMaxAge(int expiry)` 
 
-* -1：默认。代表Cookie数据存到浏览器关闭（保存在浏览器文件中）
-* 0：代表删除Cookie，如果要删除Cookie要确保**路径一致**。 
+* -1：默认。代表 Cookie 数据存到浏览器关闭（保存在浏览器文件中）
+* 0：代表删除 Cookie，如果要删除 Cookie 要确保**路径一致**。 
 * 正整数：以秒为单位保存数据有有效时间（把缓存数据保存到磁盘中）
 
 ```java
@@ -4274,15 +4317,15 @@ public class ServletDemo01 extends HttpServlet{
 
 #### 有效路径
 
-`setPath(String url)` : Cookie设置有效路径
+`setPath(String url)` : Cookie 设置有效路径
 
 有效路径作用 :
 
-1. 保证不会携带别的网站/项目里面的cookie到我们自己的项目
-2. 路径不一样, cookie的key可以相同
-3. 保证自己的项目可以合理的利用自己项目的cookie
+1. 保证不会携带别的网站/项目里面的 Cookie 到我们自己的项目
+2. 路径不一样，Cookie 的 key 可以相同
+3. 保证自己的项目可以合理的利用自己项目的 Cookie
 
-判断路径是否携带 Cookie：请求资源URI.startWith(cookie的path)，返回true就带
+判断路径是否携带 Cookie：请求资源 URI.startWith(cookie的path)，返回 true 就带
 
 | 访问URL                                                      | URI部分                    | Cookie的Path | 是否携带Cookie | 能否取到Cookie |
 | ------------------------------------------------------------ | -------------------------- | ------------ | -------------- | -------------- |
@@ -4291,8 +4334,9 @@ public class ServletDemo01 extends HttpServlet{
 | [servletDemo04](http://localhost:8080/servlet/aaa/servletDemo03) | /servlet/aaa/servletDemo04 | /servlet/    | 带             | 能取到         |
 | [servletDemo05](http://localhost:8080/bbb/servletDemo03)     | /bbb/servletDemo04         | /servlet/    | 不带           | 不能取到       |
 
-只有当访问资源的url包含此cookie的有效path的时候,才会携带这个cookie。
-想要当前项目下的Servlet都可以使用该cookie，一般设置: `cookie.setPath(request.getContextPath());`
+只有当访问资源的 url 包含此 cookie 的有效 path 的时候，才会携带这个 cookie
+
+想要当前项目下的 Servlet 可以使用该 cookie，一般设置：`cookie.setPath(request.getContextPath())`
 
 
 

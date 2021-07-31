@@ -8533,14 +8533,15 @@ public class AnnotationDemo01{
 * AnnotatedElement：该接口定义了与注解解析相关的方法
 * Class、Method、Field、Constructor 类成分：实现 AnnotatedElement 接口，拥有解析注解的能力
 
-API ：
+Class 类 API ：
 
-* `Annotation[] getDeclaredAnnotations()` : 获得当前对象上使用的所有注解，返回注解数组
-* `T getDeclaredAnnotation(Class<T> annotationClass)` : 根据注解类型获得对应注解对象
-* `T getAnnotation(Class<T> annotationClass)` : 根据注解类型获得对应注解对象
-* `boolean isAnnotationPresent(Class<Annotation> class)` : 判断对象是否使用了指定的注解
+* `Annotation[] getDeclaredAnnotations()`：获得当前对象上使用的所有注解，返回注解数组
+* `T getDeclaredAnnotation(Class<T> annotationClass)`：根据注解类型获得对应注解对象
+* `T getAnnotation(Class<T> annotationClass)`：根据注解类型获得对应注解对象
+* `boolean isAnnotationPresent(Class<Annotation> class)`：判断对象是否使用了指定的注解
+* `boolean isAnnotation()`：此 Class 对象是否表示注释类型
 
-注解原理：注解本质是一个继承了`Annotation` 的特殊接口，其具体实现类是 Java 运行时生成的**动态代理类**，通过反射获取注解时，返回的是 Java 运行时生成的动态代理对象 `$Proxy1`，通过代理对象调用自定义注解（接口）的方法，会最终调用 `AnnotationInvocationHandler` 的 `invoke` 方法，该方法会从 `memberValues`  这个Map 中找出对应的值，而 `memberValues` 的来源是 Java 常量池
+注解原理：注解本质是一个继承了 `Annotation` 的特殊接口，其具体实现类是 Java 运行时生成的**动态代理类**，通过反射获取注解时，返回的是 Java 运行时生成的动态代理对象 `$Proxy1`，通过代理对象调用自定义注解（接口）的方法，会最终调用 `AnnotationInvocationHandler` 的 `invoke` 方法，该方法会从 `memberValues`  这个Map 中找出对应的值，而 `memberValues` 的来源是 Java 常量池
 
 解析注解数据的原理：注解在哪个成分上，就先拿哪个成分对象，比如注解作用在类上，则要该类的Class对象，再来拿上面的注解
 
@@ -11534,11 +11535,11 @@ Java 对象创建时机：
 
 1. 一个实例变量在对象初始化的过程中会被赋值几次？
 
-   JVM在为一个对象分配完内存之后，会给每一个实例变量赋予默认值，这个实例变量被第一次赋值
+   JVM 在为一个对象分配完内存之后，会给每一个实例变量赋予默认值，这个实例变量被第一次赋值
    在声明实例变量的同时对其进行了赋值操作，那么这个实例变量就被第二次赋值
    在实例代码块中又对变量做了初始化操作，那么这个实例变量就被第三次赋值
    在构造函数中也对变量做了初始化操作，那么这个实例变量就被第四次赋值
-   在Java的对象初始化过程中，一个实例变量最多可以被初始化4次
+   在 Java 的对象初始化过程中，一个实例变量最多可以被初始化4次
 
 2. 类的初始化过程与类的实例化过程的异同？
 
