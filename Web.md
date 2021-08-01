@@ -2951,9 +2951,9 @@ public class ServletDemo06 extends HttpServlet {
 
 #### 默认Servlet
 
-默认Servlet是由服务器提供的一个Servlet，它配置在Tomcat的conf目录下的web.xml中。
+默认 Servlet 是由服务器提供的一个 Servlet，它配置在 Tomcat 的 conf 目录下的 web.xml 中。
 
-它的映射路径是`<url-pattern>/<url-pattern>`，我们在发送请求时，首先会在我们应用中的web.xml中查找映射配置。但是当找不到对应的Servlet路径时，就去找默认的Servlet，由默认Servlet处理。
+它的映射路径是`<url-pattern>/<url-pattern>`，我们在发送请求时，首先会在我们应用中的 web.xml 中查找映射配置。但是当找不到对应的 Servlet 路径时，就去找默认的 Servlet，由默认 Servlet 处理。
 
 
 
@@ -2963,24 +2963,23 @@ public class ServletDemo06 extends HttpServlet {
 
 ### ServletConfig
 
-**概念：**
-	ServletConfig是Servlet的配置参数对象。在Servlet规范中，允许为每个Servlet都提供一些初始化配置。
-	每个Servlet都一个自己的ServletConfig，作用是**在Servlet初始化期间，把一些配置信息传递给Servlet**。
+ServletConfig 是 Servlet 的配置参数对象。在 Servlet 规范中，允许为每个 Servlet 都提供一些初始化配置，每个 Servlet 都有自己的ServletConfig，作用是**在 Servlet 初始化期间，把一些配置信息传递给 Servlet**
 
-**生命周期：**
-	在初始化阶段读取了web.xml中为Servlet准备的初始化配置，并把配置信息传递给Servlet，所以生命周期与	Servlet相同。如果Servlet配置了`<load-on-startup>1</load-on-startup>`，ServletConfig也会在应用加载时创建。
+生命周期：在初始化阶段读取了 web.xml 中为 Servlet 准备的初始化配置，并把配置信息传递给 Servlet，所以生命周期与 Servlet 相同。如果 Servlet 配置了 `<load-on-startup>1</load-on-startup>`，ServletConfig 也会在应用加载时创建。
 
-**获取ServletConfig**：在init方法中为ServletConfig赋值
+获取 ServletConfig：在 init 方法中为 ServletConfig 赋值
 
-**常用API：**
-	`String getInitParameter(String name)`  : 根据初始化参数的名称，获取参数的值。
-																					根据<param-name>，获取<param-value>
-	`Enumeration<String> getInitParameterNames()` : 获取所有初始化参数名称的枚举(遍历方式看例子)
-	`ServletContext getServletContext()` : 获取**ServletContext**对象
-	`String getServletName()` : 获取Servlet名称
+常用API：
 
-* web.xml配置：
-  初始化参数使用`<servlet>`标签中的`<init-param>`标签来配置，并且每个Servlet都支持有多个初始化参数，并且初始化参数都是以键值对的形式存在的
+* `String getInitParameter(String name)`：根据初始化参数的名称获取参数的值，根据<param-name>，获取<param-value>
+* `Enumeration<String> getInitParameterNames()` : 获取所有初始化参数名称的枚举(遍历方式看例子)
+* `ServletContext getServletContext()` : 获取**ServletContext**对象
+* `String getServletName()` : 获取Servlet名称
+
+代码实现：
+
+* web.xml 配置：
+  初始化参数使用 `<servlet>` 标签中的 `<init-param> `标签来配置，并且每个 Servlet 都支持有多个初始化参数，并且初始化参数都是以键值对的形式存在的
 
   ```xml
   <!--配置ServletDemo8-->
@@ -3069,31 +3068,27 @@ public class ServletDemo06 extends HttpServlet {
 
 ### ServletContext
 
-**概念：**
-	ServletContext对象是应用上下文对象。服务器为每一个应用(项目)都创建了一个ServletContext对象
-	ServletContext属于整个应用，不局限于某个Servlet。它可以实现让应用中所有Servlet间的数据共享。 
+ServletContext 对象是应用上下文对象。服务器为每一个应用都创建了一个 ServletContext 对象，ServletContext 属于整个应用，不局限于某个 Servlet，可以实现让应用中所有 Servlet 间的数据共享。 
 
-**上下文：**
-	上下文，上下文代表了程序当下所运行的环境，联系你整个应用的生命周期与资源调用，是程序可以访问到的所有资源的总和，资源可以是一个变量，也可以是一个对象的引用
+上下文代表了程序当下所运行的环境，联系整个应用的生命周期与资源调用，是程序可以访问到的所有资源的总和，资源可以是一个变量，也可以是一个对象的引用
 
-**生命周期：**
-	出生：应用一加载，该对象就被创建出来。一个应用只有一个实例对象(Servlet和ServletContext都是单例的)
-	活着：只要应用一直提供服务，该对象就一直存在。
-	死亡：应用被卸载（或者服务器停止），该对象消亡。
+生命周期：
 
-**域对象：**
-	域对象的概念：指的是对象有作用域，即有作用范围。
-	域对象的作用：域对象可以实现数据共享，不同作用范围的域对象，共享数据的能力不一样。
-	Servlet规范中，共有4个域对象，ServletContext是其中一个，web应用中最大的作用域，叫application域，
-	application域可以实现整个应用间的数据共享功能。
+* 出生：应用一加载，该对象就被创建出来。一个应用只有一个实例对象（Servlet 和 ServletContext 都是单例的）
+* 活着：只要应用一直提供服务，该对象就一直存在。
+* 死亡：应用被卸载（或者服务器停止），该对象消亡。
 
-**数据共享：**
+域对象：指的是对象有作用域，即有作用范围，可以**实现数据共享**，不同作用范围的域对象，共享数据的能力不一样。
+
+Servlet 规范中，共有4个域对象，ServletContext 是其中一个，web 应用中最大的作用域，叫 application 域，可以实现整个应用间的数据共享功能。
+
+数据共享：
 
 <img src="https://gitee.com/seazean/images/raw/master/Web/ServletContext共享数据.png" style="zoom:50%;" />
 
-**获取ServletContext：**
+获取ServletContext：
 
-* Java项目继承HttpServlet，HttpServlet继承GenericServlet，GenericServlet中有一个方法可以直接使用
+* Java 项目继承 HttpServlet，HttpServlet 继承 GenericServlet，GenericServlet 中有一个方法可以直接使用
 
   ```java
   public ServletContext getServletContext() {
@@ -3102,21 +3097,23 @@ public class ServletDemo06 extends HttpServlet {
   ```
 
 
-* ServletRequest类方法：
+* ServletRequest 类方法：
 
   ```java
   ServletContext getServletContext()//获取ServletContext对象
   ```
 
-  
 
-**常用API：**
-	`String getInitParameter(String name)` : 根据名称获取全局配置的参数
-	`String getContextPath` : 获取当前应用访问的虚拟目录
-	`String getRealPath(String path)` : 根据虚拟目录获取应用部署的磁盘绝对路径
-	`void setAttribute(String name, Object object)` : 向应用域对象中存储数据
-	`Object getAttribute(String name)` : 根据名称获取域对象中的数据，没有则返回null
-	`void removeAttribute(String name)` : 根据名称移除应用域对象中的数据
+常用API：
+
+* `String getInitParameter(String name)` : 根据名称获取全局配置的参数
+* `String getContextPath` : 获取当前应用访问的虚拟目录
+* `String getRealPath(String path)` : 根据虚拟目录获取应用部署的磁盘绝对路径
+* `void setAttribute(String name, Object object)` : 向应用域对象中存储数据
+* `Object getAttribute(String name)` : 根据名称获取域对象中的数据，没有则返回null
+* `void removeAttribute(String name)` : 根据名称移除应用域对象中的数据
+
+代码实现：
 
 * web.xml配置：
   配置的方式，需要在`<web-app>`标签中使用`<context-param>`来配置初始化参数，它的配置是针对整个应用的配置，被称为应用的初始化参数配置。
@@ -3192,7 +3189,7 @@ public class ServletDemo06 extends HttpServlet {
 
 ### 注解开发
 
-Servlet3.0版本！不需要配置web.xml
+Servlet3.0 版本！不需要配置 web.xml
 
 * 注解案例
 
@@ -3276,10 +3273,9 @@ Web服务器收到客户端的http请求，会针对每一次请求，分别创�
 
 请求：客户机希望从服务器端索取一些资源，向服务器发出询问
 
-请求对象：在JavaEE工程中，用于发送请求的对象
-			常用的对象是ServletRequest和HttpServletRequest，它们的区是是否与HTTP协议有关
+请求对象：在 JavaEE 工程中，用于发送请求的对象，常用的对象是 ServletRequest 和 HttpServletRequest ，它们的区是是否与 HTTP 协议有关
 
-Request作用：
+Request 作用：
 
 * 操作请求三部分(行,头,体)
 * 请求转发
@@ -3293,7 +3289,7 @@ Request作用：
 
 
 
-### 获取请求路径
+### 请求路径
 
 | 方法                            | 作用                                                         |
 | ------------------------------- | ------------------------------------------------------------ |
@@ -3358,7 +3354,7 @@ public class ServletDemo02 extends HttpServlet {
 
 
 
-### 获取请求参数
+### 请求参数
 
 #### 请求参数
 
@@ -3550,7 +3546,7 @@ public class ServletDemo07 extends HttpServlet {
 
 #### 请求域
 
-request域：可以在一次请求范围内进行共享数据
+request 域：可以在一次请求范围内进行共享数据
 
 | 方法                                         | 作用                         |
 | -------------------------------------------- | ---------------------------- |
@@ -5370,13 +5366,12 @@ Filter：过滤器，是JavaWeb三大组件之一，另外两个是Servlet和Lis
 
 #### FilterChain
 
-* FilterChain是一个接口，代表过滤器对象。由Servlet容器提供实现类对象，直接使用即可。
+* FilterChain 是一个接口，代表过滤器对象。由Servlet容器提供实现类对象，直接使用即可。
 
 * 过滤器可以定义多个，就会组成过滤器链
 
-* 核心方法
-  `void doFilter(ServletRequest request, ServletResponse response)`：放行方法
-
+* 核心方法：`void doFilter(ServletRequest request, ServletResponse response)` 用来放行方法
+  
   如果有多个过滤器，在第一个过滤器中调用下一个过滤器，以此类推，直到到达最终访问资源。
   如果只有一个过滤器，放行时就会直接到达最终访问资源。
 
@@ -5384,7 +5379,7 @@ Filter：过滤器，是JavaWeb三大组件之一，另外两个是Servlet和Lis
 
 #### FilterConfig
 
-* FilterConfig 是一个接口，代表过滤器的配置对象，可以加载一些初始化参数
+FilterConfig 是一个接口，代表过滤器的配置对象，可以加载一些初始化参数
 
 * 核心方法：
 
@@ -5408,6 +5403,7 @@ Filter：过滤器，是JavaWeb三大组件之一，另外两个是Servlet和Lis
 #### 设置页面编码
 
 请求先被过滤器拦截进行相关操作
+
 过滤器放行之后执行完目标资源，仍会回到过滤器中
 
 * Filter代码：
@@ -5463,7 +5459,7 @@ Filter：过滤器，是JavaWeb三大组件之一，另外两个是Servlet和Lis
 
 多个过滤器使用的顺序，取决于过滤器映射的顺序。
 
-* 两个Filter代码：
+* 两个 Filter 代码：
 
   ```java
   public class FilterDemo01 implements Filter{

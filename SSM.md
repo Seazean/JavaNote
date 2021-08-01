@@ -4015,7 +4015,7 @@ public class MainTest {
 
 类型：类注解，写在类定义上方
 
-作用：设置该类为spring管理的bean
+作用：设置该类为Spring 管理的 bean
 
 格式：
 
@@ -4024,7 +4024,7 @@ public class MainTest {
 public class ClassName{}
 ```
 
-说明：@Controller、@Service 、@Repository是@Component的衍生注解，功能同@Component
+说明：@Controller、@Service 、@Repository 是 @Component 的衍生注解，功能同 @Component
 
 属性：
 
@@ -8986,7 +8986,11 @@ MVC（Model View Controller），一种用于设计创建Web应用程序表现�
 
 
 
+
+
 ***
+
+
 
 
 
@@ -8994,19 +8998,23 @@ MVC（Model View Controller），一种用于设计创建Web应用程序表现�
 
 ### 组件介绍
 
-* DispatcherServlet：核心控制器， 是SpringMVC的核心，整体流程控制的中心，所有的请求第一步都先到达这里，由其调用其它组件处理用户的请求，它就是在web.xml配置的核心Servlet，有效的降低了组件间的耦合性
+* DispatcherServlet：核心控制器， 是 SpringMVC 的核心，整体流程控制的中心，所有的请求第一步都先到达这里，由其调用其它组件处理用户的请求，它就是在 web.xml 配置的核心 Servlet，有效的降低了组件间的耦合性
   
-* HandlerMapping：处理器映射器， 负责根据用户请求找到对应具体的Handler处理器，SpringMVC中针对配置文件方式、注解方式等提供了不同的映射器来处理
+* HandlerMapping：处理器映射器， 负责根据用户请求找到对应具体的 Handler 处理器，SpringMVC 中针对配置文件方式、注解方式等提供了不同的映射器来处理
 
-* Handler：处理器，其实就是Controller，业务处理的核心类，通常由开发者编写，并且必须遵守Controller开发的规则，这样适配器才能正确的执行。例如实现Controller接口，将Controller注册到IOC容器中等
+* Handler：处理器，其实就是 Controller，业务处理的核心类，通常由开发者编写，并且必须遵守 Controller 开发的规则，这样适配器才能正确的执行。例如实现 Controller 接口，将 Controller 注册到 IOC 容器中等
 
-* HandlAdapter：处理器适配器，根据映射器中找到的Handler，通过HandlerAdapter去执行Handler，这是适配器模式的应用
+* HandlAdapter：处理器适配器，根据映射器中找到的 Handler，通过 HandlerAdapter 去执行 Handler，这是适配器模式的应用
 
-* View Resolver：视图解析器， 将Handler中返回的逻辑视图（ModelAndView）解析为一个具体的视图（View）对象
+* View Resolver：视图解析器， 将 Handler 中返回的逻辑视图（ModelAndView）解析为一个具体的视图（View）对象
 
-* View：视图， View最后对页面进行渲染将结果返回给用户。springmvc框架提供了很多的View视图类型，包括：jstlView、freemarkerView、pdfView等
+* View：视图， View 最后对页面进行渲染将结果返回给用户。Springmvc 框架提供了很多的 View 视图类型，包括：jstlView、freemarkerView、pdfView 等
 
   ![](https://gitee.com/seazean/images/raw/master/Frame/SpingMVC技术架构.png)
+
+
+
+****
 
 
 
@@ -9036,6 +9044,8 @@ MVC（Model View Controller），一种用于设计创建Web应用程序表现�
 
 
 ***
+
+
 
 
 
@@ -9209,7 +9219,7 @@ Controller 加载控制：SpringMVC 的处理器对应的 bean 必须按照规�
   <mvc:resources mapping="/js/**" location="/js/"/>
   <mvc:resources mapping="/css/**" location="/css/"/>
   
-  <!--SpringMVC提供的通用资源放行方式，建议选择-->
+  <!--SpringMVC 提供的通用资源放行方式，建议选择-->
   <mvc:default-servlet-handler/>
   ```
 
@@ -9266,10 +9276,10 @@ Controller 加载控制：SpringMVC 的处理器对应的 bean 必须按照规�
 * 基于 servlet3.0 规范，自定义 Servlet 容器初始化配置类，加载 SpringMVC 核心配置类  
 
   ```java
+  //创建Servlet容器时，使用注解方式加载SPRINGMVC配置类中的信息，
+  //并加载成WEB专用的ApplicationContext对象该对象放入了ServletContext范围，
+  //在整个WEB容器中可以随时获取调用
   public class ServletContainersInitConfig extends AbstractDispatcherServletInitializer {
-      //创建Servlet容器时，使用注解方式加载SPRINGMVC配置类中的信息，
-      //并加载成WEB专用的ApplicationContext对象该对象放入了ServletContext范围，
-      //在整个WEB容器中可以随时获取调用
       @Override
       protected WebApplicationContext createServletApplicationContext() {
           A.C.W.A ctx = new AnnotationConfigWebApplicationContext();
@@ -9320,6 +9330,7 @@ Controller 加载控制：SpringMVC 的处理器对应的 bean 必须按照规�
 * 方法注解
 
   作用：绑定请求地址与对应处理方法间的关系
+
   无类映射地址访问格式： http://localhost/requestURL2
 
   ```java
@@ -9335,7 +9346,9 @@ Controller 加载控制：SpringMVC 的处理器对应的 bean 必须按照规�
 * 类注解
   
   作用：为当前处理器中所有方法设定公共的访问路径前缀
+  
   带有类映射地址访问格式，将类映射地址作为前缀添加在实际映射地址前面：**/user/requestURL1**
+  
   最终返回的页面如果未设定绝对访问路径，将从类映射地址所在目录中查找 **webapp/user/page.jsp**
   
   ```java
@@ -9373,13 +9386,1208 @@ Controller 加载控制：SpringMVC 的处理器对应的 bean 必须按照规�
 
 ## 基本操作
 
-（正在更新请求与响应的笔记）
+### 请求处理
+
+#### 普通类型
+
+SpringMVC 将传递的参数封装到处理器方法的形参中，达到快速访问参数的目的
+
+* 访问 URL：http://localhost/requestParam1?name=seazean&age=14  
+
+  ```java
+  @Controller
+  public class UserController {
+      @RequestMapping("/requestParam1")
+      public String requestParam1(String name ,int age){
+          System.out.println("name=" + name + ",age=" + age);
+          return "page.jsp";
+      }
+  }
+  ```
+
+  ```jsp
+  <%@page pageEncoding="UTF-8" language="java" contentType="text/html;UTF-8" %>
+  <html>
+  <body>
+  	<h1>请求参数测试页面</h1>
+  </body>
+  </html>
+  ```
+
+@RequestParam 的使用：
+
+* 类型：形参注解
+
+* 位置：处理器类中的方法形参前方
+
+* 作用：绑定请求参数与对应处理方法形参间的关系 
+
+* 访问 URL：http://localhost/requestParam2?userName=Jock
+
+  ```java
+  @RequestMapping("/requestParam2")
+  public String requestParam2(@RequestParam(
+                              name = "userName",
+                              required = true,	//为true代表必须有参数
+                              defaultValue = "s") String name){
+      System.out.println("name=" + name);
+      return "page.jsp";
+  }
+  ```
+
+
+
+***
+
+
+
+#### POJO类型
+
+##### 简单类型
+
+当 POJO 中使用简单类型属性时， 参数名称与 POJO 类属性名保持一致  
+
+* 访问 URL： http://localhost/requestParam3?name=seazean&age=14  
+
+  ```java
+  @RequestMapping("/requestParam3")
+  public String requestParam3(User user){
+      System.out.println("name=" + user.getName());
+      return "page.jsp";
+  }
+  ```
+
+  ```java
+  public class User {
+      private String name;
+      private Integer age;
+      //......
+  }
+  ```
+
+
+
+****
+
+
+
+##### 参数冲突
+
+当 POJO 类型属性与其他形参出现同名问题时，将被**同时赋值**，建议使用 @RequestParam 注解进行区分
+
+* 访问 URL： http://localhost/requestParam4?name=seazean&age=14  
+
+  ```java
+  @RequestMapping("/requestParam4")
+  public String requestParam4(User user, String age){
+      System.out.println("user.age=" + user.getAge() + ",age=" + age);//14 14 
+      return "page.jsp";
+  }
+  ```
+
+
+
+***
+
+
+
+##### 复杂类型
+
+当 POJO 中出现对象属性时，参数名称与对象层次结构名称保持一致  
+
+* 访问 URL： http://localhost/requestParam5?address.province=beijing  
+
+  ```java
+  @RequestMapping("/requestParam5")
+  public String requestParam5(User user){
+      System.out.println("user.address=" + user.getAddress().getProvince());
+      return "page.jsp";
+  }
+  ```
+
+  ```java
+  public class User {
+      private String name;
+      private Integer age;
+      private Address address; //....
+  }
+  ```
+
+  ```java
+  public class Address {
+      private String province;
+      private String city;
+      private String address;
+  }
+  ```
+
+
+
+
+***
+
+
+
+##### 容器类型
+
+POJO 中出现集合类型的处理方式
+
+* 通过 URL 地址中同名参数，可以为 POJO 中的集合属性进行赋值，集合属性要求保存简单数据
+
+  访问 URL：http://localhost/requestParam6?nick=Jock1&nick=Jockme&nick=zahc
+
+  ```java
+  @RequestMapping("/requestParam6")
+  public String requestParam6(User user){
+      System.out.println("user=" + user);
+      //user = User{name='null',age=null,nick={Jock1,Jockme,zahc}}
+      return "page.jsp";
+  }
+  ```
+
+  ```java
+  public class User {
+      private String name;
+      private Integer age;
+      private List<String> nick;
+  }
+  ```
+
+* POJO 中出现 List 保存对象数据，参数名称与对象层次结构名称保持一致，使用数组格式描述集合中对象的位置访问 URL：http://localhost/requestParam7?addresses[0].province=bj&addresses[1].province=tj  
+
+  ```java
+  @RequestMapping("/requestParam7")
+  public String requestParam7(User user){
+      System.out.println("user.addresses=" + user.getAddress());
+      //{Address{provice=bj,city='null',address='null'}},{Address{....}}
+      return "page.jsp";
+  }
+  ```
+
+  ```java
+  public class User {
+      private String name;
+      private Integer age;
+      private List<Address> addresses;
+  }
+  ```
+
+* POJO 中出现 Map 保存对象数据，参数名称与对象层次结构名称保持一致，使用映射格式描述集合中对象位置
+
+  URL: http://localhost/requestParam8?addressMap[’home’].province=bj&addressMap[’job’].province=tj  
+
+  ```java
+  @RequestMapping("/requestParam8")
+  public String requestParam8(User user){
+      System.out.println("user.addressMap=" + user.getAddressMap());
+      //user.addressMap={home=Address{p=,c=,a=},job=Address{....}}
+      return "page.jsp";
+  }
+  ```
+
+  ```java
+  public class User {
+      private Map<String,Address> addressMap;
+      //....
+  }
+  ```
+
+
+
+
+***
+
+
+
+#### 数组集合
+
+##### 数组类型
+
+请求参数名与处理器方法形参名保持一致，且请求参数数量＞ 1个  
+
+* 访问 URL： http://localhost/requestParam9?nick=Jockme&nick=zahc  
+
+  ```java
+  @RequestMapping("/requestParam9")
+  public String requestParam9(String[] nick){
+      System.out.println(nick[0] + "," + nick[1]);
+      return "page.jsp";
+  }
+  ```
+
+
+
+***
+
+
+
+##### 集合类型
+
+保存简单类型数据，请求参数名与处理器方法形参名保持一致，且请求参数数量＞ 1个
+
+* 访问 URL： http://localhost/requestParam10?nick=Jockme&nick=zahc
+
+  ```java
+  @RequestMapping("/requestParam10")
+  public String requestParam10(@RequestParam("nick") List<String> nick){
+      System.out.println(nick);
+      return "page.jsp";
+  }
+  ```
+
+* 注意： SpringMVC 默认将 List 作为对象处理，赋值前先创建对象，然后将 nick **作为对象的属性**进行处理。List 是接口无法创建对象，报无法找到构造方法异常；修复类型为可创建对象的 ArrayList 类型后，对象可以创建但没有 nick 属性，因此数据为空
+  解决方法：需要告知 SpringMVC 的处理器 nick 是一组数据，而不是一个单一属性。通过 @RequestParam 注解，将数量大于 1 个 names 参数打包成参数数组后， SpringMVC 才能识别该数据格式，并判定形参类型是否为数组或集合，并按数组或集合对象的形式操作数据
+
+
+
+***
+
+
+
+#### 转换器
+
+##### 类型
+
+开启转换配置：`<mvc:annotation-driven />  `
+作用：提供 Controller 请求转发，Json 自动转换等功能
+
+如果访问 URL：http://localhost/requestParam1?name=seazean&age=seazean，会出现报错，类型转化异常
+
+```java
+@RequestMapping("/requestParam1")
+public String requestParam1(String name ,int age){
+    System.out.println("name=" + name + ",age=" + age);
+    return "page.jsp";
+}
+```
+
+SpringMVC 对接收的数据进行自动类型转换，该工作通过 Converter 接口实现：
+
+* **标量转换器**
+  StringToBooleanConverter String → Boolean
+  ObjectToStringConverter Object → String
+  StringToNumberConverterFactory String → Number（ Integer、 Long 等）
+  NumberToNumberConverterFactory Number子类型之间（Integer、 Long、 Double 等）
+  StringToCharacterConverter String → java.lang.Character
+  NumberToCharacterConverter Number子类型（Integer、 Long、 Double 等）→ java.lang.Character
+  CharacterToNumberFactory java.lang.Character → Number子类型（Integer、Long、Double 等）
+  StringToEnumConverterFactory String → enum类型
+  EnumToStringConverter enum类型 → String
+  StringToLocaleConverter String → java.util.Local
+  PropertiesToStringConverter java.util.Properties → String
+  StringToPropertiesConverter String → java.util.Properties  
+
+* **集合、数组相关转换器**
+  ArrayToCollectionConverter 数组 → 集合（ List、 Set）
+  CollectionToArrayConverter 集合（ List、 Set） →数组
+  ArrayToArrayConverter 数组间
+  CollectionToCollectionConverter 集合间（ List、 Set）
+  MapToMapConverter Map间
+  ArrayToStringConverter 数组→String类型
+  StringToArrayConverter String →数组， trim后使用“,”split
+  ArrayToObjectConverter 数组 → Object
+  ObjectToArrayConverter Object → 单元素数组
+  CollectionToStringConverter 集合（ List、 Set） →String
+  StringToCollectionConverter String → 集合（ List、 Set）， trim后使用“,”split
+  CollectionToObjectConverter 集合 → Object
+  ObjectToCollectionConverter Object → 单元素集合  
+* **默认转换器**
+  ObjectToObjectConverter Object间
+  IdToEntityConverter Id → Entity
+  FallbackObjectToStringConverter Object → String  
+
+
+
+***
+
+
+
+##### 日期
+
+![](https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-date数据类型转换.png)
+
+如果访问 URL：http://localhost/requestParam11?date=1999-09-09 会报错，所以需要日期类型转换
+
+* 声明自定义的转换格式并覆盖系统转换格式，配置 resources / spring-mvc.xml
+
+  ```xml
+  <!--5.启用自定义Converter-->
+  <mvc:annotation-driven conversion-service="conversionService"/>
+  <!--1.设定格式类型Converter，注册为Bean，受SpringMVC管理-->
+  <bean id="conversionService" class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
+      <!--2.自定义Converter格式类型设定，该设定使用的是同类型覆盖的思想-->
+      <property name="formatters">
+          <!--3.使用set保障相同类型的转换器仅保留一个，避免冲突-->
+          <set>
+              <!--4.设置具体的格式类型-->
+              <bean class="org.springframework.format.datetime.DateFormatter">
+                  <!--5.类型规则-->
+                  <property name="pattern" value="yyyy-MM-dd"/>
+              </bean>
+          </set>
+      </property>
+  </bean>
+  ```
+
+* @DateTimeFormat
+  类型：形参注解、成员变量注解
+  位置：形参前面 或 成员变量上方
+  作用：为当前参数或变量指定类型转换规则
+
+  ```java
+  public String requestParam12(@DateTimeFormat(pattern = "yyyy-MM-dd") Date date){
+      System.out.println("date=" + date);
+      return "page.jsp";
+  }
+  ```
+
+  ```java
+  @DateTimeFormat(pattern = "yyyy-MM-dd")
+  private Date date;
+  ```
+
+  依赖注解驱动支持，xml 开启配置：
+
+  ```xml
+  <mvc:annotation-driven />  
+  ```
+
+
+
+***
+
+
+
+##### 自定义
+
+* 自定义类型转换器，实现 Converter 接口，并制定转换前与转换后的类型
+
+  ```java
+  //自定义类型转换器，实现Converter接口，接口中指定的泛型即为最终作用的条件
+  //本例中的泛型填写的是String，Date，最终出现字符串转日期时，该类型转换器生效
+  public class MyDateConverter implements Converter<String, Date> {
+      //重写接口的抽象方法，参数由泛型决定
+      public Date convert(String source) {
+          DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+          Date date = null;
+          //类型转换器无法预计使用过程中出现的异常，因此必须在类型转换器内部捕获，
+          //不允许抛出，框架无法预计此类异常如何处理
+          try {
+              date = df.parse(source);
+          } catch (ParseException e) {
+              e.printStackTrace();
+          }
+          return date;
+      }
+  }
+  ```
+
+* 配置 resources / spring-mvc.xml，注册自定义转换器，将功能加入到 SpringMVC 转换服务 ConverterService 中
+
+  ```xml
+  <!--1.将自定义Converter注册为Bean，受SpringMVC管理-->
+  <bean id="myDateConverter" class="converter.MyDateConverter"/>
+  <!--2.设定自定义Converter服务bean-->
+  <bean id="conversionService"
+        class="org.springframework.context.support.ConversionServiceFactoryBean">
+      <!--3.注入所有的自定义Converter，该设定使用的是同类型覆盖的思想-->
+      <property name="converters">
+          <!--4.set保障同类型转换器仅保留一个，去重规则以Converter<S,T>的泛型为准-->
+          <set>
+              <!--5.具体的类型转换器-->
+              <ref bean="myDateConverter"/>
+          </set>
+      </property>
+  </bean>
+  
+  <!--开启注解驱动，加载自定义格式化转换器对应的类型转换服务-->
+  <mvc:annotation-driven conversion-service="conversionService"/>
+  ```
+
+* 使用转换器
+
+  ```java
+  @RequestMapping("/requestParam12")
+  public String requestParam12(Date date){
+      System.out.println(date);
+      return "page.jsp";
+  }
+  ```
+
+  
+
+
+
+***
+
+
+
+### 响应处理
+
+#### 页面跳转
+
+请求转发和重定向：
+
+* 请求转发：
+
+  ```java
+  @Controller
+  public class UserController {
+      @RequestMapping("/showPage1")
+  	public String showPage1() {
+     	 	System.out.println("user mvc controller is running ...");
+      	return "forward:/WEB-INF/page/page.jsp;
+  	}
+  }
+  ```
+
+* 请求重定向：
+
+  ```java
+  @RequestMapping("/showPage2")
+  public String showPage2() {
+      System.out.println("user mvc controller is running ...");
+      return "redirect:/WEB-INF/page/page.jsp";//不能访问WEB-INF下的资源
+  }
+  ```
+
+
+页面访问快捷设定（InternalResourceViewResolver）：
+
+* 展示页面的保存位置通常固定且结构相似，可以设定通用的访问路径简化页面配置，配置 spring-mvc.xml：
+
+  ```xml
+  <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+      <property name="prefix" value="/WEB-INF/pages/"/>
+      <property name="suffix" value=".jsp"/>
+  </bean>
+  ```
+
+* 简化
+
+  ```java
+  @RequestMapping("/showPage3")
+  public String showPage3() {
+      System.out.println("user mvc controller is running...");
+      return "page";
+  }
+  @RequestMapping("/showPage4")
+  public String showPage4() {
+      System.out.println("user mvc controller is running...");
+      return "forward:page";
+  }
+  
+  @RequestMapping("/showPage5")
+  public String showPage5() {
+      System.out.println("user mvc controller is running...");
+      return "redirect:page";
+  }
+  ```
+
+* 如果未设定了返回值，使用 void 类型，则默认使用访问路径作页面地址的前缀后缀
+
+  ```java
+  //最简页面配置方式，使用访问路径作为页面名称，省略返回值
+  @RequestMapping("/showPage6")
+  public void showPage6() {
+      System.out.println("user mvc controller is running ...");
+  }
+  ```
+
+
+
+***
+
+
+
+#### 带数据跳转
+
+ModelAndView 是 SpringMVC 提供的一个对象，该对象可以用作控制器方法的返回值（Model 同）
+作用：
+
++ 设置数据，向请求域对象中存储数据
++ 设置视图，逻辑视图
+
+代码实现：
+
+* 使用 HttpServletRequest 类型形参进行数据传递
+
+  ```java
+  @Controller
+  public class BookController {
+      @RequestMapping("/showPageAndData1")
+      public String showPageAndData1(HttpServletRequest request) {
+          request.setAttribute("name","seazean");
+          return "page";
+      }
+  }
+  ```
+
+* 使用 Model 类型形参进行数据传递
+
+  ```java
+  @RequestMapping("/showPageAndData2")
+  public String showPageAndData2(Model model) {
+      model.addAttribute("name","seazean");
+      Book book = new Book();
+      book.setName("SpringMVC入门实战");
+      book.setPrice(66.6d);
+      //添加数据的方式，key对value
+      model.addAttribute("book",book);
+      return "page";
+  }
+  ```
+
+  ```java
+  public class Book {
+      private String name;
+      private Double price;
+  }
+  ```
+
+* 使用 ModelAndView 类型形参进行数据传递，将该对象作为返回值传递给调用者  
+
+  ```java
+  @RequestMapping("/showPageAndData3")
+  public ModelAndView showPageAndData3(ModelAndView modelAndView) {
+      //ModelAndView mav = new ModelAndView(); 替换形参中的参数
+      Book book  = new Book();
+      book.setName("SpringMVC入门案例");
+      book.setPrice(66.66d);
+  
+      //添加数据的方式，key对value
+      modelAndView.addObject("book",book);
+      modelAndView.addObject("name","Jockme");
+      //设置页面的方式，该方法最后一次执行的结果生效
+      modelAndView.setViewName("page");
+      //返回值设定成ModelAndView对象
+      return modelAndView;
+  }
+  ```
+
+* ModelAndView 扩展
+
+  ```java
+  //ModelAndView对象支持转发的手工设定，该设定不会启用前缀后缀的页面拼接格式
+  @RequestMapping("/showPageAndData4")
+  public ModelAndView showPageAndData4(ModelAndView modelAndView) {
+      modelAndView.setViewName("forward:/WEB-INF/page/page.jsp");
+      return modelAndView;
+  }
+  
+  //ModelAndView对象支持重定向的手工设定，该设定不会启用前缀后缀的页面拼接格式
+  @RequestMapping("/showPageAndData5")
+  public ModelAndView showPageAndData6(ModelAndView modelAndView) {
+      modelAndView.setViewName("redirect:page.jsp");
+      return modelAndView;
+  }
+  ```
+
+
+
+***
+
+
+
+#### JSON数据
+
+注解：@ResponseBody
+
+作用：将 Controller 的方法返回的对象通过适当的转换器转换为指定的格式之后，写入到 Response 的 body 区。如果返回值是字符串，那么直接将字符串返回客户端；如果是一个对象，会**将对象转化为 Json**，返回客户端
+
+注意：当方法上面没有写 ResponseBody，底层会将方法的返回值封装为 ModelAndView 对象。
+
+* 使用 HttpServletResponse 对象响应数据
+
+  ```java
+  @Controller
+  public class AccountController {
+      @RequestMapping("/showData1")
+      public void showData1(HttpServletResponse response) throws IOException {
+          response.getWriter().write("message");
+      }
+  }
+  ```
+
+* 使用 **@ResponseBody 将返回的结果作为响应内容**（页面显示），而非响应的页面名称
+
+  ```java
+  @RequestMapping("/showData2")
+  @ResponseBody
+  public String showData2(){
+      return "{'name':'Jock'}";
+  }
+  ```
+
+* 使用 jackson 进行 json 数据格式转化
+
+  导入坐标：
+
+  ```xml
+  <!--json相关坐标3个-->
+  <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-core</artifactId>
+      <version>2.9.0</version>
+  </dependency>
+  
+  <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-databind</artifactId>
+      <version>2.9.0</version>
+  </dependency>
+  
+  <dependency>
+      <groupId>com.fasterxml.jackson.core</groupId>
+      <artifactId>jackson-annotations</artifactId>
+      <version>2.9.0</version>
+  </dependency>
+  ```
+
+  ```java
+  @RequestMapping("/showData3")
+  @ResponseBody
+  public String showData3() throws JsonProcessingException {
+      Book book  = new Book();
+      book.setName("SpringMVC入门案例");
+      book.setPrice(66.66d);
+  
+      ObjectMapper om = new ObjectMapper();
+      return om.writeValueAsString(book);
+  }
+  ```
+
+* 使用 SpringMVC 提供的消息类型转换器将对象与集合数据自动转换为 JSON 数据
+
+  ```java
+  //使用SpringMVC注解驱动，对标注@ResponseBody注解的控制器方法进行结果转换，由于返回值为引用类型，自动调用jackson提供的类型转换器进行格式转换
+  @RequestMapping("/showData4")
+  @ResponseBody
+  public Book showData4() {
+      Book book  = new Book();
+      book.setName("SpringMVC入门案例");
+      book.setPrice(66.66d);
+      return book;
+  }
+  ```
+
+  * 手工添加信息类型转换器  
+
+    ```xml
+    <bean class="org.springframework.web.servlet.mvc.method.
+                 annotation.RequestMappingHandlerAdapter">
+        <property name="messageConverters">
+            <list>
+                <bean class="org.springframework.http.converter.
+                          json.MappingJackson2HttpMessageConverter"/>
+            </list>
+        </property>
+    </bean
+    ```
+
+  * 使用 SpringMVC 注解驱动：
+
+    ```xml
+    <!--开启springmvc注解驱动，对@ResponseBody的注解进行格式增强，追加其类型转换的功能，具体实现由MappingJackson2HttpMessageConverter进行-->
+    <mvc:annotation-driven/>
+    ```
+
+* 转换集合类型数据
+
+  ```java
+  @RequestMapping("/showData5")
+  @ResponseBody
+  public List showData5() {
+      Book book1  = new Book();
+      book1.setName("SpringMVC入门案例");
+      book1.setPrice(66.66d);
+  
+      Book book2  = new Book();
+      book2.setName("SpringMVC入门案例");
+      book2.setPrice(66.66d);
+  
+      ArrayList al = new ArrayList();
+      al.add(book1);
+      al.add(book2);
+      return al;
+  }
+  ```
+
+
+
+****
+
+
+
+### Restful
+
+#### 基本介绍
+
+Rest（REpresentational State Transfer）：表现层状态转化，定义了**资源”在网络传输中以某种“表现形式”进行“状态转移**，即网络资源的访问方式
+
+* 资源：把真实的对象数据称为资源，一个资源既可以是一个集合，也可以是单个个体；每一种资源都有特定的 URI（统一资源标识符）与之对应，如果获取这个资源，访问这个 URI 就可以，比如获取特定的班级`/class/12`；资源也可以包含子资源，比如 `/classes/classId/teachers`某个指定班级的所有老师
+* 表现形式："资源"是一种信息实体，它可以有多种外在表现形式，把"资源"具体呈现出来的形式比如 json、xml、image、txt 等等叫做它的"表现层/表现形式"
+* 状态转移：描述的服务器端资源的状态，比如增删改查（通过 HTTP 动词实现）引起资源状态的改变，互联网通信协议 HTTP 协议，是一个**无状态协议**，所有的资源状态都保存在服务器端
+
+
+
+***
+
+
+
+#### 访问方式
+
+Restful 是按照 Rest 风格访问网络资源
+
+* 传统风格访问路径：http://localhost/user/get?id=1
+* Rest 风格访问路径：http://localhost/user/1
+
+优点：隐藏资源的访问行为，通过地址无法得知做的是何种操作，书写简化
+
+Restful 请求路径简化配置方式：`@RestController = @Controller + @ResponseBody`
+
+相关注解：
+
+* `@GetMapping("/poll")` = `@RequestMapping(value = "/poll",method = RequestMethod.GET)`
+
+* `@PostMapping("/push")` = `@RequestMapping(value = "/push",method = RequestMethod.POST)`
+
+
+过滤器：HiddenHttpMethodFilter 是 SpringMVC 对 Restful 风格的访问支持的过滤器
+
+代码实现：
+
+* restful.jsp：
+
+  * 页面表单**使用隐藏域提交请求类型**，参数名称固定为 _method，必须配合提交类型 method=post 使用
+
+  * GET 请求通过地址栏可以发送，也可以通过设置 form 的请求方式提交
+  * POST 请求必须通过 form 的请求方式提交
+
+  ```html
+  <h1>restful风格请求表单</h1>
+  <!--切换请求路径为restful风格-->
+  <form action="/user" method="post">
+  	<!--一隐藏域，切换为PUT请求或DELETE请求，但是form表单的提交方式method属性必须填写post-->
+  	<input name="_method" type="hidden" value="PUT"/>
+  	<input value="REST-PUT 提交" type="submit"/>
+  </form>
+  ```
+
+* java / controller / UserController
+
+  ```java
+  @RestController				//设置rest风格的控制器
+  @RequestMapping("/user/")	//设置公共访问路径，配合下方访问路径使用
+  public class UserController {
+      @GetMapping("/user")
+      //@RequestMapping(value = "/user",method = RequestMethod.GET)
+      public String getUser(){
+          return "GET-张三";
+      }
+  
+      @PostMapping("/user")
+      //@RequestMapping(value = "/user",method = RequestMethod.POST)
+      public String saveUser(){
+          return "POST-张三";
+      }
+  
+      @PutMapping("/user")
+      //@RequestMapping(value = "/user",method = RequestMethod.PUT)
+      public String putUser(){
+          return "PUT-张三";
+      }
+  
+      @DeleteMapping("/user")
+      //@RequestMapping(value = "/user",method = RequestMethod.DELETE)
+      public String deleteUser(){
+          return "DELETE-张三";
+      }
+  }
+  ```
+
+* 配置拦截器 web.xml
+
+  ```xml
+  <!--配置拦截器，解析请求中的参数_method，否则无法发起PUT请求与DELETE请求，配合页面表单使用-->
+  <filter>
+      <filter-name>HiddenHttpMethodFilter</filter-name>
+      <filter-class>org.springframework.web.filter.HiddenHttpMethodFilter</filter-class>
+  </filter>
+  <filter-mapping>
+      <filter-name>HiddenHttpMethodFilter</filter-name>
+      <servlet-name>DispatcherServlet</servlet-name>
+  </filter-mapping>
+  ```
+
+
+
+***
+
+
+
+#### 参数注解
+
+Restful 开发中的参数注解
+
+```java
+@GetMapping("{id}")
+public String getMessage(@PathVariable("id") Integer id){
+}
+```
+
+使用 @PathVariable 注解获取路径上配置的具名变量，一般在有多个参数的时候添加
+
+其他注解：
+
+* @RequestHeader：获取请求头
+* @RequestParam：获取请求参数（指问号后的参数，url?a=1&b=2）
+* @CookieValue：获取Cookie值
+* @RequestAttribute：获取request域属性
+* @RequestBody：获取请求体[POST]
+* @MatrixVariable：矩阵变量
+* @ModelAttribute
+
+```java
+@RestController	
+@RequestMapping("/user/")
+public class UserController {
+    //rest风格访问路径简化书写方式，配合类注解@RequestMapping使用
+    @RequestMapping("{id}")
+    public String restLocation2(@PathVariable Integer id){
+        System.out.println("restful is running ....get:" + id);
+        return "success.jsp";
+    }
+
+    //@RequestMapping(value = "{id}",method = RequestMethod.GET)
+    @GetMapping("{id}")
+    public String get(@PathVariable Integer id){
+        System.out.println("restful is running ....get:" + id);
+        return "success.jsp";
+    }
+
+    @PostMapping("{id}")
+    public String post(@PathVariable Integer id){
+        System.out.println("restful is running ....post:" + id);
+        return "success.jsp";
+    }
+
+    @PutMapping("{id}")
+    public String put(@PathVariable Integer id){
+        System.out.println("restful is running ....put:" + id);
+        return "success.jsp";
+    }
+
+    @DeleteMapping("{id}")
+    public String delete(@PathVariable Integer id){
+        System.out.println("restful is running ....delete:" + id);
+        return "success.jsp";
+    }
+}
+```
 
 
 
 
 
 ****
+
+
+
+#### 识别原理
+
+表单提交要使用 REST 时，会带上 `_method=PUT`，请求过来被 `HiddenHttpMethodFilter` 拦截，进行过滤操作
+
+org.springframework.web.filter.HiddenHttpMethodFilter.doFilterInternal()：
+
+```java
+public class HiddenHttpMethodFilter extends OncePerRequestFilter {
+    //兼容的请求 PUT、DELETE、PATCH
+    private static final List<String> ALLOWED_METHODS =
+			Collections.unmodifiableList(Arrays.asList(HttpMethod.PUT.name(),
+					HttpMethod.DELETE.name(), HttpMethod.PATCH.name()));
+    //隐藏域的名字
+	public static final String DEFAULT_METHOD_PARAM = "_method";
+
+	private String methodParam = DEFAULT_METHOD_PARAM;
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
+                                    FilterChain filterChain) throws ServletException, IOException {
+
+        HttpServletRequest requestToUse = request;
+        //请求必须是 POST，
+        if ("POST".equals(request.getMethod()) && request.getAttribute(WebUtils.ERROR_EXCEPTION_ATTRIBUTE) == null) {
+            //获取标签中 name="_method" 的 value 值
+            String paramValue = request.getParameter(this.methodParam);
+            if (StringUtils.hasLength(paramValue)) {
+                //转成大写
+                String method = paramValue.toUpperCase(Locale.ENGLISH);
+                //兼容的请求方式
+                if (ALLOWED_METHODS.contains(method)) {
+                    //包装请求
+                    requestToUse = new HttpMethodRequestWrapper(request, method);
+                }
+            }
+        }
+        //过滤器链放行的时候用wrapper。以后的方法调用getMethod是调用requesWrapper的
+        filterChain.doFilter(requestToUse, response);
+    }
+}
+```
+
+Rest 使用客户端工具，如 PostMan 可直接发送 put、delete 等方式请求不被过滤
+
+改变默认的 `_method` 的方式：
+
+```java
+@Configuration(proxyBeanMethods = false)
+public class WebConfig{
+    //自定义filter
+    @Bean
+    public HiddenHttpMethodFilter hiddenHttpMethodFilter(){
+        HiddenHttpMethodFilter methodFilter = new HiddenHttpMethodFilter();
+        //通过set 方法自定义
+        methodFilter.setMethodParam("_m");
+        return methodFilter;
+    }    
+}
+```
+
+
+
+
+
+****
+
+
+
+### 原理解析
+
+请求进入原生的 HttpServlet 的 doGet() 方法处理，调用子类 FrameworkServlet 的 doGet() 方法，最终调用 DispatcherServlet 的 doService() 方法，为请求设置相关属性后调用 doDispatch()
+
+![](https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-请求相应的原理.png)
+
+总体流程：
+
+* 所有的请求映射都在 HandlerMapping 中，RequestMappingHandlerMapping 处理 @RequestMapping 注解的所有映射规则
+
+* 请求进来，遍历所有的 HandlerMapping 看是否有请求信息，匹配成功后返回，匹配失败设置 HTTP 响应码
+* 用户可以自定义的映射处理，也可以给容器中放入自定义 HandlerMapping
+
+访问 URL：http://localhost:8080/user（对应 Restful 中配置的映射规则）
+
+```java
+protected void doDispatch(HttpServletRequest request, HttpServletResponse response) throws Exception {
+    HttpServletRequest processedRequest = request;
+    HandlerExecutionChain mappedHandler = null;	
+    boolean multipartRequestParsed = false;			//文件上传请求
+    WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);//异步管理器
+    try {
+        //文件上传请求
+        processedRequest = checkMultipart(request);
+        // 找到当前请求使用哪个Handler（Controller的方法）处理
+        mappedHandler = getHandler(processedRequest);
+        // 没有合适的处理请求的方式 handler 直接返回
+        if (mappedHandler == null) {
+            noHandlerFound(processedRequest, response);
+            return;
+        }
+        //...
+    } 
+}
+```
+
+* HandlerMapping 处理器映射器，保存了所有 `@RequestMapping`  和 `handler` 的映射规则
+
+  ```java
+  protected HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception {
+      if (this.handlerMappings != null) {
+          //遍历所有的 HandlerMapping
+          for (HandlerMapping mapping : this.handlerMappings) {
+              //尝试去每个 HandlerMapping 中匹配当前请求的处理
+              HandlerExecutionChain handler = mapping.getHandler(request);
+              if (handler != null) {
+                  return handler;
+              }
+          }
+      }
+      return null;
+  }
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-获取Controller处理器.png)
+
+* `mapping.getHandler(request)` 中调用 `Object handler = getHandlerInternal(request)`，该 getHandlerInternal 方法是
+
+  RequestMappingInfoHandlerMapping 类中的，继续调用 `AbstractHandlerMethodMapping.getHandlerInternal()`
+
+* AbstractHandlerMethodMapping.getHandlerInternal()：
+
+  ```java
+  protected HandlerMethod getHandlerInternal(HttpServletRequest request) throws Exception {
+      // lookupPath = user，地址栏的 uri
+      String lookupPath = initLookupPath(request);
+      // 防止并发
+      this.mappingRegistry.acquireReadLock();
+      try {
+          //获取当前 HandlerMapping 中的映射规则
+          HandlerMethod handlerMethod = lookupHandlerMethod(lookupPath, request);
+          return (handlerMethod != null ? handlerMethod.createWithResolvedBean() : null);
+      }
+      finally {
+          this.mappingRegistry.releaseReadLock();
+      }
+  }
+  ```
+
+* AbstractHandlerMethodMapping.lookupHandlerMethod()：
+
+  * `directPathMatches = this.mappingRegistry.getMappingsByDirectPath(lookupPath)`：获取与 URI 相关的映射规则
+
+    ![](https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-HandlerMapping的映射规则.png)
+
+  * `addMatchingMappings(directPathMatches, matches, request)`：匹配某个映射规则
+
+  * `Match bestMatch = matches.get(0)`：匹配完成只剩一个，直接获取返回对应的方法
+
+  * `if (matches.size() > 1)`：当有多个映射规则符合请求时，报错
+
+
+
+***
+
+
+
+### Servlet
+
+SpringMVC 提供访问原始 Servlet 接口的功能，这一部分是补充知识，不常用
+
+* spring-mvc.xml 配置
+
+  ```xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  <beans xmlns="http://www.springframework.org/schema/beans"
+         xmlns:context="http://www.springframework.org/schema/context"
+         xmlns:mvc="http://www.springframework.org/schema/mvc"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+          http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+          http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+  
+      <context:component-scan base-package="com.seazean"/>
+      <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+          <property name="prefix" value="/WEB-INF/page/"/>
+          <property name="suffix" value=".jsp"/>
+      </bean>
+      <mvc:annotation-driven/>
+  </beans>
+  ```
+
+* SpringMVC 提供访问原始 Servlet 接口 API 的功能，通过形参声明即可 
+
+  ```java
+  @RequestMapping("/servletApi")
+  public String servletApi(HttpServletRequest request,
+                           HttpServletResponse response, HttpSession session){
+      System.out.println(request);
+      System.out.println(response);
+      System.out.println(session);
+      request.setAttribute("name","seazean");
+      System.out.println(request.getAttribute("name"));
+      return "page.jsp";
+  }
+  ```
+
+* Head 数据获取快捷操作方式
+  名称：@RequestHeader
+  类型：形参注解
+  位置：处理器类中的方法形参前方
+  作用：绑定请求头数据与对应处理方法形参间的关系
+  范例：
+
+  ```java
+  快捷操作方式@RequestMapping("/headApi")
+  public String headApi(@RequestHeader("Accept-Language") String headMsg){
+      System.out.println(headMsg);
+      return "page";
+  }  
+  ```
+
+* Cookie 数据获取快捷操作方式
+  名称：@CookieValue
+  类型：形参注解
+  位置：处理器类中的方法形参前方
+  作用：绑定请求 Cookie 数据与对应处理方法形参间的关系
+  范例：
+
+  ```java
+  @RequestMapping("/cookieApi")
+  public String cookieApi(@CookieValue("JSESSIONID") String jsessionid){
+      System.out.println(jsessionid);
+      return "page";
+  }  
+  ```
+
+* Session 数据获取
+  名称：@SessionAttribute
+  类型：形参注解
+  位置：处理器类中的方法形参前方
+  作用：绑定请求Session数据与对应处理方法形参间的关系
+  范例：
+
+  ```java
+  @RequestMapping("/sessionApi")
+  public String sessionApi(@SessionAttribute("name") String name){
+      System.out.println(name);
+      return "page.jsp";
+  }
+  //用于在session中放入数据
+  @RequestMapping("/setSessionData")
+  public String setSessionData(HttpSession session){
+      session.setAttribute("name","seazean");
+      return "page";
+  }
+  ```
+
+* Session 数据设置
+  名称：@SessionAttributes
+  类型：类注解
+  位置：处理器类上方
+  作用：声明放入session范围的变量名称，适用于Model类型数据传参
+  范例：
+
+  ```java
+  @Controller
+  //设定当前类中名称为age和gender的变量放入session范围，不常用
+  @SessionAttributes(names = {"age","gender"})
+  public class ServletController {
+  	//将数据放入session存储范围，Model对象实现数据set，@SessionAttributes注解实现范围设定
+      @RequestMapping("/setSessionData2")
+      public String setSessionDate2(Model model) {
+          model.addAttribute("age",39);
+          model.addAttribute("gender","男");
+          return "page";
+      }
+      
+      @RequestMapping("/sessionApi")
+      public String sessionApi(@SessionAttribute("age") int age,
+                               @SessionAttribute("gender") String gender){
+          System.out.println(name);
+          System.out.println(age);
+          return "page";
+      }
+  }  
+  ```
+
+  
+
+
+
+
+
+****
+
+
 
 
 
@@ -9404,9 +10612,9 @@ public class AjaxController {
 }
 ```
 
-* 注解添加到Pojo参数前方时，封装的异步提交数据按照Pojo的属性格式进行关系映射
-  * POJO中的属性如果请求数据中没有，属性值为null
-  * POJO中没有的属性如果请求数据中有，不进行映射
+* 注解添加到 Pojo 参数前方时，封装的异步提交数据按照 Pojo 的属性格式进行关系映射
+  * POJO 中的属性如果请求数据中没有，属性值为 null
+  * POJO 中没有的属性如果请求数据中有，不进行映射
 * 注解添加到集合参数前方时，封装的异步提交数据按照集合的存储结构进行关系映射 
 
 ```java
@@ -9578,7 +10786,7 @@ $("#testAjaxReturnJsonList").click(function(){
 
 ### 跨域访问
 
-跨域访问：当通过域名A下的操作访问域名B下的资源时，称为跨域访问。跨域访问时，会出现无法访问的现象。
+跨域访问：当通过域名 A 下的操作访问域名 B 下的资源时，称为跨域访问。跨域访问时，会出现无法访问的现象。
 
 环境搭建：
 
@@ -9639,6 +10847,8 @@ public User cross(HttpServletRequest request){
 
 
 ***
+
+
 
 
 
@@ -9709,6 +10919,10 @@ public boolean preHandle(HttpServletRequest request,
 
 
 
+***
+
+
+
 #### 后置处理
 
 原始方法运行后运行，如果原始方法被拦截，则不执行：
@@ -9725,6 +10939,10 @@ public void postHandle(HttpServletRequest request,
 参数：
 
 * modelAndView：如果处理器执行完成具有返回结果，可以读取到对应数据与页面信息，并进行调整  
+
+
+
+***
 
 
 
@@ -9882,7 +11100,11 @@ public void afterCompletion(HttpServletRequest request,
 
 
 
+
+
 ***
+
+
 
 
 
@@ -10147,6 +11369,8 @@ ExceptionHandler注解：
 
 
 ***
+
+
 
 
 
@@ -11515,7 +12739,7 @@ public class ProjectExceptionAdivce {
 
 ### spring-mvc.xml 
 
-* 注解替代spring-mvc.xml：SpringMvcConfig
+* 注解替代 spring-mvc.xml：SpringMvcConfig
 
   ```java
   @Configuration
@@ -11592,7 +12816,7 @@ public class ProjectExceptionAdivce {
   }
   ```
 
-* WebApplicationContext，生成 Spring 核心容器（主容器/父容器/跟容器）
+* WebApplicationContext，生成 Spring 核心容器（主容器/父容器/根容器）
 
   * 父容器：Spring 环境加载后形成的容器，包含 Spring 环境下的所有的 bean
   * 子容器：当前 mvc 环境加载后形成的容器，不包含 Spring 环境下的 bean
