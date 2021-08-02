@@ -3034,7 +3034,7 @@ CAS算法：有3个操作数（内存值V， 旧的预期值A，要修改的值B
 
   CAS 必须借助 volatile 才能读取到共享变量的最新值来实现**比较并交换**的效果
 
-分析getAndUpdate方法：
+分析 getAndUpdate 方法：
 
 * getAndUpdate：
 
@@ -3080,7 +3080,7 @@ CAS算法：有3个操作数（内存值V， 旧的预期值A，要修改的值B
 
 #### 原子引用
 
-原子引用：对Object进行原子操作，提供一种读和写都是原子性的对象引用变量
+原子引用：对 Object 进行原子操作，提供一种读和写都是原子性的对象引用变量
 
 原子引用类：AtomicReference、AtomicStampedReference、AtomicMarkableReference
 
@@ -3090,7 +3090,7 @@ AtomicReference类：
 
 * 常用API：
 
-  `public final boolean compareAndSet(V expectedValue, V newValue)`：CAS操作
+  `public final boolean compareAndSet(V expectedValue, V newValue)`：CAS 操作
   `public final void set(V newValue)`：将值设置为 newValue 
   `public final V get()`：返回当前值
 

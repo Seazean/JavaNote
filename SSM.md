@@ -8004,6 +8004,8 @@ AbstractAutowireCapableBeanFactory.createBeanInstance(beanName, RootBeanDefiniti
 
 * 判断类的访问权限是不是 public，不是进入下一个判断，是否允许访问类的 non-public 的构造方法，不允许则报错
 
+* `Supplier<?> instanceSupplier = mbd.getInstanceSupplier()`：获取创建实例的函数，可以自定义，没有进入下面的逻辑
+
 * `if (mbd.getFactoryMethodName() != null)`：**判断 bean 是否设置了 factory-method 属性**
 
   <bean class="" factory-method="">，设置了该属性进入 factory-method 方法创建实例
@@ -8017,13 +8019,13 @@ AbstractAutowireCapableBeanFactory.createBeanInstance(beanName, RootBeanDefiniti
   * method 为 null 则 resolved 和 autowireNecessary 都为默认值 false
   * `autowireNecessary = mbd.constructorArgumentsResolved`：构造方法有参数，设置为 true
 
-* bd 对应的构造信息解析完成：
+* **bd 对应的构造信息解析完成，可以直接反射调用构造方法了**：
 
   * `return autowireConstructor(beanName, mbd, null, null)`：**有参构造**，根据参数匹配最优的构造器创建实例
 
   * `return instantiateBean(beanName, mbd)`：**无参构造方法通过反射创建实例**
 
-* `ctors = determineConstructorsFromBeanPostProcessors(beanClass, beanName)`：**AutowiredAnnotation 逻辑**
+* `ctors = determineConstructorsFromBeanPostProcessors(beanClass, beanName)`：@Autowired 注解对应的后置处理器**AutowiredAnnotationBeanPostProcessor 逻辑**
 
   * 配置了 lookup 的相关逻辑
 
@@ -8080,7 +8082,7 @@ AbstractAutowireCapableBeanFactory.createBeanInstance(beanName, RootBeanDefiniti
 
   `!ObjectUtils.isEmpty(args)`：getBean 时，指定了参数 arg
 
-* `autowireConstructor(beanName, mbd, ctors, args)`：**选择最优的构造器进行创建实例**（非常复杂，可以放弃深究）
+* `return autowireConstructor(beanName, mbd, ctors, args)`：**选择最优的构造器进行创建实例**（复杂，不建议研究）
 
   * `beanFactory.initBeanWrapper(bw)`：向 BeanWrapper 中注册转换器，向工厂中注册属性编辑器
 
@@ -8157,13 +8159,19 @@ AbstractAutowireCapableBeanFactory.createBeanInstance(beanName, RootBeanDefiniti
 
   * ` bw.setBeanInstance(instantiate(beanName, mbd, constructorToUse, argsToUse))`：匹配成功调用 instantiate 创建出实例对象，设置到 BeanWrapper 中去
 
-* `SimpleInstantiationStrategy.instantiate()`：**真正用来实例化的函数**（无论如何都会走到这一步）
+* `return instantiateBean(beanName, mbd)`：默认走到这里
 
-  * `if (!bd.hasMethodOverrides())`：没有方法重写覆盖
+  * `SimpleInstantiationStrategy.instantiate()`：**真正用来实例化的函数**（无论如何都会走到这一步）
 
-    `BeanUtils.instantiateClass(constructorToUse)`：底层调用 java.lang.reflect.Constructor.newInstance() 实例化
+    * `if (!bd.hasMethodOverrides())`：没有方法重写覆盖
 
-  * `instantiateWithMethodInjection(bd, beanName, owner)`：有方法重写采用 CGLIB  实例化
+      `BeanUtils.instantiateClass(constructorToUse)`：调用 `java.lang.reflect.Constructor.newInstance()` 实例化
+  
+    * `instantiateWithMethodInjection(bd, beanName, owner)`：有方法重写采用 CGLIB  实例化
+    
+  * `BeanWrapper bw = new BeanWrapperImpl(beanInstance)`：包装成 BeanWrapper 类型的对象
+  
+  * `return bw`：返回实例
 
 
 
@@ -9760,10 +9768,39 @@ SpringMVC 对接收的数据进行自动类型转换，该工作通过 Converter
 
 ##### 自定义
 
-* 自定义类型转换器，实现 Converter 接口，并制定转换前与转换后的类型
+自定义类型转换器，实现 Converter 接口或者直接容器中注入：
+
+* 方式一：
 
   ```java
-  //自定义类型转换器，实现Converter接口，接口中指定的泛型即为最终作用的条件
+  public class WebConfig implements WebMvcConfigurer {
+      @Bean
+      public WebMvcConfigurer webMvcConfigurer() {
+          return new WebMvcConfigurer() {
+              @Override
+              public void addFormatters(FormatterRegistry registry) {
+                  registry.addConverter(new Converter<String, Date>() {
+                      @Override
+                      public Pet convert(String source) {
+                      	DateFormat df = new SimpleDateFormat("yyyy-MM-dd");
+                          Date date = null;
+                          //类型转换器无法预计使用过程中出现的异常，因此必须在类型转换器内部捕获，
+                          //不允许抛出，框架无法预计此类异常如何处理
+                          try {
+                              date = df.parse(source);
+                          } catch (ParseException e) {
+                              e.printStackTrace();
+                          }
+                          return date;
+                      }
+                  });
+          }
+      }
+  }
+
+* 方式二：
+
+  ```java
   //本例中的泛型填写的是String，Date，最终出现字符串转日期时，该类型转换器生效
   public class MyDateConverter implements Converter<String, Date> {
       //重写接口的抽象方法，参数由泛型决定
@@ -9782,7 +9819,7 @@ SpringMVC 对接收的数据进行自动类型转换，该工作通过 Converter
   }
   ```
 
-* 配置 resources / spring-mvc.xml，注册自定义转换器，将功能加入到 SpringMVC 转换服务 ConverterService 中
+  配置 resources / spring-mvc.xml，注册自定义转换器，将功能加入到 SpringMVC 转换服务 ConverterService 中
 
   ```xml
   <!--1.将自定义Converter注册为Bean，受SpringMVC管理-->
@@ -9900,9 +9937,10 @@ SpringMVC 对接收的数据进行自动类型转换，该工作通过 Converter
 
 
 
-#### 带数据跳转
+#### 数据跳转
 
-ModelAndView 是 SpringMVC 提供的一个对象，该对象可以用作控制器方法的返回值（Model 同）
+ModelAndView 是 SpringMVC 提供的一个对象，该对象可以用作控制器方法的返回值（Model 同），实现携带数据跳转
+
 作用：
 
 + 设置数据，向请求域对象中存储数据
@@ -9989,13 +10027,13 @@ ModelAndView 是 SpringMVC 提供的一个对象，该对象可以用作控制�
 
 
 
-#### JSON数据
+#### JSON
 
 注解：@ResponseBody
 
 作用：将 Controller 的方法返回的对象通过适当的转换器转换为指定的格式之后，写入到 Response 的 body 区。如果返回值是字符串，那么直接将字符串返回客户端；如果是一个对象，会**将对象转化为 Json**，返回客户端
 
-注意：当方法上面没有写 ResponseBody，底层会将方法的返回值封装为 ModelAndView 对象。
+注意：当方法上面没有写 ResponseBody，底层会将方法的返回值封装为 ModelAndView 对象
 
 * 使用 HttpServletResponse 对象响应数据
 
@@ -10242,11 +10280,11 @@ public String getMessage(@PathVariable("id") Integer id){
 
 * @RequestHeader：获取请求头
 * @RequestParam：获取请求参数（指问号后的参数，url?a=1&b=2）
-* @CookieValue：获取Cookie值
-* @RequestAttribute：获取request域属性
-* @RequestBody：获取请求体[POST]
+* @CookieValue：获取 Cookie 值
+* @RequestAttribute：获取 request 域属性
+* @RequestBody：获取请求体 [POST]
 * @MatrixVariable：矩阵变量
-* @ModelAttribute
+* @ModelAttribute：自定义类型变量
 
 ```java
 @RestController	
@@ -10352,105 +10390,6 @@ public class WebConfig{
     }    
 }
 ```
-
-
-
-
-
-****
-
-
-
-### 原理解析
-
-请求进入原生的 HttpServlet 的 doGet() 方法处理，调用子类 FrameworkServlet 的 doGet() 方法，最终调用 DispatcherServlet 的 doService() 方法，为请求设置相关属性后调用 doDispatch()
-
-![](https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-请求相应的原理.png)
-
-总体流程：
-
-* 所有的请求映射都在 HandlerMapping 中，RequestMappingHandlerMapping 处理 @RequestMapping 注解的所有映射规则
-
-* 请求进来，遍历所有的 HandlerMapping 看是否有请求信息，匹配成功后返回，匹配失败设置 HTTP 响应码
-* 用户可以自定义的映射处理，也可以给容器中放入自定义 HandlerMapping
-
-访问 URL：http://localhost:8080/user（对应 Restful 中配置的映射规则）
-
-```java
-protected void doDispatch(HttpServletRequest request, HttpServletResponse response) throws Exception {
-    HttpServletRequest processedRequest = request;
-    HandlerExecutionChain mappedHandler = null;	
-    boolean multipartRequestParsed = false;			//文件上传请求
-    WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);//异步管理器
-    try {
-        //文件上传请求
-        processedRequest = checkMultipart(request);
-        // 找到当前请求使用哪个Handler（Controller的方法）处理
-        mappedHandler = getHandler(processedRequest);
-        // 没有合适的处理请求的方式 handler 直接返回
-        if (mappedHandler == null) {
-            noHandlerFound(processedRequest, response);
-            return;
-        }
-        //...
-    } 
-}
-```
-
-* HandlerMapping 处理器映射器，保存了所有 `@RequestMapping`  和 `handler` 的映射规则
-
-  ```java
-  protected HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception {
-      if (this.handlerMappings != null) {
-          //遍历所有的 HandlerMapping
-          for (HandlerMapping mapping : this.handlerMappings) {
-              //尝试去每个 HandlerMapping 中匹配当前请求的处理
-              HandlerExecutionChain handler = mapping.getHandler(request);
-              if (handler != null) {
-                  return handler;
-              }
-          }
-      }
-      return null;
-  }
-  ```
-
-  ![](https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-获取Controller处理器.png)
-
-* `mapping.getHandler(request)` 中调用 `Object handler = getHandlerInternal(request)`，该 getHandlerInternal 方法是
-
-  RequestMappingInfoHandlerMapping 类中的，继续调用 `AbstractHandlerMethodMapping.getHandlerInternal()`
-
-* AbstractHandlerMethodMapping.getHandlerInternal()：
-
-  ```java
-  protected HandlerMethod getHandlerInternal(HttpServletRequest request) throws Exception {
-      // lookupPath = user，地址栏的 uri
-      String lookupPath = initLookupPath(request);
-      // 防止并发
-      this.mappingRegistry.acquireReadLock();
-      try {
-          //获取当前 HandlerMapping 中的映射规则
-          HandlerMethod handlerMethod = lookupHandlerMethod(lookupPath, request);
-          return (handlerMethod != null ? handlerMethod.createWithResolvedBean() : null);
-      }
-      finally {
-          this.mappingRegistry.releaseReadLock();
-      }
-  }
-  ```
-
-* AbstractHandlerMethodMapping.lookupHandlerMethod()：
-
-  * `directPathMatches = this.mappingRegistry.getMappingsByDirectPath(lookupPath)`：获取与 URI 相关的映射规则
-
-    ![](https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-HandlerMapping的映射规则.png)
-
-  * `addMatchingMappings(directPathMatches, matches, request)`：匹配某个映射规则
-
-  * `Match bestMatch = matches.get(0)`：匹配完成只剩一个，直接获取返回对应的方法
-
-  * `if (matches.size() > 1)`：当有多个映射规则符合请求时，报错
 
 
 
@@ -11780,6 +11719,22 @@ jsp：
         <input type="submit" value="提交">
 /form>
 ```
+
+
+
+***
+
+
+
+## 运行原理
+
+
+
+
+
+
+
+
 
 
 
