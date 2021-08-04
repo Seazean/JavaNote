@@ -3575,7 +3575,7 @@ HttpServletRequest 类方法：
 
 RequestDispatcher 类方法：
 
-* `void forward(ServletRequest request, ServletResponse response)` : 实现转发。将请求从servlet转发到服务器上的另一个资源（servlet，JSP文件或HTML文件）
+* `void forward(ServletRequest request, ServletResponse response)` : 实现转发，将请求从 servlet 转发到服务器上的另一个资源（servlet，JSP文件或HTML文件）
 
 过程：浏览器访问http://localhost:8080/request/servletDemo09，/servletDemo10也会执行
 
@@ -4043,10 +4043,10 @@ public class ServletDemo06 extends HttpServlet {
 
 * 方式一：
 
-  1. 设置响应状态码：`resp.setStatus(302);`
-  2. 设置重定向的路径（响应到哪里，通过响应头location来指定）
-     `response.setHeader("Location","http://www.baidu.com");`
-     `response.setHeader("Location","/response/servletDemo08);`
+  1. 设置响应状态码：`resp.setStatus(302)`
+  2. 设置重定向的路径（响应到哪里，通过响应头 location 来指定）
+     * `response.setHeader("Location","http://www.baidu.com");`
+     * `response.setHeader("Location","/response/servletDemo08);`
 
 * 方式二：
 

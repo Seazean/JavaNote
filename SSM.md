@@ -7143,7 +7143,7 @@ public void addAccount{}
 
 * 默认情况下，事务只有遇到运行期异常 和 Error 会导致事务回滚，但是在遇到检查型（Checked）异常时不会回滚
 
-  * 继承自 RuntimeException 或 error 的是非检查型异常，比如空指针和索引越界，而继承自 Exception 的则是检查型异常，比如 IOException、ClassNotFoundException
+  * 继承自 RuntimeException 或 error 的是非检查型异常，比如空指针和索引越界，而继承自 Exception 的则是检查型异常，比如 IOException、ClassNotFoundException，RuntimeException 本身继承 Exception
   * 非检查型类异常可以不用捕获，而检查型异常则必须用 try 语句块把异常交给上级方法，这样事务才能有效
 
 **事务不生效的问题**
@@ -7151,7 +7151,7 @@ public void addAccount{}
 * 情况 1：确认创建的 mysql 数据库表引擎是 InnoDB，MyISAM 不支持事务
 
 * 情况 2：注解到 protected，private 方法上事务不生效，但不会报错
-  原因：理论上而言，不用public修饰，也可以用 aop 实现 Transactional 的功能，但是方法私有化让其他业务无法调用
+  原因：理论上而言，不用 public 修饰，也可以用 aop 实现事务的功能，但是方法私有化让其他业务无法调用
 
   AopUtils.canApply：`methodMatcher.matches(method, targetClass) --true--> return true`
   `TransactionAttributeSourcePointcut.matches()` ，AbstractFallbackTransactionAttributeSource 中 getTransactionAttribute 方法调用了其本身的 computeTransactionAttribute 方法，当加了事务注解的方法不是 public 时，该方法直接返回 null，所以造成增强不匹配
@@ -8758,7 +8758,7 @@ public Object invoke(Object proxy, Method method, Object[] args)
     * `return dm.interceptor.invoke(this)`：匹配成功，执行方法
     * `return proceed()`：匹配失败跳过当前拦截器
 
-  * `return ((MethodInterceptor) interceptorOrInterceptionAdvice).invoke(this)`：**所有的方法拦截器都会执行到该方法，然后方法内继续执行 proceed() 完成责任链的构建，直到  MethodBeforeAdviceInterceptor 调用前置通知，然后调用 mi.proceed()，发现是最后一个拦截器了，这里就直接执行目标方法，return 到上一个拦截器的 mi.proceed() 处，依次返回到责任链的上一个拦截器执行通知方法**
+  * `return ((MethodInterceptor) interceptorOrInterceptionAdvice).invoke(this)`：**所有的方法拦截器都会执行到该方法，此方法内继续执行 proceed() 完成责任链的驱动，直到最后一个  MethodBeforeAdviceInterceptor 调用前置通知，然后调用 mi.proceed()，发现是最后一个拦截器就直接执行目标方法，return 到上一个拦截器的 mi.proceed() 处，依次返回到责任链的上一个拦截器执行通知方法**
 
 * `retVal = proxy`：如果目标方法返回目标对象，这里做个普通替换返回代理对象
 
@@ -8916,7 +8916,7 @@ AutoProxyRegistrar：给容器中注册 InfrastructureAdvisorAutoProxyCreator，
 
 ProxyTransactionManagementConfiguration：是一个 Spring 的配置类，注册 BeanFactoryTransactionAttributeSourceAdvisor 事务增强器，利用注解 @Bean 把该类注入到容器中，该增强器有两个字段：
 
-* TransactionAttributeSource：用于解析事务注解的相关信息，比如 @Transactional 注解，该类的真实类型是 AnnotationTransactionAttributeSource，初始化方法种注册了三个解析器，用来解析三种类型的事务注解 Spring、JTA、Ejb3
+* TransactionAttributeSource：用于解析事务注解的相关信息，比如 @Transactional 注解，该类的真实类型是 AnnotationTransactionAttributeSource，初始化方法中注册了三个**注解解析器**，解析三种类型的事务注解 Spring、JTA、Ejb3
 
 * TransactionInterceptor：**事务拦截器**，代理对象执行拦截器方法时，会调用 TransactionInterceptor 的 invoke 方法，底层调用TransactionAspectSupport.invokeWithinTransaction()，通过 PlatformTransactionManager **控制着事务的提交和回滚**，所以事务的底层原理就是通过 AOP 动态织入，进行事务开启和提交
 
@@ -8991,61 +8991,6 @@ MVC（Model View Controller），一种用于设计创建Web应用程序表现�
   * SpringMVC
 
   ![](https://gitee.com/seazean/images/raw/master/Frame/MVC功能图示.png)
-
-
-
-
-
-***
-
-
-
-
-
-## 技术架构
-
-### 组件介绍
-
-* DispatcherServlet：核心控制器， 是 SpringMVC 的核心，整体流程控制的中心，所有的请求第一步都先到达这里，由其调用其它组件处理用户的请求，它就是在 web.xml 配置的核心 Servlet，有效的降低了组件间的耦合性
-  
-* HandlerMapping：处理器映射器， 负责根据用户请求找到对应具体的 Handler 处理器，SpringMVC 中针对配置文件方式、注解方式等提供了不同的映射器来处理
-
-* Handler：处理器，其实就是 Controller，业务处理的核心类，通常由开发者编写，并且必须遵守 Controller 开发的规则，这样适配器才能正确的执行。例如实现 Controller 接口，将 Controller 注册到 IOC 容器中等
-
-* HandlAdapter：处理器适配器，根据映射器中找到的 Handler，通过 HandlerAdapter 去执行 Handler，这是适配器模式的应用
-
-* View Resolver：视图解析器， 将 Handler 中返回的逻辑视图（ModelAndView）解析为一个具体的视图（View）对象
-
-* View：视图， View 最后对页面进行渲染将结果返回给用户。Springmvc 框架提供了很多的 View 视图类型，包括：jstlView、freemarkerView、pdfView 等
-
-  ![](https://gitee.com/seazean/images/raw/master/Frame/SpingMVC技术架构.png)
-
-
-
-****
-
-
-
-### 工作原理
-
-在 Spring 容器初始化时会建立所有的 URL 和 Controller 的对应关系，保存到 Map<URL,Controller> 中，这样 request 就能快速根据 URL 定位到 Controller。实现：
-
-1. 在 Spring IOC 容器初始化完所有单例 bean 后
-2. SpringMVC 会遍历所有的 bean，获取 controller 中对应的 URL（这里获取 URL 的实现类有多个，用于处理不同形式配置的 Controller）
-3. 将每一个 URL 对应一个 controller 存入 Map<URL,Controller> 中
-
-注意：将 Controller 类的注解换成 @Component，启动时不会报错，但是在浏览器中输入路径时会出现 404，说明 Spring 没有对所有的 bean 进行 URL 映射
-
-**一个 Request 来了：**
-
-1. 监听端口，获得请求：Tomcat 监听 8080 端口的请求，进行接收、解析、封装，根据路径调用了 web.xml 中配置的核心控制器 DispatcherServlet
-2. 获取 Handler：进入 DispatcherServlet，核心控制器调用 HandlerMapping 去根据请求的 URL 获取对应的 Handler。这里有个问题，如果获取的 Handler 为 null 则返回 404
-3. 调用适配器执行 Handler：
-   * 适配器根据 request 的 URL 去 Handler 中寻找对应的处理方法 (Controller 的 URL 与方法的 URL 拼接后对比)
-   * 获取到对应方法后，需要将 request 中的参数与方法参数上的数据进行绑定，根据反射获取方法的参数名和注解，再根据注解或者根据参数名对照进行绑定(找到对应的参数，然后在反射调用方法时传入)
-   * 绑定完参数后，反射调用方法获取 ModelAndView（如果 Handler 中返回的是 String、View 等对象，SpringMVC 也会将它们重新封装成一个 ModelAndView）
-4. 调用视图解析器解析：将 ModelAndView 解析成 View 对象
-5. 渲染视图：将 View 对象中的返回地址、参数信息等放入 RequestDispatcher，最后进行转发
 
 
 
@@ -10188,6 +10133,14 @@ Restful 请求路径简化配置方式：`@RestController = @Controller + @Respo
 
 * `@GetMapping("/poll")` = `@RequestMapping(value = "/poll",method = RequestMethod.GET)`
 
+  ```java
+  @RequestMapping(method = RequestMethod.GET)
+  public @interface GetMapping {
+      @AliasFor(annotation = RequestMapping.class)	//与 RequestMapping 相通
+  	String name() default "";
+  }
+  ```
+
 * `@PostMapping("/push")` = `@RequestMapping(value = "/push",method = RequestMethod.POST)`
 
 
@@ -10399,28 +10352,7 @@ public class WebConfig{
 
 ### Servlet
 
-SpringMVC 提供访问原始 Servlet 接口的功能，这一部分是补充知识，不常用
-
-* spring-mvc.xml 配置
-
-  ```xml
-  <?xml version="1.0" encoding="UTF-8"?>
-  <beans xmlns="http://www.springframework.org/schema/beans"
-         xmlns:context="http://www.springframework.org/schema/context"
-         xmlns:mvc="http://www.springframework.org/schema/mvc"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-          http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
-          http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
-  
-      <context:component-scan base-package="com.seazean"/>
-      <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
-          <property name="prefix" value="/WEB-INF/page/"/>
-          <property name="suffix" value=".jsp"/>
-      </bean>
-      <mvc:annotation-driven/>
-  </beans>
-  ```
+SpringMVC 提供访问原始 Servlet 接口的功能
 
 * SpringMVC 提供访问原始 Servlet 接口 API 的功能，通过形参声明即可 
 
@@ -10518,7 +10450,978 @@ SpringMVC 提供访问原始 Servlet 接口的功能，这一部分是补充知�
   }  
   ```
 
+* spring-mvc.xml 配置
+
+  ```xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  <beans xmlns="http://www.springframework.org/schema/beans"
+         xmlns:context="http://www.springframework.org/schema/context"
+         xmlns:mvc="http://www.springframework.org/schema/mvc"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+          http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+          http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
   
+      <context:component-scan base-package="com.seazean"/>
+      <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+          <property name="prefix" value="/WEB-INF/page/"/>
+          <property name="suffix" value=".jsp"/>
+      </bean>
+      <mvc:annotation-driven/>
+  </beans>
+  ```
+
+  
+
+
+
+
+***
+
+
+
+## 运行原理
+
+### 技术架构
+
+#### 组件介绍
+
+* DispatcherServlet：核心控制器， 是 SpringMVC 的核心，整体流程控制的中心，所有的请求第一步都先到达这里，由其调用其它组件处理用户的请求，它就是在 web.xml 配置的核心 Servlet，有效的降低了组件间的耦合性
+
+* HandlerMapping：处理器映射器， 负责根据用户请求找到对应具体的 Handler 处理器，SpringMVC 中针对配置文件方式、注解方式等提供了不同的映射器来处理
+
+* Handler：处理器，其实就是 Controller，业务处理的核心类，通常由开发者编写，并且必须遵守 Controller 开发的规则，这样适配器才能正确的执行。例如实现 Controller 接口，将 Controller 注册到 IOC 容器中等
+
+* HandlAdapter：处理器适配器，根据映射器中找到的 Handler，通过 HandlerAdapter 去执行 Handler，这是适配器模式的应用
+
+* View Resolver：视图解析器， 将 Handler 中返回的逻辑视图（ModelAndView）解析为一个具体的视图（View）对象
+
+* View：视图， View 最后对页面进行渲染将结果返回给用户。Springmvc 框架提供了很多的 View 视图类型，包括：jstlView、freemarkerView、pdfView 等
+
+  ![](https://gitee.com/seazean/images/raw/master/Frame/SpingMVC技术架构.png)
+
+
+
+****
+
+
+
+#### 工作原理
+
+在 Spring 容器初始化时会建立所有的 URL 和 Controller 的对应关系，保存到 Map<URL,Controller> 中，这样 request 就能快速根据 URL 定位到 Controller：
+
+* 在 Spring IOC 容器初始化完所有单例 bean 后
+* SpringMVC 会遍历所有的 bean，获取 controller 中对应的 URL（这里获取 URL 的实现类有多个，用于处理不同形式配置的 Controller）
+* 将每一个 URL 对应一个 controller 存入 Map<URL,Controller> 中
+
+注意：将 Controller 类的注解换成 @Component，启动时不会报错，但是在浏览器中输入路径时会出现 404，说明 Spring 没有对所有的 bean 进行 URL 映射
+
+**一个 Request 来了：**
+
+* 监听端口，获得请求：Tomcat 监听 8080 端口的请求，进行接收、解析、封装，根据路径调用了 web.xml 中配置的核心控制器 DispatcherServlet
+* 获取 Handler：进入 DispatcherServlet，核心控制器调用 HandlerMapping 去根据请求的 URL 获取对应的 Handler，如果获取的 Handler 为 null 则返回 404
+* 调用适配器执行 Handler：
+  * 适配器根据 request 的 URL 去 Handler 中寻找对应的处理方法（Controller 的 URL 与方法的 URL 拼接后对比）
+  * 获取到对应方法后，需要将 request 中的参数与方法参数上的数据进行绑定，根据反射获取方法的参数名和注解，再根据注解或者根据参数名对照进行绑定（找到对应的参数，然后在反射调用方法时传入）
+  * 绑定完参数后，反射调用方法获取 ModelAndView（如果 Handler 中返回的是 String、View 等对象，SpringMVC 也会将它们重新封装成一个 ModelAndView）
+* 调用视图解析器解析：将 ModelAndView 解析成 View 对象
+* 渲染视图：将 View 对象中的返回地址、参数信息等放入 RequestDispatcher，最后进行转发
+
+
+
+****
+
+
+
+### 调度函数
+
+请求进入原生的 HttpServlet 的 doGet() 方法处理，调用子类 FrameworkServlet 的 doGet() 方法，最终调用 DispatcherServlet 的 doService() 方法，为请求设置相关属性后调用 doDispatch()，请求和响应的以参数的形式传入
+
+![](https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-请求相应的原理.png)
+
+```java
+//request 和 response 为 Java 原生的类
+protected void doDispatch(HttpServletRequest request, HttpServletResponse response) throws Exception {
+    HttpServletRequest processedRequest = request;
+    HandlerExecutionChain mappedHandler = null;
+    boolean multipartRequestParsed = false;			//文件上传请求
+    WebAsyncManager asyncManager = WebAsyncUtils.getAsyncManager(request);// 异步管理器
+
+    try {
+        ModelAndView mv = null;
+        Exception dispatchException = null;
+
+        try {
+            processedRequest = checkMultipart(request);	//文件上传请求
+            multipartRequestParsed = (processedRequest != request);
+
+            // 找到当前请求使用哪个 HandlerMapping（Controller的方法）处理，返回执行链
+            mappedHandler = getHandler(processedRequest);
+            // 没有合适的处理请求的方式 HandlerMapping 直接返回
+            if (mappedHandler == null) {
+                noHandlerFound(processedRequest, response);
+                return;
+            }
+
+            //根据映射器获取当前 handler 处理器适配器，用来处理当前的请求
+            HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler());
+            // 获取发出此次请求的方法
+            String method = request.getMethod();
+            // 判断请求是不是 GET 方法
+            boolean isGet = HttpMethod.GET.matches(method);
+            if (isGet || HttpMethod.HEAD.matches(method)) {
+                long lastModified = ha.getLastModified(request, mappedHandler.getHandler());
+                if (new ServletWebRequest(request, response).checkNotModified(lastModified) && isGet) {
+                    return;
+                }
+            }
+
+            if (!mappedHandler.applyPreHandle(processedRequest, response)) {
+                return;
+            }
+            // 执行处理方法，返回的是 ModelAndView 对象，封装了所有的返回值数据
+            mv = ha.handle(processedRequest, response, mappedHandler.getHandler());
+
+            if (asyncManager.isConcurrentHandlingStarted()) {
+                return;
+            }
+			// 设置视图名字
+            applyDefaultViewName(processedRequest, mv);
+            // 执行拦截器链中的方法
+            mappedHandler.applyPostHandle(processedRequest, response, mv);
+        } catch (Exception ex) {
+            dispatchException = ex;
+        }
+        
+        // 处理 程序调用的结果，进行结果派发
+        processDispatchResult(processedRequest, response, mappedHandler, mv, dispatchException);
+    }
+    //....
+}
+```
+
+
+
+笔记参考视频：https://www.bilibili.com/video/BV19K4y1L7MT
+
+
+
+***
+
+
+
+### 请求映射
+
+#### 映射器
+
+doDispatch() 中调用 getHandler 方法获取所有的映射器
+
+总体流程：
+
+* 所有的请求映射都在 HandlerMapping 中，**RequestMappingHandlerMapping 处理 @RequestMapping 注解的映射规则**
+
+* 遍历所有的 HandlerMapping 看是否可以匹配当前请求，匹配成功后返回，匹配失败设置 HTTP 404 响应码
+* 用户可以自定义的映射处理，也可以给容器中放入自定义 HandlerMapping
+
+访问 URL：http://localhost:8080/user
+
+```java
+@GetMapping("/user")
+public String getUser(){
+    return "GET";
+}
+@PostMapping("/user")
+public String postUser(){
+    return "POST";
+}
+//。。。。。
+```
+
+HandlerMapping 处理器映射器，保存了所有 `@RequestMapping`  和 `handler` 的映射规则
+
+```java
+protected HandlerExecutionChain getHandler(HttpServletRequest request) throws Exception {
+    if (this.handlerMappings != null) {
+        //遍历所有的 HandlerMapping
+        for (HandlerMapping mapping : this.handlerMappings) {
+            //尝试去每个 HandlerMapping 中匹配当前请求的处理
+            HandlerExecutionChain handler = mapping.getHandler(request);
+            if (handler != null) {
+                return handler;
+            }
+        }
+    }
+    return null;
+}
+```
+
+![](https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-获取Controller处理器.png)
+
+* `mapping.getHandler(request)`：调用 AbstractHandlerMapping#getHandler
+
+  * `Object handler = getHandlerInternal(request)`：获取映射器，底层调用 RequestMappingInfoHandlerMapping 类的方法，又调用 AbstractHandlerMethodMapping#getHandlerInternal
+
+    * `String lookupPath = initLookupPath(request)`：地址栏的 uri，这里的 lookupPath 为 /user
+
+    * `this.mappingRegistry.acquireReadLock()`：防止并发
+
+    * `handlerMethod = lookupHandlerMethod(lookupPath, request)`：获取当前 HandlerMapping 中的映射规则
+
+      AbstractHandlerMethodMapping.lookupHandlerMethod()：
+
+      * `directPathMatches = this.mappingRegistry.getMappingsByDirectPath(lookupPath)`：获取当前的映射器与当前**请求的 URI 有关的所有映射规则**
+
+        ![](https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-HandlerMapping的映射规则.png)
+
+      * `addMatchingMappings(directPathMatches, matches, request)`：**匹配某个映射规则**
+
+        * `for (T mapping : mappings)`：遍历所有的映射规则
+        * `match = getMatchingMapping(mapping, request)`：去匹配每一个映射规则，匹配失败返回 null
+        * `matches.add(new Match())`：匹配成功后封装成匹配器添加到匹配集合中
+
+      * `Match bestMatch = matches.get(0)`：匹配完成只剩一个，直接获取返回对应的处理方法
+
+      * `if (matches.size() > 1)`：当有多个映射规则符合请求时，报错
+
+      * `return bestMatch.getHandlerMethod()`：返回匹配器中的处理方法
+
+  * `executionChain = getHandlerExecutionChain(handler, request)`：**为当前请求和映射器的构建一个拦截器链**
+
+    * `for (HandlerInterceptor interceptor : this.adaptedInterceptors)`：遍历所有的拦截器
+    * `chain.addInterceptor(interceptor)`：把所有的拦截器添加到 HandlerExecutionChain 中，形成拦截器链
+  
+  * `return executionChain`：**返回拦截器链，包含 HandlerMapping 和拦截方法**
+
+
+
+****
+
+
+
+#### 适配器
+
+doDispatch() 中 调用 `HandlerAdapter ha = getHandlerAdapter(mappedHandler.getHandler())`
+
+```java
+protected HandlerAdapter getHandlerAdapter(Object handler) throws ServletException {
+    if (this.handlerAdapters != null) {
+        //遍历所有的 HandlerAdapter
+        for (HandlerAdapter adapter : this.handlerAdapters) {
+            //判断当前适配器是否支持当前 handle
+            //return (handler instanceof HandlerMethod && supportsInternal((HandlerMethod) handler))
+            //这里返回的是True，
+            if (adapter.supports(handler)) {
+                //返回的是 RequestMappingHandlerAdapter
+                return adapter;
+            }
+        }
+    }
+    throw new ServletException();
+}
+```
+
+
+
+***
+
+
+
+#### 方法执行
+
+##### 执行流程
+
+实例代码：
+
+```java
+@GetMapping("/params")
+public String param(Map<String, Object> map, Model model, HttpServletRequest request) {
+    map.put("k1", "v1");			//都可以向请求域中添加数据
+    model.addAttribute("k2", "v2");	//它们两个都在数据封装在 BindingAwareModelMap
+    request.setAttribute("m", "HelloWorld");
+    return "forward:/success";
+}
+```
+
+![](https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-Model和Map的数据解析.png)
+
+doDispatch() 中调用 `mv = ha.handle(processedRequest, response, mappedHandler.getHandler())` 执行目标方法
+
+`AbstractHandlerMethodAdapter#handle` → `RequestMappingHandlerAdapter#handleInternal` → `invokeHandlerMethod`：
+
+```java
+//使用适配器执行方法
+protected ModelAndView invokeHandlerMethod(HttpServletRequest request,
+                                           HttpServletResponse response, 
+                                           HandlerMethod handlerMethod) throws Exception {
+	//封装成 SpringMVC 的接口，用于通用 Web 请求拦截器，使能够访问通用请求元数据，而不是用于实际处理请求
+    ServletWebRequest webRequest = new ServletWebRequest(request, response);
+    try {
+        //WebDataBinder 用于从 Web 请求参数到 JavaBean 对象的数据绑定，获取创建该实例的工厂
+        WebDataBinderFactory binderFactory = getDataBinderFactory(handlerMethod);
+        //创建 Model 实例，用于向模型添加属性
+        ModelFactory modelFactory = getModelFactory(handlerMethod, binderFactory);
+		//方法执行器
+        ServletInvocableHandlerMethod invocableMethod = createInvocableHandlerMethod(handlerMethod);
+        
+        //参数解析器，有很多
+        if (this.argumentResolvers != null) {
+            invocableMethod.setHandlerMethodArgumentResolvers(this.argumentResolvers);
+        }
+        //返回值处理器，也有很多
+        if (this.returnValueHandlers != null) {
+            invocableMethod.setHandlerMethodReturnValueHandlers(this.returnValueHandlers);
+        }
+        //设置数据绑定器
+        invocableMethod.setDataBinderFactory(binderFactory);
+        //设置参数检查器
+		invocableMethod.setParameterNameDiscoverer(this.parameterNameDiscoverer);
+   
+        //新建一个 ModelAndViewContainer 并进行初始化和一些属性的填充
+        ModelAndViewContainer mavContainer = new ModelAndViewContainer();
+            
+        //设置一些属性
+        
+        //执行目标方法
+        invocableMethod.invokeAndHandle(webRequest, mavContainer);
+        //异步请求
+        if (asyncManager.isConcurrentHandlingStarted()) {
+            return null;
+        }
+		// 获取 ModelAndView 对象，封装了 ModelAndViewContainer
+        return getModelAndView(mavContainer, modelFactory, webRequest);
+    }
+    finally {
+        webRequest.requestCompleted();
+    }
+}
+```
+
+**ServletInvocableHandlerMethod#invokeAndHandle**：执行目标方法
+
+* `returnValue = invokeForRequest(webRequest, mavContainer, providedArgs)`：**执行自己写的 controller 方法，返回的就是自定义方法中 return 的值**
+
+  `Object[] args = getMethodArgumentValues(request, mavContainer, providedArgs)`：**参数处理的逻辑**，遍历所有的参数解析器解析参数或者将 URI 中的参数进行绑定，绑定完成后开始执行目标方法
+
+  * `parameters = getMethodParameters()`：获取此处理程序方法的方法参数的详细信息
+
+  * `Object[] args = new Object[parameters.length]`：存放所有的参数
+
+  * `for (int i = 0; i < parameters.length; i++)`：遍历所有的参数
+
+  * `args[i] = findProvidedArgument(parameter, providedArgs)`：获取调用方法时提供的参数，一般是空
+
+  * `if (!this.resolvers.supportsParameter(parameter))`：**获取可以解析当前参数的参数解析器**
+
+    * `return getArgumentResolver(parameter) != null`：获取参数的解析是否为空
+
+      * `for (HandlerMethodArgumentResolver resolver : this.argumentResolvers)`：遍历容器内所有的解析器
+
+        `if (resolver.supportsParameter(parameter))`：是否支持当前参数
+
+        * `PathVariableMethodArgumentResolver#supportsParameter`：**解析标注 @PathVariable 注解的参数**
+    * `ModelMethodProcessor#supportsParameter`：解析 Map 类型的参数
+        * `ModelMethodProcessor#supportsParameter`：解析 Model 类型的参数，Model 和 Map 的作用一样
+    * `ExpressionValueMethodArgumentResolver#supportsParameter`：解析标注 @Value 注解的参数
+        * `RequestParamMapMethodArgumentResolver#supportsParameter`：**解析标注 @RequestParam 注解**
+    * `RequestPartMethodArgumentResolver#supportsParameter`：解析文件上传的信息
+        * `ModelAttributeMethodProcessor#supportsParameter`：解析标注 @ModelAttribute 注解或者不是简单类型
+      * 子类 ServletModelAttributeMethodProcessor 是**解析自定义类型 JavaBean 的解析器**
+          * 简单类型有 Void、Enum、Number、CharSequence、Date、URI、URL、Locale、Class
+
+  * `args[i] = this.resolvers.resolveArgument()`：**开始解析参数，每个参数使用的解析器不同**
+  
+    `resolver = getArgumentResolver(parameter)`：获取参数解析器
+
+    `return resolver.resolveArgument()`：开始解析
+
+    * `PathVariableMapMethodArgumentResolver#resolveArgument`：@PathVariable，包装 URI 中的参数为 Map
+  * `MapMethodProcessor#resolveArgument`：调用 `mavContainer.getModel()` 返回默认的 BindingAwareModelMap 对象
+    * `ModelAttributeMethodProcessor#resolveArgument`：**自定义的 JavaBean 的绑定封装**，下一小节详解
+
+  `return doInvoke(args)`：真正的执行方法
+  
+  * `Method method = getBridgedMethod()`：从 HandlerMethod 获取要反射执行的方法
+* `ReflectionUtils.makeAccessible(method)`：破解权限
+  * `method.invoke(getBean(), args)`：**执行方法**，getBean 获取的是标记 @Controller 的 Bean 类，其中包含执行方法
+
+* **进行返回值的处理，响应部分详解**，处理完成进入下面的逻辑
+
+**RequestMappingHandlerAdapter#getModelAndView**：获取 ModelAndView 对象
+
+* `modelFactory.updateModel(webRequest, mavContainer)`：Model 数据升级到会话域（**请求域中的数据在重定向时丢失**）
+
+  `updateBindingResult(request, defaultModel)`：把绑定的数据添加到 Model 中
+
+* `if (mavContainer.isRequestHandled())`：判断请求是否已经处理完成了
+
+* `ModelMap model = mavContainer.getModel()`：获取**包含 Controller 方法参数**的 BindingAwareModelMap 对象（本节开头）
+
+* `mav = new ModelAndView()`：**把 ModelAndViewContainer 和 ModelMap 中的数据封装到 ModelAndView** 
+
+* `if (!mavContainer.isViewReference())`：视图是否是通过名称指定视图引用
+
+* `if (model instanceof RedirectAttributes)`：判断 model 是否是重定向数据，如果是进行重定向逻辑
+
+* `return mav`：**任何方法执行都会返回 ModelAndView 对象**
+
+
+
+***
+
+
+
+##### 参数解析
+
+解析自定义的 JavaBean 为例
+
+* Person.java：
+
+  ```java
+  @Data
+  @Component	//加入到容器中
+  public class Person {
+      private String userName;
+      private Integer age;
+      private Date birth;
+  }
+  ```
+
+* Controller：
+
+  ```java
+  @RestController	//返回的数据不是页面
+  public class ParameterController {
+      // 数据绑定：页面提交的请求数据（GET、POST）都可以和对象属性进行绑定
+      @GetMapping("/saveuser")
+      public Person saveuser(Person person){
+          return person;
+      }
+  }
+  ```
+
+* 访问 URL：http://localhost:8080/saveuser?userName=zhangsan&age=20
+
+进入源码：ModelAttributeMethodProcessor#resolveArgument
+
+* `name = ModelFactory.getNameForParameter(parameter)`：获取名字，此例就是 person
+
+* `ann = parameter.getParameterAnnotation(ModelAttribute.class)`：是否有 ModelAttribute 注解
+
+* `if (mavContainer.containsAttribute(name))`：ModelAndViewContainer 中是否包含 person 对象
+
+* `attribute = createAttribute()`：**创建一个实例，空的 Person 对象**
+
+* `binder = binderFactory.createBinder(webRequest, attribute, name)`：Web 数据绑定器，可以利用 Converters 将请求数据转成指定的数据类型，绑定到 JavaBean 中
+
+* `bindRequestParameters(binder, webRequest)`：利用反射向目标对象填充数据
+
+  `servletBinder = (ServletRequestDataBinder) binder`：类型强转
+
+  `servletBinder.bind(servletRequest)`：绑定数据
+
+  * `mpvs = new MutablePropertyValues(request.getParameterMap())`：获取请求 URI 参数中的 KV 键值对
+
+  * `addBindValues(mpvs, request)`：子类可以用来为请求添加额外绑定值
+
+  * `doBind(mpvs)`：真正的绑定的方法，调用 `applyPropertyValues` 应用参数值，然后调用 `setPropertyValues` 方法
+
+    `AbstractPropertyAccessor#setPropertyValues()`：
+
+    * `List<PropertyValue> propertyValues`：获取到所有的参数的值，就是 URI 上的所有的参数值
+
+    * `for (PropertyValue pv : propertyValues)`：遍历所有的参数值
+
+    * `setPropertyValue(pv)`：**填充到空的 Person 实例中**
+
+      * `nestedPa = getPropertyAccessorForPropertyPath(propertyName)`：获取属性访问器
+
+      * `tokens = getPropertyNameTokens()`：获取元数据的信息
+
+      * `nestedPa.setPropertyValue(tokens, pv)`：填充数据
+
+      * `processLocalProperty(tokens, pv)`：处理属性
+
+        * `if (!Boolean.FALSE.equals(pv.conversionNecessary))`：数据是否需要转换了
+
+        * `if (pv.isConverted())`：数据已经转换过了，转换了直接赋值，没转换进行转换
+
+        * `oldValue = ph.getValue()`：获取未转换的数据
+
+        * `valueToApply = convertForProperty()`：进行数据转换
+
+          `TypeConverterDelegate#convertIfNecessary`：进入该方法的逻辑
+
+          * `if (conversionService.canConvert(sourceTypeDesc, typeDescriptor))`：判断能不能转换
+
+            `GenericConverter converter = getConverter(sourceType, targetType)`：获取**类型转换器**
+
+            * `converter = this.converters.find(sourceType, targetType)`：寻找合适的转换器
+
+              * `sourceCandidates = getClassHierarchy(sourceType.getType())`：原数据类型
+
+              * `targetCandidates = getClassHierarchy(targetType.getType())`：目标数据类型
+
+                ```java
+                for (Class<?> sourceCandidate : sourceCandidates) {
+                    //双重循环遍历，寻找合适的转换器
+                 	for (Class<?> targetCandidate : targetCandidates) {
+                ```
+
+              * `GenericConverter converter = getRegisteredConverter(..)`：匹配类型转换器
+
+              * `return converter`：返回转换器
+
+          * `conversionService.convert(newValue, sourceTypeDesc, typeDescriptor)`：开始转换
+
+            * `converter = getConverter(sourceType, targetType)`：**获取可用的转换器**
+            * `result = ConversionUtils.invokeConverter()`：执行转换方法
+              * `converter.convert()`：**调用转换器的转换方法**（GenericConverter#convert）
+            * `return handleResult(sourceType, targetType, result)`：返回结果
+
+        * `ph.setValue(valueToApply)`：设置 JavaBean 属性（BeanWrapperImpl.BeanPropertyHandler）
+
+          * `Method writeMethod`：获取 set 方法
+            * `Class<?> cls = getClass0()`：获取 Class 对象
+            * `writeMethodName = Introspector.SET_PREFIX + getBaseName()`：set 前缀 + 属性名
+            * `writeMethod = Introspector.findMethod(cls, writeMethodName, 1, args)`：获取只包含一个参数的 set 方法
+            * `setWriteMethod(writeMethod)`：加入缓存
+          * `ReflectionUtils.makeAccessible(writeMethod)`：设置访问权限
+          * `writeMethod.invoke(getWrappedInstance(), value)`：执行方法
+
+* `bindingResult = binder.getBindingResult()`：获取绑定的结果
+
+* `mavContainer.addAllAttributes(bindingResultModel)`：**把所有填充的参数放入 ModelAndViewContainer**
+
+* `return attribute`：返回填充后的 Person 对象
+
+
+
+
+
+****
+
+
+
+### 响应处理
+
+#### 响应数据
+
+以 Person 为例：
+
+```java
+@ResponseBody  		//利用返回值处理器里面的消息转换器进行处理
+@GetMapping(value = "/person")
+public Person getPerson(){
+    Person person = new Person();
+    person.setAge(28);
+    person.setBirth(new Date());
+    person.setUserName("zhangsan");
+    return person;
+}
+```
+
+直接进入方法执行完后的逻辑 ServletInvocableHandlerMethod#invokeAndHandle：
+
+```java
+public void invokeAndHandle(ServletWebRequest webRequest, ModelAndViewContainer mavContainer,
+                            Object... providedArgs) throws Exception {
+	// 执行目标方法，return person 对象
+    Object returnValue = invokeForRequest(webRequest, mavContainer, providedArgs);
+    // 设置状态码
+    setResponseStatus(webRequest);
+
+    // 判断方法是否有返回值
+    if (returnValue == null) {
+        if (isRequestNotModified(webRequest) || getResponseStatus() != null || mavContainer.isRequestHandled()) {
+            disableContentCachingIfNecessary(webRequest);
+            mavContainer.setRequestHandled(true);
+            return;
+        }
+    }	//返回值是字符串
+    else if (StringUtils.hasText(getResponseStatusReason())) {
+        //设置请求处理完成
+        mavContainer.setRequestHandled(true);
+        return;
+	// 设置请求没有处理完成，还需要进行返回值的逻辑
+    mavContainer.setRequestHandled(false);
+    Assert.state(this.returnValueHandlers != null, "No return value handlers");
+    try {
+        // 返回值的处理
+        this.returnValueHandlers.handleReturnValue(
+            returnValue, getReturnValueType(returnValue), mavContainer, webRequest);
+    }
+    catch (Exception ex) {}
+}
+```
+
+* 没有加 @ResponseBody 注解的返回数据按照视图（页面）处理的逻辑，ViewNameMethodReturnValueHandler（视图详解）
+
+* 此例是加了注解的，返回的数据不是视图，HandlerMethodReturnValueHandlerComposite#handleReturnValue：
+
+  ```java
+  public void handleReturnValue(@Nullable Object returnValue, MethodParameter returnType,
+                                ModelAndViewContainer mavContainer, NativeWebRequest webRequest)  {
+  	//获取合适的返回值处理器
+      HandlerMethodReturnValueHandler handler = selectHandler(returnValue, returnType);
+      if (handler == null) {
+          throw new IllegalArgumentException();
+      }
+      //使用处理器处理返回值（详解源码中的这两个函数）
+      handler.handleReturnValue(returnValue, returnType, mavContainer, webRequest);
+  }
+  ```
+
+**HandlerMethodReturnValueHandlerComposite#selectHandler**：
+
+* `boolean isAsyncValue = isAsyncReturnValue(value, returnType)`：是否是异步请求
+
+* `for (HandlerMethodReturnValueHandler handler : this.returnValueHandlers)`：遍历所有的返回值处理器
+  * `RequestResponseBodyMethodProcessor#supportsReturnType`：**处理标注 @ResponseBody 注解的返回值**
+  * `ModelAndViewMethodReturnValueHandler#supportsReturnType`：处理**返回值类型**是 ModelAndView 的处理器
+  * `ModelAndViewResolverMethodReturnValueHandler#supportsReturnType`：直接返回 true，处理所有数据
+
+**RequestResponseBodyMethodProcessor#handleReturnValue**：处理返回值
+
+* `mavContainer.setRequestHandled(true)`：设置请求处理完成
+
+* `inputMessage = createInputMessage(webRequest)`：获取输入的数据
+
+* `outputMessage = createOutputMessage(webRequest)`：获取输出的数据
+
+* `writeWithMessageConverters(returnValue, returnType, inputMessage, outputMessage)`：使用消息转换器进行写出
+
+  * `if (value instanceof CharSequence)`：判断返回的数据是不是字符类型
+
+  * `body = value`：把 value 赋值给 body，此时 body 中就是填充后的 Person 对象
+
+  * `if (isResourceType(value, returnType))`：当前数据是不是流数据
+
+  * `MediaType selectedMediaType`：**内容协商后选择使用的类型，浏览器和服务器都支持的媒体（数据）类型**
+
+    `MediaType contentType = outputMessage.getHeaders().getContentType()`：获取响应头的数据
+
+  * `if (contentType != null && contentType.isConcrete())`：判断当前响应头中是否已经有确定的媒体类型
+
+    `selectedMediaType = contentType`：说明前置处理已经使用了媒体类型，直接继续使用该类型
+
+  * `acceptableTypes = getAcceptableMediaTypes(request)`：**获取浏览器支持的媒体类型，请求头字段**
+
+    `this.contentNegotiationManager.resolveMediaTypes(new ServletWebRequest(request))`：调用该方法
+
+    * `for(ContentNegotiationStrategy strategy:this.strategies)`：默认策略是提取请求头的字段的内容，策略类为**HeaderContentNegotiationStrategy**，可以配置添加其他类型的策略
+    * `List<MediaType> mediaTypes = strategy.resolveMediaTypes(request)`：解析 Accept 字段存储为 List
+      * `headerValueArray = request.getHeaderValues(HttpHeaders.ACCEPT)`：获取请求头中 Accept 字段
+      * `List<MediaType> mediaTypes = MediaType.parseMediaTypes(headerValues)`：解析成 List 集合
+      * `MediaType.sortBySpecificityAndQuality(mediaTypes)`：按照相对品质因数 q 降序排序
+
+    ![](https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-浏览器支持接收的数据类型.png)
+
+  * `producibleTypes = getProducibleMediaTypes(request, valueType, targetType)`：服务器能生成的媒体类型
+
+    * `request.getAttribute(HandlerMapping.PRODUCIBLE_MEDIA_TYPES_ATTRIBUTE)`：从请求域获取默认的媒体类型
+    * ` for (HttpMessageConverter<?> converter : this.messageConverters)`：遍历所有的消息转换器
+    * `converter.canWrite(valueClass, null)`：是否支持当前的类型
+    * ` result.addAll(converter.getSupportedMediaTypes())`：把当前 MessageConverter 支持的所有类型放入 result
+
+  * `List<MediaType> mediaTypesToUse = new ArrayList<>()`：存储最佳匹配
+
+  * **内容协商：**
+
+    ```java
+    for (MediaType requestedType : acceptableTypes) {			//遍历所有的浏览器能接受的媒体类型
+        for (MediaType producibleType : producibleTypes) {		//遍历所有服务器能产出的
+            if (requestedType.isCompatibleWith(producibleType)) {	//判断类型是否匹配，最佳匹配
+                //数据协商匹配成功
+                mediaTypesToUse.add(getMostSpecificMediaType(requestedType, producibleType));
+            }
+        }
+    }
+    ```
+
+  * `MediaType.sortBySpecificityAndQuality(mediaTypesToUse)`：按照相对品质因数 q 排序，降序排序，越大的越好
+
+  * `for (MediaType mediaType : mediaTypesToUse)`：**遍历所有的最佳匹配**
+
+    `selectedMediaType = mediaType`：赋值给选择的类型
+
+  * `selectedMediaType = selectedMediaType.removeQualityValue()`：媒体类型去除相对品质因数
+
+  * `for (HttpMessageConverter<?> converter : this.messageConverters)`：遍历所有的 HTTP 数据转换器
+
+  * `GenericHttpMessageConverter genericConverter`：**MappingJackson2HttpMessageConverter 可以将对象写为 JSON**
+
+  * `((GenericHttpMessageConverter) converter).canWrite()`：转换器是否可以写出给定的类型
+
+    `AbstractJackson2HttpMessageConverter#canWrit`
+
+    * `if (!canWrite(mediaType))`：是否可以写出指定类型
+      * `MediaType.ALL.equalsTypeAndSubtype(mediaType)`：是不是 `*/*` 类型
+      * `getSupportedMediaTypes()`：支持 `application/json` 和 `application/*+json` 两种类型
+      * `return true`：返回 true
+    * `objectMapper = selectObjectMapper(clazz, mediaType)`：选择可以使用的 objectMapper 
+    * `causeRef = new AtomicReference<>()`：获取并发安全的引用
+    * `if (objectMapper.canSerialize(clazz, causeRef))`：objectMapper 可以序列化当前类
+    * `return true`：返回 true
+
+  * ` body = getAdvice().beforeBodyWrite()`：**要响应的所有数据，Person 对象**
+
+  * `addContentDispositionHeader(inputMessage, outputMessage)`：检查路径
+
+  * `genericConverter.write(body, targetType, selectedMediaType, outputMessage)`：调用消息转换器的 write 方法
+
+    `AbstractGenericHttpMessageConverter#write`：该类的方法
+
+    * `addDefaultHeaders(headers, t, contentType)`：设置响应头中的数据类型
+
+      ![](https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-服务器设置数据类型.png)
+
+    * `writeInternal(t, type, outputMessage)`：**真正的写出数据的函数**
+
+      * `Object value = object`：value 引用 Person 对象
+      * `ObjectWriter objectWriter = objectMapper.writer()`：获取用来输出 JSON 对象的 ObjectWriter
+      * `objectWriter.writeValue(generator, value)`：写出数据为 JSON
+
+
+
+
+
+***
+
+
+
+#### 协商策略
+
+开启基于请求参数的内容协商模式：（SpringBoot 方式）
+
+```yaml
+spring.mvc.contentnegotiation:favor-parameter: true  #开启请求参数内容协商模式
+```
+
+发请求： http://localhost:8080/person?format=json，解析 format
+
+策略类为 ParameterContentNegotiationStrategy，运行流程如下：
+
+* `acceptableTypes = getAcceptableMediaTypes(request)`：获取浏览器支持的媒体类型
+
+  `mediaTypes = strategy.resolveMediaTypes(request)`：解析请求 URL 参数中的数据
+
+  * `return resolveMediaTypeKey(webRequest, getMediaTypeKey(webRequest))`：
+
+    `getMediaTypeKey(webRequest)`：
+
+    * `request.getParameter(getParameterName())`：获取 URL 中指定的需求的数据类型
+      * `getParameterName()`：获取参数的属性名 format
+      * `getParameter()`：获取 URL 中 format 对应的数据
+
+    `resolveMediaTypeKey()`：解析媒体类型，封装成集合
+
+自定义内容协商策略：
+
+```java
+public class WebConfig implements WebMvcConfigurer {
+    @Bean
+    public WebMvcConfigurer webMvcConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override	//自定义内容协商策略
+            public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
+                Map<String, MediaType> mediaTypes = new HashMap<>();
+                mediaTypes.put("json", MediaType.APPLICATION_JSON);
+                mediaTypes.put("xml",MediaType.APPLICATION_XML);
+                mediaTypes.put("person",MediaType.parseMediaType("application/x-person"));
+                //指定支持解析哪些参数对应的哪些媒体类型
+                ParameterContentNegotiationStrategy parameterStrategy = new ParameterContentNegotiationStrategy(mediaTypes);
+
+                //请求头解析
+                HeaderContentNegotiationStrategy headStrategy = new HeaderContentNegotiationStrategy();
+
+                //添加到容器中，即可以解析请求头 又可以解析请求参数
+                configurer.strategies(Arrays.asList(parameterStrategy,headStrategy));
+            }
+            
+            @Override 	//自定义消息转换器
+            public void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
+                converters.add(new GuiguMessageConverter());
+            }
+        }
+    }
+}
+```
+
+也可以自定义 HttpMessageConverter，实现 HttpMessageConverter<T> 接口重写方法即可
+
+
+
+***
+
+
+
+### 视图解析
+
+#### 返回解析
+
+请求处理：
+
+```java
+@GetMapping("/params")
+public String param(){
+	return "forward:/success";
+    //return "redirect:/success";
+}
+```
+
+进入执行方法逻辑 ServletInvocableHandlerMethod#invokeAndHandle，进入 `this.returnValueHandlers.handleReturnValue`：
+
+```java
+public void handleReturnValue(@Nullable Object returnValue, MethodParameter returnType,
+                              ModelAndViewContainer mavContainer, NativeWebRequest webRequest)  {
+	//获取合适的返回值处理器：调用 if (handler.supportsReturnType(returnType))判断是否支持
+    HandlerMethodReturnValueHandler handler = selectHandler(returnValue, returnType);
+    if (handler == null) {
+        throw new IllegalArgumentException();
+    }
+    //使用处理器处理返回值
+    handler.handleReturnValue(returnValue, returnType, mavContainer, webRequest);
+}
+```
+
+* ViewNameMethodReturnValueHandler#supportsReturnType
+
+  ```java
+  public boolean supportsReturnType(MethodParameter returnType) {
+      Class<?> paramType = returnType.getParameterType();
+      //返回值是否是void 或者 是 CharSequence 字符序列
+      return (void.class == paramType || CharSequence.class.isAssignableFrom(paramType));
+  }
+  ```
+
+* ViewNameMethodReturnValueHandler#handleReturnValue
+
+  ```java
+  public void handleReturnValue(@Nullable Object returnValue, MethodParameter returnType,
+                                ModelAndViewContainer mavContainer, 
+                                NativeWebRequest webRequest) throws Exception {
+  	// 返回值是字符串，是 return "forward:/success"
+      if (returnValue instanceof CharSequence) {
+          String viewName = returnValue.toString();
+          //把视图名称设置进入 ModelAndViewContainer 中
+          mavContainer.setViewName(viewName);
+          //判断是否是重定向数据 `viewName.startsWith("redirect:")`
+          if (isRedirectViewName(viewName)) {
+              //如果是重定向，设置是重定向指令
+              mavContainer.setRedirectModelScenario(true);
+          }
+      }
+      else if (returnValue != null) {
+          // should not happen
+          throw new UnsupportedOperationException();
+      }
+  }
+  ```
+
+  
+
+
+
+***
+
+
+
+#### 结果派发
+
+doDispatch()中的 processDispatchResult：处理派发结果
+
+```java
+private void processDispatchResult(HttpServletRequest request, HttpServletResponse response,
+                                   @Nullable HandlerExecutionChain mappedHandler, 
+                                   @Nullable ModelAndView mv,
+                                   @Nullable Exception exception) throws Exception {
+    boolean errorView = false;
+    if (exception != null) {
+    }
+    // mv 是 ModelAndValue
+    if (mv != null && !mv.wasCleared()) {
+        // 渲染视图
+        render(mv, request, response);
+        if (errorView) {
+            WebUtils.clearErrorRequestAttributes(request);
+        }
+    }
+    else {}  
+}
+```
+
+DispatcherServlet#render：
+
+* `Locale locale = this.localeResolver.resolveLocale(request)`：国际化相关
+
+* `String viewName = mv.getViewName()`：视图名字，是请求转发 forward:/success（响应数据部分解析了该名字存入 ModelAndView 是**通过 ViewNameMethodReturnValueHandler**）
+
+* `view = resolveViewName(viewName, mv.getModelInternal(), locale, request)`：解析视图
+
+  * `for (ViewResolver viewResolver : this.viewResolvers)`：遍历所有的视图解析器
+
+    `view = viewResolver.resolveViewName(viewName, locale)`：根据视图名字解析视图，调用内容协商视图处理器 ContentNegotiatingViewResolver 的方法
+
+    * `attrs = RequestContextHolder.getRequestAttributes()`：获取请求的相关属性信息
+
+    * `requestedMediaTypes = getMediaTypes(((ServletRequestAttributes) attrs).getRequest())`：获取最佳匹配的媒体类型，函数内进行了匹配的逻辑
+
+    * `candidateViews = getCandidateViews(viewName, locale, requestedMediaTypes)`：获取候选的视图对象
+
+      * `for (ViewResolver viewResolver : this.viewResolvers)`：遍历所有的视图解析器
+
+      * `View view = viewResolver.resolveViewName(viewName, locale)`：解析视图
+
+        `AbstractCachingViewResolver#resolveViewName`：调用此方法
+
+        **请求转发**：实例为 InternalResourceView 
+
+        * `returnview = createView(viewName, locale)`：UrlBasedViewResolver#createView
+
+          * `if (viewName.startsWith(FORWARD_URL_PREFIX))`：视图名字是否是 **`forward:`** 的前缀
+          * `forwardUrl = viewName.substring(FORWARD_URL_PREFIX.length())`：**名字截取前缀**
+          * `view = new InternalResourceView(forwardUrl)`：新建 InternalResourceView  对象并返回
+
+          * `return applyLifecycleMethods(FORWARD_URL_PREFIX, view)`：Spring 中的初始化操作
+
+        **重定向**：实例为 RedirectView 
+
+        * `returnview = createView(viewName, locale)`：UrlBasedViewResolver#createView
+          * `if (viewName.startsWith(REDIRECT_URL_PREFIX))`：视图名字是否是 **`redirect:`** 的前缀
+          * `redirectUrl = viewName.substring(REDIRECT_URL_PREFIX.length())`：名字截取前缀
+          * `RedirectView view = new RedirectView()`：新建 RedirectView 对象并返回
+
+    * `bestView = getBestView(candidateViews, requestedMediaTypes, attrs)`：选出最佳匹配的视图对象
+
+* `view.render(mv.getModelInternal(), request, response)`：**页面渲染**
+
+  * `mergedModel = createMergedOutputModel(model, request, response)`：把请求域中的数据封装到 Map
+
+  * `prepareResponse(request, response)`：响应前的准备工作，设置一些响应头
+
+  * `renderMergedOutputModel(mergedModel, getRequestToExpose(request), response)`：渲染输出的数据
+
+    **请求转发** InternalResourceView 的逻辑：
+
+    * `getRequestToExpose(request)`：获取 Servlet 原生的方式
+    * `exposeModelAsRequestAttributes(model, request)`：暴露 model 作为请求域的属性
+      * `model.forEach()`：遍历 Model 中的数据
+      * `request.setAttribute(name, value)`：设置到请求域中
+    * `exposeHelpers(request)`：自定义接口
+    * `dispatcherPath = prepareForRendering(request, response)`：确定调度分派的路径，此例是 /success
+    * `rd = getRequestDispatcher(request, dispatcherPath)`：**获取 Servlet 原生的 RequestDispatcher 实现转发**
+    * `rd.forward(request, response)`：实现请求转发
+
+    **重定向** RedirectView 的逻辑：
+
+    * `targetUrl = createTargetUrl(model, request)`：获取目标 URL
+      * `enc = request.getCharacterEncoding()`：设置编码 UTF-8
+      * `appendQueryProperties(targetUrl, model, enc)`：添加一些属性，比如 `url + ?name=123&&age=324`
+      * `sendRedirect(request, response, targetUrl, this.http10Compatible)`：重定向
+
+        * `response.sendRedirect(encodedURL)`：**使用 Servlet 原生方法实现重定向**
+
+
 
 
 
@@ -10812,19 +11715,7 @@ public User cross(HttpServletRequest request){
 
 2. 拦截内容不同： Filter 对所有访问进行增强， Interceptor 仅针对 SpringMVC 的访问进行增强  
 
-   ![](https://gitee.com/seazean/images/raw/master/Frame/拦截器-过滤器和拦截器的运行机制.png)
-
-
-
-***
-
-
-
-### 执行流程
-
-拦截器的执行流程：
-
-![](https://gitee.com/seazean/images/raw/master/Frame/拦截器执行流程.png)
+   <img src="https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-过滤器和拦截器的运行机制.png" style="zoom:67%;" />
 
 
 
@@ -10854,7 +11745,7 @@ public boolean preHandle(HttpServletRequest request,
     * handler：public String controller.InterceptorController.handleRun
     * handler.getClass()：org.springframework.web.method.HandlerMethod
 * 返回值：
-  * 返回值为false，被拦截的处理器将不执行  
+  * 返回值为 false，被拦截的处理器将不执行  
 
 
 
@@ -10885,7 +11776,7 @@ public void postHandle(HttpServletRequest request,
 
 
 
-#### 完成处理
+#### 异常处理
 
 拦截器最后执行的方法，无论原始方法是否执行：
 
@@ -10914,9 +11805,9 @@ public void afterCompletion(HttpServletRequest request,
 
 * `/**`：表示拦截所有映射
 * `/* `：表示拦截所有/开头的映射
-* `/user/*`：表示拦截所有/user/开头的映射
-* `/user/add*`：表示拦截所有/user/开头，且具体映射名称以add开头的映射
-* `/user/*All`：表示拦截所有/user/开头，且具体映射名称以All结尾的映射
+* `/user/*`：表示拦截所有 /user/ 开头的映射
+* `/user/add*`：表示拦截所有 /user/ 开头，且具体映射名称以 add 开头的映射
+* `/user/*All`：表示拦截所有 /user/ 开头，且具体映射名称以 All 结尾的映射
 
 ```xml
 <mvc:interceptors>
@@ -10955,7 +11846,101 @@ public void afterCompletion(HttpServletRequest request,
 * 链路过长时，处理效率低下
 * 可能存在节点上的循环引用现象，造成死循环，导致系统崩溃  
 
-![](https://gitee.com/seazean/images/raw/master/Frame/拦截器-多拦截器配置.png)
+<img src="https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-多拦截器配置.png" style="zoom:67%;" />
+
+
+
+***
+
+
+
+### 源码解析
+
+DispatcherServlet#doDispatch 方法中：
+
+```java
+protected void doDispatch(HttpServletRequest request, HttpServletResponse response) throws Exception {
+	try {
+        // 获取映射器以及映射器的所有拦截器（运行原理部分详解了源码）
+        mappedHandler = getHandler(processedRequest);
+        // 前置处理，返回 false 代表条件成立
+        if (!mappedHandler.applyPreHandle(processedRequest, response)) {
+            //请求从这里直接结束
+            return;
+        }
+        //所有拦截器都返回 true，执行目标方法
+        mv = ha.handle(processedRequest, response, mappedHandler.getHandler())
+        // 倒序执行所有拦截器的后置处理方法
+        mappedHandler.applyPostHandle(processedRequest, response, mv);
+    } catch (Exception ex) {
+        //异常处理机制
+        triggerAfterCompletion(processedRequest, response, mappedHandler, ex);
+    }
+}
+```
+
+HandlerExecutionChain#applyPreHandle：前置处理
+
+```java
+boolean applyPreHandle(HttpServletRequest request, HttpServletResponse response) throws Exception {
+    //遍历所有的拦截器
+    for (int i = 0; i < this.interceptorList.size(); i++) {
+        HandlerInterceptor interceptor = this.interceptorList.get(i);
+        //执行前置处理，如果拦截器返回 false，则条件成立，不在执行其他的拦截器，直接返回 false，请求直接结束
+        if (!interceptor.preHandle(request, response, this.handler)) {
+            triggerAfterCompletion(request, response, null);
+            return false;
+        }
+        this.interceptorIndex = i;
+    }
+    return true;
+}
+```
+
+HandlerExecutionChain#applyPostHandle：后置处理
+
+```java
+void applyPostHandle(HttpServletRequest request, HttpServletResponse response, @Nullable ModelAndView mv)
+    throws Exception {
+	//倒序遍历
+    for (int i = this.interceptorList.size() - 1; i >= 0; i--) {
+        HandlerInterceptor interceptor = this.interceptorList.get(i);
+        interceptor.postHandle(request, response, this.handler, mv);
+    }
+}
+```
+
+DispatcherServlet#triggerAfterCompletion 底层调用 HandlerExecutionChain#triggerAfterCompletion：
+
+* 前面的步骤有任何异常都会直接倒序触发 afterCompletion
+
+* 页面成功渲染有异常，也会倒序触发 afterCompletion
+
+```java
+void triggerAfterCompletion(HttpServletRequest request, HttpServletResponse response, @Nullable Exception ex) {
+    //倒序遍历
+    for (int i = this.interceptorIndex; i >= 0; i--) {
+        HandlerInterceptor interceptor = this.interceptorList.get(i);
+        try {
+            //执行异常处理的方法
+            interceptor.afterCompletion(request, response, this.handler, ex);
+        }
+        catch (Throwable ex2) {
+            logger.error("HandlerInterceptor.afterCompletion threw exception", ex2);
+        }
+    }
+}
+```
+
+
+
+拦截器的执行流程：
+
+<img src="https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-拦截器工作流程.png" style="zoom: 50%;" />
+
+
+
+参考文章：https://www.yuque.com/atguigu/springboot/vgzmgh#wtPLU
 
 
 
@@ -10978,7 +11963,7 @@ public void afterCompletion(HttpServletRequest request,
   }
   ```
 
-* 自定义拦截器需要实现HandleInterceptor接口
+* 自定义拦截器需要实现 HandleInterceptor 接口
 
   ```java
   //自定义拦截器需要实现HandleInterceptor接口
@@ -11014,7 +11999,7 @@ public void afterCompletion(HttpServletRequest request,
   }
   ```
 
-  说明：三个方法的运行顺序为    preHandle -> postHandle -> afterCompletion，如果preHandle返回值为false，三个方法仅运行preHandle
+  说明：三个方法的运行顺序为    preHandle → postHandle → afterCompletion，如果 preHandle 返回值为 false，三个方法仅运行preHandle
 
 * web.xml：
 
@@ -11051,7 +12036,7 @@ public void afterCompletion(HttpServletRequest request,
 
 ### 处理器
 
-异常处理器： **HandlerExceptionResolver**接口
+异常处理器： **HandlerExceptionResolver** 接口
 
 类继承该接口的以后，当开发出现异常后会执行指定的功能
 
@@ -11125,9 +12110,7 @@ public class UserController {
 
 使用注解实现异常分类管理，开发异常处理器
 
-ControllerAdvice注解：
-
-* 名称：@ControllerAdvice
+ControllerAdvice 注解：
 
 * 类型：类注解
 
@@ -11145,9 +12128,7 @@ ControllerAdvice注解：
   }  
   ```
 
-ExceptionHandler注解：
-
-* 名称：@ExceptionHandler
+ExceptionHandler 注解：
 
 * 类型：方法注解
 
@@ -11178,7 +12159,22 @@ ExceptionHandler注解：
   }
   ```
 
-  
+
+@ResponseStatus 注解：
+
+* 类型：类注解、方法注解
+
+* 位置：异常处理器类、方法上方
+
+* 参数：
+
+  value：出现错误指定返回状态码
+
+  reason：出现错误返回的错误信息
+
+
+
+
 
 ***
 
@@ -11327,9 +12323,9 @@ ExceptionHandler注解：
 
 MultipartResolver接口：
 
-*  MultipartResolver接口定义了文件上传过程中的相关操作，并对通用性操作进行了封装
-*  MultipartResolver接口底层实现类CommonsMultipartResovler
-*  CommonsMultipartResovler并未自主实现文件上传下载对应的功能，而是调用了apache文件上传下载组件  
+*  MultipartResolver 接口定义了文件上传过程中的相关操作，并对通用性操作进行了封装
+*  MultipartResolver 接口底层实现类 CommonsMultipartResovler
+*  CommonsMultipartResovler 并未自主实现文件上传下载对应的功能，而是调用了 apache 文件上传下载组件  
 
 文件上传下载实现：
 
@@ -11343,49 +12339,39 @@ MultipartResolver接口：
   </dependency>
   ```
 
-* 页面表单fileupload.jsp
+* 页面表单 fileupload.jsp
 
-  ```jsp
-  <%@page pageEncoding="UTF-8" language="java" contentType="text/html;UTF-8" %>
-  
-  <form action="/fileupload" method="post" enctype="multipart/form-data">
-  <%--文件上传表单的name属性值一定要与controller处理器中方法的参数对应，否则无法实现文件上传--%>
-      上传LOGO：<input type="file" name="file"/><br/>
-      上传照片：<input type="file" name="file1"/><br/>
-      上传任意文件：<input type="file" name="file2"/><br/>
-      <input type="submit" value="上传"/>
+  ```html
+  <form method="post" action="/upload" enctype="multipart/form-data">
+      <input type="file" name="file"><br>
+      <input type="submit" value="提交">
   </form>
   ```
-
+  
 * web.xml
 
   ```xml
   DispatcherServlet + CharacterEncodingFilter
   ```
 
-* spring-mvc.xml
-
-  ```xml
-  <mvc:annotation-driven/>
-  <context:component-scan base-package="com.seazean"/
-  <!--配置文件上传处理器-->
-  <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
-      <property name="maxUploadSize" value="10240000000"/>
-  </bean>
-  ```
-
 * 控制器
 
   ```java
-  @Controller
-  public class FileUploadController {
-      @RequestMapping(value = "/fileupload")
-  	public void fileupload(MultipartFile file){
-          System.out.println("file upload is running ..." + file);
-      	file.transferTo(new File("file.png"));
-  	}
+  @PostMapping("/upload")
+  public String upload(@RequestParam("email") String email,
+                       @RequestParam("username") String username,
+                       @RequestPart("headerImg") MultipartFile headerImg) throws IOException {
+  
+      if(!headerImg.isEmpty()){
+          //保存到文件服务器，OSS服务器
+          String originalFilename = headerImg.getOriginalFilename();
+          headerImg.transferTo(new File("H:\\cache\\" + originalFilename));
+      }
+      return "main";
   }
   ```
+
+
 
 
 
@@ -11393,9 +12379,9 @@ MultipartResolver接口：
 
 
 
-#### 注意事项
+#### 名称问题
 
-MultipartFile参数中封装了上传的文件的相关信息。
+MultipartFile 参数中封装了上传的文件的相关信息。
 
 1. 文件命名问题， 获取上传文件名，并解析文件名与扩展名
 
@@ -11460,6 +12446,57 @@ public class FileUploadController {
     }
 }
 ```
+
+
+
+****
+
+
+
+#### 源码解析
+
+**StandardServletMultipartResolver** 文件上传解析器
+
+DispatcherServlet#doDispatch：
+
+```java
+protected void doDispatch(HttpServletRequest request, HttpServletResponse response) throws Exception {
+    // 判断当前请求是不是文件上传请求
+    processedRequest = checkMultipart(request);
+    // 文件上传请求会对 request 进行包装，导致两者不相等，此处赋值为 true，代表已经被解析
+    multipartRequestParsed = (processedRequest != request);
+}
+```
+
+DispatcherServlet#checkMultipart：
+
+* `if (this.multipartResolver != null && this.multipartResolver.isMultipart(request))`：判断是否是文件请求
+  * `StandardServletMultipartResolver#isMultipart`：根据开头是否符合 multipart/form-data 或者 multipart/
+* `return this.multipartResolver.resolveMultipart(request)`：把请求封装成 StandardMultipartHttpServletRequest 对象
+
+开始执行 ha.handle() 目标方法进行数据的解析
+
+* RequestPartMethodArgumentResolver#supportsParameter：支持解析文件上传数据
+
+  ```java
+  public boolean supportsParameter(MethodParameter parameter) {
+      // 参数上有 @RequestPart 注解
+      if (parameter.hasParameterAnnotation(RequestPart.class)) {
+          return true;
+      }
+  }
+  ```
+
+* RequestPartMethodArgumentResolver#resolveArgument：解析参数数据，封装成 MultipartFile 对象
+
+  * `RequestPart requestPart = parameter.getParameterAnnotation(RequestPart.class)`：获取注解的相关信息
+  * `String name = getPartName(parameter, requestPart)`：获取上传文件的名字
+  * `Object mpArg = MultipartResolutionDelegate.resolveMultipartArgument()`：解析参数
+    * `List<MultipartFile> files = multipartRequest.getFiles(name)`：获取文件的所有数据
+
+* `return doInvoke(args)`：解析完成执行自定义的方法，完成上传功能
+
+
 
 
 
@@ -11719,20 +12756,6 @@ jsp：
         <input type="submit" value="提交">
 /form>
 ```
-
-
-
-***
-
-
-
-## 运行原理
-
-
-
-
-
-
 
 
 
