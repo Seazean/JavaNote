@@ -2,10 +2,7 @@
 
 ## 基本介绍
 
-框架是一款半成品软件，我们可以基于这个半成品软件继续开发，来完成我们个性化的需求！
-
-ORM（Object Relational Mapping）： 对象关系映射
-指的是持久化数据和实体对象的映射模式，解决面向对象与关系型数据库存在的互不匹配的现象
+ORM（Object Relational Mapping）： 对象关系映射，指的是持久化数据和实体对象的映射模式，解决面向对象与关系型数据库存在的互不匹配的现象
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/ORM介绍.png)
 
@@ -4191,9 +4188,9 @@ private UserDao userDao;
 
 相关属性：
 
-- required：为 true （默认）表示注入 bean 时该 bean 必须存在，不然就会注入失败；为 true 表示注入 false 时该 bean 存在就注入，不存在就忽略跳过
+- required：为 true （默认）表示注入 bean 时该 bean 必须存在，不然就会注入失败；为 false  表示注入时该 bean 存在就注入，不存在就忽略跳过
 
-注意：在使用 @Autowired 时，首先在容器中查询对应类型的 bean，如果查询结果刚好为一个，就将该 bean 装配给 @Autowired 指定的数据，如果查询的结果不止一个，那么 @Autowired 会根据名称来查找。如果查询的结果为空，那么会抛出异常。解决方法：使用 required=false
+注意：在使用 @Autowired 时，首先在容器中查询对应类型的 bean，如果查询结果刚好为一个，就将该 bean 装配给 @Autowired 指定的数据，如果查询的结果不止一个，那么 @Autowired 会根据名称来查找。如果查询的结果为空，那么会抛出异常。解决方法：使用 required = false
 
 
 
@@ -4570,7 +4567,7 @@ UserService userService = (UserService)bf.getBean("userService");
 
 FactoryBean与 BeanFactory 区别：
 
-- FactoryBean：封装单个 bean 的创建过程
+- FactoryBean：封装单个 bean 的创建过程，就是工厂的 Bean
 
 - BeanFactory：Spring 容器顶层接口，定义了 bean 相关的获取操作
 
@@ -6533,23 +6530,23 @@ MySQL InnoDB 存储引擎的默认支持的隔离级别是 **REPEATABLE-READ（�
   }
   ```
 
-**支持当前事务的情况：**
+**支持当前事务**的情况：
 
-* TransactionDefinition.PROPAGATION_REQUIRED： 如果当前存在事务，则加入该事务；如果当前没有事务，则创建一个新的事务
+* TransactionDefinition.PROPAGATION_REQUIRED： 如果当前存在事务，则**加入该事务**；如果当前没有事务，则创建一个新的事务
   * 内外层是相同的事务
   * 在 aMethod 或者在 bMethod 内的任何地方出现异常，事务都会被回滚
-* TransactionDefinition.PROPAGATION_SUPPORTS： 如果当前存在事务，则加入该事务；如果当前没有事务，则以非事务的方式继续运行
-* TransactionDefinition.PROPAGATION_MANDATORY： 如果当前存在事务，则加入该事务；如果当前没有事务，则抛出异常
+* TransactionDefinition.PROPAGATION_SUPPORTS： 如果当前存在事务，则**加入该事务**；如果当前没有事务，则以非事务的方式继续运行
+* TransactionDefinition.PROPAGATION_MANDATORY： 如果当前存在事务，则**加入该事务**；如果当前没有事务，则抛出异常
 
-**不支持当前事务的情况：**
+**不支持当前事务**的情况：
 
 - TransactionDefinition.PROPAGATION_REQUIRES_NEW： 创建一个新的事务，如果当前存在事务，则把当前事务挂起。
   - 内外层是不同的事务，如果 bMethod 已经提交，如果 aMethod 失败回滚 ，bMethod 不会回滚
   - 如果 bMethod 失败回滚，ServiceB 抛出的异常被 ServiceA 捕获，如果 B 抛出的异常是 A 会回滚的异常，aMethod 事务需要回滚，否则仍然可以提交
-- TransactionDefinition.PROPAGATION_NOT_SUPPORTED： 以非事务方式运行，如果当前存在事务，则把当前事务挂起
-- TransactionDefinition.PROPAGATION_NEVER： 以非事务方式运行，如果当前存在事务，则抛出异常
+- TransactionDefinition.PROPAGATION_NOT_SUPPORTED： **以非事务方式运行**，如果当前存在事务，则把当前事务挂起
+- TransactionDefinition.PROPAGATION_NEVER： **以非事务方式运行**，如果当前存在事务，则抛出异常
 
-**其他情况：**
+其他情况：
 
 * TransactionDefinition.PROPAGATION_NESTED： 如果当前存在事务，则创建一个事务作为当前事务的嵌套事务来运行；如果当前没有事务，则该取值等价于 PROPAGATION_REQUIRED 
   * 如果 ServiceB 异常回滚，可以通过 try-catch 机制执行 ServiceC
@@ -12773,36 +12770,6 @@ jsp：
 
 ## XML
 
-### 整合流程
-
-整合步骤分析：
-
-SSM（Spring+SpringMVC+MyBatis）
-
-* Spring：框架基础
-
-* MyBatis：mysql+druid+pagehelper
-
-* Spring 整合 MyBatis
-
-* junit 测试业务层接口
-
-* SpringMVC
-  * rest 风格（postman 测试请求结果）
-  * 数据封装 json（jackson）
-
-* Spring 整合 SpringMVC
-
-  * Controller 调用 Service
-
-* 其他
-
-  * 表现层数据封装
-
-  * 自定义异常
-
-
-
 ### 结构搭建
 
 * 创建项目，组织项目结构，创建包
@@ -13088,13 +13055,7 @@ SSM（Spring+SpringMVC+MyBatis）
   <?xml version="1.0" encoding="UTF-8"?>
   <beans xmlns="http://www.springframework.org/schema/beans"
          xmlns:context="http://www.springframework.org/schema/context"
-         xmlns:mvc="http://www.springframework.org/schema/mvc"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="
-          http://www.springframework.org/schema/beans 
-  		http://www.springframework.org/schema/beans/spring-beans.xsd
-  		http://www.springframework.org/schema/mvc 
-          http://www.springframework.org/schema/mvc/spring-mvc.xsd
           http://www.springframework.org/schema/context 
           http://www.springframework.org/schema/context/spring-context.xsd">
   	<!--开启注解驱动，提供Controller请求转发，json自动转换等功能-->
@@ -13103,7 +13064,7 @@ SSM（Spring+SpringMVC+MyBatis）
       <context:component-scan base-package="controller"/>
   </beans>
   ```
-
+  
 * MyBatis映射：resources.dao.UserDao.xml
 
   ```xml
@@ -13145,21 +13106,15 @@ SSM（Spring+SpringMVC+MyBatis）
   </mapper>
   ```
 
-* Mybatis核心配置：resouces.applicationContext.xml
+* Mybatis 核心配置：resouces.applicationContext.xml
 
   ```xml
   <?xml version="1.0" encoding="UTF-8"?>
   <beans xmlns="http://www.springframework.org/schema/beans"
          xmlns:context="http://www.springframework.org/schema/context"
-         xmlns:tx="http://www.springframework.org/schema/tx"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="
-  		http://www.springframework.org/schema/beans 
-       	http://www.springframework.org/schema/beans/spring-beans.xsd
           http://www.springframework.org/schema/context 	
-          http://www.springframework.org/schema/context/spring-context.xsd
-          http://www.springframework.org/schema/tx 
-          http://www.springframework.org/schema/tx/spring-tx.xsd">
+          http://www.springframework.org/schema/context/spring-context.xsdd">
   	<!--开启bean-->
       <context:component-scan base-package="dao,domain,service">
           <context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller"/>

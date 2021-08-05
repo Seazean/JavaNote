@@ -1696,7 +1696,7 @@ WHERE
 
 #### 子查询
 
-* 子查询概念：查询语句中嵌套了查询语句，**将嵌套查询称为子查询**
+子查询概念：查询语句中嵌套了查询语句，**将嵌套查询称为子查询**
 
 * 结果是单行单列：可以将查询的结果作为另一条语句的查询条件，使用运算符判断
 
@@ -3669,7 +3669,7 @@ MySQL官方对索引的定义为：索引（index）是帮助 MySQL 高效获取
 索引的缺点：
 
 * 一般来说索引本身也很大，不可能全部存储在内存中，因此索引往往以索引文件的形式**存储在磁盘**上
-* 虽然索引大大提高了查询效率，同时却也降低更新表的速度。对表进行 INSERT、UPDATE、DELETE 操作，MySQL 不仅要保存数据，还要保存一下索引文件每次更新添加了索引列的字段，还会调整因为更新所带来的键值变化后的索引信息
+* 虽然索引大大提高了查询效率，同时却也降低更新表的速度。对表进行 INSERT、UPDATE、DELETE 操作，MySQL 不仅要保存数据，还要保存一下索引文件每次更新添加了索引列的字段，还会调整因为更新所带来的键值变化后的索引信息，**但是更新数据也需要先从数据库中获取**，索引加快了获取速度，所以可以相互抵消一下。
 * 索引会影响到 WHERE 的查询条件和排序 ORDER BY 两大功能
 
 
@@ -4137,7 +4137,7 @@ B+Tree 优点：提高查询速度，减少磁盘的 IO 次数，树形结构较
 
 适用条件：
 
-* 需要存储引擎将索引中的数据与条件进行判断，所以优化是基于存储引擎的，只有特定引擎可以使用，适用于InnoDB 和 MyISAM 引擎
+* 需要存储引擎将索引中的数据与条件进行判断，所以优化是基于存储引擎的，只有特定引擎可以使用，适用于 InnoDB 和 MyISAM
 * 存储引擎没有调用跨存储引擎的能力，跨存储引擎的功能有存储过程、触发器、视图，所以调用这些功能的不可以进行索引下推优化
 * 对于 InnoDB 引擎只适用于二级索引，InnoDB 的聚簇索引会将整行数据读到缓冲区，因为数据已经在内存中了，不再需要去读取了，索引下推的目的减少 IO 次数也就失去了意义
 
@@ -4928,7 +4928,7 @@ CREATE INDEX idx_emp_age_salary ON emp(age,salary);
 * 第二种通过有序索引顺序扫描直接返回有序数据，这种情况为 Using index，不需要额外排序，操作效率高
 
   ```mysql
-  EXPLAIN SELECT id,age,salary FROM emp ORDER BY age DESC;
+  EXPLAIN SELECT id, age, salary FROM emp ORDER BY age DESC;
   ```
 
   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL ORDER BY排序2.png)
@@ -4943,7 +4943,7 @@ CREATE INDEX idx_emp_age_salary ON emp(age,salary);
 
   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL ORDER BY排序3.png)
 
-  尽量减少额外的排序，通过索引直接返回有序数据。需要满足 Order by 使用相同的索引、Order By 的顺序和索引顺序相同、Order  by 的字段都是升序或都是降序，否则需要额外的操作，就会出现 FileSort
+  尽量减少额外的排序，通过索引直接返回有序数据。需要**满足 Order by 使用相同的索引、Order By 的顺序和索引顺序相同、Order  by 的字段都是升序或都是降序**，否则需要额外的操作，就会出现 FileSort
 
 Filesort 的优化：通过创建合适的索引，能够减少 Filesort 的出现，但是在某些情况，条件限制不能让 Filesort 消失，就需要加快 Filesort 的排序操作。
 
@@ -4971,7 +4971,7 @@ SHOW VARIABLES LIKE 'sort_buffer_size';			-- 默认262114
 
 #### GROUP BY
 
-GROUP BY 也会进行排序操作，与 ORDER BY 相比，GROUP BY 主要只是多了排序之后的分组操作，所以在GROUP BY 的实现过程中，与 ORDER BY 一样也可以利用到索引
+GROUP BY 也会进行排序操作，与 ORDER BY 相比，GROUP BY 主要只是多了排序之后的分组操作，所以在 GROUP BY 的实现过程中，与 ORDER BY 一样也可以利用到索引
 
 * 分组查询：
 
@@ -8453,7 +8453,7 @@ user:id:3506728370 → {"name":"春晚","fans":12210862,"blogs":83}
 - 当键值对个数小于 hash-max-ziplist-entries 配置（默认512个）
 - 所有键值都小于 hash-max-ziplist-value 配置（默认64字节）
 
-ziplist 使用更加紧凑的结构实现多个元素的连续存储，所以在节省内存方面比 hashtable 更加优秀，当 ziplist 无法满足哈希类型时，Redis 会使用 hashtable 作为哈希的内部实现，因为此时 ziplist 的读写效率会下降，而hashtable 的读写时间复杂度为 O(1)
+ziplist 使用更加紧凑的结构实现多个元素的连续存储，所以在节省内存方面比 hashtable 更加优秀，当 ziplist 无法满足哈希类型时，Redis 会使用 hashtable 作为哈希的内部实现，因为此时 ziplist 的读写效率会下降，而 hashtable 的读写时间复杂度为 O(1)
 
 
 
@@ -8463,7 +8463,7 @@ ziplist 使用更加紧凑的结构实现多个元素的连续存储，所以在
 
 ##### 压缩列表
 
-压缩列表（ziplist）是列表和哈希的底层实现之一，压缩列表用来紧凑数据存储，节省内存：
+压缩列表（ziplist）是列表和哈希的底层实现之一，压缩列表用来紧凑数据存储，节省内存，有序：
 
 <img src="https://gitee.com/seazean/images/raw/master/DB/Redis-压缩列表数据结构.png" style="zoom:67%;" />
 
@@ -8854,7 +8854,7 @@ Redis 使用跳跃表作为有序集合键的底层实现之一，如果一个�
 * 基于单向链表加索引的方式实现
 
 - Redis 的跳跃表实现由 zskiplist 和 zskiplistnode 两个结构组成，其中 zskiplist 用于保存跳跃表信息（比如表头节点、表尾节点、长度），而 zskiplistnode 则用于表示跳跃表节点
-- Redis 每个跳跃表节点的层高都是 1 至 32 之间的随机数（Redis5 之后最大层数为64）
+- Redis 每个跳跃表节点的层高都是 1 至 32 之间的随机数（Redis5 之后最大层数为 64）
 - 在同一个跳跃表中，多个节点可以包含相同的分值，但每个节点的成员对象必须是唯一的。跳跃表中的节点按照分值大小进行排序，当分值相同时节点按照成员对象的大小进行排序
 
 ![](https://gitee.com/seazean/images/raw/master/DB/Redis-跳跃表数据结构.png)
@@ -9014,13 +9014,13 @@ redis 应用于地理位置计算
 
 ### 基本使用
 
-Jedis用于Java语言连接redis服务，并提供对应的操作API
+Jedis 用于 Java 语言连接 redis 服务，并提供对应的操作 API
 
-1. jar包导入
+1. jar 包导入
 
    * 下载地址：https://mvnrepository.com/artifact/redis.clients/jedis
 
-   * 基于maven：
+   * 基于 maven：
 
      ```xml
      <dependency>
@@ -9030,12 +9030,12 @@ Jedis用于Java语言连接redis服务，并提供对应的操作API
      </dependency>
      ```
 
-2. 客户端连接redis
-   API文档：http://xetorthio.github.io/jedis/
+2. 客户端连接 redis
+   API 文档：http://xetorthio.github.io/jedis/
 
-   连接redis：`Jedis jedis = new Jedis("192.168.0.185", 6379);`
-   操作redis：`jedis.set("name", "seazean");  jedis.get("name");`
-   关闭redis：`jedis.close();`
+   连接 redis：`Jedis jedis = new Jedis("192.168.0.185", 6379);`
+   操作 redis：`jedis.set("name", "seazean");  jedis.get("name");`
+   关闭 redis：`jedis.close();`
 
 代码实现：
 
@@ -9071,12 +9071,12 @@ public class JedisTest {
 ### 工具类
 
 连接池对象：
-	JedisPool：Jedis提供的连接池技术  
+	JedisPool：Jedis 提供的连接池技术  
 	poolConfig：连接池配置对象 
-	host：redis服务地址
-	port：redis服务端口号
+	host：redis 服务地址
+	port：redis 服务端口号
 
-JedisPool的构造器如下：
+JedisPool 的构造器如下：
 
 ```java
 public JedisPool(GenericObjectPoolConfig poolConfig, String host, int port) {
