@@ -6342,22 +6342,22 @@ public class UserServiceJDKProxy {
 
 #### CGLIB
 
-CGLIB（Code Generation Library）：Code生成类库 
+CGLIB（Code Generation Library）：Code 生成类库 
 
 CGLIB 特点：
 
 * CGLIB 动态代理**不限定**是否具有接口，可以对任意操作进行增强
 * CGLIB 动态代理无需要原始被代理对象，动态创建出新的代理对象
-* CGLIB **继承被代理类**，如果代理类是final则不能实现
+* CGLIB **继承被代理类**，如果代理类是 final 则不能实现
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/AOP底层原理-cglib.png)
 
-* cglib类
+* CGLIB 类
 
-  * JDKProxy仅对接口方法做增强，cglib对所有方法做增强，包括Object类中的方法 (toString、hashCode)
+  * JDKProxy 仅对接口方法做增强，CGLIB 对所有方法做增强，包括 Object 类中的方法（toString、hashCode）
   * 返回值类型采用多态向下转型，所以需要设置父类类型
 
-  需要对方法进行判断是否是save，来选择性增强
+  需要对方法进行判断是否是 save，来选择性增强
 
   ```java
   public class UserServiceImplCglibProxy {
@@ -14207,7 +14207,7 @@ public class MyConfig {
 ```
 
 ```xml
-<beans ...">
+<beans ...>
     <bean id="haha" class="com.lun.boot.bean.User">
         <property name="name" value="zhangsan"></property>
         <property name="age" value="18"></property>
@@ -14346,6 +14346,10 @@ SpringApplication#run(String... args)：
 
 * `refreshContext(context)`：**刷新 IOC 容器**
 
+  * Spring 的容器启动流程
+  * `invokeBeanFactoryPostProcessors(beanFactory)`：**实现了自动装配**
+  * `onRefresh()`：**创建 WebServer** 使用该接口
+
 * `afterRefresh(context, applicationArguments)`：留给用户自定义容器刷新完成后的处理逻辑
 
 * `stopWatch.stop()`：记录应用启动完成的时间
@@ -14418,7 +14422,7 @@ SpringBoot 定义了一套接口规范，这套规范规定 SpringBoot 在启动
   }
   ````
 
-  * @AutoConfigurationPackage：**将添加该注解的类所在的 package 作为自动配置 package 进行管理**，把启动类所在的包设置一次，为了给各种自动配置的第三方库扫描用，比如带 @Mapper 注解的类，Spring 自身其实是不认识的，但自动配置的 Mybatis 需要扫描用到，而 ComponentScan 用来扫描注解类，并没有提供接口给三方使。
+  * @AutoConfigurationPackage：**将添加该注解的类所在的 package 作为自动配置 package 进行管理**，把启动类所在的包设置一次，为了给各种自动配置的第三方库扫描用，比如带 @Mapper 注解的类，Spring 自身是不能识别的，但自动配置的 Mybatis 需要扫描用到，而 ComponentScan 只是用来扫描注解类，并没有提供接口给三方使用
 
     ```java
     @Import(AutoConfigurationPackages.Registrar.class)	// 利用 Registrar 给容器中导入组件
@@ -14431,43 +14435,56 @@ SpringBoot 定义了一套接口规范，这套规范规定 SpringBoot 在启动
     `register(registry, new PackageImports(metadata).getPackageNames().toArray(new String[0]))`：注册 BD
 
     * `new PackageImports(metadata).getPackageNames()`：获取添加当前注解的类的所在包
-    * `registry.registerBeanDefinition(BEAN, new BasePackagesBeanDefinition(packageNames))`：
+    * `registry.registerBeanDefinition(BEAN, new BasePackagesBeanDefinition(packageNames))`：存放到容器中
+      * `new BasePackagesBeanDefinition(packageNames)`：把当前主类所在的包名封装到该对象中
 
   * @Import(AutoConfigurationImportSelector.class)：**首先自动装配的核心类**
 
+    容器刷新时执行：**invokeBeanFactoryPostProcessors()** → invokeBeanDefinitionRegistryPostProcessors() → postProcessBeanDefinitionRegistry() → processConfigBeanDefinitions() → parse() → process() → processGroupImports() → getImports() → process() → **AutoConfigurationImportSelector#getAutoConfigurationEntry()**
+
     ```java
-    // 选择导入的类
-    public String[] selectImports(AnnotationMetadata annotationMetadata) {
-        //判断自动装配开关是否打开
+    protected AutoConfigurationEntry getAutoConfigurationEntry(AnnotationMetadata annotationMetadata) {
         if (!isEnabled(annotationMetadata)) {
-    		return NO_IMPORTS;
-    	}
-        //获取需要自动装配的配置类
-        AutoConfigurationEntry autoConfigurationEntry = getAutoConfigurationEntry(annotationMetadata);
-        return StringUtils.toStringArray(autoConfigurationEntry.getConfigurations());
+            return EMPTY_ENTRY;
+        }
+        // 获取注解属性，@SpringBootApplication 注解的 exclude 属性和 excludeName 属性
+        AnnotationAttributes attributes = getAttributes(annotationMetadata);
+        // 获取所有需要自动装配的候选项
+        List<String> configurations = getCandidateConfigurations(annotationMetadata, attributes);
+        // 去除重复的选项
+        configurations = removeDuplicates(configurations);
+        // 获取注解配置的排除的自动装配类
+        Set<String> exclusions = getExclusions(annotationMetadata, attributes);
+        checkExcludedClasses(configurations, exclusions);
+        // 移除所有的配置的不需要自动装配的类
+        configurations.removeAll(exclusions);
+        // 过滤，条件装配
+        configurations = getConfigurationClassFilter().filter(configurations);
+        // 获取 AutoConfigurationImportListener 类的监听器调用 onAutoConfigurationImportEvent 方法
+        fireAutoConfigurationImportEvents(configurations, exclusions);
+        // 包装成 AutoConfigurationEntry 返回
+        return new AutoConfigurationEntry(configurations, exclusions);
     }
     ```
 
-    `getAutoConfigurationEntry(annotationMetadata)`：
+    AutoConfigurationImportSelector#getCandidateConfigurations：获取自动配置的候选项
 
-    * `attributes = getAttributes(annotationMetadata)`：获取注解的属性信息
+    * `List<String> configurations = SpringFactoriesLoader.loadFactoryNames()`：加载自动配置类
 
-    * `getCandidateConfigurations(annotationMetadata, attributes)`：**获取自动配置的候选项**
+      参数一：`getSpringFactoriesLoaderFactoryClass()` 获取 @EnableAutoConfiguration 注解类
 
-      * `List<String> configurations = SpringFactoriesLoader.loadFactoryNames()`：加载资源
+      参数二：`getBeanClassLoader()` 获取类加载器
 
-        参数一：`getSpringFactoriesLoaderFactoryClass()` 获取 @EnableAutoConfiguration 注解类
-
-        参数二：`getBeanClassLoader()` 获取类加载器
-
+      * `factoryTypeName = factoryType.getName()`：@EnableAutoConfiguration 注解的全类名
+      * `return loadSpringFactories(classLoaderToUse).getOrDefault()`：加载资源
         * `urls = classLoader.getResources(FACTORIES_RESOURCE_LOCATION)`：获取资源类
-        * `FACTORIES_RESOURCE_LOCATION = "META-INF/spring.factories"`：获取位置
+        * `FACTORIES_RESOURCE_LOCATION = "META-INF/spring.factories"`：**加载的资源的位置**
 
-      * 从 spring-boot-autoconfigure-2.5.3.jar/META-INF/spring.factories 文件中获取自动装配类，**进行条件装配，按需装配**
+    * `return configurations`：返回所有自动装配类的候选项
 
-    * `return new AutoConfigurationEntry(configurations, exclusions)`：封装返回
+  * 从 spring-boot-autoconfigure-2.5.3.jar/META-INF/spring.factories 文件中获取自动装配类，**进行条件装配，按需装配**
 
-![](https://gitee.com/seazean/images/raw/master/Frame/SpringBoot-自动装配配置文件.png)
+    ![](https://gitee.com/seazean/images/raw/master/Frame/SpringBoot-自动装配配置文件.png)
 
 
 
@@ -15247,7 +15264,7 @@ SpringBoot 嵌入式 Servlet 容器，默认支持的 webServe：Tomcat、Jetty�
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-web</artifactId>
     <exclusions>
-        <exclusion><!--必须要把内嵌的 Tomcat 容器-->
+        <exclusion> <!--必须要把内嵌的 Tomcat 容器-->
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-tomcat</artifactId>
         </exclusion>
@@ -15259,13 +15276,13 @@ SpringBoot 嵌入式 Servlet 容器，默认支持的 webServe：Tomcat、Jetty�
 </dependency>
 ```
 
-源码分析 ServletWebServerFactoryAutoConfiguration：
+创建 Web 容器：
 
 * `SpringApplication.run(BootApplication.class, args)`：应用启动
 
 * `ConfigurableApplicationContext.run()`：
 
-  * `context = createApplicationContext()`：创建容器
+  * `context = createApplicationContext()`：**创建容器**
 
     * `applicationContextFactory = ApplicationContextFactory.DEFAULT`
 
@@ -15315,7 +15332,7 @@ SpringBoot 嵌入式 Servlet 容器，默认支持的 webServe：Tomcat、Jetty�
 
   `TomcatServletWebServerFactory`、`JettyServletWebServerFactory`、`UndertowServletWebServerFactory`
 
-- 自动配置类 ServletWebServerFactoryAutoConfiguration 导入了 ServletWebServerFactoryConfiguration（配置类），根据条件装配判断系统中到底导入了哪个 Web 服务器的包，创建出服务器并启动
+- **自动配置类 ServletWebServerFactoryAutoConfiguration** 导入了 ServletWebServerFactoryConfiguration（配置类），根据条件装配判断系统中到底导入了哪个 Web 服务器的包，创建出服务器并启动
 
 - 默认是 web-starter 导入 tomcat 包，容器中就有 TomcatServletWebServerFactory，创建出 Tomcat 服务器并启动，
 
