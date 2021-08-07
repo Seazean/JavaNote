@@ -4335,7 +4335,7 @@ EXPLAIN SELECT * FROM table_1 WHERE id = 1;
 | filtered      | 按表条件过滤的行百分比                                       |
 | extra         | 执行情况的说明和描述                                         |
 
-MySQL执行计划的局限：
+MySQL 执行计划的局限：
 
 * 只是计划，不是执行 SQL 语句
 
@@ -4433,13 +4433,13 @@ SQL 执行的顺序的标识，SQL 从大到小的执行
 | ALL    | Full Table Scan，MySQL将遍历全表以找到匹配的行，全表扫描     |
 | index  | Full Index Scan，index 与 ALL 区别为 index 类型只遍历索引树  |
 | range  | 索引范围扫描，常见于between、<、>等的查询                    |
-| ref    | 非唯一性索引扫描，返回匹配某个单独值的所有，本质上也是一种索引访问，常见于使用非唯一索引即唯一索引的非唯一前缀进行的查找 |
+| ref    | 非唯一性索引扫描，返回匹配某个单独值的所有，本质上也是一种索引访问 |
 | eq_ref | 唯一性索引扫描，对于每个索引键，表中只有一条记录与之匹配，常见于主键或唯一索引扫描 |
 | const  | 当 MySQL 对查询某部分进行优化，并转换为一个常量时，使用该类型访问，如将主键置于where列表中，MySQL就能将该查询转换为一个常量 |
 | system | system 是 const 类型的特例，当查询的表只有一行的情况下，使用system |
 | NULL   | MySQL在优化过程中分解语句，执行时甚至不用访问表或索引        |
 
-从上到下，性能从差到好，一般来说需要保证查询至少达到 range 级别， 最好达到ref 
+从上到下，性能从差到好，一般来说需要保证查询至少达到 range 级别， 最好达到 ref 
 
 
 
@@ -4508,7 +4508,7 @@ SHOW PROFILES 能够在做 SQL 优化时分析当前会话中语句执行的资�
   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL- profiling.png)
 
   ```mysql
-  SET profiling=1; //开启profiling 开关；
+  SET profiling=1; #开启profiling 开关；
   ```
 
 * 执行 SHOW PROFILES 指令， 来查看 SQL 语句执行的耗时:
@@ -5186,7 +5186,7 @@ SQL 提示，是优化数据库的一个重要手段，就是在SQL语句中加�
   INSERT INTO tb_test VALUES(1,'Tom'),(2,'Cat')，(3,'Jerry');	-- 连接一次
   ```
 
-增加 cache 层：在应用中增加缓存层来达到减轻数据库负担的目的。可以部分数据从数据库中抽取出来放到应用端以文本方式存储， 或者使用框架（Mybatis）提供的一级缓存 / 二级缓存，或者使用Redis数据库来缓存数据 
+增加 cache 层：在应用中增加缓存层来达到减轻数据库负担的目的。可以部分数据从数据库中抽取出来放到应用端以文本方式存储， 或者使用框架（Mybatis）提供的一级缓存 / 二级缓存，或者使用 Redis 数据库来缓存数据 
 
 
 

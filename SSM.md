@@ -110,7 +110,7 @@ org.apache.ibatis.session.SqlSession：构建者对象接口，用于执行 SQL�
   * <delete>：删除功能标签
     * id：属性，唯一标识，配合名称空间使用
     * resultType：指定结果映射对象类型，和对应的方法的返回值类型(全限定名)保持一致，但是如果返回值是List则和其泛型保持一致
-    * parameterType：指定参数映射对象类型，必须和对应的方法的参数类型(全限定名)保持一致
+    * parameterType：指定参数映射对象类型，必须和对应的方法的参数类型（全限定名）保持一致
     * statementType：可选 STATEMENT，PREPARED 或 CALLABLE，默认值：PREPARED
       * STATEMENT：直接操作 sql，不进行预编译，获取数据：$ Statement
       * PREPARED：预处理参数，进行预编译，获取数据：# PreparedStatement
@@ -481,7 +481,7 @@ org.apache.ibatis.session.SqlSession：构建者对象接口，用于执行 SQL�
 
 ### 批量操作
 
-两种方式实现批量操作：
+三种方式实现批量操作：
 
 * <settings> 标签属性：这种方式属于全局批量
 
@@ -1003,7 +1003,7 @@ Mapper 接口开发需要遵循以下规范：
 
 | 标签名                | 描述                                                         | 默认值 |
 | --------------------- | ------------------------------------------------------------ | ------ |
-| lazyLoadingEnabled    | 延迟加载的全局开关。当开启时，所有关联对象都会延迟加载。特定关联关系中可通过设置 `fetchType` 属性来覆盖该项的开关状态。 | false  |
+| lazyLoadingEnabled    | 延迟加载的全局开关。当开启时，所有关联对象都会延迟加载，特定关联关系中可通过设置 `fetchType` 属性来覆盖该项的开关状态。 | false  |
 | aggressiveLazyLoading | 开启时，任一方法的调用都会加载该对象的所有延迟加载属性。否则每个延迟加载属性会按需加载（参考 lazyLoadTriggerMethods） | false  |
 
 ```xml
@@ -1492,9 +1492,9 @@ Mapper 接口开发需要遵循以下规范：
 
 一级缓存的失效：
 
-* SqlSession 不同时
+* SqlSession 不同
 * SqlSession 相同，查询条件不同时（还未缓存该数据）
-* SqlSession 相同，手动清除了一级缓存，调用`openSession.clearCache()`
+* SqlSession 相同，手动清除了一级缓存，调用 `openSession.clearCache()`
 * SqlSession 相同，执行 commit 操作（执行插入、更新、删除），清空 SqlSession 中的一级缓存，这样做的目的为了让缓存中存储的是最新的信息，避免脏读。
 
 测试一级缓存存在
@@ -1556,7 +1556,7 @@ public void testFirstLevelCache(){
    <mapper namespace="dao.UserDao">
        <!--开启user支持二级缓存-->
       	<cache eviction="FIFO" flushInterval="6000" readOnly="" size="1024"/>
-   	<cache></cache>则表示所有属性使用默认值
+   	<cache></cache> <!--则表示所有属性使用默认值-->
    </mapper>
    ```
 
@@ -1588,7 +1588,8 @@ public void testFirstLevelCache(){
 
 1. select 标签的 useCache 属性
 
-   映射文件中的 `<select>` 标签中设置 `useCache="true"` 代表当前 statement 要使用二级缓存。
+   映射文件中的 `<select>` 标签中设置 `useCache="true"` 代表当前 statement 要使用二级缓存
+
    注意：针对每次查询都需要最新的数据 sql，要设置成 useCache=false，禁用二级缓存
 
    ```xml
@@ -2365,7 +2366,7 @@ DefaultSqlSessionFactory.openSessionFromDataSource(...)：ExecutorType 为 Execu
 
 * `transactionFactory.newTransaction(DataSource, IsolationLevel, boolean`：事务对象
 
-* `configuration.newExecutor(tx, execType)`：根据参数创建指定类型的 Executor
+* `configuration.newExecutor(tx, execType)`：**根据参数创建指定类型的 Executor**
   * 批量操作笔记的部分有讲解到 <setting> 的属性 defaultExecutorType，根据设置的创建对象
   * 二级缓存默认开启，会包装 Executor 对象 `BaseExecutor.setExecutorWrapper(executor)`
 
@@ -2386,7 +2387,7 @@ Configuration.getMapper(Class, SqlSession)：获取代理的 mapper 对象
 MapperRegistry.getMapper(Class, SqlSession)：MapperRegistry 是 Configuration 属性，在获取工厂对象时初始化
 
 * `(MapperProxyFactory<T>) knownMappers.get(type)`：获取接口信息封装为 MapperProxyFactory 对象
-* `mapperProxyFactory.newInstance(sqlSession)`：创建代理对象
+* `mapperProxyFactory.newInstance(sqlSession)`：**创建代理对象**
   * `new MapperProxy<>(sqlSession, mapperInterface, methodCache)`：包装对象
     * methodCache 是并发安全的 ConcurrentHashMap 集合，存放要执行的方法
     * `MapperProxy<T> implements InvocationHandler` 是一个 InvocationHandler 对象
@@ -2427,9 +2428,9 @@ executor.query()：开始执行查询语句，参数通过 wrapCollection() 包�
 
 * `BaseExecutor.query()`：
 
-  * `localCache.getObject(key) `：尝试从**本地缓存**（一级缓存）获取数据
+  * `localCache.getObject(key) `：尝试从**本地缓存（一级缓存**）获取数据
 
-* `BaseExecutor.queryFromDatabase()`：开始从数据库获取数据，并放入本地缓存
+* `BaseExecutor.queryFromDatabase()`：**开始从数据库获取数据，并放入本地缓存**
 
   * `SimpleExecutor.doQuery()`：执行 query
   * `configuration.newStatementHandler()`：创建 StatementHandler 对象

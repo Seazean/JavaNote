@@ -42,7 +42,7 @@
 
 * 进程基本上相互独立的，而线程存在于进程内，是进程的一个子集
 
-* 进程拥有共享的资源，如内存空间等，供其内部的线程共享
+* 进程拥有共享的资源，如内存空间等，供其**内部的线程共享**
 
 * 进程间通信较为复杂
 
@@ -50,9 +50,9 @@
 
   * 信号量：信号量是一个计数器，用于多进程对共享数据的访问，解决同步相关的问题并避免竞争条件
   * 共享存储：多个进程可以访问同一块内存空间，需要使用信号量用来同步对共享存储的访问
-  * 管道通信：管道是用于连接一个读进程和一个写进程以实现它们之间通信的一个共享文件，pipe文件
-    * 匿名管道(Pipes) ：用于具有亲缘关系的父子进程间或者兄弟进程之间的通信，只支持半双工通信
-    * 命名管道(Names Pipes)：以磁盘文件的方式存在，可以实现本机任意两个进程通信，遵循FIFO
+  * 管道通信：管道是用于连接一个读进程和一个写进程以实现它们之间通信的一个共享文件，pipe 文件
+    * 匿名管道（Pipes）：用于具有亲缘关系的父子进程间或者兄弟进程之间的通信，只支持半双工通信
+    * 命名管道（Names Pipes）：以磁盘文件的方式存在，可以实现本机任意两个进程通信，遵循 FIFO
   * 消息队列：内核中存储消息的链表，由消息队列标识符标识，能在不同进程之间提供全双工通信，对比管道：
     * 匿名管道存在于内存中的文件；命名管道存在于实际的磁盘介质或者文件系统；消息队列存放在内核中，只有在内核重启（操作系统重启）或者显示地删除一个消息队列时，该消息队列才被真正删除
     * 读进程可以根据消息类型有选择地接收消息，而不像 FIFO 那样只能默认地接收
@@ -63,7 +63,7 @@
 
 * 线程通信相对简单，因为它们共享进程内的内存，一个例子是多个线程可以访问同一个共享变量
 
-  Java中的通信机制：volatile、等待/通知机制、join方式、InheritableThreadLocal、MappedByteBuffer
+  Java 中的通信机制：volatile、等待/通知机制、join方式、InheritableThreadLocal、MappedByteBuffer
 
 * 线程更轻量，线程上下文切换成本一般上要比进程上下文切换低
 
@@ -103,7 +103,7 @@ Thread创建线程方式：创建线程类，匿名内部类方式
 * 线程的启动必须调用 start() 方法，如果线程直接调用 run() 方法，相当于变成了普通类的执行，此时将只有主线程在执行该线程
 * 建议线程先创建子线程，主线程的任务放在之后，否则主线程（main）永远是先执行完
 
-Thread构造器：
+Thread 构造器：
 
 * `public Thread()`
 * `public Thread(String name)`
@@ -142,11 +142,11 @@ class MyThread extends Thread{
 
 #### Runnable
 
-Runnable创建线程方式：创建线程类，匿名内部类方式
+Runnable 创建线程方式：创建线程类，匿名内部类方式
 
-**Thread类本身也是实现了Runnable接口**
+**Thread 类本身也是实现了 Runnable 接口**
 
-Thread的构造器：
+Thread 的构造器：
 
 * `public Thread(Runnable target)`
 * `public Thread(Runnable target, String name)`
@@ -175,7 +175,7 @@ public class MyRunnable implements Runnable{
 
 * 优点：
 
-  1. 线程任务类只是实现了Runnable接口，可以继续继承其他类，避免了单继承的局限性
+  1. 线程任务类只是实现了 Runnable 接口，可以继续继承其他类，避免了单继承的局限性
 
   2. 同一个线程任务对象可以被包装成多个线程对象
 
@@ -183,7 +183,7 @@ public class MyRunnable implements Runnable{
 
   4. 实现解耦操作，线程任务代码可以被多个线程共享，线程任务代码和线程独立
 
-  5. 线程池可以放入实现Runnable或Callable线程任务对象
+  5. 线程池可以放入实现 Runnable 或 Callable 线程任务对象
 
 ​     
 
@@ -204,11 +204,9 @@ public class MyRunnable implements Runnable{
 
 `public FutureTask(Callable<V> callable)`：未来任务对象，在线程执行完后**得到线程的执行结果**
 
-* 其实就是 Runnable 对象，这样被包装成未来任务对象
+* FutureTask 就是 Runnable 对象，被包装成未来任务对象
 
-`public V get()`：同步等待 task 执行完毕的结果
-
-* 如果在线程中获取另一个线程执行结果，会阻塞等待，用于线程同步
+`public V get()`：同步等待 task 执行完毕的结果，如果在线程中获取另一个线程执行结果，会阻塞等待，用于线程同步
 
 优缺点：
 
@@ -253,9 +251,9 @@ Java Virtual Machine Stacks（Java 虚拟机栈）：每个线程启动后，虚
 * 每个栈由多个栈帧（Frame）组成，对应着每次方法调用时所占用的内存
 * 每个线程只能有一个活动栈帧，对应着当前正在执行的那个方法
 
-线程上下文切换（Thread Context Switch）：一些原因导致 cpu 不再执行当前线程，转而执行另一个线程
+线程上下文切换（Thread Context Switch）：一些原因导致 CPU 不再执行当前线程，转而执行另一个线程
 
-* 线程的 cpu 时间片用完
+* 线程的 CPU 时间片用完
 * 垃圾回收
 * 有更高优先级的线程需要运行
 * 线程自己调用了 sleep、yield、wait、join、park、synchronized、lock 等方法
@@ -266,7 +264,7 @@ Java Virtual Machine Stacks（Java 虚拟机栈）：每个线程启动后，虚
 
 Java 创建的线程是内核级线程，**线程的调度是在内核态运行的，而线程中的代码是在用户态运行**，所以线程切换（状态改变）会导致用户与内核态转换，这是非常消耗性能
 
-Java 中 main 方法启动的是一个进程也是一个主线程，main 方法里面的其他线程均为子线程
+Java 中 main 方法启动的是一个进程也是一个主线程，main 方法里面的其他线程均为子线程，main 线程是这些线程的父线程
 
 
 
@@ -336,7 +334,7 @@ sleep：
 
 yield：
 
-* 调用 yield 会让提示线程调度器让出当前线程对CPU的使用
+* 调用 yield 会让提示线程调度器让出当前线程对 CPU 的使用
 * 具体的实现依赖于操作系统的任务调度器
 * **会放弃 CPU 资源，锁资源不会释放**
 
@@ -419,10 +417,10 @@ public class Test {
 ##### 打断线程
 
 `public void interrupt()`：中断这个线程，异常处理机制
-`public static boolean interrupted()`：判断当前线程是否被打断，，打断返回 true，清除打断标记
+`public static boolean interrupted()`：判断当前线程是否被打断，打断返回 true，清除打断标记
 `public boolean isInterrupted()`：判断当前线程是否被打断，不清除打断标记
 
-* sleep，wait，join 方法都会让线程进入阻塞状态，打断进程**会清空打断状态** (false)
+* sleep、wait、join 方法都会让线程进入阻塞状态，打断进程**会清空打断状态** (false)
 
   ```java
   public static void main(String[] args) throws InterruptedException {
@@ -736,7 +734,7 @@ Java：
 
 ### syn-ed
 
-#### 基本使用
+#### 使用锁
 
 ##### 同步代码块
 
@@ -1201,9 +1199,8 @@ public static void method2() {
 
 自旋锁说明：
 
-* 在 Java 6 之后自旋锁是自适应的，比如对象刚刚的一次自旋操作成功过，那么认为这次自旋成功的可能性会
-  高，就多自旋几次；反之，就少自旋甚至不自旋，比较智能
-* Java 7 之后不能控制是否开启自旋功能，由JVM控制
+* 在 Java 6 之后自旋锁是自适应的，比如对象刚刚的一次自旋操作成功过，那么认为这次自旋成功的可能性会高，就多自旋几次；反之，就少自旋甚至不自旋，比较智能
+* Java 7 之后不能控制是否开启自旋功能，由 JVM 控制
 
 ```java
 //手写自旋锁
@@ -1680,7 +1677,7 @@ public static void main(String[] args) {
 LockSupport 出现就是为了增强 wait & notify 的功能：
 
 * wait，notify 和 notifyAll 必须配合 Object Monitor 一起使用，而 park、unpark 不需要
-* park & unpark以线程为单位来阻塞和唤醒线程，而notify 只能随机唤醒一个等待线程，notifyAll是唤醒所有等待线程
+* park & unpark以线程为单位来阻塞和唤醒线程，而 notify 只能随机唤醒一个等待线程，notifyAll 是唤醒所有等待线程
 * **park & unpark 可以先 unpark**，而 wait & notify 不能先 notify。类比生产消费，先消费发现有产品就消费，没有就等待；先生产就直接产生商品，然后线程直接消费
 * wait 会释放锁资源进入等待队列，park 不会释放锁资源，只负责阻塞当前线程，会释放 CPU
 
@@ -2242,15 +2239,15 @@ Java 内存模型是 Java MemoryModel（JMM），本身是一种**抽象的概�
 
 主内存和工作内存：
 
-* 主内存：计算机的内存，也就是经常提到的8G内存，16G内存，存储所有共享变量的值
+* 主内存：计算机的内存，也就是经常提到的 8G 内存，16G 内存，存储所有共享变量的值
 * 工作内存：存储该线程使用到的共享变量在主内存的的值的副本拷贝
 
 
 
 **jvm和jmm之间的关系**：
 
-* jmm中的主内存、工作内存与jvm中的Java堆、栈、方法区等并不是同一个层次的内存划分，这两者基本上是没有关系的，如果两者一定要勉强对应起来：
-  * 主内存主要对应于Java堆中的对象实例数据部分，而工作内存则对应于虚拟机栈中的部分区域
+* jmm 中的主内存、工作内存与 jvm 中的 Java 堆、栈、方法区等并不是同一个层次的内存划分，这两者基本上是没有关系的，如果两者一定要勉强对应起来：
+  * 主内存主要对应于 Java 堆中的对象实例数据部分，而工作内存则对应于虚拟机栈中的部分区域
   * 从更低层次上说，主内存直接对应于物理硬件的内存，工作内存对应寄存器和高速缓存
 
 
@@ -2273,6 +2270,10 @@ Java 内存模型定义了 8 个操作来完成主内存和工作内存的交互
 * assign：把从执行引擎接收到的一个值赋给工作内存的变量，每当虚拟机遇到一个给变量赋值的操作时，都要使用该指令
 * store：把工作内存的一个变量的值传送到主内存中
 * write：在 store 之后执行，把 store 得到的值放入主内存的变量中
+
+
+
+参考文章：https://github.com/CyC2018/CS-Notes/blob/master/notes/Java%20%E5%B9%B6%E5%8F%91.md
 
 
 
@@ -2307,10 +2308,8 @@ public static void main(String[] args) throws InterruptedException {
 原因：
 
 * 初始状态， t 线程刚开始从主内存读取了 run 的值到工作内存
-* 因为 t 线程要频繁从主内存中读取 run 的值，JIT 编译器会将 run 的值缓存至自己工作内存中的高速缓存中，
-  减少对主存中 run 的访问，提高效率
-* 1 秒之后，main 线程修改了 run 的值，并同步至主存，而 t 是从自己工作内存中的高速缓存中读取这个变量
-  的值，结果永远是旧值
+* 因为 t 线程要频繁从主内存中读取 run 的值，JIT 编译器会将 run 的值缓存至自己工作内存中的高速缓存中，减少对主存中 run 的访问，提高效率
+* 1 秒之后，main 线程修改了 run 的值，并同步至主存，而 t 是从自己工作内存中的高速缓存中读取这个变量的值，结果永远是旧值
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JMM-可见性例子.png)
 
@@ -2326,12 +2325,12 @@ public static void main(String[] args) throws InterruptedException {
 
 定义原子操作的使用规则：
 
-1. 不允许一个线程无原因地（没有发生过任何assign操作）把数据从工作内存同步会主内存中
-2. 一个新的变量只能在主内存中诞生，不允许在工作内存中直接使用一个未被初始化（assign或者load）的变量，即对一个变量实施use和store操作之前，必须先自行assign和load操作
-3. 一个变量在同一时刻只允许一条线程对其进行lock操作，但lock操作可以被同一线程重复执行多次，多次执行lock后，只有**执行相同次数的unlock**操作，变量才会被解锁，**lock和unlock必须成对出现**
-4. 如果对一个变量执行lock操作，将会清空工作内存中此变量的值，在执行引擎使用这个变量之前需要重新执行load或assign操作初始化变量的值
-5. 如果一个变量事先没有被lock操作锁定，则不允许对它执行unlock操作，也不允许去unlock一个被其他线程锁定的变量
-6. 对一个变量执行unlock操作之前，必须先把此变量同步到主内存中（执行store和write操作）
+1. 不允许一个线程无原因地（没有发生过任何 assign 操作）把数据从工作内存同步会主内存中
+2. 一个新的变量只能在主内存中诞生，不允许在工作内存中直接使用一个未被初始化（assign 或者 load）的变量，即对一个变量实施 use 和 store 操作之前，必须先自行 assign 和 load 操作
+3. 一个变量在同一时刻只允许一条线程对其进行 lock 操作，但 lock 操作可以被同一线程重复执行多次，多次执行 lock 后，只有**执行相同次数的unlock**操作，变量才会被解锁，**lock和unlock必须成对出现**
+4. 如果对一个变量执行 lock 操作，将会清空工作内存中此变量的值，在执行引擎使用这个变量之前需要重新执行 load 或 assign 操作初始化变量的值
+5. 如果一个变量事先没有被 lock 操作锁定，则不允许对它执行 unlock 操作，也不允许去 unlock 一个被其他线程锁定的变量
+6. 对一个变量执行 unlock 操作之前，必须先把此变量同步到主内存中（执行 store 和 write 操作）
 
 
 
@@ -2400,7 +2399,7 @@ CPU 处理器速度远远大于在主内存中的，为了解决速度差异，�
 
 #### 伪共享
 
-**缓存以缓存行 cache line 为单位，每个缓存行对应着一块内存**，一般是 64 byte（8 个 long），在CPU从主存获取数据时，以 cache line 为单位加载，于是相邻的数据会一并加载到缓存中
+**缓存以缓存行 cache line 为单位，每个缓存行对应着一块内存**，一般是 64 byte（8 个 long），在 CPU 从主存获取数据时，以 cache line 为单位加载，于是相邻的数据会一并加载到缓存中
 
 缓存会造成数据副本的产生，即同一份数据会缓存在不同核心的缓存行中，CPU 要保证数据的一致性，需要做到某个 CPU 核心更改了数据，其它 CPU 核心对应的**整个缓存行必须失效**，这就是伪共享
 
@@ -2412,7 +2411,7 @@ CPU 处理器速度远远大于在主内存中的，为了解决速度差异，�
 
 * @Contended：原理参考 无锁 → Addr → 优化机制 → 伪共享
 
-Linux查看CPU缓存行：
+Linux 查看 CPU 缓存行：
 
 * 命令：`cat /sys/devices/system/cpu/cpu0/cache/index0/coherency_line_size64`
 * 内存地址格式：[高位组标记] [低位索引] [偏移量]
@@ -2429,19 +2428,19 @@ Linux查看CPU缓存行：
 
 **MESI**（Modified Exclusive Shared Or Invalid）是一种广泛使用的支持写回策略的缓存一致性协议，CPU 中每个缓存行（caceh line）使用4种状态进行标记（使用额外的两位 (bit) 表示)：
 
-* M：被修改（Modified)
+* M：被修改（Modified）
 
   该缓存行只被缓存在该 CPU 的缓存中，并且是被修改过的，与主存中的数据不一致 (dirty)，该缓存行中的内存需要在未来的某个时间点（其它 CPU 读取主存中相应数据之前）写回（ write back ）主存
 
   当被写回主存之后，该缓存行的状态会变成独享 (exclusive) 状态。
 
-* E：独享的（Exclusive)
+* E：独享的（Exclusive）
 
   该缓存行只被缓存在该 CPU 的缓存中，它是未被修改过的 (clear)，与主存中数据一致，该状态可以在任何时刻有其它 CPU 读取该内存时变成共享状态 (shared)
 
   当 CPU 修改该缓存行中内容时，该状态可以变成 Modified 状态
 
-* S：共享的（Shared)
+* S：共享的（Shared）
 
   该状态意味着该缓存行可能被多个 CPU 缓存，并且各个缓存中的数据与主存数据一致 (clear)，当有一个 CPU 修改该缓存行中，其它 CPU 中该缓存行变成无效状态 (Invalid)
 
@@ -2449,7 +2448,7 @@ Linux查看CPU缓存行：
 
   该缓存是无效的，可能有其它 CPU 修改了该缓存行
 
-解决方法：各个处理器访问缓存时都遵循一些协议，在读写时要根据协议进行操作，协议主要有MSI、MESI等
+解决方法：各个处理器访问缓存时都遵循一些协议，在读写时要根据协议进行操作，协议主要有 MSI、MESI 等
 
 
 
@@ -2461,7 +2460,7 @@ Linux查看CPU缓存行：
 
 单核 CPU 处理器会自动保证基本内存操作的原子性
 
-多核 CPU 处理器，每个 CPU 处理器内维护了一块内存，每个内核内部维护着一块缓存，当多线程并发读写时，就会出现缓存数据不一致的情况。处理器提供：
+多核 CPU 处理器，每个 CPU 处理器内维护了一块内存，每个内核内部维护着一块缓存，当多线程并发读写时，就会出现缓存数据不一致的情况。处理器提供（平台级别）：
 
 * 总线锁定：当处理器要操作共享变量时，在 BUS 总线上发出一个 LOCK 信号，其他处理器就无法操作这个共享变量，该操作会导致大量阻塞，从而增加系统的性能开销
 * 缓存锁定：当处理器对缓存中的共享变量进行了操作，其他处理器有嗅探机制，将该共享变量的缓存失效，其他线程读取时会重新从主内存中读取最新的数据，基于 MESI 缓存一致性协议来实现
@@ -2474,7 +2473,7 @@ Linux查看CPU缓存行：
 
 总线机制：
 
-* 总线嗅探：每个处理器通过嗅探在总线上传播的数据来检查自己缓存值是否过期了，当处理器发现自己的缓存对应的内存地址数据被修改，就将当前处理器的缓存行设置为无效状态，当处理器对这个数据进行操作时，会重新从内存中把数据读取到处理器缓存中
+* 总线嗅探：每个处理器通过嗅探在总线上传播的数据来检查自己缓存值是否过期了，当处理器发现自己的缓存对应的内存地址数据被修改，就**将当前处理器的缓存行设置为无效状态**，当处理器对这个数据进行操作时，会重新从内存中把数据读取到处理器缓存中
 
 * 总线风暴：由于 volatile 的 MESI 缓存一致性协议，需要不断的从主内存嗅探和 CAS 循环，无效的交互会导致总线带宽达到峰值；因此不要大量使用 volatile 关键字，使用 volatile、syschonized 都需要根据实际场景
 
@@ -2560,9 +2559,9 @@ volatile 是 Java 虚拟机提供的**轻量级**的同步机制（三大特性�
 
 #### 底层原理
 
-使用 volatile 修饰的共享变量，总线会开启 CPU 总线嗅探机制来解决 JMM 缓存一致性问题，也就是共享变量在多线程中可见性的问题，实现 MESI 缓存一致性协议
+使用 volatile 修饰的共享变量，总线会开启 **CPU 总线嗅探机制**来解决 JMM 缓存一致性问题，也就是共享变量在多线程中可见性的问题，实现 MESI 缓存一致性协议
 
-底层是通过汇编 lock 前缀指令，共享变量加了 lock 前缀指令，在线程修改完共享变量后，会马上执行 store 和 write 操作写回主存。在执行 store 操作前，会先执行缓存锁定的操作，其他的 CPU 上运行的线程根据 CPU 总线嗅探机制会修改其共享变量为失效状态，读取时会重新从主内存中读取最新的数据
+底层是通过汇编 lock 前缀指令，共享变量加了 lock 前缀指令，在线程修改完共享变量后，会马上执行 store 和 write 操作写回主存。在执行 store 操作前，会先执行**缓存锁定**的操作，其他的 CPU 上运行的线程根据 CPU 总线嗅探机制会修改其共享变量为失效状态，读取时会重新从主内存中读取最新的数据
 
 lock 前缀指令就相当于内存屏障，Memory Barrier（Memory Fence）
 
@@ -2652,10 +2651,10 @@ public final class Singleton {
     private static Singleton INSTANCE = null;
     
     public static Singleton getInstance() {
-        if(INSTANCE == null) { // t2
+        if(INSTANCE == null) { // t2，这里的判断不是线程安全的
             // 首次访问会同步，而之后的使用没有 synchronized
             synchronized(Singleton.class) {
-                if (INSTANCE == null) { // t1
+                if (INSTANCE == null) { // t1，这里是线程安全的，判断防止其他线程在当前线程等待锁的期间完成了初始化
                     INSTANCE = new Singleton();
                 }
             }
@@ -2665,10 +2664,10 @@ public final class Singleton {
 }
 ```
 
-不锁INSTANCE的原因：
+不锁 INSTANCE 的原因：
 
 * INSTANCE 要重新赋值
-* INSTANCE 是null，线程加锁之前需要获取对象的引用，null没有引用
+* INSTANCE 是 null，线程加锁之前需要获取对象的引用，null 没有引用
 
 实现特点： 
 
@@ -2895,16 +2894,16 @@ public class TestVolatile {
 
 ### CAS
 
-#### 实现原理
+#### 原理
 
-无锁编程：lock free
+无锁编程：Lock Free
 
-CAS的全称是Compare-And-Swap，是**CPU并发原语**
+CAS的全称是 Compare-And-Swap，是**CPU并发原语**
 
-* CAS并发原语体现在Java语言中就是sun.misc.Unsafe类的各个方法，调用UnSafe类中的CAS方法，JVM会实现出CAS汇编指令，这是一种完全依赖于硬件的功能，通过它实现了原子操作
-* CAS是一种系统原语，原语属于操作系统范畴，是由若干条指令组成 ，用于完成某个功能的一个过程，并且**原语的执行必须是连续的，执行过程中不允许被中断**，也就是说CAS是一条CPU的原子指令，不会造成所谓的数据不一致的问题，所以 CAS 是线程安全的
+* CAS 并发原语体现在 Java 语言中就是 sun.misc.Unsafe 类的各个方法，调用 UnSafe 类中的 CAS 方法，JVM 会实现出 CAS 汇编指令，这是一种完全依赖于硬件的功能，实现了原子操作
+* CAS 是一种系统原语，原语属于操作系统范畴，是由若干条指令组成 ，用于完成某个功能的一个过程，并且**原语的执行必须是连续的，执行过程中不允许被中断**，也就是说 CAS 是一条 CPU 的原子指令，不会造成数据不一致的问题，所以 CAS 是线程安全的
 
-底层原理：CAS 的底层是 `lock cmpxchg` 指令(X86 架构)，在单核和多核 CPU 下都能够保证比较交换的原子性
+底层原理：CAS 的底层是 `lock cmpxchg` 指令（X86 架构），在单核和多核 CPU 下都能够保证比较交换的原子性
 
 * 程序是在单核处理器上运行，会省略 lock 前缀，单处理器自身会维护处理器内的顺序一致性，不需要 lock 前缀的内存屏障效果
 
@@ -2912,18 +2911,18 @@ CAS的全称是Compare-And-Swap，是**CPU并发原语**
 
 作用：比较当前工作内存中的值和主物理内存中的值，如果相同则执行规定操作，否者继续比较直到主内存和工作内存的值一致为止
 
-CAS特点：
+CAS 特点：
 
 * CAS 体现的是**无锁并发、无阻塞并发**，没有使用 synchronized，所以线程不会陷入阻塞，线程不需要频繁切换状态（上下文切换，系统调用）
 * CAS 是基于乐观锁的思想
 
-CAS缺点：
+CAS 缺点：
 
-- 循环时间长，开销大（因为执行的是do while，如果比较不成功一直在循环，最差的情况某个线程一直取到的值和预期值都不一样，就会无限循环导致饥饿），**使用CAS线程数不要超过CPU的核心数**
+- 循环时间长，开销大，因为执行的是循环操作，如果比较不成功一直在循环，最差的情况某个线程一直取到的值和预期值都不一样，就会无限循环导致饥饿，**使用 CAS 线程数不要超过 CPU的 核心数**
 - 只能保证一个共享变量的原子操作
-  - 对于一个共享变量执行操作时，可以通过循环CAS的方式来保证原子操作
-  - 对于多个共享变量操作时，循环CAS就无法保证操作的原子性，这个时候只能用锁来保证原子性
-- 引出来ABA问题
+  - 对于一个共享变量执行操作时，可以通过循环 CAS 的方式来保证原子操作
+  - 对于多个共享变量操作时，循环 CAS 就无法保证操作的原子性，这个时候只能用锁来保证原子性
+- 引出来 ABA 问题
 
 
 
@@ -2935,7 +2934,7 @@ CAS缺点：
 
 #### 乐观锁
 
-CAS与Synchronized总结：
+CAS 与 Synchronized 总结：
 
 * Synchronized是从悲观的角度出发：
   总是假设最坏的情况，每次去拿数据的时候都认为别人会修改，所以每次在拿数据的时候都会上锁，这样别人想拿这个数据就会阻塞直到它拿到锁。（**共享资源每次只给一个线程使用，其它线程阻塞，用完后再把资源转让给其它线程**），因此Synchronized我们也将其称之为悲观锁。jdk中的ReentrantLock也是一种悲观锁，**性能较差**
@@ -2958,18 +2957,18 @@ CAS与Synchronized总结：
 
 构造方法：
 
-* `public AtomicInteger()`：初始化一个默认值为0的原子型Integer
-* `public AtomicInteger(int initialValue)`：初始化一个指定值的原子型Integer
+* `public AtomicInteger()`：初始化一个默认值为 0 的原子型 Integer
+* `public AtomicInteger(int initialValue)`：初始化一个指定值的原子型 Integer
 
 常用API：
 
 | 方法                                  | 作用                                                         |
 | ------------------------------------- | ------------------------------------------------------------ |
-| public final int get()                | 获取AtomicInteger的值                                        |
-| public final int getAndIncrement()    | 以原子方式将当前值加1，返回的是自增前的值                    |
-| public final int incrementAndGet()    | 以原子方式将当前值加1，返回的是自增后的值                    |
-| public final int getAndSet(int value) | 以原子方式设置为newValue的值，返回旧值                       |
-| public final int addAndGet(int data)  | 以原子方式将输入的数值与实例中的值相加并返回<br />实例：AtomicInteger里的value |
+| public final int get()                | 获取 AtomicInteger 的值                                      |
+| public final int getAndIncrement()    | 以原子方式将当前值加 1，返回的是自增前的值                   |
+| public final int incrementAndGet()    | 以原子方式将当前值加 1，返回的是自增后的值                   |
+| public final int getAndSet(int value) | 以原子方式设置为 newValue 的值，返回旧值                     |
+| public final int addAndGet(int data)  | 以原子方式将输入的数值与实例中的值相加并返回<br />实例：AtomicInteger 里的 value |
 
 
 
@@ -2981,12 +2980,12 @@ CAS与Synchronized总结：
 
 **AtomicInteger原理**：自旋锁  + CAS 算法
 
-CAS算法：有3个操作数（内存值V， 旧的预期值A，要修改的值B）
+CAS 算法：有 3 个操作数（内存值 V， 旧的预期值 A，要修改的值 B）
 
-* 当旧的预期值A == 内存值V   此时可以修改，将V改为B
-* 当旧的预期值A !=  内存值V   此时不能修改，并重新获取现在的最新值，重新获取的动作就是自旋 
+* 当旧的预期值 A == 内存值 V   此时可以修改，将 V 改为 B
+* 当旧的预期值 A !=  内存值 V   此时不能修改，并重新获取现在的最新值，重新获取的动作就是自旋 
 
-分析getAndSet方法：
+分析 getAndSet 方法：
 
 * AtomicInteger：
 
@@ -3000,7 +2999,7 @@ CAS算法：有3个操作数（内存值V， 旧的预期值A，要修改的值B
   }
   ```
 
-  valueOffset：表示该变量值在内存中的偏移地址，Unsafe就是根据内存偏移地址获取数据
+  valueOffset：偏移量表示该变量值相对于当前对象地址的偏移，Unsafe 就是根据内存偏移地址获取数据
 
   ```java
   valueOffset = unsafe.objectFieldOffset
@@ -3024,9 +3023,9 @@ CAS算法：有3个操作数（内存值V， 旧的预期值A，要修改的值B
   }
   ```
 
-  var5：从主内存中拷贝到工作内存中的值（每次都要从主内存拿到最新的值到自己的本地内存），然后执行`compareAndSwapInt()`再和主内存的值进行比较，假设方法返回false，那么就一直执行 while方法，直到期望的值和真实值一样，修改数据
+  var5：从主内存中拷贝到工作内存中的值（每次都要从主内存拿到最新的值到本地内存），然后执行 `compareAndSwapInt()` 再和主内存的值进行比较，假设方法返回 false，那么就一直执行 while 方法，直到期望的值和真实值一样，修改数据
 
-* 变量value用volatile修饰，保证了多线程之间的内存可见性，避免线程从自己的工作缓存中查找变量
+* 变量 value 用 volatile 修饰，保证了多线程之间的内存可见性，避免线程从自己的工作缓存中查找变量
 
   ```java
   private volatile int value
@@ -3084,12 +3083,11 @@ CAS算法：有3个操作数（内存值V， 旧的预期值A，要修改的值B
 
 原子引用类：AtomicReference、AtomicStampedReference、AtomicMarkableReference
 
-AtomicReference类：
+AtomicReference 类：
 
-* 构造方法：`AtomicReference<T> atomicReference = new AtomicReference<T>();`
+* 构造方法：`AtomicReference<T> atomicReference = new AtomicReference<T>()`
 
-* 常用API：
-
+* 常用 API：
   `public final boolean compareAndSet(V expectedValue, V newValue)`：CAS 操作
   `public final void set(V newValue)`：将值设置为 newValue 
   `public final V get()`：返回当前值
@@ -3132,7 +3130,7 @@ class Student {
 
 原子数组类：AtomicIntegerArray、AtomicLongArray、AtomicReferenceArray
 
-AtomicIntegerArray类方法：
+AtomicIntegerArray 类方法：
 
 ```java
 /**
@@ -3155,11 +3153,12 @@ public final boolean compareAndSet(int i, int expect, int update) {
 
 原子更新器类：AtomicReferenceFieldUpdater、AtomicIntegerFieldUpdater、AtomicLongFieldUpdater
 
-利用字段更新器，可以针对对象的某个域（Field）进行原子操作，只能配合 volatile 修饰的字段使用，否则会出现异常`IllegalArgumentException: Must be volatile type`
+利用字段更新器，可以针对对象的某个域（Field）进行原子操作，只能配合 volatile 修饰的字段使用，否则会出现异常 `IllegalArgumentException: Must be volatile type`
 
 常用API：
-`static <U> AtomicIntegerFieldUpdater<U> newUpdater(Class<U> c, String fieldName)`：构造
-`abstract boolean compareAndSet(T obj, int expect, int update)`：CAS
+
+* `static <U> AtomicIntegerFieldUpdater<U> newUpdater(Class<U> c, String fieldName)`：构造方法
+* `abstract boolean compareAndSet(T obj, int expect, int update)`：CAS
 
 ```java
 public class UpdateDemo {
@@ -3185,20 +3184,20 @@ public class UpdateDemo {
 
 原子累加器类：LongAdder、DoubleAdder、LongAccumulator、DoubleAccumulator
 
-LongAdder和LongAccumulator区别：
+LongAdder 和 LongAccumulator 区别：
 
 相同点：
 
-* LongAddr与LongAccumulator类都是使用非阻塞算法CAS实现的，
-* LongAddr类是LongAccumulator类的一个特例，只是LongAccumulator提供了更强大的功能，可以自定义累加规则，当accumulatorFunction为null时就等价于LongAddr
+* LongAddr 与 LongAccumulator 类都是使用非阻塞算法 CAS 实现的，
+* LongAddr 类是 LongAccumulator 类的一个特例，只是 LongAccumulator 提供了更强大的功能，可以自定义累加规则，当accumulatorFunction 为 null 时就等价于 LongAddr
 
 不同点：
 
-* 调用casBase时，LongAccumulator使用function.applyAsLong(b = base, x)来计算，LongAddr使用casBase(b = base, b + x)来计算
-* LongAccumulator类功能更加强大，构造方法参数中
+* 调用 casBase 时，LongAccumulator 使用 function.applyAsLong(b = base, x) 来计算，LongAddr 使用 casBase(b = base, b + x) 来计算
+* LongAccumulator 类功能更加强大，构造方法参数中
 
-  * accumulatorFunction是一个双目运算器接口，可以指定累加规则，比如累加或者相乘，其根据输入的两个参数返回一个计算值，LongAdder内置累加规则
-  * identity则是LongAccumulator累加器的初始值，LongAccumulator可以为累加器提供非0的初始值，而LongAdder只能提供默认的0
+  * accumulatorFunction 是一个双目运算器接口，可以指定累加规则，比如累加或者相乘，其根据输入的两个参数返回一个计算值，LongAdder 内置累加规则
+  * identity 则是 LongAccumulator 累加器的初始值，LongAccumulator 可以为累加器提供非0的初始值，而 LongAdder 只能提供默认的0
 
 
 
@@ -3209,72 +3208,21 @@ LongAdder和LongAccumulator区别：
 
 ### Adder
 
-#### 优化CAS
-
-LongAdder是Java8提供的类，跟AtomicLong有相同的效果，但对CAS机制进行了优化，尝试使用分段CAS以及自动分段迁移的方式来大幅度提升多线程高并发执行CAS操作的性能
-
-CAS底层实现是在一个循环中不断地尝试修改目标值，直到修改成功。如果竞争不激烈修改成功率很高，否则失败率很高，失败后这些重复的原子性操作会耗费性能（导致大量线程**空循环，自旋转**）
-
-优化核心思想：数据分离，将AtomicLong的单点的**更新压力分担到各个节点**，在低并发的时候直接更新，可以保障和AtomicLong的性能基本一致，而在高并发的时候通过分散提高了性能
-
-
-
-***
-
-
-
 #### 优化机制
 
-##### 分段机制
+LongAdder 是 Java8 提供的类，跟 AtomicLong 有相同的效果，但对 CAS 机制进行了优化，尝试使用分段 CAS 以及自动分段迁移的方式来大幅度提升多线程高并发执行 CAS 操作的性能
 
-分段 CAS 机制：
+CAS 底层实现是在一个循环中不断地尝试修改目标值，直到修改成功。如果竞争不激烈修改成功率很高，否则失败率很高，失败后这些重复的原子性操作会耗费性能（导致大量线程**空循环，自旋转**）
 
-* 在发生竞争时，创建Cell数组用于将不同线程的操作离散（通过hash等算法映射）到不同的节点上
-* 设置多个累加单元（会根据需要扩容，最大为CPU核数），Therad-0 累加 Cell[0]，而 Thread-1 累加 Cell[1] 等，最后将结果汇总
+优化核心思想：数据分离，将 AtomicLong 的**单点的更新压力分担到各个节点**，空间换时间，在低并发的时候直接更新，可以保障和 AtomicLong 的性能基本一致，而在高并发的时候通过分散提高了性能
+
+**分段 CAS 机制**：
+
+* 在发生竞争时，创建 Cell 数组用于将不同线程的操作离散（通过 hash 等算法映射）到不同的节点上
+* 设置多个累加单元（会根据需要扩容，最大为 CPU 核数），Therad-0 累加 Cell[0]，而 Thread-1 累加 Cell[1] 等，最后将结果汇总
 * 在累加时操作的不同的 Cell 变量，因此减少了 CAS 重试失败，从而提高性能
 
-
-
-***
-
-
-
-##### 分段迁移
-
-自动分段迁移机制：某个Cell的value执行CAS失败，就会自动寻找另一个Cell分段内的value值进行CAS操作
-
-```java
-// 累加单元数组, 懒惰初始化
-transient volatile Cell[] cells;
-// 基础值, 如果没有竞争, 则用 cas 累加这个域
-transient volatile long base;
-// 在 cells 创建或扩容时, 置为 1, 表示加锁
-transient volatile int cellsBusy;
-```
-
-Cells占用内存是相对比较大的，是惰性加载的，在无竞争的情况下直接更新base域，在第一次发生竞争的时候（CAS失败）就会创建一个大小为2的cells数组，每次扩容都是加倍
-
-扩容数组等行为只能有一个线程执行，因此需要一个锁，这里通过 CAS 更新 cellsBusy 来实现一个简单的lock
-
-CAS锁：
-
-```java
-// 不要用于实践！！！
-public class LockCas {
-    private AtomicInteger state = new AtomicInteger(0);
-    public void lock() {
-        while (true) {
-            if (state.compareAndSet(0, 1)) {
-                break;
-            }
-    	}
-    }
-    public void unlock() {
-        System.out.println("unlock...");
-        state.set(0);
-    }
-}
-```
+**自动分段迁移机制**：某个 Cell 的 value 执行 CAS 失败，就会自动寻找另一个 Cell 分段内的 value 值进行 CAS 操作
 
 
 
@@ -3282,9 +3230,9 @@ public class LockCas {
 
 
 
-##### 伪共享
+#### 伪共享
 
-Cell为累加单元：数组访问索引是通过Thread里的threadLocalRandomProbe域取模实现的，这个域是ThreadLocalRandom更新的
+Cell 为累加单元：数组访问索引是通过 Thread 里的 threadLocalRandomProbe 域取模实现的，这个域是 ThreadLocalRandom 更新的
 
 ```java
 @sun.misc.Contended static final class Cell {
@@ -3298,13 +3246,11 @@ Cell为累加单元：数组访问索引是通过Thread里的threadLocalRandomPr
 }
 ```
 
-@sun.misc.Contended注解：防止缓存行伪共享
-
-Cell 是数组形式，**在内存中是连续存储的**，一个 Cell 为 24 字节（16 字节的对象头和 8 字节的 value），每一个 cache line 为 64 字节，因此缓存行可以存下 2 个的 Cell 对象，当Core-0 要修改 Cell[0]、Core-1 要修改 Cell[1]，无论谁修改成功都会导致对方 Core 的缓存行失效，需要重新去主存获取
+Cell 是数组形式，**在内存中是连续存储的**，64 位系统中，一个 Cell 为 24 字节（16 字节的对象头和 8 字节的 value），每一个 cache line 为 64 字节，因此缓存行可以存下 2 个的 Cell 对象，当 Core-0 要修改 Cell[0]、Core-1 要修改 Cell[1]，无论谁修改成功都会导致当前缓存行失效，导致对方的数据失效，需要重新去主存获取
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JUC-伪共享1.png)
 
-@sun.misc.Contended：在使用此注解的对象或字段的前后各增加 128 字节大小的padding，使用2倍于大多数硬件缓存行让 CPU 将对象预读至缓存时占用不同的缓存行，这样就不会造成对方缓存行的失效
+@sun.misc.Contended：防止缓存行伪共享，在使用此注解的对象或字段的前后各增加 128 字节大小的 padding，使用 2 倍于大多数硬件缓存行让 CPU 将对象预读至缓存时占用不同的缓存行，这样就不会造成对方缓存行的失效
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JUC-伪共享2.png)
 
@@ -3316,136 +3262,193 @@ Cell 是数组形式，**在内存中是连续存储的**，一个 Cell 为 24 �
 
 
 
-#### 成员方法
+#### 源码解析
 
-* add：累加方法
+Striped64 类成员属性：
+
+```java
+// 表示当前计算机CPU数量
+static final int NCPU = Runtime.getRuntime().availableProcessors()
+// 累加单元数组, 懒惰初始化
+transient volatile Cell[] cells;
+// 基础值, 如果没有竞争, 则用 cas 累加这个域，当 cells 扩容时，也会将数据写到 base 中
+transient volatile long base;
+// 在 cells 初始化或扩容时只能有一个线程执行, 通过 CAS 更新 cellsBusy 置为 1 来实现一个锁
+transient volatile int cellsBusy;
+```
+
+Cells 占用内存是相对比较大的，是惰性加载的，在无竞争的情况下直接更新 base 域，在第一次发生竞争的时候（CAS 失败）就会创建一个大小为 2 的 cells 数组，每次扩容都是加倍，所以**数组长度总是 2 的 n 次幂**
+
+* LongAdder#add：累加方法
 
   ```java
   public void add(long x) {
-      // as 为累加单元数组  b 为基础值  x 为累加值
+      // as 为累加单元数组的引用，b 为基础值，v 表示期望值
+      // m 表示 cells 数组的长度，a 表示当前线程命中的 cell 单元格
       Cell[] as; long b, v; int m; Cell a;
-      // 1. as 有值, 表示已经发生过竞争, 进入 if
-      // 2. cas 给 base 累加时失败了, 表示 base 发生了竞争, 进入 if
+      // 条件一: true 说明 cells 已经初始化过了，当前线程需要去 cells 数组累加，不需要在 base 上累加
+      //		  false 说明 cells 未初始化，当前线程应该写到 base 域，进行 || 后的尝试写入
+      // 条件二: true 说明 cas 失败，发生竞争，需要扩容或者重试
+      //		  false 说明 cas 成功，累加操作完成
       if ((as = cells) != null || !casBase(b = base, b + x)) {
-          // uncontended 表示 cell 没有竞争
+          // uncontended 为 true 表示 cell 没有竞争，false 表示发生竞争
           boolean uncontended = true;
-          if (
-              // as 还没有创建
-              as == null || (m = as.length - 1) < 0 ||
-              // 当前线程对应的 cell 还没有创建
+          
+          // 条件一: true 说明 cells 未初始化，多线程写 base 发生竞争需要进行初始化 cells 数组
+          //		  fasle 说明 cells 已经初始化，进行下一个条件寻找自己的 cell 去累加
+          // 条件二: getProbe() 获取 hash 值，& m 的逻辑和 HashMap 的逻辑相同，保证散列的均匀性
+          // 		  true 说明当前线程对应下标的 cell 为空，需要创建 cell
+          //        false 说明当前线程对应的 cell 不为空，进行下一个条件想要将 x 值累加到 cell 中
+          // 条件三: true 说明 cas 失败，当前线程对应的 cell 有竞争
+          //		  false 说明 cas 成功，可以直接返回
+          if (as == null || (m = as.length - 1) < 0 ||
               (a = as[getProbe() & m]) == null ||
-              // 当前线程的cell累加失败，a为当前线程的cell
-              !(uncontended = a.cas(v = a.value, v + x))
-              //uncontended = false代表有竞争
-          ) {
-              // 进入 cell 数组创建、cell 创建的流程
+              !(uncontended = a.cas(v = a.value, v + x)))
               longAccumulate(x, null, uncontended);
-          }
+          // uncontended 在 cell 上累加失败的时候才为 false，其余情况均为 true
       }
   }
   ```
 
-* longAccumulate：cell数组创建
+* Striped64#longAccumulate：cell 数组创建
 
   ```java
-  							// x  			null 			false
+  							// x  			null 			false | true
   final void longAccumulate(long x, LongBinaryOperator fn, boolean w...ed) {
       int h;
-      // 当前线程还没有对应的 cell, 需要随机生成一个 h 值用来将当前线程绑定到 cell
+      // 当前线程还没有对应的 cell, 需要随机生成一个 hash 值用来将当前线程绑定到 cell
       if ((h = getProbe()) == 0) {
-          ThreadLocalRandom.current(); // 初始化 probe
-          h = getProbe();	//h 对应新的 probe 值, 用来对应 cell
+          // 初始化 probe，获取 hash 值
+          ThreadLocalRandom.current(); 
+          h = getProbe();	
+          // 默认情况下 当前线程肯定是写入到了 cells[0] 位置，不把它当做一次真正的竞争
           wasUncontended = true;
       }
-      //collide 为 true 表示需要扩容
+      // 表示扩容意向，false 一定不会扩容，true 可能会扩容
       boolean collide = false; 
+      //自旋
       for (;;) {
+          // as 表示cells引用，a 表示当前线程命中的 cell，n 表示 cells 数组长度，v 表示 期望值
           Cell[] as; Cell a; int n; long v;
-          // cells已经创建
+          // CASE1: 表示 cells 已经初始化了，当前线程应该将数据写入到对应的 cell 中
           if ((as = cells) != null && (n = as.length) > 0) {
-              // 线程对应的cell还没被创建
+              // CASE1.1: true 表示当前线程对应的下标位置的 cell 为 null，需要创建 new Cell
               if ((a = as[(n - 1) & h]) == null) {
                   // 判断 cellsBusy 是否被锁
                   if (cellsBusy == 0) {   
                       // 创建 cell, 初始累加值为 x
                       Cell r = new Cell(x);  
-                      // 为 cellsBusy 加锁,
+                      // 加锁
                       if (cellsBusy == 0 && casCellsBusy()) {
-                          boolean created = false;
+                          // 是否创建成功的标记，进入【创建逻辑】
+                          boolean created = false;	
                           try {
                               Cell[] rs; int m, j;
+                              // 把当前 cells 数组赋值给 rs，并且不为n ull
                               if ((rs = cells) != null &&
                                   (m = rs.length) > 0 &&
+                                  // 再次判断防止其它线程初始化过该位置，当前线程再次初始化该位置会造成数据丢失
+                                  // 因为这里是线程安全的，这里判断后进行的逻辑不会被其他线程影响
                                   rs[j = (m - 1) & h] == null) {
+                                  // 把新创建的 cell 填充至当前位置
                                   rs[j] = r;
-                                  created = true;
+                                  created = true;	// 表示创建完成
                               }
                           } finally {
-                              cellsBusy = 0;
+                              cellsBusy = 0;//解锁
                           }
-                          if (created)
-                              break;// 成功则 break, 否则继续 continue 循环
+                          if (created)	// true 表示创建完成，可以推出循环了
+                              break;		// 成功则 break, 否则继续 continue 循环
                           continue;
                       }
                   }
                   collide = false;
               }
-              // 有竞争, 改变线程对应的 cell 来重试 cas
+              // CASE1.2: 线程对应的 cell 有竞争, 改变线程对应的 cell 来重试 cas
               else if (!wasUncontended)
                   wasUncontended = true;
-              //cas尝试累加, fn配合LongAccumulator不为null, 配合LongAdder为null
+              // CASE 1.3: 当前线程 rehash 过，尝试新命中的 cell 不为空去累加
+              //			 true 表示写成功，退出循环，false 表示 rehash 之后命中的新 cell 也有竞争
               else if (a.cas(v = a.value, ((fn == null) ? v + x :
                                            fn.applyAsLong(v, x))))
                   break;
-              // cells长度已经超过了最大长度或者已经扩容, 改变线程对应的cell来重试cas
+              // CASE 1.4: cells 长度已经超过了最大长度或者已经扩容
               else if (n >= NCPU || cells != as)
-                  collide = false;            // At max size or stale
-              // collide 为 false 进入此分支, 就不会进入下面的 else if 进行扩容了
+                  collide = false; 		// 扩容意向改为false，表示不扩容了
+              // CASE 1.5: 更改扩容意向
               else if (!collide)
                   collide = true;
-              //加锁扩容
+              // CASE 1.6: 扩容逻辑，进行加锁
               else if (cellsBusy == 0 && casCellsBusy()) {
                   try {
-                      if (cells == as) {      // Expand table unless stale
+                      // 再次检查，防止期间被其他线程扩容了
+                      if (cells == as) {     
+                          // 扩容为以前的 2 倍
                           Cell[] rs = new Cell[n << 1];
+                          // 遍历移动值
                           for (int i = 0; i < n; ++i)
                               rs[i] = as[i];
+                          // 把扩容后的引用给 cells
                           cells = rs;
                       }
                   } finally {
-                      cellsBusy = 0;
+                      cellsBusy = 0;	//解锁
                   }
-                  collide = false;
-                  continue;、
+                  collide = false;	// 扩容意向改为false，表示不扩容了
+                  continue;
               }
+              // 重置当前线程 Hash 值，这就是【分段迁移机制】，case1.3
               h = advanceProbe(h);
           }
-          //还没有 cells, 尝试给 cellsBusy 加锁
+  
+          // CASE2: 运行到这说明 cells 还未初始化，as 为null
+          // 条件一: true 表示当前未加锁
+          // 条件二: 其它线程可能会在当前线程给 as 赋值之后修改了 cells，这里需要判断（这里不是线程安全的）
+          // 条件三: true 表示加锁成功
           else if (cellsBusy == 0 && cells == as && casCellsBusy()) {
+              // 初始化标志，这里就进行 【初始化】
               boolean init = false;
               try { 
-                  // 初始化 cells, 最开始长度为2, 填充一个初始累加值为x的cell
+                 	// 再次判断 cells == as 防止其它线程已经初始化了，当前线程再次初始化导致丢失数据
+                  // 因为这里是线程安全的，所以重新检查，经典DCL
                   if (cells == as) {
                       Cell[] rs = new Cell[2];
                       rs[h & 1] = new Cell(x);//填充线程对应的cell
                       cells = rs;
-                      init = true;
+                      init = true;			//初始化成功
                   }
               } finally {
-                  cellsBusy = 0;
+                  cellsBusy = 0;				//解锁啊
               }
               if (init)
-                  break;
+                  break;						//初始化成功直接返回
           }
-          // 上两种情况失败, 尝试给 base 累加
+          // CASE3: 运行到这说明其他线程在初始化 cells，所以当前线程将值累加到 base，累加成功直接结束自旋
           else if (casBase(v = base, ((fn == null) ? v + x :
                                       fn.applyAsLong(v, x))))
-              break;                          // Fall back on using base
+              break; 
       }
   }
   ```
 
-* sum：获取最终结果通过 sum 整合
+* sum：获取最终结果通过 sum 整合，保持最终一致性，不保证强一致性
+
+  ```java
+  public long sum() {
+      Cell[] as = cells; Cell a;
+      long sum = base;
+      if (as != null) {
+          //遍历 累加
+          for (int i = 0; i < as.length; ++i) {
+              if ((a = as[i]) != null)
+                  sum += a.value;
+          }
+      }
+      return sum;
+  }
+  ```
+
+  
 
 
 
@@ -3455,17 +3458,16 @@ Cell 是数组形式，**在内存中是连续存储的**，一个 Cell 为 24 �
 
 ### ABA
 
-ABA问题：当进行获取主内存值时，该内存值在写入主内存时已经被修改了N次，但是最终又改成原来的值
+ABA 问题：当进行获取主内存值时，该内存值在写入主内存时已经被修改了 N 次，但是最终又改成原来的值
 
-其他线程先把A改成B又改回A，主线程仅能判断出共享变量的值与最初值 A 是否相同，不能感知到这种从 A 改为 B 又 改回 A 的情况，这时CAS虽然成功，但是过程存在问题
+其他线程先把 A 改成 B 又改回 A，主线程仅能判断出共享变量的值与最初值 A 是否相同，不能感知到这种从 A 改为 B 又 改回 A 的情况，这时 CAS 虽然成功，但是过程存在问题
 
-* 构造方法
+* 构造方法：
   `public AtomicStampedReference(V initialRef, int initialStamp)`：初始值和初始版本号
 
 * 常用API：
-  ` public boolean compareAndSet(V expectedReference, V newReference, int expectedStamp, int newStamp)`：CAS
+  ` public boolean compareAndSet(V expectedReference, V newReference, int expectedStamp, int newStamp)`：期望引用和期望版本号都一致才进行 CAS 修改数据
   `public void set(V newReference, int newStamp)`：设置值和版本号
-
   `public V getReference()`：返回引用的值
   `public int getStamp()`：返回当前版本号
 
@@ -3504,9 +3506,9 @@ public static void main(String[] args) {
 
 ### Unsafe
 
-Unsafe是CAS的核心类，由于Java无法直接访问底层系统，需要通过本地 (Native) 方法来访问
+Unsafe 是 CAS 的核心类，由于 Java 无法直接访问底层系统，需要通过本地 (Native) 方法来访问
 
-Unsafe类存在sun.misc包，其中所有方法都是native修饰的，都是直接调用操作系统底层资源执行相应的任务，基于该类可以直接操作特定的内存数据，其内部方法操作类似C的指针
+Unsafe 类存在 sun.misc 包，其中所有方法都是 native 修饰的，都是直接调用**操作系统底层资源**执行相应的任务，基于该类可以直接操作特定的内存数据，其内部方法操作类似 C 的指针
 
 模拟实现原子整数：
 
@@ -3587,7 +3589,7 @@ public class TestFinal {
 
 final 变量的赋值通过 putfield 指令来完成，在这条指令之后也会加入写屏障，保证在其它线程读到它的值时不会出现为 0 的情况
 
-其他线程访问final修饰的变量会复制一份放入栈中，效率更高
+其他线程访问 final 修饰的变量会复制一份放入栈中，效率更高
 
 
 
@@ -4557,7 +4559,7 @@ class DelayTask implements Delayed {
 
 ### 操作Pool
 
-#### 创建方法
+#### 创建方式
 
 ##### Executor
 
@@ -4585,7 +4587,7 @@ public ThreadPoolExecutor(int corePoolSize,
 
 * maximumPoolSize：最大线程数，当队列中存放的任务达到队列容量时，当前可以同时运行的数量变为最大线程数，创建线程并立即执行最新的任务，与核心线程数之间的差值又叫救急线程数
 
-* keepAliveTime：救急线程最大存活时间，当线程池中的线程数量大于 `corePoolSize` 的时候，如果这时没有新的任务提交，核心线程外的线程不会立即销毁，而是会等到`keepAliveTime`时间超过销毁
+* keepAliveTime：救急线程最大存活时间，当线程池中的线程数量大于 `corePoolSize` 的时候，如果这时没有新的任务提交，核心线程外的线程不会立即销毁，而是会等到 `keepAliveTime` 时间超过销毁
 
 * unit：`keepAliveTime` 参数的时间单位
 
@@ -4595,7 +4597,7 @@ public ThreadPoolExecutor(int corePoolSize,
 
 * handler：拒绝策略，线程到达最大线程数仍有新任务时会执行拒绝策略
 
-  RejectedExecutionHandler下有4个实现类：
+  RejectedExecutionHandler下有 4 个实现类：
 
   * AbortPolicy：让调用者抛出 RejectedExecutionException 异常，默认策略
   * CallerRunsPolicy："调用者运行"的调节机制，将某些任务回退到调用者，从而降低新任务的流量
@@ -4622,7 +4624,7 @@ public ThreadPoolExecutor(int corePoolSize,
    * 如果队列满了且正在运行的线程数量大于或等于 maximumPoolSize，那么线程池会启动饱和**拒绝策略**来执行
 3. 当一个线程完成任务时，会从队列中取下一个任务来执行
 
-4. 当一个线程无事可做超过一定的时间（keepAliveTime）时，线程池会判断：如果当前运行的线程数大于corePoolSize，那么这个线程就被停掉，所以线程池的所有任务完成后最终会收缩到 corePoolSize 大小
+4. 当一个线程无事可做超过一定的时间（keepAliveTime）时，线程池会判断：如果当前运行的线程数大于 corePoolSize，那么这个线程就被停掉，所以线程池的所有任务完成后最终会收缩到 corePoolSize 大小
 
 
 
@@ -4646,7 +4648,7 @@ Executors提供了四种线程池的创建：newCachedThreadPool、newFixedThrea
   ```
 
   * 核心线程数 == 最大线程数（没有救急线程被创建），因此也无需超时时间
-  * LinkedBlockingQueue是一个单向链表实现的阻塞队列，默认大小为`Integer.MAX_VALUE`，也就是无界队列，可以放任意数量的任务，在任务比较多的时候会导致 OOM（内存溢出）
+  * LinkedBlockingQueue是一个单向链表实现的阻塞队列，默认大小为 `Integer.MAX_VALUE`，也就是无界队列，可以放任意数量的任务，在任务比较多的时候会导致 OOM（内存溢出）
   * 适用于任务量已知，相对耗时的长期任务
 
 * newCachedThreadPool：创建一个可扩容的线程池
@@ -4659,11 +4661,11 @@ Executors提供了四种线程池的创建：newCachedThreadPool、newFixedThrea
   ```
 
   * 核心线程数是 0， 最大线程数是 Integer.MAX_VALUE，全部都是救急线程（60s 后可以回收），可能会创建大量线程，从而导致 **OOM**
-  * SynchronousQueue 作为阻塞队列，没有容量，对于每一个take的线程会阻塞直到有一个put的线程放入元素为止（类似一手交钱、一手交货）
+  * SynchronousQueue 作为阻塞队列，没有容量，对于每一个 take 的线程会阻塞直到有一个 put 的线程放入元素为止（类似一手交钱、一手交货）
 
   * 适合任务数比较密集，但每个任务执行时间较短的情况
 
-* newSingleThreadExecutor：创建一个只有1个线程的单线程池
+* newSingleThreadExecutor：创建一个只有 1 个线程的单线程池
 
   ```java
   public static ExecutorService newSingleThreadExecutor() {
@@ -4692,7 +4694,7 @@ Executors提供了四种线程池的创建：newCachedThreadPool、newFixedThrea
 
 
 
-#### 开发要求
+##### 开发要求
 
 阿里巴巴 Java 开发手册要求：
 
@@ -4737,7 +4739,9 @@ Executors提供了四种线程池的创建：newCachedThreadPool、newFixedThrea
 
 
 
-#### 提交方法
+#### 操作方式
+
+##### 提交方法
 
 ExecutorService类API：
 
@@ -4745,16 +4749,16 @@ ExecutorService类API：
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
 | void execute(Runnable command)                               | 执行任务（Executor类API）                                    |
 | Future<?> submit(Runnable task)                              | 提交任务 task()                                              |
-| <T> Future<T> submit(Callable<T> task)                       | 提交任务 task，用返回值Future获得任务执行结果                |
-| <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) | 提交 tasks 中所有任务                                        |
-| <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) | 提交 tasks 中所有任务，超时时间针对所有task，超时会取消没有执行完的任务，并抛出超时异常 |
-| <T> T invokeAny(Collection<? extends Callable<T>> tasks)     | 提交 tasks 中所有任务，哪个任务先成功执行完毕，返回此任务执行结果，其它任务取消 |
+| Future submit(Callable<T> task)                              | 提交任务 task，用返回值Future获得任务执行结果                |
+| List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) | 提交 tasks 中所有任务                                        |
+| List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) | 提交 tasks 中所有任务，超时时间针对所有task，超时会取消没有执行完的任务，并抛出超时异常 |
+| T invokeAny(Collection<? extends Callable<T>> tasks)         | 提交 tasks 中所有任务，哪个任务先成功执行完毕，返回此任务执行结果，其它任务取消 |
 
-execute和submit都属于线程池的方法，对比：
+execute 和 submit 都属于线程池的方法，对比：
 
-* execute只能提交Runnable类型的任务，而submit既能提交Runnable类型任务也能提交Callable类型任务
+* execute 只能提交 Runnable 类型的任务，而 submit 既能提交 Runnable 类型任务也能提交 Callable 类型任务
 
-* execute会直接抛出任务执行时的异常，submit会吞掉异常，可通过Future的get方法将任务执行时的异常重新抛出
+* execute 会直接抛出任务执行时的异常，submit 会吞掉异常，可通过 Future 的 get 方法将任务执行时的异常重新抛出
 
 
 
@@ -4762,16 +4766,16 @@ execute和submit都属于线程池的方法，对比：
 
 
 
-#### 关闭方法
+##### 关闭方法
 
-ExecutorService类API：
+ExecutorService 类 API：
 
 | 方法                                                  | 说明                                                         |
 | ----------------------------------------------------- | ------------------------------------------------------------ |
 | void shutdown()                                       | 线程池状态变为 SHUTDOWN，等待任务执行完后关闭线程池，不会接收新任务，但已提交任务会执行完 |
 | List<Runnable> shutdownNow()                          | 线程池状态变为 STOP，用 interrupt 中断正在执行的任务，直接关闭线程池，不会接收新任务，会将队列中的任务返回， |
 | boolean isShutdown()                                  | 不在 RUNNING 状态的线程池，此执行者已被关闭，方法返回 true   |
-| boolean isTerminated()                                | 线程池状态是否是 TERMINATED，如果所有任务在关闭后完成，返回true |
+| boolean isTerminated()                                | 线程池状态是否是 TERMINATED，如果所有任务在关闭后完成，返回 true |
 | boolean awaitTermination(long timeout, TimeUnit unit) | 调用 shutdown 后，由于调用线程不会等待所有任务运行结束，如果它想在线程池 TERMINATED 后做些事情，可以利用此方法等待 |
 
 
@@ -4780,9 +4784,9 @@ ExecutorService类API：
 
 
 
-#### 处理异常
+##### 处理异常
 
-execute会直接抛出任务执行时的异常，submit会吞掉异常，有两种处理方法
+execute 会直接抛出任务执行时的异常，submit 会吞掉异常，有两种处理方法
 
 方法1：主动捉异常
 
@@ -5004,13 +5008,13 @@ public class ThreadPoolDemo04 {
 
 ### ForkJoin
 
-Fork/Join：线程池的实现，体现是分治思想，适用于能够进行任务拆分的 cpu 密集型运算，用于**并行计算**
+Fork/Join：线程池的实现，体现是分治思想，适用于能够进行任务拆分的 CPU 密集型运算，用于**并行计算**
 
 任务拆分：是将一个大任务拆分为算法上相同的小任务，直至不能拆分可以直接求解。跟递归相关的一些计算，如归并排序、斐波那契数列都可以用分治思想进行求解
 
 * Fork/Join 在分治的基础上加入了多线程，把每个任务的分解和合并交给不同的线程来完成，提升了运算效率
 
-* ForkJoin 使用 ForkJoinPool 来启动，是一个特殊的线程池，默认会创建与 cpu 核心数大小相同的线程池
+* ForkJoin 使用 ForkJoinPool 来启动，是一个特殊的线程池，默认会创建与 CPU 核心数大小相同的线程池
 * 任务有返回值继承 RecursiveTask，没有返回值继承 RecursiveAction
 
 ```java
@@ -9142,7 +9146,7 @@ final void updateHead(Node<E> h, Node<E> p) {
 
 # NET
 
-## 介绍
+## DES
 
 ### 网络编程
 
@@ -9224,29 +9228,29 @@ UDP：用户数据报协议(User Datagram Protocol)，是一个面向无连接�
 * 阻塞：在数据没有的情况下，还是要继续等待着读（排队等待）
 * 非阻塞：在数据没有的情况下，会去做其他事情，一旦有了数据再来获取（柜台取款，取个号，然后坐在椅子上做其它事，等号广播会通知你办理） 
 
-Java中的通信模型:
+Java 中的通信模型:
 
-1. BIO表示同步阻塞式通信，服务器实现模式为一个连接一个线程，即客户端有连接请求时服务器端就需要启动一个线程进行处理，如果这个连接不做任何事情会造成不必要的线程开销，可以通过线程池机制改善。
+1. BIO 表示同步阻塞式通信，服务器实现模式为一个连接一个线程，即客户端有连接请求时服务器端就需要启动一个线程进行处理，如果这个连接不做任何事情会造成不必要的线程开销，可以通过线程池机制改善。
    同步阻塞式性能极差：大量线程，大量阻塞
 
 2. 伪异步通信：引入线程池，不需要一个客户端一个线程，实现线程复用来处理很多个客户端，线程可控。 
    高并发下性能还是很差：线程数量少，数据依然是阻塞的；数据没有来线程还是要等待
 
-3. NIO表示**同步非阻塞IO**，服务器实现模式为请求对应一个线程，客户端发送的连接会注册到多路复用器上，多路复用器轮询到连接有I/O请求时才启动一个线程进行处理
+3. NIO 表示**同步非阻塞 IO**，服务器实现模式为请求对应一个线程，客户端发送的连接会注册到多路复用器上，多路复用器轮询到连接有 I/O 请求时才启动一个线程进行处理
 
    工作原理：1个主线程专门负责接收客户端，1个线程轮询所有的客户端，发来了数据才会开启线程处理
    同步：线程还要不断的接收客户端连接，以及处理数据
    非阻塞：如果一个管道没有数据，不需要等待，可以轮询下一个管道是否有数据
 
-4. AIO表示异步非阻塞IO，AIO 引入异步通道的概念，采用了 Proactor 模式，有效的请求才启动线程，特点是先由操作系统完成后才通知服务端程序启动线程去处理，一般适用于连接数较多且连接时间较长的应用
-   异步：服务端线程接收到了客户端管道以后就交给底层处理IO通信，线程可以做其他事情
+4. AIO 表示异步非阻塞 IO，AIO 引入异步通道的概念，采用了 Proactor 模式，有效的请求才启动线程，特点是先由操作系统完成后才通知服务端程序启动线程去处理，一般适用于连接数较多且连接时间较长的应用
+   异步：服务端线程接收到了客户端管道以后就交给底层处理 IO 通信，线程可以做其他事情
    非阻塞：底层也是客户端有数据才会处理，有了数据以后处理好通知服务器应用来启动线程进行处理
 
 各种模型应用场景：
 
-* BIO适用于连接数目比较小且固定的架构，该方式对服务器资源要求比较高，并发局限于应用中，程序简单
-* NIO适用于连接数目多且连接比较短（轻操作）的架构，如聊天服务器，并发局限于应用中，编程复杂，JDK 1.4开始支持
-* AIO适用于连接数目多且连接比较长（重操作）的架构，如相册服务器，充分调用操作系统参与并发操作，编程复杂，JDK 1.7开始支持
+* BIO 适用于连接数目比较小且固定的架构，该方式对服务器资源要求比较高，并发局限于应用中，程序简单
+* NIO 适用于连接数目多且连接比较短（轻操作）的架构，如聊天服务器，并发局限于应用中，编程复杂，JDK 1.4开始支持
+* AIO 适用于连接数目多且连接比较长（重操作）的架构，如相册服务器，充分调用操作系统参与并发操作，编程复杂，JDK 1.7开始支持
 
 
 
@@ -9371,7 +9375,7 @@ select 允许应用程序监视一组文件描述符，等待一个或者多个�
 int select(int n, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct timeval *timeout);
 ```
 
-- fd_set 使用 **bitmap 数组**实现，数组大小用 FD_SETSIZE 定义，只能监听少于 FD_SETSIZE 数量的描述符，32位机默认是 1024 个，64位机默认是 2048，可以对进行修改，然后重新编译内核
+- fd_set 使用 **bitmap 数组**实现，数组大小用 FD_SETSIZE 定义，只能监听少于 FD_SETSIZE 数量的描述符，32 位机默认是 1024 个，64 位机默认是 2048，可以对进行修改，然后重新编译内核
 
 - fd_set 有三种类型的描述符：readset、writeset、exceptset，对应读、写、异常条件的描述符集合
 
@@ -9390,15 +9394,15 @@ int select(int n, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct t
   tv_sec == 0 && tv_usec == 0：获取后直接返回，不阻塞等待
   tv_sec != 0 || tv_usec != 0：等待指定时间
 
-- 方法成功调用返回结果为就绪的文件描述符个数，出错返回结果为 -1，超时返回结果为 0
+- 方法成功调用返回结果为**就绪的文件描述符个数**，出错返回结果为 -1，超时返回结果为 0
 
 Linux 提供了一组宏为 fd_set 进行赋值操作：
 
 ```c
-int FD_ZERO(fd_set *fdset);			// 将一个fd_set类型变量的所有值都置为0
-int FD_CLR(int fd, fd_set *fdset);	// 将一个fd_set类型变量的fd位置为0
-int FD_SET(int fd, fd_set *fdset);	// 将一个fd_set类型变量的fd位置为1
-int FD_ISSET(int fd, fd_set *fdset);// 判断fd位是否被置为1
+int FD_ZERO(fd_set *fdset);			// 将一个 fd_set 类型变量的所有值都置为 0
+int FD_CLR(int fd, fd_set *fdset);	// 将一个 fd_set 类型变量的 fd 位置为 0
+int FD_SET(int fd, fd_set *fdset);	// 将一个 fd_set 类型变量的 fd 位置为 1
+int FD_ISSET(int fd, fd_set *fdset);// 判断 fd 位是否被置为 1
 ```
 
 示例：
@@ -9455,10 +9459,10 @@ select 调用流程图：
 
 1. 使用 copy_from_user 从用户空间拷贝 fd_set 到内核空间，进程阻塞
 2. 注册回调函数 _pollwait
-3. 遍历所有 fd，调用其对应的 poll 方法（对于 socket，这个 poll 方法是 sock_poll，sock_poll 根据情况会调用到 tcp_poll、udp_poll 或者 datagram_poll），以 tcp_poll 为例，其核心实现就是 _pollwait
-4. _pollwait 就是把 current（当前进程）挂到设备的等待队列，不同设备有不同的等待队列，对于 tcp_poll ，其等待队列是 sk → sk_sleep（把进程挂到等待队列中并不代表进程已经睡眠），在设备收到消息（网络设备）或填写完文件数据（磁盘设备）后，会唤醒设备等待队列上睡眠的进程，这时 current 便被唤醒
+3. 遍历所有 fd，调用其对应的 poll 方法判断当前请求是否准备就绪，对于 socket，这个 poll 方法是 sock_poll，sock_poll 根据情况会调用到 tcp_poll、udp_poll 或者 datagram_poll，以 tcp_poll 为例，其核心实现就是 _pollwait
+4. _pollwait 把 **current（调用 select 的进程）**挂到设备的等待队列，不同设备有不同的等待队列，对于 tcp_poll ，其等待队列是 sk → sk_sleep（把进程挂到等待队列中并不代表进程已经睡眠），在设备收到消息（网络设备）或填写完文件数据（磁盘设备）后，会唤醒设备等待队列上睡眠的进程，这时 current 便被唤醒
 5. poll 方法返回时会返回一个描述读写操作是否就绪的 mask 掩码，根据这个 mask 掩码给 fd_set 赋值
-6. 如果遍历完所有的 fd，还没有返回一个可读写的 mask 掩码，则会调用 schedule_timeout 让调用 select 的进程（就是current）进入睡眠。当设备驱动发生自身资源可读写后，会唤醒其等待队列上睡眠的进程，如果超过一定的超时时间（schedule_timeout指定），没有其他线程唤醒，则调用 select 的进程会重新被唤醒获得 CPU，进而重新遍历 fd，判断有没有就绪的 fd
+6. 如果遍历完所有的 fd，还没有返回**一个**可读写的 mask 掩码，则会调用 schedule_timeout 让 current 进程进入睡眠。当设备驱动发生自身资源可读写后，会唤醒其等待队列上睡眠的进程，如果超过一定的超时时间（schedule_timeout指定），没有其他线程唤醒，则调用 select 的进程会重新被唤醒获得 CPU，进而重新遍历 fd，判断有没有就绪的 fd
 7. 把 fd_set 从内核空间拷贝到用户空间，阻塞进程继续执行
 
 
@@ -9497,9 +9501,9 @@ select 和 poll 对比：
 - select 的描述符类型使用数组实现，有描述符的限制；而 poll 使用**链表**实现，没有描述符数量的限制
 - poll 提供了更多的事件类型，并且对描述符的重复利用上比 select 高
 
-* select 和 poll 速度都比较慢，每次调用都需要将全部描述符数组 fd 从应用进程缓冲区复制到内核缓冲区，同时每次都需要在内核遍历传递进来的所有 fd ，这个开销在 fd 很多时会很大
+* select 和 poll 速度都比较慢，**每次调用**都需要将全部描述符数组 fd 从应用进程缓冲区复制到内核缓冲区，同时每次都需要在内核遍历传递进来的所有 fd ，这个开销在 fd 很多时会很大
 * 几乎所有的系统都支持 select，但是只有比较新的系统支持 poll
-* select 和 poll 的时间复杂度 O(n)，对 socket 进行扫描时是线性扫描，即采用轮询的方法，效率较低，因为并不知道具体是哪个 socket 具有事件，所以随着 FD 的增加会造成遍历速度慢的**线性下降**性能问题
+* select 和 poll 的时间复杂度 O(n)，对 socket 进行扫描时是线性扫描，即采用轮询的方法，效率较低，因为并不知道具体是哪个 socket 具有事件，所以随着 FD 数量的增加会造成遍历速度慢的**线性下降**性能问题
 * poll 还有一个特点是水平触发，如果报告了 fd 后，没有被处理，那么下次 poll 时会再次报告该 fd
 * 如果一个线程对某个描述符调用了 select 或者 poll，另一个线程关闭了该描述符，会导致调用结果不确定
 
@@ -9517,7 +9521,7 @@ select 和 poll 对比：
 
 ##### 函数
 
-epoll 使用事件的就绪通知方式，通过 epoll_ctl() 向内核注册新的描述符或者是改变某个文件描述符的状态。已注册的描述符在内核中会被维护在一棵**红黑树**上，一旦该 fd 就绪，内核通过 callback 回调函数将 I/O 准备好的描述符加入到一个**链表**中管理，进程调用 epoll_wait() 便可以得到事件完成的描述符
+epoll 使用事件的就绪通知方式，通过 epoll_ctl() 向内核注册新的描述符或者是改变某个文件描述符的状态。已注册的描述符在内核中会被维护在一棵**红黑树**上，一旦该 fd 就绪，**内核通过 callback 回调函数将 I/O 准备好的描述符加入到一个链表中**管理，进程调用 epoll_wait() 便可以得到事件完成的描述符
 
 ```c
 int epoll_create(int size);
@@ -9525,7 +9529,7 @@ int epoll_ctl(int epfd, int op, int fd, struct epoll_event *event)；
 int epoll_wait(int epfd, struct epoll_event * events, int maxevents, int timeout);
 ```
 
-* epall_create：一个系统函数，函数将在内核空间内创建一个 epoll 数据结构，可以理解为 epoll 结构空间，返回值为 epoll 的文件描述符编号，后面当有client连接时，向该 epoll 区中添加监听，所以 epoll 使用一个文件描述符管理多个描述符
+* epall_create：一个系统函数，函数将在内核空间内创建一个 epoll 数据结构，可以理解为 epoll 结构空间，返回值为 epoll 的文件描述符编号，以后有 client 连接时，向该 epoll 结构中添加监听，所以 epoll 使用一个文件描述符管理多个描述符
 
 * epall_ctl：epoll 的事件注册函数，select 函数是调用时指定需要监听的描述符和事件，epoll 先将用户感兴趣的描述符事件注册到 epoll 空间。此函数是非阻塞函数，用来增删改 epoll 空间内的描述符，参数解释：
 
@@ -9550,7 +9554,7 @@ int epoll_wait(int epfd, struct epoll_event * events, int maxevents, int timeout
 
     events 可以是以下几个宏集合：EPOLLIN、EPOLOUT、EPOLLPRI、EPOLLERR、EPOLLHUP（挂断）、EPOLET（边缘触发）、EPOLLONESHOT（只监听一次，事件触发后自动清除该 fd，从 epoll 列表）
 
-* epoll_wait：等待事件的产生，类似于 select() 调用，返回值为本次就绪的 fd 个数
+* epoll_wait：等待事件的产生，类似于 select() 调用，返回值为本次就绪的 fd 个数，直接从就绪链表获取，时间复杂度 O(1)
 
   * epfd：指定感兴趣的 epoll 事件列表
   * events：指向一个 epoll_event 结构数组，当函数返回时，内核会把就绪状态的数据拷贝到该数组
@@ -9558,12 +9562,12 @@ int epoll_wait(int epfd, struct epoll_event * events, int maxevents, int timeout
   * timeout：单位为毫秒
     * 0：表示立即返回，非阻塞调用
     * -1：阻塞调用，直到有用户感兴趣的事件就绪为止
-    * 大于0：阻塞调用，阻塞指定时间内如果有事件就绪则提前返回，否则等待指定时间后返回
+    * 大于 0：阻塞调用，阻塞指定时间内如果有事件就绪则提前返回，否则等待指定时间后返回
 
 epoll 的描述符事件有两种触发模式：LT（level trigger）和 ET（edge trigger）：
 
 * LT 模式：当 epoll_wait() 检测到描述符事件到达时，将此事件通知进程，进程可以不立即处理该事件，下次调用 epoll_wait() 会再次通知进程。是默认的一种模式，并且同时支持 Blocking 和 No-Blocking
-* ET 模式：通知之后进程必须立即处理事件，下次再调用 epoll_wait() 时不会再得到事件到达的通知。减少了 epoll 事件被重复触发的次数，因此效率要比 LT 模式高；只支持 No-Blocking，以避免由于一个文件的阻塞读/阻塞写操作把处理多个文件描述符的任务饥饿
+* ET 模式：通知之后进程必须立即处理事件，下次再调用 epoll_wait() 时不会再得到事件到达的通知。减少了 epoll 事件被重复触发的次数，因此效率要比 LT 模式高；只支持 No-Blocking，以避免由于一个 fd 的阻塞读/阻塞写操作把处理多个文件描述符的任务饥饿
 
 ```c
 // 创建 epoll 描述符，每个应用程序只需要一个，用于监控所有套接字
@@ -9624,12 +9628,12 @@ else
 epoll 的特点：
 
 * epoll 仅适用于 Linux 系统
-* epoll 使用一个文件描述符管理多个描述符，将用户关系的文件描述符的事件存放到内核的一个事件表中
+* epoll 使用**一个文件描述符管理多个描述符**，将用户关系的文件描述符的事件存放到内核的一个事件表中
 * 没有最大描述符数量（并发连接）的限制，打开 fd 的上限远大于1024（1G 内存能监听约10万个端口）
 * epoll 的时间复杂度 O(1)，epoll 理解为 event poll，不同于忙轮询和无差别轮询，调用 epoll_wait **只是轮询就绪链表**。当监听列表有设备就绪时调用回调函数，把就绪 fd 放入就绪链表中，并唤醒在 epoll_wait 中阻塞的进程，所以 epoll 实际上是**事件驱动**（每个事件关联上fd）的，降低了 system call 的时间复杂度
 * epoll 内核中根据每个 fd 上的 callback 函数来实现，只有活跃的 socket 才会主动调用 callback，所以使用 epoll 没有前面两者的线性下降的性能问题，效率提高
 
-* epoll 每次注册新的事件到 epoll 句柄中时，会把所有的 fd 拷贝进内核，但不是每次 epoll_wait 的时重复拷贝，对比前面两种，epoll 只需要将描述符从进程缓冲区向内核缓冲区拷贝一次。 epoll 也可以利用 mmap() 文件映射内存加速与内核空间的消息传递，减少复制开销
+* epoll 每次注册新的事件到 epoll 句柄中时，会把新的 fd 拷贝进内核，但不是每次 epoll_wait 的重复拷贝，对比前面两种，epoll 只需要将描述符从进程缓冲区向内核缓冲区拷贝一次。 epoll 也可以利用 **mmap() 文件映射内存**加速与内核空间的消息传递，减少复制开销
 * 前面两者要把 current 往设备等待队列中挂一次，epoll 也只把 current 往等待队列上挂一次，但是这里的等待队列并不是设备等待队列，只是一个 epoll 内部定义的等待队列，这样节省不少的开销
 * epoll 对多线程编程更有友好，一个线程调用了 epoll_wait() 另一个线程关闭了同一个描述符，也不会产生像 select 和 poll 的不确定情况
 
@@ -9650,7 +9654,7 @@ epoll 的特点：
 应用场景： 
 
 * select 应用场景：
-  * select 的 timeout 参数精度为微秒，而 poll 和 epoll 为毫秒，因此 select 更加适用于实时性要求比较高的场景，比如核反应堆的控制
+  * select 的 timeout 参数精度为微秒，poll 和 epoll 为毫秒，因此 select 适用于实时性要求比较高的场景，比如核反应堆的控制
   * select 可移植性更好，几乎被所有主流平台所支持
 
 * poll 应用场景：poll 没有最大描述符数量的限制，适用于平台支持并且对实时性要求不高的情况
@@ -9680,7 +9684,7 @@ epoll 的特点：
 
 * 进程描述符和用户的进程是一一对应的
 * SYS_API 系统调用：如 read、write，系统调用就是 0X80 中断
-* 进程描述符 pd：进程从用户态切换到内核态时，需要保存用户态时的上下文信息，
+* 进程描述符 pd：进程从用户态切换到内核态时，需要保存用户态时的上下文信息
 * 线程上下文：用户程序基地址，程序计数器、cpu cache、寄存器等，方便程序切回用户态时恢复现场
 * 内核堆栈：系统调用函数也是要创建变量的，这些变量在内核堆栈上分配
 
@@ -9713,6 +9717,8 @@ epoll 的特点：
 ![](https://gitee.com/seazean/images/raw/master/Java/IO-系统调用的过程.jpg)
 
 
+
+参考视频：https://www.bilibili.com/video/BV19D4y1o797
 
 
 
@@ -9821,7 +9827,9 @@ Java NIO 对 sendfile 的支持是 `FileChannel.transferTo()/transferFrom()`，�
 
 
 
-## Inet
+## BIO
+
+### Inet
 
 一个该 InetAddress 类的对象就代表一个IP地址对象
 
@@ -9859,9 +9867,9 @@ public class InetAddressDemo {
 
 
 
-## UDP
+### UDP
 
-### 基本介绍
+#### 基本介绍
 
 UDP（User Datagram Protocol）协议的特点：
 
@@ -9879,9 +9887,9 @@ UDP协议的使用场景：在线视频、网络语音、电话
 
 
 
-### 实现UDP
+#### 实现UDP
 
-UDP协议相关的两个类
+UDP 协议相关的两个类
 
 * DatagramPacket（数据包对象）：用来封装要发送或要接收的数据，比如：集装箱
 * DatagramSocket（发送对象）：用来发送或接收数据包，比如：码头
@@ -9961,33 +9969,37 @@ public class UDPServerDemo{
 
 
 
-### 通讯方式
+#### 通讯方式
 
-UDP通信方式：
+UDP 通信方式：
 
 + 单播：用于两个主机之间的端对端通信
 
 + 组播：用于对一组特定的主机进行通信
+  
   IP : 224.0.1.0
-  Socket对象 : MulticastSocket
 
+  Socket 对象 : MulticastSocket
+  
 + 广播：用于一个主机对整个局域网上所有主机上的数据通信
+  
   IP : 255.255.255.255
-  Socket对象 : DatagramSocket
 
+  Socket 对象 : DatagramSocket
+  
   
 
 ***
 
 
 
-## TCP
+### TCP
 
-### 基本介绍
+#### 基本介绍
 
-TCP/IP协议 ==> Transfer Control Protocol ==> 传输控制协议
+TCP/IP 协议 ==> Transfer Control Protocol ==> 传输控制协议
 
-TCP/IP协议的特点：
+TCP/IP 协议的特点：
 
 * 面向连接的协议
 * 只能由客户端主动发送数据给服务器端，服务器端接收到数据之后，可以给客户端响应数据
@@ -9996,7 +10008,7 @@ TCP/IP协议的特点：
 * 传输数据大小没有限制
 * 因为面向连接的协议，速度慢，但是是可靠的协议。
 
-TCP协议的使用场景：文件上传和下载、邮件发送和接收、远程登录
+TCP 协议的使用场景：文件上传和下载、邮件发送和接收、远程登录
 
 注意：**TCP不会为没有数据的ACK超时重传**
 
@@ -10010,11 +10022,11 @@ TCP协议的使用场景：文件上传和下载、邮件发送和接收、远�
 
 
 
-### Socket
+#### Socket
 
-TCP通信也叫**Socket网络编程**，只要代码基于Socket开发，底层就是基于了可靠传输的TCP通信
+TCP 通信也叫 **Socket 网络编程**，只要代码基于 Socket 开发，底层就是基于了可靠传输的 TCP 通信
 
-TCP协议相关的类：
+TCP 协议相关的类：
 
 * Socket：一个该类的对象就代表一个客户端程序。
 * ServerSocket：一个该类的对象就代表一个服务器端程序。
@@ -10022,22 +10034,22 @@ TCP协议相关的类：
 Socket类
 
 * 构造方法：
-  `Socket(InetAddress address,int port)` : 创建流套接字并将其连接到指定IP指定端口号
-  `Socket(String host, int port)` : 根据ip地址字符串和端口号创建客户端Socket对象
+  `Socket(InetAddress address,int port)`：创建流套接字并将其连接到指定 IP 指定端口号
+  `Socket(String host, int port)`：根据ip地址字符串和端口号创建客户端 Socket 对象
   注意事项：执行该方法，就会立即连接指定的服务器，连接成功，则表示三次握手通过，反之抛出异常
 * 常用API：
-  `OutputStream getOutputStream()` : 获得字节输出流对象
-  `InputStream getInputStream()` : 获得字节输入流对象
-  `void shutdownInput()` : 停止接受
-  `void shutdownOutput()` : 停止发送数据，终止通信
-  `SocketAddress getRemoteSocketAddress() `: 返回套接字连接到的端点的地址，未连接返回null
+  `OutputStream getOutputStream()`：获得字节输出流对象
+  `InputStream getInputStream()`：获得字节输入流对象
+  `void shutdownInput()`：停止接受
+  `void shutdownOutput()`：停止发送数据，终止通信
+  `SocketAddress getRemoteSocketAddress() `：返回套接字连接到的端点的地址，未连接返回null
 
 ServerSocket类：
 
 * 构造方法：`public ServerSocket(int port)`
-* 常用API：`public Socket accept()`，**阻塞等待**接收一个客户端的Socket管道连接请求，连接成功返回一个Socket对象
+* 常用API：`public Socket accept()`，**阻塞等待**接收一个客户端的 Socket 管道连接请求，连接成功返回一个 Socket 对象
 
-相当于客户端和服务器建立一个数据管道，管道一般不用close
+相当于客户端和服务器建立一个数据管道，管道一般不用 close
 
 
 
@@ -10045,21 +10057,21 @@ ServerSocket类：
 
 
 
-### 实现TCP
+#### 实现TCP
 
-#### 开发流程
+##### 开发流程
 
 客户端的开发流程：
 
-1. 客户端要请求于服务端的socket管道连接
-2. 从socket通信管道中得到一个字节输出流
+1. 客户端要请求于服务端的 Socket 管道连接
+2. 从 Socket 通信管道中得到一个字节输出流
 3. 通过字节输出流给服务端写出数据
 
 服务端的开发流程：
 
-1. 用ServerSocket注册端口
-2. 接收客户端的Socket管道连接
-3. 从socket通信管道中得到一个字节输入流
+1. 用 ServerSocket 注册端口
+2. 接收客户端的 Socket 管道连接
+3. 从 Socket 通信管道中得到一个字节输入流
 4. 从字节输入流中读取客户端发来的数据
 
 ![](https://gitee.com/seazean/images/raw/master/Java/BIO工作机制.png)
@@ -10068,7 +10080,7 @@ ServerSocket类：
 
 * 如果输出缓冲区空间不够存放主机发送的数据，则会被阻塞，输入缓冲区同理
 * 缓冲区不属于应用程序，属于内核
-* TCP从输出缓冲区读取数据会加锁阻塞线程
+* TCP 从输出缓冲区读取数据会加锁阻塞线程
 
 
 
@@ -10076,7 +10088,7 @@ ServerSocket类：
 
 
 
-#### BIO通信
+##### 实现通信
 
 需求一：客户端发送一行数据，服务端接收一行数据
 
@@ -10212,7 +10224,7 @@ class ServerReaderThread extends Thread{
 
 
 
-#### 伪异步
+##### 伪异步
 
 一个客户端要一个线程，这种模型是不行的，并发越高系统瘫痪的越快，可以在服务端引入线程池，使用线程池来处理与客户端的消息通信
 
@@ -10278,9 +10290,9 @@ public class BIOServer {
 
 
 
-### 文件传输
+#### 文件传输
 
-#### 字节流
+##### 字节流
 
 客户端：本地图片:  ‪E:\seazean\图片资源\beautiful.jpg
 服务端：服务器路径：E:\seazean\图片服务器
@@ -10373,15 +10385,17 @@ class ServerReaderThread extends Thread{
 
 
 
-#### 数据流
+##### 数据流
 
 构造方法：
-`DataOutputStream(OutputStream out)` : 创建一个新的数据输出流，以将数据写入指定的底层输出流
-`DataInputStream(InputStream in) ` : 创建使用指定的底层 InputStream 的 DataInputStream
+
+* `DataOutputStream(OutputStream out)` : 创建一个新的数据输出流，以将数据写入指定的底层输出流
+* `DataInputStream(InputStream in) ` : 创建使用指定的底层 InputStream 的 DataInputStream
 
 常用API：
-`final void writeUTF(String str)` : 使用机器无关的方式使用 UTF-8 编码将字符串写入底层输出流
-`final String readUTF()` : 读取以modified UTF-8格式编码的 Unicode 字符串，返回 String  类型
+
+* `final void writeUTF(String str)` : 使用机器无关的方式使用 UTF-8 编码将字符串写入底层输出流
+* `final String readUTF()` : 读取以 modified UTF-8 格式编码的 Unicode 字符串，返回 String 类型
 
 ```java
 public class Client {
@@ -11235,7 +11249,7 @@ ssChannel.register(selector, SelectionKey.OP_ACCEPT);
 3. 分配指定大小的缓冲区：`ByteBuffer buffer = ByteBuffer.allocate(1024)`
 4. 发送数据给服务端
 
-37行代码，如果判断条件改为 !=-1，需要客户端 shutdown 一下
+37 行代码，如果判断条件改为 !=-1，需要客户端 shutdown 一下
 
 ```java
 public class Server {
@@ -11333,6 +11347,14 @@ ServerSocket          ServerSocketChannel	       AsynchronousServerSocketChannel
 * 对于读操作，当有流可读取时，操作系统会将可读的流传入 read 方法的缓冲区
 * 对于写操作，当操作系统将 write 方法传递的流写入完毕时，操作系统主动通知应用程序
 
-在JDK1.7中，这部分内容被称作NIO.2，主要在 Java.nio.channels 包下增加了下面四个异步通道：
+在 JDK1.7 中，这部分内容被称作 NIO.2，主要在 Java.nio.channels 包下增加了下面四个异步通道：
 AsynchronousSocketChannel、AsynchronousServerSocketChannel、AsynchronousFileChannel、AsynchronousDatagramChannel
+
+
+
+
+
+****
+
+
 
