@@ -7300,7 +7300,7 @@ Spring 模板对象：TransactionTemplate、JdbcTemplate、RedisTemplate、Rabbi
 
 * **BeanDefinationRegistry**：存放 BeanDefination 的容器，是一种键值对的形式，通过特定的 Bean 定义的 id，映射到相应的 BeanDefination，**BeanFactory 的实现类同样继承 BeanDefinationRegistry 接口**，拥有保存 BD 的能力
 
-* **BeanDefinitionReader**：读取配置文件，比如 xml 用 dom4j 解析，配置文件用 io 流
+* **BeanDefinitionReader**：读取配置文件，比如 XML 用 dom4j 解析，配置文件用 IO 流
 
 程序：
 
@@ -8364,8 +8364,8 @@ public Object postProcessAfterInitialization(@Nullable Object bean,String bN){
         // cacheKey 是 beanName 或者加上 &
         Object cacheKey = getCacheKey(bean.getClass(), beanName);
             if (this.earlyProxyReferences.remove(cacheKey) != bean) {
-                //去提前代理引用池中寻找该key，不存在则创建代理
-                //如果存在则证明被代理过，则判断是否是当前的 bean，不是则创建代理
+                // 去提前代理引用池中寻找该key，不存在则创建代理
+                // 如果存在则证明被代理过，则判断是否是当前的 bean，不是则创建代理
                 return wrapIfNecessary(bean, bN, cacheKey);
             }
     }
@@ -10577,7 +10577,7 @@ protected void doDispatch(HttpServletRequest request, HttpServletResponse respon
                     return;
                 }
             }
-
+			// 拦截器链的前置处理
             if (!mappedHandler.applyPreHandle(processedRequest, response)) {
                 return;
             }
@@ -10589,7 +10589,7 @@ protected void doDispatch(HttpServletRequest request, HttpServletResponse respon
             }
 			// 设置视图名字
             applyDefaultViewName(processedRequest, mv);
-            // 执行拦截器链中的方法
+            // 执行拦截器链中的后置处理方法
             mappedHandler.applyPostHandle(processedRequest, response, mv);
         } catch (Exception ex) {
             dispatchException = ex;
@@ -10814,36 +10814,36 @@ protected ModelAndView invokeHandlerMethod(HttpServletRequest request,
 
   * `if (!this.resolvers.supportsParameter(parameter))`：**获取可以解析当前参数的参数解析器**
 
-    * `return getArgumentResolver(parameter) != null`：获取参数的解析是否为空
+    `return getArgumentResolver(parameter) != null`：获取参数的解析是否为空
 
-      * `for (HandlerMethodArgumentResolver resolver : this.argumentResolvers)`：遍历容器内所有的解析器
+    * `for (HandlerMethodArgumentResolver resolver : this.argumentResolvers)`：遍历容器内所有的解析器
 
-        `if (resolver.supportsParameter(parameter))`：是否支持当前参数
+      `if (resolver.supportsParameter(parameter))`：是否支持当前参数
 
-        * `PathVariableMethodArgumentResolver#supportsParameter`：**解析标注 @PathVariable 注解的参数**
-    * `ModelMethodProcessor#supportsParameter`：解析 Map 类型的参数
-        * `ModelMethodProcessor#supportsParameter`：解析 Model 类型的参数，Model 和 Map 的作用一样
-    * `ExpressionValueMethodArgumentResolver#supportsParameter`：解析标注 @Value 注解的参数
-        * `RequestParamMapMethodArgumentResolver#supportsParameter`：**解析标注 @RequestParam 注解**
-    * `RequestPartMethodArgumentResolver#supportsParameter`：解析文件上传的信息
-        * `ModelAttributeMethodProcessor#supportsParameter`：解析标注 @ModelAttribute 注解或者不是简单类型
-      * 子类 ServletModelAttributeMethodProcessor 是**解析自定义类型 JavaBean 的解析器**
-          * 简单类型有 Void、Enum、Number、CharSequence、Date、URI、URL、Locale、Class
+      * `PathVariableMethodArgumentResolver#supportsParameter`：**解析标注 @PathVariable 注解的参数**
+      * `ModelMethodProcessor#supportsParameter`：解析 Map 类型的参数
+      * `ModelMethodProcessor#supportsParameter`：解析 Model 类型的参数，Model 和 Map 的作用一样
+      * `ExpressionValueMethodArgumentResolver#supportsParameter`：解析标注 @Value 注解的参数
+      * `RequestParamMapMethodArgumentResolver#supportsParameter`：**解析标注 @RequestParam 注解**
+      * `RequestPartMethodArgumentResolver#supportsParameter`：解析文件上传的信息
+      * `ModelAttributeMethodProcessor#supportsParameter`：解析标注 @ModelAttribute 注解或者不是简单类型
+        * 子类 ServletModelAttributeMethodProcessor 是**解析自定义类型 JavaBean 的解析器**
+        * 简单类型有 Void、Enum、Number、CharSequence、Date、URI、URL、Locale、Class
 
   * `args[i] = this.resolvers.resolveArgument()`：**开始解析参数，每个参数使用的解析器不同**
-  
+
     `resolver = getArgumentResolver(parameter)`：获取参数解析器
 
     `return resolver.resolveArgument()`：开始解析
 
     * `PathVariableMapMethodArgumentResolver#resolveArgument`：@PathVariable，包装 URI 中的参数为 Map
-  * `MapMethodProcessor#resolveArgument`：调用 `mavContainer.getModel()` 返回默认的 BindingAwareModelMap 对象
+    * `MapMethodProcessor#resolveArgument`：调用 `mavContainer.getModel()` 返回默认 BindingAwareModelMap 对象
     * `ModelAttributeMethodProcessor#resolveArgument`：**自定义的 JavaBean 的绑定封装**，下一小节详解
 
   `return doInvoke(args)`：真正的执行方法
-  
+
   * `Method method = getBridgedMethod()`：从 HandlerMethod 获取要反射执行的方法
-* `ReflectionUtils.makeAccessible(method)`：破解权限
+  * `ReflectionUtils.makeAccessible(method)`：破解权限
   * `method.invoke(getBean(), args)`：**执行方法**，getBean 获取的是标记 @Controller 的 Bean 类，其中包含执行方法
 
 * **进行返回值的处理，响应部分详解**，处理完成进入下面的逻辑
@@ -10980,11 +10980,11 @@ protected ModelAndView invokeHandlerMethod(HttpServletRequest request,
               * `converter.convert()`：**调用转换器的转换方法**（GenericConverter#convert）
             * `return handleResult(sourceType, targetType, result)`：返回结果
 
-        * `ph.setValue(valueToApply)`：设置 JavaBean 属性（BeanWrapperImpl.BeanPropertyHandler）
+        * `ph.setValue(valueToApply)`：**设置 JavaBean 属性**（BeanWrapperImpl.BeanPropertyHandler）
 
           * `Method writeMethod`：获取 set 方法
             * `Class<?> cls = getClass0()`：获取 Class 对象
-            * `writeMethodName = Introspector.SET_PREFIX + getBaseName()`：set 前缀 + 属性名
+            * `writeMethodName = Introspector.SET_PREFIX + getBaseName()`：**set 前缀 + 属性名**
             * `writeMethod = Introspector.findMethod(cls, writeMethodName, 1, args)`：获取只包含一个参数的 set 方法
             * `setWriteMethod(writeMethod)`：加入缓存
           * `ReflectionUtils.makeAccessible(writeMethod)`：设置访问权限
@@ -11079,7 +11079,7 @@ public void invokeAndHandle(ServletWebRequest webRequest, ModelAndViewContainer 
 
 * `for (HandlerMethodReturnValueHandler handler : this.returnValueHandlers)`：遍历所有的返回值处理器
   * `RequestResponseBodyMethodProcessor#supportsReturnType`：**处理标注 @ResponseBody 注解的返回值**
-  * `ModelAndViewMethodReturnValueHandler#supportsReturnType`：处理**返回值类型**是 ModelAndView 的处理器
+  * `ModelAndViewMethodReturnValueHandler#supportsReturnType`：处理返回值类型是 ModelAndView 的处理器
   * `ModelAndViewResolverMethodReturnValueHandler#supportsReturnType`：直接返回 true，处理所有数据
 
 **RequestResponseBodyMethodProcessor#handleReturnValue**：处理返回值
@@ -11094,13 +11094,13 @@ public void invokeAndHandle(ServletWebRequest webRequest, ModelAndViewContainer 
 
   * `if (value instanceof CharSequence)`：判断返回的数据是不是字符类型
 
-  * `body = value`：把 value 赋值给 body，此时 body 中就是填充后的 Person 对象
+  * `body = value`：把 value 赋值给 body，此时 body 中就是自定义方法执行完后的 Person 对象
 
   * `if (isResourceType(value, returnType))`：当前数据是不是流数据
 
   * `MediaType selectedMediaType`：**内容协商后选择使用的类型，浏览器和服务器都支持的媒体（数据）类型**
 
-    `MediaType contentType = outputMessage.getHeaders().getContentType()`：获取响应头的数据
+  * `MediaType contentType = outputMessage.getHeaders().getContentType()`：获取响应头的数据
 
   * `if (contentType != null && contentType.isConcrete())`：判断当前响应头中是否已经有确定的媒体类型
 
@@ -11180,8 +11180,8 @@ public void invokeAndHandle(ServletWebRequest webRequest, ModelAndViewContainer 
     * `writeInternal(t, type, outputMessage)`：**真正的写出数据的函数**
 
       * `Object value = object`：value 引用 Person 对象
-      * `ObjectWriter objectWriter = objectMapper.writer()`：获取用来输出 JSON 对象的 ObjectWriter
-      * `objectWriter.writeValue(generator, value)`：写出数据为 JSON
+      * `ObjectWriter objectWriter = objectMapper.writer()`：获取 ObjectWriter 对象
+      * `objectWriter.writeValue(generator, value)`：**使用 ObjectWriter 写出数据为 JSON**
 
 
 
@@ -11213,7 +11213,7 @@ spring.mvc.contentnegotiation:favor-parameter: true  #开启请求参数内容�
 
     * `request.getParameter(getParameterName())`：获取 URL 中指定的需求的数据类型
       * `getParameterName()`：获取参数的属性名 format
-      * `getParameter()`：获取 URL 中 format 对应的数据
+      * `getParameter()`：**获取 URL 中 format 对应的数据**
 
     `resolveMediaTypeKey()`：解析媒体类型，封装成集合
 
@@ -11366,7 +11366,7 @@ DispatcherServlet#render：
 
     * `attrs = RequestContextHolder.getRequestAttributes()`：获取请求的相关属性信息
 
-    * `requestedMediaTypes = getMediaTypes(((ServletRequestAttributes) attrs).getRequest())`：获取最佳匹配的媒体类型，函数内进行了匹配的逻辑
+    * `requestedMediaTypes = getMediaTypes(((ServletRequestAttributes) attrs).getRequest())`：**获取最佳匹配的媒体类型**，函数内进行了匹配的逻辑
 
     * `candidateViews = getCandidateViews(viewName, locale, requestedMediaTypes)`：获取候选的视图对象
 
@@ -11376,9 +11376,9 @@ DispatcherServlet#render：
 
         `AbstractCachingViewResolver#resolveViewName`：调用此方法
 
-        **请求转发**：实例为 InternalResourceView 
-
         * `returnview = createView(viewName, locale)`：UrlBasedViewResolver#createView
+
+          **请求转发**：实例为 InternalResourceView 
 
           * `if (viewName.startsWith(FORWARD_URL_PREFIX))`：视图名字是否是 **`forward:`** 的前缀
           * `forwardUrl = viewName.substring(FORWARD_URL_PREFIX.length())`：**名字截取前缀**
@@ -11386,9 +11386,8 @@ DispatcherServlet#render：
 
           * `return applyLifecycleMethods(FORWARD_URL_PREFIX, view)`：Spring 中的初始化操作
 
-        **重定向**：实例为 RedirectView 
+          **重定向**：实例为 RedirectView 
 
-        * `returnview = createView(viewName, locale)`：UrlBasedViewResolver#createView
           * `if (viewName.startsWith(REDIRECT_URL_PREFIX))`：视图名字是否是 **`redirect:`** 的前缀
           * `redirectUrl = viewName.substring(REDIRECT_URL_PREFIX.length())`：名字截取前缀
           * `RedirectView view = new RedirectView()`：新建 RedirectView 对象并返回
@@ -11403,9 +11402,10 @@ DispatcherServlet#render：
 
   * `renderMergedOutputModel(mergedModel, getRequestToExpose(request), response)`：渲染输出的数据
 
+    `getRequestToExpose(request)`：获取 Servlet 原生的方式
+
     **请求转发** InternalResourceView 的逻辑：
 
-    * `getRequestToExpose(request)`：获取 Servlet 原生的方式
     * `exposeModelAsRequestAttributes(model, request)`：暴露 model 作为请求域的属性
       * `model.forEach()`：遍历 Model 中的数据
       * `request.setAttribute(name, value)`：设置到请求域中
@@ -11419,9 +11419,9 @@ DispatcherServlet#render：
     * `targetUrl = createTargetUrl(model, request)`：获取目标 URL
       * `enc = request.getCharacterEncoding()`：设置编码 UTF-8
       * `appendQueryProperties(targetUrl, model, enc)`：添加一些属性，比如 `url + ?name=123&&age=324`
-      * `sendRedirect(request, response, targetUrl, this.http10Compatible)`：重定向
+    * `sendRedirect(request, response, targetUrl, this.http10Compatible)`：重定向
 
-        * `response.sendRedirect(encodedURL)`：**使用 Servlet 原生方法实现重定向**
+      * `response.sendRedirect(encodedURL)`：**使用 Servlet 原生方法实现重定向**
 
 
 
@@ -14290,6 +14290,7 @@ SpringApplication#run(String... args)：
 * `stopWatch.start()`：记录应用的启动时间
 
 * `bootstrapContext = createBootstrapContext()`：**创建引导上下文环境**
+  
   * `bootstrapContext = new DefaultBootstrapContext()`：创建默认的引导类环境
   * `this.bootstrapRegistryInitializers.forEach()`：遍历所有的引导器调用 initialize 方法完成初始化设置
 * `configureHeadlessProperty()`：让当前应用进入 headless 模式
