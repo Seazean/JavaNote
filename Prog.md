@@ -3277,7 +3277,7 @@ transient volatile long base;
 transient volatile int cellsBusy;
 ```
 
-Cells 占用内存是相对比较大的，是惰性加载的，在无竞争的情况下直接更新 base 域，在第一次发生竞争的时候（CAS 失败）就会创建一个大小为 2 的 cells 数组，每次扩容都是加倍，所以**数组长度总是 2 的 n 次幂**
+Cells 占用内存是相对比较大的，是惰性加载的，在无竞争的情况下直接更新 base 域，在第一次发生竞争的时候（CAS 失败）就会创建一个大小为 2 的 cells 数组，进行分段累加。如果是更新当前线程对应的 cell 槽位时出现的竞争，就会重新计算线程对应的槽位，继续自旋尝试修改。分段迁移后还出现竞争就会扩容 cells 数组长度为原来的两倍，然后重新 rehash，**数组长度总是 2 的 n 次幂**
 
 * LongAdder#add：累加方法
 
@@ -3286,10 +3286,9 @@ Cells 占用内存是相对比较大的，是惰性加载的，在无竞争的�
       // as 为累加单元数组的引用，b 为基础值，v 表示期望值
       // m 表示 cells 数组的长度，a 表示当前线程命中的 cell 单元格
       Cell[] as; long b, v; int m; Cell a;
-      // 条件一: true 说明 cells 已经初始化过了，当前线程需要去 cells 数组累加，不需要在 base 上累加
-      //		  false 说明 cells 未初始化，当前线程应该写到 base 域，进行 || 后的尝试写入
-      // 条件二: true 说明 cas 失败，发生竞争，需要扩容或者重试
-      //		  false 说明 cas 成功，累加操作完成
+      
+      // cells 不为空说明 cells 已经被初始化，线程发生了竞争，去更新对应的 cell 槽位
+      // 为空说明没有初始化，条件为 fasle，进入 || 后的逻辑去更新 base 域，更新失败表示发生竞争进入条件
       if ((as = cells) != null || !casBase(b = base, b + x)) {
           // uncontended 为 true 表示 cell 没有竞争，false 表示发生竞争
           boolean uncontended = true;
@@ -3305,7 +3304,7 @@ Cells 占用内存是相对比较大的，是惰性加载的，在无竞争的�
               (a = as[getProbe() & m]) == null ||
               !(uncontended = a.cas(v = a.value, v + x)))
               longAccumulate(x, null, uncontended);
-          // uncontended 在 cell 上累加失败的时候才为 false，其余情况均为 true
+          // uncontended 在对应的 cell 上累加失败的时候才为 false，其余情况均为 true
       }
   }
   ```
@@ -3314,7 +3313,7 @@ Cells 占用内存是相对比较大的，是惰性加载的，在无竞争的�
 
   ```java
   							// x  			null 			false | true
-  final void longAccumulate(long x, LongBinaryOperator fn, boolean w...ed) {
+  final void longAccumulate(long x, LongBinaryOperator fn, boolean wasUncontended) {
       int h;
       // 当前线程还没有对应的 cell, 需要随机生成一个 hash 值用来将当前线程绑定到 cell
       if ((h = getProbe()) == 0) {
@@ -3340,7 +3339,7 @@ Cells 占用内存是相对比较大的，是惰性加载的，在无竞争的�
                       Cell r = new Cell(x);  
                       // 加锁
                       if (cellsBusy == 0 && casCellsBusy()) {
-                          // 是否创建成功的标记，进入【创建逻辑】
+                          // 是否创建成功的标记，进入【创建 cell 逻辑】
                           boolean created = false;	
                           try {
                               Cell[] rs; int m, j;
@@ -3372,13 +3371,13 @@ Cells 占用内存是相对比较大的，是惰性加载的，在无竞争的�
               else if (a.cas(v = a.value, ((fn == null) ? v + x :
                                            fn.applyAsLong(v, x))))
                   break;
-              // CASE 1.4: cells 长度已经超过了最大长度或者已经扩容
+              // CASE 1.4: cells 长度已经超过了最大长度 CPU 内核的数量或者已经扩容
               else if (n >= NCPU || cells != as)
                   collide = false; 		// 扩容意向改为false，表示不扩容了
               // CASE 1.5: 更改扩容意向
               else if (!collide)
                   collide = true;
-              // CASE 1.6: 扩容逻辑，进行加锁
+              // CASE 1.6: 【扩容逻辑】，进行加锁
               else if (cellsBusy == 0 && casCellsBusy()) {
                   try {
                       // 再次检查，防止期间被其他线程扩容了
@@ -3403,16 +3402,16 @@ Cells 占用内存是相对比较大的，是惰性加载的，在无竞争的�
   
           // CASE2: 运行到这说明 cells 还未初始化，as 为null
           // 条件一: true 表示当前未加锁
-          // 条件二: 其它线程可能会在当前线程给 as 赋值之后修改了 cells，这里需要判断（这里不是线程安全的）
+          // 条件二: 其它线程可能会在当前线程给 as 赋值之后修改了 cells，这里需要判断（这里不是线程安全的判断）
           // 条件三: true 表示加锁成功
           else if (cellsBusy == 0 && cells == as && casCellsBusy()) {
-              // 初始化标志，这里就进行 【初始化】
+              // 初始化标志，这里就进行 【初始化 cells 数组】
               boolean init = false;
               try { 
                  	// 再次判断 cells == as 防止其它线程已经初始化了，当前线程再次初始化导致丢失数据
                   // 因为这里是线程安全的，所以重新检查，经典DCL
                   if (cells == as) {
-                      Cell[] rs = new Cell[2];
+                      Cell[] rs = new Cell[2];//初始化数组大小为2
                       rs[h & 1] = new Cell(x);//填充线程对应的cell
                       cells = rs;
                       init = true;			//初始化成功
@@ -4607,7 +4606,7 @@ public ThreadPoolExecutor(int corePoolSize,
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JUC-线程池工作原理.png)
 
-1. 创建线程池，这时没有创建线程（**懒惰**），等待提交过来的任务请求，调用execute方法才会创建线程
+1. 创建线程池，这时没有创建线程（**懒惰**），等待提交过来的任务请求，调用 execute 方法才会创建线程
 
 2. 当调用 execute() 方法添加一个请求任务时，线程池会做如下判断：
    * 如果正在运行的线程数量小于 corePoolSize，那么马上创建线程运行这个任务
@@ -4640,7 +4639,7 @@ Executors提供了四种线程池的创建：newCachedThreadPool、newFixedThrea
   ```
 
   * 核心线程数 == 最大线程数（没有救急线程被创建），因此也无需超时时间
-  * LinkedBlockingQueue是一个单向链表实现的阻塞队列，默认大小为 `Integer.MAX_VALUE`，也就是无界队列，可以放任意数量的任务，在任务比较多的时候会导致 OOM（内存溢出）
+  * LinkedBlockingQueue 是一个单向链表实现的阻塞队列，默认大小为 `Integer.MAX_VALUE`，也就是无界队列，可以放任意数量的任务，在任务比较多的时候会导致 OOM（内存溢出）
   * 适用于任务量已知，相对耗时的长期任务
 
 * newCachedThreadPool：创建一个可扩容的线程池
@@ -4695,12 +4694,12 @@ Executors提供了四种线程池的创建：newCachedThreadPool、newFixedThrea
   - 使用线程池的好处是减少在创建和销毁线程上所消耗的时间以及系统资源的开销，解决资源不足的问题
   - 如果不使用线程池，有可能造成系统创建大量同类线程而导致消耗完内存或者“过度切换”的问题
 
-- 线程池不允许使用Executors去创建，而是通过 ThreadPoolExecutor 的方式，这样的处理方式更加明确线程池的运行规则，规避资源耗尽的风险
+- 线程池不允许使用 Executors 去创建，而是通过 ThreadPoolExecutor 的方式，这样的处理方式更加明确线程池的运行规则，规避资源耗尽的风险
 
-  Executors返回的线程池对象弊端如下：
+  Executors 返回的线程池对象弊端如下：
 
   - FixedThreadPool 和 SingleThreadPool：
-    - 运行的请求队列长度为 Integer.MAX_VALUE，可能会堆积大量的请求，从而导致OOM
+    - 运行的请求队列长度为 Integer.MAX_VALUE，可能会堆积大量的请求，从而导致 OOM
   - CacheThreadPool 和 ScheduledThreadPool：
     - 允许的创建线程数量为 Integer.MAX_VALUE，可能会创建大量的线程，从而导致 OOM
 
@@ -4715,7 +4714,7 @@ Executors提供了四种线程池的创建：newCachedThreadPool、newFixedThrea
 
 核心线程数常用公式：
 
-- **CPU 密集型任务(N+1)：** 这种任务消耗的是 CPU 资源，可以将核心线程数设置为 N (CPU 核心数)+1，比 CPU 核心数多出来的一个线程是为了防止线程发生缺页中断，或者其它原因导致的任务暂停而带来的影响。一旦任务暂停，CPU 就会处于空闲状态，而在这种情况下多出来的一个线程就可以充分利用 CPU 的空闲时间
+- **CPU 密集型任务(N+1)：** 这种任务消耗的是 CPU 资源，可以将核心线程数设置为 N (CPU 核心数) + 1，比 CPU 核心数多出来的一个线程是为了防止线程发生缺页中断，或者其它原因导致的任务暂停而带来的影响。一旦任务暂停，CPU 就会处于空闲状态，而在这种情况下多出来的一个线程就可以充分利用 CPU 的空闲时间
 
   CPU 密集型简单理解就是利用 CPU 计算能力的任务比如你在内存中对大量数据进行分析
 
@@ -4733,7 +4732,7 @@ Executors提供了四种线程池的创建：newCachedThreadPool、newFixedThrea
 
 #### 提交方法
 
-ExecutorService类API：
+ExecutorService 类 API：
 
 | 方法                                                         | 说明                                                         |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |

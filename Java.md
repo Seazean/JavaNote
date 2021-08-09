@@ -4654,7 +4654,7 @@ HashMap继承关系如下图所示：
 
 
 
-##### 成员变量
+##### 成员属性
 
 1. 序列化版本号
 
@@ -4662,14 +4662,14 @@ HashMap继承关系如下图所示：
    private static final long serialVersionUID = 362498820763181265L;
    ```
 
-2. 集合的初始化容量( **必须是二的n次幂** )
+2. 集合的初始化容量（**必须是二的n次幂** ）
 
    ```java
    //默认的初始容量是16 -- 1<<4相当于1*2的4次方---1*16
    static final int DEFAULT_INITIAL_CAPACITY = 1 << 4;   
    ```
 
-   HashMap构造方法指定集合的初始化容量大小：
+   HashMap 构造方法指定集合的初始化容量大小：
 
    ```java
    HashMap(int initialCapacity)//构造一个带指定初始容量和默认加载因子 (0.75) 的空 HashMap
@@ -4686,7 +4686,7 @@ HashMap继承关系如下图所示：
      例如长度为9时候，3&(9-1)=0  2&(9-1)=0 ，都在0上，碰撞了；
      ```
      
-   * 如果输入值不是2的幂会怎么样？
+   * 如果输入值不是 2 的幂会怎么样？
 
      创建 HashMap 对象时，HashMap 通过位移运算和或运算得到的肯定是 2 的幂次数，并且是大于那个数的最近的数字，底层采用 tableSizeFor() 方法
 
@@ -4744,7 +4744,7 @@ HashMap继承关系如下图所示：
     static final int UNTREEIFY_THRESHOLD = 6;
     ```
 
-7. 当 Map 里面的数量**大于等于**这个阈值时，表中的桶才能进行树形化 ，否则桶内元素太多时会扩容，而不是树形化。为了避免进行扩容、树形化选择的冲突，这个值不能小于 4 * TREEIFY_THRESHOLD (8)
+7. 当 Map 里面的数量**大于等于**这个阈值时，表中的桶才能进行树形化 ，否则桶内元素超过 8 时会扩容，而不是树形化。为了避免进行扩容、树形化选择的冲突，这个值不能小于 4 * TREEIFY_THRESHOLD (8)
 
     ```java
     //桶中结构转化为红黑树对应的数组长度最小的值 
@@ -4753,7 +4753,7 @@ HashMap继承关系如下图所示：
 
     原因：数组比较小的情况下变为红黑树结构，反而会降低效率，红黑树需要进行左旋，右旋，变色这些操作来保持平衡。同时数组长度小于 64 时，搜索时间相对快些，所以为了提高性能和减少搜索时间，底层在阈值大于 8 并且数组长度大于 64 时，链表才转换为红黑树，效率也变的更高效
 
-8. table 用来初始化（必须是二的n次幂）
+8. table 用来初始化（必须是二的 n 次幂）
 
     ```java
     //存储元素的数组 
@@ -4762,28 +4762,28 @@ HashMap继承关系如下图所示：
 
     jdk8 之前数组类型是 Entry<K,V>类型，之后是 Node<K,V> 类型。只是换了个名字，都实现了一样的接口 Map.Entry<K,V>，负责存储键值对数据的
 
- 9. HashMap中存放元素的个数(**重点**)
+ 9. HashMap 中存放元素的个数（**重点**）
 
     ```java
     //存放元素的个数，HashMap中K-V的实时数量，不是table数组的长度
     transient int size;
     ```
 
-10. 记录HashMap的修改次数 
+10. 记录 HashMap 的修改次数 
 
     ```java
     //每次扩容和更改map结构的计数器
      transient int modCount;  
     ```
 
-11. 调整大小下一个容量的值计算方式为(容量*负载因子) 
+11. 调整大小下一个容量的值计算方式为（容量 * 负载因子）
 
      ```java
      //临界值，当实际大小(容量*负载因子)超过临界值时，会进行扩容
      int threshold;
      ```
 
-12. **哈希表的加载因子(重点)**
+12. **哈希表的加载因子（重点）**
 
     ```java
      final float loadFactor;
@@ -4791,9 +4791,9 @@ HashMap继承关系如下图所示：
     
     * 加载因子的概述
     
-      loadFactor加载因子，是用来衡量 HashMap 满的程度，表示**HashMap的疏密程度**，影响hash操作到同一个数组位置的概率，计算HashMap的实时加载因子的方法为：size/capacity，而不是占用桶的数量去除以capacity，capacity 是桶的数量，也就是 table 的长度length。
+      loadFactor 加载因子，是用来衡量 HashMap 满的程度，表示 **HashMap 的疏密程度**，影响 hash 操作到同一个数组位置的概率，计算 HashMap 的实时加载因子的方法为：size/capacity，而不是占用桶的数量去除以 capacity，capacity 是桶的数量，也就是 table 的长度 length。
     
-      当HashMap里面容纳的元素已经达到HashMap数组长度的75%时，表示HashMap拥挤，需要扩容，而扩容这个过程涉及到 rehash、复制数据等操作，非常消耗性能，所以开发中尽量减少扩容的次数，可以通过创建HashMap集合对象时指定初始容量来尽量避免。
+      当 HashMap 里面容纳的元素已经达到 HashMap 数组长度的 75% 时，表示 HashMap 拥挤，需要扩容，而扩容这个过程涉及到  rehash、复制数据等操作，非常消耗性能，所以开发中尽量减少扩容的次数，可以通过创建 HashMap 集合对象时指定初始容量来尽量避免。
     
       ```java
       HashMap(int initialCapacity, float loadFactor)//构造指定初始容量和加载因子的空HashMap
@@ -4813,87 +4813,87 @@ HashMap继承关系如下图所示：
 
 ##### 构造方法
 
-1. 构造一个空的 HashMap ，**默认初始容量（16）和默认负载因子（0.75）**
+* 构造一个空的 HashMap ，**默认初始容量（16）和默认负载因子（0.75）**
 
-   ```java
-   public HashMap() {
-   	this.loadFactor = DEFAULT_LOAD_FACTOR; 
-   	//将默认的加载因子0.75赋值给loadFactor，并没有创建数组
-   }
-   ```
+  ```java
+  public HashMap() {
+  	this.loadFactor = DEFAULT_LOAD_FACTOR; 
+  	//将默认的加载因子0.75赋值给loadFactor，并没有创建数组
+  }
+  ```
 
-2. 构造一个具有指定的初始容量和默认负载因子（0.75）HashMap
+* 构造一个具有指定的初始容量和默认负载因子（0.75）HashMap
 
-   ```java
-   // 指定“容量大小”的构造函数
-   public HashMap(int initialCapacity) {
-       this(initialCapacity, DEFAULT_LOAD_FACTOR);
-   }
-   ```
+  ```java
+  // 指定“容量大小”的构造函数
+  public HashMap(int initialCapacity) {
+      this(initialCapacity, DEFAULT_LOAD_FACTOR);
+  }
+  ```
 
-3. 构造一个具有指定的初始容量和负载因子的HashMap
+* 构造一个具有指定的初始容量和负载因子的HashMap
 
-   ```java
-   public HashMap(int initialCapacity, float loadFactor) {
-       //进行判断
-       //将指定的加载因子赋值给HashMap成员变量的负载因子loadFactor
-       this.loadFactor = loadFactor;
-     	//最后调用了tableSizeFor
-       this.threshold = tableSizeFor(initialCapacity);
-   }
-   ```
+  ```java
+  public HashMap(int initialCapacity, float loadFactor) {
+      //进行判断
+      //将指定的加载因子赋值给HashMap成员变量的负载因子loadFactor
+      this.loadFactor = loadFactor;
+    	//最后调用了tableSizeFor
+      this.threshold = tableSizeFor(initialCapacity);
+  }
+  ```
 
-   * 对于`this.threshold = tableSizeFor(initialCapacity);` 
+  * 对于`this.threshold = tableSizeFor(initialCapacity);` 
 
-     有些人会觉得这里是一个bug应该这样书写：
-     `this.threshold = tableSizeFor(initialCapacity) * this.loadFactor;`
-     这样才符合 threshold 的概念，但是在 jdk8 以后的构造方法中，并没有对 table 这个成员变量进行初始化，table 的初始化被推迟到了 put 方法中，在 put 方法中会对 threshold 重新计算
-   
-4. 包含另一个`Map`的构造函数 
+    有些人会觉得这里是一个bug应该这样书写：
+    `this.threshold = tableSizeFor(initialCapacity) * this.loadFactor;`
+    这样才符合 threshold 的概念，但是在 jdk8 以后的构造方法中，并没有对 table 这个成员变量进行初始化，table 的初始化被推迟到了 put 方法中，在 put 方法中会对 threshold 重新计算
 
-   ```java
-   //构造一个映射关系与指定 Map 相同的新 HashMap
-   public HashMap(Map<? extends K, ? extends V> m) {
-       //负载因子loadFactor变为默认的负载因子0.75
-       this.loadFactor = DEFAULT_LOAD_FACTOR;
-       putMapEntries(m, false);
-   }
-   ```
+* 包含另一个`Map`的构造函数 
 
-   putMapEntries源码分析：
+  ```java
+  //构造一个映射关系与指定 Map 相同的新 HashMap
+  public HashMap(Map<? extends K, ? extends V> m) {
+      //负载因子loadFactor变为默认的负载因子0.75
+      this.loadFactor = DEFAULT_LOAD_FACTOR;
+      putMapEntries(m, false);
+  }
+  ```
 
-   ```java
-   final void putMapEntries(Map<? extends K, ? extends V> m, boolean evict) {
-       //获取参数集合的长度
-       int s = m.size();
-       if (s > 0) {
-           //判断参数集合的长度是否大于0
-           if (table == null) {  // 判断table是否已经初始化
-               // pre-size
-               // 未初始化，s为m的实际元素个数
-               float ft = ((float)s / loadFactor) + 1.0F;
-               int t = ((ft < (float)MAXIMUM_CAPACITY) ?
-                        (int)ft : MAXIMUM_CAPACITY);
-               // 计算得到的t大于阈值，则初始化阈值
-               if (t > threshold)
-                   threshold = tableSizeFor(t);
-           }
-           // 已初始化，并且m元素个数大于阈值，进行扩容处理
-           else if (s > threshold)
-               resize();
-           // 将m中的所有元素添加至HashMap中
-           for (Map.Entry<? extends K, ? extends V> e : m.entrySet()) {
-               K key = e.getKey();
-               V value = e.getValue();
-               putVal(hash(key), key, value, false, evict);
-           }
-       }
-   }
-   ```
+  putMapEntries源码分析：
 
-   `float ft = ((float)s / loadFactor) + 1.0F;`这一行代码中为什么要加1.0F ？
+  ```java
+  final void putMapEntries(Map<? extends K, ? extends V> m, boolean evict) {
+      //获取参数集合的长度
+      int s = m.size();
+      if (s > 0) {
+          //判断参数集合的长度是否大于0
+          if (table == null) {  // 判断table是否已经初始化
+              // pre-size
+              // 未初始化，s为m的实际元素个数
+              float ft = ((float)s / loadFactor) + 1.0F;
+              int t = ((ft < (float)MAXIMUM_CAPACITY) ?
+                       (int)ft : MAXIMUM_CAPACITY);
+              // 计算得到的t大于阈值，则初始化阈值
+              if (t > threshold)
+                  threshold = tableSizeFor(t);
+          }
+          // 已初始化，并且m元素个数大于阈值，进行扩容处理
+          else if (s > threshold)
+              resize();
+          // 将m中的所有元素添加至HashMap中
+          for (Map.Entry<? extends K, ? extends V> e : m.entrySet()) {
+              K key = e.getKey();
+              V value = e.getValue();
+              putVal(hash(key), key, value, false, evict);
+          }
+      }
+  }
+  ```
 
-   s / loadFactor的结果是小数，加1.0F相当于是对小数做一个向上取整以尽可能的保证更大容量，更大的容量能够减少resize的调用次数，这样可以减少数组的扩容
+  `float ft = ((float)s / loadFactor) + 1.0F` 这一行代码中为什么要加 1.0F ？
+
+  s / loadFactor 的结果是小数，加 1.0F 相当于是对小数做一个向上取整以尽可能的保证更大容量，更大的容量能够减少 resize 的调用次数，这样可以减少数组的扩容
 
 
 
@@ -4903,335 +4903,345 @@ HashMap继承关系如下图所示：
 
 ##### 成员方法
 
-1. hash
+* hash()
 
-   HashMap 是支持 Key 为空的；HashTable 是直接用 Key 来获取 HashCode，key 为空会抛异常
+  HashMap 是支持 Key 为空的；HashTable 是直接用 Key 来获取 HashCode，key 为空会抛异常
 
-   * &（按位与运算）：相同的二进制数位上，都是1的时候，结果为1，否则为零
-   * ^（按位异或运算）：相同的二进制数位上，数字相同，结果为0，不同为1，**不进位加法**
-   
-   ```java
-   static final int hash(Object key) {
-       int h;
-       // 1）如果key等于null：可以看到当key等于null的时候也是有哈希值的，返回的是0.
-       // 2）如果key不等于null：首先计算出key的hashCode赋值给h,然后与h无符号右移16位后的二进制进行按位异或得到最后的hash值
-       return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
-   }
-   ```
-   
-   计算 hash 的方法：将 hashCode 无符号右移 16 位，高 16bit 和低 16bit 做了一个异或，扰动运算
-   
-   原因：当数组长度很小，假设是 16，那么 n-1即为 1111 ，这样的值和 hashCode() 直接做按位与操作，实际上只使用了哈希值的后4位。如果当哈希值的高位变化很大，低位变化很小，就很容易造成哈希冲突了，所以这里**把高低位都利用起来，让高16 位也参与运算**，从而解决了这个问题
-   
-   哈希冲突的处理方式：
-   
-   * 开放定址法：线性探查法（ThreadLocalMap 使用），平方探查法（i + 1^2、i - 1^2、i + 2^2……）、双重散列（多个哈希函数）
-   * 链地址法：拉链法
-   
-   
-   
-2. put
+  * &（按位与运算）：相同的二进制数位上，都是1的时候，结果为1，否则为零
+  * ^（按位异或运算）：相同的二进制数位上，数字相同，结果为0，不同为1，**不进位加法**
 
-   jdk1.8 前是头插法 (拉链法)，多线程下扩容出现循环链表，jdk1.8 以后引入红黑树，插入方法变成尾插法
+  ```java
+  static final int hash(Object key) {
+      int h;
+      // 1）如果key等于null：可以看到当key等于null的时候也是有哈希值的，返回的是0.
+      // 2）如果key不等于null：首先计算出key的hashCode赋值给h,然后与h无符号右移16位后的二进制进行按位异或得到最后的hash值
+      return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
+  }
+  ```
 
-   第一次调用 put 方法时创建数组 Node[] table，因为散列表耗费内存，为了防止内存浪费，所以**延迟初始化**
+  计算 hash 的方法：将 hashCode 无符号右移 16 位，高 16bit 和低 16bit 做了一个异或，扰动运算
 
-   存储数据步骤（存储过程）：
+  原因：当数组长度很小，假设是 16，那么 n-1即为 1111 ，这样的值和 hashCode() 直接做按位与操作，实际上只使用了哈希值的后4位。如果当哈希值的高位变化很大，低位变化很小，就很容易造成哈希冲突了，所以这里**把高低位都利用起来，让高16 位也参与运算**，从而解决了这个问题
 
-   1. 先通过 hash 值计算出 key 映射到哪个桶
+  哈希冲突的处理方式：
 
-   2. 如果桶上没有碰撞冲突，则直接插入
+  * 开放定址法：线性探查法（ThreadLocalMap 使用），平方探查法（i + 1^2、i - 1^2、i + 2^2……）、双重散列（多个哈希函数）
+  * 链地址法：拉链法
 
-   3. 如果出现碰撞冲突：如果该桶使用红黑树处理冲突，则调用红黑树的方法插入数据；否则采用传统的链式方法插入，如果链的长度达到临界值，则把链转变为红黑树
+  
 
-   4. 如果数组位置相同，通过 equals 比较内容是否相同：相同则新的 value 覆盖旧 value，不相同则将新的键值对添加到哈希表中
-   5. 如果 size 大于阈值 threshold，则进行扩容
+* put()
 
-   ```java
-   public V put(K key, V value) {
-       return putVal(hash(key), key, value, false, true);
-   }
-   ```
+  jdk1.8 前是头插法 (拉链法)，多线程下扩容出现循环链表，jdk1.8 以后引入红黑树，插入方法变成尾插法
 
-   putVal() 方法中 key 在这里执行了一下 hash()，在 putVal 函数中使用到了上述 hash 函数计算的哈希值：
+  第一次调用 put 方法时创建数组 Node[] table，因为散列表耗费内存，为了防止内存浪费，所以**延迟初始化**
 
-   ```java
-   final V putVal(int hash, K key, V value, boolean onlyIfAbsent, boolean evict) {
-   	//。。。。。。。。。。。。。。
-   	if ((p = tab[i = (n - 1) & hash]) == null){//这里的n表示数组长度16
-   		//.....
-       } else {
-           if (e != null) { // existing mapping for key
-               V oldValue = e.value;
-               //onlyIfAbsent默认为false，所以可以覆盖已经存在的数据，如果为true说明不能覆盖
-               if (!onlyIfAbsent || oldValue == null)
-                   e.value = value;
-               afterNodeAccess(e);
-               return oldValue;
-           }
-       }
-   }
-   ```
+  存储数据步骤（存储过程）：
 
-   * `(n - 1) & hash`：计算下标位置
+  1. 先通过 hash 值计算出 key 映射到哪个桶
 
-   <img src="https://gitee.com/seazean/images/raw/master/Java/HashMap-putVal哈希运算.png" style="zoom: 67%;" />
+  2. 如果桶上没有碰撞冲突，则直接插入
 
-   * 余数本质是不断做除法，把剩余的数减去，运算效率要比位运算低
+  3. 如果出现碰撞冲突：如果该桶使用红黑树处理冲突，则调用红黑树的方法插入数据；否则采用传统的链式方法插入，如果链的长度达到临界值，则把链转变为红黑树
 
-   
+  4. 如果数组位置相同，通过 equals 比较内容是否相同：相同则新的 value 覆盖旧 value，不相同则将新的键值对添加到哈希表中
+  5. 如果 size 大于阈值 threshold，则进行扩容
 
-3. treeifyBin
+  ```java
+  public V put(K key, V value) {
+      return putVal(hash(key), key, value, false, true);
+  }
+  ```
 
-   节点添加完成之后判断此时节点个数是否大于TREEIFY_THRESHOLD临界值8，如果大于则将链表转换为红黑树，转换红黑树的方法 treeifyBin，整体代码如下：
+  putVal() 方法中 key 在这里执行了一下 hash()，在 putVal 函数中使用到了上述 hash 函数计算的哈希值：
 
-   ```java
-   if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st
-      //转换为红黑树 tab表示数组名  hash表示哈希值
-      treeifyBin(tab, hash);
-   ```
+  ```java
+  final V putVal(int hash, K key, V value, boolean onlyIfAbsent, boolean evict) {
+  	//。。。。。。。。。。。。。。
+  	if ((p = tab[i = (n - 1) & hash]) == null){//这里的n表示数组长度16
+  		//.....
+      } else {
+          if (e != null) { // existing mapping for key
+              V oldValue = e.value;
+              //onlyIfAbsent默认为false，所以可以覆盖已经存在的数据，如果为true说明不能覆盖
+              if (!onlyIfAbsent || oldValue == null)
+                  e.value = value;
+              afterNodeAccess(e);
+              return oldValue;
+          }
+      }
+  }
+  ```
 
-   1. 如果当前数组为空或者数组的长度小于进行树形化的阈值(MIN_TREEIFY_CAPACITY = 64)就去扩容，而不是将节点变为红黑树
-   2. 如果是树形化遍历桶中的元素，创建相同个数的树形节点，复制内容，建立起联系，类似单向链表转换为双向链表
-   3. 让桶中的第一个元素即数组中的元素指向新建的红黑树的节点，以后这个桶里的元素就是红黑树而不是链表数据结构了
+  * `(n - 1) & hash`：计算下标位置
 
-   
+  <img src="https://gitee.com/seazean/images/raw/master/Java/HashMap-putVal哈希运算.png" style="zoom: 67%;" />
 
-4. tableSizeFor
-   创建 HashMap 指定容量时，HashMap 通过位移运算和或运算得到比指定初始化容量大的最小的2的 n 次幂
+  * 余数本质是不断做除法，把剩余的数减去，运算效率要比位运算低
 
-   ```java
-   static final int tableSizeFor(int cap) {//int cap = 10
-       int n = cap - 1;
-       n |= n >>> 1;
-       n |= n >>> 2;
-       n |= n >>> 4;
-       n |= n >>> 8;
-       n |= n >>> 16;
-       return (n < 0) ? 1 : (n >= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + 1;
-   }
-   ```
+  
 
-   分析算法：
+* treeifyBin()
 
-   1. `int n = cap - 1`：防止 cap 已经是 2 的幂。如果 cap 已经是 2 的幂， 不执行减 1 操作，则执行完后面的无符号右移操作之后，返回的 capacity 将是这个 cap 的 2 倍
-   2. n=0 （cap-1 之后），则经过后面的几次无符号右移依然是 0，返回的 capacity 是 1，最后有 n+1
-   3. |（按位或运算）：相同的二进制数位上，都是 0 的时候，结果为 0，否则为 1
-   4. 核心思想：**把最高位是 1 的位以及右边的位全部置 1**，结果加 1 后就是最小的2的 n 次幂
+  节点添加完成之后判断此时节点个数是否大于TREEIFY_THRESHOLD临界值8，如果大于则将链表转换为红黑树，转换红黑树的方法 treeifyBin，整体代码如下：
 
-   例如初始化的值为 10：
+  ```java
+  if (binCount >= TREEIFY_THRESHOLD - 1) // -1 for 1st
+     //转换为红黑树 tab表示数组名  hash表示哈希值
+     treeifyBin(tab, hash);
+  ```
 
-   * 第一次右移
+  1. 如果当前数组为空或者数组的长度小于进行树形化的阈值(MIN_TREEIFY_CAPACITY = 64)就去扩容，而不是将节点变为红黑树
+  2. 如果是树形化遍历桶中的元素，创建相同个数的树形节点，复制内容，建立起联系，类似单向链表转换为双向链表
+  3. 让桶中的第一个元素即数组中的元素指向新建的红黑树的节点，以后这个桶里的元素就是红黑树而不是链表数据结构了
 
-     ```java
-     int n = cap - 1;//cap=10  n=9
-     n |= n >>> 1;
-     00000000 00000000 00000000 00001001 //9
-     00000000 00000000 00000000 00000100 //9右移之后变为4
-     --------------------------------------------------
-     00000000 00000000 00000000 00001101 //按位或之后是13
-     //使得n的二进制表示中与最高位的1紧邻的右边一位为1
-     ```
+  
 
-   * 第二次右移
+* tableSizeFor()
+  创建 HashMap 指定容量时，HashMap 通过位移运算和或运算得到比指定初始化容量大的最小的2的 n 次幂
 
-     ```java
-     n |= n >>> 2;//n通过第一次右移变为了：n=13
-     00000000 00000000 00000000 00001101  // 13
-     00000000 00000000 00000000 00000011  // 13右移之后变为3
-     -------------------------------------------------
-     00000000 00000000 00000000 00001111	 //按位或之后是15
-     //无符号右移两位，会将最高位两个连续的1右移两位，然后再与原来的n做或操作，这样n的二进制表示的高位中会有4个连续的1
-     ```
+  ```java
+  static final int tableSizeFor(int cap) {//int cap = 10
+      int n = cap - 1;
+      n |= n >>> 1;
+      n |= n >>> 2;
+      n |= n >>> 4;
+      n |= n >>> 8;
+      n |= n >>> 16;
+      return (n < 0) ? 1 : (n >= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + 1;
+  }
+  ```
 
-     注意：容量最大是 32bit 的正数，因此最后 `n |= n >>> 16`，最多是 32 个 1（但是这已经是负数了）。在执行 tableSizeFor 之前，对 initialCapacity 做了判断，如果大于 MAXIMUM_CAPACITY(2 ^ 30)，则取 MAXIMUM_CAPACITY；如果小于 MAXIMUM_CAPACITY(2 ^ 30)，会执行移位操作，所以移位操作之后，最大 30 个 1，加 1 之后得 2 ^ 30
+  分析算法：
 
-   * 得到的 capacity 被赋值给了 threshold
+  1. `int n = cap - 1`：防止 cap 已经是 2 的幂。如果 cap 已经是 2 的幂， 不执行减 1 操作，则执行完后面的无符号右移操作之后，返回的 capacity 将是这个 cap 的 2 倍
+  2. n=0 （cap-1 之后），则经过后面的几次无符号右移依然是 0，返回的 capacity 是 1，最后有 n+1
+  3. |（按位或运算）：相同的二进制数位上，都是 0 的时候，结果为 0，否则为 1
+  4. 核心思想：**把最高位是 1 的位以及右边的位全部置 1**，结果加 1 后就是大于指定容量的最小的 2 的 n 次幂
 
-     ```java
-     this.threshold = tableSizeFor(initialCapacity);//initialCapacity=10
-     ```
+  例如初始化的值为 10：
 
-   * JDK 11
+  * 第一次右移
 
-     ```java
-     static final int tableSizeFor(int cap) {
-         //无符号右移，高位补0
-     	//-1补码: 11111111 11111111 11111111 11111111
-         int n = -1 >>> Integer.numberOfLeadingZeros(cap - 1);
-         return (n < 0) ? 1 : (n >= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + 1;
-     }
-     //返回最高位之前的0的位数
-     public static int numberOfLeadingZeros(int i) {
-         if (i <= 0)
-             return i == 0 ? 32 : 0;
-         // 如果i>0，那么就表明在二进制表示中其至少有一位为1
-         int n = 31;
-         // i的最高位1在高16位，把i右移16位，让最高位1进入低16位继续递进判断
-         if (i >= 1 << 16) { n -= 16; i >>>= 16; }
-         if (i >= 1 <<  8) { n -=  8; i >>>=  8; }
-         if (i >= 1 <<  4) { n -=  4; i >>>=  4; }
-         if (i >= 1 <<  2) { n -=  2; i >>>=  2; }
-         return n - (i >>> 1);
-     }
-     ```
+    ```java
+    int n = cap - 1;//cap=10  n=9
+    n |= n >>> 1;
+    00000000 00000000 00000000 00001001 //9
+    00000000 00000000 00000000 00000100 //9右移之后变为4
+    --------------------------------------------------
+    00000000 00000000 00000000 00001101 //按位或之后是13
+    //使得n的二进制表示中与最高位的1紧邻的右边一位为1
+    ```
 
-     
+  * 第二次右移
 
-5. resize
+    ```java
+    n |= n >>> 2;//n通过第一次右移变为了：n=13
+    00000000 00000000 00000000 00001101  // 13
+    00000000 00000000 00000000 00000011  // 13右移之后变为3
+    -------------------------------------------------
+    00000000 00000000 00000000 00001111	 //按位或之后是15
+    //无符号右移两位，会将最高位两个连续的1右移两位，然后再与原来的n做或操作，这样n的二进制表示的高位中会有4个连续的1
+    ```
 
-   当 HashMap 中的元素个数超过`(数组长度)*loadFactor(负载因子)`或者链表过长时，就会进行数组扩容，创建新的数组，伴随一次重新 hash 分配，并且遍历 hash 表中所有的元素非常耗时，所以要尽量避免 resize
+    注意：容量最大是 32bit 的正数，因此最后 `n |= n >>> 16`，最多是 32 个 1（但是这已经是负数了）。在执行 tableSizeFor 之前，对 initialCapacity 做了判断，如果大于 MAXIMUM_CAPACITY(2 ^ 30)，则取 MAXIMUM_CAPACITY；如果小于 MAXIMUM_CAPACITY(2 ^ 30)，会执行移位操作，所以移位操作之后，最大 30 个 1，加 1 之后得 2 ^ 30
 
-   扩容机制为扩容为原来容量的 2 倍：
+  * 得到的 capacity 被赋值给了 threshold
 
-   ```java
-   if (oldCap > 0) {
-       if (oldCap >= MAXIMUM_CAPACITY) {
-           threshold = Integer.MAX_VALUE;
-           return oldTab;
-       }
-       else if ((newCap = oldCap << 1) < MAXIMUM_CAPACITY &&
-                oldCap >= DEFAULT_INITIAL_CAPACITY)
-           newThr = oldThr << 1; // double threshold
-   }
-   else if (oldThr > 0) // 初始化的threshold赋值给newCap
-       newCap = oldThr;
-   else {               // zero initial threshold signifies using defaults
-       newCap = DEFAULT_INITIAL_CAPACITY;
-       newThr = (int)(DEFAULT_LOAD_FACTOR * DEFAULT_INITIAL_CAPACITY);
-   }
-   ```
-   
-   HashMap 在进行扩容后，节点**要么就在原来的位置，要么就被分配到"原位置+旧容量"的位置**
-   
-   判断：e.hash 与 oldCap 对应的有效高位上的值是 1，即当前数组长度 n 为 1 的位为  x，如果 key 的哈希值 x 位也为 1，则扩容后的索引为 now + n
-   
-   注意：这里也要求**数组长度 2 的幂**
-   
-   ![](https://gitee.com/seazean/images/raw/master/Java/HashMap-resize扩容.png)
-   
-   普通节点：
-   
-   ```java
-   //oldCap旧数组大小
-   if ((e.hash & oldCap) == 0) {
-       if (loTail == null)
-           loHead = e;
-       else
-           loTail.next = e;
-       loTail = e;
-   }
-   else {
-       if (hiTail == null)
-           hiHead = e;
-       else
-           hiTail.next = e;
-       hiTail = e;
-   }
-   ```
-   
-   红黑树节点：扩容时 split 方法会将树**拆成高位和低位两个链表**，判断长度是否小于等于6
-   
-   ```java
-   //如果低位链表首节点不为null，说明有这个链表存在
-   if (loHead != null) {
-       //如果链表下的元素小于等于6
-       if (lc <= UNTREEIFY_THRESHOLD)
-           //那就从红黑树转链表了，低位链表，迁移到新数组中下标不变，还是等于原数组到下标
-           tab[index] = loHead.untreeify(map);
-       else {
-           //低位链表，迁移到新数组中下标不变，把低位链表整个赋值到这个下标下
-           tab[index] = loHead;
-           //如果高位首节点不为空，说明原来的红黑树已经被拆分成两个链表了
-           if (hiHead != null)
-               //需要构建新的红黑树了
-               loHead.treeify(tab);
-       }
-   }
-   ```
+    ```java
+    this.threshold = tableSizeFor(initialCapacity);//initialCapacity=10
+    ```
+
+  * JDK 11
+
+    ```java
+    static final int tableSizeFor(int cap) {
+        //无符号右移，高位补0
+    	//-1补码: 11111111 11111111 11111111 11111111
+        int n = -1 >>> Integer.numberOfLeadingZeros(cap - 1);
+        return (n < 0) ? 1 : (n >= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + 1;
+    }
+    //返回最高位之前的0的位数
+    public static int numberOfLeadingZeros(int i) {
+        if (i <= 0)
+            return i == 0 ? 32 : 0;
+        // 如果i>0，那么就表明在二进制表示中其至少有一位为1
+        int n = 31;
+        // i的最高位1在高16位，把i右移16位，让最高位1进入低16位继续递进判断
+        if (i >= 1 << 16) { n -= 16; i >>>= 16; }
+        if (i >= 1 <<  8) { n -=  8; i >>>=  8; }
+        if (i >= 1 <<  4) { n -=  4; i >>>=  4; }
+        if (i >= 1 <<  2) { n -=  2; i >>>=  2; }
+        return n - (i >>> 1);
+    }
+    ```
+
+    
+
+* resize()
+
+  当 HashMap 中的元素个数超过`(数组长度)*loadFactor(负载因子)`或者链表过长时（链表长度 > 8，数组长度 < 64），就会进行数组扩容，创建新的数组，伴随一次重新 hash 分配，并且遍历 hash 表中所有的元素非常耗时，所以要尽量避免 resize
+
+  扩容机制为扩容为原来容量的 2 倍：
+
+  ```java
+  if (oldCap > 0) {
+      if (oldCap >= MAXIMUM_CAPACITY) {
+          // 以前的容量已经是最大容量了，这时调大 扩容阈值 threshold
+          threshold = Integer.MAX_VALUE;
+          return oldTab;
+      }
+      else if ((newCap = oldCap << 1) < MAXIMUM_CAPACITY &&
+               oldCap >= DEFAULT_INITIAL_CAPACITY)
+          newThr = oldThr << 1; // double threshold
+  }
+  else if (oldThr > 0) // 初始化的threshold赋值给newCap
+      newCap = oldThr;
+  else {               // zero initial threshold signifies using defaults
+      newCap = DEFAULT_INITIAL_CAPACITY;
+      newThr = (int)(DEFAULT_LOAD_FACTOR * DEFAULT_INITIAL_CAPACITY);
+  }
+  ```
+
+  HashMap 在进行扩容后，节点**要么就在原来的位置，要么就被分配到"原位置+旧容量"的位置**
+
+  判断：e.hash 与 oldCap 对应的有效高位上的值是 1，即当前数组长度 n 为 1 的位为  x，如果 key 的哈希值 x 位也为 1，则扩容后的索引为 now + n
+
+  注意：这里也要求**数组长度 2 的幂**
+
+  ![](https://gitee.com/seazean/images/raw/master/Java/HashMap-resize扩容.png)
+
+  普通节点：把所有节点分成两个链表，
+
+  ```java
+  // 遍历所有的节点
+  do {
+      next = e.next;
+      // oldCap 旧数组大小，2 的 n 次幂
+      if ((e.hash & oldCap) == 0) {
+          if (loTail == null)
+              loHead = e;	//指向低位链表头节点
+          else
+              loTail.next = e;
+          loTail = e;		//指向低位链表尾节点
+      }
+      else {
+          if (hiTail == null)
+              hiHead = e;
+          else
+              hiTail.next = e;
+          hiTail = e;
+      }
+  } while ((e = next) != null);
+  
+  if (loTail != null) {
+      loTail.next = null;	// 低位链表的最后一个节点可能在原哈希表中指向其他节点，需要断开
+      newTab[j] = loHead;
+  }
+  ```
+
+  红黑树节点：扩容时 split 方法会将树**拆成高位和低位两个链表**，判断长度是否小于等于 6
+
+  ```java
+  //如果低位链表首节点不为null，说明有这个链表存在
+  if (loHead != null) {
+      //如果链表下的元素小于等于6
+      if (lc <= UNTREEIFY_THRESHOLD)
+          //那就从红黑树转链表了，低位链表，迁移到新数组中下标不变，还是等于原数组到下标
+          tab[index] = loHead.untreeify(map);
+      else {
+          //低位链表，迁移到新数组中下标不变，把低位链表整个赋值到这个下标下
+          tab[index] = loHead;
+          //如果高位首节点不为空，说明原来的红黑树已经被拆分成两个链表了
+          if (hiHead != null)
+              //需要构建新的红黑树了
+              loHead.treeify(tab);
+      }
+  }
+  ```
 
 ​	
 
-4. remove
-   删除是首先先找到元素的位置，如果是链表就遍历链表找到元素之后删除。如果是用红黑树就遍历树然后找到之后做删除，树小于6的时候要转链表
+* remove()
+  删除是首先先找到元素的位置，如果是链表就遍历链表找到元素之后删除。如果是用红黑树就遍历树然后找到之后做删除，树小于6的时候要转链表
 
-   ```java
-    final Node<K,V> removeNode(int hash, Object key, Object value,
-                               boolean matchValue, boolean movable) {
-        Node<K,V>[] tab; Node<K,V> p; int n, index;
-        //节点数组tab不为空、数组长度n大于0、根据hash定位到的节点对象p，该节点为树的根节点或链表的首节点）不为空，从该节点p向下遍历，找到那个和key匹配的节点对象
-        if ((tab = table) != null && (n = tab.length) > 0 &&
-            (p = tab[index = (n - 1) & hash]) != null) {
-            Node<K,V> node = null, e; K k; V v;//临时变量，储存要返回的节点信息
-            //key和value都相等，直接返回该节点
-            if (p.hash == hash &&
-                ((k = p.key) == key || (key != null && key.equals(k))))
-                node = p;
-            
-            else if ((e = p.next) != null) {
-                //如果是树节点，调用getTreeNode方法从树结构中查找满足条件的节点
-                if (p instanceof TreeNode)
-                    node = ((TreeNode<K,V>)p).getTreeNode(hash, key);
-                //遍历链表
-                else {
-                    do {
-                        //e节点的键是否和key相等，e节点就是要删除的节点，赋值给node变量
-                        if (e.hash == hash &&
-                            ((k = e.key) == key ||
-                             (key != null && key.equals(k)))) {
-                            node = e;
-                            //跳出循环
-                            break;
-                        }
-                        p = e;//把当前节点p指向e 继续遍历
-                    } while ((e = e.next) != null);
-                }
-            }
-            //如果node不为空，说明根据key匹配到了要删除的节点
-            //如果不需要对比value值或者对比value值但是value值也相等，可以直接删除
-            if (node != null && (!matchValue || (v = node.value) == value ||
-                                 (value != null && value.equals(v)))) {
-                if (node instanceof TreeNode)
-                    ((TreeNode<K,V>)node).removeTreeNode(this, tab, movable);
-                else if (node == p)//node是首节点
-                    tab[index] = node.next;
-                else	//node不是首节点
-                    p.next = node.next;
-                ++modCount;
-                --size;
-                //LinkedHashMap
-                afterNodeRemoval(node);
-                return node;
-            }
-        }
-        return null;
-    }
-   ```
-   
-   
-   
-5. get
+  ```java
+   final Node<K,V> removeNode(int hash, Object key, Object value,
+                              boolean matchValue, boolean movable) {
+       Node<K,V>[] tab; Node<K,V> p; int n, index;
+       //节点数组tab不为空、数组长度n大于0、根据hash定位到的节点对象p，该节点为树的根节点或链表的首节点）不为空，从该节点p向下遍历，找到那个和key匹配的节点对象
+       if ((tab = table) != null && (n = tab.length) > 0 &&
+           (p = tab[index = (n - 1) & hash]) != null) {
+           Node<K,V> node = null, e; K k; V v;//临时变量，储存要返回的节点信息
+           //key和value都相等，直接返回该节点
+           if (p.hash == hash &&
+               ((k = p.key) == key || (key != null && key.equals(k))))
+               node = p;
+           
+           else if ((e = p.next) != null) {
+               //如果是树节点，调用getTreeNode方法从树结构中查找满足条件的节点
+               if (p instanceof TreeNode)
+                   node = ((TreeNode<K,V>)p).getTreeNode(hash, key);
+               //遍历链表
+               else {
+                   do {
+                       //e节点的键是否和key相等，e节点就是要删除的节点，赋值给node变量
+                       if (e.hash == hash &&
+                           ((k = e.key) == key ||
+                            (key != null && key.equals(k)))) {
+                           node = e;
+                           //跳出循环
+                           break;
+                       }
+                       p = e;//把当前节点p指向e 继续遍历
+                   } while ((e = e.next) != null);
+               }
+           }
+           //如果node不为空，说明根据key匹配到了要删除的节点
+           //如果不需要对比value值或者对比value值但是value值也相等，可以直接删除
+           if (node != null && (!matchValue || (v = node.value) == value ||
+                                (value != null && value.equals(v)))) {
+               if (node instanceof TreeNode)
+                   ((TreeNode<K,V>)node).removeTreeNode(this, tab, movable);
+               else if (node == p)//node是首节点
+                   tab[index] = node.next;
+               else	//node不是首节点
+                   p.next = node.next;
+               ++modCount;
+               --size;
+               //LinkedHashMap
+               afterNodeRemoval(node);
+               return node;
+           }
+       }
+       return null;
+   }
+  ```
 
-   1. 通过hash值获取该key映射到的桶
-   
-   2. 桶上的key就是要查找的key，则直接找到并返回
+  
 
-   3. 桶上的key不是要找的key，则查看后续的节点：
+* get()
 
-      * 如果后续节点是红黑树节点，通过调用红黑树的方法根据key获取value
+  1. 通过hash值获取该key映射到的桶
 
-      * 如果后续节点是链表节点，则通过循环遍历链表根据key获取value 
+  2. 桶上的key就是要查找的key，则直接找到并返回
 
-   4. 红黑树节点调用的是getTreeNode方法通过树形节点的find方法进行查
-   
-      * 查找红黑树，之前添加时已经保证这个树是有序的，因此查找时就是折半查找，效率更高。
-      * 这里和插入时一样，如果对比节点的哈希值相等并且通过equals判断值也相等，就会判断key相等，直接返回，不相等就从子树中递归查找
+  3. 桶上的key不是要找的key，则查看后续的节点：
 
-   5. 时间复杂度 O(1)
-      
-      * 若为树，则在树中通过key.equals(k)查找，**O(logn)** 
-      
-      * 若为链表，则在链表中通过key.equals(k)查找，**O(n)**
+     * 如果后续节点是红黑树节点，通过调用红黑树的方法根据key获取value
+
+     * 如果后续节点是链表节点，则通过循环遍历链表根据key获取value 
+
+  4. 红黑树节点调用的是getTreeNode方法通过树形节点的find方法进行查
+
+     * 查找红黑树，之前添加时已经保证这个树是有序的，因此查找时就是折半查找，效率更高。
+     * 这里和插入时一样，如果对比节点的哈希值相等并且通过equals判断值也相等，就会判断key相等，直接返回，不相等就从子树中递归查找
+
+  5. 时间复杂度 O(1)
+
+     * 若为树，则在树中通过key.equals(k)查找，**O(logn)** 
+
+     * 若为链表，则在链表中通过key.equals(k)查找，**O(n)**
 
 
 
@@ -10372,7 +10382,7 @@ GC Roots说明：
 3. 从灰色集合中获取对象：
    * 将本对象引用到的其他对象全部挪到灰色集合中
    * 将本对象挪到黑色集合里面
-4. 重复步骤3，直至灰色集合为空时结束
+4. 重复步骤 3，直至灰色集合为空时结束
 5. 结束后，仍在白色集合的对象即为 GC Roots 不可达，可以进行回收
 
 <img src="https://gitee.com/seazean/images/raw/master/Java/JVM-三色标记法过程.gif" style="zoom: 67%;" />
@@ -10414,9 +10424,9 @@ objE.fieldG = null;  	// 写
 objD.fieldG = G;     	// 写
 ```
 
-为了解决问题，可以操作上面三步，**将对象G记录起来，然后作为灰色对象再进行遍历**，比如放到一个特定的集合，等初始的 GC Roots遍历完（并发标记），再遍历该集合（重新标记）
+为了解决问题，可以操作上面三步，**将对象 G 记录起来，然后作为灰色对象再进行遍历**，比如放到一个特定的集合，等初始的 GC Roots 遍历完（并发标记），再遍历该集合（重新标记）
 
-> 所以重新标记需要STW，应用程序一直在运行，该集合可能会一直增加新的对象，导致永远都运行不完
+> 所以重新标记需要 STW，应用程序一直在运行，该集合可能会一直增加新的对象，导致永远都运行不完
 
 解决方法：添加读写屏障，读屏障拦截第一步，写屏障拦截第二三步，在读写前后进行一些后置处理：
 
@@ -10965,7 +10975,7 @@ G1中提供了三种垃圾回收模式：YoungGC、Mixed GC 和 FullGC，在不�
   4. 复制对象：Eden 区内存段中存活的对象会被复制到 survivor 区，survivor 区内存段中存活的对象如果年龄未达阈值，年龄会加1，达到阀值会被会被复制到 old 区中空的内存分段，如果 survivor 空间不够，Eden 空间的部分数据会直接晋升到老年代空间
   5. 处理引用：处理 Soft，Weak，Phantom，JNI Weak  等引用，最终 Eden 空间的数据为空，GC 停止工作
 
-* **并发标记过程**：
+* **Concurrent Mark **：
 
   * 初始标记：标记从根节点直接可达的对象，这个阶段是 STW 的，并且会触发一次年轻代 GC
   * 根区域扫描 (Root Region Scanning)：G1 扫描 survivor 区直接可达的老年代区域对象，并标记被引用的对象，这一过程必须在 Young GC 之前完成
@@ -11021,14 +11031,14 @@ G1 的设计原则就是简化 JVM 性能调优，只需要简单的三步即可
 2. 设置堆的最大内存
 3. 设置最大的停顿时间（STW）
 
-**不断调优暂停时间指标**：
+不断调优暂停时间指标：
 
 * `XX:MaxGCPauseMillis=x` 可以设置启动应用程序暂停的时间，G1会根据这个参数选择 CSet 来满足响应时间的设置
 * 设置到 100ms 或者 200ms 都可以（不同情况下会不一样），但设置成50ms就不太合理
 * 暂停时间设置的太短，就会导致出现 G1 跟不上垃圾产生的速度，最终退化成 Full GC
 * 对这个参数的调优是一个持续的过程，逐步调整到最佳状态
 
-**不要设置新生代和老年代的大小**：
+不要设置新生代和老年代的大小：
 
 - 避免使用 -Xmn 或 -XX:NewRatio 等相关选项显式设置年轻代大小，G1 收集器在运行的时候会调整新生代和老年代的大小，从而达到我们为收集器设置的暂停时间目标
 - 设置了新生代大小相当于放弃了 G1 为我们做的自动调优，我们需要做的只是设置整个堆内存的大小，剩下的交给 G1 自己去分配各个代的大小
@@ -11061,9 +11071,9 @@ ZGC 目标：
 
 ZGC 的工作过程可以分为 4 个阶段：
 
-* 并发标记（Concurrent Mark）： 遍历对象图做可达性分析的阶段，也要经过类似于 G1的初始标记、最终标记的短暂停顿
+* 并发标记（Concurrent Mark）： **遍历对象图做可达性分析**的阶段，也要经过类似于 G1的初始标记、最终标记的短暂停顿
 * 并发预备重分配（ Concurrent Prepare for Relocate）： 根据特定的查询条件统计得出本次收集过程要清理哪些 Region，将这些 Region 组成重分配集（Relocation Set）
-* 并发重分配（Concurrent Relocate）： 重分配是 ZGC 执行过程中的核心阶段，这个过程要把重分配集中的**存活对象**复制到新的 Region 上，并为重分配集中的每个 Region 维护一个转发表（Forward Table），记录从旧地址到新地址的转向关系
+* 并发重分配（Concurrent Relocate）： 重分配是 ZGC 执行过程中的核心阶段，这个过程要把重分配集中的**存活对象**复制到新的 Region 上，并为重分配集中的每个 Region 维护一个**转发表（Forward Table）**，记录从旧地址到新地址的转向关系
 * 并发重映射（Concurrent Remap）：修正整个堆中指向重分配集中旧对象的所有引用，ZGC 的并发映射并不是一个必须要立即完成的任务，ZGC 很巧妙地把并发重映射阶段要做的工作，合并到下一次垃圾收集循环中的并发标记阶段里去完成，因为都是要遍历所有对象的，这样合并节省了一次遍历的开销
 
 ZGC 几乎在所有地方并发执行的，除了初始标记的是 STW 的，但这部分的实际时间是非常少的，所以响应速度快，在尽可能对吞吐量影响不大的前提下，实现在任意堆内存大小下都可以把垃圾收集的停顿时间限制在十毫秒以内的低延迟
@@ -12258,7 +12268,7 @@ public class MyClassLoader extends ClassLoader{
             }
             //获取内存中的完整的字节数组的数据
             byte[] byteCodes = baos.toByteArray();
-            //调用defineClass()，将字节数组的数据转换为Class的实例。
+            //调 用defineClass()，将字节数组的数据转换为 Class的实例。
             Class clazz = defineClass(null, byteCodes, 0, byteCodes.length);
             return clazz;
         } catch (IOException e) {

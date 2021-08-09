@@ -111,9 +111,9 @@ org.apache.ibatis.session.SqlSession：构建者对象接口，用于执行 SQL�
     * id：属性，唯一标识，配合名称空间使用
     * resultType：指定结果映射对象类型，和对应的方法的返回值类型(全限定名)保持一致，但是如果返回值是List则和其泛型保持一致
     * parameterType：指定参数映射对象类型，必须和对应的方法的参数类型（全限定名）保持一致
-    * statementType：可选 STATEMENT，PREPARED 或 CALLABLE，默认值：PREPARED
-      * STATEMENT：直接操作 sql，不进行预编译，获取数据：$ Statement
-      * PREPARED：预处理参数，进行预编译，获取数据：# PreparedStatement
+    * **statementType**：可选 STATEMENT，PREPARED 或 CALLABLE，默认值：PREPARED
+      * STATEMENT：直接操作 sql，使用 Statement 不进行预编译，获取数据：$
+      * PREPARED：预处理参数，使用 PreparedStatement 进行预编译，获取数据：#
       * CALLABLE：执行存储过程，CallableStatement
 
 * 参数获取方式：
@@ -170,7 +170,7 @@ org.apache.ibatis.session.SqlSession：构建者对象接口，用于执行 SQL�
 
 * 起别名：
 
-  * <typeAliases>：为全类名起别名的父标签。
+  * <typeAliases>：为全类名起别名的父标签
 
     * <typeAlias>：为全类名起别名的子标签
       * type：指定全类名      
@@ -201,14 +201,14 @@ org.apache.ibatis.session.SqlSession：构建者对象接口，用于执行 SQL�
 
 
 * 配置环境，可以配置多个标签
-  * <environments>：配置数据库环境标签。default属性：指定哪个environment
-  * <environment>：配置数据库环境子标签。id属性：唯一标识，与default对应
-  * <transactionManager>：事务管理标签。type属性：默认JDBC事务
-  * <dataSoure>：数据源标签。
-    * type属性：POOLED使用连接池(mybatis内置); UNPOOLED不使用连接池
+  * <environments>：配置数据库环境标签，default 属性指定哪个 environment
+  * <environment>：配置数据库环境子标签，id 属性是唯一标识，与 default 对应
+  * <transactionManager>：事务管理标签，type 属性默认 JDBC 事务
+  * <dataSoure>：数据源标签
+    * type 属性：POOLED 使用连接池（mybatis内置），UNPOOLED 不使用连接池
   * <property>：数据库连接信息标签。
-    * name属性取值：driver，url，username，password
-    * value属性取值：与name对应
+    * name 属性取值：driver，url，username，password
+    * value 属性取值：与 name 对应
 * 引入映射配置文件
 
   * <mappers>：引入映射配置文件标签
@@ -483,7 +483,7 @@ org.apache.ibatis.session.SqlSession：构建者对象接口，用于执行 SQL�
 
 三种方式实现批量操作：
 
-* <settings> 标签属性：这种方式属于全局批量
+* <settings> 标签属性：这种方式属于**全局批量**
 
   ```xml
   <settings>
@@ -493,11 +493,11 @@ org.apache.ibatis.session.SqlSession：构建者对象接口，用于执行 SQL�
 
   defaultExecutorType：配置默认的执行器
 
-  * SIMPLE 就是普通的执行器
+  * SIMPLE 就是普通的执行器（默认）
   * REUSE 执行器会重用预处理语句（PreparedStatement）
   * BATCH 执行器不仅重用语句还会执行批量更新
 
-* SqlSession 会话内批量操作：
+* SqlSession **会话内批量**操作：
 
   ```java
   public void testBatch() throws IOException{
@@ -2350,7 +2350,7 @@ return new DefaultSqlSessionFactory(config)：返回工厂对象
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/MyBatis-获取工厂对象.png)
 
-总结：解析 xml 是对 Configuration 中的属性进行填充，那么我们同样可以在一个类中创建 Configuration 对象，手动设置其中属性的值来达到配置的效果
+总结：解析 XML 是对 Configuration 中的属性进行填充，那么我们同样可以在一个类中创建 Configuration 对象，手动设置其中属性的值来达到配置的效果
 
 
 
@@ -2405,15 +2405,38 @@ MapperRegistry.getMapper(Class, SqlSession)：MapperRegistry 是 Configuration �
 
 MapperProxy.invoke()：执行 SQL 语句，Object 类的方法直接执行
 
-cachedMapperMethod(method)：包装成一个 MapperMethod 对象并初始化该对象
-
-MapperMethod.execute()：根据 switch-case 判断使用的什么类型的 SQL 进行逻辑处理
+```java
+public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    try {
+        // 当前方法是否是属于 Object 类中的方法
+        if (Object.class.equals(method.getDeclaringClass())) {
+            return method.invoke(this, args);
+            // 当前方法是否是默认方法
+        } else if (isDefaultMethod(method)) {
+            return invokeDefaultMethod(proxy, method, args);
+        }
+    } catch (Throwable t) {
+        throw ExceptionUtil.unwrapThrowable(t);
+    }
+    // 包装成一个 MapperMethod 对象并初始化该对象
+    final MapperMethod mapperMethod = cachedMapperMethod(method);
+    // 根据 switch-case 判断使用的什么类型的 SQL 进行逻辑处理，此处分析查询语句的查询操作
+    return mapperMethod.execute(sqlSession, args);
+}
+```
 
 sqlSession.selectOne(String, Object)：查询数据，底层调用 DefaultSqlSession.selectList(String, Object)
 
-configuration.getMappedStatement(statement)：获取执行者对象
+```java
+public <E> List<E> selectList(String statement, Object parameter, RowBounds rowBounds) {
+    // 获取执行者对象
+    MappedStatement ms = configuration.getMappedStatement(statement);
+    // 开始执行查询语句，参数通过 wrapCollection() 包装成集合类
+    return executor.query(ms, wrapCollection(parameter), rowBounds, Executor.NO_RESULT_HANDLER);
+}
+```
 
-executor.query()：开始执行查询语句，参数通过 wrapCollection() 包装成集合类
+Executor#query()：
 
 * `CachingExecutor.query()`：先执行
 
@@ -2426,7 +2449,7 @@ executor.query()：开始执行查询语句，参数通过 wrapCollection() 包�
 
   * `ms.getCache()`：获取二级缓存，`tcm.getObject(cache, key)`：尝试从**二级缓存**中获取数据
 
-* `BaseExecutor.query()`：
+* `BaseExecutor.query()`：再执行
 
   * `localCache.getObject(key) `：尝试从**本地缓存（一级缓存**）获取数据
 
