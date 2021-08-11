@@ -2327,11 +2327,11 @@ hashCode 的作用：
 
 * 浅拷贝 (shallowCopy)：对基本数据类型进行值传递，对引用数据类型只是复制了引用，被复制对象属性的所有的引用仍然指向原来的对象，简而言之就是增加了一个指针指向原来对象的内存地址
 
+  Java 中的复制方法基本都是浅克隆：Object.clone()、System.arraycopy()、Arrays.copyOf()
+
 * 深拷贝 (deepCopy)：对基本数据类型进行值传递，对引用数据类型是一个整个独立的对象拷贝，会拷贝所有的属性并指向的动态分配的内存，简而言之就是把所有属性复制到一个新的内存，增加一个指针指向新内存。所以使用深拷贝的情况下，释放内存的时候不会出现使用浅拷贝时释放同一块内存的错误
 
 Object 的 clone() 是 protected 方法，一个类不显式去重写 clone()，就不能直接去调用该类实例的 clone() 方法
-
-克隆就是制造一个对象的副本，根据所要克隆的对象的成员变量中是否含有引用类型，可以将克隆分为两种：浅克隆(Shallow Clone) 和 深克隆(Deep Clone)，默认情况下使用Object中的clone方法进行克隆就是浅克隆，即完成对象域对域的拷贝
 
 Cloneable 接口是一个标识性接口，即该接口不包含任何方法（包括clone()），但是如果一个类想合法的进行克隆，那么就必须实现这个接口，在使用 clone() 方法时，若该类未实现 Cloneable 接口，则抛出异常
 
@@ -2343,7 +2343,7 @@ Cloneable 接口是一个标识性接口，即该接口不包含任何方法（�
 
 * Shallow Clone & Deep Clone：
   
-  浅克隆：Object中的 clone() 方法在对某个对象克隆时对其仅仅是简单地执行域对域的 copy
+  浅克隆：Object 中的 clone() 方法在对某个对象克隆时对其仅仅是简单地执行域对域的 copy
   
   * 对基本数据类型和包装类的克隆是没有问题的。String、Integer 等包装类型在内存中是不可以被改变的对象，所以在使用克隆时可以视为基本类型，只需浅克隆引用即可
   * 如果对一个引用类型进行克隆时只是克隆了它的引用，和原始对象共享对象成员变量
@@ -2828,10 +2828,10 @@ Array 的工具类
 
 常用API：
 
-* `public static String toString(int[] a)` : 返回指定数组的内容的字符串表示形式
-* `public static void sort(int[] a)` : 按照数字顺序排列指定的数组
-* `public static int binarySearch(int[] a, int key)` : 利用二分查找返回指定元素的索引
-* `public static <T> List<T> asList(T... a)` : 返回由指定数组支持的列表。
+* `public static String toString(int[] a)`：返回指定数组的内容的字符串表示形式
+* `public static void sort(int[] a)`：按照数字顺序排列指定的数组
+* `public static int binarySearch(int[] a, int key)`：利用二分查找返回指定元素的索引
+* `public static <T> List<T> asList(T... a)`：返回由指定数组支持的列表
 
 ```java
 public class MyArraysDemo {

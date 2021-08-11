@@ -81,23 +81,9 @@
 
 ### 创建线程
 
-#### 三种方式
-
-运行一个程序就是开启一个进程，在进程中创建线程的方式有三种:
-
-1. 直接定义一个类继承线程类 Thread，重写 run() 方法，创建线程对象，调用线程对象的 start() 方法启动线程
-2. 定义一个线程任务类实现 Runnable 接口，重写 run() 方法，创建线程任务对象，把线程任务对象包装成线程对象， 调用线程对象的 start() 方法启动线程
-3. 实现 Callable 接口
-
-
-
-***
-
-
-
 #### Thread
 
-Thread创建线程方式：创建线程类，匿名内部类方式
+Thread 创建线程方式：创建线程类，匿名内部类方式
 
 * **start() 方法底层其实是给 CPU 注册当前线程，并且触发 run() 方法执行**
 * 线程的启动必须调用 start() 方法，如果线程直接调用 run() 方法，相当于变成了普通类的执行，此时将只有主线程在执行该线程
@@ -132,7 +118,7 @@ class MyThread extends Thread{
 继承 Thread 类的优缺点：
 
 * 优点：编码简单
-*  缺点：线程类已经继承了Thread类无法继承其他类了，功能不能通过继承拓展（单继承的局限性）
+*  缺点：线程类已经继承了 Thread 类无法继承其他类了，功能不能通过继承拓展（单继承的局限性）
 
 
 
@@ -143,8 +129,6 @@ class MyThread extends Thread{
 #### Runnable
 
 Runnable 创建线程方式：创建线程类，匿名内部类方式
-
-**Thread 类本身也是实现了 Runnable 接口**
 
 Thread 的构造器：
 
@@ -170,6 +154,22 @@ public class MyRunnable implements Runnable{
     }
 }
 ```
+
+**Thread 类本身也是实现了 Runnable 接口**，Thread 类中持有 Runnable 的属性，用来执行 run 方法：
+
+```java
+public class Thread implements Runnable {
+    private Runnable target;
+    // 底层调用的是 Runnable 的 run 方法
+    public void run() {
+        if (target != null) {
+            target.run();
+        }
+    }
+}
+```
+
+
 
 * 缺点：代码复杂一点。
 
@@ -204,11 +204,10 @@ public class MyRunnable implements Runnable{
 
 `public FutureTask(Callable<V> callable)`：未来任务对象，在线程执行完后**得到线程的执行结果**
 
-* FutureTask 就是 Runnable 对象，被包装成未来任务对象
+* FutureTask 就是 Runnable 对象，因为 Thread 类只能执行 Runnable 实例的任务对象，所以把 Callable 包装一下
+* 线程池部分详解了 FutureTask 的源码
 
 `public V get()`：同步等待 task 执行完毕的结果，如果在线程中获取另一个线程执行结果，会阻塞等待，用于线程同步
-
-优缺点：
 
 * 优点：同 Runnable，并且能得到线程执行的结果
 * 缺点：编码复杂
@@ -814,7 +813,7 @@ public class demo {
 
 同步方法底层也是有锁对象的：
 
-* 如果方法是实例方法：同步方法默认用this作为的锁对象
+* 如果方法是实例方法：同步方法默认用 this 作为的锁对象
 
   ```java
   public synchronized void test() {} //等价于
@@ -823,7 +822,7 @@ public class demo {
   }
   ```
 
-* 如果方法是静态方法：同步方法默认用类名.class作为的锁对象
+* 如果方法是静态方法：同步方法默认用类名 .class 作为的锁对象
 
   ```java
   class Test{
@@ -883,7 +882,7 @@ class Room {
 
 ##### 线程八锁
 
-所谓的“线程八锁”，其实就是考察 synchronized 锁住的是哪个对象，直接百度搜索
+所谓的“线程八锁”，其实就是考察 synchronized 锁住的是哪个对象，直接百度搜索相关的实例
 
 说明：主要关注锁住的对象是不是同一个
 
@@ -959,12 +958,12 @@ Mark Word 中就被设置指向 Monitor 对象的指针，这就是重量级锁
 
 * 开始时 Monitor 中 Owner 为 null
 * 当 Thread-2 执行 synchronized(obj) 就会将 Monitor 的所有者 Owner 置为 Thread-2，Monitor中只能有一
-  个 Owner，**obj对象的Mark Word指向Monitor**
+  个 Owner，**obj 对象的 Mark Word 指向 Monitor**
   <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-Monitor工作原理1.png" style="zoom:67%;" />
-* 在 Thread-2 上锁的过程中，Thread-3、Thread-4、Thread-5也来执行 synchronized(obj)，就会进入
+* 在 Thread-2 上锁的过程中，Thread-3、Thread-4、Thread-5 也来执行 synchronized(obj)，就会进入
   EntryList BLOCKED（双向链表）
 * Thread-2 执行完同步代码块的内容，然后唤醒 EntryList 中等待的线程来竞争锁，竞争是**非公平的**
-* WaitSet 中的Thread-0，是以前获得过锁，但条件不满足进入 WAITING 状态的线程（wait-notify ）
+* WaitSet 中的 Thread-0，是以前获得过锁，但条件不满足进入 WAITING 状态的线程（wait-notify）
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JUC-Monitor工作原理2.png)
 
@@ -1555,8 +1554,7 @@ public final native void wait(long timeout):有时限的等待, 到n毫秒后结
 * Owner 线程发现条件不满足，调用 wait 方法，即可进入 WaitSet 变为 WAITING 状态
 * BLOCKED 和 WAITING 的线程都处于阻塞状态，不占用 CPU 时间片
 * BLOCKED 线程会在 Owner 线程释放锁时唤醒
-* WAITING 线程会在 Owner 线程调用 notify 或 notifyAll 时唤醒，但唤醒后并不意味者立刻获得锁，仍需进入
-  EntryList 重新竞争
+* WAITING 线程会在 Owner 线程调用 notify 或 notifyAll 时唤醒，但唤醒后并不意味者立刻获得锁，仍需进入 EntryList 重新竞争
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JUC-Monitor工作原理2.png)
 
@@ -4588,10 +4586,10 @@ public ThreadPoolExecutor(int corePoolSize,
 
 * handler：拒绝策略，线程到达最大线程数仍有新任务时会执行拒绝策略
 
-  RejectedExecutionHandler下有 4 个实现类：
+  RejectedExecutionHandler 下有 4 个实现类：
 
-  * AbortPolicy：让调用者抛出 RejectedExecutionException 异常，默认策略
-  * CallerRunsPolicy："调用者运行"的调节机制，将某些任务回退到调用者，从而降低新任务的流量
+  * AbortPolicy：让调用者抛出 RejectedExecutionException 异常，**默认策略**
+  * CallerRunsPolicy：让调用者运行的调节机制，将某些任务回退到调用者，从而降低新任务的流量
   * DiscardPolicy：直接丢弃任务，不予任何处理也不抛出异常
   * DiscardOldestPolicy：放弃队列中最早的任务，把当前任务加入队列中尝试再次提交当前任务
 
@@ -4611,13 +4609,15 @@ public ThreadPoolExecutor(int corePoolSize,
 2. 当调用 execute() 方法添加一个请求任务时，线程池会做如下判断：
    * 如果正在运行的线程数量小于 corePoolSize，那么马上创建线程运行这个任务
    * 如果正在运行的线程数量大于或等于 corePoolSize，那么将这个任务放入队列
-   * 如果这时队列满了且正在运行的线程数量还小于 maximumPoolSize，那么会创建非核心线程**立刻运行**这个任务（对于阻塞队列中的任务不公平）
+   * 如果这时队列满了且正在运行的线程数量还小于 maximumPoolSize，那么会创建非核心线程**立刻运行这个任务**（对于阻塞队列中的任务不公平）
    * 如果队列满了且正在运行的线程数量大于或等于 maximumPoolSize，那么线程池会启动饱和**拒绝策略**来执行
 3. 当一个线程完成任务时，会从队列中取下一个任务来执行
 
 4. 当一个线程无事可做超过一定的时间（keepAliveTime）时，线程池会判断：如果当前运行的线程数大于 corePoolSize，那么这个线程就被停掉，所以线程池的所有任务完成后最终会收缩到 corePoolSize 大小
 
 
+
+图片来源：https://space.bilibili.com/457326371/
 
 
 
@@ -4681,6 +4681,8 @@ Executors提供了四种线程池的创建：newCachedThreadPool、newFixedThrea
 
   ![](https://gitee.com/seazean/images/raw/master/Java/JUC-newSingleThreadExecutor.png)
 
+
+
 ***
 
 
@@ -4698,10 +4700,8 @@ Executors提供了四种线程池的创建：newCachedThreadPool、newFixedThrea
 
   Executors 返回的线程池对象弊端如下：
 
-  - FixedThreadPool 和 SingleThreadPool：
-    - 运行的请求队列长度为 Integer.MAX_VALUE，可能会堆积大量的请求，从而导致 OOM
-  - CacheThreadPool 和 ScheduledThreadPool：
-    - 允许的创建线程数量为 Integer.MAX_VALUE，可能会创建大量的线程，从而导致 OOM
+  - FixedThreadPool 和 SingleThreadPool：请求队列长度为 Integer.MAX_VALUE，可能会堆积大量的请求，从而导致 OOM
+  - CacheThreadPool 和 ScheduledThreadPool：允许创建线程数量为 Integer.MAX_VALUE，可能会创建大量的线程，导致 OOM
 
 创建多大容量的线程池合适？
 
@@ -4710,6 +4710,7 @@ Executors提供了四种线程池的创建：newCachedThreadPool、newFixedThrea
 * 过小会导致程序不能充分地利用系统资源、容易导致饥饿
 
 * 过大会导致更多的线程上下文切换，占用更多内存
+  
   上下文切换：当前任务在执行完 CPU 时间片切换到另一个任务之前会先保存自己的状态，以便下次再切换回这个任务时，可以再加载这个任务的状态，任务从保存到再加载的过程就是一次上下文切换
 
 核心线程数常用公式：
@@ -4736,16 +4737,16 @@ ExecutorService 类 API：
 
 | 方法                                                         | 说明                                                         |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| void execute(Runnable command)                               | 执行任务（Executor类API）                                    |
+| void execute(Runnable command)                               | 执行任务（Executor 类 API）                                  |
 | Future<?> submit(Runnable task)                              | 提交任务 task()                                              |
-| Future submit(Callable<T> task)                              | 提交任务 task，用返回值Future获得任务执行结果                |
+| Future submit(Callable<T> task)                              | 提交任务 task，用返回值 Future 获得任务执行结果              |
 | List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) | 提交 tasks 中所有任务                                        |
 | List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) | 提交 tasks 中所有任务，超时时间针对所有task，超时会取消没有执行完的任务，并抛出超时异常 |
 | T invokeAny(Collection<? extends Callable<T>> tasks)         | 提交 tasks 中所有任务，哪个任务先成功执行完毕，返回此任务执行结果，其它任务取消 |
 
 execute 和 submit 都属于线程池的方法，对比：
 
-* execute 只能提交 Runnable 类型的任务，而 submit 既能提交 Runnable 类型任务也能提交 Callable 类型任务
+* execute 只能提交 Runnable 类型的任务，没有返回值，而 submit 既能提交 Runnable 类型任务也能提交 Callable 类型任务
 
 * execute 会直接抛出任务执行时的异常，submit 会吞掉异常，可通过 Future 的 get 方法将任务执行时的异常重新抛出
 
@@ -4762,7 +4763,7 @@ ExecutorService 类 API：
 | 方法                                                  | 说明                                                         |
 | ----------------------------------------------------- | ------------------------------------------------------------ |
 | void shutdown()                                       | 线程池状态变为 SHUTDOWN，等待任务执行完后关闭线程池，不会接收新任务，但已提交任务会执行完 |
-| List<Runnable> shutdownNow()                          | 线程池状态变为 STOP，用 interrupt 中断正在执行的任务，直接关闭线程池，不会接收新任务，会将队列中的任务返回， |
+| List<Runnable> shutdownNow()                          | 线程池状态变为 STOP，用 interrupt 中断正在执行的任务，直接关闭线程池，不会接收新任务，会将队列中的任务返回 |
 | boolean isShutdown()                                  | 不在 RUNNING 状态的线程池，此执行者已被关闭，方法返回 true   |
 | boolean isTerminated()                                | 线程池状态是否是 TERMINATED，如果所有任务在关闭后完成，返回 true |
 | boolean awaitTermination(long timeout, TimeUnit unit) | 调用 shutdown 后，由于调用线程不会等待所有任务运行结束，如果它想在线程池 TERMINATED 后做些事情，可以利用此方法等待 |
@@ -4777,7 +4778,7 @@ ExecutorService 类 API：
 
 execute 会直接抛出任务执行时的异常，submit 会吞掉异常，有两种处理方法
 
-方法1：主动捉异常
+方法 1：主动捉异常
 
 ```java
 ExecutorService executorService = Executors.newFixedThreadPool(1);
@@ -4791,7 +4792,7 @@ pool.submit(() -> {
 });
 ```
 
-方法2：使用 Future
+方法 2：使用 Future 对象
 
 ```java
 ExecutorService executorService = Executors.newFixedThreadPool(1);
@@ -4815,27 +4816,720 @@ System.out.println(future.get());
 
 #### 状态信息
 
-ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位表示线程数量
+ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位表示线程数量。这些信息存储在一个原子变量 ctl 中，目的是将线程池状态与线程个数合二为一，这样就可以用一次 CAS 原子操作进行赋值
 
-| 状态       | 高3位 | 接收新任务 | 处理阻塞任务队列 | 说明                                    |
-| ---------- | ----- | ---------- | ---------------- | --------------------------------------- |
-| RUNNING    | 111   | Y          | Y                |                                         |
-| SHUTDOWN   | 000   | N          | Y                | 不接收新任务，但处理阻塞队列剩余任务    |
-| STOP       | 001   | N          | N                | 中断正在执行的任务，并抛弃阻塞队列任务  |
-| TIDYING    | 010   | -          | -                | 任务全执行完毕，活动线程为0即将进入终结 |
-| TERMINATED | 011   | -          | -                | 终止状态                                |
+* 状态表示：
 
-这些信息存储在一个原子变量 ctl 中，目的是将线程池状态与线程个数合二为一，这样就可以用一次 cas 原子操作
-进行赋值
+  ```java
+  // 高3位：表示当前线程池运行状态，除去高3位之后的低位：表示当前线程池中所拥有的线程数量
+  private final AtomicInteger ctl = new AtomicInteger(ctlOf(RUNNING, 0));
+  // 表示在 ctl 中，低 COUNT_BITS 位，是用于存放当前线程数量的位
+  private static final int COUNT_BITS = Integer.SIZE - 3;
+  // 低 COUNT_BITS 位所能表达的最大数值，000 11111111111111111111 => 5亿多
+  private static final int CAPACITY   = (1 << COUNT_BITS) - 1;
+  ```
 
-```java
-// c为旧值， ctlOf返回结果为新值
-ctl.compareAndSet(c, ctlOf(targetState, workerCountOf(c))));
-// rs为高3位代表线程池状态， wc为低29位代表线程个数，ctl是合并它们
-private static int ctlOf(int rs, int wc) { return rs | wc; }
-```
+  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-线程池状态转换图.png)
 
-![](https://gitee.com/seazean/images/raw/master/Java/JUC-线程池状态转换图.png)
+* 四种状态：
+
+  ```java
+  // 111 000000000000000000，转换成整数后其实就是一个负数
+  private static final int RUNNING    = -1 << COUNT_BITS;
+  // 000 000000000000000000
+  private static final int SHUTDOWN   =  0 << COUNT_BITS;
+  // 001 000000000000000000
+  private static final int STOP       =  1 << COUNT_BITS;
+  // 010 000000000000000000
+  private static final int TIDYING    =  2 << COUNT_BITS;
+  // 011 000000000000000000
+  private static final int TERMINATED =  3 << COUNT_BITS;
+  ```
+
+  | 状态       | 高3位 | 接收新任务 | 处理阻塞任务队列 | 说明                                      |
+  | ---------- | ----- | ---------- | ---------------- | ----------------------------------------- |
+  | RUNNING    | 111   | Y          | Y                |                                           |
+  | SHUTDOWN   | 000   | N          | Y                | 不接收新任务，但处理阻塞队列剩余任务      |
+  | STOP       | 001   | N          | N                | 中断正在执行的任务，并抛弃阻塞队列任务    |
+  | TIDYING    | 010   | -          | -                | 任务全执行完毕，活动线程为 0 即将进入终结 |
+  | TERMINATED | 011   | -          | -                | 终止状态                                  |
+
+* 获取当前线程池运行状态：
+
+  ```java
+  // ~CAPACITY = ~000 11111111111111111111 = 111 000000000000000000000（取反）
+  // c == ctl = 111 000000000000000000111
+  // 111 000000000000000000111
+  // 111 000000000000000000000
+  // 111 000000000000000000000	获取到了运行状态
+  private static int runStateOf(int c)     { return c & ~CAPACITY; }
+  ```
+
+* 获取当前线程池线程数量：
+
+  ```java
+  //        c = 111 000000000000000000111
+  // CAPACITY = 000 111111111111111111111
+  //            000 000000000000000000111 => 7
+  private static int workerCountOf(int c)  { return c & CAPACITY; }
+  ```
+
+* 重置当前线程池状态 ctl：
+
+  ```java
+  // rs 表示线程池状态   wc 表示当前线程池中 worker（线程）数量，类似相加操作
+  private static int ctlOf(int rs, int wc) { return rs | wc; }
+  ```
+
+* 比较当前线程池 ctl 所表示的状态：
+
+  ```java
+  // 比较当前线程池 ctl 所表示的状态，是否小于某个状态 s
+  // 状态对比：RUNNING < SHUTDOWN < STOP < TIDYING < TERMINATED
+  private static boolean runStateLessThan(int c, int s) { return c < s; }
+  // 比较当前线程池 ctl 所表示的状态，是否大于等于某个状态s
+  private static boolean runStateAtLeast(int c, int s) { return c >= s; }
+  // 小于 SHUTDOWN 的一定是 RUNNING，SHUTDOWN == 0
+  private static boolean isRunning(int c) { return c < SHUTDOWN; }
+  ```
+
+* 设置线程池 ctl：
+
+  ```java
+  // 使用CAS方式 让 ctl 值 +1 ，成功返回 true, 失败返回 false
+  private boolean compareAndIncrementWorkerCount(int expect) {
+      return ctl.compareAndSet(expect, expect + 1);
+  }
+  // 使用CAS 方式 让 ctl 值 -1 ，成功返回 true, 失败返回 false
+  private boolean compareAndDecrementWorkerCount(int expect) {
+      return ctl.compareAndSet(expect, expect - 1);
+  }
+  // 将 ctl 值减一，do while 循环会一直重试，直到成功为止
+  private void decrementWorkerCount() {
+      do {} while (!compareAndDecrementWorkerCount(ctl.get()));
+  }
+  ```
+
+
+
+****
+
+
+
+#### 成员属性
+
+成员变量
+
+* 线程池中存放 worker 的容器：线程池没有初始化，直接往池中加线程即可
+
+  ```java
+  private final HashSet<Worker> workers = new HashSet<Worker>();
+  ```
+
+* 线程全局锁：
+
+  ```java
+  // 增加减少 worker 或者时修改线程池运行状态需要持有 mainLock
+  private final ReentrantLock mainLock = new ReentrantLock();
+  ```
+
+* 可重入锁的条件变量：
+
+  ```java
+  // 当外部线程调用 awaitTermination() 方法时，会等待当前线程池状态为 Termination 为止
+  private final Condition termination = mainLock.newCondition()
+  ```
+
+* 线程池相关参数：
+
+  ```java
+  private volatile int corePoolSize;				// 核心线程数量
+  private volatile int maximumPoolSize;			// 线程池最大线程数量
+  private volatile long keepAliveTime;			// 空闲线程存活时间
+  private volatile ThreadFactory threadFactory;	// 创建线程时使用的线程工厂，默认是 DefaultThreadFactory
+  private final BlockingQueue<Runnable> workQueue;// 任务队列池中的线程达到核心线程数量后，再提交任务就放入队列
+  ```
+
+  ```java
+  private volatile RejectedExecutionHandler handler;	// 拒绝策略，juc包提供了4中方式
+  private static final RejectedExecutionHandler defaultHandler = new AbortPolicy();// 默认策略
+  ```
+
+* 记录线程池相关属性的数值：
+
+  ```java
+  private int largestPoolSize;		// 记录线程池生命周期内线程数最大值
+  private long completedTaskCount;	// 记录线程池所完成任务总数，当某个 worker 退出时将完成的任务累积到该属性
+  ```
+
+* 控制核心线程数量内的线程是否可以被回收：
+
+  ```java
+  // false 代表不可以，为 true 时核心数量内的线程空闲超过 keepAliveTime 也会被回收
+  private volatile boolean allowCoreThreadTimeOut;
+  ```
+
+内部类：
+
+* Worker 类：**每个 Worker 对象会绑定一个初始任务**，启动 Worker 时优先执行
+
+  ```java
+  // Worker 采用了AQS的独占模式，state = 0 表示未被占用，> 0 表示被占用，< 0 表示初始状态，这种情况下不能被抢锁
+  // ExclusiveOwnerThread：表示独占锁的线程
+  private final class Worker extends AbstractQueuedSynchronizer implements Runnable {
+  	final Thread thread;			// worker 内部封装的工作线程
+      Runnable firstTask;				// worker 第一个执行的任务
+      volatile long completedTasks;	// 记录当前 worker 所完成任务数量
+      
+      //构造方法
+      Worker(Runnable firstTask) {
+          // 设置AQS独占模式为初始化中状态，这个状态不能被抢占锁
+         	setState(-1);
+          // firstTask不为空时，当worker启动后，内部线程会优先执行firstTask，执行完后会到queue中去获取下个任务
+          this.firstTask = firstTask;
+          // 使用【线程工厂创建一个线程】，并且将当前worker指定为Runnable，所以thread启动时会调用 worker.run()
+          this.thread = getThreadFactory().newThread(this);
+      }
+  }
+  ```
+
+* 拒绝策略相关的内部类
+
+
+
+
+
+***
+
+
+
+#### 成员方法
+
+##### 提交方法
+
+* AbstractExecutorService#submit()：提交任务的方法
+
+  ```java
+  public Future<?> submit(Runnable task) {
+      // 空指针异常
+      if (task == null) throw new NullPointerException();
+      // 把 Runnable 封装成未来任务对象
+      RunnableFuture<Void> ftask = newTaskFor(task, null);
+      // 执行方法
+      execute(ftask);
+      return ftask;
+  }
+  public <T> Future<T> submit(Callable<T> task) {
+      if (task == null) throw new NullPointerException();
+      // 把 Callable 封装成未来任务对象
+      RunnableFuture<T> ftask = newTaskFor(task);
+      // 执行方法
+      execute(ftask);	
+      // 返回未来任务对象，用来获取返回值
+      return ftask;
+  }
+  ```
+
+  ```java
+  protected <T> RunnableFuture<T> newTaskFor(Runnable runnable, T value) {
+      // Runnable 封装成 FutureTask，指定返回值
+      return new FutureTask<T>(runnable, value);
+  }
+  protected <T> RunnableFuture<T> newTaskFor(Callable<T> callable) {
+      // Callable 直接封装成 FutureTask
+      return new FutureTask<T>(callable);
+  }
+  ```
+
+* execute()：执行任务
+
+  ```java
+  // command 可以是普通的 Runnable 实现类，也可以是 FutureTask
+  public void execute(Runnable command) {
+      // 非空判断
+      if (command == null)
+          throw new NullPointerException();
+    	// 获取 ctl 最新值赋值给 c，ctl 高3位表示线程池状态，低位表示当前线程池线程数量。
+      int c = ctl.get();
+      // 【1】条件成立表示当前线程数量小于核心线程数，此次提交任务直接创建一个新的 worker，线程池中多了一个新的线程
+      if (workerCountOf(c) < corePoolSize) {
+          // addWorker 为创建线程的过程，会创建 worker 对象并且将 command 作为 firstTask，优先执行
+          if (addWorker(command, true))
+              // 创建成功直接返回
+              return;
+          // 执行到这条语句，说明 addWorker 一定是失败的，存在并发现象或者线程池状态被改变，
+          // SHUTDOWN 状态下也有可能创建成功，前提 firstTask == null 而且当前 queue 不为空（特殊情况）
+          c = ctl.get();
+      }
+      // 执行到这说明当前线程数量已经达到 corePoolSize 或者 addWorker 失败
+      // 【2】条件成立说明当前线程池处于running状态，则尝试将 task 放入到 workQueue 中
+      if (isRunning(c) && workQueue.offer(command)) {
+          // 获取线程池状态 ctl 保存到 recheck
+          int recheck = ctl.get();
+          // 条件一成立说明线程池状态被外部线程给修改了，可能是执行了 shutdown() 方法，需要把刚提交的任务删除
+          // 删除成功说明提交之后，线程池中的线程还未消费该任务（处理）
+          if (!isRunning(recheck) && remove(command))
+              // 任务出队成功，走拒绝策略
+              reject(command);
+          // 执行到这说明线程池是 running 状态，获取线程池中的线程数量，判断是否是 0
+          // 【担保机制】，保证线程池在 running 状态下，最起码得有一个线程在工作
+          else if (workerCountOf(recheck) == 0)
+              addWorker(null, false);
+      }
+      // 【3】offer 失败说明当前 queue 满了，如果当前线程数量尚未达到 maximumPoolSize 的话，会创建新的worker直接执行 command，如果当前线程数量达到 maximumPoolSize 的话，这里 addWorker 也会失败，走拒绝策略
+      else if (!addWorker(command, false))
+          reject(command);
+  }
+  ```
+
+
+
+
+
+***
+
+
+
+##### 添加线程
+
+* addWorker()：**添加线程到线程池**，返回 true 表示创建 Worker 成功，且线程启动
+
+  ```java
+  // core == true 表示采用核心线程数量限制，false表示采用 maximumPoolSize
+  private boolean addWorker(Runnable firstTask, boolean core) {
+      // 自旋判断当前线程池状态是否允许创建线程的，允许就设置线程数量 + 1
+      retry:
+      for (;;) {
+          // 获取 ctl 的值
+          int c = ctl.get();
+          // 获取当前线程池运行状态
+          int rs = runStateOf(c);	
+          // 判断当前线程池状态【是否允许添加线程】
+  		// 条件一判断线程池的状态是否是 running 状态，成立则表示不是，不允许添加 worker，返回 false，
+          // 条件二是当前线程池是 SHUTDOWN 状态，但是队列里面还有任务尚未处理完，
+          //      【这时需要处理完 queue 中的任务，但是不允许再提交新的 task】
+          if (rs >= SHUTDOWN && !(rs == SHUTDOWN && firstTask == null && !workQueue.isEmpty()))
+              return false;
+          for (;;) {
+              // 获取当前线程池中线程数量
+              int wc = workerCountOf(c);
+              // 条件一一般不成立，CAPACITY是5亿多，根据 core 判断使用哪个大小限制线程数量，超过了返回 false
+              if (wc >= CAPACITY || wc >= (core ? corePoolSize : maximumPoolSize))
+                  return false;
+              // 记录线程数量已经加 1，相当于申请到了一块令牌，条件失败说明其他线程修改了数量
+              if (compareAndIncrementWorkerCount(c))
+                  // 申请成功，跳出了 retry 这个 for 自旋
+                  break retry;
+              // CAS 失败，没有成功的申请到令牌
+              c = ctl.get();
+              // 判断当前线程池状态是否发生过变化，被其他线程修改了，可能调用了 shutdown() 方法
+              if (runStateOf(c) != rs)
+                  // 返回外层循环检查是否能创建线程，在 if 语句中返回 false
+                  continue retry;
+             
+          }
+      }
+      //【令牌申请成功，开始创建线程】
+  	// 运行标记，表示创建的 worker 是否已经启动，false未启动  true启动
+      boolean workerStarted = false;
+      // 添加标记，表示创建的 worker 是否添加到池子中了，默认false未添加，true是添加。
+      boolean workerAdded = false;
+      Worker w = null;
+      try {
+          // 创建 Worker，底层通过线程工厂创建执行线程
+          w = new Worker(firstTask);
+          // 将新创建的 worker 节点的线程赋值给 t
+          final Thread t = w.thread;
+          // 为了防止 ThreadFactory 程序员自定义的实现类有 bug，创造不出线程
+          if (t != null) {
+              final ReentrantLock mainLock = this.mainLock;
+              // 加互斥锁
+              mainLock.lock();
+              try {
+                  // 获取最新线程池运行状态保存到rs中
+                  int rs = runStateOf(ctl.get());
+  				// 判断线程池是否为RUNNING状态，不是再判断当前是否为SHUTDOWN状态且firstTask为空（特殊情况）
+                  if (rs < SHUTDOWN || (rs == SHUTDOWN && firstTask == null)) {
+                      // 当线程start后，线程isAlive会返回true，否则报错
+                      if (t.isAlive()) throw new IllegalThreadStateException();
+                      //【将新建的 Worker 添加到线程池中】
+                      workers.add(w);
+                      int s = workers.size();
+                      // 条件成立说明当前线程数量是一个新高，更新 largestPoolSize
+                      if (s > largestPoolSize)
+                          largestPoolSize = s;
+                      // 添加标记置为 true
+                      workerAdded = true;
+                  }
+              } finally {
+                  // 解锁啊
+                  mainLock.unlock();
+              }
+              // 添加成功就启动线程【执行任务】
+              if (workerAdded) {
+                  // Thread 类中持有 Runnable 任务对象，调用的是 Runnable 的 run 方法
+                  t.start();
+                  // 运行标记置为 true
+                  workerStarted = true;
+              }
+          }
+      } finally {
+          // 如果启动线程失败，做清理工作
+          if (! workerStarted)
+              addWorkerFailed(w);
+      }
+      // 返回新创建的线程是否启动
+      return workerStarted;
+  }
+  ```
+
+* addWorkerFailed()：清理任务
+
+  ```java
+  private void addWorkerFailed(Worker w) {
+      final ReentrantLock mainLock = this.mainLock;
+      // 持有线程池全局锁，因为操作的是线程池相关的东西
+      mainLock.lock();
+      try {
+          //条件成立需要将 worker 在 workers 中清理出去。
+          if (w != null)
+              workers.remove(w);
+          // 将线程池计数 -1，相当于归还令牌。
+          decrementWorkerCount();
+          tryTerminate();
+      } finally {
+          //释放线程池全局锁。
+          mainLock.unlock();
+      }
+  }
+  ```
+
+
+
+****
+
+
+
+##### 运行方法
+
+* Worker#run：当某个 worker 启动时，会执行 run()
+
+  ```java
+  public void run() {
+      // ThreadPoolExecutor#runWorker()
+      runWorker(this);
+  }
+  ```
+
+* runWorker()：**执行任务**，线程会一直 while 循环获取任务执行任务
+
+  ```java
+  final void runWorker(Worker w) {
+      Thread wt = Thread.currentThread();	
+      // 获取 worker 的 firstTask
+      Runnable task = w.firstTask;
+      // 引用置空，防止复用该线程时重复执行该任务
+      w.firstTask = null;
+      // 初始化 worker 时设置 state = -1，这里需要设置 state = 0 和 exclusiveOwnerThread = null
+      w.unlock();
+      // true 表示发生异常退出，false 表示正常退出。
+      boolean completedAbruptly = true;
+      try {
+          // firstTask 不是 null 就直接运行，否则去 queue 中获取任务
+          // 【getTask如果是阻塞获取任务，会一直阻塞在take方法，获取后继续循环，不会走返回null的逻辑】
+          while (task != null || (task = getTask()) != null) {
+              // 加锁，shutdown 时会判断当前worker状态，根据独占锁是否【空闲】来判断当前worker是否正在工作。
+              w.lock();
+  			// 说明线程池状态大于 STOP，目前处于 STOP/TIDYING/TERMINATION，此时给线程一个中断信号
+              if ((runStateAtLeast(ctl.get(), STOP) ||
+                   // 判断当前线程是否被打断，清楚打断标记，所以最后一个条件会返回false，取反为 true
+                   (Thread.interrupted() && runStateAtLeast(ctl.get(), STOP))) && !wt.isInterrupted())
+                  // 中断线程，设置线程的中断标志位为 true
+                  wt.interrupt();
+              try {
+                  // 钩子方法，开发者自定义实现
+                  beforeExecute(wt, task);
+                  Throwable thrown = null;
+                  try {
+                      // task 可能是 FutureTask，也可能是普通的 Runnable 接口实现类。
+                      task.run();
+                  } catch (RuntimeException x) {
+                      thrown = x; throw x;
+                  } catch (Error x) {
+                      thrown = x; throw x;
+                  } catch (Throwable x) {
+                      thrown = x; throw new Error(x);
+                  } finally {
+                      // 钩子方法，开发者自定义实现
+                      afterExecute(task, thrown);
+                  }
+              } finally {
+                  task = null;		// 将局部变量task置为null
+                  w.completedTasks++;	// 更新worker完成任务数量
+                  w.unlock();			// 解锁
+              }
+          }
+          // getTask() 方法返回 null 时会执行这里，说明 queue 为空或者线程太多，当前【线程应该执行退出逻辑】
+          completedAbruptly = false;	
+      } finally {
+          // 正常退出 completedAbruptly = false
+         	// 异常退出 completedAbruptly = true，task.run() 内部抛出异常时，跳到这一行
+          processWorkerExit(w, completedAbruptly);
+      }
+  }
+  ```
+
+* unlock()：重置锁
+
+  ```java
+  public void unlock() { release(1); }
+  //外部不会直接调用这个方法 这个方法是 AQS 内调用的，外部调用 unlock 时触发此方法
+  protected boolean tryRelease(int unused) {
+      setExclusiveOwnerThread(null);		// 设置持有者为 null
+      setState(0);						// 设置 state = 0
+      return true;
+  }
+  ```
+
+* getTask()：获取任务，线程空闲时间超过 keepAliveTime 就会被回收，判断的依据是**当前线程超过保活时间没有获取到任务**
+
+  ```java
+  private Runnable getTask() {
+      //超时标记，表示当前线程获取任务是否超时，默认 false，true 表示已超时
+      boolean timedOut = false; 
+      for (;;) {
+          // 获取最新ctl值保存到c中
+          int c = ctl.get();
+          // 获取线程池当前运行状态
+          int rs = runStateOf(c);
+  
+          // 条件一成立说明当前线程池是非 RUNNING 状态
+          // 条件二成立说明线程池已经停止或者 queue 为 null，没有任务需要执行
+          if (rs >= SHUTDOWN && (rs >= STOP || workQueue.isEmpty())) {
+              // 使用 CAS 自旋的方式让 ctl 值 -1
+              decrementWorkerCount();
+              // 返回null，runWorker 方法就会将返回 null 的线程执行线程退出线程池的逻辑
+              return null;
+          }
+  		// 获取线程池中的线程数量
+          int wc = workerCountOf(c);
+  
+          // timed = false 表示当前这个线程 获取task时不支持超时机制的，当前线程会使用 queue.take() 阻塞获取
+          // timed = true 表示当前这个线程 获取task时支持超时机制，使用 queue.poll(xxx,xxx) 超时获取
+          //               当获取task超时的情况下，下一次自旋就可能返回null了
+          // 条件一代表允许回收核心线程，那就无所谓了，全部线程都执行超时回收
+          // 条件二成立说明线程数量大于核心线程数，执行该方法的线程去超时获取任务，获取不到返回null，执行线程退出逻辑
+          boolean timed = allowCoreThreadTimeOut || wc > corePoolSize;
+          
+  		// 条件一判断线程数量是否超过最大线程数，直接回收
+          // wc > 1 说明线程池还用其他线程，当前线程可以直接回收
+          // workQueue.isEmpty() 前置条件是 wc = 1，说明当前任务队列已经空了，最后一个线程，也可以放心的退出
+          if ((wc > maximumPoolSize || (timed && timedOut)) && (wc > 1 || workQueue.isEmpty())) {
+              // 使用CAS机制将 ctl 值 -1 ,减 1 成功的线程，返回 null，可以推出
+              if (compareAndDecrementWorkerCount(c))
+                  return null;
+              continue;
+          }
+  
+          try {
+              // 根据当前线程是否需要超时回收【选择从队列获取任务的方法】超时获取或者阻塞获取
+              Runnable r = timed ?
+                  workQueue.poll(keepAliveTime, TimeUnit.NANOSECONDS) : workQueue.take();
+              // 获取到任务返回任务
+              // 【阻塞获取会阻塞到获取任务为止】，不会返回 null
+              if (r != null)
+                  return r;
+              // 获取任务为 null，超时标记设置为 true，下次自旋时返回 null
+              timedOut = true;
+          } catch (InterruptedException retry) {
+              // 被打断后超时标记置为 false
+              timedOut = false;
+          }
+      }
+  }
+  ```
+
+* processWorkerExit()：**线程退出线程池**
+
+  ```java
+  private void processWorkerExit(Worker w, boolean completedAbruptly) {
+      // 条件成立代表当前 worker 是发生异常退出的，task 任务执行过程中向上抛出异常了
+      if (completedAbruptly) 
+          decrementWorkerCount();
+  
+      final ReentrantLock mainLock = this.mainLock;
+      mainLock.lock();	// 加锁
+      try {
+          // 将当前 worker 完成的 task 数量，汇总到线程池的 completedTaskCount
+          completedTaskCount += w.completedTasks;
+  		// 将 worker 从线程池中移除
+          workers.remove(w);
+      } finally {
+          mainLock.unlock();	// 解锁
+      }
+  	// 尝试停止线程池
+      tryTerminate();
+  
+      int c = ctl.get();
+      // 条件成立说明当前线程池状态为 RUNNING 或者 SHUTDOWN 状态
+      if (runStateLessThan(c, STOP)) {
+          // 正常退出的逻辑，是空闲线程回收
+          if (!completedAbruptly) {
+              // 根据是否回收核心线程确定线程池中的最小值
+              int min = allowCoreThreadTimeOut ? 0 : corePoolSize;
+              // 最小值为 0，但是线程队列不为空，需要一个线程来完成任务
+              if (min == 0 && !workQueue.isEmpty())
+                  min = 1;
+              // 线程池中的线程数量大于最小值可以直接返回
+              if (workerCountOf(c) >= min)
+                  return;
+          }
+          // 执行task时发生异常，这里要创建一个新 worker 加进线程池
+          addWorker(null, false);
+      }
+  }
+  ```
+
+  
+
+****
+
+
+
+##### 停止方法
+
+* shutdown()：
+
+  ```java
+  public void shutdown() {
+      final ReentrantLock mainLock = this.mainLock;
+      //获取线程池全局锁
+      mainLock.lock();
+      try {
+          checkShutdownAccess();
+          //设置线程池状态为SHUTDOWN
+          advanceRunState(SHUTDOWN);
+          //中断空闲线程
+          interruptIdleWorkers();
+          //空方法，子类可以扩展
+          onShutdown(); 
+      } finally {
+          //释放线程池全局锁
+          mainLock.unlock();
+      }
+      tryTerminate();
+  }
+  ```
+
+* interruptIdleWorkers()：shutdown 方法会**中断空闲线程**
+
+  ```java
+  // onlyOne == true 说明只中断一个线程 ，false 则中断所有线程
+  private void interruptIdleWorkers(boolean onlyOne) {
+      final ReentrantLock mainLock = this.mainLock;
+      //持有全局锁
+      mainLock.lock();
+      try {
+          // 遍历所有worker
+          for (Worker w : workers) {
+              // 获取当前 worker 的线程
+              Thread t = w.thread;
+              //条件一成立：说明当前迭代的这个线程尚未中断
+              //条件二成立：说明当前worker处于空闲状态，阻塞在poll或者take，因为worker执行task时是加锁的
+              // w.tryLock() 加锁，独占锁情况下其他线程持有锁会加锁失败返回 false
+              if (!t.isInterrupted() && w.tryLock()) {
+                  try {
+                      // 中断线程，处于 queue 阻塞的线程会被唤醒，进入下一次自旋，返回null，执行退出相逻辑
+                      t.interrupt();
+                  } catch (SecurityException ignore) {
+                  } finally {
+                      // 释放worker的独占锁
+                      w.unlock();
+                  }
+              }
+              if (onlyOne)
+                  break;
+          }
+  
+      } finally {
+          //释放全局锁。
+          mainLock.unlock();
+      }
+  }
+  ```
+
+* shutdownNow()：
+
+  ```java
+  public List<Runnable> shutdownNow() {
+      //返回值引用
+      List<Runnable> tasks;
+      final ReentrantLock mainLock = this.mainLock;
+      //获取线程池全局锁
+      mainLock.lock();
+      try {
+          checkShutdownAccess();
+          //设置线程池状态为STOP
+          advanceRunState(STOP);
+          //中断线程池中所有线程
+          interruptWorkers();
+          //导出未处理的task
+          tasks = drainQueue();
+      } finally {
+          mainLock.unlock();
+      }
+  
+      tryTerminate();
+      //返回当前任务队列中 未处理的任务。
+      return tasks;
+  }
+  ```
+
+* tryTerminate()：设置为 TERMINATED 状态 if either (SHUTDOWN and pool and queue empty) or (STOP and pool empty)
+
+  ```java
+  final void tryTerminate() {
+      for (;;) {
+          // 获取 ctl 的值
+          int c = ctl.get();
+          // 条件一说明线程池正常，条件二说明有其他线程执行了该方法，当前线程直接返回
+          if (isRunning(c) || runStateAtLeast(c, TIDYING) ||
+              // 线程池是 SHUTDOWN 并且任务队列不是空，需要去处理队列中的任务
+              (runStateOf(c) == SHUTDOWN && ! workQueue.isEmpty()))
+              return;
+          // 判断线程池中线程的数量
+          if (workerCountOf(c) != 0) {
+              // 中断一个空闲线程，空闲线程，在 queue.take() | queue.poll() 阻塞空闲
+              // 唤醒后的线程会在getTask()方法返回null，执行退出逻辑时会再次调用tryTerminate()唤醒下一个空闲线程
+              interruptIdleWorkers(ONLY_ONE);
+              return;
+          }
+  		// 池中的线程数量为 0 来到这里
+          final ReentrantLock mainLock = this.mainLock;
+          // 加锁
+          mainLock.lock();
+          try {
+              // 设置线程池状态为 TIDYING 状态
+              if (ctl.compareAndSet(c, ctlOf(TIDYING, 0))) {
+                  try {
+                      // 结束线程池
+                      terminated();
+                  } finally {
+                      // 设置线程池状态为TERMINATED状态。
+                      ctl.set(ctlOf(TERMINATED, 0));
+                      // 唤醒所有调用 awaitTermination() 方法的线程
+                      termination.signalAll();
+                  }
+                  return;
+              }
+          } finally {
+  			// 释放线程池全局锁
+              mainLock.unlock();
+          }
+          // else retry on failed CAS
+      }
+  }
+  ```
 
 
 
@@ -4874,8 +5568,8 @@ public FutureTask(Callable<V> callable){
 }
 
 public FutureTask(Runnable runnable, V result) {
-    //使用装饰者模式将 runnable 转换成 callable 接口，外部线程通过 get 获取
-    //当前任务执行结果时，结果可能为 null 也可能为【传进来】的值，传进来什么返回什么
+    // 使用装饰者模式将 runnable 转换成 callable 接口，外部线程通过 get 获取
+    // 当前任务执行结果时，结果可能为 null 也可能为【传进来】的值，传进来什么返回什么
     this.callable = Executors.callable(runnable, result);
     this.state = NEW;       
 }
@@ -4893,35 +5587,66 @@ public FutureTask(Runnable runnable, V result) {
 
 FutureTask 类的成员属性：
 
-```java
-// 表示当前task状态
-private volatile int state;
-// 当前任务尚未执行
-private static final int NEW          = 0;
-// 当前任务正在结束，尚未完全结束，一种临界状态
-private static final int COMPLETING   = 1;
-// 当前任务正常结束
-private static final int NORMAL       = 2;
-// 当前任务执行过程中发生了异常。 内部封装的 callable.run() 向上抛出异常了
-private static final int EXCEPTIONAL  = 3;
-// 当前任务被取消
-private static final int CANCELLED    = 4;
-// 当前任务中断中
-private static final int INTERRUPTING = 5;
-// 当前任务已中断
-private static final int INTERRUPTED  = 6;
+* 任务状态：
 
-// Runnable 使用 装饰者模式伪装成 Callable
-private Callable<V> callable;
-// 正常情况下：任务正常执行结束，outcome 保存执行结果，callable 返回值。
-// 非正常情况：callable 向上抛出异常，outcome 保存异常
-private Object outcome; 
-// 当前任务被线程执行期间，保存当前执行任务的线程对象引用
-private volatile Thread runner;
-// 会有很多线程去 get 当前任务的结果，这里使用了一种数据结构头插头取（类似栈）的一个队列来保存所有的 get 线程
-// WaitNode 是单向的链表
-private volatile WaitNode waiters;
-```
+  ```java
+  // 表示当前task状态
+  private volatile int state;
+  // 当前任务尚未执行
+  private static final int NEW          = 0;
+  // 当前任务正在结束，尚未完全结束，一种临界状态
+  private static final int COMPLETING   = 1;
+  // 当前任务正常结束
+  private static final int NORMAL       = 2;
+  // 当前任务执行过程中发生了异常。 内部封装的 callable.run() 向上抛出异常了
+  private static final int EXCEPTIONAL  = 3;
+  // 当前任务被取消
+  private static final int CANCELLED    = 4;
+  // 当前任务中断中
+  private static final int INTERRUPTING = 5;
+  // 当前任务已中断
+  private static final int INTERRUPTED  = 6;
+  ```
+
+* 任务对象：
+
+  ```java
+  private Callable<V> callable;	// Runnable 使用装饰者模式伪装成 Callable
+  ```
+
+* 返回结果：
+
+  ```java
+  // 正常情况下：任务正常执行结束，outcome 保存执行结果，callable 返回值。
+  // 非正常情况：callable 向上抛出异常，outcome 保存异常
+  private Object outcome; 
+  ```
+
+* 执行当前任务的线程对象：
+
+  ```java
+  private volatile Thread runner;	// 当前任务被线程执行期间，保存当前执行任务的线程对象引用
+  ```
+
+* 阻塞线程的队列：
+
+  ```java
+  // 会有很多线程去 get 当前任务的结果，这里使用了一种数据结构头插头取（类似栈）的一个队列来保存所有的 get 线程
+  private volatile WaitNode waiters;
+  ```
+
+* 内部类：
+
+  ```java
+  static final class WaitNode {
+      //单向链表
+      volatile Thread thread;
+      volatile WaitNode next;
+      WaitNode() { thread = Thread.currentThread(); }
+  }
+  ```
+
+  
 
 
 
@@ -4938,7 +5663,7 @@ FutureTask 类的成员方法：
   ```java
   public void run() {
       //条件一：成立说明当前 task 已经被执行过了或者被 cancel 了，非 NEW 状态的任务，线程就不处理了
-      //条件二：线程是 NEW 状态，尝试设置当前任务对象的线程是当前线程，设置失败说明其他线程抢占了该任务
+      //条件二：线程是 NEW 状态，尝试设置当前任务对象的线程是当前线程，设置失败说明其他线程抢占了该任务，直接返回
       if (state != NEW ||
           !UNSAFE.compareAndSwapObject(this, runnerOffset,
                                        null, Thread.currentThread()))
@@ -4946,8 +5671,7 @@ FutureTask 类的成员方法：
       try {
           // 执行到这里，当前 task 一定是 NEW 状态，而且当前线程也抢占 task 成功！
           Callable<V> c = callable;
-          // 条件一：防止空指针异常
-          // 条件二：防止外部线程在此期间 cancel 掉当前任务。
+          // 判断任务是否为空，防止空指针异常，判断 state 防止外部线程在此期间 cancel 掉当前任务。
           if (c != null && state == NEW) {
               // 结果引用
               V result;
@@ -4972,7 +5696,7 @@ FutureTask 类的成员方法：
                   set(result);
           }
       } finally {
-          // 任务执行完成，取消线程的引用
+          // 任务执行完成，取消线程的引用，help GC
           runner = null;
           int s = state;
           // 判断任务是不是被中断
@@ -5012,7 +5736,7 @@ FutureTask 类的成员方法：
   }
   ```
   
-  FutureTask#finishCompletion：完成
+  FutureTask#finishCompletion：**唤醒 get() 阻塞线程**
   
   ```java
   private void finishCompletion() {
@@ -5024,7 +5748,7 @@ FutureTask 类的成员方法：
               for (;;) {
                   // 获取当前 WaitNode 节点封装的 thread
                   Thread t = q.thread;
-                  // 当前线程不为 null，唤醒当前线程
+                  // 当前线程不为 null，唤醒当前 get() 等待获取数据的线程
                   if (t != null) {
                       q.thread = null;
                       LockSupport.unpark(t);
@@ -5050,13 +5774,14 @@ FutureTask 类的成员方法：
   ```java
   private void handlePossibleCancellationInterrupt(int s) {
       if (s == INTERRUPTING)
+          // 中断状态中
           while (state == INTERRUPTING)
               // 等待中断完成
               Thread.yield();
   }
   ```
   
-* **FutureTask#get**：获取任务执行的返回值
+* **FutureTask#get**：获取任务执行的返回值，执行 run 和 get 的不是同一个线程，可能有多个线程 get，只有一个线程 run
 
   ```java
   public V get() throws InterruptedException, ExecutionException {
@@ -5070,7 +5795,7 @@ FutureTask 类的成员方法：
   }
   ```
 
-  FutureTask#awaitDone：线程阻塞等待
+  FutureTask#awaitDone：**get 线程阻塞等待**
 
   ```java
   private int awaitDone(boolean timed, long nanos) throws InterruptedException {
@@ -5103,10 +5828,10 @@ FutureTask 类的成员方法：
               Thread.yield();
           // 条件成立：【第一次自旋】，当前线程还未创建 WaitNode 对象，此时为当前线程创建 WaitNode对象
           else if (q == null)
-              q = new WaitNode();条件成立：第二次自旋，当前线程已经创建 WaitNode对象了，但是node对象还未入队
+              q = new WaitNode();
           // 条件成立：【第二次自旋】，当前线程已经创建 WaitNode 对象了，但是node对象还未入队
           else if (!queued)
-              // waiters 指向队首，让当前 WaitNode 成为新的队首，头插法
+              // waiters 指向队首，让当前 WaitNode 成为新的队首，【头插法】
               // 失败说明再次期间有了新的队首
               queued = UNSAFE.compareAndSwapObject(this, waitersOffset, q.next = waiters, q);
           // 条件成立：【第三次自旋】，会到这里。
@@ -5127,7 +5852,7 @@ FutureTask 类的成员方法：
   }
   ```
 
-  FutureTask#report：返回结果
+  FutureTask#report：封装运行结果
 
   ```java
   private V report(int s) throws ExecutionException {
@@ -5149,7 +5874,7 @@ FutureTask 类的成员方法：
   ```java
   public boolean cancel(boolean mayInterruptIfRunning) {
       // 条件一：表示当前任务处于运行中或者处于线程池任务队列中
-      // 条件二：表示修改状态，成功可以去执行下面逻辑，否则 返回 false 表示 cancel 失败。
+      // 条件二：表示修改状态，成功可以去执行下面逻辑，否则返回 false 表示 cancel 失败。
       if (!(state == NEW &&
             UNSAFE.compareAndSwapInt(this, stateOffset, NEW,
                                      mayInterruptIfRunning ? INTERRUPTING : CANCELLED)))
@@ -5157,7 +5882,7 @@ FutureTask 类的成员方法：
       try {   
           if (mayInterruptIfRunning) {
               try {
-                  // 执行当前 FutureTask 的线程
+                  // 获取执行当前 FutureTask 的线程
                   Thread t = runner;
                   if (t != null)
                       // 打断执行的线程
@@ -5175,7 +5900,10 @@ FutureTask 类的成员方法：
   }
   ```
 
-  
+
+
+
+参考视频：https://www.bilibili.com/video/BV13E411N7pp
 
 
 
@@ -5507,8 +6235,7 @@ class MockConnection implements Connection {
 
 AQS：AbstractQueuedSynchronizer，是阻塞式锁和相关的同步器工具的框架，许多同步类实现都依赖于它
 
-* 用 state 属性来表示资源的状态（分**独占模式和共享模式**），子类需要定义如何维护这个状态，控制如何获取
-  锁和释放锁
+* 用 state 属性来表示资源的状态（分**独占模式和共享模式**），子类需要定义如何维护这个状态，控制如何获取锁和释放锁
   * 独占模式是只有一个线程能够访问资源，如 ReentrantLock
   * 共享模式允许多个线程访问资源，如 Semaphore，ReentrantReadWriteLock 是组合式
 * 提供了基于 FIFO 的等待队列，类似于 Monitor 的 EntryList（**同步队列：双向，便于出队入队**）
@@ -5752,12 +6479,12 @@ ReentrantLock 相对于 synchronized 它具备如下特点：
 
 构造方法：`ReentrantLock lock = new ReentrantLock();`
 
-ReentrantLock类API：
+ReentrantLock 类 API：
 
 * `public void lock()`：获得锁
-  * 如果锁没有被另一个线程占用，则将锁定计数设置为1。
+  * 如果锁没有被另一个线程占用，则将锁定计数设置为 1
 
-  * 如果当前线程已经保持锁定，则保持计数增加1 
+  * 如果当前线程已经保持锁定，则保持计数增加 1 
 
   * 如果锁被另一个线程保持，则当前线程被禁用线程调度，并且在锁定已被获取之前处于休眠状态
 
@@ -6441,10 +7168,10 @@ synchronized 的条件变量，是当条件不满足时进入 waitSet 等待；R
 
 ReentrantLock 类获取 Condition 对象：`public Condition newCondition()`
 
-Condition类API：
+Condition 类 API：
 
 * `void await()`：当前线程从运行状态进入等待状态，释放锁
-* `void signal()`：唤醒一个等待在Condition上的线程，但是必须获得与该Condition相关的锁
+* `void signal()`：唤醒一个等待在 Condition 上的线程，但是必须获得与该 Condition 相关的锁
 
 使用流程：
 
@@ -6488,9 +7215,13 @@ public static void main(String[] args) throws InterruptedException {
 
 
 
+****
+
+
+
 ##### 实现原理
 
-await流程：
+await 流程：
 
 * 开始 Thread-0 持有锁，调用 await，进入 ConditionObject 的 addConditionWaiter 流程
 
@@ -7818,7 +8549,7 @@ B站视频解析：https://www.bilibili.com/video/BV1n541177Ea
        static final int WRITER = 1;
        // 等待者状态（写线程在等待），当 TreeBin 中有读线程目前正在读取数据时，写线程无法修改数据
        static final int WAITER = 2;
-       // 读锁状态是共享，同一时刻可以有多个线程 同时进入到 TreeBi对象中获取数据，每一个线程都给 lockStat + 4
+       // 读锁状态是共享，同一时刻可以有多个线程 同时进入到 TreeBi 对象中获取数据，每一个线程都给 lockStat + 4
        static final int READER = 4;
    }
   ```
@@ -7860,15 +8591,15 @@ B站视频解析：https://www.bilibili.com/video/BV1n541177Ea
 * 变量：
 
   ```java
-  // 表示sizeCtl属性在ConcurrentHashMap中内存偏移地址
+  // 表示sizeCtl属性在 ConcurrentHashMap 中内存偏移地址
   private static final long SIZECTL;
-  // 表示transferIndex属性在ConcurrentHashMap中内存偏移地址
+  // 表示transferIndex属性在 ConcurrentHashMap 中内存偏移地址
   private static final long TRANSFERINDEX;
-  // 表示baseCount属性在ConcurrentHashMap中内存偏移地址
+  // 表示baseCount属性在 ConcurrentHashMap 中内存偏移地址
   private static final long BASECOUNT;
-  // 表示cellsBusy属性在ConcurrentHashMap中内存偏移地址
+  // 表示cellsBusy属性在 ConcurrentHashMap 中内存偏移地址
   private static final long CELLSBUSY;
-  // 表示cellValue属性在CounterCell中内存偏移地址
+  // 表示cellValue属性在 CounterCell 中内存偏移地址
   private static final long CELLVALUE;
   // 表示数组第一个元素的偏移地址
   private static final long ABASE;
@@ -8790,6 +9521,8 @@ ConcurrentHashMap 使用 get()  方法获取指定 key 的数据
 
   
 
+参考视频：https://space.bilibili.com/457326371/
+
 
 
 ***
@@ -8800,7 +9533,7 @@ ConcurrentHashMap 使用 get()  方法获取指定 key 的数据
 
 ConcurrentHashMap 对锁粒度进行了优化，**分段锁技术**，将整张表分成了多个数组（Segment），每个数组又是一个类似 HashMap 数组的结构。允许多个修改操作并发进行，Segment 是一种可重入锁，继承 ReentrantLock，并发时锁住的是每个 Segment，其他 Segment 还是可以操作的，这样不同 Segment 之间就可以实现并发，大大提高效率。
 
-底层结构： **Segment 数组 + HashEntry 数组 + 链表**（数组+链表是HashMap的结构）
+底层结构： **Segment 数组 + HashEntry 数组 + 链表**（数组 + 链表是 HashMap 的结构）
 
 * 优点：如果多个线程访问不同的 segment，实际是没有冲突的，这与 jdk8 中是类似的
 
