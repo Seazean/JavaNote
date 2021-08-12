@@ -271,7 +271,7 @@ Java 中 main 方法启动的是一个进程也是一个主线程，main 方法�
 
 
 
-### 线程API
+### 线程方法
 
 #### API
 
@@ -359,7 +359,7 @@ yield：
 
 public final void join()：等待这个线程结束
 
-原理：调用者轮询检查线程 alive 状态，t1.join()等价于：
+原理：调用者轮询检查线程 alive 状态，t1.join() 等价于：
 
 ```java
 synchronized (t1) {
@@ -372,7 +372,7 @@ synchronized (t1) {
 
 * join 方法是被 synchronized 修饰的，本质上是一个对象锁，其内部的 wait 方法调用也是释放锁的，但是**释放的是当前线程的对象锁，而不是外面的锁**
 
-* t1 会强占 CPU 资源，直至线程执行结束，当调用某个线程的 join 方法后，该线程抢占到 CPU 资源，就不再释放，直到线程执行完毕
+* t1 会强占 CPU 资源，当调用某个线程的 join 方法后，该线程抢占到 CPU 资源，就不再释放，直到线程执行完毕
 
 线程同步：
 
@@ -415,11 +415,13 @@ public class Test {
 
 ##### 打断线程
 
-`public void interrupt()`：中断这个线程，异常处理机制
-`public static boolean interrupted()`：判断当前线程是否被打断，打断返回 true，清除打断标记
+`public void interrupt()`：打断这个线程，异常处理机制
+`public static boolean interrupted()`：判断当前线程是否被打断，打断返回 true，清除打断标记，连续调用两次一定返回 false
 `public boolean isInterrupted()`：判断当前线程是否被打断，不清除打断标记
 
-* sleep、wait、join 方法都会让线程进入阻塞状态，打断进程**会清空打断状态** (false)
+打断的线程会发生上下文切换，操作系统会保存线程信息，抢占到 CPU 后会从中断的地方接着运行
+
+* sleep、wait、join 方法都会让线程进入阻塞状态，打断进程**会清空打断状态**（false）
 
   ```java
   public static void main(String[] args) throws InterruptedException {
@@ -473,7 +475,7 @@ public static void main(String[] args) throws Exception {
         System.out.println("park...");
         LockSupport.park();
         System.out.println("unpark...");
-        Sout("打断状态：" + Thread.currentThread().isInterrupted());//打断状态：true
+        Sout("打断状态：" + Thread.currentThread().isInterrupted());	//打断状态：true
     }, "t1");
     t1.start();
     Thread.sleep(2000);
@@ -481,7 +483,7 @@ public static void main(String[] args) throws Exception {
 }
 ```
 
-如果打断标记已经是 true, 则 park 会失效，
+如果打断标记已经是 true, 则 park 会失效
 
 ```java
 LockSupport.park();
@@ -542,7 +544,7 @@ class TwoPhaseTermination {
                     try {
                         Thread.sleep(1000);//睡眠
                         System.out.println("执行监控记录");//在此被打断不会异常
-                    } catch (InterruptedException e) {//在睡眠期间被打断
+                    } catch (InterruptedException e) {//在睡眠期间被打断，进入异常处理的逻辑
                         e.printStackTrace();
                         //重新设置打断标记
                         thread.interrupt();
@@ -587,13 +589,12 @@ t.start();
 
 守护线程：服务于用户线程，只要其它非守护线程运行结束了，即使守护线程代码没有执行完，也会强制结束
 
-说明：当运行的线程都是守护线程，Java 虚拟机将退出，因为普通线程执行完后，守护线程不会继续运行下去
+说明：当运行的线程都是守护线程，Java 虚拟机将退出，因为普通线程执行完后，JVM 是守护线程，不会继续运行下去
 
 常见的守护线程：
 
 * 垃圾回收器线程就是一种守护线程
-* Tomcat 中的 Acceptor 和 Poller 线程都是守护线程，所以 Tomcat 接收到 shutdown 命令后，不会等
-  待它们处理完当前请求
+* Tomcat 中的 Acceptor 和 Poller 线程都是守护线程，所以 Tomcat 接收到 shutdown 命令后，不会等待它们处理完当前请求
 
 
 
@@ -601,7 +602,7 @@ t.start();
 
 
 
-#### 不推荐方法
+#### 不推荐
 
 不推荐使用的方法，这些方法已过时，容易破坏同步代码块，造成线程死锁：
 
@@ -623,18 +624,18 @@ t.start();
 
 线程由生到死的完整过程（生命周期）：当线程被创建并启动以后，它既不是一启动就进入了执行状态，也不是一直处于执行状态，在 API 中 `java.lang.Thread.State` 这个枚举中给出了六种线程状态：
 
-| 线程状态                | 导致状态发生条件                                             |
-| ----------------------- | ------------------------------------------------------------ |
-| NEW(新建)               | 线程刚被创建，但是并未启动，还没调用 start 方法，只有线程对象，没有线程特征 |
-| Runnable(可运行)        | 线程可以在 java 虚拟机中运行的状态，可能正在运行自己代码，也可能没有，这取决于操作系统处理器，调用了 t.start() 方法：就绪（经典叫法） |
-| Blocked(锁阻塞)         | 当一个线程试图获取一个对象锁，而该对象锁被其他的线程持有，则该线程进入 Blocked 状态；当该线程持有锁时，该线程将变成 Runnable 状态 |
-| Waiting(无限等待)       | 一个线程在等待另一个线程执行一个（唤醒）动作时，该线程进入 Waiting 状态，进入这个状态后不能自动唤醒，必须等待另一个线程调用 notify 或者 notifyAll 方法才能唤醒 |
-| Timed Waiting(计时等待) | 有几个方法有超时参数，调用将进入 Timed Waiting 状态，这一状态将一直保持到超时期满或者接收到唤醒通知。带有超时参数的常用方法有 Thread.sleep 、Object.wait |
-| Teminated(被终止)       | run 方法正常退出而死亡，或者因为没有捕获的异常终止了 run 方法而死亡 |
+| 线程状态                 | 导致状态发生条件                                             |
+| ------------------------ | ------------------------------------------------------------ |
+| NEW (新建)               | 线程刚被创建，但是并未启动，还没调用 start 方法，只有线程对象，没有线程特征 |
+| Runnable (可运行)        | 线程可以在 java 虚拟机中运行的状态，可能正在运行自己代码，也可能没有，这取决于操作系统处理器，调用了 t.start() 方法：就绪（经典叫法） |
+| Blocked (锁阻塞)         | 当一个线程试图获取一个对象锁，而该对象锁被其他的线程持有，则该线程进入 Blocked 状态；当该线程持有锁时，该线程将变成 Runnable 状态 |
+| Waiting (无限等待)       | 一个线程在等待另一个线程执行一个（唤醒）动作时，该线程进入 Waiting 状态，进入这个状态后不能自动唤醒，必须等待另一个线程调用 notify 或者 notifyAll 方法才能唤醒 |
+| Timed Waiting (计时等待) | 有几个方法有超时参数，调用将进入 Timed Waiting 状态，这一状态将一直保持到超时期满或者接收到唤醒通知。带有超时参数的常用方法有 Thread.sleep 、Object.wait |
+| Teminated (被终止)       | run 方法正常退出而死亡，或者因为没有捕获的异常终止了 run 方法而死亡 |
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JUC-线程6种状态.png)
 
-* NEW --> RUNNABLE：当调用 t.start() 方法时，由 NEW --> RUNNABLE
+* NEW → RUNNABLE：当调用 t.start() 方法时，由 NEW → RUNNABLE
 
 * RUNNABLE <--> WAITING：
 
@@ -642,10 +643,10 @@ t.start();
 
     调用 obj.notify()、obj.notifyAll()、t.interrupt()：
 
-    * 竞争锁成功，t 线程从 WAITING --> RUNNABLE
-    * 竞争锁失败，t 线程从 WAITING --> BLOCKED
+    * 竞争锁成功，t 线程从 WAITING → RUNNABLE
+    * 竞争锁失败，t 线程从 WAITING → BLOCKED
 
-  * 当前线程调用 t.join() 方法，注意是当前线程在t 线程对象的监视器上等待
+  * 当前线程调用 t.join() 方法，注意是当前线程在 t 线程对象的监视器上等待
 
   * 当前线程调用 LockSupport.park() 方法
 
@@ -744,8 +745,8 @@ synchronized 是可重入、不公平的重量级锁
 原则上：
 
 * 锁对象建议使用共享资源
-* 在实例方法中建议用 this 作为锁对象，锁住的 this 正好是共享资源
-* 在静态方法中建议用类名 .class 字节码作为锁对象
+* 在实例方法中使用 this 作为锁对象，锁住的 this 正好是共享资源
+* 在静态方法中使用类名 .class 字节码作为锁对象
   * 因为静态成员属于类，被所有实例对象共享，所以需要锁住类
   * 锁住类以后，类的所有实例都相当于同一把锁，参考线程八锁
 
@@ -962,14 +963,14 @@ Mark Word 中就被设置指向 Monitor 对象的指针，这就是重量级锁
   <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-Monitor工作原理1.png" style="zoom:67%;" />
 * 在 Thread-2 上锁的过程中，Thread-3、Thread-4、Thread-5 也来执行 synchronized(obj)，就会进入
   EntryList BLOCKED（双向链表）
-* Thread-2 执行完同步代码块的内容，然后唤醒 EntryList 中等待的线程来竞争锁，竞争是**非公平的**
-* WaitSet 中的 Thread-0，是以前获得过锁，但条件不满足进入 WAITING 状态的线程（wait-notify）
+* Thread-2 执行完同步代码块的内容，根据对象头中 Monitor 地址寻找，设置 Owner 为空，唤醒 EntryList 中等待的线程来竞争锁，竞争是**非公平的**
+* WaitSet 中的 Thread-0，是以前获得过锁，但条件不满足进入 WAITING 状态的线程（wait-notify 机制）
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JUC-Monitor工作原理2.png)
 
 注意：
 
-* synchronized 必须是进入同一个对象的 monitor 才有上述的效果
+* synchronized 必须是进入同一个对象的 Monitor 才有上述的效果
 * 不加 synchronized 的对象不会关联监视器，不遵从以上规则
 
 
@@ -1081,13 +1082,11 @@ LocalVariableTable:
 * 当有其它线程使用偏向锁对象时，会将偏向锁升级为轻量级锁
 * 调用 wait/notify
 
-
-
 **批量撤销**：如果对象被多个线程访问，但没有竞争，这时偏向了线程 T1 的对象仍有机会重新偏向 T2，重偏向会重置对象的 Thread ID
 
-* 批量重偏向：当撤销偏向锁阈值超过 20 次后，jvm会觉得是不是偏向错了，于是在给这些对象加锁时重新偏向至加锁线程
+* 批量重偏向：当撤销偏向锁阈值超过 20 次后，jvm 会觉得是不是偏向错了，于是在给这些对象加锁时重新偏向至加锁线程
 
-* 批量撤销：当撤销偏向锁阈值超过 40 次后，jvm会觉得自己确实偏向错了，根本就不该偏向。于是整个类的所有对象都会变为不可偏向的，新建的对象也是不可偏向的
+* 批量撤销：当撤销偏向锁阈值超过 40 次后，jvm 会觉得自己确实偏向错了，根本就不该偏向，于是整个类的所有对象都会变为不可偏向的，新建的对象也是不可偏向的
 
 
 
@@ -1120,27 +1119,27 @@ public static void method2() {
 }
 ```
 
-* 创建锁记录(Lock Record)对象，每个线程的栈帧都会包含一个锁记录的结构，存储锁定对象的Mark Word
+* 创建锁记录（Lock Record）对象，每个线程的栈帧都会包含一个锁记录的结构，存储锁定对象的 Mark Word
 
   ![](https://gitee.com/seazean/images/raw/master/Java/JUC-轻量级锁原理1.png)
 
-* 让锁记录中Object reference指向锁对象，并尝试用CAS替换Object的Mark Word，将Mark Word的值存
+* 让锁记录中 Object reference 指向锁对象，并尝试用 CAS 替换 Object 的 Mark Word，将 Mark Word 的值存
   入锁记录
 
-* 如果CAS替换成功，对象头中存储了锁记录地址和状态 00（轻量级锁） ，表示由该线程给对象加锁
+* 如果 CAS 替换成功，对象头中存储了锁记录地址和状态 00（轻量级锁） ，表示由该线程给对象加锁
   ![](https://gitee.com/seazean/images/raw/master/Java/JUC-轻量级锁原理2.png)
 
-* 如果CAS失败，有两种情况：
+* 如果 CAS 失败，有两种情况：
 
   * 如果是其它线程已经持有了该 Object 的轻量级锁，这时表明有竞争，进入锁膨胀过程
-  * 如果是自己执行了 synchronized 锁重入，就添加一条 Lock Record 作为重入的计数
+  * 如果是线程自己执行了 synchronized 锁重入，就添加一条 Lock Record 作为重入的计数
 
   ![](https://gitee.com/seazean/images/raw/master/Java/JUC-轻量级锁原理3.png)
 
 * 当退出 synchronized 代码块（解锁时）
 
-  * 如果有取值为 null 的锁记录，表示有重入，这时重置锁记录，表示重入计数减1
-  * 如果锁记录的值不为 null，这时使用 cas 将 Mark Word 的值恢复给对象头
+  * 如果有取值为 null 的锁记录，表示有重入，这时重置锁记录，表示重入计数减 1
+  * 如果锁记录的值不为 null，这时使用 CAS 将 Mark Word 的值恢复给对象头
     * 成功，则解锁成功
     * 失败，说明轻量级锁进行了锁膨胀或已经升级为重量级锁，进入重量级锁解锁流程
 
@@ -1162,7 +1161,7 @@ public static void method2() {
 
   ![](https://gitee.com/seazean/images/raw/master/Java/JUC-重量级锁原理2.png)
 
-* 当Thread-0退出同步块解锁时，使用 cas 将 Mark Word 的值恢复给对象头，失败，这时进入重量级解锁流程，即按照 Monitor 地址找到 Monitor 对象，设置 Owner 为 null，唤醒 EntryList 中 BLOCKED 线程
+* 当 Thread-0 退出同步块解锁时，使用 CAS 将 Mark Word 的值恢复给对象头失败，这时进入重量级解锁流程，即按照 Monitor 地址找到 Monitor 对象，设置 Owner 为 null，唤醒 EntryList 中 BLOCKED 线程
 
 
 
@@ -1431,6 +1430,10 @@ class HoldLockThread implements Runnable {
 
 
 
+***
+
+
+
 ###### 定位
 
 定位死锁的方法：
@@ -1554,7 +1557,7 @@ public final native void wait(long timeout):有时限的等待, 到n毫秒后结
 * Owner 线程发现条件不满足，调用 wait 方法，即可进入 WaitSet 变为 WAITING 状态
 * BLOCKED 和 WAITING 的线程都处于阻塞状态，不占用 CPU 时间片
 * BLOCKED 线程会在 Owner 线程释放锁时唤醒
-* WAITING 线程会在 Owner 线程调用 notify 或 notifyAll 时唤醒，但唤醒后并不意味者立刻获得锁，仍需进入 EntryList 重新竞争
+* WAITING 线程会在 Owner 线程调用 notify 或 notifyAll 时唤醒，唤醒后并不意味者立刻获得锁，**需要进入 EntryList 重新竞争**
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JUC-Monitor工作原理2.png)
 
@@ -1675,7 +1678,7 @@ public static void main(String[] args) {
 LockSupport 出现就是为了增强 wait & notify 的功能：
 
 * wait，notify 和 notifyAll 必须配合 Object Monitor 一起使用，而 park、unpark 不需要
-* park & unpark以线程为单位来阻塞和唤醒线程，而 notify 只能随机唤醒一个等待线程，notifyAll 是唤醒所有等待线程
+* park & unpark 以线程为单位来阻塞和唤醒线程，而 notify 只能随机唤醒一个等待线程，notifyAll 是唤醒所有等待线程
 * **park & unpark 可以先 unpark**，而 wait & notify 不能先 notify。类比生产消费，先消费发现有产品就消费，没有就等待；先生产就直接产生商品，然后线程直接消费
 * wait 会释放锁资源进入等待队列，park 不会释放锁资源，只负责阻塞当前线程，会释放 CPU
 
@@ -4609,7 +4612,7 @@ public ThreadPoolExecutor(int corePoolSize,
 2. 当调用 execute() 方法添加一个请求任务时，线程池会做如下判断：
    * 如果正在运行的线程数量小于 corePoolSize，那么马上创建线程运行这个任务
    * 如果正在运行的线程数量大于或等于 corePoolSize，那么将这个任务放入队列
-   * 如果这时队列满了且正在运行的线程数量还小于 maximumPoolSize，那么会创建非核心线程**立刻运行这个任务**（对于阻塞队列中的任务不公平）
+   * 如果这时队列满了且正在运行的线程数量还小于 maximumPoolSize，那么会创建非核心线程**立刻运行这个任务**，对于阻塞队列中的任务不公平。这是因为创建每个 Worker （线程）对象会绑定一个初始任务，启动 Worker 时会优先执行
    * 如果队列满了且正在运行的线程数量大于或等于 maximumPoolSize，那么线程池会启动饱和**拒绝策略**来执行
 3. 当一个线程完成任务时，会从队列中取下一个任务来执行
 
@@ -4746,7 +4749,7 @@ ExecutorService 类 API：
 
 execute 和 submit 都属于线程池的方法，对比：
 
-* execute 只能提交 Runnable 类型的任务，没有返回值，而 submit 既能提交 Runnable 类型任务也能提交 Callable 类型任务
+* execute 只能提交 Runnable 类型的任务，没有返回值； submit 既能提交 Runnable 类型任务也能提交 Callable 类型任务，底层是封装成 FutureTask 调用 execute 执行
 
 * execute 会直接抛出任务执行时的异常，submit 会吞掉异常，可通过 Future 的 get 方法将任务执行时的异常重新抛出
 
@@ -4971,11 +4974,9 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
 
 内部类：
 
-* Worker 类：**每个 Worker 对象会绑定一个初始任务**，启动 Worker 时优先执行
+* Worker 类：**每个 Worker 对象会绑定一个初始任务**，启动 Worker 时优先执行，这也是造成线程池不公平的原因。Worker 继承自 AQS，采用了独占锁的模式，state = 0 表示未被占用，> 0 表示被占用，< 0 表示初始状态，这种情况下不能被抢锁
 
   ```java
-  // Worker 采用了AQS的独占模式，state = 0 表示未被占用，> 0 表示被占用，< 0 表示初始状态，这种情况下不能被抢锁
-  // ExclusiveOwnerThread：表示独占锁的线程
   private final class Worker extends AbstractQueuedSynchronizer implements Runnable {
   	final Thread thread;			// worker 内部封装的工作线程
       Runnable firstTask;				// worker 第一个执行的任务
@@ -4992,7 +4993,7 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
       }
   }
   ```
-
+  
 * 拒绝策略相关的内部类
 
 
@@ -5007,7 +5008,7 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
 
 ##### 提交方法
 
-* AbstractExecutorService#submit()：提交任务的方法
+* AbstractExecutorService#submit()：提交任务，把任务封装成 FutureTask 执行
 
   ```java
   public Future<?> submit(Runnable task) {
@@ -5061,7 +5062,7 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
           // SHUTDOWN 状态下也有可能创建成功，前提 firstTask == null 而且当前 queue 不为空（特殊情况）
           c = ctl.get();
       }
-      // 执行到这说明当前线程数量已经达到 corePoolSize 或者 addWorker 失败
+      // 执行到这说明当前线程数量已经达到核心线程数量 或者 addWorker 失败
       // 【2】条件成立说明当前线程池处于running状态，则尝试将 task 放入到 workQueue 中
       if (isRunning(c) && workQueue.offer(command)) {
           // 获取线程池状态 ctl 保存到 recheck
@@ -5076,7 +5077,9 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
           else if (workerCountOf(recheck) == 0)
               addWorker(null, false);
       }
-      // 【3】offer 失败说明当前 queue 满了，如果当前线程数量尚未达到 maximumPoolSize 的话，会创建新的worker直接执行 command，如果当前线程数量达到 maximumPoolSize 的话，这里 addWorker 也会失败，走拒绝策略
+      // 【3】offer失败说明queue满了
+      // 如果线程数量尚未达到 maximumPoolSize，会创建非核心 worker 线程执行 command，不公平的原因
+      // 如果当前线程数量达到 maximumPoolSiz，这里 addWorker 也会失败，走拒绝策略
       else if (!addWorker(command, false))
           reject(command);
   }
@@ -5105,9 +5108,8 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
           // 获取当前线程池运行状态
           int rs = runStateOf(c);	
           // 判断当前线程池状态【是否允许添加线程】
-  		// 条件一判断线程池的状态是否是 running 状态，成立则表示不是，不允许添加 worker，返回 false，
-          // 条件二是当前线程池是 SHUTDOWN 状态，但是队列里面还有任务尚未处理完，
-          //      【这时需要处理完 queue 中的任务，但是不允许再提交新的 task】
+          // 判断当前线程池是 SHUTDOWN 状态，但是队列里面还有任务尚未处理完，
+          //    这时需要处理完 queue 中的任务，但是【不允许再提交新的 task】，所以 addWorker 返回 false
           if (rs >= SHUTDOWN && !(rs == SHUTDOWN && firstTask == null && !workQueue.isEmpty()))
               return false;
           for (;;) {
@@ -5136,7 +5138,7 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
       boolean workerAdded = false;
       Worker w = null;
       try {
-          // 创建 Worker，底层通过线程工厂创建执行线程
+          // 创建 Worker，底层通过线程工厂创建执行线程，指定了先执行的任务
           w = new Worker(firstTask);
           // 将新创建的 worker 节点的线程赋值给 t
           final Thread t = w.thread;
@@ -5182,7 +5184,7 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
       return workerStarted;
   }
   ```
-
+  
 * addWorkerFailed()：清理任务
 
   ```java
@@ -5212,7 +5214,7 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
 
 ##### 运行方法
 
-* Worker#run：当某个 worker 启动时，会执行 run()
+* Worker#run：Worker 实现了 Runnable 接口，当某个 worker 启动时，会执行 run()
 
   ```java
   public void run() {
@@ -5238,11 +5240,11 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
           // firstTask 不是 null 就直接运行，否则去 queue 中获取任务
           // 【getTask如果是阻塞获取任务，会一直阻塞在take方法，获取后继续循环，不会走返回null的逻辑】
           while (task != null || (task = getTask()) != null) {
-              // 加锁，shutdown 时会判断当前worker状态，根据独占锁是否【空闲】来判断当前worker是否正在工作。
+              // worker加锁，shutdown 时会判断当前worker状态，根据独占锁是否【空闲】
               w.lock();
   			// 说明线程池状态大于 STOP，目前处于 STOP/TIDYING/TERMINATION，此时给线程一个中断信号
               if ((runStateAtLeast(ctl.get(), STOP) ||
-                   // 判断当前线程是否被打断，清楚打断标记，所以最后一个条件会返回false，取反为 true
+                   // 说明线程处于 RUNNING 或者 SHUTDOWN 状态，清除打断标记
                    (Thread.interrupted() && runStateAtLeast(ctl.get(), STOP))) && !wt.isInterrupted())
                   // 中断线程，设置线程的中断标志位为 true
                   wt.interrupt();
@@ -5251,7 +5253,7 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
                   beforeExecute(wt, task);
                   Throwable thrown = null;
                   try {
-                      // task 可能是 FutureTask，也可能是普通的 Runnable 接口实现类。
+                      // 【执行任务】
                       task.run();
                   } catch (RuntimeException x) {
                       thrown = x; throw x;
@@ -5269,11 +5271,11 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
                   w.unlock();			// 解锁
               }
           }
-          // getTask() 方法返回 null 时会执行这里，说明 queue 为空或者线程太多，当前【线程应该执行退出逻辑】
+          // getTask()方法返回null时会执行这里，表示queue为空并且线程空闲超过保活时间，当前【线程应该执行退出逻辑】
           completedAbruptly = false;	
       } finally {
           // 正常退出 completedAbruptly = false
-         	// 异常退出 completedAbruptly = true，task.run() 内部抛出异常时，跳到这一行
+         	// 异常退出 completedAbruptly = true，从 task.run() 内部抛出异常时，跳到这一行
           processWorkerExit(w, completedAbruptly);
       }
   }
@@ -5291,7 +5293,7 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
   }
   ```
 
-* getTask()：获取任务，线程空闲时间超过 keepAliveTime 就会被回收，判断的依据是**当前线程超过保活时间没有获取到任务**
+* getTask()：获取任务，线程空闲时间超过 keepAliveTime 就会被回收，判断的依据是**当前线程超过保活时间没有获取到任务**，方法返回 null 就代表当前线程要被回收了，返回到 runWorker 执行线程退出逻辑
 
   ```java
   private Runnable getTask() {
@@ -5302,9 +5304,11 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
           int c = ctl.get();
           // 获取线程池当前运行状态
           int rs = runStateOf(c);
-  
-          // 条件一成立说明当前线程池是非 RUNNING 状态
-          // 条件二成立说明线程池已经停止或者 queue 为 null，没有任务需要执行
+  		
+          // 【tryTerminate】打断线程后执行到这，此时线程池状态为STOP或者线程池状态为SHUTDOWN并且队列已经是空
+          // 所以下面的 if 条件一定是成立的，可以直接返回 null
+          
+          // 当前线程池是非 RUNNING 状态，并且线程池状态 >= STOP 或者 queue 为 null，线程就应该退出了
           if (rs >= SHUTDOWN && (rs >= STOP || workQueue.isEmpty())) {
               // 使用 CAS 自旋的方式让 ctl 值 -1
               decrementWorkerCount();
@@ -5316,33 +5320,33 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
   
           // timed = false 表示当前这个线程 获取task时不支持超时机制的，当前线程会使用 queue.take() 阻塞获取
           // timed = true 表示当前这个线程 获取task时支持超时机制，使用 queue.poll(xxx,xxx) 超时获取
-          //               当获取task超时的情况下，下一次自旋就可能返回null了
           // 条件一代表允许回收核心线程，那就无所谓了，全部线程都执行超时回收
-          // 条件二成立说明线程数量大于核心线程数，执行该方法的线程去超时获取任务，获取不到返回null，执行线程退出逻辑
+          // 条件二成立说明线程数量大于核心线程数，当前线程认为是非核心线程，
+          //      空闲一定时间就需要退出，去超时获取任务，获取不到返回null
           boolean timed = allowCoreThreadTimeOut || wc > corePoolSize;
           
   		// 条件一判断线程数量是否超过最大线程数，直接回收
-          // wc > 1 说明线程池还用其他线程，当前线程可以直接回收
-          // workQueue.isEmpty() 前置条件是 wc = 1，说明当前任务队列已经空了，最后一个线程，也可以放心的退出
+          // 如果当前线程允许超时回收并且已经超时了，就应该被回收了，但是由于【担保机制】还要做判断：
+          // 	  wc > 1 说明线程池还用其他线程，当前线程可以直接回收
+          //    workQueue.isEmpty() 前置条件是 wc = 1，如果当前任务队列也是空了，最后一个线程就可以安全的退出
           if ((wc > maximumPoolSize || (timed && timedOut)) && (wc > 1 || workQueue.isEmpty())) {
-              // 使用CAS机制将 ctl 值 -1 ,减 1 成功的线程，返回 null，可以推出
+              // 使用CAS机制将 ctl 值 -1 ,减 1 成功的线程，返回 null，可以退出
               if (compareAndDecrementWorkerCount(c))
                   return null;
               continue;
           }
   
           try {
-              // 根据当前线程是否需要超时回收【选择从队列获取任务的方法】超时获取或者阻塞获取
+              // 根据当前线程是否需要超时回收，【选择从队列获取任务的方法】是超时获取或者阻塞获取
               Runnable r = timed ?
                   workQueue.poll(keepAliveTime, TimeUnit.NANOSECONDS) : workQueue.take();
-              // 获取到任务返回任务
-              // 【阻塞获取会阻塞到获取任务为止】，不会返回 null
+              // 获取到任务返回任务，【阻塞获取会阻塞到获取任务为止】，不会返回 null
               if (r != null)
                   return r;
-              // 获取任务为 null，超时标记设置为 true，下次自旋时返回 null
+              // 获取任务为 null 说明超时了，将超时标记设置为 true，下次自旋时返 null
               timedOut = true;
           } catch (InterruptedException retry) {
-              // 被打断后超时标记置为 false
+              // 阻塞线程被打断后超时标记置为 false，
               timedOut = false;
           }
       }
@@ -5352,9 +5356,11 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
 * processWorkerExit()：**线程退出线程池**
 
   ```java
+  // 正常退出 completedAbruptly = false，异常退出为 true
   private void processWorkerExit(Worker w, boolean completedAbruptly) {
-      // 条件成立代表当前 worker 是发生异常退出的，task 任务执行过程中向上抛出异常了
+      // 条件成立代表当前 worker 是发生异常退出的，task 任务执行过程中向上抛出异常了，
       if (completedAbruptly) 
+          // 从异常时到这里 ctl 一直没有 -1，需要在这里 -1
           decrementWorkerCount();
   
       final ReentrantLock mainLock = this.mainLock;
@@ -5367,17 +5373,17 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
       } finally {
           mainLock.unlock();	// 解锁
       }
-  	// 尝试停止线程池
+  	// 尝试停止线程池，唤醒下一个线程
       tryTerminate();
   
       int c = ctl.get();
-      // 条件成立说明当前线程池状态为 RUNNING 或者 SHUTDOWN 状态
+      // 线程池不是停止状态就应该有线程运行
       if (runStateLessThan(c, STOP)) {
           // 正常退出的逻辑，是空闲线程回收
           if (!completedAbruptly) {
               // 根据是否回收核心线程确定线程池中的最小值
               int min = allowCoreThreadTimeOut ? 0 : corePoolSize;
-              // 最小值为 0，但是线程队列不为空，需要一个线程来完成任务
+              // 最小值为 0，但是线程队列不为空，需要一个线程来完成任务【担保机制】
               if (min == 0 && !workQueue.isEmpty())
                   min = 1;
               // 线程池中的线程数量大于最小值可以直接返回
@@ -5389,7 +5395,7 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
       }
   }
   ```
-
+  
   
 
 ****
@@ -5407,7 +5413,7 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
       mainLock.lock();
       try {
           checkShutdownAccess();
-          //设置线程池状态为SHUTDOWN
+          //设置线程池状态为 SHUTDOWN
           advanceRunState(SHUTDOWN);
           //中断空闲线程
           interruptIdleWorkers();
@@ -5421,7 +5427,7 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
   }
   ```
 
-* interruptIdleWorkers()：shutdown 方法会**中断空闲线程**
+* interruptIdleWorkers()：shutdown 方法会**中断空闲线程**，根据是否可以获取 AQS 独占锁锁判断是否处于工作状态
 
   ```java
   // onlyOne == true 说明只中断一个线程 ，false 则中断所有线程
@@ -5436,7 +5442,7 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
               Thread t = w.thread;
               //条件一成立：说明当前迭代的这个线程尚未中断
               //条件二成立：说明当前worker处于空闲状态，阻塞在poll或者take，因为worker执行task时是加锁的
-              // w.tryLock() 加锁，独占锁情况下其他线程持有锁会加锁失败返回 false
+              //          每个worker有一个独占锁，w.tryLock()尝试加锁，如果锁已经加过了会返回 false
               if (!t.isInterrupted() && w.tryLock()) {
                   try {
                       // 中断线程，处于 queue 阻塞的线程会被唤醒，进入下一次自旋，返回null，执行退出相逻辑
@@ -5447,6 +5453,7 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
                       w.unlock();
                   }
               }
+              // false，代表中断所有的线程
               if (onlyOne)
                   break;
           }
@@ -5492,21 +5499,23 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
       for (;;) {
           // 获取 ctl 的值
           int c = ctl.get();
-          // 条件一说明线程池正常，条件二说明有其他线程执行了该方法，当前线程直接返回
+          // 条件一说明线程池正常，条件二说明有其他线程执行了状态转换的方法，当前线程直接返回
           if (isRunning(c) || runStateAtLeast(c, TIDYING) ||
               // 线程池是 SHUTDOWN 并且任务队列不是空，需要去处理队列中的任务
               (runStateOf(c) == SHUTDOWN && ! workQueue.isEmpty()))
               return;
+          
+          // 执行到这里说明线程池状态为 STOP 或者线程池状态为 SHUTDOWN 并且队列已经是空
           // 判断线程池中线程的数量
           if (workerCountOf(c) != 0) {
-              // 中断一个空闲线程，空闲线程，在 queue.take() | queue.poll() 阻塞空闲
+              // 中断一个【空闲线程】，在 queue.take() | queue.poll() 阻塞空闲
               // 唤醒后的线程会在getTask()方法返回null，执行退出逻辑时会再次调用tryTerminate()唤醒下一个空闲线程
               interruptIdleWorkers(ONLY_ONE);
               return;
           }
   		// 池中的线程数量为 0 来到这里
           final ReentrantLock mainLock = this.mainLock;
-          // 加锁
+          // 加全局锁
           mainLock.lock();
           try {
               // 设置线程池状态为 TIDYING 状态

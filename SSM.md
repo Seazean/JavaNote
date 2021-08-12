@@ -229,7 +229,7 @@ org.apache.ibatis.session.SqlSession：构建者对象接口，用于执行 SQL�
 
 ### #{}和${}
 
-**#{}：**占位符，传入的内容会作为字符串，加上引号，以**预编译**的方式传入，将 sql 中的 #{} 替换为 ? 号，调用 PreparedStatement 的 set方法来赋值，有效的防止 SQL 注入，提高系统安全性
+**#{}：**占位符，传入的内容会作为字符串，加上引号，以**预编译**的方式传入，将 sql 中的 #{} 替换为 ? 号，调用 PreparedStatement 的 set 方法来赋值，有效的防止 SQL 注入，提高系统安全性
 
 **${}：**拼接符，传入的内容会直接替换拼接，不会加上引号，可能存在 sql 注入的安全隐患
 
@@ -2868,6 +2868,16 @@ ctx.getBean("beanId") == ctx.getBean("beanName1") == ctx.getBean("beanName2")
 - prototype：设定创建出的对象保存在 Spring 容器中，是一个非单例（原型）的对象
 - request、session、application、 websocket ：设定创建出的对象放置在 web 容器对应的位置
 
+Spring 容器中 Bean 的线程安全问题：
+
+* 原型 Bean，对于原型 Bean，每次创建一个新对象，线程之间并不存在 Bean 共享，所以不会有线程安全的问题
+
+* 单例Bean，所有线程共享一个单例实例 Bean，因此是存在资源的竞争，如果单例 Bean是一个**无状态 Bean**，也就是线程中的操作不会对 Bean 的成员执行查询以外的操作，那么这个单例 Bean 是线程安全的
+
+  解决方法：开发人员自来进行线程安全的保证，最简单的办法就是把 Bean 的作用域 singleton 改为 protopyte
+
+
+
 
 
 ***
@@ -3027,7 +3037,7 @@ UserService userService = (UserService)ctx.getBean("userService3");
 
 ##### 获取Bean
 
-ApplicationContext子类相关API：
+ApplicationContext 子类相关API：
 
 | 方法                                              | 说明                                         |
 | ------------------------------------------------- | -------------------------------------------- |
@@ -7843,18 +7853,23 @@ AbstractAutowireCapableBeanFactory.**doCreateBean**(beanName, RootBeanDefinition
 
   `AutowiredAnnotationBeanPostProcessor.postProcessMergedBeanDefinition()`：后置处理逻辑**（@Autowired）**
 
-  * `metadata = findAutowiringMetadata(beanName, beanType, null)`：提取出当前 beanType 类型整个继承体系内的 **@Autowired、@Value、@Inject** 信息，存入一个 InjectionMetadata 对象的 injectedElements 中并放入缓存
+  * `metadata = findAutowiringMetadata(beanName, beanType, null)`：提取当前 bean 整个继承体系内的 **@Autowired、@Value、@Inject** 信息，存入一个 InjectionMetadata 对象，保存着当前 bean 信息和要自动注入的字段信息
 
+    ```java
+    private final Class<?> targetClass;		//当前 bean 
+    private final Collection<InjectedElement> injectedElements;	//要注入的信息集合
+    ```
+    
     * `metadata = buildAutowiringMetadata(clazz)`：查询当前 clazz 感兴趣的注解信息
-
-      * `ReflectionUtils.doWithLocalFields()`：提取**字段**的注解的属性信息
-
-        `findAutowiredAnnotation(field)`：代表感兴趣的注解就是那三种注解
-
-      * `ReflectionUtils.doWithLocalMethods()`：提取**方法**的注解的属性信息
-
+    
+      * `ReflectionUtils.doWithLocalFields()`：提取**字段**的注解的信息
+    
+        `findAutowiredAnnotation(field)`：代表感兴趣的注解就是那三种注解，获取这三种注解的元数据
+    
+      * `ReflectionUtils.doWithLocalMethods()`：提取**方法**的注解的信息
+    
       * `do{} while (targetClass != null && targetClass != Object.class)`：循环从父类中解析，直到 Object 类
-
+    
     * `this.injectionMetadataCache.put(cacheKey, metadata)`：存入缓存
 
   `mbd.postProcessed = true`：设置为 true，下次访问该逻辑不会再进入
@@ -7869,6 +7884,9 @@ AbstractAutowireCapableBeanFactory.**doCreateBean**(beanName, RootBeanDefinition
   }
   ```
 
+
+
+
 * ` populateBean(beanName, mbd, instanceWrapper)`：**属性填充，依赖注入，整体逻辑是先处理标签再处理注解，填充至 pvs 中，最后通过 apply 方法最后完成属性依赖注入到 BeanWrapper **
 
   * `if (!ibp.postProcessAfterInstantiation(bw.getWrappedInstance(), beanName))`：实例化后的后置处理器，默认返回 true，自定义继承 InstantiationAwareBeanPostProcessor 修改返回值为 false，使 continueWithPropertyPopulation 为 false
@@ -7877,7 +7895,7 @@ AbstractAutowireCapableBeanFactory.**doCreateBean**(beanName, RootBeanDefinition
 
   * `PropertyValues pvs = (mbd.hasPropertyValues() ? mbd.getPropertyValues() : null)`：处理依赖注入逻辑开始
 
-  * `mbd.getResolvedAutowireMode() == ?`：**根据 bean 标签配置**的 autowire 判断是 **BY_NAME 或者 BY_TYPE**
+  * `mbd.getResolvedAutowireMode() == ?`：**根据 bean 标签配置的 autowire** 判断是 BY_NAME 或者 BY_TYPE
 
     `autowireByName(beanName, mbd, bw, newPvs)`：根据字段名称去查找依赖的 bean
 
@@ -7913,11 +7931,42 @@ AbstractAutowireCapableBeanFactory.**doCreateBean**(beanName, RootBeanDefinition
   * `pvsToUse = ibp.postProcessProperties(pvs, bw.getWrappedInstance(), beanName)`：**@Autowired 注解的注入**
 
     * `findAutowiringMetadata()`：包装着当前 bd 需要注入的注解信息集合，**三种注解的元数据**，直接缓存获取
-    * `InjectionMetadata.InjectedElement.inject()`：将注解信息解析后注入到 pvs，方法和字段的注入的实现不同
+
+    * `InjectionMetadata.InjectedElement.inject()`：遍历注解信息解析后注入到 Bean，方法和字段的注入的实现不同
+
+      以字段注入为例：
+
+      * `value = resolveFieldValue(field, bean, beanName)`：处理字段属性值
+
+        `value = beanFactory.resolveDependency()`：解决依赖
+
+        `result = doResolveDependency()`：**真正处理自动注入依赖的逻辑**
+
+        * `Object shortcut = descriptor.resolveShortcut(this)`：默认返回 null
+
+        * `Object value = getAutowireCandidateResolver().getSuggestedValue(descriptor)`：**获取 @Value 的值**
+
+        * `converter.convertIfNecessary(value, type, descriptor.getTypeDescriptor())`：进行类型转换
+
+        * `matchingBeans = findAutowireCandidates(beanName, type, descriptor)`：**获取 @Autowired 的 Bean**
+
+          ```java
+          // addCandidateEntry() → Object beanInstance = descriptor.resolveCandidate()
+          public Object resolveCandidate(String beanName, Class<?> requiredType, BeanFactory beanFactory) throws BeansException {
+          	// 获取 bean
+              return beanFactory.getBean(beanName);
+          }
+          ```
+
       * `ReflectionUtils.makeAccessible()`：修改访问权限，true 代表暴力破解
-      * `method.invoke()`：利用反射为此对象赋值
+      * `field.set(bean, value)`：获取属性访问器为此 field 对象赋值
 
   * `applyPropertyValues()`：**将所有解析的 PropertyValues 的注入至 BeanWrapper 实例中**（深拷贝）
+
+    * `if (pvs.isEmpty())`：注解 @Autowired 和 @Value 标注的信息在后置处理的逻辑注入完成，此处为空直接返回
+    * 下面的逻辑进行 XML 配置的属性的注入，首先获取转换器进行数据转换，然后**获取 WriteMethod (set) 方法进行反射调用**，完成属性的注入
+
+
 
 * `initializeBean(String,Object,RootBeanDefinition)`：**初始化，分为配置文件和实现接口两种方式**
 
@@ -7976,6 +8025,9 @@ AbstractAutowireCapableBeanFactory.**doCreateBean**(beanName, RootBeanDefinition
       }
       ```
 
+
+
+
 * `if (earlySingletonExposure)`：是否循序提前引用
 
   `earlySingletonReference = getSingleton(beanName, false)`：**从二级缓存获取实例**，放入一级缓存是在 doGetBean 中的sharedInstance = getSingleton() 方法中，此时在 createBean 的逻辑还没有返回。
@@ -8031,7 +8083,7 @@ AbstractAutowireCapableBeanFactory.createBeanInstance(beanName, RootBeanDefiniti
 
 * `Supplier<?> instanceSupplier = mbd.getInstanceSupplier()`：获取创建实例的函数，可以自定义，没有进入下面的逻辑
 
-* `if (mbd.getFactoryMethodName() != null)`：**判断 bean 是否设置了 factory-method 属性**
+* `if (mbd.getFactoryMethodName() != null)`：**判断 bean 是否设置了 factory-method 属性，优先使用**
 
   <bean class="" factory-method="">，设置了该属性进入 factory-method 方法创建实例
 
@@ -8050,7 +8102,7 @@ AbstractAutowireCapableBeanFactory.createBeanInstance(beanName, RootBeanDefiniti
 
   * `return instantiateBean(beanName, mbd)`：**无参构造方法通过反射创建实例**
 
-* `ctors = determineConstructorsFromBeanPostProcessors(beanClass, beanName)`：@Autowired 注解对应的后置处理器**AutowiredAnnotationBeanPostProcessor 逻辑**
+* `ctors = determineConstructorsFromBeanPostProcessors(beanClass, beanName)`：**@Autowired 注解**配置在构造方法上，对应的后置处理器AutowiredAnnotationBeanPostProcessor 逻辑
 
   * 配置了 lookup 的相关逻辑
 
@@ -8210,17 +8262,18 @@ AbstractAutowireCapableBeanFactory.createBeanInstance(beanName, RootBeanDefiniti
 
 循环依赖：是一个或多个对象实例之间存在直接或间接的依赖关系，这种依赖关系构成一个环形调用
 
-Spring 循环依赖有三种：
+Spring 循环依赖有四种：
 
+* DependsOn 依赖加载【无法解决】
 * 原型模式循环依赖【无法解决】
 * 单例 Bean 循环依赖：构造参数产生依赖【无法解决】
-* 单例 Bean 循环依赖：setter产生依赖【可以解决】
+* 单例 Bean 循环依赖：setter 产生依赖【可以解决】
 
 解决循环依赖：提前引用，提前暴露创建中的 Bean
 
 * Spring 先实例化 A，拿到 A 的构造方法反射创建出来 A 的早期实例对象，这个对象被包装成 ObjectFactory 对象，放入三级缓存
 * 处理 A 的依赖数据，检查发现 A 依赖 B 对象，所以 Spring 就会去根据 B 类型到容器中去 getBean(B.class)，这里产生递归
-* 拿到 B 的构造方法，进行反射创建出来 B 的早期实例对象，也会把 B 包装成 ObjectFactory 对象，放到三级缓存，处理 B 的依赖数据，检查发现 B 依赖了 A 对象，然后 Spring 就会去根据A类型到容器中去 getBean(A.class)
+* 拿到 B 的构造方法，进行反射创建出来 B 的早期实例对象，也会把 B 包装成 ObjectFactory 对象，放到三级缓存，处理 B 的依赖数据，检查发现 B 依赖了 A 对象，然后 Spring 就会去根据 A 类型到容器中去 getBean(A.class)
 * 这时获取到 A 的早期对象进入属性填充
 
 循环依赖的三级缓存：

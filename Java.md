@@ -2489,7 +2489,7 @@ s.replace("-","");//12378
 * `public String(char[] chs)` : 根据字符数组的内容，来创建字符串对象
 * `public String(String original)` : 根据传入的字符串内容，来创建字符串对象
 
-直接赋值：`String s = “abc”` 直接赋值的方式创建字符串对象，内容就是abc
+直接赋值：`String s = “abc”` 直接赋值的方式创建字符串对象，内容就是 abc
 
 - 通过构造方法创建：通过 new 创建的字符串对象，每一次 new 都会申请一个内存空间，虽然内容相同，但是地址值不同，**返回堆内存中对象的引用**
 - 直接赋值方式创建：以“ ”方式给出的字符串，只要字符序列相同（顺序和大小写），无论在程序代码中出现几次，JVM 都只会**在 String Pool 中创建一个字符串对象**，并在字符串池中维护
@@ -2497,7 +2497,7 @@ s.replace("-","");//12378
 `String str = new String("abc")`创建字符串对象：
 
 * 创建一个对象：字符串池中已经存在"abc"对象，那么直接在创建一个对象放入堆中，返回堆内引用
-* 创建两个对象：字符串池中未找到"abc"对象，那么分别在堆中和字符串池中创建一个对象，字符串池中的比较都是采用 equals() 方法
+* 创建两个对象：字符串池中未找到"abc"对象，那么分别在堆中和字符串池中创建一个对象，字符串池中的比较都是采用 equals() 
   <img src="https://gitee.com/seazean/images/raw/master/Java/String构造方法字节码.png" style="zoom: 67%;" />
 
 `new String("a") + new String("b")`创建字符串对象：
@@ -2509,7 +2509,7 @@ s.replace("-","");//12378
 * 对象4：new String("b")、对象5：常量池中的"b"
   <img src="https://gitee.com/seazean/images/raw/master/Java/String拼接方法字节码.png" style="zoom:67%;" />
 
-*  StringBuilder的toString()：
+*  StringBuilder 的 toString()：
 
   ```java
   @Override
@@ -2533,9 +2533,9 @@ s.replace("-","");//12378
 
 **字符串常量池（String Pool / StringTable / 串池）**保存着所有字符串字面量（literal strings），这些字面量在编译时期就确定，常量池类似于Java系统级别提供的**缓存**，存放对象和引用
 
-* StringTable，hashtable （哈希表 + 链表）结构，不能扩容，默认值大小长度是1009
+* StringTable，hashtable （哈希表 + 链表）结构，不能扩容，默认值大小长度是 1009
 * 常量池中的字符串仅是符号，第一次使用时才变为对象，可以避免重复创建字符串对象
-* 字符串**变量**的拼接的原理是StringBuilder（jdk1.8），append 效率要比字符串拼接高很多
+* 字符串**变量**的拼接的原理是 StringBuilder（jdk1.8），append 效率要比字符串拼接高很多
 * 字符串**常量**拼接的原理是编译期优化，结果在常量池
 * 可以使用 String 的 intern() 方法在运行过程将字符串添加到 String Pool 中
 
@@ -2564,7 +2564,7 @@ public class Demo {
         String s2 = "b";
         String s3 = "ab";//串池
         // new StringBuilder().append("a").append("b").toString()  new String("ab")
-        String s4 = s1 + s2;	// 堆内地址
+        String s4 = s1 + s2;	// 返回的是堆内地址
         String s5 = "a" + "b";  // javac 在编译期间的优化，结果已经在编译期确定为ab
 
         System.out.println(s3 == s4); // false
@@ -2586,8 +2586,8 @@ public class Demo {
 结论：
 
 ```java
-String s1 = "ab";	//串池
-String s2 = new String("a") + new String("b");	//堆
+String s1 = "ab";	//放入串池
+String s2 = new String("a") + new String("b");	//放入堆
 //上面两条指令的结果和下面的 效果 相同
 String s = new String("ab");
 ```
@@ -2621,7 +2621,7 @@ public static void main(String[] args) {
 ```java
 public static void main(String[] args) {
     String str1 = new StringBuilder("58").append("tongcheng").toString();
-    System.out.println(str1 == str1.intern());//true
+    System.out.println(str1 == str1.intern());//true，字符串池中不存在，把堆中的引用复制一份放入串池
 
     String str2 = new StringBuilder("ja").append("va").toString();
     System.out.println(str2 == str2.intern());//false
@@ -2743,13 +2743,13 @@ public class Demo1_25 {
 #### 不可变好处
 
 * 可以缓存 hash 值
-  因为 String 的 hash 值经常被使用，例如 String 用做 HashMap 的 key。不可变的特性可以使得 hash 值也不可变，只需要进行一次计算
+  String 的 hash 值经常被使用，例如 String 用做 HashMap 的 key。不可变的特性可以使得 hash 值也不可变，只要进行一次计算
 * String Pool 的需要
-  如果一个String对象已经被创建过了，就会从 String Pool中取得引用。只有 String是不可变的，才可能使用 String Pool
+  如果一个String对象已经被创建过了，就会从 String Pool 中取得引用，只有 String是不可变的，才可能使用 String Pool
 * 安全性
   String 经常作为参数，String 不可变性可以保证参数不可变。例如在作为网络连接参数的情况下如果 String 是可变的，那么在网络连接过程中，String 被改变，改变 String 的那一方以为现在连接的是其它主机，而实际情况却不一定是
 * String 不可变性天生具备线程安全，可以在多个线程中安全地使用
-* 防止子类继承，破坏String的API的使用
+* 防止子类继承，破坏 String 的 API 的使用
 
 
 
@@ -2765,7 +2765,7 @@ String StringBuffer 和 StringBuilder 区别：
 
 * String : **不可变**的字符序列，线程安全
 * StringBuffer : **可变**的字符序列，线程安全，底层方法加 synchronized，效率低
-* StringBuilder : **可变**的字符序列，JDK5.0新增；线程不安全，效率高
+* StringBuilder : **可变**的字符序列，JDK5.0 新增；线程不安全，效率高
 
 相同点：底层使用 char[] 存储
 
@@ -3942,6 +3942,10 @@ public static void main(String[] args){
 
 
 
+***
+
+
+
 ###### 源码
 
 ArrayList 实现类集合底层**基于数组存储数据**的，查询快，增删慢，支持快速随机访问
@@ -3970,7 +3974,7 @@ public class ArrayList<E> extends AbstractList<E>
   }
   ```
 
-  当add 第 1 个元素到 ArrayList，size 是 0，进入 ensureCapacityInternal 方法，
+  当 add 第 1 个元素到 ArrayList，size 是 0，进入 ensureCapacityInternal 方法，
 
   ```java
   private void ensureCapacityInternal(int minCapacity) {
@@ -4043,12 +4047,17 @@ public class ArrayList<E> extends AbstractList<E>
 * 删除元素：需要调用 System.arraycopy() 将 index+1 后面的元素都复制到 index 位置上，在旧数组上操作，该操作的时间复杂度为 O(N)，可以看到 ArrayList 删除元素的代价是非常高的，
 
   ```java
-  private void fastRemove(Object[] es, int i) {
+  public E remove(int index) {
+      rangeCheck(index);
       modCount++;
-      final int newSize;
-      if ((newSize = size - 1) > i)
-          System.arraycopy(es, i + 1, es, i, newSize - i);
-      es[size = newSize] = null;
+      E oldValue = elementData(index);
+  
+      int numMoved = size - index - 1;
+      if (numMoved > 0)
+          System.arraycopy(elementData, index+1, elementData, index, numMoved);
+      elementData[--size] = null; // clear to let GC do its work
+  
+      return oldValue;
   }
   ```
 
@@ -4073,7 +4082,7 @@ public class ArrayList<E> extends AbstractList<E>
 
 * **Fail-Fast**：快速失败，modCount 用来记录 ArrayList **结构发生变化**的次数，结构发生变化是指添加或者删除至少一个元素的所有操作，或者是调整内部数组的大小，仅仅只是设置元素的值不算结构发生变化
 
-  在进行序列化或者迭代等操作时，需要比较操作前后 modCount 是否改变，如果改变了抛出 ConcurrentModificationException异常
+  在进行序列化或者迭代等操作时，需要比较操作前后 modCount 是否改变，改变了抛出 ConcurrentModificationException 异常
 
 
 
@@ -4626,7 +4635,11 @@ JDK7 对比 JDK8：
   * **当链表长度超过（大于）阈值（或者红黑树的边界值，默认为 8）并且当前数组的长度大于等于64时，此索引位置上的所有数据改为红黑树存储**
   * 即使哈希函数取得再好，也很难达到元素百分百均匀分布。当 HashMap 中有大量的元素都存放到同一个桶中时，就相当于一个长的单链表，假如单链表有 n 个元素，遍历的**时间复杂度是 O(n)**，所以 JDK1.8 中引入了 红黑树（查找**时间复杂度为 O(logn)**）来优化这个问题，使得查找效率更高
   
-  ![](https://gitee.com/seazean/images/raw/master/Java/哈希表.png)
+  ![](https://gitee.com/seazean/images/raw/master/Java/HashMap底层结构.png)
+
+
+
+参考视频：https://www.bilibili.com/video/BV1nJ411J7AA
 
 
 
@@ -9774,7 +9787,7 @@ Heap 堆：是JVM内存中最大的一块，由所有线程共享，由垃圾回
 * 对象实例：类初始化生成的对象，**基本数据类型的数组也是对象实例**，new 创建对象都使用堆内存
 * 字符串常量池：
   * 字符串常量池原本存放于方法区，jdk7开始放置于堆中
-  * 字符串常量池**存储的是 string 对象的直接引用或者对象**，是一张 string table
+  * 字符串常量池**存储的是 String 对象的直接引用或者对象**，是一张 string table
 * 静态变量：静态变量是有 static 修饰的变量，jdk7 时从方法区迁移至堆中
 * 线程分配缓冲区 Thread Local Allocation Buffer：线程私有但不影响堆的共性，可以提升对象分配的效率
 

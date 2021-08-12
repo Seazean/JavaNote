@@ -4837,17 +4837,17 @@ LOAD DATA LOCAL INFILE = '/home/seazean/sql1.log' INTO TABLE `tb_user_1` FIELD T
 
 对于 InnoDB 类型的表，有以下几种方式可以提高导入的效率：
 
-1. 主键顺序插入：因为InnoDB类型的表是按照主键的顺序保存的，所以将导入的数据按照主键的顺序排列，可以有效的提高导入数据的效率，如果InnoDB表没有主键，那么系统会自动默认创建一个内部列作为主键。
+1. 主键顺序插入：因为 InnoDB 类型的表是按照主键的顺序保存的，所以将导入的数据按照主键的顺序排列，可以有效的提高导入数据的效率，如果 InnoDB 表没有主键，那么系统会自动默认创建一个内部列作为主键。
 
-   * 插入ID顺序排列数据：
+   * 插入 ID 顺序排列数据：
 
    ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL插入ID顺序排列数据.png)
 
-   * 插入ID无序排列数据：
+   * 插入 ID 无序排列数据：
 
    ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL插入ID无序排列数据.png)
 
-2. 关闭唯一性校验：在导入数据前执行`SET UNIQUE_CHECKS=0`，关闭唯一性校验；导入结束后执行SET UNIQUE_CHECKS=1，恢复唯一性校验，可以提高导入的效率。
+2. 关闭唯一性校验：在导入数据前执行 `SET UNIQUE_CHECKS=0`，关闭唯一性校验；导入结束后执行 `SET UNIQUE_CHECKS=1`，恢复唯一性校验，可以提高导入的效率。
 
    ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL插入数据关闭唯一性校验.png)
 
@@ -6436,7 +6436,7 @@ SELECT * FROM tb_book WHERE id < 8
 
 慢查询日志记录所有执行时间超过 long_query_time 并且扫描记录数不小于 min_examined_row_limit 的所有的 SQL 语句的日志。long_query_time 默认为 10 秒，最小为 0， 精度到微秒
 
-慢查询日志默认是关闭的，可以通过两个参数来控制慢查询日志，配置文件`/etc/mysql/my.cnf`：
+慢查询日志默认是关闭的，可以通过两个参数来控制慢查询日志，配置文件 `/etc/mysql/my.cnf`：
 
 ```sh
 # 该参数用来控制慢查询日志是否开启，可选值0或者1，0代表关闭，1代表开启 
@@ -6459,7 +6459,7 @@ long_query_time=10
 
   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-慢日志读取1.png)
 
-* 如果慢查询日志内容很多，直接查看文件比较繁琐， 可以借助于mysql 自带的 mysqldumpslow 工具， 来对慢查询日志进行分类汇总：
+* 如果慢查询日志内容很多，直接查看文件比较繁琐，可以借助 mysql 自带的 mysqldumpslow 工具对慢查询日志进行分类汇总：
 
   ```sh
   mysqldumpslow slow_query.log
@@ -6506,14 +6506,14 @@ long_query_time=10
 
 作用：遵守第二范式减少数据冗余，通过主键区分相同数据。
 
-1. 函数依赖：A --> B，如果通过A属性(属性组)的值，可以确定唯一B属性的值，则称B依赖于A
-   * 学号 --> 姓名；(学号，课程名称) --> 分数
-2. 完全函数依赖：A --> B，如果A是一个属性组，则B属性值的确定需要依赖于A属性组的所有属性值
-   * (学号，课程名称) --> 分数
-3. 部分函数依赖：A --> B，如果A是一个属性组，则B属性值的确定只需要依赖于A属性组的某些属性值
-   * (学号，课程名称) --> 姓名
-4. 传递函数依赖：A --> B，B --> C，如果通过A属性(属性组)的值，可以确定唯一B属性的值，在通过B属性(属性组)的值，可以确定唯一C属性的值，则称C传递函数依赖于A
-   * 学号 --> 系名，系名 --> 系主任
+1. 函数依赖：A → B，如果通过 A 属性(属性组)的值，可以确定唯一 B 属性的值，则称 B 依赖于 A
+   * 学号 → 姓名；(学号，课程名称) → 分数
+2. 完全函数依赖：A → B，如果A是一个属性组，则 B 属性值的确定需要依赖于 A 属性组的所有属性值
+   * (学号，课程名称) → 分数
+3. 部分函数依赖：A → B，如果 A 是一个属性组，则 B 属性值的确定只需要依赖于 A 属性组的某些属性值
+   * (学号，课程名称) → 姓名
+4. 传递函数依赖：A → B，B → C，如果通过A属性(属性组)的值，可以确定唯一 B 属性的值，在通过 B 属性(属性组)的值，可以确定唯一 C 属性的值，则称 C 传递函数依赖于 A
+   * 学号 → 系名，系名 → 系主任
 5. 码：如果在一张表中，一个属性或属性组，被其他所有属性所完全依赖，则称这个属性(属性组)为该表的码
    * 该表中的码：(学号，课程名称)
    * 主属性：码属性组中的所有属性
@@ -6848,9 +6848,9 @@ public class JDBCDemo01 {
 
 从数据库读取数据并封装成Student对象，需要：
 
-- Student类成员变量对应表中的列
+- Student 类成员变量对应表中的列
 
-- 所有的基本数据类型需要使用包装类，**以防null值无法赋值**
+- 所有的基本数据类型需要使用包装类，**以防 null 值无法赋值**
 
   ```java
   public class Student {
@@ -6990,12 +6990,12 @@ SQL注入攻击演示
 
 ### 攻击解决
 
-PreparedStatement：预编译 sql 语句的执行者对象，继承`PreparedStatement extends Statement`
+PreparedStatement：预编译 sql 语句的执行者对象，继承 `PreparedStatement extends Statement`
 
 * 在执行 sql 语句之前，将 sql 语句进行提前编译。明确 sql 语句的格式，剩余的内容都会认为是参数
 * sql 语句中的参数使用 ? 作为占位符
 
-为 ? 占位符赋值的方法：setXxx（参数1,参数2）
+为 ? 占位符赋值的方法：`setXxx(int parameterIndex, xxx data)`
 
 - 参数1：? 的位置编号(编号从1开始)
 
