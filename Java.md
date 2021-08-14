@@ -2808,7 +2808,7 @@ private void ensureCapacityInternal(int minimumCapacity) {
     }
 }
 public void getChars(int srcBegin, int srcEnd, char dst[], int dstBegin) {
-    //将字符串中的字符复制到目标字符数组中
+    // 将字符串中的字符复制到目标字符数组中
 	// 字符串调用该方法，此时value是字符串的值，dst是目标字符数组
     System.arraycopy(value, srcBegin, dst, dstBegin, srcEnd - srcBegin);
 }
@@ -2969,17 +2969,18 @@ public static void main(String[] args){
 
 ### Calendar
 
-Calendar代表了系统此刻日期对应的日历对象
-Calendar是一个抽象类，不能直接创建对象
-Calendar日历类创建日历对象的语法：
-		`Calendar rightNow = Calendar.getInstance()`(**饿汉单例模式**)
-Calendar的方法：
-    	`public static Calendar getInstance()`: 返回一个日历类的对象。
-    	`public int get(int field)`：取日期中的某个字段信息。
-    	`public void set(int field,int value)`：修改日历的某个字段信息。
-    	`public void add(int field,int amount)`：为某个字段增加/减少指定的值
-    	`public final Date getTime()`: 拿到此刻日期对象。
-   	 `public long getTimeInMillis()`: 拿到此刻时间毫秒值
+Calendar 代表了系统此刻日期对应的日历对象，是一个抽象类，不能直接创建对象
+
+Calendar 日历类创建日历对象：`Calendar rightNow = Calendar.getInstance()`（**饿汉单例模式**）
+
+Calendar 的方法：
+
+* `public static Calendar getInstance()`: 返回一个日历类的对象
+* `public int get(int field)`：取日期中的某个字段信息
+* `public void set(int field,int value)`：修改日历的某个字段信息
+* `public void add(int field,int amount)`：为某个字段增加/减少指定的值
+* `public final Date getTime()`: 拿到此刻日期对象
+* `public long getTimeInMillis()`: 拿到此刻时间毫秒值
 
 ```java
 public static void main(String[] args){
@@ -3106,8 +3107,8 @@ public class JDK8DateDemo9 {
 ### Math
 
 Math 用于做数学运算
-Math 类中的方法全部是静态方法，直接用类名调用即可
-方法：
+
+Math 类中的方法全部是静态方法，直接用类名调用即可：
 
 | 方法                                         | 说明                              |
 | -------------------------------------------- | --------------------------------- |
@@ -3224,18 +3225,20 @@ public class SystemDemo {
 Java 在 java.math 包中提供的 API 类，用来对超过16位有效位的数进行精确的运算
 
 构造方法：
-	`public static BigDecimal valueOf(double val)` : 包装浮点数成为大数据对象。
-	`public BigDecimal(double val)` : 
-	`public BigDecimal(String val)` : 
+
+* `public static BigDecimal valueOf(double val)`：包装浮点数成为大数据对象。
+* `public BigDecimal(double val)`
+* `public BigDecimal(String val)`
 
 常用API：
-	`public BigDecimal add(BigDecimal value)` : 加法运算
-	`public BigDecimal subtract(BigDecimal value)` : 减法运算 
-	`public BigDecimal multiply(BigDecimal value)` : 乘法运算 
-	`public BigDecimal divide(BigDecimal value)` : 除法运算
-	`public double doubleValue()` : 把BigDecimal转换成double类型。
-	`public int intValue()` : 转为int  其他类型相同
-	`public BigDecimal divide (BigDecimal value，精确几位，舍入模式)` : 除法
+
+* `public BigDecimal add(BigDecimal value)`：加法运算
+* `public BigDecimal subtract(BigDecimal value)`：减法运算 
+* `public BigDecimal multiply(BigDecimal value)`：乘法运算 
+* `public BigDecimal divide(BigDecimal value)`：除法运算
+* `public double doubleValue()`：把BigDecimal转换成double类型。
+* `public int intValue()`：转为int  其他类型相同
+* `public BigDecimal divide (BigDecimal value，精确几位，舍入模式)`：除法
 
 ```java
 public class BigDecimalDemo {
@@ -3301,7 +3304,7 @@ java.util.regex 包主要包括以下三个类：
 
 - Pattern 类：
 
-  pattern 对象是一个正则表达式的编译表示。Pattern 类没有公共构造方法，要创建一个 Pattern 对象，必须首先调用其公共静态编译方法，返回一个 Pattern 对象。该方法接受一个正则表达式作为它的第一个参数
+  Pattern 对象是一个正则表达式的编译表示。Pattern 类没有公共构造方法，要创建一个 Pattern 对象，必须首先调用其公共静态编译方法，返回一个 Pattern 对象。该方法接受一个正则表达式作为它的第一个参数
 
 - Matcher 类：
 
@@ -3325,6 +3328,10 @@ java.util.regex 包主要包括以下三个类：
 
 
 
+***
+
+
+
 ##### 特殊字符
 
 \r\n 是Windows中的文本行结束标签，在Unix/Linux则是 \n
@@ -3338,6 +3345,10 @@ java.util.regex 包主要包括以下三个类：
 | \t     | 制表符                                                       |
 | \\     | 代表\本身                                                    |
 | ()     | 使用( )定义一个子表达式。子表达式的内容可以当成一个独立元素  |
+
+
+
+***
 
 
 
@@ -3360,6 +3371,10 @@ java.util.regex 包主要包括以下三个类：
 
 
 
+***
+
+
+
 ##### 自定义符
 
 自定义符号集合，[ ]方括号匹配方式，能够匹配方括号中**任意一个**字符
@@ -3378,6 +3393,10 @@ java.util.regex 包主要包括以下三个类：
 
 * 标准字符集合，除小数点外，如果被包含于中括号，自定义字符集合将包含该集合。
   比如：[\d. \ -+]将匹配：数字、小数点、+、-
+
+
+
+***
 
 
 
@@ -3417,6 +3436,10 @@ java.util.regex 包主要包括以下三个类：
 
 
 
+***
+
+
+
 ##### 捕获组
 
 捕获组是把多个字符当一个单独单元进行处理的方法，它通过对括号内的字符分组来创建。
@@ -3433,6 +3456,8 @@ java.util.regex 包主要包括以下三个类：
 | (?:Expression)   非捕获组 | 一些表达式中，不得不使用( )，但又不需要保存( )中子表达式匹配的内容，这时可以用非捕获组来抵消使用( )带来的副作用。 |
 
 
+
+***
 
 
 
@@ -3471,6 +3496,8 @@ java.util.regex 包主要包括以下三个类：
   ```
 
   
+
+***
 
 
 
@@ -3520,16 +3547,18 @@ java.util.regex 包主要包括以下三个类：
 
 #### 分组匹配
 
-Pattern类：
-	`static Pattern compile(String regex)` : 将给定的正则表达式编译为模式
-	`Matcher matcher(CharSequence input)` : 创建一个匹配器，匹配给定的输入与此模式
-	`static boolean matches(String regex, CharSequence input)` : 编译正则表达式，并匹配输入
+Pattern 类：
 
-Matcher类：
-	`boolean find()` : 扫描输入的序列，查找与该模式匹配的下一个子序列
-	`String group()` : 返回与上一个匹配的输入子序列。同group(0)，匹配整个表达式的子字符串
-	`String group(int group)` : 返回在上一次匹配操作期间由给定组捕获的输入子序列 
-    `int groupCount()` : 返回此匹配器模式中捕获组的数量
+* `static Pattern compile(String regex)`：将给定的正则表达式编译为模式
+* `Matcher matcher(CharSequence input)`：创建一个匹配器，匹配给定的输入与此模式
+* `static boolean matches(String regex, CharSequence input)`：编译正则表达式，并匹配输入
+
+Matcher 类：
+
+* `boolean find()`：扫描输入的序列，查找与该模式匹配的下一个子序列
+* `String group()`：返回与上一个匹配的输入子序列。同group(0)，匹配整个表达式的子字符串
+* `String group(int group)`：返回在上一次匹配操作期间由给定组捕获的输入子序列 
+* `int groupCount()`：返回此匹配器模式中捕获组的数量
 
 ```java
 public class Demo01{
@@ -3608,6 +3637,10 @@ public static void main(String[] args){
 
 
 
+***
+
+
+
 ##### 验证号码
 
 ```java
@@ -3627,6 +3660,10 @@ public static void checkEmail(String email){
 
 
 
+***
+
+
+
 ##### 查找替换
 
 * `public String[] split(String regex)`：按照正则表达式匹配的内容进行分割字符串，反回一个字符串数组
@@ -3636,24 +3673,26 @@ public static void checkEmail(String email){
 //数组分割
 public static void main(String[] args) {
 	// 1.split的基础用法
-	String names = "贾乃亮,王宝强,陈羽凡";
+	String names = "风清扬,张无忌,周芷若";
 	// 以“，”分割成字符串数组
     String[] nameArrs = names.split(",");
 
     // 2.split集合正则表达式做分割
-    String names1 = "贾乃亮lv434fda324王宝强87632fad2342423陈羽凡";
+    String names1 = "风清扬lv434fda324张无忌87632fad2342423周芷若";
     // 以匹配正则表达式的内容为分割点分割成字符串数组
 	String[] nameArrs1 = names1.split("\\w+");
     
 	// 使用正则表达式定位出内容，替换成/
-	System.out.println(names1.replaceAll("\\w+","/"));//贾乃亮/王宝强/羽凡
+	System.out.println(names1.replaceAll("\\w+","/"));//风清扬/张无忌/周芷若
 
-	String names3 = "贾乃亮,王宝强,羽凡";
-	System.out.println(names3.replaceAll(",","-"));//贾乃亮-王宝强-羽凡
+	String names3 = "风清扬,张无忌,周芷若";
+	System.out.println(names3.replaceAll(",","-"));//风清扬-张无忌-周芷若
 }
 ```
 
 
+
+***
 
 
 
@@ -11307,9 +11346,9 @@ public Object pop() {
 
 ## 类加载
 
-### 对象结构
+### 对象访存
 
-#### 存储构造
+#### 存储结构
 
 一个 Java 对象内存中存储为三部分：对象头（Header）、实例数据（Instance Data）和对齐填充 （Padding）
 
@@ -11365,7 +11404,7 @@ public Object pop() {
 
   ```ruby
   # 由于需要8位对齐，所以最终大小为`56byte`。
-  4(Mark Word) + 4(Klass Word) + 4(length) + 4*10(10个int大小) + 4(Padding) = 56sbyte 
+  4(Mark Word) + 4(Klass Word) + 4(length) + 4*10(10个int大小) + 4(Padding) = 56sbyte
   ```
 
 
@@ -11392,9 +11431,9 @@ private int hash32;
 
 对象的实际大小：一个对象所能触及的所有对象的浅堆大小之和，也就是通常意义上我们说的对象大小
 
-下图显示了一个简单的对象引用关系图，对象 A 引用了 C 和 D，对象 B 引用了 C 和 E。那么对象 A 的浅堆大小只是 A 本身，A 的实际大小为 A、C、D 三者之和，A 的深堆大小为 A 与 D 之和，由于对象 C 还可以通过对象 B 访问到 C，因此 C 不在对象 A 的深堆范围内
+下图显示了一个简单的对象引用关系图，对象 A 引用了 C 和 D，对象 B 引用了 C 和 E。那么对象 A 的浅堆大小只是 A 本身，**A 的实际大小为 A、C、D 三者之和**，A 的深堆大小为 A 与 D 之和，由于对象 C 还可以通过对象 B 访问到 C，因此 C 不在对象 A 的深堆范围内
 
-![](https://gitee.com/seazean/images/raw/master/Java/JVM-对象的实际大小.png)
+<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-对象的实际大小.png" style="zoom: 67%;" />
 
 内存分析工具 MAT 提供了一种叫支配树的对象图，体现了对象实例间的支配关系
 
@@ -11451,15 +11490,19 @@ JVM 是通过**栈帧中的对象引用**访问到其内部的对象实例：
   
   优点：reference 中存储的是稳定的句柄地址，在对象被移动（垃圾收集）时只会改变句柄中的实例数据指针，而 reference 本身不需要被修改。
 
-  <img src="https://gitee.com/seazean/images/raw/master/Java/JVM-对象访问-句柄访问.png" style="zoom: 50%;" />
+  ![](https://gitee.com/seazean/images/raw/master/Java/JVM-对象访问-句柄访问.png)
 
 * 直接指针（HotSpot 采用）：Java 堆对象的布局必须考虑如何放置访问类型数据的相关信息，reference 中直接存储的对象地址
   
   优点：速度更快，**节省了一次指针定位的时间开销**
 
-  <img src="https://gitee.com/seazean/images/raw/master/Java/JVM-对象访问-直接指针.png" style="zoom: 67%;" />
+  缺点：对象被移动时（如进行GC后的内存重新排列），对象的 reference 也需要同步更新
+  
+  ![](https://gitee.com/seazean/images/raw/master/Java/JVM-对象访问-直接指针.png)
 
 
+
+参考文章：https://www.cnblogs.com/afraidToForget/p/12584866.html
 
 
 
@@ -11685,7 +11728,7 @@ Java 对象创建时机：
 - 由其他文件生成，例如由 JSP 文件生成对应的 Class 类
 - 运行时计算生成，例如动态代理技术，在 java.lang.reflect.Proxy 使用 ProxyGenerator.generateProxyClass 
 
-将字节码文件加载至元空间后，会**在堆中**创建一个 java.lang.Class 对象，用来封装类位于方法区内的数据结构，该 Class 对象是在加载类的过程中创建的，每个类都对应有一个 Class 类型的对象
+将字节码文件加载至方法区后，会**在堆中**创建一个 java.lang.Class 对象，用来引用位于方法区内的数据结构，该 Class 对象是在加载类的过程中创建的，每个类都对应有一个 Class 类型的对象
 
 方法区内部采用 C++ 的 instanceKlass 描述 java 类的数据结构：
 
@@ -11842,13 +11885,13 @@ class D {
 
 ##### clinit
 
-<clinit>()：类构造器，由编译器自动收集类中所有类变量的赋值动作和静态语句块中的语句合并产生的
+<clinit>()：类构造器，由编译器自动收集类中**所有类变量的赋值动作和静态语句块**中的语句合并产生的
 
 作用：是在类加载过程中的初始化阶段进行静态变量初始化和执行静态代码块
 
 * 如果类中没有静态变量或静态代码块，那么 clinit 方法将不会被生成
 * clinit 方法只执行一次，在执行 clinit 方法时，必须先执行父类的clinit方法
-* static 变量的赋值操作和静态代码块的合并顺序由源文件中**出现的顺序**决定
+* static 变量的赋值操作和静态代码块的合并顺序由源文件中出现的顺序决定
 * static 不加 final 的变量都在初始化环节赋值
 
 **线程安全**问题：
@@ -11868,9 +11911,7 @@ public class Test {
 }
 ```
 
-补充：
-
-接口中不可以使用静态语句块，但仍然有类变量初始化的赋值操作，因此接口与类一样都会生成 <clinit>() 方法。但两者不同的是，
+接口中不可以使用静态语句块，但仍然有类变量初始化的赋值操作，因此接口与类一样都会生成 <clinit>() 方法，两者不同的是：
 
 * 在初始化一个接口时，并不会先初始化它的父接口，所以执行接口的 <clinit>() 方法不需要先执行父接口的 <clinit>() 方法
 * 在初始化一个类时，不会先初始化所实现的接口，所以接口的实现类在初始化时不会执行接口的 <clinit>() 方法
@@ -11897,13 +11938,13 @@ public class Test {
 * 当初始化一个类的时候，如果发现其父类还没有进行过初始化，则需要先触发其父类的初始化，但这条规则并**不适用于接口**
 * 当虚拟机启动时，需要指定一个要执行的主类（包含 main() 方法的那个类），虚拟机会先初始化这个主类
 * MethodHandle 和 VarHandle 可以看作是轻量级的反射调用机制，而要想使用这两个调用， 就必须先使用 findStaticVarHandle 来初始化要调用的类
-* 补充：当一个接口中定义了 JDK8 新加入的默认方法（被default关键字修饰的接口方法）时，如果有这个接口的实现类发生了初始化，那该接口要在其之前被初始化
+* 补充：当一个接口中定义了 JDK8 新加入的默认方法（被 default 关键字修饰的接口方法）时，如果有这个接口的实现类发生了初始化，那该接口要在其之前被初始化
 
 **被动引用**：所有引用类的方式都不会触发初始化，称为被动引用
 
 * 通过子类引用父类的静态字段，不会导致子类初始化，只会触发父类的初始化
 * 通过数组定义来引用类，不会触发此类的初始化。该过程会对数组类进行初始化，数组类是一个由虚拟机自动生成的、直接继承自 Object 的子类，其中包含了数组的属性和方法
-* 常量（final修饰）在编译阶段会存入调用类的常量池中，本质上并没有直接引用到定义常量的类，因此不会触发定义常量的类的初始化
+* 常量（final 修饰）在编译阶段会存入调用类的常量池中，本质上没有直接引用到定义常量的类，因此不会触发定义常量的类的初始化
 * 调用 ClassLoader 类的 loadClass() 方法加载一个类，并不是对类的主动使用，不会导致类的初始化
 
 
@@ -17474,7 +17515,7 @@ UML 从目标系统的不同角度出发，定义了用例图、类图、对象�
 
 ##### 序列化
 
-将单例对象序列化再反序列化，对象从内存反序列化到程序中会重新创建一个对象，通过反序列化得到的对象是不同的对象，而且得到的对象不是通过构造器得到的，反序列化得到的对象不执行构造器
+将单例对象序列化再反序列化，对象从内存反序列化到程序中会重新创建一个对象，通过反序列化得到的对象是不同的对象，而且得到的对象不是通过构造器得到的，**反序列化得到的对象不执行构造器**
 
 * Singleton
 

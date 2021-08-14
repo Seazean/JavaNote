@@ -416,7 +416,9 @@ public class Test {
 ##### 打断线程
 
 `public void interrupt()`：打断这个线程，异常处理机制
+
 `public static boolean interrupted()`：判断当前线程是否被打断，打断返回 true，清除打断标记，连续调用两次一定返回 false
+
 `public boolean isInterrupted()`：判断当前线程是否被打断，不清除打断标记
 
 打断的线程会发生上下文切换，操作系统会保存线程信息，抢占到 CPU 后会从中断的地方接着运行
@@ -1065,10 +1067,9 @@ LocalVariableTable:
 
 一个对象创建时：
 
-* 如果开启了偏向锁（默认开启），那么对象创建后，markword 值为 0x05 即最后 3 位为 101，这时它的
-  thread、epoch、age 都为 0
-
-* 偏向锁是默认是延迟的，不会在程序启动时立即生效，如果想避免延迟，可以加VM参数 `-XX:BiasedLockingStartupDelay=0` 来禁用延迟
+* 如果开启了偏向锁（默认开启），那么对象创建后，markword 值为 0x05 即最后 3 位为 101，thread、epoch、age 都为 0
+  
+* 偏向锁是默认是延迟的，不会在程序启动时立即生效，如果想避免延迟，可以加 VM 参数 `-XX:BiasedLockingStartupDelay=0` 来禁用延迟
 
   JDK 8 延迟 4s 开启偏向锁原因：在刚开始执行代码时，会有好多线程来抢锁，如果开偏向锁效率反而降低
 
@@ -1549,7 +1550,7 @@ public final native void wait(long timeout):有时限的等待, 到n毫秒后结
 对比 sleep()：
 
 * 原理不同：sleep() 方法是属于 Thread 类，是线程用来控制自身流程的，使此线程暂停执行一段时间而把执行机会让给其他线程；wait() 方法属于 Object 类，用于线程间通信
-* 对锁的处理机制不同：调用 sleep() 方法的过程中，线程不会释放对象锁，当调用 wait() 方法的时候，线程会放弃对象锁，进入等待此对象的等待锁定池，但是都会释放 CPU
+* 对锁的处理机制不同：调用 sleep() 方法的过程中，线程不会释放对象锁，当调用 wait() 方法的时候，线程会放弃对象锁，进入等待此对象的等待锁定池（不释放锁其他线程怎么抢占到锁执行唤醒操作），但是都会释放 CPU
 * 使用区域不同：wait() 方法必须放在**同步控制方法和同步代码块（先获取锁）**中使用，sleep() 方法则可以放在任何地方使用
 
 底层原理：
@@ -2575,7 +2576,7 @@ lock 前缀指令就相当于内存屏障，Memory Barrier（Memory Fence）
 - 阻止屏障两侧的指令重排序
 - 强制把缓存中的脏数据写回主内存，让缓存行中相应的数据失效
 
-保证可见性：
+**保证可见性**：
 
 * 写屏障（sfence，Store Barrier）保证在该屏障之前的，对共享变量的改动，都同步到主存当中
 
@@ -2605,7 +2606,7 @@ lock 前缀指令就相当于内存屏障，Memory Barrier（Memory Fence）
 
 * 全能屏障：mfence（modify/mix Barrier），兼具 sfence 和 lfence 的功能
 
-保证有序性：
+**保证有序性**：
 
 * 写屏障会确保指令重排序时，不会将写屏障之前的代码排在写屏障之后
 * 读屏障会确保指令重排序时，不会将读屏障之后的代码排在读屏障之前
@@ -2622,7 +2623,7 @@ lock 前缀指令就相当于内存屏障，Memory Barrier（Memory Fence）
   new Thread(() -> {i--});
   ```
 
-  i++反编译后的指令：
+  i++ 反编译后的指令：
 
   ```java
   0: iconst_1			//当int取值 -1~5 时，JVM采用iconst指令将常量压入栈中
@@ -2899,7 +2900,7 @@ public class TestVolatile {
 
 无锁编程：Lock Free
 
-CAS的全称是 Compare-And-Swap，是**CPU并发原语**
+CAS 的全称是 Compare-And-Swap，是 **CPU 并发原语**
 
 * CAS 并发原语体现在 Java 语言中就是 sun.misc.Unsafe 类的各个方法，调用 UnSafe 类中的 CAS 方法，JVM 会实现出 CAS 汇编指令，这是一种完全依赖于硬件的功能，实现了原子操作
 * CAS 是一种系统原语，原语属于操作系统范畴，是由若干条指令组成 ，用于完成某个功能的一个过程，并且**原语的执行必须是连续的，执行过程中不允许被中断**，也就是说 CAS 是一条 CPU 的原子指令，不会造成数据不一致的问题，所以 CAS 是线程安全的
@@ -2937,10 +2938,10 @@ CAS 缺点：
 
 CAS 与 Synchronized 总结：
 
-* Synchronized是从悲观的角度出发：
-  总是假设最坏的情况，每次去拿数据的时候都认为别人会修改，所以每次在拿数据的时候都会上锁，这样别人想拿这个数据就会阻塞直到它拿到锁。（**共享资源每次只给一个线程使用，其它线程阻塞，用完后再把资源转让给其它线程**），因此Synchronized我们也将其称之为悲观锁。jdk中的ReentrantLock也是一种悲观锁，**性能较差**
-* CAS是从乐观的角度出发:
-  总是假设最好的情况，每次去拿数据的时候都认为别人不会修改，所以不会上锁，但是在更新的时候会判断一下在此期间别人有没有去更新这个数据。**如果别人修改过，则获取现在最新的值。如果别人没修改过，直接修改共享数据的值**，CAS这种机制我们也可以将其称之为乐观锁。**综合性能较好**！
+* Synchronized 是从悲观的角度出发：
+  总是假设最坏的情况，每次去拿数据的时候都认为别人会修改，所以每次在拿数据的时候都会上锁，这样别人想拿这个数据就会阻塞直到它拿到锁。（**共享资源每次只给一个线程使用，其它线程阻塞，用完后再把资源转让给其它线程**），因此 Synchronized 我们也将其称之为悲观锁。jdk中的ReentrantLock也是一种悲观锁，**性能较差**
+* CAS 是从乐观的角度出发:
+  总是假设最好的情况，每次去拿数据的时候都认为别人不会修改，所以不会上锁，但是在更新的时候会判断一下在此期间别人有没有去更新这个数据。**如果别人修改过，则获取现在最新的值。如果别人没修改过，直接修改共享数据的值**，CAS 这种机制我们也可以将其称之为乐观锁。**综合性能较好**
 
 
 
@@ -3070,7 +3071,6 @@ CAS 算法：有 3 个操作数（内存值 V， 旧的预期值 A，要修改�
   }
   ```
 
-  <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-compareAndSet方法.png" style="zoom:67%;" />
 
 
 
@@ -3194,11 +3194,11 @@ LongAdder 和 LongAccumulator 区别：
 
 不同点：
 
-* 调用 casBase 时，LongAccumulator 使用 function.applyAsLong(b = base, x) 来计算，LongAddr 使用 casBase(b = base, b + x) 来计算
+* 调用 casBase 时，LongAccumulator 使用 function.applyAsLong(b = base, x) 来计算，LongAddr 使用 casBase(b = base, b + x) 
 * LongAccumulator 类功能更加强大，构造方法参数中
 
   * accumulatorFunction 是一个双目运算器接口，可以指定累加规则，比如累加或者相乘，其根据输入的两个参数返回一个计算值，LongAdder 内置累加规则
-  * identity 则是 LongAccumulator 累加器的初始值，LongAccumulator 可以为累加器提供非0的初始值，而 LongAdder 只能提供默认的0
+  * identity 则是 LongAccumulator 累加器的初始值，LongAccumulator 可以为累加器提供非0的初始值，而 LongAdder 只能提供默认的 0
 
 
 
@@ -3506,7 +3506,7 @@ public static void main(String[] args) {
 
 ### Unsafe
 
-Unsafe 是 CAS 的核心类，由于 Java 无法直接访问底层系统，需要通过本地 (Native) 方法来访问
+Unsafe 是 CAS 的核心类，由于 Java 无法直接访问底层系统，需要通过本地（Native）方法来访问
 
 Unsafe 类存在 sun.misc 包，其中所有方法都是 native 修饰的，都是直接调用**操作系统底层资源**执行相应的任务，基于该类可以直接操作特定的内存数据，其内部方法操作类似 C 的指针
 
@@ -3530,6 +3530,7 @@ class MyAtomicInteger {
             Field theUnsafe = Unsafe.class.getDeclaredField("theUnsafe");
             theUnsafe.setAccessible(true);
             UNSAFE = (Unsafe) theUnsafe.get(null);
+            // 获取 value 属性的内存地址，value 属性指向该地址，直接设置该地址的值可以修改 value 的值
             VALUE_OFFSET = UNSAFE.objectFieldOffset(
                 		   MyAtomicInteger.class.getDeclaredField("value"));
         } catch (NoSuchFieldException | IllegalAccessException e) {
@@ -4923,7 +4924,7 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
 
 成员变量
 
-* 线程池中存放 worker 的容器：线程池没有初始化，直接往池中加线程即可
+* 线程池中存放 Worker 的容器：线程池没有初始化，直接往池中加线程即可
 
   ```java
   private final HashSet<Worker> workers = new HashSet<Worker>();
@@ -4950,7 +4951,7 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
   private volatile int maximumPoolSize;			// 线程池最大线程数量
   private volatile long keepAliveTime;			// 空闲线程存活时间
   private volatile ThreadFactory threadFactory;	// 创建线程时使用的线程工厂，默认是 DefaultThreadFactory
-  private final BlockingQueue<Runnable> workQueue;// 任务队列池中的线程达到核心线程数量后，再提交任务就放入队列
+  private final BlockingQueue<Runnable> workQueue;// 超过核心线程提交任务就放入【阻塞队列】
   ```
 
   ```java
@@ -4979,7 +4980,7 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
   ```java
   private final class Worker extends AbstractQueuedSynchronizer implements Runnable {
   	final Thread thread;			// worker 内部封装的工作线程
-      Runnable firstTask;				// worker 第一个执行的任务
+      Runnable firstTask;				// worker 第一个执行的任务，普通的 Runnable 实现类或者是 FutureTask
       volatile long completedTasks;	// 记录当前 worker 所完成任务数量
       
       //构造方法
@@ -5008,13 +5009,13 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
 
 ##### 提交方法
 
-* AbstractExecutorService#submit()：提交任务，把任务封装成 FutureTask 执行
+* AbstractExecutorService#submit()：提交任务，**把任务封装成 FutureTask 执行**，可以通过返回的任务对象调用 get 阻塞获取任务执行的结果，源码分析在笔记的 Future 部分
 
   ```java
   public Future<?> submit(Runnable task) {
       // 空指针异常
       if (task == null) throw new NullPointerException();
-      // 把 Runnable 封装成未来任务对象
+      // 把 Runnable 封装成未来任务对象，执行结果就是 null，也可以通过参数指定 FutureTask#get 返回数据
       RunnableFuture<Void> ftask = newTaskFor(task, null);
       // 执行方法
       execute(ftask);
@@ -5042,7 +5043,7 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
   }
   ```
 
-* execute()：执行任务
+* execute()：执行任务，但是没有返回值，没办法获取任务执行结果
 
   ```java
   // command 可以是普通的 Runnable 实现类，也可以是 FutureTask
@@ -5118,7 +5119,7 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
               // 条件一一般不成立，CAPACITY是5亿多，根据 core 判断使用哪个大小限制线程数量，超过了返回 false
               if (wc >= CAPACITY || wc >= (core ? corePoolSize : maximumPoolSize))
                   return false;
-              // 记录线程数量已经加 1，相当于申请到了一块令牌，条件失败说明其他线程修改了数量
+              // 记录线程数量已经加 1，类比于申请到了一块令牌，条件失败说明其他线程修改了数量
               if (compareAndIncrementWorkerCount(c))
                   // 申请成功，跳出了 retry 这个 for 自旋
                   break retry;
@@ -5132,6 +5133,7 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
           }
       }
       //【令牌申请成功，开始创建线程】
+      
   	// 运行标记，表示创建的 worker 是否已经启动，false未启动  true启动
       boolean workerStarted = false;
       // 添加标记，表示创建的 worker 是否添加到池子中了，默认false未添加，true是添加。
@@ -5674,8 +5676,7 @@ FutureTask 类的成员方法：
       //条件一：成立说明当前 task 已经被执行过了或者被 cancel 了，非 NEW 状态的任务，线程就不处理了
       //条件二：线程是 NEW 状态，尝试设置当前任务对象的线程是当前线程，设置失败说明其他线程抢占了该任务，直接返回
       if (state != NEW ||
-          !UNSAFE.compareAndSwapObject(this, runnerOffset,
-                                       null, Thread.currentThread()))
+          !UNSAFE.compareAndSwapObject(this, runnerOffset, null, Thread.currentThread()))
           return;	//直接返回
       try {
           // 执行到这里，当前 task 一定是 NEW 状态，而且当前线程也抢占 task 成功！
@@ -5804,7 +5805,7 @@ FutureTask 类的成员方法：
   }
   ```
 
-  FutureTask#awaitDone：**get 线程阻塞等待**
+  FutureTask#awaitDone：**get 线程阻塞等待**，封装成 WaitNode 对象进入阻塞队列
 
   ```java
   private int awaitDone(boolean timed, long nanos) throws InterruptedException {
@@ -6240,21 +6241,20 @@ class MockConnection implements Connection {
 
 ### AQS
 
-#### 思想
+#### 核心思想
 
-AQS：AbstractQueuedSynchronizer，是阻塞式锁和相关的同步器工具的框架，许多同步类实现都依赖于它
+AQS：AbstractQueuedSynchronizer，是阻塞式锁和相关的同步器工具的框架，许多同步类实现都依赖于该同步器
 
-* 用 state 属性来表示资源的状态（分**独占模式和共享模式**），子类需要定义如何维护这个状态，控制如何获取锁和释放锁
-  * 独占模式是只有一个线程能够访问资源，如 ReentrantLock
-  * 共享模式允许多个线程访问资源，如 Semaphore，ReentrantReadWriteLock 是组合式
-* 提供了基于 FIFO 的等待队列，类似于 Monitor 的 EntryList（**同步队列：双向，便于出队入队**）
-* 条件变量来实现等待、唤醒机制，支持多个条件变量，类似于 Monitor 的 WaitSet（**条件队列：单向**）
+AQS 用状态属性来表示资源的状态（分**独占模式和共享模式**），子类需要定义如何维护这个状态，控制如何获取锁和释放锁
+
+* 独占模式是只有一个线程能够访问资源，如 ReentrantLock
+* 共享模式允许多个线程访问资源，如 Semaphore，ReentrantReadWriteLock 是组合式
 
 AQS 核心思想：
 
 * 如果被请求的共享资源空闲，则将当前请求资源的线程设置为有效的工作线程，并将共享资源设置锁定状态
 
-* 被请求的共享资源被占用，AQS 用 CLH 队列实现线程阻塞等待以及被唤醒时锁分配的（park）机制，即将暂时获取不到锁的线程加入到队列中
+* 被请求的共享资源被占用，AQS 用 CLH 队列实现线程阻塞等待以及被唤醒时锁分配的（park）机制，将暂时获取不到锁的线程加入到队列中
 
   CLH 是一种基于单向链表的**高性能、公平的自旋锁**，AQS 是将每条请求共享资源的线程封装成一个 CLH 锁队列的一个结点（Node）来实现锁的分配
 
@@ -6266,16 +6266,16 @@ AQS 核心思想：
 
 
 
-#### 原理
+#### 设计原理
 
-设计思想：
+设计原理：
 
 * 获取锁：
 
   ```java
   while(state 状态不允许获取) {	//tryAcquire(arg)
       if(队列中还没有此线程) {
-          入队并阻塞 park unpark
+          入队并阻塞 park
       }
   }
   当前线程出队
@@ -6285,34 +6285,44 @@ AQS 核心思想：
 
   ```java
   if(state 状态允许了) {	//tryRelease(arg)
-  	恢复阻塞的线程(s)
+  	恢复阻塞的线程(s) unpark
   }
   ```
 
-AQS 中 state 设计：
+AbstractQueuedSynchronizer 中 state 设计：
 
-* state 使用了 32bit int 来维护同步状态
+* state 使用了 32bit int 来维护同步状态，独占模式 0 表示未加锁状态，大于 0 表示已经加锁状态
+
+  ```java
+  private volatile int state;
+  ```
+
 * state **使用 volatile 修饰配合 cas** 保证其修改时的原子性
-* state 表示**线程重入的次数或者许可进入的线程数**
-* state API：
-  `protected final int getState()`：获取 state 状态
-  `protected final void setState(int newState)`：设置 state 状态
-  `protected final boolean compareAndSetState(int expect,int update)`：**cas** 设置 state
 
-Node 节点中 waitstate 设计：
+* state 表示**线程重入的次数或者许可进入的线程数**
+
+* state API：
+
+  * `protected final int getState()`：获取 state 状态
+  * `protected final void setState(int newState)`：设置 state 状态
+  * `protected final boolean compareAndSetState(int expect,int update)`：**cas** 安全设置 state
+
+封装线程的 Node 节点中 waitstate 设计：
 
 * 使用 **volatile 修饰配合 CAS** 保证其修改时的原子性
 
 * 表示 Node 节点的状态，有以下几种状态：
 
   ```java
-  //由于超时或中断，此节点被取消，不会再改变状态
+  // 默认为 0
+  volatile int waitStatus;
+  // 由于超时或中断，此节点被取消，不会再改变状态
   static final int CANCELLED =  1;
-  //此节点后面的节点已（或即将）被阻止（通过park），当前节点在释放或取消时必须唤醒后面的节点
+  // 此节点后面的节点已（或即将）被阻止（通过park），当前节点在释放或取消时必须唤醒后面的节点
   static final int SIGNAL    = -1;
-  //此节点当前在条件队列中
+  // 此节点当前在条件队列中
   static final int CONDITION = -2;
-  //将releaseShared传播到其他节点
+  // 将releaseShared传播到其他节点
   static final int PROPAGATE = -3;
   ```
 
@@ -6324,45 +6334,54 @@ Node 节点中 waitstate 设计：
 
 队列设计：
 
-* 使用了 FIFO 先入先出队列，并不支持优先级队列
-
-* 设计时借鉴了 CLH 队列，CLH是一种单向无锁队列
-
-  <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-AQS队列设计.png" style="zoom: 80%;" />
+* 使用了 FIFO 先入先出队列，并不支持优先级队列，**同步队列是双向链表，便于出队入队**
 
   ```java
-  // node 放入 AQS 队列尾部，返回尾节点的前驱节点
-  private Node enq(final Node node) {
-      for (;;) {
-          Node t = tail;
-          // 队列中还没有元素 tail 为 null
-          if (t == null) { 
-              // 设置 head 为哨兵节点（不对应线程，状态为 0）
-              if (compareAndSetHead(new Node()))
-                  tail = head;
-          } else {
-              // 将 node 的 prev 设置为原来的 tail  双向队列
-              node.prev = t;
-              // 将 tail 从原来的 tail 设置为 node
-              if (compareAndSetTail(t, node)) {
-                  //将原来的尾节点（哑元节点）的 next 指向新节点
-                  t.next = node;
-                  return t;
-              }
-          }
-      }
+  // 头结点，指向哑元节点
+  private transient volatile Node head;
+  // 阻塞队列的尾节点，阻塞队列不包含头结点，从 head.next → tail 认为是阻塞队列
+  private transient volatile Node tail;
+  
+  static final class Node {
+      // 枚举：共享模式
+      static final Node SHARED = new Node();
+      // 枚举：独占模式
+      static final Node EXCLUSIVE = null;
+      // node需要构建成 FIFO 队列，prev 指向前继节点
+      volatile Node prev;
+      // next 指向后继节点
+      volatile Node next;
+      // 当前node封装的线程
+      volatile Thread thread;
+      // 条件队列是单向链表，只有后继指针
+      Node nextWaiter;
   }
   ```
+
+  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-AQS队列设计.png)
+
+* 条件变量来实现等待、唤醒机制，支持多个条件变量，类似于 Monitor 的 WaitSet，**条件队列是单向链表**
+
+  ````java
+   public class ConditionObject implements Condition, java.io.Serializable {
+       // 指向条件队列的第一个 node 节点
+       private transient Node firstWaiter;
+       // 指向条件队列的最后一个 node 节点
+       private transient Node lastWaiter;
+   }
+  ````
+
   
-  
+
+
 
 ***
 
 
 
-#### 模板
+#### 模板对象
 
-同步器的设计是基于模板方法模式，该模式是基于”继承“的，主要是为了在不改变模板结构的前提下在子类中重新定义模板中的内容以实现复用代码
+同步器的设计是基于模板方法模式，该模式是基于继承的，主要是为了在不改变模板结构的前提下在子类中重新定义模板中的内容以实现复用代码
 
 * 使用者继承 `AbstractQueuedSynchronizer` 并重写指定的方法
 * 将 AQS 组合在自定义同步组件的实现中，并调用其模板方法，这些模板方法会调用使用者重写的方法
@@ -6370,11 +6389,11 @@ Node 节点中 waitstate 设计：
 AQS 使用了模板方法模式，自定义同步器时需要重写下面几个 AQS 提供的模板方法：
 
 ```java
-isHeldExclusively()//该线程是否正在独占资源。只有用到condition才需要去实现它。
-tryAcquire(int)//独占方式。尝试获取资源，成功则返回true，失败则返回false。
-tryRelease(int)//独占方式。尝试释放资源，成功则返回true，失败则返回false。
-tryAcquireShared(int)//共享方式。尝试获取资源。负数表示失败；0表示成功，但没有剩余可用资源；正数表示成功，且有剩余资源。
-tryReleaseShared(int)//共享方式。尝试释放资源，成功则返回true，失败则返回false。
+isHeldExclusively()		//该线程是否正在独占资源。只有用到condition才需要去实现它
+tryAcquire(int)			//独占方式。尝试获取资源，成功则返回true，失败则返回false
+tryRelease(int)			//独占方式。尝试释放资源，成功则返回true，失败则返回false
+tryAcquireShared(int)	//共享方式。尝试获取资源。负数表示失败；0表示成功但没有剩余可用资源；正数表示成功且有剩余资源
+tryReleaseShared(int)	//共享方式。尝试释放资源，成功则返回true，失败则返回false
 ```
 
 * 默认情况下，每个方法都抛出 `UnsupportedOperationException`
@@ -6555,12 +6574,14 @@ public ReentrantLock() {
 
 NonfairSync 继承自 AQS
 
-没有竞争：ExclusiveOwnerThread属于 Thread-0，state 设置为1
+没有竞争：ExclusiveOwnerThread 属于 Thread-0，state 设置为 1
 
 ```java
+// ReentrantLock.NonfairSync#lock
 final void lock() {
-    //首先用 cas 尝试（仅尝试一次）将 state 从 0 改为 1, 如果成功表示获得了独占锁
+    // 用 cas 尝试（仅尝试一次）将 state 从 0 改为 1, 如果成功表示获得了独占锁
     if (compareAndSetState(0, 1))
+        // 设置当前线程为独占线程
         setExclusiveOwnerThread(Thread.currentThread());
     else
         acquire(1);//失败进入
@@ -6570,74 +6591,113 @@ final void lock() {
 第一个竞争出现：
 
 ```java
-public final void acquire(int arg) {    
-    // 当 tryAcquire 返回为 false 时, 先调用addWaiter, 接着 acquireQueued    
-    if (!tryAcquire(arg) && acquireQueued(addWaiter(Node.EXCLUSIVE), arg))        			selfInterrupt();
+// AbstractQueuedSynchronizer#acquire
+public final void acquire(int arg) {
+    // tryAcquire 尝试获取锁失败返回为 false 时, 会调用 addWaiter 将当前线程封装成node入队，
+    // 然后 acquireQueued 挂起当前线程，返回 true 表示挂起过程中线程被中断唤醒过，false 表示未被中断过
+    if (!tryAcquire(arg) && acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
+        // 如果线程被中断了逻辑来到这，完成一次真正的打断效果
+        selfInterrupt();
 }
 ```
 
 <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantLock-非公平锁1.png" style="zoom:80%;" />
 
-Thread-1执行：
+Thread-1 执行：
 
 * CAS 尝试将 state 由 0 改为 1，结果失败（第一次）
 
-* 进入 tryAcquire 逻辑，这时 state 已经是1，结果仍然失败（第二次）
+* 进入 tryAcquire 尝试获取锁逻辑，这时 state 已经是1，结果仍然失败（第二次）
 
   ```java
-  protected final boolean tryAcquire(int acquires) {    
+  // ReentrantLock.NonfairSync#tryAcquire
+  protected final boolean tryAcquire(int acquires) {
       return nonfairTryAcquire(acquires);
   }
-  final boolean nonfairTryAcquire(int acquires) {    
-      final Thread current = Thread.currentThread();    
-      int c = getState();    
-      if (c == 0) {        
-          //如果还没有获得锁，尝试用cas获得，这里体现非公平性: 不去检查 AQS 队列        
-      	if (compareAndSetState(0, acquires)) {            
-              setExclusiveOwnerThread(current);            
-              return true;        
+  // 抢占成功返回 true，抢占失败返回 false
+  final boolean nonfairTryAcquire(int acquires) {
+      final Thread current = Thread.currentThread();
+      // state 值
+      int c = getState();
+      // 条件成立说明当前处于无锁状态
+      if (c == 0) {
+          //如果还没有获得锁，尝试用cas获得，这里体现非公平性: 不去检查 AQS 队列是否有阻塞线程直接获取锁        
+      	if (compareAndSetState(0, acquires)) {
+              // 获取锁成功设置当前线程为独占锁线程。
+              setExclusiveOwnerThread(current);
+              return true;
            }    
   	}    
-     	// 如果已经获得了锁, 线程还是当前线程, 表示发生了锁重入    
-  	else if (current == getExclusiveOwnerThread()) {        
-          int nextc = c + acquires;        
-          if (nextc < 0) // overflow            
-              throw new Error("Maximum lock count exceeded");        
-          setState(nextc);        
-          return true;    
-      }    
-      return false;//获取失败
+     	// 如果已经有线程获得了锁, 独占锁线程还是当前线程, 表示发生了锁重入    
+  	else if (current == getExclusiveOwnerThread()) {
+          // 更新锁重入的值
+          int nextc = c + acquires;
+          // 越界判断，当重入的深度很深时，会导致 nextc < 0，int值达到最大之后再 + 1 变负数
+          if (nextc < 0) // overflow
+              throw new Error("Maximum lock count exceeded");
+          // 更新 state 的值，这里不使用 cas 是因为当前线程正在持有锁，所以这里的操作相当于在一个管程内
+          setState(nextc);
+          return true;
+      }
+      // 获取失败
+      return false;
   }
   ```
 
-* 接下来进入 addWaiter 逻辑，构造 Node 队列
+* 接下来进入 addWaiter 逻辑，构造 Node 队列，前置条件是当前线程获取锁失败，说明有线程占用了锁
 
   * 图中黄色三角表示该 Node 的 waitStatus 状态，其中 0 为默认**正常状态**
   * Node 的创建是懒惰的
   * 其中第一个 Node 称为 **Dummy（哑元）或哨兵**，用来占位，并不关联线程
 
   ```java
-  private Node addWaiter(Node mode) {    
+  // AbstractQueuedSynchronizer#addWaiter，返回当前线程的 node 节点
+  private Node addWaiter(Node mode) {
       // 将当前线程关联到一个 Node 对象上, 模式为独占模式   
-      // Node.EXCLUSIVE for exclusive, Node.SHARED for shared
-      Node node = new Node(Thread.currentThread(), mode);    
-      Node pred = tail;    
-      // 如果 tail 不为 null, cas 尝试将 Node 对象加入 AQS 队列尾部    
-      if (pred != null) {        
-          node.prev = pred;        
-          if (compareAndSetTail(pred, node)) {            
-              pred.next = node;// 双向链表            
-              return node;        
-          }    
-      }    
-      enq(node);//添加到尾节点    
+      Node node = new Node(Thread.currentThread(), mode);
+      Node pred = tail;
+      // 快速入队，如果 tail 不为 null，说明存在阻塞队列
+      if (pred != null) {
+          // 将当前节点的前驱节点指向 尾节点
+          node.prev = pred;
+          // 通过 cas 将 Node 对象加入 AQS 队列，成为尾节点
+          if (compareAndSetTail(pred, node)) {
+              pred.next = node;// 双向链表
+              return node;
+          }
+      }
+      // 等待队列为空或者 CAS 失败进入逻辑
+      enq(node);
       return node;
+  }
+  ```
+
+  ```java
+  // AbstractQueuedSynchronizer#enq
+  private Node enq(final Node node) {
+      // 自旋入队，必须入队成功才结束循环
+      for (;;) {
+          Node t = tail;
+          // 说明当前锁被占用，且当前线程可能是【第一个获取锁失败】的线程，还没有建立队列
+          if (t == null) {
+              // 设置一个【哑元节点】，头尾指针都指向该节点
+              if (compareAndSetHead(new Node()))
+                  tail = head;
+          } else {
+              //自旋到这，普通入队方式
+              node.prev = t;
+              if (compareAndSetTail(t, node)) {
+                  t.next = node;
+                  return t;	//返回当前 node 的前驱节点
+              }
+          }
+      }
   }
   ```
 
   <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantLock-非公平锁2.png" style="zoom:80%;" />
 
-* 线程进入 acquireQueued 逻辑
+* 线程节点加入阻塞队列成功，进入 AbstractQueuedSynchronizer#acquireQueued 逻辑阻塞线程
 
   * acquireQueued 会在一个死循环中不断尝试获得锁，失败后进入 park 阻塞
 
@@ -6645,25 +6705,31 @@ Thread-1执行：
 
   ```java
   final boolean acquireQueued(final Node node, int arg) {
+      //true 表示当前线程抢占锁失败，false 表示成功
       boolean failed = true;
       try {
+          // 表示当前线程是否被中断
           boolean interrupted = false;
           for (;;) {
+              // 获得当前线程节点的前驱节点
               final Node p = node.predecessor();
-              // 上一个节点是 head, 表示轮到自己获取锁
+              // 前驱节点 head, FIFO 队列的特性表示轮到当前线程可以去获取锁
               if (p == head && tryAcquire(arg)) {
-                  // 获取成功, 设置自己（当前线程对应的 node）为 head
+                  // 获取成功, 设置当前线程自己的 node 为 head
                   setHead(node);
                   p.next = null; // help GC
+                  // 表示抢占锁成功
                   failed = false;
+                  // 返回当前线程是否被中断
                   return interrupted;
               }
-              // 判断是否应当 park，返回false后需要新一轮的循环
-              if (shouldParkAfterFailedAcquire(p, node) &&
-                  parkAndCheckInterrupt())
+              // 判断是否应当 park，返回 false 后需要新一轮的循环，返回 true 进入条件二阻塞线程
+              if (shouldParkAfterFailedAcquire(p, node) && parkAndCheckInterrupt())
+                  // 条件二返回结果是当前线程是否被打断，没有被打断返回 false 不进入这里的逻辑
                   interrupted = true;
           }
       } finally {
+          // 可打断模式下才会进入该逻辑
           if (failed)
               cancelAcquire(node);
       }
@@ -6675,24 +6741,27 @@ Thread-1执行：
   ```java
   private static boolean shouldParkAfterFailedAcquire(Node pred, Node node) {
       int ws = pred.waitStatus;
+      // 表示前置节点是个可以唤醒当前节点的节点，返回 true
       if (ws == Node.SIGNAL)
-          // 上一个节点都在阻塞, 那么当前线程也阻塞
           return true;
+      // 前置节点的状态处于取消状态，需要删除前面所有取消的节点, 返回到外层循环重试
       if (ws > 0) {
-          // 上一个节点取消, 那么重构删除前面所有取消的节点, 返回到外层循环重试
           do {
               node.prev = pred = pred.prev;
           } while (pred.waitStatus > 0);
+          // 获取到非取消的节点，连接上当前节点
           pred.next = node;
+      // 默认情况下 node 的 waitStatus 是 0，进入这里的逻辑
       } else {
           // 设置上一个节点状态为 Node.SIGNAL，返回外层循环重试
           compareAndSetWaitStatus(pred, ws, Node.SIGNAL);
       }
+      // 返回不应该 park
       return false;
   }
   ```
 
-  * shouldParkAfterFailedAcquire 执行完毕回到 acquireQueued ，再次 tryAcquire 尝试获取锁，这时state 仍为 1 获取失败（第四次）
+  * shouldParkAfterFailedAcquire 执行完毕回到 acquireQueued ，再次 tryAcquire 尝试获取锁，这时 state 仍为 1 获取失败（第四次）
   * 当再次进入 shouldParkAfterFailedAcquire 时，这时其前驱 node 的 waitStatus 已经是 -1，返回 true
   * 进入 parkAndCheckInterrupt， Thread-1 park（灰色表示），再有多个线程经历竞争失败后：
 
@@ -6709,9 +6778,13 @@ Thread-1执行：
 
   
 
+***
+
 
 
 ###### 解锁
+
+ReentrantLock#unlock：释放锁
 
 ```java
 public void unlock() {
@@ -6721,77 +6794,87 @@ public void unlock() {
 
 Thread-0 释放锁，进入 release 流程
 
-* 进入 tryRelease
-
-  * 设置 exclusiveOwnerThread 为 null
-  * state = 0
+* 进入 tryRelease，设置 exclusiveOwnerThread 为 null，state = 0
 
 * 当前队列不为 null，并且 head 的 waitStatus = -1，进入 unparkSuccessor 
 
   ```java
-  public final boolean release(int arg) {    
-      if (tryRelease(arg)) {       
-          // 队列头节点 unpark        
-          Node h = head;        
-          if (h != null && h.waitStatus != 0)            
-              unparkSuccessor(h);        
-          return true;    
+  // AbstractQueuedSynchronizer#release
+  public final boolean release(int arg) {
+      // 尝试释放锁，tryRelease 返回 true 表示当前线程已经完全释放锁
+      if (tryRelease(arg)) {
+          // 队列头节点
+          Node h = head;
+          // 头节点什么时候是空？没有发生锁竞争，没有竞争线程帮忙创建哑元节点
+          // 条件成立说明阻塞队列有等待线程，需要唤醒 head 节点后面的线程
+          if (h != null && h.waitStatus != 0)
+              unparkSuccessor(h);
+          return true;
       }    
       return false;
   }
   ```
 
   ```java
-  protected final boolean tryRelease(int releases) {    
-      int c = getState() - releases;    
-      if (Thread.currentThread() != getExclusiveOwnerThread())        
-          throw new IllegalMonitorStateException();    
-      boolean free = false;    
-      // 支持锁重入, 只有 state 减为 0, 才释放成功    
-      if (c == 0) {        
-          free = true;        
-          setExclusiveOwnerThread(null);    
-      }    
-      setState(c);    
+  // ReentrantLock.Sync#tryRelease
+  protected final boolean tryRelease(int releases) {
+      // 减去释放的值，可能重入
+      int c = getState() - releases;
+      // 如果当前线程不是持有锁的线程直接报错
+      if (Thread.currentThread() != getExclusiveOwnerThread())
+          throw new IllegalMonitorStateException();
+      // 是否已经完全释放锁
+      boolean free = false;
+      // 支持锁重入, 只有 state 减为 0, 才完全释放锁成功
+      if (c == 0) {
+          free = true;
+          setExclusiveOwnerThread(null);
+      }
+      // 当前线程就是持有锁线程，所以可以直接更新锁，不需要使用 CAS
+      setState(c);
       return free;
   }
   ```
 
-* 进入 unparkSuccessor 方法
+* 进入 AbstractQueuedSynchronizer#unparkSuccessor 方法，唤醒当前节点的后继节点
 
   * 找到队列中离 head 最近的一个 Node（没取消的），unpark 恢复其运行，本例中即为 Thread-1
   * 回到 Thread-1 的 acquireQueued 流程
 
   ```java
-  private void unparkSuccessor(Node node) {    
+  private void unparkSuccessor(Node node) {
+      // 当前节点的状态
       int ws = node.waitStatus;    
       if (ws < 0)        
-          // 尝试重置状态为 0        
+          // 尝试重置状态为 0，因为当前节点要完成对后续节点的唤醒任务了，不需要 -1 了
           compareAndSetWaitStatus(node, ws, 0);    
-      // 找到需要 unpark 的节点，头节点的下一个    
+      // 找到需要 unpark 的节点，当前节点的下一个    
       Node s = node.next;    
-      // 不考虑已取消的节点    
-      if (s == null || s.waitStatus > 0) {        
-          s = null;        
-          // 从 AQS 队列从后至前找到队列需要 unpark 的节点        
-          for (Node t = tail; t != null && t != node; t = t.prev)            
-              if (t.waitStatus <= 0)                
-                  s = t;    
-      }    
-      if (s != null)        
+      // 不考虑已取消的节点
+      if (s == null || s.waitStatus > 0) {
+          s = null;
+          // AQS 队列从后至前找需要 unpark 的节点，直到 t == 当前的 node 为止
+          for (Node t = tail; t != null && t != node; t = t.prev)
+              // 说明当前线程状态需要被唤醒
+              if (t.waitStatus <= 0)
+                  // 置换引用
+                  s = t;
+      }
+      // 找到合适的可以被唤醒的 node，则唤醒线程
+      if (s != null)
           LockSupport.unpark(s.thread);
   }
   ```
 
-* 如果加锁成功（没有竞争），会设置
+* 唤醒的线程会从 park 位置开始执行，如果加锁成功（没有竞争），会设置
 
   * exclusiveOwnerThread 为 Thread-1，state = 1
   * head 指向刚刚 Thread-1 所在的 Node，该 Node 清空 Thread
-  * 原本的 head 因为从链表断开，而可被垃圾回收
+  * 原本的 head 因为从链表断开，而可被垃圾回收（途中有错误，原来的头节点的 waitStatus 为 0）
 
   ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantLock-非公平锁4.png)
 
-* 如果这时候有其它线程来竞争（非公平），例如这时有 Thread-4 来了并抢占了锁
+* 如果这时候有其它线程来竞争**（非公平）**，例如这时有 Thread-4 来了并抢占了锁
 
   * Thread-4 被设置为 exclusiveOwnerThread，state = 1
   * Thread-1 再次进入 acquireQueued 流程，获取锁失败，重新进入 park 阻塞
@@ -6837,10 +6920,10 @@ public final boolean hasQueuedPredecessors() {
     Node t = tail;     
     Node h = head;    
     Node s;    
-    //头尾指向一个节点，列表为空，返回false，    
+    // 头尾指向一个节点，链表为空，返回false
     return h != t &&        
         // 头尾之间有节点，判断头节点的下一个是不是空        
-        // 不是空进入最后的判断，第二个节点的线程是否是本线程        
+        // 不是空进入最后的判断，第二个节点的线程是否是本线程
         ((s = h.next) == null || s.thread != Thread.currentThread());}
 ```
 
@@ -6852,30 +6935,30 @@ public final boolean hasQueuedPredecessors() {
 
 #### 可重入
 
-可重入是指同一个线程如果首次获得了这把锁，那么它是这把锁的拥有者，因此有权利再次获取这把锁，如果不可重入锁，那么第二次获得锁时，自己也会被锁挡住
+可重入是指同一个线程如果首次获得了这把锁，那么它是这把锁的拥有者，因此有权利再次获取这把锁，如果不可重入锁，那么第二次获得锁时，自己也会被锁挡住，直接造成死锁
 
-源码解析参考：`nonfairTryAcquire(int acquires)) `和 `tryRelease(int releases)`
+源码解析参考：`nonfairTryAcquire(int acquires)) ` 和 `tryRelease(int releases)`
 
 ```java
 static ReentrantLock lock = new ReentrantLock();
-public static void main(String[] args) {	
+public static void main(String[] args) {
     method1();
 }
-public static void method1() {    
-    lock.lock();    
-    try {        
+public static void method1() {
+    lock.lock();
+    try {
         System.out.println(Thread.currentThread().getName() + " execute method1");
-        method2();    
-    } finally {    	
-        lock.unlock();    
+        method2();
+    } finally {
+        lock.unlock();
     }
 }
-public static void method2() {    
-    lock.lock();    
-    try {        
+public static void method2() {
+    lock.lock();
+    try {
         System.out.println(Thread.currentThread().getName() + " execute method2");
-    } finally {    	
-        lock.unlock();    
+    } finally {
+        lock.unlock();
     }
 }
 ```
@@ -6887,14 +6970,14 @@ public static void method2() {
 * 加锁一次解锁两次：运行程序会直接报错
 
 ```java
-public void getLock() {    
-    lock.lock();    
-    lock.lock();    
-    try {        
+public void getLock() {
+    lock.lock();
+    lock.lock();
+    try {
         System.out.println(Thread.currentThread().getName() + "\t get Lock");
     } finally {
-        lock.unlock();        
-        //lock.unlock();    
+        lock.unlock();
+        //lock.unlock();
     }
 }
 ```
@@ -6943,19 +7026,22 @@ public static void main(String[] args) throws InterruptedException {
 
 
 
+***
+
+
+
 ##### 实现原理
 
 * 不可打断模式：即使它被打断，仍会驻留在 AQS 队列中，一直要等到获得锁后方能得知自己被打断了
 
   ```java
   public final void acquire(int arg) {    
-      if (!tryAcquire(arg) &&        
-          acquireQueued(addWaiter(Node.EXCLUSIVE), arg))//阻塞等待        
-          // 如果acquireQueued返回true，打断状态interrupted = true        
+      if (!tryAcquire(arg) && acquireQueued(addWaiter(Node.EXCLUSIVE), arg))//阻塞等待        
+          // 如果acquireQueued返回true，打断状态 interrupted = true        
           selfInterrupt();
   }
-  static void selfInterrupt() {    
-      // 知道自己被打断了，需要重新产生一次中断完成中断效果    
+  static void selfInterrupt() {
+      // 知道自己被打断了，需要重新产生一次中断完成中断效果
       Thread.currentThread().interrupt();
   }
   ```
@@ -6970,52 +7056,111 @@ public static void main(String[] args) throws InterruptedException {
                   setHead(node);                
                   p.next = null; // help GC                
                   failed = false;                
-                  // 还是需要获得锁后, 才能返回打断状态                
+                  // 还是需要获得锁后, 才能返回打断状态
                   return interrupted;            
               }            
-              if (shouldParkAfterFailedAcquire(p, node) &&                
-                  parkAndCheckInterrupt())//被打断 返回true                
-                  interrupted = true;        
+              if (shouldParkAfterFailedAcquire(p, node) && parkAndCheckInterrupt()){
+                  // 条件二中判断当前线程是否被打断，被打断返回true，设置中断标记为 true，获取锁后返回
+                  interrupted = true;  
+              }                  
           }
       }
-      private final boolean parkAndCheckInterrupt() {    
-          // 阻塞当前线程，如果打断标记已经是 true, 则 park 会失效    
-          LockSupport.park(this);    
-          // 判断当前线程是否被打断，清除打断标记，被打断返回true    
-          return Thread.interrupted();
-      }
   }
+   private final boolean parkAndCheckInterrupt() {    
+       // 阻塞当前线程，如果打断标记已经是 true, 则 park 会失效    
+       LockSupport.park(this);    
+       // 判断当前线程是否被打断，清除打断标记，被打断返回true
+       return Thread.interrupted();
+   }
   ```
 
-* 可打断模式：
+* 可打断模式：AbstractQueuedSynchronizer#acquireInterruptibly
 
   ```java
   public void lockInterruptibly() throws InterruptedException {    
       sync.acquireInterruptibly(1);
   }
-  public final void acquireInterruptibly(int arg) {    
-      if (Thread.interrupted())//被其他线程打断了       
-  		throw new InterruptedException();    
-      if (!tryAcquire(arg))        
-          // 没获取到锁，进入这里        
+  public final void acquireInterruptibly(int arg) {
+      // 被其他线程打断了直接返回 false
+      if (Thread.interrupted())
+  		throw new InterruptedException();
+      if (!tryAcquire(arg))
+          // 没获取到锁，进入这里
           doAcquireInterruptibly(arg);
   }
   ```
 
   ```java
-  private void doAcquireInterruptibly(int arg) {    
-      final Node node = addWaiter(Node.EXCLUSIVE);    
-      boolean failed = true;    
-      try {        
-          for (;;) {            
-              //...            
-              if (shouldParkAfterFailedAcquire(p, node)&&parkAndCheckInterrupt())
-                  throw new InterruptedException();				
-              // 在 park 过程中如果被 interrupt 会抛出异常, 而不会再次进入循环        
+  private void doAcquireInterruptibly(int arg) throws InterruptedException {
+      // 返回封装当前线程的节点
+      final Node node = addWaiter(Node.EXCLUSIVE);
+      boolean failed = true;
+      try {
+          for (;;) {
+              //...
+              if (shouldParkAfterFailedAcquire(p, node) && parkAndCheckInterrupt())
+                  // 在 park 过程中如果被 interrupt 会抛出异常, 而不会再次进入循环获取锁后才完成打断效果
+                  throw new InterruptedException();
           }    
+      } finally {
+          // 抛出异常前x进入这里
+          if (failed)
+              // 取消当前线程的节点
+              cancelAcquire(node);
       }
   }
   ```
+
+  ```java
+  private void cancelAcquire(Node node) {
+      // 判空
+      if (node == null)
+          return;
+  	// 把当前节点封装的 Thread 置为空
+      node.thread = null;
+  	// 获取当前取消的 node 的前驱节点
+      Node pred = node.prev;
+      // 前驱节点也被取消了，循环找到前面最近的不是取消节点的节点
+      while (pred.waitStatus > 0)
+          node.prev = pred = pred.prev;
+      
+  	// 获取前驱节点的后继节点，可能是当前 node，也可能是 waitStatus > 0 的节点
+      Node predNext = pred.next;
+      
+  	// 把当前节点的状态设置为 【取消状态 1】
+      node.waitStatus = Node.CANCELLED;
+      
+  	// 条件成立说明当前节点是尾节点，把当前节点的前驱节点设置为尾节点
+      if (node == tail && compareAndSetTail(node, pred)) {
+          // 把前驱节点的后继节点置空，这里直接把所有的取消节点出队
+          compareAndSetNext(pred, predNext, null);
+      } else {
+          // 说明当前节点不是 tail 节点
+          int ws;
+          // 条件一成立说明当前节点不是 head.next 节点
+          if (pred != head &&
+              // 判断前驱节点的状态是不是 -1，不成立说明前驱状态可能是 0 或者刚被其他线程取消排队了
+              ((ws = pred.waitStatus) == Node.SIGNAL ||
+               // 如果状态不是 -1，设置前驱节点的状态为 -1
+               (ws <= 0 && compareAndSetWaitStatus(pred, ws, Node.SIGNAL))) &&
+              // 前驱节点的线程不为null
+              pred.thread != null) {
+              
+              Node next = node.next;
+              // 当前节点的后继节点是正常节点
+              if (next != null && next.waitStatus <= 0)
+                  // 把前驱节点的后继节点设置为 当前节点的后继节点，从队列中删除了当前节点
+                  compareAndSetNext(pred, predNext, next);
+          } else {
+              // 当前节点是 head.next 节点，唤醒当前节点的后继节点
+              unparkSuccessor(node);
+          }
+          node.next = node; // help GC
+      }
+  }
+  ```
+
+  
 
 
 
@@ -7027,11 +7172,11 @@ public static void main(String[] args) throws InterruptedException {
 
 ##### 基本使用
 
-`public boolean tryLock()`：尝试获取锁，获取到返回true，获取不到直接放弃，不进入阻塞队列
+`public boolean tryLock()`：尝试获取锁，获取到返回 true，获取不到直接放弃，不进入阻塞队列
 
 `public boolean tryLock(long timeout, TimeUnit unit)`：在给定时间内获取锁，获取不到就退出
 
-注意：tryLock期间也可以被打断
+注意：tryLock 期间也可以被打断
 
 ```java
 public static void main(String[] args) {
@@ -7067,6 +7212,10 @@ public static void main(String[] args) {
 
 
 
+***
+
+
+
 ##### 实现原理
 
 * tryLock()
@@ -7080,10 +7229,10 @@ public static void main(String[] args) {
 * tryLock(long timeout, TimeUnit unit)
 
   ```java
-  public final boolean tryAcquireNanos(int arg, long nanosTimeout) {    
+  public final boolean tryAcquireNanos(int arg, long nanosTimeout) {
       if (Thread.interrupted())        
           throw new InterruptedException();    
-      //tryAcquire 尝试一次    
+      //tryAcquire 尝试一次
       return tryAcquire(arg) || doAcquireNanos(arg, nanosTimeout);
   }
   protected final boolean tryAcquire(int acquires) {    
@@ -7093,21 +7242,23 @@ public static void main(String[] args) {
 
   ```java
   private boolean doAcquireNanos(int arg, long nanosTimeout) {    
-      if (nanosTimeout <= 0L)        
-          return false;    
-      final long deadline = System.nanoTime() + nanosTimeout;    
-      //...    
-      try {        
-          for (;;) {   
+      if (nanosTimeout <= 0L)
+          return false;
+      // 获取最后期限的时间戳
+      final long deadline = System.nanoTime() + nanosTimeout;
+      //...
+      try {
+          for (;;) {
               //...
-              nanosTimeout = deadline - System.nanoTime();            
-              if (nanosTimeout <= 0L)	//时间已到                
-                  return false;            
-              if (shouldParkAfterFailedAcquire(p, node) &&                
-                  nanosTimeout > spinForTimeoutThreshold)                
-                  LockSupport.parkNanos(this, nanosTimeout);            
-              if (Thread.interrupted())                
-                  throw new InterruptedException();        
+              // 计算还需等待的时间
+              nanosTimeout = deadline - System.nanoTime();
+              if (nanosTimeout <= 0L)	//时间已到     
+                  return false;
+              if (shouldParkAfterFailedAcquire(p, node) &&
+                  nanosTimeout > spinForTimeoutThreshold)
+                  LockSupport.parkNanos(this, nanosTimeout);
+              if (Thread.interrupted())
+                  throw new InterruptedException();
           }    
       }
   }
@@ -7115,50 +7266,54 @@ public static void main(String[] args) {
 
 
 
+***
+
+
+
 ##### 哲学家就餐
 
 ```java
-public static void main(String[] args) {    
-    Chopstick c1 = new Chopstick("1");//...  
-    Chopstick c5 = new Chopstick("5");    
-    new Philosopher("苏格拉底", c1, c2).start();    
-    new Philosopher("柏拉图", c2, c3).start();    
-    new Philosopher("亚里士多德", c3, c4).start();    
+public static void main(String[] args) {
+    Chopstick c1 = new Chopstick("1");//...
+    Chopstick c5 = new Chopstick("5");
+    new Philosopher("苏格拉底", c1, c2).start();
+    new Philosopher("柏拉图", c2, c3).start();
+    new Philosopher("亚里士多德", c3, c4).start();
     new Philosopher("赫拉克利特", c4, c5).start();    
     new Philosopher("阿基米德", c5, c1).start();
 }
-class Philosopher extends Thread {    
-    Chopstick left;    
-    Chopstick right;    
-    public void run() {        
-        while (true) {            
-            // 尝试获得左手筷子            
-            if (left.tryLock()) {                
-                try {                    
-                    // 尝试获得右手筷子                    
-                    if (right.tryLock()) {                        
-                        try {							
-                            System.out.println("eating...");       
-                            Thread.sleep(1000);                        
-                        } finally {                            
-                            right.unlock();                        
-                        }                    
-                    }                
-                } finally {                    
-                    left.unlock();                
-                }            
-            }        
-        }	
+class Philosopher extends Thread {
+    Chopstick left;
+    Chopstick right;
+    public void run() {
+        while (true) {
+            // 尝试获得左手筷子
+            if (left.tryLock()) {
+                try {
+                    // 尝试获得右手筷子
+                    if (right.tryLock()) {
+                        try {
+                            System.out.println("eating...");
+                            Thread.sleep(1000);
+                        } finally {
+                            right.unlock();
+                        }
+                    }
+                } finally {
+                    left.unlock();
+                }
+            }
+        }
     }
 }
-class Chopstick extends ReentrantLock {    
-    String name;    
-    public Chopstick(String name) {        
-        this.name = name;    
-    }    
-    @Override    
-    public String toString() {        
-        return "筷子{" + name + '}';    
+class Chopstick extends ReentrantLock {
+    String name;
+    public Chopstick(String name) {
+        this.name = name;
+    }
+    @Override
+    public String toString() {
+        return "筷子{" + name + '}';
     }
 }
 ```
@@ -7191,33 +7346,33 @@ Condition 类 API：
 
 ```java
 public static void main(String[] args) throws InterruptedException {    
-    ReentrantLock lock = new ReentrantLock();    
-    //创建一个新的条件变量    
-    Condition condition1 = lock.newCondition();    
-    Condition condition2 = lock.newCondition();    
-    new Thread(() -> {        
-        try {            
-            lock.lock();                      
-            System.out.println("进入等待");     
-            //进入休息室等待  
-            condition1.await();            
-            System.out.println("被唤醒了");        
-        } catch (InterruptedException e) {            
-            e.printStackTrace();        
-        } finally {            
-            lock.unlock();        
+    ReentrantLock lock = new ReentrantLock();
+    //创建一个新的条件变量
+    Condition condition1 = lock.newCondition();
+    Condition condition2 = lock.newCondition();
+    new Thread(() -> {
+        try {
+            lock.lock();
+            System.out.println("进入等待");
+            //进入休息室等待
+            condition1.await();
+            System.out.println("被唤醒了");
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            lock.unlock();
         }    
-    }).start();    
-    Thread.sleep(1000);    
-    //叫醒    
-    new Thread(() -> {        
+    }).start();
+    Thread.sleep(1000);
+    //叫醒
+    new Thread(() -> {
         try {            
-            lock.lock();            
-            //唤醒           
-            condition2.signal();        
-        } finally {            
-            lock.unlock();        
-        }    
+            lock.lock();
+            //唤醒
+            condition2.signal();
+        } finally {
+            lock.unlock();
+        }
     }).start();
 }
 ```
@@ -7230,35 +7385,43 @@ public static void main(String[] args) throws InterruptedException {
 
 ##### 实现原理
 
-await 流程：
+###### await
 
-* 开始 Thread-0 持有锁，调用 await，进入 ConditionObject 的 addConditionWaiter 流程
+* 开始 Thread-0 持有锁，调用 await，线程进入 ConditionObject 等待，直到被唤醒或打断，调用 await 方法的线程都是持锁状态的，所以说逻辑里**不存在并发**
 
   ```java
-  // 等待，直到被唤醒或打断
   public final void await() throws InterruptedException {
+       // 判断当前线程是否是中断状态，是就直接给个中断异常
       if (Thread.interrupted())
           throw new InterruptedException();
-      // 添加一个 Node 至等待队列,
+      // 将调用 await 的线程包装成 Node 添加到条件队列并返回
       Node node = addConditionWaiter();
-      // 释放节点持有的锁
+      // 完全释放节点持有的锁，因为其他线程唤醒当前线程的前提是 持有锁
       int savedState = fullyRelease(node);
+      
+      //设置打断模式为没有被打断，状态码为 0
       int interruptMode = 0;
-      // 如果该节点还没有转移至 AQS 队列, park 阻塞
+      
+      // 如果该节点还没有转移至 AQS 阻塞队列, park 阻塞
       while (!isOnSyncQueue(node)) {
           LockSupport.park(this);
-          // 如果被打断, 退出等待队列，判断打断模式
+          // 如果被打断，退出等待队列，对应的 node 【也会被迁移到阻塞队列】
           if ((interruptMode = checkInterruptWhileWaiting(node)) != 0)
               break;
       }
-      // 退出等待队列后, 还需要获得 AQS 队列的锁
+      // 逻辑到这说明当前线程退出等待队列，进入【阻塞队列】
+      
+      // 释放了多少锁就重新获取多少锁，获取锁成功判断打断模式
       if (acquireQueued(node, savedState) && interruptMode != THROW_IE)
           interruptMode = REINTERRUPT;
-      // 所有已取消的 Node 从队列链表删除
+      
+      // node在条件队列时 如果被外部线程中断唤醒，会加入到阻塞队列，但是并未设nextWaiter = null
       if (node.nextWaiter != null)
+          // 清理条件队列内所有已取消的 Node
           unlinkCancelledWaiters();
-      // 应用打断模式
+      // 条件成立说明挂起期间发生过中断
       if (interruptMode != 0)
+          // 应用打断模式
           reportInterruptAfterWait(interruptMode);
   }
   ```
@@ -7270,100 +7433,184 @@ await 流程：
   private static final int THROW_IE = -1;
   ```
 
+  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantLock-条件变量1.png)
+
 * 创建新的 Node 状态为 -2（Node.CONDITION），关联 Thread-0，加入等待队列尾部
 
   ```java
-  // 添加一个 Node 至等待队列
   private Node addConditionWaiter() {
+      // 获取当前条件队列的尾节点的引用，保存到局部变量 t 中
       Node t = lastWaiter;
-      // 所有已取消的 Node 从队列链表删除,
+      // 当前队列中不是空，并且节点的状态不是CONDITION（-2），说明当前节点发生了中断
       if (t != null && t.waitStatus != Node.CONDITION) {
+          // 清理条件队列内所有已取消的 Node
           unlinkCancelledWaiters();
+          // 清理完成重新获取 尾节点 的引用
           t = lastWaiter;
       }
-      // 创建一个关联当前线程的新 Node, 添加至队列尾部
+      // 创建一个关联当前线程的新 node, 设置状态为 CONDITION(-2)，添加至队列尾部
       Node node = new Node(Thread.currentThread(), Node.CONDITION);
       if (t == null)
-          firstWaiter = node;
+          firstWaiter = node;		// 空队列直接放在队首【不用CAS因为执行线程是持锁线程，并发安全】
       else
-          t.nextWaiter = node;
-      lastWaiter = node;// 单向链表
+          t.nextWaiter = node;	// 非空队列队尾追加
+      lastWaiter = node;			// 更新队尾的引用
       return node;
   }
   ```
 
   ```java
-  private void unlinkCancelledWaiters() {    
-      Node t = firstWaiter;   
-      Node trail = null;    
-      while (t != null) {        
-          Node next = t.nextWaiter;        
-          // 判断 t 节点不是 CONDITION 节点        
-          if (t.waitStatus != Node.CONDITION) {            
-              // t 与下一个节点断开            
-              t.nextWaiter = null;            
-              // 如果第一次循环就进入if语句，说明 t 是首节点            
-              if (trail == null)                
-                  firstWaiter = next;            
-              else                
-                  // t 的前节点和后节点相连，删除 t                
-                  trail.nextWaiter = next;            
-              // t 是尾节点了            
-              if (next == null)                
-                  lastWaiter = trail;        
-          } else           
-              trail = t;        
-          t = next; // 把 t.next 赋值给 t     
+  // 清理条件队列内所有已取消（不是 CONDITION）的 node
+  private void unlinkCancelledWaiters() {
+      // 从头节点开始遍历【FIFO】
+      Node t = firstWaiter;
+      // 指向正常的 CONDITION 节点
+      Node trail = null;
+      // 等待队列不空
+      while (t != null) {
+          // 获取当前节点的后继节点
+          Node next = t.nextWaiter;
+          // 判断 t 节点是不是 CONDITION 节点
+          if (t.waitStatus != Node.CONDITION) { 
+              // 不是正常节点，需要 t 与下一个节点断开
+              t.nextWaiter = null;
+              // 条件成立说明遍历到的节点还未碰到过正常节点
+              if (trail == null)
+                  // 更新 firstWaiter 指针为下个节点
+                  firstWaiter = next;
+              else
+                  // 让上一个正常节点指向 当前取消节点的 下一个节点，删除非正常的节点
+                  trail.nextWaiter = next;
+              // t 是尾节点了，更新 lastWaiter 指向最后一个正常节点
+              if (next == null)
+                  lastWaiter = trail;
+          } else {
+              // 正常节点赋值给 trail
+              trail = t;
+          }
+          // 把 t.next 赋值给 t
+          t = next; 
       }
   }
   ```
 
 * 接下来进入 AQS 的 fullyRelease 流程，释放同步器上的锁
 
-  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantLock-条件变量1.png)
-
   ```java
   // 线程可能重入，需要将 state 全部释放
-  final int fullyRelease(Node node) {    
-      boolean failed = true;    
-      try {        
-          int savedState = getState();        
-          // release -> tryRelease 公平锁解锁，会解锁重入锁        
-          if (release(savedState)) {            
-              failed = false;            
-              return savedState;        
-          } else {            
-              throw new IllegalMonitorStateException();        
-          }    
-      } finally {        
-          // 没有释放成功，设置为取消状态        
-          if (failed)            
-              node.waitStatus = Node.CANCELLED;    
+  final int fullyRelease(Node node) {
+      // 完全释放锁是否成功，false 代表成功
+      boolean failed = true;
+      try {
+          // 获取当前线程所持有的 state 值总数
+          int savedState = getState();
+          // release -> tryRelease 解锁重入锁
+          if (release(savedState)) {
+              // 释放成功
+              failed = false;
+              // 返回解锁的深度
+              return savedState;
+          } else {
+              // 解锁失败抛出异常
+              throw new IllegalMonitorStateException();
+          }
+      } finally {
+          // 没有释放成功，将当前 node 设置为取消状态
+          if (failed)
+              node.waitStatus = Node.CANCELLED;
       }
   }
   ```
 
-* unpark AQS 队列中的下一个节点，竞争锁，假设没有其他竞争线程，那么 Thread-1 竞争成功
+* 进入 isOnSyncQueue 逻辑判断节点是否移动到阻塞队列
 
-* park 阻塞 Thread-0
+  ```java
+  final boolean isOnSyncQueue(Node node) {
+      // node 的状态是 CONDITION，signal方法是先修改状态再迁移，所以前驱节点为空证明还没有迁移
+      if (node.waitStatus == Node.CONDITION || node.prev == null)
+          return false;
+      // 说明当前节点已经成功入队到阻塞队列，条件队列的 next 指针为 null，且当前节点后面已经有其它 node
+      if (node.next != null)
+          return true;
+  	// 阻塞队列的尾巴开始向前遍历查找 node，如果查找到返回 true，查找不到返回 false
+      return findNodeFromTail(node);
+  }
+  ```
+
+* unpark AQS 队列中的下一个节点竞争锁，假设没那么 Thread-1 竞争成功，park 阻塞 Thread-0
 
   ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantLock-条件变量2.png)
 
-
-
-signal 流程：
-
-* 假设 Thread-1 要来唤醒 Thread-0，进入 ConditionObject 的 doSignal 流程，取得等待队列中第一个 Node，即 Thread-0 所在 Node
+* 线程 park 后如果被打断或者 unpark，会进入 checkInterruptWhileWaiting 判断线程是否被打断：
 
   ```java
-  // 唤醒 - 必须持有锁才能唤醒, 因此 doSignal 内无需考虑加锁
-  public final void signal() {    
-      // 调用方法的线程是否是资源的持有线程    
-      if (!isHeldExclusively())        
-          throw new IllegalMonitorStateException();    
-      // 取得等待队列中第一个 Node   
-      Node first = firstWaiter;    
-      if (first != null)        
+  private int checkInterruptWhileWaiting(Node node) {
+      // Thread.interrupted() 返回当前线程中断标记位，并且重置当前标记位 为 false
+      // 如果被中断了，根据是否在条件队列被中断的，设置中断状态码
+      return Thread.interrupted() ?(transferAfterCancelledWait(node) ? THROW_IE : REINTERRUPT) : 0;
+  }
+  ```
+
+  ```java
+  // 这个方法只有在线程是被中断唤醒时才会调用
+  final boolean transferAfterCancelledWait(Node node) {
+      // 条件成立说明当前node一定是在条件队列内，因为 signal 迁移节点到阻塞队列时，会将节点的状态修改为 0
+      if (compareAndSetWaitStatus(node, Node.CONDITION, 0)) {
+          // 【中断唤醒的 node 也会被加入到阻塞队列中】
+          enq(node);
+          // 表示是在条件队列内被中断了
+          return true;
+      }
+  
+      //执行到这里的情况：
+      //1.当前node已经被外部线程调用 signal 方法将其迁移到 阻塞队列 内了
+      //2.当前node正在被外部线程调用 signal 方法将其迁移至 阻塞队列 进行中状态
+      
+      // 如果当前线程还没到阻塞队列，一直释放 CPU
+      while (!isOnSyncQueue(node))
+          Thread.yield();
+  
+      // 表示当前节点被中断唤醒时不在条件队列了
+      return false;
+  }
+  ```
+
+* 最后开始处理中断状态：
+
+  ```java
+  private void reportInterruptAfterWait(int interruptMode) throws InterruptedException {
+      //条件成立说明在条件队列内发生过中断，此时 await 方法抛出中断异常
+      if (interruptMode == THROW_IE)
+          throw new InterruptedException();
+  
+      //条件成立说明在条件队列外发生的中断，此时设置当前线程的中断标记位为 true
+      else if (interruptMode == REINTERRUPT)
+          // 进行一次自己打断，产生中断的效果
+          selfInterrupt();
+  }
+  ```
+
+  
+
+
+
+***
+
+
+
+###### signal
+
+* 假设 Thread-1 要来唤醒 Thread-0，进入 ConditionObject 的 doSignal 流程，取得等待队列中第一个 Node，即 Thread-0 所在 Node，必须持有锁才能唤醒, 因此 doSignal 内**线程安全**
+
+  ```java
+  public final void signal() {
+      // 判断调用signal方法的线程是否是独占锁持有线程
+      if (!isHeldExclusively())
+          throw new IllegalMonitorStateException();
+      // 获取条件队列中第一个 Node
+      Node first = firstWaiter;
+      // 不为空就将第该节点【迁移到阻塞队列】
+      if (first != null)
           doSignal(first);
   }
   ```
@@ -7372,14 +7619,14 @@ signal 流程：
   // 唤醒 - 将没取消的第一个节点转移至 AQS 队列尾部
   private void doSignal(Node first) {
       do {
-          // 当前节点是尾节点
+          // 当前节点是尾节点，所以队列中只有当前一个节点了
           if ((firstWaiter = first.nextWaiter) == null)
               lastWaiter = null;
           first.nextWaiter = null;
       // 将等待队列中的 Node 转移至 AQS 队列, 不成功且还有节点则继续循环
-      } while (!transferForSignal(first) &&
-               (first = firstWaiter) != null);
+      } while (!transferForSignal(first) && (first = firstWaiter) != null);
   }
+  // signalAll() 会调用这个函数，唤醒所有的节点
   private void doSignalAll(Node first) {
       lastWaiter = firstWaiter = null;
       do {
@@ -7391,20 +7638,22 @@ signal 流程：
   }
   ```
 
-* 执行 transferForSignal 流程，将该 Node 加入 AQS 队列尾部，将 Thread-0 的 waitStatus 改为 0，Thread-3 的waitStatus 改为 -1
+* 执行 transferForSignal，将该 Node 加入 AQS 阻塞队列尾部，将 Thread-0 的 waitStatus 改为 0，Thread-3 的 waitStatus 改为 -1
 
   ```java
   // 如果节点状态是取消, 返回 false 表示转移失败, 否则转移成功
   final boolean transferForSignal(Node node) {
-      // 如果状态已经不是 Node.CONDITION, 说明被取消了
+      // CAS 修改当前节点的状态，修改为 0，因为当前节点马上要迁移到阻塞队列了
+      // 如果状态已经不是 Node.CONDITION, 说明线程被取消（await 释放全部锁失败）或者被中断（可打断 cancelAcquire）
       if (!compareAndSetWaitStatus(node, Node.CONDITION, 0))
           return false;
-      // 加入 AQS 队列尾部
+      // 将当前 node 入阻塞队列，p 是当前节点在阻塞队列的前驱节点
       Node p = enq(node);
       int ws = p.waitStatus;
-      // 上一个节点被取消  上一个节点不能设置状态为 Node.SIGNAL
+      
+      // 前驱节点被取消或者不能设置状态为 Node.SIGNAL
       if (ws > 0 || !compareAndSetWaitStatus(p, ws, Node.SIGNAL))
-          // unpark 取消阻塞, 让线程重新同步状态
+          // unpark 取消阻塞, 让线程竞争锁，重新同步状态
           LockSupport.unpark(node.thread);
       return true;
   }
@@ -7426,10 +7675,11 @@ signal 流程：
 
 #### 读写锁
 
-独占锁：指该锁一次只能被一个线程所持有，对ReentrantLock和Synchronized而言都是独占锁
+独占锁：指该锁一次只能被一个线程所持有，对 ReentrantLock 和 Synchronized 而言都是独占锁
+
 共享锁：指该锁可以被多个线程锁持有
 
-ReentrantReadWriteLock 其读锁是共享，其写锁是独占
+ReentrantReadWriteLock 其读锁是共享锁，其写锁是独占锁
 
 作用：多个线程同时读一个资源类没有任何问题，为了满足并发量，读取共享资源应该同时进行，但是如果一个线程想去写共享资源，就不应该再有其它线程可以对该资源进行读或写
 
@@ -7469,15 +7719,17 @@ ReentrantReadWriteLock 其读锁是共享，其写锁是独占
   ```
 
 构造方法：
-	`public ReentrantReadWriteLock()`：默认构造方法，非公平锁
-	`public ReentrantReadWriteLock(boolean fair)`：true 为公平锁
+
+* `public ReentrantReadWriteLock()`：默认构造方法，非公平锁
+* `public ReentrantReadWriteLock(boolean fair)`：true 为公平锁
 
 常用API：
-	`public ReentrantReadWriteLock.ReadLock readLock()`：返回读锁
-	`public ReentrantReadWriteLock.WriteLock writeLock()`：返回写锁
-	`public void lock()`：加锁
-	`public void unlock()`：解锁
-	`public boolean tryLock()`：尝试获取锁
+
+* `public ReentrantReadWriteLock.ReadLock readLock()`：返回读锁
+* `public ReentrantReadWriteLock.WriteLock writeLock()`：返回写锁
+* `public void lock()`：加锁
+* `public void unlock()`：解锁
+* `public boolean tryLock()`：尝试获取锁
 
 读读并发：
 
