@@ -799,7 +799,9 @@ public class demo {
 
 ##### 同步方法
 
-作用：把出现线程安全问题的核心方法锁起来，每次只能一个线程进入访问
+把出现线程安全问题的核心方法锁起来，每次只能一个线程进入访问
+
+synchronized 修饰的方法的不具备继承性，所以子类是线程不安全的，如果子类的方法也被 synchronized 修饰，两个锁对象其实是一把锁，而且是**子类对象作为锁**
 
 用法：直接给方法加上一个修饰符 synchronized
 
@@ -2495,7 +2497,7 @@ volatile 是 Java 虚拟机提供的**轻量级**的同步机制（三大特性�
 - 不保证原子性
 - 保证有序性（禁止指令重排）
 
-性能：volatile修饰的变量进行读操作与普通变量几乎没什么差别，但是写操作相对慢一些，因为需要在本地代码中插入很多内存屏障来保证指令不会发生乱序执行，但是开销比锁要小
+性能：volatile 修饰的变量进行读操作与普通变量几乎没什么差别，但是写操作相对慢一些，因为需要在本地代码中插入很多内存屏障来保证指令不会发生乱序执行，但是开销比锁要小
 
 
 
@@ -6736,7 +6738,7 @@ Thread-1 执行：
   }
   ```
 
-  * 进入 shouldParkAfterFailedAcquire 逻辑，将前驱 node，即 head 的 waitStatus 改为 -1，返回 false；waitStatus 为 -1 的节点用来唤醒下一个节点
+  * 进入 shouldParkAfterFailedAcquire 逻辑，**将前驱 node 的 waitStatus 改为 -1**，返回 false；waitStatus 为 -1 的节点用来唤醒下一个节点
 
   ```java
   private static boolean shouldParkAfterFailedAcquire(Node pred, Node node) {
@@ -6751,7 +6753,7 @@ Thread-1 执行：
           } while (pred.waitStatus > 0);
           // 获取到非取消的节点，连接上当前节点
           pred.next = node;
-      // 默认情况下 node 的 waitStatus 是 0，进入这里的逻辑
+      // 【默认情况下 node 的 waitStatus 是 0，进入这里的逻辑】
       } else {
           // 设置上一个节点状态为 Node.SIGNAL，返回外层循环重试
           compareAndSetWaitStatus(pred, ws, Node.SIGNAL);
@@ -6997,7 +6999,7 @@ public void getLock() {
 * 如果没有竞争此方法就会获取 lock 对象锁
 * 如果有竞争就进入阻塞队列，可以被其他线程用 interrupt 打断
 
-注意：如果是不可中断模式，那么即使使用了 interrupt 也不会让等待中断
+注意：如果是不可中断模式，那么即使使用了 interrupt 也不会让等待状态中的线程中断
 
 ```java
 public static void main(String[] args) throws InterruptedException {    
@@ -7032,7 +7034,7 @@ public static void main(String[] args) throws InterruptedException {
 
 ##### 实现原理
 
-* 不可打断模式：即使它被打断，仍会驻留在 AQS 队列中，一直要等到获得锁后方能得知自己被打断了
+* 不可打断模式：即使它被打断，仍会驻留在 AQS 队列中，一直要**等到获得锁后才能得知自己被打断**了
 
   ```java
   public final void acquire(int arg) {    
@@ -7074,7 +7076,7 @@ public static void main(String[] args) throws InterruptedException {
    }
   ```
 
-* 可打断模式：AbstractQueuedSynchronizer#acquireInterruptibly
+* 可打断模式：AbstractQueuedSynchronizer#acquireInterruptibly，**被打断后会直接抛出异常**
 
   ```java
   public void lockInterruptibly() throws InterruptedException {    
@@ -7341,7 +7343,10 @@ Condition 类 API：
 
 * **await / signal 前需要获得锁**
 * await 执行后，会释放锁进入 conditionObject 等待
-* await 的线程被唤醒（打断、超时）去重新竞争 lock 锁
+* await 的线程被唤醒去重新竞争 lock 锁
+
+* 线程在条件队列被打断会抛出中断异常
+
 * 竞争 lock 锁成功后，从 await 后继续执行
 
 ```java
@@ -7399,7 +7404,7 @@ public static void main(String[] args) throws InterruptedException {
       // 完全释放节点持有的锁，因为其他线程唤醒当前线程的前提是 持有锁
       int savedState = fullyRelease(node);
       
-      //设置打断模式为没有被打断，状态码为 0
+      // 设置打断模式为没有被打断，状态码为 0
       int interruptMode = 0;
       
       // 如果该节点还没有转移至 AQS 阻塞队列, park 阻塞
@@ -7435,7 +7440,7 @@ public static void main(String[] args) throws InterruptedException {
 
   ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantLock-条件变量1.png)
 
-* 创建新的 Node 状态为 -2（Node.CONDITION），关联 Thread-0，加入等待队列尾部
+* **创建新的 Node 状态为 -2（Node.CONDITION）**，关联 Thread-0，加入等待队列尾部
 
   ```java
   private Node addConditionWaiter() {
@@ -7460,7 +7465,7 @@ public static void main(String[] args) throws InterruptedException {
   ```
 
   ```java
-  // 清理条件队列内所有已取消（不是 CONDITION）的 node
+  // 清理条件队列内所有已取消（不是CONDITION）的 node
   private void unlinkCancelledWaiters() {
       // 从头节点开始遍历【FIFO】
       Node t = firstWaiter;
@@ -7526,7 +7531,7 @@ public static void main(String[] args) throws InterruptedException {
 
   ```java
   final boolean isOnSyncQueue(Node node) {
-      // node 的状态是 CONDITION，signal方法是先修改状态再迁移，所以前驱节点为空证明还没有迁移
+      // node 的状态是 CONDITION，signal 方法是先修改状态再迁移，所以前驱节点为空证明还没有迁移
       if (node.waitStatus == Node.CONDITION || node.prev == null)
           return false;
       // 说明当前节点已经成功入队到阻塞队列，条件队列的 next 指针为 null，且当前节点后面已经有其它 node
@@ -7541,7 +7546,7 @@ public static void main(String[] args) throws InterruptedException {
 
   ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantLock-条件变量2.png)
 
-* 线程 park 后如果被打断或者 unpark，会进入 checkInterruptWhileWaiting 判断线程是否被打断：
+* 线程 park 后如果被 unpark 或者被打断，都会进入 checkInterruptWhileWaiting 判断线程是否被打断：
 
   ```java
   private int checkInterruptWhileWaiting(Node node) {
@@ -7558,7 +7563,7 @@ public static void main(String[] args) throws InterruptedException {
       if (compareAndSetWaitStatus(node, Node.CONDITION, 0)) {
           // 【中断唤醒的 node 也会被加入到阻塞队列中】
           enq(node);
-          // 表示是在条件队列内被中断了
+          // 表示是在条件队列内被中断了，设置为 THROW_IE -1
           return true;
       }
   
@@ -7570,7 +7575,7 @@ public static void main(String[] args) throws InterruptedException {
       while (!isOnSyncQueue(node))
           Thread.yield();
   
-      // 表示当前节点被中断唤醒时不在条件队列了
+      // 表示当前节点被中断唤醒时不在条件队列了，设置为 REINTERRUPT 1
       return false;
   }
   ```
@@ -7579,11 +7584,11 @@ public static void main(String[] args) throws InterruptedException {
 
   ```java
   private void reportInterruptAfterWait(int interruptMode) throws InterruptedException {
-      //条件成立说明在条件队列内发生过中断，此时 await 方法抛出中断异常
+      // 条件成立说明在条件队列内发生过中断，此时 await 方法抛出中断异常
       if (interruptMode == THROW_IE)
           throw new InterruptedException();
   
-      //条件成立说明在条件队列外发生的中断，此时设置当前线程的中断标记位为 true
+      // 条件成立说明在条件队列外发生的中断，此时设置当前线程的中断标记位为 true
       else if (interruptMode == REINTERRUPT)
           // 进行一次自己打断，产生中断的效果
           selfInterrupt();
@@ -7651,7 +7656,7 @@ public static void main(String[] args) throws InterruptedException {
       Node p = enq(node);
       int ws = p.waitStatus;
       
-      // 前驱节点被取消或者不能设置状态为 Node.SIGNAL
+      // 如果前驱节点被取消或者不能设置状态为 Node.SIGNAL
       if (ws > 0 || !compareAndSetWaitStatus(p, ws, Node.SIGNAL))
           // unpark 取消阻塞, 让线程竞争锁，重新同步状态
           LockSupport.unpark(node.thread);
@@ -7679,7 +7684,7 @@ public static void main(String[] args) throws InterruptedException {
 
 共享锁：指该锁可以被多个线程锁持有
 
-ReentrantReadWriteLock 其读锁是共享锁，其写锁是独占锁
+ReentrantReadWriteLock 其**读锁是共享锁，写锁是独占锁**
 
 作用：多个线程同时读一个资源类没有任何问题，为了满足并发量，读取共享资源应该同时进行，但是如果一个线程想去写共享资源，就不应该再有其它线程可以对该资源进行读或写
 
@@ -7696,7 +7701,7 @@ ReentrantReadWriteLock 其读锁是共享锁，其写锁是独占锁
   }
   ```
 
-* 读-读 能共存、读-写 不能共存、写-写 不能共存
+* 读-读能共存、读-写不能共存、写-写不能共存
 
 * 读锁不支持条件变量
 
@@ -7790,21 +7795,19 @@ public static void main(String[] args) {
 
 ##### 加锁原理
 
-读写锁用的是同一个 Sycn 同步器，因此等待队列、state 等也是同一个，原理与 ReentrantLock 加锁相比没有特殊之处，不同是写锁状态占了 state 的低 16 位，而读锁使用的是 state 的高 16 位
+读写锁用的是同一个 Sycn 同步器，因此等待队列、state 等也是同一个，原理与 ReentrantLock 加锁相比没有特殊之处，不同是**写锁状态占了 state 的低 16 位，而读锁使用的是 state 的高 16 位**
 
 * t1 w.lock（写锁），成功上锁 state = 0_1
 
   ```java
   //lock()  -> sync.acquire(1);
   public final void acquire(int arg) {
-      // 尝试获得写锁
-      if (!tryAcquire(arg) &&
-          // 获得写锁失败，将当前线程关联到一个 Node 对象上, 模式为独占模式
-          acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
+      // 尝试获得写锁，获得写锁失败，将当前线程关联到一个 Node 对象上, 模式为独占模式 
+      if (!tryAcquire(arg) && acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
           selfInterrupt();
   }
   ```
-
+  
   ```java
   protected final boolean tryAcquire(int acquires) {
       Thread current = Thread.currentThread();
@@ -7812,7 +7815,8 @@ public static void main(String[] args) {
       // 获得低 16 位, 代表写锁的 state 计数
       int w = exclusiveCount(c);
       if (c != 0) {
-          // c != 0 and w == 0 表示r != 0，有读锁，并且写锁的拥有者不是自己，获取失败
+          // c != 0 and w == 0 表示 r != 0，有读锁，读锁不能升级，直接返回false
+          // w != 0 说明有写锁，写锁的拥有者不是自己，获取失败
           if (w == 0 || current != getExclusiveOwnerThread())
               return false;
           // 锁重入计数超过低 16 位, 报异常
@@ -7822,11 +7826,11 @@ public static void main(String[] args) {
           setState(c + acquires);
           return true;
       }
-      // c == 0，没有任何锁，判断写锁是否该阻塞
-      if (writerShouldBlock() ||
-          !compareAndSetState(c, c + acquires))
+      
+      // c == 0，没有任何锁，判断写锁是否该阻塞，不阻塞尝试获取锁，获取失败返回 false
+      if (writerShouldBlock() || !compareAndSetState(c, c + acquires))
           return false;
-      // 获得锁成功
+      // 获得锁成功，设置锁的持有线程为当前线程
       setExclusiveOwnerThread(current);
       return true;
   }
@@ -7839,7 +7843,7 @@ public static void main(String[] args) {
       return hasQueuedPredecessors();
   }
   ```
-
+  
 * t2 r.lock（读锁），进入 tryAcquireShared 流程，如果有写锁占据，那么 tryAcquireShared 
 
   * 返回 -1 表示失败
@@ -7862,10 +7866,11 @@ public static void main(String[] args) {
   protected final int tryAcquireShared(int unused) {
       Thread current = Thread.currentThread();
       int c = getState();
-      // 如果是其它线程持有写锁, 并且写锁的持有者不是当前线程，获取读锁失败
-      if (exclusiveCount(c) != 0 && //低 16 位, 代表写锁的 state
-          getExclusiveOwnerThread() != current)
+      // 低 16 位, 代表写锁的 state
+      // 如果是其它线程持有写锁, 并且写锁的持有者不是当前线程，获取读锁失败，写锁允许降级
+      if (exclusiveCount(c) != 0 && getExclusiveOwnerThread() != current)
           return -1;
+      
       // 高 16 位，代表读锁的 state
       int r = sharedCount(c);
       if (!readerShouldBlock() &&	// 读锁不该阻塞
@@ -7897,6 +7902,7 @@ public static void main(String[] args) {
           for (;;) {
               // 获取前驱节点
               final Node p = node.predecessor();
+              // 如果前驱节点就头节点就去尝试获取锁
               if (p == head) {
                   // 再一次尝试获取读锁
                   int r = tryAcquireShared(arg);
@@ -7910,10 +7916,8 @@ public static void main(String[] args) {
                       return;
                   }
               }
-              // 是否在获取读锁失败时阻塞
-              if (shouldParkAfterFailedAcquire(p, node) &&
-                  // park 当前线程
-                  parkAndCheckInterrupt())
+              // 是否在获取读锁失败时阻塞      					 park 当前线程
+              if (shouldParkAfterFailedAcquire(p, node) && parkAndCheckInterrupt())
                   interrupted = true;
           }
       } finally {
@@ -7967,11 +7971,11 @@ public static void main(String[] args) {
   }
   ```
 
-* 如果没有成功，在 doAcquireShared 内 for (;;) 循环一次，shouldParkAfterFailedAcquire 内把前驱节点的 waitStatus 改为 -1，再 for (;;) 循环一次尝试 tryAcquireShared，不成功在parkAndCheckInterrupt() 处 park
+* 如果没有成功，在 doAcquireShared 内 for (;;) 循环一次，shouldParkAfterFailedAcquire 内把前驱节点的 waitStatus 改为 -1，再 for (;;) 循环一次尝试 tryAcquireShared，不成功在 parkAndCheckInterrupt() 处 park
 
   <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantReadWriteLock加锁1.png" style="zoom: 80%;" />
 
-* 这种状态下，假设又有t3 r.lock，t4 w.lock，这期间 t1 仍然持有锁，就变成了下面的样子
+* 这种状态下，假设又有 t3 r.lock，t4 w.lock，这期间 t1 仍然持有锁，就变成了下面的样子
 
   ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantReadWriteLock加锁2.png)
 
@@ -8008,9 +8012,8 @@ public static void main(String[] args) {
 
 * 下一个节点不是 shared 了，因此不会继续唤醒 t4 所在节点
 
-* t2 进入 sync.releaseShared(1) 中，调用 tryReleaseShared(1) 让计数减一，但计数还不为零
-  t3 同样让计数减一，计数为零，进入doReleaseShared() 将头节点从 -1 改为 0 并唤醒下一个节点
-
+* t2 进入 sync.releaseShared(1) 中，调用 tryReleaseShared(1) 让计数减一，但计数还不为零，t3 同样让计数减一，计数为零，进入doReleaseShared() 将头节点从 -1 改为 0 并唤醒下一个节点
+  
   ```java
   public void unlock() {
       sync.releaseShared(1);
@@ -8023,7 +8026,7 @@ public static void main(String[] args) {
       return false;
   }
   ```
-
+  
   ```java
   protected final boolean tryReleaseShared(int unused) {
       //  
@@ -8037,7 +8040,7 @@ public static void main(String[] args) {
       }
   }
   ```
-
+  
 * t4 在 acquireQueued 中 parkAndCheckInterrupt 处恢复运行，再次 for (;;) 这次自己是头节点的临节点，并且没有其他节点竞争，tryAcquire(1) 成功，修改头结点，流程结束
 
   <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantReadWriteLock解锁2.png" style="zoom: 67%;" />
@@ -8075,7 +8078,7 @@ StampedLock：读写锁，该类自 JDK 8 加入，是为了进一步优化读�
   lock.unlockWrite(stamp);
   ```
 
-* 乐观读，StampedLock 支持`tryOptimisticRead()`方法，读取完毕后做一次**戳校验**，如果校验通过，表示这期间没有其他线程的写操作，数据可以安全使用，如果校验没通过，需要重新获取读锁，保证数据安全
+* 乐观读，StampedLock 支持 `tryOptimisticRead()` 方法，读取完毕后做一次**戳校验**，如果校验通过，表示这期间没有其他线程的写操作，数据可以安全使用，如果校验没通过，需要重新获取读锁，保证数据安全
 
   ```java
   long stamp = lock.tryOptimisticRead();
@@ -8087,8 +8090,8 @@ StampedLock：读写锁，该类自 JDK 8 加入，是为了进一步优化读�
 
 提供一个数据容器类内部分别使用读锁保护数据的 read() 方法，写锁保护数据的 write() 方法：
 
-* 读-读 可以优化
-* 读-写 优化读，补加读锁
+* 读-读可以优化
+* 读-写优化读，补加读锁
 
 ```java
 public static void main(String[] args) throws InterruptedException {
@@ -8154,9 +8157,474 @@ class DataContainerStamped {
 
 
 
+### CountDown
+
+#### 基本使用
+
+CountDownLatch：计数器，用来进行线程同步协作，等待所有线程完成
+
+构造器：
+
+* `public CountDownLatch(int count)`：初始化唤醒需要的 down 几步
+
+常用API：
+
+* `public void await() `：让当前线程等待，必须 down 完初始化的数字才可以被唤醒，否则进入无限等待
+* `public void countDown()`：计数器进行减1（down 1）
+
+应用：同步等待多个 Rest 远程调用结束
+
+```java
+// LOL 10人进入游戏倒计时
+public static void main(String[] args) throws InterruptedException {
+    CountDownLatch latch = new CountDownLatch(10);
+    ExecutorService service = Executors.newFixedThreadPool(10);
+    String[] all = new String[10];
+    Random random = new Random();
+
+    for (int j = 0; j < 10; j++) {
+        int finalJ = j;//常量
+        service.submit(() -> {
+            for (int i = 0; i <= 100; i++) {
+                Thread.sleep(random.nextInt(100));	//随机休眠
+                all[finalJ] = i + "%";
+                System.out.print("\r" + Arrays.toString(all));	// \r代表覆盖
+            }
+            latch.countDown();
+        });
+    }
+    latch.await();
+    System.out.println("\n游戏开始");
+    service.shutdown();
+}
+/*
+[100%, 100%, 100%, 100%, 100%, 100%, 100%, 100%, 100%, 100%]
+游戏开始
+```
+
+
+
+***
+
+
+
+#### 实现原理
+
+阻塞等待：
+
+* 线程调用 await() 等待其他线程完成任务：
+
+  ```java
+  public void await() throws InterruptedException {
+      sync.acquireSharedInterruptibly(1);
+  }
+  // AbstractQueuedSynchronizer#acquireSharedInterruptibly
+  public final void acquireSharedInterruptibly(int arg) throws InterruptedException {
+      // 判断线程是否被打断，抛出打断异常
+      if (Thread.interrupted())
+          throw new InterruptedException();
+      // 尝试获取共享锁，条件成立说明 state > 0，此时线程入队阻塞等待
+      // 条件不成立说明 state = 0，此时不需要阻塞线程，直接结束函数调用
+      if (tryAcquireShared(arg) < 0)
+          doAcquireSharedInterruptibly(arg);
+  }
+  // CountDownLatch.Sync#tryAcquireShared
+  protected int tryAcquireShared(int acquires) {
+      return (getState() == 0) ? 1 : -1;
+  }
+  ```
+
+* 线程进入 AbstractQueuedSynchronizer#doAcquireSharedInterruptibly 函数阻塞挂起，等待 latch 变为 0：
+
+  ```java
+  private void doAcquireSharedInterruptibly(int arg) throws InterruptedException {
+      // 将调用latch.await()方法的线程 包装成 SHARED 类型的 node 加入到 AQS 的阻塞队列中
+      final Node node = addWaiter(Node.SHARED);
+      boolean failed = true;
+      try {
+          for (;;) {
+              // 获取当前节点的前驱节点
+              final Node p = node.predecessor();
+              // 前驱节点时头节点就可以尝试获取锁
+              if (p == head) {
+                  // 再次尝试获取锁，获取成功返回 1
+                  int r = tryAcquireShared(arg);
+                  if (r >= 0) {
+                      // 获取锁成功，设置当前节点为 head 节点，并且向后传播
+                      setHeadAndPropagate(node, r);
+                      p.next = null; // help GC
+                      failed = false;
+                      return;
+                  }
+              }
+              // 阻塞在这里
+              if (shouldParkAfterFailedAcquire(p, node) && parkAndCheckInterrupt())
+                  throw new InterruptedException();
+          }
+      } finally {
+          // 阻塞线程被中断后抛出异常，进入取消节点的逻辑
+          if (failed)
+              cancelAcquire(node);
+      }
+  }
+  ```
+
+* 获取共享锁成功，进入唤醒阻塞队列中与头节点相连的 SHARED 模式的节点：
+
+  ```java
+  private void setHeadAndPropagate(Node node, int propagate) {
+      Node h = head;
+      // 将当前节点设置为新的 head 节点，前驱节点和持有线程置为 null
+      setHead(node);
+  	// propagate = 1，条件一成立
+      if (propagate > 0 || h == null || h.waitStatus < 0 || (h = head) == null || h.waitStatus < 0) {
+          // 获取当前节点的后继节点
+          Node s = node.next;
+          // 当前节点是尾节点时 next 为 null，或者后继节点是 SHARED共享模式
+          if (s == null || s.isShared())
+              doReleaseShared();
+      }
+  }
+  ```
+
+  ```java
+  // 唤醒后继节点
+  private void doReleaseShared() {
+      for (;;) {
+          Node h = head;
+          // 判断队列是否是空队列
+          if (h != null && h != tail) {
+              int ws = h.waitStatus;
+              // 头节点的状态为 signal，说明后继节点没有被唤醒过
+              if (ws == Node.SIGNAL) {
+                  // cas 设置头节点的状态为 0，设置失败继续自旋
+                  if (!compareAndSetWaitStatus(h, Node.SIGNAL, 0))
+                      continue;
+                  // 唤醒后继节点
+                  unparkSuccessor(h);
+              }
+              // 如果有其他线程已经设置了头节点的状态，重新设置为 PROPAGATE 传播属性
+              else if (ws == 0 && !compareAndSetWaitStatus(h, 0, Node.PROPAGATE))
+                  continue;
+          }
+          // 条件不成立说明被唤醒的节点非常积极，直接将自己设置为了新的head，
+          // 此时唤醒它的节点（前驱）执行 h == head 不成立，所以不会跳出循环，会继续唤醒新 head 节点的后继
+          if (h == head)
+              break;
+      }
+  }
+  ```
+
+  
+
+计数减一：
+
+* 线程进入 countDown() 完成计数器减一（释放锁）的操作
+
+  ```java
+  public void countDown() {
+      sync.releaseShared(1);
+  }
+  public final boolean releaseShared(int arg) {
+      // 尝试释放共享锁
+      if (tryReleaseShared(arg)) {
+          // 释放锁成功开始唤醒阻塞节点
+          doReleaseShared();
+          return true;
+      }
+      return false;
+  }
+  ```
+
+* 更新 state 值，每调用一次，state 值减一，当 state -1 正好为 0 时，返回 true
+
+  ```java
+  protected boolean tryReleaseShared(int releases) {
+      for (;;) {
+          int c = getState();
+          // 条件成立说明前面已经有线程触发唤醒操作了，这里返回 false
+          if (c == 0)
+              return false;
+          // 计数器减一
+          int nextc = c-1;
+          if (compareAndSetState(c, nextc))
+              // 计数器为 0 时返回 true
+              return nextc == 0;
+      }
+  }
+  ```
+
+
+
+
+
+***
+
+
+
+### CyclicBarrier
+
+#### 基本使用
+
+CyclicBarrier：循环屏障，用来进行线程协作，等待线程满足某个计数，才能触发自己执行
+
+常用方法：
+
+* `public CyclicBarrier(int parties, Runnable barrierAction)`：用于在线程到达屏障 parties 时，执行 barrierAction
+  * parties：代表多少个线程到达屏障开始触发线程任务
+  * barrierAction：线程任务
+* `public int await()`：线程调用 await 方法通知 CyclicBarrier 本线程已经到达屏障
+
+与 CountDownLatch 的区别：CyclicBarrier 是可以重用的
+
+应用：可以实现多线程中，某个任务在等待其他线程执行完毕以后触发
+
+```java
+public static void main(String[] args) {
+    ExecutorService service = Executors.newFixedThreadPool(2);
+    CyclicBarrier barrier = new CyclicBarrier(2, () -> {
+        System.out.println("task1 task2 finish...");
+    });
+
+    for (int i = 0; i < 3; i++) {// 循环重用
+        service.submit(() -> {
+            System.out.println("task1 begin...");
+            try {
+                Thread.sleep(1000);
+                barrier.await();    // 2 - 1 = 1
+            } catch (InterruptedException | BrokenBarrierException e) {
+                e.printStackTrace();
+            }
+        });
+
+        service.submit(() -> {
+            System.out.println("task2 begin...");
+            try {
+                Thread.sleep(2000);
+                barrier.await();    // 1 - 1 = 0
+            } catch (InterruptedException | BrokenBarrierException e) {
+                e.printStackTrace();
+            }
+        });
+    }
+    service.shutdown();
+}
+```
+
+
+
+***
+
+
+
+#### 实现原理
+
+##### 成员属性
+
+* 全局锁：
+
+  ```java
+  // barrier 实现是依赖于Condition条件队列，condition 条件队列必须依赖lock才能使用
+  private final ReentrantLock lock = new ReentrantLock();
+  // 线程挂起实现使用的 condition 队列，当前代所有线程到位，这个条件队列内的线程才会被唤醒
+  private final Condition trip = lock.newCondition();
+  ```
+
+* 线程数量：
+
+  ```java
+  private final int parties;	// 代表多少个线程到达屏障开始触发线程任务
+  private int count;			// 表示当前“代”还有多少个线程未到位，初始值为 parties
+  ```
+
+* 当前代中最后一个线程到位后要执行的事件：
+
+  ```java
+  private final Runnable barrierCommand;
+  ```
+
+* 代：
+
+  ```java
+  // 表示 barrier 对象当前 代
+  private Generation generation = new Generation();
+  private static class Generation {
+      // 表示当前“代”是否被打破，如果被打破再来到这一代的线程 就会直接抛出 BrokenException 异常
+      // 且在这一代挂起的线程 都会被唤醒，然后抛出 BrokerException 异常。
+      boolean broken = false;
+  }
+  ```
+
+* 构造方法：
+
+  ```java
+  public CyclicBarrie(int parties, Runnable barrierAction) {
+      // 因为小于等于 0 的 barrier 没有任何意义
+      if (parties <= 0) throw new IllegalArgumentException();
+  
+      this.parties = parties;
+      this.count = parties;
+      // 可以为 null
+      this.barrierCommand = barrierAction;
+  }
+  ```
+
+<img src="https://gitee.com/seazean/images/raw/master/Java/JUC-CyclicBarrier工作原理.png" style="zoom: 80%;" />
+
+
+
+***
+
+
+
+##### 成员方法
+
+* await()：阻塞等待所有线程到位
+
+  ```java
+  public int await() throws InterruptedException, BrokenBarrierException {
+      try {
+          return dowait(false, 0L);
+      } catch (TimeoutException toe) {
+          throw new Error(toe); // cannot happen
+      }
+  }
+  ```
+
+  ```java
+  // timed：表示当前调用await方法的线程是否指定了超时时长，如果 true 表示线程是响应超时的
+  // nanos：线程等待超时时长，单位是纳秒
+  private int dowait(boolean timed, long nanos) {
+      final ReentrantLock lock = this.lock;
+      // 加锁
+      lock.lock();
+      try {
+          // 获取当前代
+          final Generation g = generation;
+  
+          // 如果当前代是已经被打破状态，则当前调用await方法的线程，直接抛出Broken异常
+          if (g.broken)
+              throw new BrokenBarrierException();
+  		// 如果当前线程的中断标记位为 true，则打破当前代，然后当前线程抛出中断异常
+          if (Thread.interrupted()) {
+              // 设置当前代的状态为 broken 状态，唤醒在 trip 条件队列内的线程
+              breakBarrier();
+              throw new InterruptedException();
+          }
+  
+          // 逻辑到这说明，当前线程中断状态是 false， 当前代的 broken 为 false（未打破状态）
+          
+          // 假设 parties 给的是 5，那么index对应的值为 4,3,2,1,0
+          int index = --count;
+          // 条件成立说明当前线程是最后一个到达 barrier 的线程
+          if (index == 0) {
+              // 栅栏任务启动标记
+              boolean ranAction = false;
+              try {
+                  final Runnable command = barrierCommand;
+                  if (command != null)
+                      // 启动任务
+                      command.run();
+                  // run()未抛出异常的话，启动标记设置为 true
+                  ranAction = true;
+                  // 开启新的一代
+                  nextGeneration();
+                  // 返回 0 因为当前线程是此代最后一个到达的线程，index == 0
+                  return 0;
+              } finally {
+                  // 如果 command.run() 执行抛出异常的话，会进入到这里
+                  if (!ranAction)
+                      breakBarrier();
+              }
+          }
+  
+          // 自旋，一直到条件满足、当前代被打破、线程被中断，等待超时
+          for (;;) {
+              try {
+                  // 根据是否需要超时等待选择阻塞方法
+                  if (!timed)
+                      // 当前线程释放掉 lock，进入到 trip 条件队列的尾部挂起自己，等待被唤醒
+                      trip.await();
+                  else if (nanos > 0L)
+                      nanos = trip.awaitNanos(nanos);
+              } catch (InterruptedException ie) {
+                  // 被中断后来到这里的逻辑
+                  
+                  // 当前代没有变化并且没有被打破
+                  if (g == generation && !g.broken) {
+                      // 打破屏障
+                      breakBarrier();
+                      // node节点在【条件队列】内收到中断信号时 会抛出中断异常
+                      throw ie;
+                  } else {
+                      // 等待过程中代变化了，完成一次自我打断
+                      Thread.currentThread().interrupt();
+                  }
+              }
+  			// 被唤醒执行到这里
+              // 当前代已经被打破，线程唤醒后依次抛出 BrokenBarrier 异常
+              if (g.broken)
+                  throw new BrokenBarrierException();
+  
+              //当前线程挂起期间，最后一个线程到位了，然后触发了开启新的一代的逻辑，此时唤醒 trip 条件队列内的线程
+              if (g != generation)
+                  return index;
+  			// 当前线程 trip 中等待超时，然后主动转移到阻塞队列
+              if (timed && nanos <= 0L) {
+                  breakBarrier();
+                  // 抛出超时异常
+                  throw new TimeoutException();
+              }
+          }
+      } finally {
+          // 解锁
+          lock.unlock();
+      }
+  }
+  ```
+
+* breakBarrier()：打破 Barrier 屏障
+
+  ```java
+  private void breakBarrier() {
+      //将代中的 broken 设置为 true，表示这一代是被打破了，再来到这一代的线程，直接抛出异常
+      generation.broken = true;
+      //重置 count 为 parties
+      count = parties;
+      // 将在trip条件队列内挂起的线程全部唤醒，唤醒后的线程会检查当前是否是打破的
+      trip.signalAll();
+  }
+  ```
+
+* nextGeneration()：开启新的下一代 
+
+  ```java
+  private void nextGeneration() {
+      // 将在 trip 条件队列内挂起的线程全部唤醒
+      trip.signalAll();
+      // 重置 count 为 parties
+      count = parties;
+  
+      // 开启新的一代..使用一个新的generation对象，表示新的一代，新的一代和上一代【没有任何关系】
+      generation = new Generation();
+  }
+  ```
+
+  
+
+参考视频：https://space.bilibili.com/457326371/
+
+
+
+
+
+****
+
+
+
 ### Semaphore
 
-#### 信号量
+#### 基本使用
 
 synchronized 可以起到锁的作用，但某个时间段内，只能有一个线程允许执行
 
@@ -8170,7 +8638,7 @@ Semaphore（信号量）用来限制能同时访问共享资源的线程上限�
 常用API：
 
 * `public void acquire()`：表示获取许可
-* `public void release()`：表示释放许可，acquire()和release()方法之间的代码为同步代码
+* `public void release()`：表示释放许可，acquire() 和 release() 方法之间的代码为同步代码
 
 ```java
 public static void main(String[] args) {
@@ -8222,19 +8690,23 @@ public static void main(String[] args) {
   public final void acquireSharedInterruptibly(int arg) {
       if (Thread.interrupted())
           throw new InterruptedException();
+      // 尝试获取通行证，获取成功返回 >= 0的值
       if (tryAcquireShared(arg) < 0)
+          // 获取许可证失败，进入阻塞
           doAcquireSharedInterruptibly(arg);
   }
   
   // tryAcquireShared() -> nonfairTryAcquireShared()
-  // 非公平，公平锁会在循环内 hasQueuedPredecessors()方法判断是否有临头节点(第二个节点)
+  // 非公平，公平锁会在循环内 hasQueuedPredecessors()方法判断阻塞队列是否有临头节点(第二个节点)
   final int nonfairTryAcquireShared(int acquires) {
       for (;;) {
+          // 获取 state ，state 这里表示通行证
           int available = getState();
+          // 计算当前线程获取通行证完成之后，通行证还剩余数量
           int remaining = available - acquires;
           // 如果许可已经用完, 返回负数, 表示获取失败,
           if (remaining < 0 ||
-              // 如果 cas 重试成功, 返回正数, 表示获取成功
+              // 许可证足够分配的，如果 cas 重试成功, 返回正数, 表示获取成功
               compareAndSetState(available, remaining))
               return remaining;
       }
@@ -8243,31 +8715,51 @@ public static void main(String[] args) {
 
   ```java
   private void doAcquireSharedInterruptibly(int arg) {
+      // 将调用 Semaphore.aquire 方法的线程，包装成 node 加入到 AQS 的阻塞队列中
       final Node node = addWaiter(Node.SHARED);
+      // 获取标记
       boolean failed = true;
       try {
           for (;;) {
               final Node p = node.predecessor();
+              // 前驱节点是头节点可以再次获取许可
               if (p == head) {
                   // 再次尝试获取许可
                   int r = tryAcquireShared(arg);
                   if (r >= 0) {
                       // 成功后本线程出队（AQS）, 所在 Node设置为 head
                       // r 表示可用资源数, 为 0 则不会继续传播
-                      setHeadAndPropagate(node, r); //参考 PROPAGATE
+                      setHeadAndPropagate(node, r); 
                       p.next = null; // help GC
                       failed = false;
                       return;
                   }
               }
               // 不成功, 设置上一个节点 waitStatus = Node.SIGNAL, 下轮进入 park 阻塞
-              if (shouldParkAfterFailedAcquire(p, node) &&
-                  parkAndCheckInterrupt())
+              if (shouldParkAfterFailedAcquire(p, node) && parkAndCheckInterrupt())
                   throw new InterruptedException();
           }
       } finally {
+          // 被打断后进入该逻辑
           if (failed)
               cancelAcquire(node);
+      }
+  }
+  ```
+
+  ```java
+  private void setHeadAndPropagate(Node node, int propagate) {    
+      Node h = head;
+      // 设置自己为 head 节点
+      setHead(node);
+      // propagate 表示有共享资源（例如共享读锁或信号量）
+      // head waitStatus == Node.SIGNAL 或 Node.PROPAGATE，doReleaseShared 函数中设置的
+      if (propagate > 0 || h == null || h.waitStatus < 0 ||
+          (h = head) == null || h.waitStatus < 0) {
+          Node s = node.next;
+          // 如果是最后一个节点或者是等待共享读锁的节点，做一次唤醒
+          if (s == null || s.isShared())
+              doReleaseShared();
       }
   }
   ```
@@ -8278,20 +8770,23 @@ public static void main(String[] args) {
 
   ```java
   // release() -> releaseShared()
-  public final boolean releaseShared(int arg) {    
-      if (tryReleaseShared(arg)) {        
-          doReleaseShared();        
-          return true;    
+  public final boolean releaseShared(int arg) {
+      // 尝试释放锁
+      if (tryReleaseShared(arg)) {
+          doReleaseShared();
+          return true;
       }    
       return false;
   }
   protected final boolean tryReleaseShared(int releases) {    
-      for (;;) {        
-          int current = getState();        
-          int next = current + releases;        
+      for (;;) {
+          // 获取当前锁资源的可用许可证数量
+          int current = getState();
+          int next = current + releases;
+          // 索引越界判断
           if (next < current)            
               throw new Error("Maximum permit count exceeded");        
-          // 释放锁        
+          // 释放锁
           if (compareAndSetState(current, next))            
               return true;    
       }
@@ -8315,8 +8810,7 @@ public static void main(String[] args) {
 
 #### PROPAGATE
 
-假设存在某次循环中队列里排队的结点情况为 `head(-1)->t1(-1)->t2(0)`
-假设存在将要信号量释放的 T3 和 T4，释放顺序为先 T3 后 T4
+假设存在某次循环中队列里排队的结点情况为 `head(-1) → t1(-1) → t2(0)`，存在将要释放信号量的 T3 和 T4，释放顺序为先 T3 后 T4
 
 ```java
 // 老版本代码
@@ -8335,13 +8829,13 @@ private void setHeadAndPropagate(Node node, int propagate) {
 正常流程：
 
 * T3 调用 releaseShared(1)，直接调用了 unparkSuccessor(head)，head.waitStatus 从 -1 变为 0
-* T1 由于 T3 释放信号量被唤醒，然后T4 释放，唤醒 T2
+* T1 由于 T3 释放信号量被唤醒，然后 T4 释放，唤醒 T2
 
-BUG流程：
+BUG 流程：
 
 * T3 调用 releaseShared(1)，直接调用了 unparkSuccessor(head)，head.waitStatus 从 -1 变为 0
 * T1 由于 T3 释放信号量被唤醒，调用 tryAcquireShared，返回值为 0（获取锁成功，但没有剩余资源量）
-* T1 还没调用setHeadAndPropagate方法，T4 调用 releaseShared(1)，此时 head.waitStatus 为 0（此时读到的 head 和 1 中为同一个head），不满足条件，因此不调用 unparkSuccessor(head)
+* T1 还没调用 setHeadAndPropagate 方法，T4 调用 releaseShared(1)，此时 head.waitStatus 为 0（此时读到的 head 和 1 中为同一个 head），不满足条件，因此不调用 unparkSuccessor(head)
 * T1 获取信号量成功，调用 setHeadAndPropagate(t1.node, 0) 时，因为不满足 propagate > 0（剩余资源量 == 0），从而不会唤醒后继结点， **T2 线程得不到唤醒**
 
 
@@ -8351,154 +8845,53 @@ BUG流程：
 * T3 调用 releaseShared(1)，直接调用了 unparkSuccessor(head)，head.waitStatus 从 -1 变为 0
 * T1 由于 T3 释放信号量被唤醒，调用 tryAcquireShared，返回值为 0（获取锁成功，但没有剩余资源量）
 
-* T1 还没调用setHeadAndPropagate方法，T4 调用 releaseShared()，此时 head.waitStatus 为 0（此时读到的 head 和 1 中为同一个 head），调用 doReleaseShared() 将等待状态置为**PROPAGATE（-3）**
+* T1 还没调用 setHeadAndPropagate 方法，T4 调用 releaseShared()，此时 head.waitStatus 为 0（此时读到的 head 和 1 中为同一个 head），调用 doReleaseShared() 将等待状态置为 **PROPAGATE（-3）**
 * T1 获取信号量成功，调用 setHeadAndPropagate 时，读到 h.waitStatus < 0，从而调用 doReleaseShared() 唤醒 T2
 
 ```java
 private void setHeadAndPropagate(Node node, int propagate) {    
-    Node h = head;     
-    // 设置自己为 head 节点    
-    setHead(node);    
-    // propagate 表示有共享资源（例如共享读锁或信号量）    
-    // head waitStatus == Node.SIGNAL 或 Node.PROPAGATE    
+    Node h = head;
+    // 设置自己为 head 节点
+    setHead(node);
+    // propagate 表示有共享资源（例如共享读锁或信号量）
+    // head waitStatus == Node.SIGNAL 或 Node.PROPAGATE
     if (propagate > 0 || h == null || h.waitStatus < 0 ||
-        (h = head) == null || h.waitStatus < 0) {        
-        Node s = node.next;        
-        // 如果是最后一个节点或者是等待共享读锁的节点，做一次唤醒        
-        if (s == null || s.isShared())            
-            doReleaseShared();    
-    
-    }}
+        (h = head) == null || h.waitStatus < 0) {
+        Node s = node.next;
+        // 如果是最后一个节点或者是等待共享读锁的节点，做一次唤醒
+        if (s == null || s.isShared())
+            doReleaseShared();
+    }
+}
 ```
 
 ```java
 // 唤醒
-private void doReleaseShared() {    
+private void doReleaseShared() {
     // 如果 head.waitStatus == Node.SIGNAL ==> 0 成功, 下一个节点 unpark	
     // 如果 head.waitStatus == 0 ==> Node.PROPAGATE    
-    for (;;) {        
-        Node h = head;        
-        if (h != null && h != tail) {            
-            int ws = h.waitStatus;            
-            if (ws == Node.SIGNAL) {            	
-                // 防止 unparkSuccessor 被多次执行                
-                if (!compareAndSetWaitStatus(h, Node.SIGNAL, 0))                   
-                    continue;                  
-                // 唤醒后继节点                
-                unparkSuccessor(h);            
-            }            
-            // 如果已经是 0 了，改为 -3，用来解决传播性            
-            else if (ws == 0 && !compareAndSetWaitStatus(h, 0, Node.PROPAGATE))      				continue;                        
-        }        
-        if (h == head)                               
-            break;    
+    for (;;) {
+        Node h = head;
+        if (h != null && h != tail) {
+            int ws = h.waitStatus;
+            if (ws == Node.SIGNAL) {
+                // 防止 unparkSuccessor 被多次执行
+                if (!compareAndSetWaitStatus(h, Node.SIGNAL, 0))
+                    continue;
+                // 唤醒后继节点
+                unparkSuccessor(h);
+            }
+            // 如果已经是 0 了，改为 -3，用来解决传播性
+            else if (ws == 0 && !compareAndSetWaitStatus(h, 0, Node.PROPAGATE))
+                continue;
+        }
+        if (h == head)
+            break;
     }
 }
 ```
 
 
-
-
-
-***
-
-
-
-### CountDown
-
-CountDownLatch：计数器，用来进行线程同步协作，等待所有线程完成
-
-构造器：
-
-* `public CountDownLatch(int count)`：初始化唤醒需要的 down 几步
-
-常用API：
-
-* `public void await() `：让当前线程等待，必须 down 完初始化的数字才可以被唤醒，否则进入无限等待
-* `public void countDown()`：计数器进行减1（down 1）
-
-应用：同步等待多个 Rest 远程调用结束
-
-```java
-// LOL 10人进入游戏倒计时
-public static void main(String[] args) throws InterruptedException {
-    CountDownLatch latch = new CountDownLatch(10);
-    ExecutorService service = Executors.newFixedThreadPool(10);
-    String[] all = new String[10];
-    Random random = new Random();
-
-    for (int j = 0; j < 10; j++) {
-        int finalJ = j;//常量
-        service.submit(() -> {
-            for (int i = 0; i <= 100; i++) {
-                Thread.sleep(random.nextInt(100));//随机休眠
-                all[finalJ] = i + "%";
-                System.out.print("\r" + Arrays.toString(all));// \r代表覆盖
-            }
-            latch.countDown();
-        });
-    }
-    latch.await();
-    System.out.println("\n游戏开始");
-    service.shutdown();
-}
-/*
-[100%, 100%, 100%, 100%, 100%, 100%, 100%, 100%, 100%, 100%]
-游戏开始
-```
-
-
-
-***
-
-
-
-### CyclicBarrier
-
-CyclicBarrier作用：循环屏障，用来进行线程协作，等待线程满足某个计数，才能触发自己执行
-
-常用方法：
-
-* `public CyclicBarrier(int parties, Runnable barrierAction)`：用于在线程到达屏障parties时，执行barrierAction
-  * parties：代表多少个线程到达屏障开始触发线程任务
-  * barrierAction：线程任务
-* `public int await()`：线程调用 await 方法通知 CyclicBarrier 本线程已经到达屏障
-
-与 CountDownLatch 的区别：CyclicBarrier 是可以重用的
-
-应用：可以实现多线程中，某个任务在等待其他线程执行完毕以后触发
-
-```java
-public static void main(String[] args) {
-    ExecutorService service = Executors.newFixedThreadPool(2);
-    CyclicBarrier barrier = new CyclicBarrier(2, () -> {
-        System.out.println("task1 task2 finish...");
-    });
-
-    for (int i = 0; i < 3; i++) {// 循环重用
-        service.submit(() -> {
-            System.out.println("task1 begin...");
-            try {
-                Thread.sleep(1000);
-                barrier.await();    // 2 - 1 = 1
-            } catch (InterruptedException | BrokenBarrierException e) {
-                e.printStackTrace();
-            }
-        });
-
-        service.submit(() -> {
-            System.out.println("task2 begin...");
-            try {
-                Thread.sleep(2000);
-                barrier.await();    // 1 - 1 = 0
-            } catch (InterruptedException | BrokenBarrierException e) {
-                e.printStackTrace();
-            }
-        });
-    }
-    service.shutdown();
-}
-```
 
 
 
@@ -9837,6 +10230,7 @@ public CopyOnWriteArraySet() {
   ```java
   public boolean add(E e) {
       final ReentrantLock lock = this.lock;
+      // 加锁，保证线程安全
       lock.lock();
       try {
           // 获取旧的数组
@@ -9860,12 +10254,13 @@ public CopyOnWriteArraySet() {
   ```java
   public void forEach(Consumer<? super E> action) {
       if (action == null) throw new NullPointerException();
-      // 获取数据集合，放入
-      Object[] elements = getArray();// 返回当前存储数据的数组
+      // 获取当前存储数据的数组
+      Object[] elements = getArray();
       int len = elements.length;
       for (int i = 0; i < len; ++i) {
           //遍历
-          @SuppressWarnings("unchecked") E e = (E) elements[i];
+          @SuppressWarnings("unchecked") 
+          E e = (E) elements[i];
           // 对给定的参数执行此操作
           action.accept(e);
       }
@@ -9876,7 +10271,7 @@ public CopyOnWriteArraySet() {
 
 * 迭代器：
 
-  CopyOnWriteArrayList 在返回一个迭代器时，会基于创建这个迭代器时内部数组所拥有的数据，创建一个该内部数组当前的快照，然后迭代器遍历的是该快照，而不是内部的数组，所以这种实现方式也存在一定的数据延迟性，即对其他线程并行添加的数据不可见
+  CopyOnWriteArrayList 在返回一个迭代器时，会基于创建这个迭代器时内部数组所拥有的数据，创建一个该内部数组当前的快照，即使其他替换了原始数组，迭代器遍历的是该快照依然引用的是创建快照时的数组，所以这种实现方式也存在一定的数据延迟性，即对其他线程并行添加的数据不可见
 
   ```java
   public Iterator<E> iterator() {
@@ -9921,7 +10316,16 @@ public CopyOnWriteArraySet() {
 | 3      | Thread-1 setArray(arrayCopy) |
 | 4      | Thread-0 array[index]        |
 
-Thread-0读到了脏数据
+Thread-0 读到了脏数据
+
+不一定弱一致性就不好
+
+* 数据库的**事务隔离级别**就是弱一致性的表现
+* 并发高和一致性是矛盾的，需要权衡
+
+
+
+***
 
 
 
@@ -9945,11 +10349,6 @@ public static void main(String[] args) throws InterruptedException {
     }
 }
 ```
-
-不一定弱一致性就不好
-
-* 数据库的事务隔离级别都是弱一致性的表现
-* 并发高和一致性是矛盾的，需要权衡
 
 
 

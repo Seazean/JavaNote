@@ -7426,7 +7426,7 @@ public int loadBeanDefinitions(Resource resource) {
 
   
 
-**说明：源码部分的笔记做的不一定适合所有人观看，作者采用流水线式的解析重要的代码，解析的结构类似于树状，如果视觉疲劳可以去网上参考一些博客和流程图学习源码。**
+**说明：源码部分的笔记不一定适合所有人阅读，作者采用流水线式去解析重要的代码，解析的结构类似于树状，如果视觉疲劳可以去网上参考一些博客和流程图学习源码。**
 
 
 
@@ -7518,24 +7518,25 @@ AbstractApplicationContext.refresh()：
 
     `registryProcessor.postProcessBeanDefinitionRegistry(registry)`：向 bf 中注册一些 bd
 
-    `registryProcessors.add(registryProcessor)`：添加到 registryProcessors 集合
+    `registryProcessors.add(registryProcessor)`：添加到 BeanDefinitionRegistryPostProcessor 集合
 
-  * `regularPostProcessors.add(postProcessor)`：添加到普通集合
+  * `regularPostProcessors.add(postProcessor)`：添加到 BeanFactoryPostProcessor 集合
 
-  * 获取到所有 BeanDefinitionRegistryPostProcessor 和 BeanFactoryPostProcessor  接口类型了，首先回调 bdrpp 类
+  * 逻辑到这里已经获取到所有 BeanDefinitionRegistryPostProcessor 和 BeanFactoryPostProcessor  接口类型的后置处理器
 
-    * **执行实现了 PriorityOrdered（主排序接口）接口的 bdrpp，再执行实现了 Ordered（次排序接口）接口的 bdrpp**
+  * **首先回调 BeanDefinitionRegistryPostProcessor 类的后置处理方法**
 
-    * **最后执行没有实现任何优先级或者是顺序接口 bdrpp**
-
-      `boolean reiterate = true`：控制 while 是否需要再次循环，循环内是查找并执行 bdrpp 后处理器的 registry 相关的接口方法，接口方法执行以后会向 bf 内注册 bd，注册的 bd 也有可能是 bdrpp 类型，所以需要该变量控制循环
-
+    * 获取实现了 PriorityOrdered（主排序接口）接口的 bdrpp，进行 sort 排序，然后全部执行并放入已经处理过的集合
+  * 再执行实现了 Ordered（次排序接口）接口的 bdrpp
+    * 最后执行没有实现任何优先级或者是顺序接口 bdrpp，`boolean reiterate = true` 控制 while 是否需要再次循环，循环内是查找并执行 bdrpp 后处理器的 registry 相关的接口方法，接口方法执行以后会向 bf 内注册 bd，注册的 bd 也有可能是 bdrpp 类型，所以需要该变量控制循环
+  * `processedBeans.add(ppName)`：已经执行过的后置处理器存储到该集合中
     * ` invokeBeanFactoryPostProcessors()`：BeanDefinitionRegistryPostProcessor  也继承了 BeanFactoryPostProcessor，也有 postProcessBeanFactory 方法，所以需要调用
 
-  * 执行普通 BeanFactoryPostProcessor 的相关 postProcessBeanFactory 方法，同 bdrpp，按照主次无次序执行
+  * **执行普通 BeanFactoryPostProcessor 的相关 postProcessBeanFactory 方法，按照主次无次序执行**
 
+    * `if (processedBeans.contains(ppName))`：会过滤掉已经执行过的后置处理器
+  
   * `beanFactory.clearMetadataCache()`：清除缓存中合并的 bean 定义，因为后置处理器可能更改了元数据
-
 
 **以上是 BeanFactory 的创建及预准备工作，接下来进入 Bean 的流程**
 
