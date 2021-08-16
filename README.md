@@ -7,7 +7,7 @@
 * DB：MySQL、Redis
 * Issue：Interview Questions
 * Java：JavaSE、JVM、Algorithm、Design Pattern
-* Prog：JUC、NET
+* Prog：Concurrent、Network Programming
 * SSM：MyBatis、Spring、SpringMVC、SpringBoot
 * Tool：Git、Linux、Docker
 * Web：HTML、CSS、HTTP、Servlet、JavaScript
