@@ -2527,12 +2527,12 @@ s.replace("-","");//12378
 
 ##### 基本介绍
 
-**字符串常量池（String Pool / StringTable / 串池）**保存着所有字符串字面量（literal strings），这些字面量在编译时期就确定，常量池类似于Java系统级别提供的**缓存**，存放对象和引用
+字符串常量池（String Pool / StringTable / 串池）保存着所有字符串字面量（literal strings），这些字面量在编译时期就确定，常量池类似于 Java 系统级别提供的**缓存**，存放对象和引用
 
-* StringTable，hashtable （哈希表 + 链表）结构，不能扩容，默认值大小长度是 1009
+* StringTable，类似 HashTable 结构，通过 `-XX:StringTableSize` 设置大小，JDK 1.8 中默认 60013
 * 常量池中的字符串仅是符号，第一次使用时才变为对象，可以避免重复创建字符串对象
-* 字符串**变量**的拼接的原理是 StringBuilder（jdk1.8），append 效率要比字符串拼接高很多
-* 字符串**常量**拼接的原理是编译期优化，结果在常量池
+* 字符串**变量**的拼接的原理是 StringBuilder#append，append 方法比字符串拼接效率高（JDK 1.8）
+* 字符串**常量**拼接的原理是编译期优化，拼接结果放入常量池
 * 可以使用 String 的 intern() 方法在运行过程将字符串添加到 String Pool 中
 
 
@@ -2543,15 +2543,15 @@ s.replace("-","");//12378
 
 ##### intern()
 
-jdk1.8：当一个字符串调用 intern() 方法时，如果 String Pool 中：
+JDK 1.8：当一个字符串调用 intern() 方法时，如果 String Pool 中：
 * 存在一个字符串和该字符串值相等，就会返回 String Pool 中字符串的引用（需要变量接收）
 * 不存在，会把对象的**引用地址**复制一份放入串池，并返回串池中的引用地址，前提是堆内存有该对象，因为 Pool 在堆中，为了节省内存不再创建新对象
 
-jdk1.6：将这个字符串对象尝试放入串池，如果有就不放入，返回已有的串池中的对象的地址；如果没有会把此对象复制一份，放入串池，把串池中的对象返回
+JDK 1.6：将这个字符串对象尝试放入串池，如果有就不放入，返回已有的串池中的对象的地址；如果没有会把此对象复制一份，放入串池，把串池中的对象返回
 
 ```java
 public class Demo {
-//常量池中的信息都加载到运行时常量池，这时a b ab是常量池中的符号，还不是java字符串对象，是懒惰的
+    // 常量池中的信息都加载到运行时常量池，这时a b ab是常量池中的符号，还不是java字符串对象，是懒惰的
     // ldc #2 会把 a 符号变为 "a" 字符串对象     ldc:反编译后的指令
     // ldc #3 会把 b 符号变为 "b" 字符串对象
     // ldc #4 会把 ab 符号变为 "ab" 字符串对象
@@ -3787,10 +3787,9 @@ public class RegexDemo {
 
 #### 概述
 
-> Java中集合的代表是：Collection.
-> Collection集合是Java中集合的祖宗类。
+Java 中集合的代表是Collection，Collection 集合是 Java 中集合的祖宗类
 
-Collection集合底层为数组：`[value1, value2, ....]`
+Collection 集合底层为数组：`[value1, value2, ....]`
 
 ```java
 Collection集合的体系:
@@ -3805,11 +3804,11 @@ LinkedHashSet<>(实现类)
 
 **集合的特点：**
 
-* Set系列集合：添加的元素是无序，不重复，无索引的
+* Set 系列集合：添加的元素是无序，不重复，无索引的
   * HashSet：添加的元素是无序，不重复，无索引的
   * LinkedHashSet：添加的元素是有序，不重复，无索引的
   * TreeSet：不重复，无索引，按照大小默认升序排序
-* List系列集合：添加的元素是有序，可重复，有索引
+* List 系列集合：添加的元素是有序，可重复，有索引
   * ArrayList：添加的元素是有序，可重复，有索引
   * LinekdList：添加的元素是有序，可重复，有索引
 
@@ -3824,18 +3823,21 @@ LinkedHashSet<>(实现类)
 Collection 是集合的祖宗类，它的功能是全部集合都可以继承使用的，所以要学习它。
 
 Collection 子类的构造器都有可以包装其他子类的构造方法，如：
-	`public ArrayList(Collection<? extends E> c)` : 构造新集合，元素按照由集合的迭代器返回的顺序
-	`public HashSet(Collection<? extends E> c)` : 构造一个包含指定集合中的元素的新集合
 
-Collection API如下：
-     `public boolean add(E e)` : 把给定的对象添加到当前集合中 。
-     `public void clear()` : 清空集合中所有的元素。
-     `public boolean remove(E e)` : 把给定的对象在当前集合中删除。
-     `public boolean contains(Object obj)` : 判断当前集合中是否包含给定的对象。
-     `public boolean isEmpty()` : 判断当前集合是否为空。
-     `public int size()` : 返回集合中元素的个数。
-     `public Object[] toArray()` : 把集合中的元素，存储到数组中
-	 `public boolean addAll(Collection<? extends E> c)` : 将指定集合中的所有元素添加到此集合
+* `public ArrayList(Collection<? extends E> c)`：构造新集合，元素按照由集合的迭代器返回的顺序
+
+* `public HashSet(Collection<? extends E> c)`：构造一个包含指定集合中的元素的新集合
+
+Collection API 如下：
+
+* `public boolean add(E e)`：把给定的对象添加到当前集合中 。
+* `public void clear()`：清空集合中所有的元素。
+* `public boolean remove(E e)`：把给定的对象在当前集合中删除。
+* `public boolean contains(Object obj)`：判断当前集合中是否包含给定的对象。
+* `public boolean isEmpty()`：判断当前集合是否为空。
+* `public int size()`：返回集合中元素的个数。
+* `public Object[] toArray()`：把集合中的元素，存储到数组中
+* `public boolean addAll(Collection<? extends E> c)`：将指定集合中的所有元素添加到此集合
 
 ```java
 public class CollectionDemo {
@@ -3868,27 +3870,27 @@ public class CollectionDemo {
 
 #### 遍历
 
-Collection集合的遍历方式有三种:
+Collection 集合的遍历方式有三种:
 
-集合可以直接输出内容，因为底层重写了toString()方法。
+集合可以直接输出内容，因为底层重写了 toString() 方法
 
 1. 迭代器
-   `public Iterator iterator()` : 获取集合对应的迭代器，用来遍历集合中的元素的
-   `E next()` : 获取下一个元素值！
-   `boolean hasNext()` : 判断是否有下一个元素，有返回true ,反之
-   `default void remove()` : 从底层集合中删除此迭代器返回的最后一个元素，这种方法只能在每次调用next() 时调用一次
+   `public Iterator iterator()`：获取集合对应的迭代器，用来遍历集合中的元素的
+   `E next()`：获取下一个元素值
+   `boolean hasNext()`：判断是否有下一个元素，有返回true ,反之
+   `default void remove()`：从底层集合中删除此迭代器返回的最后一个元素，这种方法只能在每次调用next() 时调用一次
 
-2. 增强for循环
-   增强for循环是一种遍历形式，可以遍历集合或者数组，遍历集合实际上是迭代器遍历的简化写法
-```java
+2. 增强 for 循环：可以遍历集合或者数组，遍历集合实际上是迭代器遍历的简化写法
+
+   ```java
    for(被遍历集合或者数组中元素的类型 变量名称 : 被遍历集合或者数组){
    
    }
-```
+   ```
 
-缺点：遍历无法知道遍历到了哪个元素了，因为没有索引。
+   缺点：遍历无法知道遍历到了哪个元素了，因为没有索引
 
-3. JDK 1.8开始之后的新技术Lambda表达式
+3. JDK 1.8 开始之后的新技术 Lambda 表达式
 
    ```java
    public class CollectionDemo {
@@ -4531,15 +4533,15 @@ Map集合的体系：
 
 Map集合的特点：
 
-1. Map集合的特点都是由键决定的。
-2. Map集合的键是无序,不重复的,无索引的。(Set)
-3. Map集合的值无要求。(List)
-4. Map集合的键值对都可以为null。
-5. Map集合后面重复的键对应元素会覆盖前面的元素
+1. Map 集合的特点都是由键决定的
+2. Map 集合的键是无序，不重复的，无索引的（Set）
+3. Map 集合的值无要求（List）
+4. Map 集合的键值对都可以为 null
+5. Map 集合后面重复的键对应元素会覆盖前面的元素
 
-HashMap：元素按照键是无序，不重复，无索引，值不做要求。
+HashMap：元素按照键是无序，不重复，无索引，值不做要求
 
-LinkedHashMap：元素按照键是有序，不重复，无索引，值不做要求。
+LinkedHashMap：元素按照键是有序，不重复，无索引，值不做要求
 
 ```java
 //经典代码
@@ -4556,7 +4558,7 @@ System.out.println(maps);
 
 #### 常用API
 
-Map集合的常用API
+Map 集合的常用 API
 
 * `public V put(K key, V value)`：把指定的键与值添加到 Map 集合中，**重复的键会覆盖前面的值元素**
 * `public V remove(Object key)`：把指定的键对应的键值对元素在集合中删除，返回被删除元素的值
@@ -4641,7 +4643,7 @@ HashMap 基于哈希表的 Map 接口实现，是以 key-value 存储形式存�
 
 特点：
 
-* HashMap的实现不是同步的，这意味着它不是线程安全的
+* HashMap 的实现不是同步的，这意味着它不是线程安全的
 * key 是唯一不重复的，底层的哈希表结构，依赖 hashCode 方法和 equals 方法保证键的唯一
 * key、value 都可以为null，但是 key 位置只能是一个null
 * HashMap 中的映射不是有序的，即存取是无序的
@@ -4662,12 +4664,12 @@ JDK7 对比 JDK8：
 
   * 数组是 HashMap 的主体
   * 链表则是为了解决哈希冲突而存在的（**拉链法解决冲突**），拉链法就是头插法
-    两个对象调用的hashCode方法计算的哈希码值（键的哈希）一致导致计算的数组索引值相同
+    两个对象调用的 hashCode 方法计算的哈希码值（键的哈希）一致导致计算的数组索引值相同
 
 * JDK1.8 以后 HashMap 由 **数组+链表 +红黑树**数据结构组成
 
   * 解决哈希冲突时有了较大的变化
-  * **当链表长度超过（大于）阈值（或者红黑树的边界值，默认为 8）并且当前数组的长度大于等于64时，此索引位置上的所有数据改为红黑树存储**
+  * 当链表长度**超过（大于）阈值**（或者红黑树的边界值，默认为 8）并且当前数组的**长度大于等于 64 时**，此索引位置上的所有数据改为红黑树存储
   * 即使哈希函数取得再好，也很难达到元素百分百均匀分布。当 HashMap 中有大量的元素都存放到同一个桶中时，就相当于一个长的单链表，假如单链表有 n 个元素，遍历的**时间复杂度是 O(n)**，所以 JDK1.8 中引入了 红黑树（查找**时间复杂度为 O(logn)**）来优化这个问题，使得查找效率更高
   
   ![](https://gitee.com/seazean/images/raw/master/Java/HashMap底层结构.png)
@@ -9769,6 +9771,10 @@ JNI：Java Native Interface，通过使用 Java 本地接口书写程序，可�
   * 可以直接使用本地处理器中的寄存器
   
   <img src="https://gitee.com/seazean/images/raw/master/Java/JVM-本地方法栈.png" style="zoom:67%;" />
+  
+  
+
+图片来源：https://github.com/CyC2018/CS-Notes/blob/master/notes/Java%20%E8%99%9A%E6%8B%9F%E6%9C%BA.md
 
 
 
@@ -9872,7 +9878,7 @@ public static void main(String[] args) {
 
 方法区的 GC：针对常量池的回收及对类型的卸载，比较难实现
 
-为了**避免方法区出现OOM**，在 JDK8 中将堆内的方法区（永久代）移动到了本地内存上，重新开辟了一块空间，叫做元空间，元空间存储类的元信息，**静态变量和字符串常量池等放入堆中**
+为了**避免方法区出现 OOM**，在 JDK8 中将堆内的方法区（永久代）移动到了本地内存上，重新开辟了一块空间，叫做元空间，元空间存储类的元信息，**静态变量和字符串常量池等放入堆中**
 
 类元信息：在类编译期间放入方法区，存放了类的基本信息，包括类的方法、参数、接口以及常量池表
 
@@ -10040,10 +10046,8 @@ public class Demo1_8 extends ClassLoader { // 可以用来加载类的二进制�
 
 为对象分配内存：首先计算对象占用空间大小，接着在堆中划分一块内存给新对象
 
-* 如果内存规整，使用指针碰撞（BumpThePointer）
-  所有用过的内存在一边，空闲的内存在另外一边，中间有一个指针作为分界点的指示器，分配内存就仅仅是把指针向空闲那边挪动一段与对象大小相等的距离
-* 如果内存不规整，虚拟机需要维护一个空闲列表（Free List）分配
-  已使用的内存和未使用的内存相互交错，虚拟机维护了一个列表，记录上哪些内存块是可用的，再分配的时候从列表中找到一块足够大的空间划分给对象实例，并更新列表上的内容
+* 如果内存规整，使用指针碰撞（BumpThePointer）。所有用过的内存在一边，空闲的内存在另外一边，中间有一个指针作为分界点的指示器，分配内存就仅仅是把指针向空闲那边挪动一段与对象大小相等的距离
+* 如果内存不规整，虚拟机需要维护一个空闲列表（Free List）分配。已使用的内存和未使用的内存相互交错，虚拟机维护了一个列表，记录上哪些内存块是可用的，再分配的时候从列表中找到一块足够大的空间划分给对象实例，并更新列表上的内容
 
 
 
@@ -10371,7 +10375,7 @@ public void localvarGC4() {
 
 可达性分析算法：也可以称为根搜索算法、追踪性垃圾收集
 
-**GC Roots对象**：
+GC Roots 对象：
 
 - 虚拟机栈中局部变量表中引用的对象：各个线程被调用的方法中使用到的参数、局部变量等
 - 本地方法栈中引用的对象
@@ -10382,7 +10386,7 @@ public void localvarGC4() {
 
 
 
-**GC Roots是一组活跃的引用，不是对象**，放在 GC Roots Set 集合
+**GC Roots 是一组活跃的引用，不是对象**，放在 GC Roots Set 集合
 
 
 
@@ -10531,10 +10535,10 @@ Java语言提供了对象终止（finalization）机制来允许开发人员提�
 
 无论是通过引用计数算法判断对象的引用数量，还是通过可达性分析算法判断对象是否可达，判定对象是否可被回收都与引用有关，Java 提供了四种强度不同的引用类型
 
-1. 强引用：被强引用关联的对象不会被回收，只有所有GCRoots都不通过强引用引用该对象，才能被垃圾回收
+1. 强引用：被强引用关联的对象不会被回收，只有所有 GCRoots 都不通过强引用引用该对象，才能被垃圾回收
 
    * 强引用可以直接访问目标对象
-   * 虚拟机宁愿抛出OOM异常，也不会回收强引用所指向对象
+   * 虚拟机宁愿抛出 OOM 异常，也不会回收强引用所指向对象
    * 强引用可能导致**内存泄漏**
 
    ```java
@@ -10557,7 +10561,7 @@ Java语言提供了对象终止（finalization）机制来允许开发人员提�
 
    * 仅有弱引用引用该对象时，在垃圾回收时，无论内存是否充足，都会回收弱引用对象
    * 配合引用队列来释放弱引用自身
-   * WeakHashMap用来存储图片信息，可以在内存不足的时候及时回收，避免了OOM
+   * WeakHashMap 用来存储图片信息，可以在内存不足的时候及时回收，避免了 OOM
 
    ```java
    Object obj = new Object();
@@ -10565,7 +10569,7 @@ Java语言提供了对象终止（finalization）机制来允许开发人员提�
    obj = null;
    ```
 
-4. 虚引用（PhantomReference）：也称为“幽灵引用”或者“幻影引用”，是所有引用类型中最弱的一个
+4. 虚引用（PhantomReference）：也称为幽灵引用或者幻影引”，是所有引用类型中最弱的一个
 
    * 一个对象是否有虚引用的存在，不会对其生存时间造成影响，也无法通过虚引用得到一个对象
    * 为对象设置虚引用的唯一目的是在于跟踪垃圾回收过程，能在这个对象被回收时收到一个系统通知
@@ -10579,15 +10583,6 @@ Java语言提供了对象终止（finalization）机制来允许开发人员提�
 
 5. 终结器引用（finalization）
 
- 引用的四种状态：
-
-* Active：激活，创建 ref 对象时就是激活状态
-* Pending：等待入队，所对应的强引用被GC，就要进入引用队列
-* Enqueued：入队了
-  * 如果指定了 refQueue，pending 移动到 enqueued 状态，refQueue.poll 时进入失效状态
-  * 如果没有指定 refQueue，直接到失效状态
-* Inactive：失效
-
 
 
 ***
@@ -10598,11 +10593,11 @@ Java语言提供了对象终止（finalization）机制来允许开发人员提�
 
 方法区主要回收的是无用的类
 
-判定一个类是否是无用的类，需要同时满足下面 3 个条件 ：
+判定一个类是否是无用的类，需要同时满足下面 3 个条件：
 
 - 该类所有的实例都已经被回收，也就是 Java 堆中不存在该类的任何实例
-- 加载该类的`ClassLoader`已经被回收
-- 该类对应的`java.lang.Class`对象没有在任何地方被引用，无法在任何地方通过反射访问该类的方法
+- 加载该类的 `ClassLoader` 已经被回收
+- 该类对应的 `java.lang.Class` 对象没有在任何地方被引用，无法在任何地方通过反射访问该类的方法
 
 虚拟机可以对满足上述 3 个条件的无用类进行回收，这里说的仅仅是“可以”，而并不是和对象一样不使用了就会必然被回收
 
@@ -11167,7 +11162,7 @@ Serial GC、Parallel GC、Concurrent Mark Sweep GC 这三个 GC  不同：
 
 内存溢出（out of memory）指的是申请内存时，没有足够的内存可以使用
 
-内存泄漏和内存溢出的关系：内存泄漏的增多，最终会导致内存溢出
+内存泄漏和内存溢出的关系：内存泄漏的越来越多，最终会导致内存溢出
 
 
 
@@ -11184,8 +11179,8 @@ Serial GC、Parallel GC、Concurrent Mark Sweep GC 这三个 GC  不同：
 ```java
 public class MemoryLeak {
     static List list = new ArrayList();
-    public void oomTests(){
-        Object obj＝new Object();//局部变量
+    public void oomTest(){
+        Object obj = new Object();//局部变量
         list.add(obj);
     }
 }
@@ -11219,7 +11214,7 @@ public class MemoryLeak {
 
 ##### 连接相关
 
-数据库连接、网络连接和IO连接等，当不再使用时，需要显式调用 close 方法来释放与连接，垃圾回收器才会回收对应的对象，否则将会造成大量的对象无法被回收，从而引起内存泄漏
+数据库连接、网络连接和 IO 连接等，当不再使用时，需要显式调用 close 方法来释放与连接，垃圾回收器才会回收对应的对象，否则将会造成大量的对象无法被回收，从而引起内存泄漏
 
 
 
@@ -11235,8 +11230,8 @@ public class MemoryLeak {
 public class UsingRandom {
     private String msg;
     public void receiveMsg(){
-        msg = readFromNet();//从网络中接受数据保存到msg中
-        saveDB(msg);//把msg保存到数据库中
+        msg = readFromNet();// 从网络中接受数据保存到 msg 中
+        saveDB(msg);		// 把 msg 保存到数据库中
     }
 }
 ```
@@ -15336,14 +15331,14 @@ public class Hanoi {
         hanoi('X', 'Y', 'Z', 3);
     }
 
-    //将n个块分治的从x移动到z，y为辅助柱
+    // 将n个块分治的从x移动到z，y为辅助柱
     private static void hanoi(char x, char y, char z, int n) {
         if (n == 1) {
             System.out.println(x + "→" + z);    //直接将x的块移动到z
         } else {
-            hanoi(x, z, y, n - 1);           //分治处理n-1个块，先将n-1个块借助z移到y
+            hanoi(x, z, y, n - 1);           	//分治处理n-1个块，先将n-1个块借助z移到y
             System.out.println(x + "→" + z);    //然后将x最下面的块（最大的）移动到z
-            hanoi(y, x, z, n - 1);           //最后将n-1个块从y移动到z，x为辅助柱
+            hanoi(y, x, z, n - 1);           	//最后将n-1个块从y移动到z，x为辅助柱
         }
     }
 }

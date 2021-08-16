@@ -6628,7 +6628,7 @@ Connection：数据库连接对象
   - 获取普通执行者对象：`Statement createStatement()`
   - 获取预编译执行者对象：`PreparedStatement prepareStatement(String sql)`
 - 管理事务
-  - 开启事务：`setAutoCommit(boolean autoCommit)`，false 开启事务，true 自动提交模式(默认)
+  - 开启事务：`setAutoCommit(boolean autoCommit)`，false 开启事务，true 自动提交模式（默认）
   - 提交事务：`void commit()`
   - 回滚事务：`void rollback()`
 - 释放资源

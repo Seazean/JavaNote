@@ -14550,9 +14550,9 @@ SpringBoot 定义了一套接口规范，这套规范规定 SpringBoot 在启动
 
     * `List<String> configurations = SpringFactoriesLoader.loadFactoryNames()`：加载自动配置类
 
-      参数一：`getSpringFactoriesLoaderFactoryClass()` 获取 @EnableAutoConfiguration 注解类
+      参数一：`getSpringFactoriesLoaderFactoryClass()`：获取 @EnableAutoConfiguration 注解类
 
-      参数二：`getBeanClassLoader()` 获取类加载器
+      参数二：`getBeanClassLoader()`：获取类加载器
 
       * `factoryTypeName = factoryType.getName()`：@EnableAutoConfiguration 注解的全类名
       * `return loadSpringFactories(classLoaderToUse).getOrDefault()`：加载资源
