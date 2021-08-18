@@ -1263,7 +1263,7 @@ public class SpinLock {
 
 锁消除是指对于被检测出不可能存在竞争的共享数据的锁进行消除
 
-锁消除主要是通过逃逸分析来支持，如果堆上的共享数据不可能逃逸出去被其它线程访问到，那么就可以把它们当成私有数据对待，也就可以将它们的锁进行消除（同步消除：JVM内存分配）
+锁消除主要是通过**逃逸分析**来支持，如果堆上的共享数据不可能逃逸出去被其它线程访问到，那么就可以把它们当成私有数据对待，也就可以将它们的锁进行消除（同步消除：JVM 内存分配）
 
 
 
@@ -3610,6 +3610,8 @@ String 类也是不可变的，该类和类中所有属性都是 final 的
 
 * 类用 final 修饰保证了该类中的方法不能被覆盖，防止子类无意间破坏不可变性保
 
+* 无写入方法（set）确保外部不能对内部属性进行修改
+
 * 属性用 final 修饰保证了该属性是只读的，不能修改
 
   ```java
@@ -3620,8 +3622,10 @@ String 类也是不可变的，该类和类中所有属性都是 final 的
       //....
   }
   ```
+  
+* 更改 String 类数据时，会构造新字符串对象，生成新的 char[] value，通过创建副本对象来避免共享的方式称之为**保护性拷贝**
 
-更改 String 类数据时，会构造新字符串对象，生成新的 char[] value，这种通过创建副本对象来避免共享的方式称之为**保护性拷贝（defensive copy）**
+  
 
 
 
@@ -4525,7 +4529,7 @@ private ThreadLocalMap(ThreadLocalMap parentMap) {
 
 * 有界队列：有固定大小的队列，比如设定了固定大小的 LinkedBlockingQueue，又或者大小为 0
 
-* 无界队列：没有设置固定大小的队列，这些队列可以直接入队，直到溢出，一般不会有到这么大的容量（超过 Integer.MAX_VALUE），所以相当于无界
+* 无界队列：没有设置固定大小的队列，这些队列可以直接入队，直到溢出（超过 Integer.MAX_VALUE），所以相当于无界
 
 java.util.concurrent.BlockingQueue 接口有以下阻塞队列的实现：**FIFO 队列** 
 
@@ -4954,10 +4958,10 @@ TransferStack 类成员变量：
       if (match == null && UNSAFE.compareAndSwapObject(this, matchOffset, null, s)) {
           // 当前 node 如果自旋结束，会 park 阻塞，阻塞前将 node 对应的 Thread 保留到 waiter 字段
           Thread w = waiter;
-          //条件成立说明 node 对应的 Thread 已经阻塞
+          // 条件成立说明 node 对应的 Thread 正在阻塞
           if (w != null) {
               waiter = null;
-              //使用 unpark 方式唤醒线程
+              // 使用 unpark 方式唤醒线程
               LockSupport.unpark(w);
           }
           return true;
@@ -5036,7 +5040,7 @@ TransferStack 类成员方法：
                   // 当前 node 模式为 DATA 类型：返回 Node.item 数据域，当前请求提交的数据 e
                   return (E) ((mode == REQUEST) ? m.item : s.item);
               }
-          // 【CASE2】：当前栈顶模式与请求模式不一致，且栈顶不是 FULFILLING说明没被其他节点匹配，说明可以匹配
+          // 【CASE2】：逻辑到这说明请求模式不一致，如果栈顶不是 FULFILLING 说明没被其他节点匹配，说明可以匹配
           } else if (!isFulfilling(h.mode)) {
               // 头节点是取消节点，协助出栈
               if (h.isCancelled())
@@ -5056,16 +5060,16 @@ TransferStack 类成员方法：
                       }
                       // 获取匹配节点的下一个节点
                       SNode mn = m.next;
-                      // 尝试匹配，匹配成功，则将 fulfilling 和 m 一起出栈
+                      // 尝试匹配，【匹配成功】，则将 fulfilling 和 m 一起出栈，并且唤醒被匹配的节点的线程
                       if (m.tryMatch(s)) {
-                          casHead(s, mn);     // pop both s and m
+                          casHead(s, mn);
                           return (E) ((mode == REQUEST) ? m.item : s.item);
                       } else
                           // 匹配失败，出栈 m
                           s.casNext(m, mn);
                   }
               }
-          // 【CASE3】：栈顶模式为 FULFILLING 模式，表示栈顶和栈顶下面的栈帧正在发生匹配，当前请求需要做协助工作
+          // 【CASE3】：栈顶模式为 FULFILLING 模式，表示【栈顶和栈顶下面的节点正在发生匹配】，当前请求需要做协助工作
           } else {
               // h 表示的是 fulfilling 节点，m 表示 fulfilling 匹配的节点
               SNode m = h.next;
@@ -5119,7 +5123,7 @@ TransferStack 类成员方法：
               spins = shouldSpin(s) ? (spins - 1) : 0;
           // 说明没有自旋次数了
           else if (s.waiter == null)
-              // 把当前 node 对应的 Thread 保存到 node.waiter 字段中
+              // 把当前 node 对应的 Thread 保存到 node.waiter 字段中，要阻塞了
               s.waiter = w;
           // 没有超时限制直接阻塞
           else if (!timed)
@@ -5275,7 +5279,8 @@ TransferQueue 类成员方法：
           QNode h = head;
           if (t == null || h == null)
               continue;
-  		// head 和 tail 同时指向 dummy 节点，说明是空队列，或者队尾节点与当前请求类型是一致的情况，无法匹配
+  		// head 和 tail 同时指向 dummy 节点，说明是【空队列，或者是不匹配的情况】
+          // 队尾节点与当前请求类型是一致的情况，说明阻塞队列中都无法匹配，无法匹配
           if (h == t || t.isData == isData) {
               // 获取队尾 t 的 next 节点
               QNode tn = t.next;
@@ -5317,9 +5322,9 @@ TransferQueue 类成员方法：
                   s.waiter = null;
               }
               return (x != null) ? (E)x : e;
-  		// 队尾节点与当前请求节点互补
+  		// 队尾节点与当前请求节点【互补匹配】
           } else {
-              // h.next 节点，请求节点与队尾模式不同，需要与队头发生匹配,TransferQueue 是一个【公平模式】
+              // h.next 节点，请求节点与队尾模式不同，需要与队头发生匹配，TransferQueue 是一个【公平模式】
               QNode m = h.next;
               // 并发导致其他线程修改了队尾节点，或者已经把 head.next 匹配走了
               if (t != tail || m == null || h != head)
@@ -5543,7 +5548,7 @@ Executors提供了四种线程池的创建：newCachedThreadPool、newFixedThrea
   }
   ```
 
-  * 核心线程数是 0， 最大线程数是 Integer.MAX_VALUE，全部都是救急线程（60s 后可以回收），可能会创建大量线程，从而导致 **OOM**
+  * 核心线程数是 0， 最大线程数是 29 个 1，全部都是救急线程（60s 后可以回收），可能会创建大量线程，从而导致 **OOM**
   * SynchronousQueue 作为阻塞队列，没有容量，对于每一个 take 的线程会阻塞直到有一个 put 的线程放入元素为止（类似一手交钱、一手交货）
 
   * 适合任务数比较密集，但每个任务执行时间较短的情况
@@ -5708,7 +5713,7 @@ System.out.println(future.get());
 
 #### 状态信息
 
-ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位表示线程数量。这些信息存储在一个原子变量 ctl 中，目的是将线程池状态与线程个数合二为一，这样就可以用一次 CAS 原子操作进行赋值
+ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 位表示线程数量**。这些信息存储在一个原子变量 ctl 中，目的是将线程池状态与线程个数合二为一，这样就可以用一次 CAS 原子操作进行赋值
 
 * 状态表示：
 
@@ -5769,7 +5774,7 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
 * 重置当前线程池状态 ctl：
 
   ```java
-  // rs 表示线程池状态   wc 表示当前线程池中 worker（线程）数量，类似相加操作
+  // rs 表示线程池状态，wc 表示当前线程池中 worker（线程）数量，类似相加操作
   private static int ctlOf(int rs, int wc) { return rs | wc; }
   ```
 
@@ -5788,11 +5793,11 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
 * 设置线程池 ctl：
 
   ```java
-  // 使用CAS方式 让 ctl 值 +1 ，成功返回 true, 失败返回 false
+  // 使用 CAS 方式 让 ctl 值 +1 ，成功返回 true, 失败返回 false
   private boolean compareAndIncrementWorkerCount(int expect) {
       return ctl.compareAndSet(expect, expect + 1);
   }
-  // 使用CAS 方式 让 ctl 值 -1 ，成功返回 true, 失败返回 false
+  // 使用 CAS 方式 让 ctl 值 -1 ，成功返回 true, 失败返回 false
   private boolean compareAndDecrementWorkerCount(int expect) {
       return ctl.compareAndSet(expect, expect - 1);
   }
@@ -5851,13 +5856,13 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
 
   ```java
   private int largestPoolSize;		// 记录线程池生命周期内线程数最大值
-  private long completedTaskCount;	// 记录线程池所完成任务总数，当某个 worker 退出时将完成的任务累积到该属性
+  private long completedTaskCount;	// 记录线程池所完成任务总数，当某个 worker 退出时将完成的任务累加到该属性
   ```
 
 * 控制核心线程数量内的线程是否可以被回收：
 
   ```java
-  // false 代表不可以，为 true 时核心数量内的线程空闲超过 keepAliveTime 也会被回收
+  // false 代表不可以，为 true 时核心线程空闲超过 keepAliveTime 也会被回收
   private volatile boolean allowCoreThreadTimeOut;
   ```
 
@@ -5871,7 +5876,7 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
       Runnable firstTask;				// worker 第一个执行的任务，普通的 Runnable 实现类或者是 FutureTask
       volatile long completedTasks;	// 记录当前 worker 所完成任务数量
       
-      //构造方法
+      // 构造方法
       Worker(Runnable firstTask) {
           // 设置AQS独占模式为初始化中状态，这个状态不能被抢占锁
          	setState(-1);
@@ -5897,7 +5902,7 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
 
 ##### 提交方法
 
-* AbstractExecutorService#submit()：提交任务，**把任务封装成 FutureTask 执行**，可以通过返回的任务对象调用 get 阻塞获取任务执行的结果，源码分析在笔记的 Future 部分
+* AbstractExecutorService#submit()：提交任务，**把 Runnable 或 Callable 任务封装成 FutureTask 执行**，可以通过方法返回的任务对象调用 get 阻塞获取任务执行的结果或者异常，源码分析在笔记的 Future 部分
 
   ```java
   public Future<?> submit(Runnable task) {
@@ -5931,33 +5936,32 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
   }
   ```
 
-* execute()：执行任务，但是没有返回值，没办法获取任务执行结果
+* execute()：执行任务，但是没有返回值，没办法获取任务执行结果，出现异常会直接抛出任务执行时的异常
 
   ```java
-  // command 可以是普通的 Runnable 实现类，也可以是 FutureTask
+  // command 可以是普通的 Runnable 实现类，也可以是 FutureTask，不能是 Callable
   public void execute(Runnable command) {
       // 非空判断
       if (command == null)
           throw new NullPointerException();
     	// 获取 ctl 最新值赋值给 c，ctl 高3位表示线程池状态，低位表示当前线程池线程数量。
       int c = ctl.get();
-      // 【1】条件成立表示当前线程数量小于核心线程数，此次提交任务直接创建一个新的 worker，线程池中多了一个新的线程
+      // 【1】当前线程数量小于核心线程数，此次提交任务直接创建一个新的 worker，线程池中多了一个新的线程
       if (workerCountOf(c) < corePoolSize) {
           // addWorker 为创建线程的过程，会创建 worker 对象并且将 command 作为 firstTask，优先执行
           if (addWorker(command, true))
-              // 创建成功直接返回
               return;
-          // 执行到这条语句，说明 addWorker 一定是失败的，存在并发现象或者线程池状态被改变，
+          
+          // 执行到这条语句，说明 addWorker 一定是失败的，存在并发现象或者线程池状态被改变，重新获取状态
           // SHUTDOWN 状态下也有可能创建成功，前提 firstTask == null 而且当前 queue 不为空（特殊情况）
           c = ctl.get();
       }
       // 执行到这说明当前线程数量已经达到核心线程数量 或者 addWorker 失败
-      // 【2】条件成立说明当前线程池处于running状态，则尝试将 task 放入到 workQueue 中
+      // 【2】条件成立说明当前线程池处于running状态，则尝试将 task 放入到 workQueue 中，核心满了
       if (isRunning(c) && workQueue.offer(command)) {
-          // 获取线程池状态 ctl 保存到 recheck
           int recheck = ctl.get();
-          // 条件一成立说明线程池状态被外部线程给修改了，可能是执行了 shutdown() 方法，需要把刚提交的任务删除
-          // 删除成功说明提交之后，线程池中的线程还未消费该任务（处理）
+          // 条件一成立说明线程池状态被外部线程给修改了，可能是执行了 shutdown() 方法，该状态不能接收新提交的任务
+          // 所以要把刚提交的任务删除，删除成功说明提交之后线程池中的线程还未消费该任务（处理）
           if (!isRunning(recheck) && remove(command))
               // 任务出队成功，走拒绝策略
               reject(command);
@@ -5967,7 +5971,7 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
               addWorker(null, false);
       }
       // 【3】offer失败说明queue满了
-      // 如果线程数量尚未达到 maximumPoolSize，会创建非核心 worker 线程执行 command，不公平的原因
+      // 如果线程数量尚未达到 maximumPoolSize，会创建非核心 worker 线程执行 command，这也是不公平的原因
       // 如果当前线程数量达到 maximumPoolSiz，这里 addWorker 也会失败，走拒绝策略
       else if (!addWorker(command, false))
           reject(command);
@@ -5996,9 +6000,11 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
           int c = ctl.get();
           // 获取当前线程池运行状态
           int rs = runStateOf(c);	
+          
           // 判断当前线程池状态【是否允许添加线程】
-          // 判断当前线程池是 SHUTDOWN 状态，但是队列里面还有任务尚未处理完，
-          //    这时需要处理完 queue 中的任务，但是【不允许再提交新的 task】，所以 addWorker 返回 false
+          
+          // 当前线程池是 SHUTDOWN 状态，但是队列里面还有任务尚未处理完，
+          // 需要处理完 queue 中的任务，但是【不允许再提交新的 task】，所以 addWorker 返回 false
           if (rs >= SHUTDOWN && !(rs == SHUTDOWN && firstTask == null && !workQueue.isEmpty()))
               return false;
           for (;;) {
@@ -6038,12 +6044,13 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
               // 加互斥锁
               mainLock.lock();
               try {
-                  // 获取最新线程池运行状态保存到rs中
+                  // 获取最新线程池运行状态保存到 rs
                   int rs = runStateOf(ctl.get());
   				// 判断线程池是否为RUNNING状态，不是再判断当前是否为SHUTDOWN状态且firstTask为空（特殊情况）
                   if (rs < SHUTDOWN || (rs == SHUTDOWN && firstTask == null)) {
-                      // 当线程start后，线程isAlive会返回true，否则报错
+                      // 当线程 start 后，线程 isAlive 会返回 true，否则报错
                       if (t.isAlive()) throw new IllegalThreadStateException();
+                      
                       //【将新建的 Worker 添加到线程池中】
                       workers.add(w);
                       int s = workers.size();
@@ -6120,7 +6127,7 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
       Thread wt = Thread.currentThread();	
       // 获取 worker 的 firstTask
       Runnable task = w.firstTask;
-      // 引用置空，防止复用该线程时重复执行该任务
+      // 引用置空，防止复用该线程时【重复执行】该任务
       w.firstTask = null;
       // 初始化 worker 时设置 state = -1，这里需要设置 state = 0 和 exclusiveOwnerThread = null
       w.unlock();
@@ -6128,10 +6135,11 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
       boolean completedAbruptly = true;
       try {
           // firstTask 不是 null 就直接运行，否则去 queue 中获取任务
-          // 【getTask如果是阻塞获取任务，会一直阻塞在take方法，获取后继续循环，不会走返回null的逻辑】
+          // 【getTask 如果是阻塞获取任务，会一直阻塞在take方法，获取后继续循环，不会走返回null的逻辑】
           while (task != null || (task = getTask()) != null) {
-              // worker加锁，shutdown 时会判断当前worker状态，根据独占锁是否【空闲】
+              // worker 加锁，shutdown 时会判断当前 worker 状态，根据独占锁是否【空闲】
               w.lock();
+              
   			// 说明线程池状态大于 STOP，目前处于 STOP/TIDYING/TERMINATION，此时给线程一个中断信号
               if ((runStateAtLeast(ctl.get(), STOP) ||
                    // 说明线程处于 RUNNING 或者 SHUTDOWN 状态，清除打断标记
@@ -6139,7 +6147,7 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
                   // 中断线程，设置线程的中断标志位为 true
                   wt.interrupt();
               try {
-                  // 钩子方法，开发者自定义实现
+                  // 钩子方法，任务执行的前置处理
                   beforeExecute(wt, task);
                   Throwable thrown = null;
                   try {
@@ -6152,7 +6160,7 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
                   } catch (Throwable x) {
                       thrown = x; throw new Error(x);
                   } finally {
-                      // 钩子方法，开发者自定义实现
+                      // 钩子方法，任务执行的后置处理
                       afterExecute(task, thrown);
                   }
               } finally {
@@ -6161,7 +6169,7 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
                   w.unlock();			// 解锁
               }
           }
-          // getTask()方法返回null时会执行这里，表示queue为空并且线程空闲超过保活时间，当前【线程应该执行退出逻辑】
+          // getTask()方法返回null时会走到这里，表示queue为空并且线程空闲超过保活时间，【当前线程执行退出逻辑】
           completedAbruptly = false;	
       } finally {
           // 正常退出 completedAbruptly = false
@@ -6187,40 +6195,38 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
 
   ```java
   private Runnable getTask() {
-      //超时标记，表示当前线程获取任务是否超时，默认 false，true 表示已超时
+      // 超时标记，表示当前线程获取任务是否超时，默认 false，true 表示已超时
       boolean timedOut = false; 
       for (;;) {
-          // 获取最新ctl值保存到c中
           int c = ctl.get();
           // 获取线程池当前运行状态
           int rs = runStateOf(c);
   		
           // 【tryTerminate】打断线程后执行到这，此时线程池状态为STOP或者线程池状态为SHUTDOWN并且队列已经是空
-          // 所以下面的 if 条件一定是成立的，可以直接返回 null
-          
-          // 当前线程池是非 RUNNING 状态，并且线程池状态 >= STOP 或者 queue 为 null，线程就应该退出了
+          // 所以下面的 if 条件一定是成立的，可以直接返回 null，线程就应该退出了
           if (rs >= SHUTDOWN && (rs >= STOP || workQueue.isEmpty())) {
               // 使用 CAS 自旋的方式让 ctl 值 -1
               decrementWorkerCount();
-              // 返回null，runWorker 方法就会将返回 null 的线程执行线程退出线程池的逻辑
               return null;
           }
+          
   		// 获取线程池中的线程数量
           int wc = workerCountOf(c);
   
+          // 线程没有明确的区分谁是核心或者非核心，是根据当前池中的线程数量判断
+          
           // timed = false 表示当前这个线程 获取task时不支持超时机制的，当前线程会使用 queue.take() 阻塞获取
           // timed = true 表示当前这个线程 获取task时支持超时机制，使用 queue.poll(xxx,xxx) 超时获取
           // 条件一代表允许回收核心线程，那就无所谓了，全部线程都执行超时回收
-          // 条件二成立说明线程数量大于核心线程数，当前线程认为是非核心线程，
-          //      空闲一定时间就需要退出，去超时获取任务，获取不到返回null
+          // 条件二成立说明线程数量大于核心线程数，当前线程认为是非核心线程，空闲一定时间就需要退出，去超时获取任务
           boolean timed = allowCoreThreadTimeOut || wc > corePoolSize;
           
-  		// 条件一判断线程数量是否超过最大线程数，直接回收
+  		// 如果线程数量是否超过最大线程数，直接回收
           // 如果当前线程允许超时回收并且已经超时了，就应该被回收了，但是由于【担保机制】还要做判断：
           // 	  wc > 1 说明线程池还用其他线程，当前线程可以直接回收
           //    workQueue.isEmpty() 前置条件是 wc = 1，如果当前任务队列也是空了，最后一个线程就可以安全的退出
           if ((wc > maximumPoolSize || (timed && timedOut)) && (wc > 1 || workQueue.isEmpty())) {
-              // 使用CAS机制将 ctl 值 -1 ,减 1 成功的线程，返回 null，可以退出
+              // 使用 CAS 机制将 ctl 值 -1 ,减 1 成功的线程，返回 null，代表可以退出
               if (compareAndDecrementWorkerCount(c))
                   return null;
               continue;
@@ -6236,13 +6242,13 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
               // 获取任务为 null 说明超时了，将超时标记设置为 true，下次自旋时返 null
               timedOut = true;
           } catch (InterruptedException retry) {
-              // 阻塞线程被打断后超时标记置为 false，
+              // 阻塞线程被打断后超时标记置为 false，说明被打断不算超时，要继续获取，直到超时或者获取到任务
               timedOut = false;
           }
       }
   }
   ```
-
+  
 * processWorkerExit()：**线程退出线程池**
 
   ```java
@@ -6271,7 +6277,7 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
       if (runStateLessThan(c, STOP)) {
           // 正常退出的逻辑，是空闲线程回收
           if (!completedAbruptly) {
-              // 根据是否回收核心线程确定线程池中的最小值
+              // 根据是否回收核心线程确定【线程池中的线程数量最小值】
               int min = allowCoreThreadTimeOut ? 0 : corePoolSize;
               // 最小值为 0，但是线程队列不为空，需要一个线程来完成任务【担保机制】
               if (min == 0 && !workQueue.isEmpty())
@@ -6280,7 +6286,7 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
               if (workerCountOf(c) >= min)
                   return;
           }
-          // 执行task时发生异常，这里要创建一个新 worker 加进线程池
+          // 执行 task 时发生异常，这里要创建一个新 worker 加进线程池，有个线程因为异常终止了
           addWorker(null, false);
       }
   }
@@ -6299,18 +6305,18 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
   ```java
   public void shutdown() {
       final ReentrantLock mainLock = this.mainLock;
-      //获取线程池全局锁
+      // 获取线程池全局锁
       mainLock.lock();
       try {
           checkShutdownAccess();
-          //设置线程池状态为 SHUTDOWN
+          // 设置线程池状态为 SHUTDOWN
           advanceRunState(SHUTDOWN);
-          //中断空闲线程
+          // 中断空闲线程
           interruptIdleWorkers();
-          //空方法，子类可以扩展
+          // 空方法，子类可以扩展
           onShutdown(); 
       } finally {
-          //释放线程池全局锁
+          // 释放线程池全局锁
           mainLock.unlock();
       }
       tryTerminate();
@@ -6331,11 +6337,11 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
               // 获取当前 worker 的线程
               Thread t = w.thread;
               //条件一成立：说明当前迭代的这个线程尚未中断
-              //条件二成立：说明当前worker处于空闲状态，阻塞在poll或者take，因为worker执行task时是加锁的
-              //          每个worker有一个独占锁，w.tryLock()尝试加锁，如果锁已经加过了会返回 false
+              //条件二成立：说明当前worker处于空闲状态，阻塞在poll或者take，因为worker执行task时是要加锁的
+              //          每个worker有一个独占锁，w.tryLock()尝试加锁，加锁成功返回 true
               if (!t.isInterrupted() && w.tryLock()) {
                   try {
-                      // 中断线程，处于 queue 阻塞的线程会被唤醒，进入下一次自旋，返回null，执行退出相逻辑
+                      // 中断线程，处于 queue 阻塞的线程会被唤醒，进入下一次自旋，返回 null，执行退出相逻辑
                       t.interrupt();
                   } catch (SecurityException ignore) {
                   } finally {
@@ -6359,7 +6365,7 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
 
   ```java
   public List<Runnable> shutdownNow() {
-      //返回值引用
+      // 返回值引用
       List<Runnable> tasks;
       final ReentrantLock mainLock = this.mainLock;
       //获取线程池全局锁
@@ -6389,7 +6395,7 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
       for (;;) {
           // 获取 ctl 的值
           int c = ctl.get();
-          // 条件一说明线程池正常，条件二说明有其他线程执行了状态转换的方法，当前线程直接返回
+          // 线程池正常，或者有其他线程执行了状态转换的方法，当前线程直接返回
           if (isRunning(c) || runStateAtLeast(c, TIDYING) ||
               // 线程池是 SHUTDOWN 并且任务队列不是空，需要去处理队列中的任务
               (runStateOf(c) == SHUTDOWN && ! workQueue.isEmpty()))
@@ -6408,7 +6414,7 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
           // 加全局锁
           mainLock.lock();
           try {
-              // 设置线程池状态为 TIDYING 状态
+              // 设置线程池状态为 TIDYING 状态，线程数量为 0
               if (ctl.compareAndSet(c, ctlOf(TIDYING, 0))) {
                   try {
                       // 结束线程池
@@ -6425,7 +6431,6 @@ ThreadPoolExecutor 使用 int 的高 3 位来表示线程池状态，低 29 位�
   			// 释放线程池全局锁
               mainLock.unlock();
           }
-          // else retry on failed CAS
       }
   }
   ```
@@ -6561,15 +6566,16 @@ FutureTask 类的成员方法：
 
   ```java
   public void run() {
-      //条件一：成立说明当前 task 已经被执行过了或者被 cancel 了，非 NEW 状态的任务，线程就不处理了
+      //条件一：成立说明当前 task 已经被执行过了或者被 cancel 了，非 NEW 状态的任务，线程就不需要处理了
       //条件二：线程是 NEW 状态，尝试设置当前任务对象的线程是当前线程，设置失败说明其他线程抢占了该任务，直接返回
       if (state != NEW ||
           !UNSAFE.compareAndSwapObject(this, runnerOffset, null, Thread.currentThread()))
-          return;	//直接返回
+          return;
       try {
           // 执行到这里，当前 task 一定是 NEW 状态，而且当前线程也抢占 task 成功！
           Callable<V> c = callable;
-          // 判断任务是否为空，防止空指针异常，判断 state 防止外部线程在此期间 cancel 掉当前任务。
+          // 判断任务是否为空，防止空指针异常；判断 state 状态，防止外部线程在此期间 cancel 掉当前任务
+          // 因为 task 的执行者已经设置为当前线程，所以这里是线程安全的，
           if (c != null && state == NEW) {
               // 结果引用
               V result;
@@ -6729,8 +6735,7 @@ FutureTask 类的成员方法：
               q = new WaitNode();
           // 条件成立：【第二次自旋】，当前线程已经创建 WaitNode 对象了，但是node对象还未入队
           else if (!queued)
-              // waiters 指向队首，让当前 WaitNode 成为新的队首，【头插法】
-              // 失败说明再次期间有了新的队首
+              // waiters 指向队首，让当前 WaitNode 成为新的队首，【头插法】，失败说明其他线程修改了新的队首
               queued = UNSAFE.compareAndSwapObject(this, waitersOffset, q.next = waiters, q);
           // 条件成立：【第三次自旋】，会到这里。
           else if (timed) {
@@ -6744,17 +6749,17 @@ FutureTask 类的成员方法：
           }
           // 条件成立：说明需要休眠
           else
-              // 当前 get 操作的线程就会被 park 了，除非有其它线程将唤醒或者将当前线程中断
+              // 【当前 get 操作的线程就会被 park 阻塞了】，除非有其它线程将唤醒或者将当前线程中断
               LockSupport.park(this);
       }
   }
   ```
-
+  
   FutureTask#report：封装运行结果
-
+  
   ```java
   private V report(int s) throws ExecutionException {
-      // 获取执行结果
+      // 获取执行结果，都在一个 futuretask 对象中的属性，可以直接获取
       Object x = outcome;
       // 当前任务状态正常结束
       if (s == NORMAL)
@@ -6766,13 +6771,13 @@ FutureTask 类的成员方法：
       throw new ExecutionException((Throwable)x);	
   }
   ```
-
+  
 * FutureTask#cancel：任务取消
 
   ```java
   public boolean cancel(boolean mayInterruptIfRunning) {
       // 条件一：表示当前任务处于运行中或者处于线程池任务队列中
-      // 条件二：表示修改状态，成功可以去执行下面逻辑，否则返回 false 表示 cancel 失败。
+      // 条件二：表示修改状态，成功可以去执行下面逻辑，否则返回 false 表示 cancel 失败
       if (!(state == NEW &&
             UNSAFE.compareAndSwapInt(this, stateOffset, NEW,
                                      mayInterruptIfRunning ? INTERRUPTING : CANCELLED)))
@@ -7187,7 +7192,7 @@ AbstractQueuedSynchronizer 中 state 设计：
 
 * state **使用 volatile 修饰配合 cas** 保证其修改时的原子性
 
-* state 表示**线程重入的次数或者许可进入的线程数**
+* state 表示**线程重入的次数（独占模式）或者剩余许可数（共享模式）**
 
 * state API：
 
@@ -7952,7 +7957,10 @@ public static void main(String[] args) throws InterruptedException {
                   // 条件二中判断当前线程是否被打断，被打断返回true，设置中断标记为 true，获取锁后返回
                   interrupted = true;  
               }                  
-          }
+          } 
+      } finally {
+          if (failed)
+              cancelAcquire(node);
       }
   }
    private final boolean parkAndCheckInterrupt() {    
@@ -10499,7 +10507,7 @@ public V put(K key, V value) {
       int sc;
       while ((sc = sizeCtl) >= 0) {
           Node<K,V>[] tab = table; int n;
-          //数组还未初始化，一般是调用集合构造方法才会成立，put 后调用该方法都是不成立的
+          // 数组还未初始化，一般是调用集合构造方法才会成立，put 后调用该方法都是不成立的
           if (tab == null || (n = tab.length) == 0) {
               n = (sc > c) ? sc : c;
               if (U.compareAndSwapInt(this, SIZECTL, sc, -1)) {
@@ -10517,8 +10525,21 @@ public V put(K key, V value) {
           // 未达到扩容阈值或者数组长度已经大于最大长度
           else if (c <= sc || n >= MAXIMUM_CAPACITY)
               break;
-          else if (tab == table) // 与 addCount 逻辑相同
-              
+          else if (tab == table) {// 与 addCount 逻辑相同
+              int rs = resizeStamp(n);
+              if (sc < 0) {
+                  Node<K,V>[] nt;
+                  if ((sc >>> RESIZE_STAMP_SHIFT) != rs || sc == rs + 1 ||
+                      sc == rs + MAX_RESIZERS || (nt = nextTable) == null ||
+                      transferIndex <= 0)
+                      break;
+                  if (U.compareAndSwapInt(this, SIZECTL, sc, sc + 1))
+                      transfer(tab, nt);
+              }
+              else if (U.compareAndSwapInt(this, SIZECTL, sc,
+                                           (rs << RESIZE_STAMP_SHIFT) + 2))
+                  transfer(tab, null);
+          }
       }
   }
   ```
@@ -11923,9 +11944,9 @@ ConcurrentLinkedQueue 使用约定：
 1. 不允许 null 入列
 2. 队列中所有未删除的节点的 item 都不能为 null 且都能从 head 节点遍历到
 3. 删除节点是将 item 设置为 null，队列迭代时跳过 item 为 null 节点
-4. head 节点跟 tail 不一定指向头节点或尾节点，可能存在滞后性
+4. head 节点跟 tail 不一定指向头节点或尾节点，可能**存在滞后性**
 
-ConcurrentLinkedQueue 由 head 节点和 tail 节点组成，每个节点（Node）由节点元素（item）和指向下一个节点的引用（next）组成，组成一张链表结构的队列
+ConcurrentLinkedQueue 由 head 节点和 tail 节点组成，每个节点由节点元素和指向下一个节点的引用组成，组成一张链表结构的队列
 
 ```java
 private transient volatile Node<E> head;
@@ -11950,7 +11971,7 @@ private static class Node<E> {
 
   ```java
   public ConcurrentLinkedQueue() {
-      // 默认情况下head节点存储的元素为空，tail节点等于head节点
+      // 默认情况下 head 节点存储的元素为空，dummy 节点，tail 节点等于 head 节点
       head = tail = new Node<E>(null);
   }
   ```
@@ -11998,29 +12019,28 @@ public boolean offer(E e) {
     // 创建入队节点
     final Node<E> newNode = new Node<E>(e);
 	
-    // 循环CAS直到入队成功
+    // 循环 CAS 直到入队成功
     for (Node<E> t = tail, p = t;;) {
-        // p用来表示队列的尾节点，初始情况下等于tail节点，q 是p的next节点
+        // p 用来表示队列的尾节点，初始情况下等于 tail 节点，q 是 p 的 next 节点
         Node<E> q = p.next;
-        // 判断p是不是尾节点
+        // 条件成立说明 p 是尾节点
         if (q == null) {
-            // p是尾节点，设置p节点的下一个节点为新节点
-            // 设置成功则casNext返回true，否则返回false，说明有其他线程更新过尾节点
-            // 继续寻找尾节点，继续CAS
+            // p 是尾节点，设置 p 节点的下一个节点为新节点
+            // 设置成功则 casNext 返回 true，否则返回 false，说明有其他线程更新过尾节点，继续寻找尾节点，继续 CAS
             if (p.casNext(null, newNode)) {
-                // 首次添加时，p等于t，不进行尾节点更新，所以所尾节点存在滞后性
+                // 首次添加时，p 等于 t，不进行尾节点更新，所以尾节点存在滞后性
                 if (p != t)
-                    // 将tail设置为新入队的节点，设置失败表示其他线程更新了tail节点
+                    // 将 tail 设置成新入队的节点，设置失败表示其他线程更新了 tail 节点
                     casTail(t, newNode); 
                 return true;
             }
         }
         else if (p == q)
-            // 当tail不指向最后节点时，如果执行出列操作，可能将tail也移除，tail不在链表中 
-        	// 此时需要对tail节点进行复位，复位到head节点
+            // 当 tail 不指向最后节点时，如果执行出列操作，可能将 tail 也移除，tail 不在链表中 
+        	// 此时需要对 tail 节点进行复位，复位到 head 节点
             p = (t != (t = tail)) ? t : head;
         else
-            // 推动tail尾节点往队尾移动
+            // 推动 tail 尾节点往队尾移动
             p = (p != t && t != (t = tail)) ? t : q;
     }
 }
@@ -12061,18 +12081,18 @@ public boolean offer(E e) {
 public E poll() {
     restartFromHead:
     for (;;) {
-        // p节点表示首节点，即需要出队的节点
+        // p 节点表示首节点，即需要出队的节点，FIFO
         for (Node<E> h = head, p = h, q;;) {
             E item = p.item;
-			// 如果p节点的元素不为null，则通过CAS来设置p节点引用元素为null，成功返回item
+			// 如果 p 节点的元素不为 null，则通过 CAS 来设置 p 节点引用元素为 null，成功返回 item
             if (item != null && p.casItem(item, null)) {
-                if (p != h)
-                   	// 对head进行移动
+                if (p != h)	
+                   	// 对 head 进行移动
                     updateHead(h, ((q = p.next) != null) ? q : p);
                 return item;
             }
-           	// 如果头节点的元素为空或头节点发生了变化，这说明头节点被另外一个线程修改了
-            // 那么获取p节点的下一个节点，如果p节点的下一节点为null，则表明队列已经空了
+           	// 逻辑到这说明头节点的元素为空或头节点发生了变化，头节点被另外一个线程修改了
+            // 那么获取 p 节点的下一个节点，如果 p 节点的下一节点也为 null，则表明队列已经空了
             else if ((q = p.next) == null) {
                 updateHead(h, p);
                 return null;
@@ -12088,7 +12108,7 @@ public E poll() {
 }
 final void updateHead(Node<E> h, Node<E> p) {
     if (h != p && casHead(h, p))
-        // 将旧结点h的next域指向为h
+        // 将旧结点 h 的 next 域指向为 h，help gc
         h.lazySetNext(h);
 }
 ```
@@ -12097,11 +12117,13 @@ final void updateHead(Node<E> h, Node<E> p) {
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ConcurrentLinkedQueue出队操作1.png)
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/JUC-ConcurrentLinkedQueue出队操作2.png" style="zoom: 67%;" />
+![](https://gitee.com/seazean/images/raw/master/Java/JUC-ConcurrentLinkedQueue出队操作2.png)
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/JUC-ConcurrentLinkedQueue出队操作3.png" style="zoom:67%;" />
+![](https://gitee.com/seazean/images/raw/master/Java/JUC-ConcurrentLinkedQueue出队操作3.png)
 
-如果这时，有一个线程来添加元素，通过 tail 获取的 next 节点则仍然是它本身，这就出现了**p == q** 的情况，出现该种情况之后，则会触发执行 head 的更新，将 p 节点重新指向为 head
+如果这时，有一个线程来添加元素，通过 tail 获取的 next 节点则仍然是它本身，这就出现了p == q 的情况，出现该种情况之后，则会触发执行 head 的更新，将 p 节点重新指向为 head
+
+
 
 参考文章：https://www.jianshu.com/p/231caf90f30b
 
@@ -12113,9 +12135,7 @@ final void updateHead(Node<E> h, Node<E> p) {
 
 #### 成员方法
 
-* peek()
-
-  peek 操作会改变 head 指向，执行 peek() 方法后 head 会指向第一个具有非空元素的节点
+* peek()：会改变 head 指向，执行 peek() 方法后 head 会指向第一个具有非空元素的节点
 
   ```java
   // 获取链表的首部元素，只读取而不移除
@@ -12137,16 +12157,14 @@ final void updateHead(Node<E> h, Node<E> p) {
       }
   }
   ```
-
-* size()
-
-  用来获取当前队列的元素个数，因为整个过程都没有加锁，在并发环境中从调用 size 方法到返回结果期间有可能增删元素，导致统计的元素个数不精确
+  
+* size()：用来获取当前队列的元素个数，因为整个过程都没有加锁，在并发环境中从调用 size 方法到返回结果期间有可能增删元素，导致统计的元素个数不精确
 
   ```java
   public int size() {
       int count = 0;
-      // first()获取第一个具有非空元素的节点，若不存在，返回null
-      // succ(p)方法获取p的后继节点，若p == p的后继节点，则返回head
+      // first() 获取第一个具有非空元素的节点，若不存在，返回 null
+      // succ(p) 方法获取 p 的后继节点，若 p == p.next，则返回 head
       // 类似遍历链表
       for (Node<E> p = first(); p != null; p = succ(p))
           if (p.item != null)
@@ -12156,8 +12174,8 @@ final void updateHead(Node<E> h, Node<E> p) {
       return count;
   }
   ```
-
-* remove()
+  
+* remove()：移除元素
 
   ```java
   public boolean remove(Object o) {
@@ -12174,7 +12192,7 @@ final void updateHead(Node<E> h, Node<E> p) {
                       next = succ(p);
                       continue;
                   }
-                  // 若匹配，则通过CAS操作将对应节点元素置为null
+                  // 若匹配，则通过 CAS 操作将对应节点元素置为 null
                   removed = p.casItem(item, null);
               }
               // 获取删除节点的后继节点
