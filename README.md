@@ -14,11 +14,7 @@
 
 其他说明：
 
+* 推荐使用 Typora 阅读笔记，打开目录栏效果更佳。
 * 所有的知识不保证权威性，如果各位朋友发现错误，非常欢迎与我讨论。
-
 * Java.md 更新后大于 1M，导致网页无法显示，所以划分为 Java 和 Program 两个文档。
-
-* 推荐使用 Typora 阅读笔记，打开目录栏效果更佳，示例展示：
-
-  ![](https://gitee.com/seazean/images/raw/master/Java/Java-图片.png)
 
