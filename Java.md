@@ -4470,12 +4470,13 @@ PriorityQueue 是优先级队列，底层存储结构为 Object[]，默认实现
 
 java.utils.Collections：集合**工具类**，Collections并不属于集合，是用来操作集合的工具类
 Collections有几个常用的API：
-`public static <T> boolean addAll(Collection<? super T> c, T... e)`：给集合对象批量添加元素
-`public static void shuffle(List<?> list)`：打乱集合顺序。
-`public static <T> void sort(List<T> list)`：将集合中元素按照默认规则排序。
-`public static <T> void sort(List<T> list,Comparator<? super T> )`：集合中元素按照指定规则排序
-`public static <T> List<T> synchronizedList(List<T> list)`：返回由指定 list 支持的线程安全 list
-`public static <T> Set<T> singleton(T o)`：返回一个只包含指定对象的不可变组
+
+* `public static <T> boolean addAll(Collection<? super T> c, T... e)`：给集合对象批量添加元素
+* `public static void shuffle(List<?> list)`：打乱集合顺序
+* `public static <T> void sort(List<T> list)`：将集合中元素按照默认规则排序
+* `public static <T> void sort(List<T> list,Comparator<? super T> )`：集合中元素按照指定规则排序
+* `public static <T> List<T> synchronizedList(List<T> list)`：返回由指定 list 支持的线程安全 list
+* `public static <T> Set<T> singleton(T o)`：返回一个只包含指定对象的不可变组
 
 ```java
 public class CollectionsDemo {
@@ -4515,12 +4516,11 @@ public class Student{
 
 #### 概述
 
->Collection是单值集合体系。
->Map集合是一种双列集合，每个元素包含两个值。
+Collection 是单值集合体系，Map集合是一种双列集合，每个元素包含两个值。
 
-Map集合的每个元素的格式：key=value（键值对元素），Map集合也被称为“键值对集合”
+Map集合的每个元素的格式：key=value（键值对元素），Map集合也被称为键值对集合
 
-Map集合的完整格式：`{key1=value1 , key2=value2 , key3=value3 , ...}`
+Map集合的完整格式：`{key1=value1, key2=value2, key3=value3, ...}`
 
 ```
 Map集合的体系：
@@ -6632,7 +6632,7 @@ Stream 流其实就是一根传送带，元素在上面可以被 Stream 流操�
 
 作用：
 
-* 可以解决已有集合类库或者数组API的弊端。
+* 可以解决已有集合类库或者数组 API 的弊端
 * Stream 流简化集合和数组的操作
 * 链式编程
 
@@ -6655,7 +6655,7 @@ list.stream().filter(s -> s.startsWith("张"));
 
 #### 获取流
 
-集合获取 Stream 流用：default Stream<E> stream()
+集合获取 Stream 流用：`default Stream<E> stream()`
 
 数组：Arrays.stream(数组)   /  Stream.of(数组);
 
@@ -6686,16 +6686,16 @@ Stream<String> arrStream2 = Stream.of(arr);
 
 #### 常用API
 
-| 方法名                                                    | 说明                                                     |
-| --------------------------------------------------------- | -------------------------------------------------------- |
-| void forEach(Consumer<? super T> action)                  | 逐一处理(遍历)                                           |
-| long count                                                | 返回流中的元素数                                         |
-| Stream<T> filterPredicate<? super T> predicate)           | 用于对流中的数据进行过滤                                 |
-| Stream<T> limit(long maxSize)                             | 返回此流中的元素组成的流，截取前指定参数个数的数据       |
-| Stream<T> skip(long n)                                    | 跳过指定参数个数的数据，返回由该流的剩余元素组成的流     |
-| <R> Stream<R> map(Function<? super T,? extends R> mapper) | 加工方法，将当前流中的T类型数据转换为另一种R类型的流     |
-| static <T> Stream<T> concat(Stream a, Stream b)           | 合并a和b两个流为一个.  调用: `Stream.concat(s1,s2);`     |
-| Stream<T> distinct()                                      | 返回由该流的不同元素(根据Object.equals(Object) )组成的流 |
+| 方法名                                                    | 说明                                                 |
+| --------------------------------------------------------- | ---------------------------------------------------- |
+| void forEach(Consumer<? super T> action)                  | 逐一处理（遍历）                                     |
+| long count                                                | 返回流中的元素数                                     |
+| Stream<T> filterPredicate<? super T> predicate)           | 用于对流中的数据进行过滤                             |
+| Stream<T> limit(long maxSize)                             | 返回此流中的元素组成的流，截取前指定参数个数的数据   |
+| Stream<T> skip(long n)                                    | 跳过指定参数个数的数据，返回由该流的剩余元素组成的流 |
+| <R> Stream<R> map(Function<? super T,? extends R> mapper) | 加工方法，将当前流中的T类型数据转换为另一种R类型的流 |
+| static <T> Stream<T> concat(Stream a, Stream b)           | 合并a和b两个流为一个，调用 `Stream.concat(s1,s2)`    |
+| Stream<T> distinct()                                      | 返回由该流的不同元素组成的流                         |
 
 ```java
 public class StreamDemo {
@@ -6745,7 +6745,7 @@ class Student{
 
 终结方法：Stream 调用了终结方法，流的操作就全部终结，不能继续使用，如 foreach，count 方法等
 
-非终结方法：每次调用完成以后返回一个新的流对象，可以继续使用，支持**链式编程**！
+非终结方法：每次调用完成以后返回一个新的流对象，可以继续使用，支持**链式编程**
 
 ```java
 // foreach终结方法
@@ -6766,28 +6766,29 @@ list.stream().filter(s -> s.startsWith("张"))
 * Stream流：工具
 * 集合：目的
 
-| 方法名                                                       | 说明                   |
-| ------------------------------------------------------------ | ---------------------- |
-| R collect(Collector collector)                               | 把结果收集到集合中     |
-| public static <T> Collector toList()                         | 把元素收集到List集合中 |
-| public static <T> Collector toSet()                          | 把元素收集到Set集合中  |
-| public static  Collector toMap(Function keyMapper,Function valueMapper) | 把元素收集到Map集合中  |
-| Object[] toArray()                                           | 把元素收集数组中       |
+Stream 收集方法：`R collect(Collector collector)` 把结果收集到集合中
+
+Collectors 方法：
+
+* `public static <T> Collector toList()`：把元素收集到 List 集合中
+* `public static <T> Collector toSet()`：把元素收集到 Set 集合中
+* `public static  Collector toMap(Function keyMapper,Function valueMapper)`：把元素收集到 Map 集合中
+* `Object[] toArray()`：把元素收集数组中
 
 ```java
 public static void main(String[] args) {
 	List<String> list = new ArrayList<>();
-	Stream<String> stream=list.stream().filter(s -> s.startsWith("张"));    
+	Stream<String> stream = list.stream().filter(s -> s.startsWith("张"));    
     //把stream流转换成Set集合。
     Set<String> set = stream.collect(Collectors.toSet());
     
     //把stream流转换成List集合。
     //重新定义，因为资源已经被关闭了
-    Stream<String> stream1=list.stream().filter(s -> s.startsWith("张"));
+    Stream<String> stream1 = list.stream().filter(s -> s.startsWith("张"));
     List<String> list = stream.collect(Collectors.toList());
     
     //把stream流转换成数组。
-    Stream<String> stream2 =list.stream().filter(s -> s.startsWith("张"));
+    Stream<String> stream2 = list.stream().filter(s -> s.startsWith("张"));
     Object[] arr = stream2.toArray();
     // 可以借用构造器引用申明转换成的数组类型！！！
     String[] arr1 = stream2.toArray(String[]::new);

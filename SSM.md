@@ -139,7 +139,7 @@ org.apache.ibatis.session.SqlSession：构建者对象接口，用于执行 SQL�
 
 ### 核心配置
 
-核心配置文件包含了 MyBatis 最核心的设置和属性信息，如数据库的连接、事务、连接池信息等。放在src目录下
+核心配置文件包含了 MyBatis 最核心的设置和属性信息，如数据库的连接、事务、连接池信息等
 
 命名：MyBatisConfig.xml
 
@@ -3039,12 +3039,12 @@ UserService userService = (UserService)ctx.getBean("userService3");
 
 ApplicationContext 子类相关API：
 
-| 方法                                              | 说明                                         |
-| ------------------------------------------------- | -------------------------------------------- |
-| String[] getBeanDefinitionNames()                 | 获取 Spring容器中定义的所有 JavaBean 的名称  |
-| BeanDefinition getBeanDefinition(String beanName) | 返回给定bean名称的BeanDefinition             |
-| String[] getBeanNamesForType(Class<?> type)       | 获取Spring容器中指定类型的所有JavaBean的名称 |
-| Environment getEnvironment()                      | 获取与此组件关联的环境                       |
+| 方法                                              | 说明                                             |
+| ------------------------------------------------- | ------------------------------------------------ |
+| String[] getBeanDefinitionNames()                 | 获取 Spring 容器中定义的所有 JavaBean 的名称     |
+| BeanDefinition getBeanDefinition(String beanName) | 返回给定 bean 名称的 BeanDefinition              |
+| String[] getBeanNamesForType(Class<?> type)       | 获取 Spring 容器中指定类型的所有 JavaBean 的名称 |
+| Environment getEnvironment()                      | 获取与此组件关联的环境                           |
 
 
 
@@ -4927,7 +4927,7 @@ public interface ApplicationListener<E extends ApplicationEvent>
  * 	  写一个监听器（ApplicationListener实现类）来监听某个事件（ApplicationEvent及其子类）
  * 	  把监听器加入到容器 @Component
  * 	  只要容器中有相关事件的发布，就能监听到这个事件；
-       * 	  ContextRefreshedEvent：容器刷新完成（所有bean都完全创建）会发布这个事件
+       * 	  ContextRefreshedEvent：容器刷新完成（所有 bean 都完全创建）会发布这个事件
        * 	  ContextClosedEvent：关闭容器会发布这个事件
  * 	  发布一个事件：`applicationContext.publishEvent()`
 
@@ -4951,39 +4951,31 @@ public class MyApplicationListener implements ApplicationListener<ApplicationEve
 
 ##### 实现原理
 
-1. **ContextRefreshedEvent 事件**
+ContextRefreshedEvent 事件：
 
-   * 容器创建对象：refresh()
+- 容器初始化过程中执行 `initApplicationEventMulticaster()`：初始化事件多播器
 
-    * 容器刷新完成：finishRefresh() → publishEvent(new ContextRefreshedEvent(this))
+  - 先去容器中查询 `id = applicationEventMulticaster` 的组件，有直接返回
+  - 没有就执行 `this.applicationEventMulticaster = new SimpleApplicationEventMulticaster(beanFactory)` 并且加入到容器中
+  - 以后在其他组件要派发事件，自动注入这个 applicationEventMulticaster
 
-      发布 ContextRefreshedEvent 事件：
+- 容器初始化过程执行 **registerListeners()** 注册监听器
 
-      * 获取事件的多播器（派发器）：getApplicationEventMulticaster()
+  - 从容器中获取所有监听器：`getBeanNamesForType(ApplicationListener.class, true, false)`
+  - 将 listener 注册到 ApplicationEventMulticaster
 
-        容器初始化过程中执行 `initApplicationEventMulticaster()`：初始化事件多播器
+- 容器刷新完成：finishRefresh() → publishEvent(new ContextRefreshedEvent(this))
 
-        * 先去容器中查询 `id=applicationEventMulticaster` 的组件，有直接返回
-        * 没有就执行 `this.applicationEventMulticaster = new SimpleApplicationEventMulticaster(beanFactory)`并且加入到容器中
-        * 以后在其他组件要派发事件，自动注入这个 applicationEventMulticaster
+  发布 ContextRefreshedEvent 事件：
 
-      * multicastEvent 派发事件
+  - 获取事件的多播器（派发器）：getApplicationEventMulticaster()
+  - multicastEvent 派发事件
+    - 获取到所有的 ApplicationListener
+    - 遍历 ApplicationListener
+      - 如果有 Executor，可以使用 Executor 异步派发 `Executor executor = getTaskExecutor()`
+      - 没有就同步执行 listener 方法 `invokeListener(listener, event)`，拿到 listener 回调 onApplicationEvent
 
-      * 获取到所有的 ApplicationListener
-
-        容器初始化过程执行 **registerListeners()** 注册监听器
-
-        * 从容器中获取所有监听器：`getBeanNamesForType(ApplicationListener.class, true, false)`
-        * 将 listener 注册到 ApplicationEventMulticaster：`getApplicationEventMulticaster().addApplicationListenerBean(listenerBeanName)`
-
-      * 遍历 ApplicationListener
-
-        * 如果有 Executor，可以使用 Executor 异步派发；Executor executor = getTaskExecutor()
-        * 没有就同步直接执行 listener 方法；invokeListener(listener, event)，拿到 listener 回调 onApplicationEvent 方法
-
-2. 自己发布事件
-
-3. 容器关闭会发布 ContextClosedEvent
+容器关闭会发布 ContextClosedEvent
 
 
 
@@ -5002,19 +4994,19 @@ public class MyApplicationListener implements ApplicationListener<ApplicationEve
 public class UserService{
     @EventListener(classes={ApplicationEvent.class})
 	public void listen(ApplicationEvent event){
-		System.out.println("UserService。。监听到的事件："+event);
+		System.out.println("UserService。。监听到的事件：" + event);
 	}
 }
 ```
 
 原理：使用 EventListenerMethodProcessor 处理器来解析方法上的 @EventListener，Spring 扫描使用注解的方法，并为之创建一个监听对象
 
-SmartInitializingSingleton 原理：→ afterSingletonsInstantiated()
+SmartInitializingSingleton 原理：afterSingletonsInstantiated()
 
- *   		ioc 容器创建对象并 refresh()
+ *   		IOC 容器创建对象并 refresh()
  *   		finishBeanFactoryInitialization(beanFactory)：初始化剩下的单实例 bean
-        *   		先创建所有的单实例 bean：getBean()
-        *   		获取所有创建好的单实例 bean，判断是否是 SmartInitializingSingleton 类型的，如果是就调用 afterSingletonsInstantiated()
+        * 先创建所有的单实例 bean：getBean()
+        * 获取所有创建好的单实例 bean，判断是否是 SmartInitializingSingleton 类型的，如果是就调用 afterSingletonsInstantiated()
 
 
 
@@ -6527,11 +6519,11 @@ Spring 在事务开始时，根据当前环境中设置的隔离级别，调整�
 
 TransactionDefinition 接口中定义了五个表示隔离级别的常量：
 
-- **TransactionDefinition.ISOLATION_DEFAULT**：使用后端数据库默认的隔离级别，Mysql 默认采用的 REPEATABLE_READ隔离级别，Oracle 默认采用的 READ_COMMITTED隔离级别.
-- **TransactionDefinition.ISOLATION_READ_UNCOMMITTED**：最低的隔离级别，允许读取尚未提交的数据变更，可能会导致脏读、幻读或不可重复读
-- **TransactionDefinition.ISOLATION_READ_COMMITTED**：允许读取并发事务已经提交的数据，可以阻止脏读，但是幻读或不可重复读仍有可能发生
-- **TransactionDefinition.ISOLATION_REPEATABLE_READ**：对同一字段的多次读取结果都是一致的，除非数据是被本身事务自己所修改，可以阻止脏读和不可重复读，但幻读仍有可能发生。
-- **TransactionDefinition.ISOLATION_SERIALIZABLE**：最高的隔离级别，完全服从 ACID 的隔离级别。所有的事务依次逐个执行，这样事务之间就完全不可能产生干扰，也就是说，该级别可以防止脏读、不可重复读以及幻读。但是这将严重影响程序的性能。通常情况下也不会用到该级别
+- TransactionDefinition.ISOLATION_DEFAULT：使用后端数据库默认的隔离级别，Mysql 默认采用的 REPEATABLE_READ隔离级别，Oracle 默认采用的 READ_COMMITTED隔离级别.
+- TransactionDefinition.ISOLATION_READ_UNCOMMITTED：最低的隔离级别，允许读取尚未提交的数据变更，可能会导致脏读、幻读或不可重复读
+- TransactionDefinition.ISOLATION_READ_COMMITTED：允许读取并发事务已经提交的数据，可以阻止脏读，但是幻读或不可重复读仍有可能发生
+- TransactionDefinition.ISOLATION_REPEATABLE_READ：对同一字段的多次读取结果都是一致的，除非数据是被本身事务自己所修改，可以阻止脏读和不可重复读，但幻读仍有可能发生。
+- TransactionDefinition.ISOLATION_SERIALIZABLE：最高的隔离级别，完全服从 ACID 的隔离级别。所有的事务依次逐个执行，这样事务之间就完全不可能产生干扰，也就是说，该级别可以防止脏读、不可重复读以及幻读。但是这将严重影响程序的性能。通常情况下也不会用到该级别
 
 MySQL InnoDB 存储引擎的默认支持的隔离级别是 **REPEATABLE-READ（可重读）**
 
@@ -6884,6 +6876,8 @@ TransactionStatus 此接口定义了事务在执行过程中某个时间点上�
 
   
 
+****
+
 
 
 #### AOP改造
@@ -6968,28 +6962,28 @@ TransactionStatus 此接口定义了事务在执行过程中某个时间点上�
 
 ##### tx使用
 
-* 删除 TxAdvice 通知类，开启 tx 命名空间，配置 applicationContext.xml
+删除 TxAdvice 通知类，开启 tx 命名空间，配置 applicationContext.xml
 
-  ```xml
-  <!--配置平台事务管理器-->
-  <bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
-      <property name="dataSource" ref="dataSource"/>
-  </bean>
-  
-  <!--定义事务管理的通知类-->
-  <tx:advice id="txAdvice" transaction-manager="txManager">
-      <!--定义控制的事务-->
-      <tx:attributes>
-          <tx:method name="transfer" read-only="false"/>
-      </tx:attributes>
-  </tx:advice>
-  
-  <!--使用aop:advisor在AOP配置中引用事务专属通知类，底层invoke调用-->
-  <aop:config>
-      <aop:pointcut id="pt" expression="execution(* service.*Service.*(..))"/>
-      <aop:advisor advice-ref="txAdvice" pointcut-ref="pt"/>
-  </aop:config>
-  ```
+```xml
+<!--配置平台事务管理器-->
+<bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+    <property name="dataSource" ref="dataSource"/>
+</bean>
+
+<!--定义事务管理的通知类-->
+<tx:advice id="txAdvice" transaction-manager="txManager">
+    <!--定义控制的事务-->
+    <tx:attributes>
+        <tx:method name="transfer" read-only="false"/>
+    </tx:attributes>
+</tx:advice>
+
+<!--使用aop:advisor在AOP配置中引用事务专属通知类，底层invoke调用-->
+<aop:config>
+    <aop:pointcut id="pt" expression="execution(* service.*Service.*(..))"/>
+    <aop:advisor advice-ref="txAdvice" pointcut-ref="pt"/>
+</aop:config>
+```
 
 * aop:advice 与 aop:advisor 区别
   * aop:advice 配置的通知类可以是普通 java 对象，不实现接口，也不使用继承关系
@@ -7001,8 +6995,17 @@ TransactionStatus 此接口定义了事务在执行过程中某个时间点上�
 
     - ThrowsAdvice
 
+pom.xml 文件引入依赖：
 
-方法调用：`AbstractAspectJAdvice#invokeAdviceMethod(org.aspectj.weaver.tools.JoinPointMatch, java.lang.Object, java.lang.Throwable)`
+```xml
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-tx</artifactId>
+    <version>5.1.9.RELEASE</version>
+</dependency>
+```
+
+
 
 
 
@@ -7107,6 +7110,10 @@ TransactionStatus 此接口定义了事务在执行过程中某个时间点上�
 
 
 
+***
+
+
+
 ###### 纯注解
 
 名称：@EnableTransactionManagement
@@ -7186,11 +7193,12 @@ public void addAccount{}
 * 情况 1：确认创建的 mysql 数据库表引擎是 InnoDB，MyISAM 不支持事务
 
 * 情况 2：注解到 protected，private 方法上事务不生效，但不会报错
+  
   原因：理论上而言，不用 public 修饰，也可以用 aop 实现事务的功能，但是方法私有化让其他业务无法调用
-
+  
   AopUtils.canApply：`methodMatcher.matches(method, targetClass) --true--> return true`
   `TransactionAttributeSourcePointcut.matches()` ，AbstractFallbackTransactionAttributeSource 中 getTransactionAttribute 方法调用了其本身的 computeTransactionAttribute 方法，当加了事务注解的方法不是 public 时，该方法直接返回 null，所以造成增强不匹配
-
+  
   ```java
   private TransactionAttribute computeTransactionAttribute(Method method, Class<?> targetClass) {
       // Don't allow no-public methods as required.
@@ -7199,7 +7207,7 @@ public void addAccount{}
       }
   }
   ```
-
+  
 * 情况 3：注解所在的类没有被加载成 Bean
 
 * 情况 4：在业务层捕捉异常后未向上抛出，事务不生效
@@ -7212,7 +7220,7 @@ public void addAccount{}
 
 * 情况 6：Spring 的事务传播策略在**内部方法**调用时将不起作用，在一个 Service 内部，事务方法之间的嵌套调用，普通方法和事务方法之间的嵌套调用，都不会开启新的事务，事务注解要加到调用方法上才生效
 
-  原因：Spring 的事务都是使用 AOP 代理的模式，动态代理最终是要调用原始对象，而原始对象在去调用方法时是不会再触发代理，就是一个方法调用**本对象**的另一个方法，没有通过代理类直接调用，所以事务也就无法生效
+  原因：Spring 的事务都是使用 AOP 代理的模式，动态代理最终是要调用原始对象，而原始对象在去调用方法时是不会再触发代理，就是**一个方法调用本对象的另一个方法**，没有通过代理类直接调用，所以事务也就无法生效
 
   ```java
   @Transactional
@@ -7503,6 +7511,7 @@ AbstractApplicationContext.refresh()：
   * `ignoreDependencyInterface()`：设置忽略自动装配的接口，bean 内部的这些类型的字段   不参与依赖注入
   * `registerResolvableDependency()`：注册一些类型依赖关系
   * `addBeanPostProcessor()`：将配置的监听者注册到容器中，当前 bean 实现 ApplicationListener 接口就是**监听器事件**
+  * `beanFactory.registerSingleton()`：添加一些系统信息
 
 * postProcessBeanFactory(beanFactory)：BeanFactory 准备工作完成后进行的后置处理工作，通过重写这个方法来在 BeanFactory 创建并预准备完成以后做进一步的设置
 
@@ -7694,7 +7703,7 @@ AbstractBeanFactory.doGetBean()：获取 Bean，context.getBean() 追踪到此
 
 * `if(isPrototypeCurrentlyInCreation(beanName))`：检查 bean 是否在原型（Prototype）正在被创建的集合中，如果是就报错，说明产生了循环依赖，**原型模式解决不了循环依赖**
 
-  原因：先加载 A，把 A 加入集合，A 依赖 B 去加载 B，B 又依赖 A，发现 A 在正在创建集合中，产生循环依赖
+  原因：先加载 A，把 A 加入集合，A 依赖 B 去加载 B，B 又依赖 A，去加载 A，发现 A 在正在创建集合中，产生循环依赖
 
 * `markBeanAsCreated(beanName)`：把 bean 标记为已经创建
 
@@ -8029,7 +8038,7 @@ AbstractAutowireCapableBeanFactory.**doCreateBean**(beanName, RootBeanDefinition
 
 
 
-* `if (earlySingletonExposure)`：是否循序提前引用
+* `if (earlySingletonExposure)`：是否允许提前引用
 
   `earlySingletonReference = getSingleton(beanName, false)`：**从二级缓存获取实例**，放入一级缓存是在 doGetBean 中的sharedInstance = getSingleton() 方法中，此时在 createBean 的逻辑还没有返回。
 
@@ -8103,7 +8112,7 @@ AbstractAutowireCapableBeanFactory.createBeanInstance(beanName, RootBeanDefiniti
 
   * `return instantiateBean(beanName, mbd)`：**无参构造方法通过反射创建实例**
 
-* `ctors = determineConstructorsFromBeanPostProcessors(beanClass, beanName)`：**@Autowired 注解**配置在构造方法上，对应的后置处理器AutowiredAnnotationBeanPostProcessor 逻辑
+* `ctors = determineConstructorsFromBeanPostProcessors(beanClass, beanName)`：**@Autowired 注解**配置在构造方法上，对应的后置处理器 AutowiredAnnotationBeanPostProcessor 逻辑
 
   * 配置了 lookup 的相关逻辑
 
@@ -8245,7 +8254,7 @@ AbstractAutowireCapableBeanFactory.createBeanInstance(beanName, RootBeanDefiniti
 
       `BeanUtils.instantiateClass(constructorToUse)`：调用 `java.lang.reflect.Constructor.newInstance()` 实例化
   
-    * `instantiateWithMethodInjection(bd, beanName, owner)`：有方法重写采用 CGLIB  实例化
+    * `instantiateWithMethodInjection(bd, beanName, owner)`：**有方法重写采用 CGLIB  实例化**
     
   * `BeanWrapper bw = new BeanWrapperImpl(beanInstance)`：包装成 BeanWrapper 类型的对象
   
@@ -8265,9 +8274,9 @@ AbstractAutowireCapableBeanFactory.createBeanInstance(beanName, RootBeanDefiniti
 
 Spring 循环依赖有四种：
 
-* DependsOn 依赖加载【无法解决】
-* 原型模式循环依赖【无法解决】
-* 单例 Bean 循环依赖：构造参数产生依赖【无法解决】
+* DependsOn 依赖加载【无法解决】（两种 Map）
+* 原型模式循环依赖【无法解决】（正在创建集合）
+* 单例 Bean 循环依赖：构造参数产生依赖【无法解决】（正在创建集合）
 * 单例 Bean 循环依赖：setter 产生依赖【可以解决】
 
 解决循环依赖：提前引用，提前暴露创建中的 Bean
@@ -8297,13 +8306,13 @@ private final Map<String, ObjectFactory<?>> singletonFactories = new HashMap<>(1
 
 * 三级缓存一定会创建提前引用吗？
 
-  * 出现循环依赖就会去三级缓存获取提前引用，不出现就不会
-  * 如果当前有增强方法，就创建代理对象放入二级缓存，如果没有代理对象就返回 createBeanInstance 创建的实例
+  * 出现循环依赖就会去三级缓存获取提前引用，不出现就不会，走正常的逻辑，创建完成直接放入一级缓存
+  * 存在循环依赖，就创建代理对象放入二级缓存，如果没有增强方法就返回 createBeanInstance 创建的实例，因为 addSingletonFactory 参数中传入了实例化的 Bean，在 singletonFactory.getObject() 中返回给 singletonObject
 
 * wrapIfNecessary 一定创建代理对象吗？（AOP 动态代理部分有源码解析）
 
   * 存在增强器会创建动态代理，不需要增强就不需要创建动态代理对象
-  * 不创建就会把最原始的实例化的Bean放到二级缓存，因为 addSingletonFactory 参数中传入了实例化的Bean，在singletonFactory.getObject() 中返回给 singletonObject，放入二级缓存
+  * 存在循环依赖会提前增强，初始化后不需要增强
 
 * 什么时候将 Bean 的引用提前暴露给第三级缓存的 ObjectFactory 持有？
 
@@ -8385,10 +8394,10 @@ private final Map<String, ObjectFactory<?>> singletonFactories = new HashMap<>(1
   ```java
   public Object getEarlyBeanReference(Object bean, String beanName) {
       Object cacheKey = getCacheKey(bean.getClass(), beanName);
-      this.earlyProxyReferences.put(cacheKey, bean);
       //向提前引用代理池 earlyProxyReferences 中添加该Bean，防止对象被重新代理
+      this.earlyProxyReferences.put(cacheKey, bean);
+      //创建代理对象，createProxy
       return wrapIfNecessary(bean, beanName, cacheKey);
-  	//创建代理对象，createProxy
   }
   ```
 
@@ -8470,7 +8479,7 @@ protected Object wrapIfNecessary(Object bean, String beanName, Object cacheKey) 
         return bean;
     }
 
-    // 查找适合当前 bean 实例 Class 的通知（下一节详解）
+    // 查找适合当前 bean 实例的增强方法（下一节详解）
     Object[] specificInterceptors = getAdvicesAndAdvisorsForBean(bean.getClass(), beanName, null);
     //条件成立说明上面方法查询到适合当前class的通知
     if (specificInterceptors != DO_NOT_PROXY) {
@@ -8501,7 +8510,7 @@ protected Object wrapIfNecessary(Object bean, String beanName, Object cacheKey) 
 
 ##### 获取通知
 
-AbstractAdvisorAutoProxyCreator.getAdvicesAndAdvisorsForBean()：查找适合当前实例的增强
+AbstractAdvisorAutoProxyCreator.getAdvicesAndAdvisorsForBean()：查找适合当前实例的增强，并进行排序
 
 ```java
 protected Object[] getAdvicesAndAdvisorsForBean(Class<?> beanClass, String beanName, @Nullable TargetSource targetSource) {
@@ -8520,9 +8529,9 @@ AbstractAdvisorAutoProxyCreator.findEligibleAdvisors()：
 
 * `candidateAdvisors = findCandidateAdvisors()`：**获取当前容器内可以使用（所有）的 advisor**，调用的是 AnnotationAwareAspectJAutoProxyCreator 类的方法
 
-  * `advisors = super.findCandidateAdvisors()`：查询出所有 Advisor 类型
+  * `advisors = super.findCandidateAdvisors()`：查询出 XML 配置的所有 Advisor 类型
 
-    * `advisorNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors()`：通过 BF 查询出来 BD 配置的 class 中 是 **Advisor 子类的 BeanName**
+    * `advisorNames = BeanFactoryUtils.beanNamesForTypeIncludingAncestors()`：通过 BF 查询出来 BD 配置的 class 中 是 Advisor 子类的 BeanName
     * `advisors.add()`：使用 Spring 容器获取当前这个 Advisor 类型的实例
 
   * `advisors.addAll(this.aspectJAdvisorsBuilder.buildAspectJAdvisors())`：获取添加 @Aspect 注解类中的 Advisor
@@ -8557,11 +8566,11 @@ AbstractAdvisorAutoProxyCreator.findEligibleAdvisors()：
 
     * `return advisors`：返回 Advisor 列表
 
-* `eligibleAdvisors = findAdvisorsThatCanApply(candidateAdvisors, beanClass, beanName)`：**选出适合当前类型的增强**
+* `eligibleAdvisors = findAdvisorsThatCanApply(candidateAdvisors, beanClass, beanName)`：**选出适合当前类的增强**
 
   * `if (candidateAdvisors.isEmpty())`：条件成立说明当前 Spring 没有可以操作的 Advisor
 
-  * `List<Advisor> eligibleAdvisors = new ArrayList<>()`：匹配当前 clazz 的 Advisors 信息
+  * `List<Advisor> eligibleAdvisors = new ArrayList<>()`：存放匹配当前 beanClass 的 Advisors 信息
 
   * `for (Advisor candidate : candidateAdvisors)`：遍历所有的 AdvisorIntroduction
 
@@ -8577,9 +8586,9 @@ AbstractAdvisorAutoProxyCreator.findEligibleAdvisors()：
       * `methodMatcher = pc.getMethodMatcher()`：**获取方法匹配器**
       * `Set<Class<?>> classes`：保存目标对象 class 和目标对象父类超类的接口和自身实现的接口
       * `if (!Proxy.isProxyClass(targetClass))`：判断当前实例是不是代理类，确保 class 内存储的数据包括目标对象的class  而不是代理类的 class
-      * `for (Class<?> clazz : classes)`：检查目标 class 和上级接口的所有方法，查看是否会被方法匹配器匹配，如果有一个方法匹配成功，就说明目标对象 AOP 代理需要增强
+      * `for (Class<?> clazz : classes)`：**检查目标 class 和上级接口的所有方法，查看是否会被方法匹配器匹配**，如果有一个方法匹配成功，就说明目标对象 AOP 代理需要增强
         * `specificMethod = AopUtils.getMostSpecificMethod(method, targetClass)`：方法可能是接口的，判断当前类有没有该方法
-        * `return (specificMethod != method && matchesMethod(specificMethod))`：类和方法的匹配，不包括参数（静态匹配）
+        * `return (specificMethod != method && matchesMethod(specificMethod))`：**类和方法的匹配**，不包括参数，就是静态匹配
 
 * `extendAdvisors(eligibleAdvisors)`：在 eligibleAdvisors 列表的索引 0 的位置添加 DefaultPointcutAdvisor，**封装了 ExposeInvocationInterceptor 拦截器**
 
@@ -8636,9 +8645,12 @@ AbstractAutoProxyCreator.createProxy()：根据增强方法创建代理对象
 
 * `proxyFactory.copyFrom(this)`：填充一些信息到 proxyFactory
 
-* `if (!proxyFactory.isProxyTargetClass())`：条件成立说明没有配置修改过 proxyTargetClass 为 true
+* `if (!proxyFactory.isProxyTargetClass())`：条件成立说明没有配置修改过 **proxyTargetClass** 为 true，两种配置方法：
 
-  `if (shouldProxyTargetClass(beanClass, beanName))`：如果 **bd 内有 preserveTargetClass = true** ，那么这个 bd 对应的 class 创建代理时必须使用 CGLIB，条件成立设置 proxyTargetClass 为 true
+  * `<aop:aspectj-autoproxy proxy-target-class="false"/> `
+  * `@EnableAspectJAutoProxy(proxyTargetClass = true)`
+
+  `if (shouldProxyTargetClass(beanClass, beanName))`：如果 bd 内有 preserveTargetClass = true ，那么这个 bd 对应的 class 创建代理时必须使用 CGLIB，条件成立设置 proxyTargetClass 为 true
 
   `evaluateProxyInterfaces(beanClass, proxyFactory)`：**根据目标类判定是否可以使用 JDK 动态代理**
 
@@ -8667,11 +8679,7 @@ AbstractAutoProxyCreator.createProxy()：根据增强方法创建代理对象
 
   ```java
   public AopProxy createAopProxy(AdvisedSupport config) throws AopConfigException {
-      //条件一：积极的优化     
-      //条件二：为 true 代表强制使用 CGLIB 动态代理，
-      //两种配置方法：
-      // <aop:aspectj-autoproxy proxy-target-class="false"/> 
-      // @EnableAspectJAutoProxy(proxyTargetClass = true)
+      //条件二为 true 代表强制使用 CGLIB 动态代理，
       if (config.isOptimize() || config.isProxyTargetClass() || 
           //条件三：被代理对象没有实现任何接口或者只实现了 SpringProxy 接口，只能使用 CGLIB 动态代理
           hasNoUserSuppliedProxyInterfaces(config)) {
@@ -8679,7 +8687,7 @@ AbstractAutoProxyCreator.createProxy()：根据增强方法创建代理对象
           if (targetClass == null) {
               throw new AopConfigException("");
           }
-          // 条件成立说明 target 是接口或者是已经被代理过的类型，只能使用 JDK 动态代理
+          // 条件成立说明 target 【是接口或者是已经被代理过的类型】，只能使用 JDK 动态代理
           if (targetClass.isInterface() || Proxy.isProxyClass(targetClass)) {
               return new JdkDynamicAopProxy(config);	// 使用 JDK 动态代理
           }
@@ -8690,48 +8698,50 @@ AbstractAutoProxyCreator.createProxy()：根据增强方法创建代理对象
       }
   }
   ```
-
+  
   JdkDynamicAopProxy.getProxy(java.lang.ClassLoader)：获取 JDK 的代理对象
-
+  
   ```java
-  public JdkDynamicAopProxy(AdvisedSupport config) throws AopConfigException {
-      // 配置类封装到 JdkDynamicAopProxy 属性中
-      this.advised = config;
-  }
-  public Object getProxy(@Nullable ClassLoader classLoader) {
-      // 获取需要代理的接口数组
-      Class<?>[] proxiedInterfaces = AopProxyUtils.completeProxiedInterfaces(this.advised, true);
-      // 查找当前所有的需要代理的接口，看是否有 equals 方法和 hashcode 方法，如果有就做一个标记
-      findDefinedEqualsAndHashCodeMethods(proxiedInterfaces);
-      // classLoader：类加载器  proxiedInterfaces：生成的代理类，需要实现的接口集合
-      // this JdkDynamicAopProxy 实现了 InvocationHandler
-      // 该方法最终返回一个代理类对象
-      return Proxy.newProxyInstance(classLoader, proxiedInterfaces, this);
-  }
+    public JdkDynamicAopProxy(AdvisedSupport config) throws AopConfigException {
+        // 配置类封装到 JdkDynamicAopProxy.advised 属性中
+        this.advised = config;
+    }
+    public Object getProxy(@Nullable ClassLoader classLoader) {
+        // 获取需要代理的接口数组
+        Class<?>[] proxiedInterfaces = AopProxyUtils.completeProxiedInterfaces(this.advised, true);
+        
+        // 查找当前所有的需要代理的接口，看是否有 equals 方法和 hashcode 方法，如果有就做一个标记
+        findDefinedEqualsAndHashCodeMethods(proxiedInterfaces);
+        
+        // 该方法最终返回一个代理类对象
+        return Proxy.newProxyInstance(classLoader, proxiedInterfaces, this);
+        // classLoader：类加载器  proxiedInterfaces：生成的代理类，需要实现的接口集合
+        // this JdkDynamicAopProxy 实现了 InvocationHandler
+    }
   ```
-
-  AopProxyUtils.completeProxiedInterfaces(this.advised, true)：获取代理的接口数组
-
+  
+  AopProxyUtils.completeProxiedInterfaces(this.advised, true)：获取代理的接口数组，并添加 SpringProxy 接口
+  
   * `specifiedInterfaces = advised.getProxiedInterfaces()`：从 ProxyFactory 中拿到所有的 target 提取出来的接口
-  * `if (specifiedInterfaces.length == 0)`：如果没有实现接口，检查当前 target 是不是接口或者已经是代理类，封装到 ProxyFactory 的 interfaces 集合中
-
-  * ` addSpringProxy = !advised.isInterfaceProxied(SpringProxy.class)`：判断目标对象所有接口中是否有 **SpringProxy** 接口，没有的话需要添加，这个接口**标识这个代理类型是 Spring 管理的**
-  * `addAdvised = !advised.isOpaque() && !advised.isInterfaceProxied(Advised.class)`：判断目标对象的所有接口，是否已经有 Advised 接口
-  * ` addDecoratingProxy = (decoratingProxy && !advised.isInterfaceProxied(DecoratingProxy.class))`：判断目标对象的所有接口，是否已经有 DecoratingProxy 接口
-  * `int nonUserIfcCount = 0`：非用户自己定义的接口数量，接下来要添加上面的三个接口了
-  * `proxiedInterfaces = new Class<?>[specifiedInterfaces.length + nonUserIfcCount]`：创建一个新的 class 数组，长度是原目标对象提取出来的接口数量和 Spring 追加的数量，然后进行 **System.arraycopy 拷贝到新数组中**
-  * `int index = specifiedInterfaces.length`：获取原目标对象提取出来的接口数量，当作 index
-  * `if(addSpringProxy)`：根据上面三个布尔值把接口添加到新数组中
-  * `return proxiedInterfaces`：返回追加后的接口集合
-
+    * `if (specifiedInterfaces.length == 0)`：如果没有实现接口，检查当前 target 是不是接口或者已经是代理类，封装到 ProxyFactory 的 interfaces 集合中
+  
+  * ` addSpringProxy = !advised.isInterfaceProxied(SpringProxy.class)`：判断目标对象所有接口中是否有 SpringProxy 接口，没有的话需要添加，这个接口**标识这个代理类型是 Spring 管理的**
+    * `addAdvised = !advised.isOpaque() && !advised.isInterfaceProxied(Advised.class)`：判断目标对象的所有接口，是否已经有 Advised 接口
+    * ` addDecoratingProxy = (decoratingProxy && !advised.isInterfaceProxied(DecoratingProxy.class))`：判断目标对象的所有接口，是否已经有 DecoratingProxy 接口
+    * `int nonUserIfcCount = 0`：非用户自己定义的接口数量，接下来要添加上面的三个接口了
+    * `proxiedInterfaces = new Class<?>[specifiedInterfaces.length + nonUserIfcCount]`：创建一个新的 class 数组，长度是原目标对象提取出来的接口数量和 Spring 追加的数量，然后进行 **System.arraycopy 拷贝到新数组中**
+    * `int index = specifiedInterfaces.length`：获取原目标对象提取出来的接口数量，当作 index
+    * `if(addSpringProxy)`：根据上面三个布尔值把接口添加到新数组中
+    * `return proxiedInterfaces`：返回追加后的接口集合
+  
   JdkDynamicAopProxy.findDefinedEqualsAndHashCodeMethods()：查找在任何定义在接口中的 equals 和 hashCode 方法
-
+  
   * `for (Class<?> proxiedInterface : proxiedInterfaces)`：遍历所有的接口
-  * ` Method[] methods = proxiedInterface.getDeclaredMethods()`：获取接口中的所有方法
-  * `for (Method method : methods)`：遍历所有的方法
-    * `if (AopUtils.isEqualsMethod(method))`：当前方法是 equals 方法，把 equalsDefined 置为 true
-    * `if (AopUtils.isHashCodeMethod(method))`：当前方法是 hashCode 方法，把 hashCodeDefined 置为 true
-
+    * ` Method[] methods = proxiedInterface.getDeclaredMethods()`：获取接口中的所有方法
+    * `for (Method method : methods)`：遍历所有的方法
+      * `if (AopUtils.isEqualsMethod(method))`：当前方法是 equals 方法，把 equalsDefined 置为 true
+      * `if (AopUtils.isHashCodeMethod(method))`：当前方法是 hashCode 方法，把 hashCodeDefined 置为 true
+  
     * `if (this.equalsDefined && this.hashCodeDefined)`：如果有一个接口中有这两种方法，直接返回
 
 
@@ -8747,105 +8757,141 @@ main() 函数中调用用户方法，会进入该逻辑
 JdkDynamicAopProxy 类中的 invoke 方法是真正执行代理方法
 
 ```java
-public Object invoke(Object proxy, Method method, Object[] args)
-//proxy：代理对象
-//method：目标对象的方法
-//args：目标对象方法对应的参数
+//proxy：代理对象，method：目标对象的方法，args：目标对象方法对应的参数
+public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+    Object oldProxy = null;
+    boolean setProxyContext = false;
+
+    // advised 就是初始化 JdkDynamicAopProxy 对象时传入的变量
+    TargetSource targetSource = this.advised.targetSource;
+    Object target = null;
+
+    try {
+        // 条件成立说明代理类实现的接口没有定义 equals 方法，并且当前 method 调用 equals 方法，
+        // 就调用 JdkDynamicAopProxy 提供的 equals 方法
+        if (!this.equalsDefined && AopUtils.isEqualsMethod(method)) {
+            return equals(args[0]);
+        } //.....
+
+        Object retVal;
+		// 需不需要暴露当前代理对象到 AOP 上下文内
+        if (this.advised.exposeProxy) {
+            // 把代理对象设置到上下文环境
+            oldProxy = AopContext.setCurrentProxy(proxy);
+            setProxyContext = true;
+        }
+
+        // 根据 targetSource  获取真正的代理对象
+        target = targetSource.getTarget();
+        Class<?> targetClass = (target != null ? target.getClass() : null);
+
+        // 查找【适合该方法的增强】，首先从缓存中查找，查找不到进入主方法【下文详解】
+        List<Object> chain = this.advised.getInterceptorsAndDynamicInterceptionAdvice(method, targetClass);
+
+		// 拦截器链数量是 0 说明当前 method 不需要被增强
+        if (chain.isEmpty()) {
+            Object[] argsToUse = AopProxyUtils.adaptArgumentsIfNecessary(method, args);
+            retVal = AopUtils.invokeJoinpointUsingReflection(target, method, argsToUse);
+        }
+        else {
+            // 有匹配当前 method 的方法拦截器，要做增强处理，把方法信息封装到方法调用器里
+            MethodInvocation invocation =
+                new ReflectiveMethodInvocation(proxy, target, method, args, targetClass, chain);
+            // 【拦截器链驱动方法，下文详解】
+            retVal = invocation.proceed();
+        }
+
+        Class<?> returnType = method.getReturnType();
+        if (retVal != null && retVal == target &&
+            returnType != Object.class && returnType.isInstance(proxy) &&
+            !RawTargetAccess.class.isAssignableFrom(method.getDeclaringClass())) {
+          	// 如果目标方法返回目标对象，这里做个普通替换返回代理对象
+            retVal = proxy;
+        }
+        
+        // 返回执行的结果
+        return retVal;
+    }
+    finally {
+        if (target != null && !targetSource.isStatic()) {
+            targetSource.releaseTarget(target);
+        }
+        // 如果允许了提前暴露，这里需要设置为初始状态
+        if (setProxyContext) {
+            // 当前代理对象已经完成工作，把原始对象设置回上下文
+            AopContext.setCurrentProxy(oldProxy);
+        }
+    }
+}
 ```
 
-* `targetSource = this.advised.targetSource`：advised 就是初始化 JdkDynamicAopProxy 对象时传入的变量
+this.advised.getInterceptorsAndDynamicInterceptionAdvice(method, targetClass)：查找适合该方法的增强，首先从缓存中查找，获取通知时是从全部增强中获取适合当前类的，这里是**从当前类的中获取适合当前方法的增强**
 
-* `if (!this.equalsDefined && AopUtils.isEqualsMethod(method))`：条件成立说明代理类实现的接口没有定义 equals 方法，并且当前 method 调用 equals 方法，就调用 JdkDynamicAopProxy 提供的 equals 方法
+* `AdvisorAdapterRegistry registry = GlobalAdvisorAdapterRegistry.getInstance()`：向容器注册适配器，**可以将非 Advisor 类型的增强，包装成为 Advisor，将 Advisor 类型的增强提取出来对应的 MethodInterceptor**
 
-* `if (this.advised.exposeProxy)`：需不需要暴露当前代理对象到 AOP 上下文内，true 暴露
+  * `instance = new DefaultAdvisorAdapterRegistry()`：该对象向容器中注册了 MethodBeforeAdviceAdapter、AfterReturningAdviceAdapter、ThrowsAdviceAdapter 三个适配器
 
-  `oldProxy = AopContext.setCurrentProxy(proxy)`：把代理对象设置到上下文环境
+* `advisors = config.getAdvisors()`：获取 ProxyFactory 内部持有的增强信息
 
-  `setProxyContext = true`：允许提前引用
+* `interceptorList = new ArrayList<>(advisors.length)`：拦截器列表有 5 个，一个 ExposeInvocationInterceptor 和 4 个增强器
 
-* `target = targetSource.getTarget()`：根据 targetSource  获取真正的代理对象
+* `actualClass = (targetClass != null ? targetClass : method.getDeclaringClass())`：真实的目标对象类型
 
-* `chain = this.advised.getInterceptorsAndDynamicInterceptionAdvice(method, targetClass)`：**查找适合该方法的增强**，首先从缓存中查找，查找不到进入主方法
+* `Boolean hasIntroductions = null`：引介增强，不关心
 
-  * `AdvisorAdapterRegistry registry = GlobalAdvisorAdapterRegistry.getInstance()`：向容器注册适配器，**可以将非 Advisor 类型的增强，包装成为 Advisor，将 Advisor 类型的增强提取出来对应的 MethodInterceptor**
+* `for (Advisor advisor : advisors)`：**遍历所有的增强**
 
-    * `instance = new DefaultAdvisorAdapterRegistry()`：**该对象向容器中注册了** MethodBeforeAdviceAdapter、AfterReturningAdviceAdapter、ThrowsAdviceAdapter **三个适配器**
+* `if (advisor instanceof PointcutAdvisor)`：条件成立说明当前 Advisor 是包含切点信息的，进入匹配逻辑
 
-  * `advisors = config.getAdvisors()`：获取 ProxyFactory 内部持有的增强信息
+  `pointcutAdvisor = (PointcutAdvisor) advisor`：转成可以获取到切点信息的接口
 
-  * `interceptorList = new ArrayList<>(advisors.length)`：拦截器列表有 5 个，一个 ExposeInvocationInterceptor 和 4 个增强器
+  `if(config.isPreFiltered() || pointcutAdvisor.getPointcut().getClassFilter().matches(actualClass))`：当前代理被预处理，或者当前被代理的 class 对象匹配当前 Advisor 成功，只是 **class 匹配成功**
 
-  * `actualClass = (targetClass != null ? targetClass : method.getDeclaringClass())`：真实的目标对象类型
+  * `mm = pointcutAdvisor.getPointcut().getMethodMatcher()`：获取切点的方法匹配器，不考虑引介增强
 
-  * `Boolean hasIntroductions = null`：引介增强，不关心
+  * `match = mm.matches(method, actualClass)`：**静态匹配成功返回 true，只关注于处理类及其方法，不考虑参数**
 
-  * `for (Advisor advisor : advisors)`：**遍历所有的增强**
+  * `if (match)`：如果静态切点检查是匹配的，在运行的时候才进行**动态切点检查，会考虑参数匹配**（代表传入了参数）。如果静态匹配失败，直接不需要进行参数匹配，提高了工作效率
 
-  * `if (advisor instanceof PointcutAdvisor)`：条件成立说明当前 Advisor 是包含切点信息的，进入匹配逻辑
+    `interceptors = registry.getInterceptors(advisor)`：提取出 advisor 内持有的拦截器信息 
 
-    `pointcutAdvisor = (PointcutAdvisor) advisor`：转成可以获取到切点信息的接口
+    * `Advice advice = advisor.getAdvice()`：获取增强方法
 
-    `if(config.isPreFiltered() || pointcutAdvisor.getPointcut().getClassFilter().matches(actualClass))`：当前代理被预处理，或者当前被代理的 class 对象匹配当前 Advisor 成功，只是 **class 匹配成功**
+    * `if (advice instanceof MethodInterceptor)`：当前 advice 是 MethodInterceptor 直接加入集合
 
-    * `mm = pointcutAdvisor.getPointcut().getMethodMatcher()`：获取切点的方法匹配器，不考虑引介增强
+    * `for (AdvisorAdapter adapter : this.adapters)`：**遍历三个适配器进行匹配**（初始化时创建的），以 MethodBeforeAdviceAdapter 为例
 
-    * `match = mm.matches(method, actualClass)`：**静态匹配成功返回 true，只关注于处理类及其方法，不考虑参数**
+      `if (adapter.supportsAdvice(advice))`：判断当前 advice 是否是对应的 MethodBeforeAdvice
 
-    * `if (match)`：如果静态切点检查是匹配的，在运行的时候才进行**动态切点检查，会考虑参数匹配**（代表传入了参数）。如果静态匹配失败，直接不需要进行参数匹配，提高了工作效率
+      `interceptors.add(adapter.getInterceptor(advisor))`：条件成立就往拦截器链中添加 advisor
 
-      `interceptors = registry.getInterceptors(advisor)`：提取出 advisor 内持有的拦截器信息 
+      * `advice = (MethodBeforeAdvice) advisor.getAdvice()`：**获取增强方法**
+      * `return new MethodBeforeAdviceInterceptor(advice)`：**封装成 MethodInterceptor 方法拦截器返回**
 
-      * `Advice advice = advisor.getAdvice()`：获取增强方法
+    `interceptorList.add(new InterceptorAndDynamicMethodMatcher(interceptor, mm))`：向拦截器链添加动态匹配器
 
-      * `if (advice instanceof MethodInterceptor)`：当前 advice 是 MethodInterceptor 直接加入集合
+    `interceptorList.addAll(Arrays.asList(interceptors))`：将当前 advisor 内部的方法拦截器追加到 interceptorList
 
-      * `for (AdvisorAdapter adapter : this.adapters)`：**遍历三个适配器进行匹配**（初始化时创建的），以 MethodBeforeAdviceAdapter 为例
+* `interceptors = registry.getInterceptors(advisor)`：进入 else 的逻辑，说明当前 Advisor 匹配全部 class 的全部 method，全部加入到 interceptorList
 
-        `if (adapter.supportsAdvice(advice))`：判断当前 advice 是否是对应的 MethodBeforeAdvice
+* `return interceptorList`：返回 method 方法的拦截器链
 
-        `interceptors.add(adapter.getInterceptor(advisor))`：是就往拦截器链中添加 advisor
-      
-        * `advice = (MethodBeforeAdvice) advisor.getAdvice()`：**获取增强方法**
-        * `return new MethodBeforeAdviceInterceptor(advice)`：**封装成 MethodInterceptor 方法拦截器返回**
+retVal = invocation.proceed()：**拦截器链驱动方法**
 
-      `interceptorList.add(new InterceptorAndDynamicMethodMatcher(interceptor, mm))`：向拦截器链添加动态匹配器
-      
-      `interceptorList.addAll(Arrays.asList(interceptors))`：将当前 advisor 内部的方法拦截器追加到 interceptorList
+* `if (this.currentInterceptorIndex == this.interceptorsAndDynamicMethodMatchers.size() - 1)`：条件成立说明方法拦截器全部都已经调用过了（0 - 1 = -1），接下来需要执行目标对象的目标方法
 
-  * `interceptors = registry.getInterceptors(advisor)`：进入 else 的逻辑，说明当前 Advisor 匹配全部 class 的全部 method，全部加入到 interceptorList
+  `return invokeJoinpoint()`：调用连接点
 
-  * `return interceptorList`：返回 method 方法的拦截器链
+* `this.interceptorsAndDynamicMethodMatchers.get(++this.currentInterceptorIndex)`：**获取下一个方法拦截器**
 
-* `if (chain.isEmpty())`：查询出来匹配当前方法的拦截器，**数量是 0 说明当前 method 不需要被增强**，直接调用目标方法
+* `if (interceptorOrInterceptionAdvice instanceof InterceptorAndDynamicMethodMatcher)`：需要运行时匹配
 
-  `retVal = AopUtils.invokeJoinpointUsingReflection(target, method, argsToUse)`：调用目标对象的目标方法
+  `if (dm.methodMatcher.matches(this.method, targetClass, this.arguments))`：判断是否匹配成功
 
-* `invocation = new ReflectiveMethodInvocation(proxy, target, method, args, targetClass, chain)`：**有匹配当前 method 的方法拦截器，要做增强处理**，把方法信息封装到方法调用器里
+  * `return dm.interceptor.invoke(this)`：匹配成功，执行方法
+  * `return proceed()`：匹配失败跳过当前拦截器
 
-  `retVal = invocation.proceed()`：**核心拦截器链驱动方法**
-
-  * `if (this.currentInterceptorIndex == this.interceptorsAndDynamicMethodMatchers.size() - 1)`：条件成立说明方法拦截器全部都已经调用过了（0 - 1 = -1），接下来需要执行目标对象的目标方法
-
-    `return invokeJoinpoint()`：调用连接点
-
-  * `this.interceptorsAndDynamicMethodMatchers.get(++this.currentInterceptorIndex)`：**获取下一个方法拦截器**
-
-  * `if (interceptorOrInterceptionAdvice instanceof InterceptorAndDynamicMethodMatcher)`：**需要运行时匹配**
-
-    `if (dm.methodMatcher.matches(this.method, targetClass, this.arguments))`：判断是否匹配成功
-
-    * `return dm.interceptor.invoke(this)`：匹配成功，执行方法
-    * `return proceed()`：匹配失败跳过当前拦截器
-
-  * `return ((MethodInterceptor) interceptorOrInterceptionAdvice).invoke(this)`：**所有的方法拦截器都会执行到该方法，此方法内继续执行 proceed() 完成责任链的驱动，直到最后一个  MethodBeforeAdviceInterceptor 调用前置通知，然后调用 mi.proceed()，发现是最后一个拦截器就直接执行目标方法，return 到上一个拦截器的 mi.proceed() 处，依次返回到责任链的上一个拦截器执行通知方法**
-
-* `retVal = proxy`：如果目标方法返回目标对象，这里做个普通替换返回代理对象
-
-* `if (setProxyContext)`：如果允许了提前暴露，这里需要设置为初始状态
-
-  `AopContext.setCurrentProxy(oldProxy)`：当前代理对象已经完成工作，把原始对象设置回上下文
-  
-* `return retVal`：返回执行的结果
+* `return ((MethodInterceptor) interceptorOrInterceptionAdvice).invoke(this)`：**所有的方法拦截器都会执行到该方法，此方法内继续执行 proceed() 完成责任链的驱动，直到最后一个  MethodBeforeAdviceInterceptor 调用前置通知，然后调用 mi.proceed()，发现是最后一个拦截器就直接执行目标方法，return 到上一个拦截器的 mi.proceed() 处，依次返回到责任链的上一个拦截器执行通知方法**
 
 图示先从上往下建立链，然后从下往上依次执行，责任链模式
 
@@ -8882,6 +8928,8 @@ public Object invoke(Object proxy, Method method, Object[] args)
 ![](https://gitee.com/seazean/images/raw/master/Frame/Spring-AOP动态代理执行方法.png)
 
 
+
+参考视频：https://www.bilibili.com/video/BV1gW411W7wy
 
 
 
@@ -8991,13 +9039,15 @@ AutowiredAnnotationBeanPostProcessor 间接实现 InstantiationAwareBeanPostProc
 * AdviceMode 为 PROXY：导入 AutoProxyRegistrar 和 ProxyTransactionManagementConfiguration（默认）
 * AdviceMode  为 ASPECTJ：导入 AspectJTransactionManagementConfiguration（与声明式事务无关）
 
-AutoProxyRegistrar：给容器中注册 InfrastructureAdvisorAutoProxyCreator，该类实现了 InstantiationAwareBeanPostProcessor 接口，可以拦截 Spring 的 bean 初始化和实例化前后。利用后置处理器机制拦截 bean 以后包装该 bean 并返回一个代理对象，代理对象中保存所有的拦截器，代理对象执行目标方法，利用拦截器的链式机制依次进入每一个拦截器中进行执行（AOP 原理）
+AutoProxyRegistrar：给容器中注册 InfrastructureAdvisorAutoProxyCreator，该类实现了 InstantiationAwareBeanPostProcessor 接口，可以拦截 Spring 的 bean 初始化和实例化前后。**利用后置处理器机制拦截 bean 以后包装该 bean 并返回一个代理对象**，代理对象中保存所有的拦截器，代理对象执行目标方法，利用拦截器的链式机制依次进入每一个拦截器中进行执行（就是 AOP 原理）
 
-ProxyTransactionManagementConfiguration：是一个 Spring 的配置类，注册 BeanFactoryTransactionAttributeSourceAdvisor 事务增强器，利用注解 @Bean 把该类注入到容器中，该增强器有两个字段：
+ProxyTransactionManagementConfiguration：是一个 Spring 的事务配置类，注册了三个 Bean：
+
+* BeanFactoryTransactionAttributeSourceAdvisor：事务增强器，利用注解 @Bean 把该类注入到容器中，该增强器有两个字段：
 
 * TransactionAttributeSource：用于解析事务注解的相关信息，比如 @Transactional 注解，该类的真实类型是 AnnotationTransactionAttributeSource，初始化方法中注册了三个**注解解析器**，解析三种类型的事务注解 Spring、JTA、Ejb3
 
-* TransactionInterceptor：**事务拦截器**，代理对象执行拦截器方法时，会调用 TransactionInterceptor 的 invoke 方法，底层调用TransactionAspectSupport.invokeWithinTransaction()，通过 PlatformTransactionManager **控制着事务的提交和回滚**，所以事务的底层原理就是通过 AOP 动态织入，进行事务开启和提交
+* TransactionInterceptor：**事务拦截器**，代理对象执行拦截器方法时，会调用 TransactionInterceptor 的 invoke 方法，底层调用TransactionAspectSupport.invokeWithinTransaction()，通过 PlatformTransactionManager 控制着事务的提交和回滚，所以事务的底层原理就是通过 AOP 动态织入，进行事务开启和提交
 
   ```java
   // 创建平台事务管理器对象
@@ -9014,15 +9064,11 @@ ProxyTransactionManagementConfiguration：是一个 Spring 的配置类，注册
 
   * `status = tm.getTransaction(txAttr)`：获取事务状态，方法内通过 doBegin **调用 Connection 的 setAutoCommit 开启事务**，就是 JDBC 原生的方式
 
-  * `prepareTransactionInfo(tm, txAttr, joinpointIdentification, status)`：方法内调用 bindToThread() 方法，利用 ThreadLocal 把当前事务绑定到当前线程
+  * `prepareTransactionInfo(tm, txAttr, joinpointIdentification, status)`：方法内调用 bindToThread() 方法，利用 ThreadLocal 把当前事务绑定到当前线程（一个线程对应一个事务）
 
     补充策略模式（Strategy Pattern）：**使用不同策略的对象实现不同的行为方式**，策略对象的变化导致行为的变化，事务也是这种模式，每个事务对应一个新的 connection 对象
-
-![](https://gitee.com/seazean/images/raw/master/Frame/Spring-图解事务执行流程.jpg)
-
-
-
-图片来源：https://blog.csdn.net/weixin_45596022/article/details/113749478
+    
+    
 
 
 
@@ -14372,9 +14418,10 @@ SpringApplication#run(String... args)：
   * `this.bootstrapRegistryInitializers.forEach()`：遍历所有的引导器调用 initialize 方法完成初始化设置
 * `configureHeadlessProperty()`：让当前应用进入 headless 模式
 
-* `listeners = getRunListeners(args)`：获取所有 RunListener（运行监听器）
+* `listeners = getRunListeners(args)`：**获取所有 RunListener（运行监听器）**
+  
   * 去 `META-INF/spring.factories` 文件中找 org.springframework.boot.SpringApplicationRunListener
-* `listeners.starting(bootstrapContext, this.mainApplicationClass)`：**遍历所有的运行监听器调用 starting 方法**
+* `listeners.starting(bootstrapContext, this.mainApplicationClass)`：遍历所有的运行监听器调用 starting 方法
 
 * `applicationArguments = new DefaultApplicationArguments(args)`：获取所有的命令行参数
 
@@ -14401,7 +14448,7 @@ SpringApplication#run(String... args)：
 
     * `sources.addFirst(ATTACHED_PROPERTY_SOURCE_NAME,..)`：把 configurationProperties 重新放入环境信息
 
-* `configureIgnoreBeanInfo(environment)`：配置忽略的 bean
+* `configureIgnoreBeanInfo(environment)`：**配置忽略的 bean**
 
 * `printedBanner = printBanner(environment)`：打印 SpringBoot 标志
 
@@ -14420,7 +14467,7 @@ SpringApplication#run(String... args)：
   * `postProcessApplicationContext(context)`：后置处理流程
 
   * `applyInitializers(context)`：获取所有的**初始化器调用 initialize() 方法**进行初始化
-  * `listeners.contextPrepared(context)`：所有的**运行监听器调用 environmentPrepared() 方法**，EventPublishingRunListener 发布事件通知 IOC 容器准备完成
+  * `listeners.contextPrepared(context)`：所有的运行监听器调用 environmentPrepared() 方法，EventPublishingRunListener 发布事件通知 IOC 容器准备完成
   * `listeners.contextLoaded(context)`：所有的**运行监听器调用 contextLoaded() 方法**，通知 IOC 加载完成
 
 * `refreshContext(context)`：**刷新 IOC 容器**
@@ -14517,7 +14564,7 @@ SpringBoot 定义了一套接口规范，这套规范规定 SpringBoot 在启动
     * `registry.registerBeanDefinition(BEAN, new BasePackagesBeanDefinition(packageNames))`：存放到容器中
       * `new BasePackagesBeanDefinition(packageNames)`：把当前主类所在的包名封装到该对象中
 
-  * @Import(AutoConfigurationImportSelector.class)：**首先自动装配的核心类**
+  * @Import(AutoConfigurationImportSelector.class)：**自动装配的核心类**
 
     容器刷新时执行：**invokeBeanFactoryPostProcessors()** → invokeBeanDefinitionRegistryPostProcessors() → postProcessBeanDefinitionRegistry() → processConfigBeanDefinitions() → parse() → process() → processGroupImports() → getImports() → process() → **AutoConfigurationImportSelector#getAutoConfigurationEntry()**
 
@@ -14575,7 +14622,7 @@ SpringBoot 定义了一套接口规范，这套规范规定 SpringBoot 在启动
 
 #### 装配流程
 
-Spring Boot 通过 `@EnableAutoConfiguration` 开启自动装配，通过 SpringFactoriesLoader 加载 `META-INF/spring.factories` 中的自动配置类实现自动装配，自动配置类其实就是通过 `@Conditional` 注解按需加载的配置类（JVM 类加载机制），想要其生效必须引入 `spring-boot-starter-xxx` 包实现起步依赖
+Spring Boot 通过 `@EnableAutoConfiguration` 开启自动装配，通过 SpringFactoriesLoader 加载 `META-INF/spring.factories` 中的自动配置类实现自动装配，自动配置类其实就是通过 `@Conditional` 注解按需加载的配置类，想要其生效必须引入 `spring-boot-starter-xxx` 包实现起步依赖
 
 * SpringBoot 先加载所有的自动配置类 xxxxxAutoConfiguration
 * 每个自动配置类进行**条件装配**，默认都会绑定配置文件指定的值（xxxProperties 和配置文件进行了绑定）
@@ -14633,7 +14680,7 @@ public class DispatcherServletAutoConfiguration {
 ```
 
 ```java
-//将配置文件中的 spring.mvc 前缀的属性与该类绑定
+// 将配置文件中的 spring.mvc 前缀的属性与该类绑定
 @ConfigurationProperties(prefix = "spring.mvc")	
 public class WebMvcProperties { }
 ```
@@ -15355,7 +15402,7 @@ SpringBoot 嵌入式 Servlet 容器，默认支持的 webServe：Tomcat、Jetty�
 </dependency>
 ```
 
-创建 Web 容器：
+Web 应用启动，SpringBoot 导入 Web 场景包 tomcat，创建一个 Web 版的 IOC 容器：
 
 * `SpringApplication.run(BootApplication.class, args)`：应用启动
 
@@ -15387,13 +15434,11 @@ SpringBoot 嵌入式 Servlet 容器，默认支持的 webServe：Tomcat、Jetty�
 
     * `applicationContextFactory.create(this.webApplicationType)`：根据应用类型创建容器
 
-  * `refreshContext(context)`：容器启动
+  * `refreshContext(context)`：容器启动刷新
 
 内嵌容器工作流程：
 
-* Web 应用启动，SpringBoot 导入 Web 场景包 tomcat，创建一个 Web 版的 IOC 容器 ServletWebServerApplicationContext
-
-- ServletWebServerApplicationContext 容器启动时进入 refresh() 逻辑，Spring 容器启动逻辑中，在实例化非懒加载的单例 Bean 之前有一个方法 **onRefresh()**，留给子类去扩展，该**容器就是重写这个方法创建 WebServer**
+- Spring 容器启动逻辑中，在实例化非懒加载的单例 Bean 之前有一个方法 **onRefresh()**，留给子类去扩展，Web 容器就是重写这个方法创建 WebServer
 
   ```java
   protected void onRefresh() {

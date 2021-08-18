@@ -12,8 +12,8 @@ Git 是分布式版本控制系统（Distributed Version Control System，简称
 
 本地仓库和远程仓库：
 
-* 本地仓库：是在开发人员自己电脑上的Git仓库		
-* 远程仓库：是在远程服务器上的Git仓库
+* 本地仓库：是在开发人员自己电脑上的 Git 仓库		
+* 远程仓库：是在远程服务器上的 Git 仓库
 
 
 
@@ -103,13 +103,13 @@ GitLab（地址： https://about.gitlab.com/ ）是一个用于仓库管理系�
 * 生成 SSH 公钥步骤
 
   * 设置账户
-  * cd ~/.ssh（查看是否生成过SSH公钥）//user目录下
-  * 生成 SSH 公钥：`ssh-keygen –t rsa –C "email"`
+  * cd ~/.ssh（查看是否生成过 SSH 公钥）user 目录下
+  * 生成 SSH 公钥：`ssh-keygen -t rsa -C "email"`
     * -t 指定密钥类型，默认是 rsa ，可以省略
     * -C 设置注释文字，比如邮箱
     * -f 指定密钥文件存储文件名
   * 查看命令: cat ~/.ssh/id_rsa.pub
-  * 公钥测试命令: ssh -T git@gitee.com
+  * 公钥测试命令: ssh -T git@github.com
 
 
 
