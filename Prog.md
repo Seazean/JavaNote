@@ -11581,6 +11581,7 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引指向
       //如果随机数的二进制与10000000000000000000000000000001进行与运算为0
       //即随机数的二进制最高位与最末尾必须为0，其他位无所谓，就进入该循环
       //如果随机数的二进制最高位与最末位不为0，不增加新节点的层数
+      
       //11.判断是否需要添加level
       if ((rnd & 0x80000001) == 0) {
           //索引层level，从1开始
@@ -13917,12 +13918,10 @@ MappedByteBuffer 较之 ByteBuffer新增的三个方法
 ```java
 public class MappedByteBufferTest {
     public static void main(String[] args) throws Exception {
-        //RandomAccessFile ra = (RandomAccess) new RandomAccessFile("1.txt", "rw");
-        //FileChannel channel = ra.getChannel();
-        
-        FileInputStream is = new FileInputStream("data01.txt");
+        // 读写模式
+        RandomAccessFile ra = (RandomAccess) new RandomAccessFile("1.txt", "rw");
         //获取对应的通道
-		FileChannel channel = is.getChannel(); 
+        FileChannel channel = ra.getChannel();
 
         /**
          * 参数1	FileChannel.MapMode.READ_WRITE 使用的读写模式
@@ -14154,7 +14153,7 @@ public class ChannelTest {
 
 #### 分散聚集
 
-分散读取（Scatter ）：是指把Channel通道的数据读入到多个缓冲区中去
+分散读取（Scatter ）：是指把 Channel 通道的数据读入到多个缓冲区中去
 
 聚集写入（Gathering ）：是指将多个 Buffer 中的数据“聚集”到 Channel。
 
@@ -14202,7 +14201,7 @@ public class ChannelTest {
 
 ![](https://gitee.com/seazean/images/raw/master/Java/NIO-Selector.png)
 
-* Selector 能够检测多个注册的通道上是否有事件发生（多个 Channel 以事件的方式可以注册到同一个Selector)，如果有事件发生，便获取事件然后针对每个事件进行相应的处理，就可以只用一个单线程去管理多个通道，也就是管理多个连接和请求
+* Selector 能够检测多个注册的通道上是否有事件发生（多个 Channel 以事件的方式可以注册到同一个 Selector)，如果有事件发生，便获取事件然后针对每个事件进行相应的处理，就可以只用一个单线程去管理多个通道，也就是管理多个连接和请求
 * 只有在连接/通道真正有读写事件发生时，才会进行读写，就大大地减少了系统开销，并且不必为每个连接都创建一个线程，不用去维护多个线程
 * 避免了多线程之间的上下文切换导致的开销
 
@@ -14224,8 +14223,7 @@ public class ChannelTest {
 * 写 : SelectionKey.OP_WRITE （4）
 * 连接 : SelectionKey.OP_CONNECT （8）
 * 接收 : SelectionKey.OP_ACCEPT （16）
-* 若注册时不止监听一个事件，则可以使用“位或”操作符连接：
-  `int interestSet = SelectionKey.OP_READ | SelectionKey.OP_WRITE `
+* 若不止监听一个事件，可以使用“位或”操作符连接：`int interest = SelectionKey.OP_READ | SelectionKey.OP_WRITE`
 
 
 

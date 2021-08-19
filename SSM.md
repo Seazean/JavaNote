@@ -3893,20 +3893,6 @@ Mybatis 核心配置文件消失
 
 #### 注解驱动
 
-注解：启动时使用注解的形式替代 xml 配置，将 spring 配置文件从工程中消除，简化书写
-
-缺点：为了达成注解驱动的目的，可能会将原先很简单的书写，变的更加复杂。XML中配置第三方开发的资源是很方便的，但使用注解驱动无法在第三方开发的资源中进行编辑，因此会增大开发工作量
-
-![](https://gitee.com/seazean/images/raw/master/Frame/注解驱动示例.png)
-
-
-
-****
-
-
-
-#### 启动注解
-
 ##### XML
 
 启动注解扫描，加载类中配置的注解项：
@@ -3918,19 +3904,17 @@ Mybatis 核心配置文件消失
 说明：
 
 - 在进行包扫描时，会对配置的包及其子包中所有文件进行扫描，多个包采用`,`隔开
-
 - 扫描过程是以文件夹递归迭代的形式进行的
-
 - 扫描过程仅读取合法的 java 文件
-
 - 扫描时仅读取 spring 可识别的注解
-
 - 扫描结束后会将可识别的有效注解转化为 spring 对应的资源加入 IoC 容器
-
-注意：
-
-- 无论是注解格式还是 XML 配置格式，最终都是将资源加载到 IoC 容器中，差别仅仅是数据读取方式不同
 - 从加载效率上来说注解优于 XML 配置文件
+
+注解：启动时使用注解的形式替代 xml 配置，将 spring 配置文件从工程中消除，简化书写
+
+缺点：为了达成注解驱动的目的，可能会将原先很简单的书写，变的更加复杂。XML 中配置第三方开发的资源是很方便的，但使用注解驱动无法在第三方开发的资源中进行编辑，因此会增大开发工作量
+
+![](https://gitee.com/seazean/images/raw/master/Frame/注解驱动示例.png)
 
 
 
@@ -3960,9 +3944,9 @@ public class SpringConfigClassName{
 说明：
 
 - 核心配合类用于替换 Spring 核心配置文件，此类可以设置空的，不设置变量与属性
-- bean 扫描工作使用注解 @ComponentScan 替代，多个包用`{}和,`隔开
+- bean 扫描工作使用注解 @ComponentScan 替代，多个包用 `{} 和 ,` 隔开
 
-加载纯注解格式上下文对象，需要使用**AnnotationConfigApplicationContext**
+加载纯注解格式上下文对象，需要使用 **AnnotationConfigApplicationContext**
 
 ```java
 @Configuration
@@ -4046,7 +4030,7 @@ public class MainTest {
 
 类型：类注解，写在类定义上方
 
-作用：设置该类为Spring 管理的 bean
+作用：设置该类为 Spring 管理的 bean
 
 格式：
 
@@ -8942,9 +8926,7 @@ retVal = invocation.proceed()：**拦截器链驱动方法**
 
 #### Component
 
-解析 @Component 和 @Service 都是常用的注解
-
-**@Component 解析流程：**
+@Component 解析流程：
 
 * 注解类启动容器的时，注册 ClassPathBeanDefinitionScanner 到容器，用来扫描 Bean 的相关信息
 
@@ -8981,7 +8963,7 @@ retVal = invocation.proceed()：**拦截器链驱动方法**
   private Set<BeanDefinition> scanCandidateComponents(String basePackage) {}
   ```
 
-    * `String packageSearchPath = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX resolveBasePackage(basePackage) + '/' + this.resourcePattern` ：将 package 转化为 ClassLoader 类资源搜索路径 packageSearchPath，例如：`com.wl.spring.boot` 转化为 `classpath*:com/wl/spring/boot/**/*.class`
+    * `String packageSearchPath = ResourcePatternResolver.CLASSPATH_ALL_URL_PREFIX resolveBasePackage(basePackage) + '/' + this.resourcePattern` ：将 package 转化为 ClassLoader 类资源搜索路径 packageSearchPath，例如：`com.sea.spring.boot` 转化为 `classpath*:com/sea/spring/boot/**/*.class`
 
     * `resources = getResourcePatternResolver().getResources(packageSearchPath)`：加载搜素路径下的资源
 
@@ -9006,6 +8988,10 @@ retVal = invocation.proceed()：**拦截器链驱动方法**
           ```
 
       `candidates.add(sbd)`：添加到返回结果的 list
+
+
+
+参考文章：https://my.oschina.net/floor/blog/4325651
 
 
 

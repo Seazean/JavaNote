@@ -47,7 +47,7 @@ Java 语言提供了八种基本类型。六种数字类型（四个整数型，
 - short 数据类型是 16 位、有符号的以二进制补码表示的整数
 - 最小值是 **-32768（-2^15）**
 - 最大值是 **32767（2^15 - 1）**
-- short 数据类型也可以像 byte 那样节省空间，一个short变量是int型变量所占空间的二分之一
+- short 数据类型也可以像 byte 那样节省空间，一个 short 变量是 int 型变量所占空间的二分之一
 - 默认值是 **`0`**
 - 例子：`short s = 1000，short r = -20000`
 
@@ -57,7 +57,7 @@ Java 语言提供了八种基本类型。六种数字类型（四个整数型，
 - 最小值是 **-2,147,483,648（-2^31）**
 - 最大值是 **2,147,483,647（2^31 - 1）**
 - 一般地整型变量默认为 int 类型
-- 默认值是 **`0`** ；
+- 默认值是 **`0`**
 - 例子：`int a = 100000, int b = -200000`
 
 **long：**
@@ -100,19 +100,7 @@ Java 语言提供了八种基本类型。六种数字类型（四个整数型，
 - 最小值是 **`\u0000`**（即为 0）
 - 最大值是 **`\uffff`**（即为 65535）
 - char 数据类型可以储存任何字符
-- 例子：`char c = 'A';`   `char c = '张';`
-
-```mermaid
-graph LR
-数据范围从小到大图
-
-A[byte]-->B[short]
-C[char]-->D[int]
-B-->D
-D-->F[long]
-G[float]
-G-->H[double]
-```
+- 例子：`char c = 'A';`   `char c = '张'`
 
 上下转型
 
@@ -762,7 +750,7 @@ public static 返回值类型 方法名(参数) {
 
 重载仅针对**同一个类**中方法的名称与参数进行识别，**与返回值无关**，不能通过返回值来判定两个方法是否构成重载
 
-原理：JVM → 运行机制 → 字节码 → 方法表
+原理：JVM → 运行机制 → 方法调用 → 多态原理
 
 ```java
 public class MethodDemo {
@@ -1244,7 +1232,7 @@ static 静态修饰的成员（方法和成员变量）属于类本身的。
 }
 ```
 
-子类继承父类的东西：
+子类不能继承父类的东西：
 
 * 子类不能继承父类的构造器，子类有自己的构造器
 * 子类是不能可以继承父类的私有成员的，可以反射暴力去访问继承自父类的私有成员
@@ -3755,7 +3743,7 @@ public class RegexDemo {
 * 链表：元素不是内存中的连续区域存储，元素是游离存储的，每个元素会记录下个元素的地址
   特点：**查询元素慢，增删元素快**（针对于首尾元素，速度极快，一般是双链表）
 
-* 树
+* 树：
 
   * 二叉树：binary tree 永远只有一个根节点，是每个结点不超过2个节点的树（tree） 
     特点：二叉排序树：小的左边，大的右边，但是可能树很高，性能变差
@@ -4464,8 +4452,9 @@ PriorityQueue 是优先级队列，底层存储结构为 Object[]，默认实现
 
 #### Collections
 
-java.utils.Collections：集合**工具类**，Collections并不属于集合，是用来操作集合的工具类
-Collections有几个常用的API：
+java.utils.Collections：集合**工具类**，Collections 并不属于集合，是用来操作集合的工具类
+
+Collections 有几个常用的API：
 
 * `public static <T> boolean addAll(Collection<? super T> c, T... e)`：给集合对象批量添加元素
 * `public static void shuffle(List<?> list)`：打乱集合顺序
@@ -6683,16 +6672,16 @@ Stream<String> arrStream2 = Stream.of(arr);
 
 #### 常用API
 
-| 方法名                                                    | 说明                                                 |
-| --------------------------------------------------------- | ---------------------------------------------------- |
-| void forEach(Consumer<? super T> action)                  | 逐一处理（遍历）                                     |
-| long count                                                | 返回流中的元素数                                     |
-| Stream<T> filterPredicate<? super T> predicate)           | 用于对流中的数据进行过滤                             |
-| Stream<T> limit(long maxSize)                             | 返回此流中的元素组成的流，截取前指定参数个数的数据   |
-| Stream<T> skip(long n)                                    | 跳过指定参数个数的数据，返回由该流的剩余元素组成的流 |
-| <R> Stream<R> map(Function<? super T,? extends R> mapper) | 加工方法，将当前流中的T类型数据转换为另一种R类型的流 |
-| static <T> Stream<T> concat(Stream a, Stream b)           | 合并a和b两个流为一个，调用 `Stream.concat(s1,s2)`    |
-| Stream<T> distinct()                                      | 返回由该流的不同元素组成的流                         |
+| 方法名                                                    | 说明                                                     |
+| --------------------------------------------------------- | -------------------------------------------------------- |
+| void forEach(Consumer<? super T> action)                  | 逐一处理（遍历）                                         |
+| long count                                                | 返回流中的元素数                                         |
+| Stream<T> filter(Predicate<? super T> predicate)          | 用于对流中的数据进行过滤                                 |
+| Stream<T> limit(long maxSize)                             | 返回此流中的元素组成的流，截取前指定参数个数的数据       |
+| Stream<T> skip(long n)                                    | 跳过指定参数个数的数据，返回由该流的剩余元素组成的流     |
+| <R> Stream<R> map(Function<? super T,? extends R> mapper) | 加工方法，将当前流中的 T 类型数据转换为另一种 R 类型的流 |
+| static <T> Stream<T> concat(Stream a, Stream b)           | 合并 a 和 b 两个流为一个，调用 `Stream.concat(s1,s2)`    |
+| Stream<T> distinct()                                      | 返回由该流的不同元素组成的流                             |
 
 ```java
 public class StreamDemo {
@@ -6771,6 +6760,7 @@ Collectors 方法：
 * `public static <T> Collector toSet()`：把元素收集到 Set 集合中
 * `public static  Collector toMap(Function keyMapper,Function valueMapper)`：把元素收集到 Map 集合中
 * `Object[] toArray()`：把元素收集数组中
+* `public static Collector groupingBy(Function<? super T, ? extends K> classifier)`：分组
 
 ```java
 public static void main(String[] args) {
@@ -10318,7 +10308,7 @@ public void localvarGC4() {
 
 垃圾收集主要是针对堆和方法区进行，程序计数器、虚拟机栈和本地方法栈这三个区域属于线程私有的，只存在于线程的生命周期内，线程结束之后就会消失，因此不需要对这三个区域进行垃圾回收
 
-在堆里存放着几乎所有的Java对象实例，在GC执行垃圾回收之前，首先需要区分出内存中哪些是存活对象，哪些是已经死亡的对象。只有被标记为己经死亡的对象，GC才会在执行垃圾回收时，释放掉其所占用的内存空间，因此这个过程我们可以称为垃圾标记阶段，判断对象存活一般有两种方式：**引用计数算法**和**可达性分析算法**
+在堆里存放着几乎所有的Java对象实例，在 GC 执行垃圾回收之前，首先需要区分出内存中哪些是存活对象，哪些是已经死亡的对象。只有被标记为己经死亡的对象，GC 才会在执行垃圾回收时，释放掉其所占用的内存空间，因此这个过程我们可以称为垃圾标记阶段，判断对象存活一般有两种方式：**引用计数算法**和**可达性分析算法**
 
 
 
@@ -10783,7 +10773,7 @@ GC性能指标：
 
 #### Parallel
 
-Parallel Scavenge 收集器是应用于新生代的并行垃圾回收器，**采用复制算法**、并行回收和"Stop the World"机制
+Parallel Scavenge 收集器是应用于新生代的并行垃圾回收器，**采用复制算法**、并行回收和 Stop the World 机制
 
 Parallel Old 收集器：是一个应用于老年代的并行垃圾回收器，**采用标记-整理算法**
 
@@ -10800,7 +10790,7 @@ Parallel Old 收集器：是一个应用于老年代的并行垃圾回收器，*
 
 停顿时间和吞吐量的关系：新生代空间变小 → 缩短停顿时间 → 垃圾回收变得频繁 → 导致吞吐量下降
 
-在注重吞吐量及 CPU 资源敏感的场合，都可以优先考虑 Parallel Scavenge+Parallel Old 收集器，在 Server 模式下的内存回收性能很好，**Java8默认是此垃圾收集器组合**
+在注重吞吐量及 CPU 资源敏感的场合，都可以优先考虑 Parallel Scavenge+Parallel Old 收集器，在 Server 模式下的内存回收性能很好，**Java8 默认是此垃圾收集器组合**
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JVM-ParallelScavenge收集器.png)
 
@@ -10845,7 +10835,7 @@ Par 是 Parallel 并行的缩写，New：只能处理的是新生代
 ParNew 是很多 JVM 运行在 Server 模式下新生代的默认垃圾收集器
 
 - 对于新生代，回收次数频繁，使用并行方式高效
-- 对于老年代，回收次数少，使用串行方式节省资源（CPU并行需要切换线程，串行可以省去切换线程的资源）
+- 对于老年代，回收次数少，使用串行方式节省资源（CPU 并行需要切换线程，串行可以省去切换线程的资源）
 
 
 
@@ -12196,6 +12186,7 @@ protected Class<?> loadClass(String name, boolean resolve)
             }
         }
         if (resolve) {
+            // 链接指定的 Java 类，可以使类的 Class 对象创建完成的同时也被解析
             resolveClass(c);
         }
         return c;
@@ -14505,7 +14496,7 @@ public class GeneratedMethodAccessor1 extends MethodAccessorImpl {
 
 
 
-## JVM调优
+## 系统优化
 
 ### 性能调优
 
@@ -18581,15 +18572,16 @@ JDK 动态代理方式的优缺点：
 
 - 优点：可以为任意的接口实现类对象做代理，也可以为被代理对象的所有接口的所有方法做代理，动态代理可以在不改变方法源码的情况下，实现对方法功能的增强，提高了软件的可扩展性，Java 反射机制可以生成任意类型的动态代理类
 - 缺点：**只能针对接口或者接口的实现类对象做代理对象**，普通类是不能做代理对象的
-- 原因：**生成的代理类继承了 Proxy**，java 是单继承的，所以 JDK 动态代理只能代理接口
+- 原因：**生成的代理类继承了 Proxy**，Java 是单继承的，所以 JDK 动态代理只能代理接口
 
 ProxyFactory 不是代理模式中的代理类，而代理类是程序在运行过程中动态的在内存中生成的类，可以通过 Arthas 工具查看代理类结构：
 
 * 代理类（$Proxy0）实现了 SellTickets 接口，真实类和代理类实现同样的接口
 * 代理类（$Proxy0）将提供了的匿名内部类对象传递给了父类
+* 代理类（$Proxy0）的修饰符是 public final
 
 ```java
-//程序运行过程中动态生成的代理类
+// 程序运行过程中动态生成的代理类
 public final class $Proxy0 extends Proxy implements SellTickets {
     private static Method m3;
 
@@ -18646,7 +18638,7 @@ public static Object newProxyInstance(ClassLoader loader,
         checkProxyAccess(Reflection.getCallerClass(), loader, intfs);
     }
 
-    //从缓存中查找 class 类型的代理对象，参数二是代理需要实现的接口
+    // 从缓存中查找 class 类型的代理对象，参数二是代理需要实现的接口
     Class<?> cl = getProxyClass0(loader, intfs);
 	//proxyClassCache = new WeakCache<>(new KeyFactory(), new ProxyClassFactory())
  
@@ -18655,20 +18647,20 @@ public static Object newProxyInstance(ClassLoader loader,
             checkNewProxyPermission(Reflection.getCallerClass(), cl);
         }
 
-        //获取代理类的构造方法，根据参数 InvocationHandler 匹配获取某个构造器
+        // 获取代理类的构造方法，根据参数 InvocationHandler 匹配获取某个构造器
         final Constructor<?> cons = cl.getConstructor(constructorParams);
         final InvocationHandler ih = h;
-        //构造方法不是 pubic 的需要启用权限
+        // 构造方法不是 pubic 的需要启用权限
         if (!Modifier.isPublic(cl.getModifiers())) {
             AccessController.doPrivileged(new PrivilegedAction<Void>() {
                 public Void run() {
-                    //设置可访问的权限
+                    // 设置可访问的权限
                     cons.setAccessible(true);
                     return null;
                 }
             });
         }
-       	//cons 是构造方法，并且内部持有 InvocationHandler，在 InvocationHandler 中持有 target 目标对象
+       	// cons 是构造方法，并且内部持有 InvocationHandler，在 InvocationHandler 中持有 target 目标对象
         return cons.newInstance(new Object[]{h});
     } catch (IllegalAccessException|InstantiationException e) {}
 }
@@ -18681,7 +18673,7 @@ private static final class ProxyClassFactory {
     // 代理类型的名称前缀
     private static final String proxyClassNamePrefix = "$Proxy";
 
-    //生成唯一数字使用，结合上面的代理类型名称前缀一起生成
+    // 生成唯一数字使用，结合上面的代理类型名称前缀一起生成
     private static final AtomicLong nextUniqueNumber = new AtomicLong();
 
 	//参数一：Proxy.newInstance 时传递的
@@ -18714,22 +18706,22 @@ private static final class ProxyClassFactory {
             }
         }
 
-        //生成的代理类的包名
+        // 生成的代理类的包名
         String proxyPkg = null;   
-        //生成的代理类访问修饰符 pulic final 
+        // 【生成的代理类访问修饰符 public final】 
         int accessFlags = Modifier.PUBLIC | Modifier.FINAL;
 
         // 检查接口集合内的接口，看看有没有某个接口的访问修饰符不是 public 的  如果不是 public 的接口，
-        //生成的代理类 class 就必须和它在一个包下，否则访问出现问题
+        // 生成的代理类 class 就必须和它在一个包下，否则访问出现问题
         for (Class<?> intf : interfaces) {
             // 获取访问修饰符
             int flags = intf.getModifiers();
             if (!Modifier.isPublic(flags)) {
                 accessFlags = Modifier.FINAL;
-                //获取当前接口的全限定名 包名.类名
+                // 获取当前接口的全限定名 包名.类名
                 String name = intf.getName();
                 int n = name.lastIndexOf('.');
-                //获取包名
+                // 获取包名
                 String pkg = ((n == -1) ? "" : name.substring(0, n + 1));
                 if (proxyPkg == null) {
                     proxyPkg = pkg;
@@ -18750,11 +18742,11 @@ private static final class ProxyClassFactory {
         // 包名+ $proxy + 数字，比如 $proxy1
         String proxyName = proxyPkg + proxyClassNamePrefix + num;
 
-        // 生成二进制字节码，这个字节码写入到文件内，就是编译好的 class 文件
+        // 【生成二进制字节码，这个字节码写入到文件内】，就是编译好的 class 文件
         byte[] proxyClassFile = ProxyGenerator.generateProxyClass(
             proxyName, interfaces, accessFlags);
         try {
-            //使用加载器加载二进制到 jvm，并且返回 class
+            // 【使用加载器加载二进制到 jvm】，并且返回 class
             return defineClass0(loader, proxyName,
                                 proxyClassFile, 0, proxyClassFile.length);
         } catch (ClassFormatError e) { }
@@ -18831,16 +18823,16 @@ CGLIB 的优缺点
 
 三种方式对比：
 
-* JDK 代理和 CGLIB 代理
-
-  使用 CGLIB 实现动态代理，CGLIB 底层采用 ASM 字节码生成框架，使用字节码技术生成代理类，在 JDK1.6之前比使用 Java 反射效率要高，到 JDK1.8 的时候，JDK 代理效率高于 CGLIB 代理。所以如果有接口使用 JDK 动态代理，如果没有接口使用 CGLIB 代理
-
-* 动态代理和静态代理
+* 动态代理和静态代理：
 
   * 动态代理将接口中声明的所有方法都被转移到一个集中的方法中处理（InvocationHandler.invoke），在接口方法数量比较多的时候，可以进行灵活处理，不需要像静态代理那样每一个方法进行中转
 
   * 静态代理是在编译时就已经将接口、代理类、被代理类的字节码文件确定下来
-  * 动态代理是程序在运行后通过反射创建字节码文件交由 JVM 加载
+  * 动态代理是程序**在运行后通过反射创建字节码文件**交由 JVM 加载
+
+* JDK 代理和 CGLIB 代理：
+
+  JDK 动态代理采用 ProxyGenerator.generateProxyClass() 方法在运行时生成字节码；CGLIB 底层采用 ASM 字节码生成框架，使用字节码技术生成代理类。在 JDK1.6之前比使用 Java 反射效率要高，到 JDK1.8 的时候，JDK 代理效率高于 CGLIB 代理。所以如果有接口或者当前类就是接口使用 JDK 动态代理，如果没有接口使用 CGLIB 代理
 
 代理模式的优缺点：
 
@@ -18853,17 +18845,12 @@ CGLIB 的优缺点
 
 代理模式的使用场景：
 
-* 远程（Remote）代理
+* 远程（Remote）代理：本地服务通过网络请求远程服务，需要实现网络通信，处理其中可能的异常。为了良好的代码设计和可维护性，将网络通信部分隐藏起来，只暴露给本地服务一个接口，通过该接口即可访问远程服务提供的功能
 
-  本地服务通过网络请求远程服务，需要实现网络通信，处理其中可能的异常。为了良好的代码设计和可维护性，将网络通信部分隐藏起来，只暴露给本地服务一个接口，通过该接口即可访问远程服务提供的功能
+* 防火墙（Firewall）代理：当你将浏览器配置成使用代理功能时，防火墙就将你的浏览器的请求转给互联网，当互联网返回响应时，代理服务器再把它转给你的浏览器
 
-* 防火墙（Firewall）代理
+* 保护（Protect or Access）代理：控制对一个对象的访问，如果需要，可以给不同的用户提供不同级别的使用权限
 
-  当你将浏览器配置成使用代理功能时，防火墙就将你的浏览器的请求转给互联网，当互联网返回响应时，代理服务器再把它转给你的浏览器
-
-* 保护（Protect or Access）代理
-
-  控制对一个对象的访问，如果需要，可以给不同的用户提供不同级别的使用权限
 
 
 
