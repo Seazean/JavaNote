@@ -7284,8 +7284,8 @@ FileReader：文件字符输入流
             `public FileReader(File file)` : 创建一个字符输入流与源文件对象接通。
             `public FileReader(String filePath)` : 创建一个字符输入流与源文件路径接通。
    * 方法：
-            `public int read()` : 读取一个字符的编号返回！ 读取完毕返回-1
-            `public int read(char[] buffer)` : 读取一个字符数组，读取多少个就返回多少个，读取完毕返回-1
+            `public int read()` : 读取一个字符的编号返回！ 读取完毕返回 -1
+            `public int read(char[] buffer)` : 读取一个字符数组，读取多少个就返回多少个，读取完毕返回 -1
    * 结论：
      字符流一个一个字符的读取文本内容输出，可以解决中文读取输出乱码的问题，适合操作文本文件。
      但是：一个一个字符的读取文本内容性能较差！！
@@ -7335,10 +7335,10 @@ FileWriter：文件字符输出流
 
 * 作用：以内存为基准，把内存中的数据按照字符的形式写出到磁盘文件中去
 * 构造器：
-     `public FileWriter(File file)` : 创建一个字符输出流管道通向目标文件对象。
-    `public FileWriter(String filePath)` : 创建一个字符输出流管道通向目标文件路径。
+     `public FileWriter(File file)` : 创建一个字符输出流管道通向目标文件对象
+    `public FileWriter(String filePath)` : 创建一个字符输出流管道通向目标文件路径
     `public FileWriter(File file,boolean append)` : 创建一个追加数据的字符输出流管道通向文件对象
-    `public FileWriter(String filePath,boolean append)` : 创建一个追加数据的字符输出流管道通向目标文件路径。
+    `public FileWriter(String filePath,boolean append)` : 创建一个追加数据的字符输出流管道通向目标文件路径
 * 方法：
   `public void write(int c)` : 写一个字符出去
   `public void write(String c)` : 写一个字符串出去
@@ -7346,10 +7346,10 @@ FileWriter：文件字符输出流
   `public void write(String c ,int pos ,int len)` : 写字符串的一部分出去
   `public void write(char[] buffer ,int pos ,int len)` : 写字符数组的一部分出去
 * 说明：
-      覆盖数据管道：`Writer fw = new FileWriter("Day10Demo/src/dlei03.txt"); `
-      追加数据管道：`Writer fw = new FileWriter("Day10Demo/src/dlei03.txt",true);`
-      换行：fw.write("\r\n"); // 换行
-      读写字符文件数据建议使用字符流。
+  覆盖数据管道：`Writer fw = new FileWriter("Day10Demo/src/dlei03.txt")`
+  追加数据管道：`Writer fw = new FileWriter("Day10Demo/src/dlei03.txt",true)`
+  换行：fw.write("\r\n"); // 换行
+  读写字符文件数据建议使用字符流
 
 ```java
 Writer fw = new FileWriter("Day10Demo/src/dlei03.txt");
@@ -7373,10 +7373,11 @@ fw.close;
 作用：缓冲流可以提高字节流和字符流的读写数据的性能。
 
 缓冲流分为四类：
-    （1）BufferedInputStream：字节缓冲输入流，可以提高字节输入流读数据的性能。
-    （2）BufferedOutStream：  字节缓冲输出流，可以提高字节输出流写数据的性能。
-    （3）BufferedReader：  字符缓冲输入流，可以提高字符输入流读数据的性能。
-    （4）BufferedWriter：  字符缓冲输出流，可以提高字符输出流写数据的性能。
+
+* BufferedInputStream：字节缓冲输入流，可以提高字节输入流读数据的性能。
+* BufferedOutStream：  字节缓冲输出流，可以提高字节输出流写数据的性能。
+* BufferedReader：  字符缓冲输入流，可以提高字符输入流读数据的性能。
+* BufferedWriter：  字符缓冲输出流，可以提高字符输出流写数据的性能。
 
 
 
@@ -7444,10 +7445,11 @@ public class BufferedOutputStreamDemo02 {
 利用字节流的复制统计各种写法形式下缓冲流的性能执行情况。
 
 复制流：
-    （1）使用低级的字节流按照一个一个字节的形式复制文件。
-    （2）使用低级的字节流按照一个一个字节数组的形式复制文件。
-    （3）使用高级的缓冲字节流按照一个一个字节的形式复制文件。
-    （4）使用高级的缓冲字节流按照一个一个字节数组的形式复制文件。
+
+* 使用低级的字节流按照一个一个字节的形式复制文件。
+* 使用低级的字节流按照一个一个字节数组的形式复制文件。
+* 使用高级的缓冲字节流按照一个一个字节的形式复制文件。
+* 使用高级的缓冲字节流按照一个一个字节数组的形式复制文件。
 
 高级的缓冲字节流按照一个一个字节数组的形式复制文件，性能最高，建议使用
 
@@ -14502,7 +14504,7 @@ public class GeneratedMethodAccessor1 extends MethodAccessorImpl {
 
 #### 性能指标
 
-性能指标主要是吞吐量、响应时间、QPS、TPS 等、并发用户数等，而这些性能指标又依赖于系统服务器的资源，如 CPU、内存、磁盘IO、网络IO 等，对于这些指标数据的收集，通常可以根据Java本身的工具或指令进行查询
+性能指标主要是吞吐量、响应时间、QPS、TPS 等、并发用户数等，而这些性能指标又依赖于系统服务器的资源，如 CPU、内存、磁盘 IO、网络 IO 等，对于这些指标数据的收集，通常可以根据Java本身的工具或指令进行查询
 
 几个重要的指标：
 
@@ -14529,11 +14531,11 @@ public class GeneratedMethodAccessor1 extends MethodAccessorImpl {
 
    * 打印 GC 日志，通过 GCviewe r或者 http://gceasy.io 来分析异常信息
 
-   - 运用命令行工具、jstack、jmap、jinfo等
+   - 运用命令行工具、jstack、jmap、jinfo 等
 
    - dump 出堆文件，使用内存分析工具分析文件
 
-   - 使用阿里 Arthas、jconsole、JVisualVM 来实时查看 JVM 状态
+   - 使用阿里 Arthas、jconsole、JVisualVM 来**实时查看 JVM 状态**
 
    - jstack 查看堆栈信息
 
@@ -14837,7 +14839,7 @@ jstatd 是一个 RMI 服务端程序，相当于代理服务器，建立本地�
 
 ### GUI工具
 
-工具的使用此处不再多言，推荐一个写的非常好的文章，JVM 调优部分的笔记全部参考此文章编写。
+工具的使用此处不再多言，推荐一个写的非常好的文章，JVM 调优部分的笔记全部参考此文章编写
 
 视频链接：https://www.bilibili.com/video/BV1PJ411n7xZ?p=304
 
@@ -15129,15 +15131,15 @@ Full GC 日志：
 
 - System：调用了 System.gc() 方法
 
-通过日志看 GC 前后情况：GC 前内存占用 -> GC 后内存占用（该区域内存总大小）
+通过日志看 GC 前后情况：GC 前内存占用 → GC 后内存占用（该区域内存总大小）
 
 ```sh
 [PSYoungGen: 5986K->696K (8704K)] 5986K->704K (9216K)
 ```
 
--  中括号内：GC 回收前年轻代堆大小 -> 回收后大小（年轻代堆总大小） 
+-  中括号内：GC 回收前年轻代堆大小 → 回收后大小（年轻代堆总大小） 
 
--  括号外：GC 回收前年轻代和老年代大小 -> 回收后大小（年轻代和老年代总大小） 
+-  括号外：GC 回收前年轻代和老年代大小 → 回收后大小（年轻代和老年代总大小） 
 
 * Minor GC 堆内存总容量 = 9/10 年轻代 + 老年代，Survivor 区只计算 from 部分，而 JVM 默认年轻代中 Eden 区和 Survivor 区的比例关系：Eden:S0:S1=8:1:1
 
@@ -15159,7 +15161,7 @@ Full GC 日志：
 
 #### 分析工具
 
-GCEasy 是一款在线的GC日志分析器，可以通过 GC 日志分析进行内存泄露检测、GC 暂停原因分析、JVM 配置建议优化等功能，大多数功能是免费的
+GCEasy 是一款在线的 GC 日志分析器，可以通过 GC 日志分析进行内存泄露检测、GC 暂停原因分析、JVM 配置建议优化等功能，大多数功能是免费的
 
 * 官网地址：https://gceasy.io/
 
@@ -15933,7 +15935,9 @@ public class BucketSort {
 
 
 
-### 稳定性
+### 算法总结
+
+#### 稳定性
 
 稳定性：在待排序的记录序列中，存在多个具有相同的关键字的记录，若经过排序，这些记录的相对次序保持不变，即在原序列中 `r[i]=r[j]`，且 r[i] 在 r[j] 之前，而在排序后的序列中，r[i] 仍在 r[j] 之前，则称这种排序算法是稳定的，否则称为不稳定的
 
@@ -15962,11 +15966,26 @@ public class BucketSort {
 
 
 
-### 算法对比
+#### 算法对比
 
 ![](https://gitee.com/seazean/images/raw/master/Java/Sort-排序算法对比.png)
 
 
+
+***
+
+
+
+#### 补充问题
+
+海量数据问题：
+
+* 海量数据排序：
+  * 外部排序：归并 + 败者树
+  * 基数排序：https://time.geekbang.org/column/article/42038
+* 海量数据查询：
+  * 布隆过滤器判断是否存在
+  * 构建索引：B+ 树、跳表
 
 
 
@@ -16402,10 +16421,10 @@ public class Kmp {
 
 红黑树与 AVL 树的比较：
 
-* AVL 树是更加严格的平衡，可以提供更快的查找速度，适用于读取查找密集型任务
-* 红黑树只是做到了近似平衡，并不是严格的平衡，红黑树的插入删除比 AVL 树更便于控制操作，红黑树更适合于插入修改密集型任务
+* AVL 树是更加严格的平衡，可以提供更快的查找速度，适用于读取**查找密集型任务**
+* 红黑树只是做到近似平衡，并不是严格的平衡，红黑树的插入删除比 AVL 树更便于控制，红黑树更适合于**插入修改密集型任务**
 
-- 红黑树整体性能略优于 AVL 树，AVL 树的旋转比红黑树的旋转多，更加难以平衡和调试，插入和删除的效率比红黑树慢。
+- 红黑树整体性能略优于 AVL 树，AVL 树的旋转比红黑树的旋转多，更加难以平衡和调试，插入和删除的效率比红黑树慢
 
 ![红黑树](https://gitee.com/seazean/images/raw/master/Java/红黑树结构图.png)
 
@@ -17500,7 +17519,7 @@ UML 从目标系统的不同角度出发，定义了用例图、类图、对象�
 
 #### 破坏单例
 
-##### 序列化
+##### 反序列化
 
 将单例对象序列化再反序列化，对象从内存反序列化到程序中会重新创建一个对象，通过反序列化得到的对象是不同的对象，而且得到的对象不是通过构造器得到的，**反序列化得到的对象不执行构造器**
 
@@ -17537,7 +17556,7 @@ UML 从目标系统的不同角度出发，定义了用例图、类图、对象�
   
       private static Singleton readObjectFromFile() throws Exception {
           //创建对象输入流对象
-          ObjectInputStream ois = new ObjectInputStream(new FileInputStream("C:\a.txt"));
+          ObjectInputStream ois = new ObjectInputStream(new FileInputStream("C://a.txt"));
           //第一个读取Singleton对象
           Singleton instance = (Singleton) ois.readObject();
           return instance;
@@ -17547,7 +17566,7 @@ UML 从目标系统的不同角度出发，定义了用例图、类图、对象�
           //获取Singleton类的对象
           Singleton instance = Singleton.getInstance();
           //创建对象输出流
-          ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("C:\a.txt"));
+          ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("C://a.txt"));
           //将instance对象写出到文件中
           oos.writeObject(instance);
       }
@@ -17600,7 +17619,7 @@ UML 从目标系统的不同角度出发，定义了用例图、类图、对象�
 
 
 
-##### 反射
+##### 反射破解
 
 * 反射
 

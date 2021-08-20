@@ -6890,7 +6890,7 @@ public ScheduledThreadPoolExecutor(int corePoolSize) {
   }
   ```
 
-* 定时任务 scheduleAtFixedRate：**一个任务的启动到下一个任务的启动**之间只要大于间隔时间，抢占到CPU就会立即执行
+* 定时任务 scheduleAtFixedRate：**一个任务的启动到下一个任务的启动**之间只要大于间隔时间，抢占到 CPU 就会立即执行
 
   ```java
   public static void main(String[] args) {
@@ -6909,7 +6909,7 @@ public ScheduledThreadPoolExecutor(int corePoolSize) {
   running...Sat Apr 24 18:08:17 CST 2021
   ```
 
-* 定时任务 scheduleWithFixedDelay：**一个任务的结束到下一个任务的启动之间**等于间隔时间，抢占到CPU就会立即执行，这个方法才是真正的设置两个任务之间的间隔
+* 定时任务 scheduleWithFixedDelay：**一个任务的结束到下一个任务的启动之间**等于间隔时间，抢占到 CPU 就会立即执行，这个方法才是真正的设置两个任务之间的间隔
 
   ```java
   public static void main(String[] args){
@@ -12256,7 +12256,7 @@ final void updateHead(Node<E> h, Node<E> p) {
 3. 端口：端口号就可以唯一标识设备中的进程（应用程序）
    端口号：用两个字节表示的整数，的取值范围是 0-65535，0-1023 之间的端口号用于一些知名的网络服务和应用，普通的应用程序需要使用 1024 以上的端口号。如果端口号被另外一个服务或应用所占用，会导致当前程序启动失败，报出端口被占用异常
 
-利用**协议+IP地址+端口号** 三元组合，就可以标识网络中的进程了，那么进程间的通信就可以利用这个标识与其它进程进行交互。
+利用**协议+IP 地址+端口号** 三元组合，就可以标识网络中的进程了，那么进程间的通信就可以利用这个标识与其它进程进行交互。
 
 
 
@@ -12280,14 +12280,16 @@ final void updateHead(Node<E> h, Node<E> p) {
 >
 > 数据链路层 ： 进入到硬件（网）
 
+通信**是进程与进程之间的通信**，不是主机与主机之间的通信
+
 TCP/IP协议：传输控制协议 (Transmission Control Protocol)
 
-TCP：面向连接的安全的可靠的传输通信协议
+传输控制协议 TCP（Transmission Control Protocol）是面向连接的，提供可靠交付，有流量控制，拥塞控制，提供全双工通信，面向字节流（把应用层传下来的报文看成字节流，把字节流组织成大小不等的数据块），每一条 TCP 连接只能是点对点的（一对一）
 
 * 在通信之前必须确定对方在线并且连接成功才可以通信
-* 例如下载文件、浏览网页等(要求可靠传输)
+* 例如下载文件、浏览网页等（要求可靠传输）
 
-UDP：用户数据报协议(User Datagram Protocol)，是一个面向无连接的不可靠传输的协议
+用户数据报协议 UDP（User Datagram Protocol）是无连接的，尽最大可能交付，没有拥塞控制，面向报文（对于应用程序传下来的报文不合并也不拆分，只是添加 UDP 首部），支持一对一、一对多、多对一和多对多的交互通信
 
 * 直接发消息给对方，不管对方是否在线，发消息后也不需要确认
 * 无线（视频会议，通话），性能好，可能丢失一些数据
@@ -12305,7 +12307,7 @@ UDP：用户数据报协议(User Datagram Protocol)，是一个面向无连接�
 * 同步：当前线程要自己进行数据的读写操作（自己去银行取钱）
 * 异步：当前线程可以去做其他事情（委托别人拿银行卡到银行取钱，然后给你）
 * 阻塞：在数据没有的情况下，还是要继续等待着读（排队等待）
-* 非阻塞：在数据没有的情况下，会去做其他事情，一旦有了数据再来获取（柜台取款，取个号，然后坐在椅子上做其它事，等号广播会通知你办理） 
+*  非阻塞：在数据没有的情况下，会去做其他事情，一旦有了数据再来获取（柜台取款，取个号，然后坐在椅子上做其它事，等号广播会通知你办理） 
 
 Java 中的通信模型:
 
@@ -12955,7 +12957,7 @@ UDP（User Datagram Protocol）协议的特点：
 * 面向无连接的协议
 * 发送端只管发送，不确认对方是否能收到
 * 基于数据包进行数据传输
-* 发送数据的包的大小限制**64KB**以内
+* 发送数据的包的大小限制 **64KB** 以内
 * 因为面向无连接，速度快，但是不可靠，会丢失数据
 
 UDP协议的使用场景：在线视频、网络语音、电话
@@ -12975,7 +12977,7 @@ UDP 协议相关的两个类
 
 **DatagramPacket**：
 
-* DatagramPacket类
+* DatagramPacket 类
 
   `public new DatagramPacket(byte[] buf, int length, InetAddress address, int port)` : 创建发送端数据包对象，参数： 
 
@@ -12995,10 +12997,10 @@ UDP 协议相关的两个类
 
 **DatagramSocket**：
 
-* DatagramSocket类构造方法
-  `protected DatagramSocket()` : 创建发送端的Socket对象，系统会随机分配一个端口号
-  `protected DatagramSocket(int port)` : 创建接收端的Socket对象并指定端口号
-* DatagramSocket类成员方法
+* DatagramSocket 类构造方法
+  `protected DatagramSocket()` : 创建发送端的 Socket 对象，系统会随机分配一个端口号
+  `protected DatagramSocket(int port)` : 创建接收端的 Socket 对象并指定端口号
+* DatagramSocket 类成员方法
   `public void send(DatagramPacket dp)` : 发送数据包
   `public void receive(DatagramPacket p)` : 接收数据包
   `public void close()` : 关闭数据报套接字
@@ -13076,7 +13078,7 @@ UDP 通信方式：
 
 #### 基本介绍
 
-TCP/IP 协议 ==> Transfer Control Protocol ==> 传输控制协议
+TCP/IP (Transfer Control Protocol) 协议，传输控制协议
 
 TCP/IP 协议的特点：
 
@@ -13110,20 +13112,24 @@ TCP 协议相关的类：
 * Socket：一个该类的对象就代表一个客户端程序。
 * ServerSocket：一个该类的对象就代表一个服务器端程序。
 
-Socket类
+Socket 类
 
 * 构造方法：
-  `Socket(InetAddress address,int port)`：创建流套接字并将其连接到指定 IP 指定端口号
-  `Socket(String host, int port)`：根据ip地址字符串和端口号创建客户端 Socket 对象
-  注意事项：执行该方法，就会立即连接指定的服务器，连接成功，则表示三次握手通过，反之抛出异常
-* 常用API：
-  `OutputStream getOutputStream()`：获得字节输出流对象
-  `InputStream getInputStream()`：获得字节输入流对象
-  `void shutdownInput()`：停止接受
-  `void shutdownOutput()`：停止发送数据，终止通信
-  `SocketAddress getRemoteSocketAddress() `：返回套接字连接到的端点的地址，未连接返回null
+  
+  * `Socket(InetAddress address,int port)`：创建流套接字并将其连接到指定 IP 指定端口号
+  
+  * `Socket(String host, int port)`：根据ip地址字符串和端口号创建客户端 Socket 对象
+  
+    注意事项：执行该方法，就会立即连接指定的服务器，连接成功，则表示三次握手通过，反之抛出异常
+* 常用 API：
+  
+  * `OutputStream getOutputStream()`：获得字节输出流对象
+  * `InputStream getInputStream()`：获得字节输入流对象
+  * `void shutdownInput()`：停止接受
+  * `void shutdownOutput()`：停止发送数据，终止通信
+  * `SocketAddress getRemoteSocketAddress() `：返回套接字连接到的端点的地址，未连接返回 null
 
-ServerSocket类：
+ServerSocket 类：
 
 * 构造方法：`public ServerSocket(int port)`
 * 常用API：`public Socket accept()`，**阻塞等待**接收一个客户端的 Socket 管道连接请求，连接成功返回一个 Socket 对象
@@ -13216,7 +13222,7 @@ public class ClientDemo {
         // 1.客户端要请求于服务端的socket管道连接。
         Socket socket = new Socket("127.0.0.1",8080);
         // 2.从socket通信管道中得到一个字节输出流
-        OutputStream os = new socket.getOutputStream();
+        OutputStream os = socket.getOutputStream();
         // 3.把低级的字节输出流包装成高级的打印流。
         PrintStream ps = new PrintStream(os);
         // 4.开始发消息出去
@@ -14197,7 +14203,7 @@ public class ChannelTest {
 
 #### 基本介绍
 
-选择器（Selector） 是 SelectableChannle 对象的**多路复用器**，Selector 可以同时监控多个通道的状况，利用 Selector 可使一个单独的线程管理多个 Channel。**Selector 是非阻塞 IO 的核心**。
+选择器（Selector） 是 SelectableChannle 对象的**多路复用器**，Selector 可以同时监控多个通道的状况，利用 Selector 可使一个单独的线程管理多个 Channel，**Selector 是非阻塞 IO 的核心**。
 
 ![](https://gitee.com/seazean/images/raw/master/Java/NIO-Selector.png)
 
@@ -14378,7 +14384,7 @@ public class Server {
                         buffer.clear();// 清除之前的数据
                     }
                 }
-                //删除当前的 selectionKey，防止重复操作
+                // 删除当前的 selectionKey，防止重复操作
                 it.remove();
             }
         }
