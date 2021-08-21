@@ -204,10 +204,15 @@ Runnable 方式的优缺点：
 
 `public FutureTask(Callable<V> callable)`：未来任务对象，在线程执行完后**得到线程的执行结果**
 
-* FutureTask 就是 Runnable 对象，因为 Thread 类只能执行 Runnable 实例的任务对象，所以把 Callable 包装一下
+* FutureTask 就是 Runnable 对象，因为 Thread 类只能执行 Runnable 实例的任务对象，所以把 Callable 包装成未来任务对象
 * 线程池部分详解了 FutureTask 的源码
 
 `public V get()`：同步等待 task 执行完毕的结果，如果在线程中获取另一个线程执行结果，会阻塞等待，用于线程同步
+
+* get() 线程会阻塞等待任务执行完成
+* run() 执行完后会把结果设置到任务中的一个成员变量，get() 线程可以获取到该变量的值
+
+优缺点：
 
 * 优点：同 Runnable，并且能得到线程执行的结果
 * 缺点：编码复杂
@@ -2248,9 +2253,9 @@ Java 内存模型是 Java MemoryModel（JMM），本身是一种**抽象的概�
 
 
 
-**jvm和jmm之间的关系**：
+**JVM 和 JMM 之间的关系**：
 
-* jmm 中的主内存、工作内存与 jvm 中的 Java 堆、栈、方法区等并不是同一个层次的内存划分，这两者基本上是没有关系的，如果两者一定要勉强对应起来：
+* JMM 中的主内存、工作内存与 JVM 中的 Java 堆、栈、方法区等并不是同一个层次的内存划分，这两者基本上是没有关系的，如果两者一定要勉强对应起来：
   * 主内存主要对应于 Java 堆中的对象实例数据部分，而工作内存则对应于虚拟机栈中的部分区域
   * 从更低层次上说，主内存直接对应于物理硬件的内存，工作内存对应寄存器和高速缓存
 
@@ -3529,6 +3534,7 @@ class MyAtomicInteger {
 
     static {
         try {
+            //Unsafe unsafe = Unsafe.getUnsafe()这样会报错，需要反射获取
             Field theUnsafe = Unsafe.class.getDeclaredField("theUnsafe");
             theUnsafe.setAccessible(true);
             UNSAFE = (Unsafe) theUnsafe.get(null);
@@ -4074,7 +4080,7 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
       int sz = ++size;
       
       // 做一次启发式清理
-      // 如果没有清除任何entry并且当前使用量达到了负载因子所定义，那么进行 rehash
+      // 如果没有清除任何 entry 并且当前使用量达到了负载因子所定义，那么进行 rehash
       if (!cleanSomeSlots(i, sz) && sz >= threshold)
           // 扩容
           rehash();
@@ -4536,7 +4542,7 @@ java.util.concurrent.BlockingQueue 接口有以下阻塞队列的实现：**FIFO
 - ArrayBlockQueue：由数组结构组成的有界阻塞队列
 - LinkedBlockingQueue：由链表结构组成的无界（默认大小 Integer.MAX_VALUE）的阻塞队列
 - PriorityBlockQueue：支持优先级排序的无界阻塞队列
-- DelayQueue：使用优先级队列实现的延迟无界阻塞队列
+- DelayedWorkQueue：使用优先级队列实现的延迟无界阻塞队列
 - SynchronousQueue：不存储元素的阻塞队列，每一个生产线程会阻塞到有一个 put 的线程放入元素为止
 - LinkedTransferQueue：由链表结构组成的无界阻塞队列
 - LinkedBlockingDeque：由链表结构组成的**双向**阻塞队列
@@ -5398,45 +5404,6 @@ TransferQueue 类成员方法：
 
 
 
-***
-
-
-
-#### 延迟队列
-
-DelayQueue 是一个支持延时获取元素的阻塞队列，内部采用优先队列 PriorityQueue 存储元素，同时元素必须实现 Delayed 接口；在创建元素时可以指定多久才可以从队列中获取当前元素，只有在延迟期满时才能从队列中提取元素
-
-DelayQueue 只能添加（offer/put/add）实现了 Delayed 接口的对象，不能添加 int、String
-
-API：
-
-* `getDelay()`：获取元素在队列中的剩余时间，只有当剩余时间为 0 时元素才可以出队列。
-* `compareTo()`：用于排序，确定元素出队列的顺序
-
-```java
-class DelayTask implements Delayed {
-    private String name;
-    private long time;
-    private long start = System.currentTimeMillis();
-    // construct set get 
-
-    // 需要实现的接口，获得延迟时间   用过期时间-当前时间
-    @Override
-    public long getDelay(TimeUnit unit) {
-        return unit.convert((start + time) - System.currentTimeMillis(), TimeUnit.MILLISECONDS);
-    }
-
-    // 用于延迟队列内部比较排序   当前时间的延迟时间 - 被比较对象的延迟时间
-    @Override
-    public int compareTo(Delayed o) {
-        DelayTask obj = (DelayTask) o;
-        return (int) (this.getDelay(TimeUnit.MILLISECONDS) - o.getDelay(TimeUnit.MILLISECONDS));
-    }
-}
-```
-
-
-
 
 
 ***
@@ -5844,7 +5811,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
   private volatile int maximumPoolSize;			// 线程池最大线程数量
   private volatile long keepAliveTime;			// 空闲线程存活时间
   private volatile ThreadFactory threadFactory;	// 创建线程时使用的线程工厂，默认是 DefaultThreadFactory
-  private final BlockingQueue<Runnable> workQueue;// 超过核心线程提交任务就放入【阻塞队列】
+  private final BlockingQueue<Runnable> workQueue;// 【超过核心线程提交任务就放入 阻塞队列】
   ```
 
   ```java
@@ -5863,6 +5830,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
 
   ```java
   // false 代表不可以，为 true 时核心线程空闲超过 keepAliveTime 也会被回收
+  // allowCoreThreadTimeOut 可以设置该值
   private volatile boolean allowCoreThreadTimeOut;
   ```
 
@@ -5944,7 +5912,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
       // 非空判断
       if (command == null)
           throw new NullPointerException();
-    	// 获取 ctl 最新值赋值给 c，ctl 高3位表示线程池状态，低位表示当前线程池线程数量。
+    	// 获取 ctl 最新值赋值给 c，ctl 高 3 位表示线程池状态，低位表示当前线程池线程数量。
       int c = ctl.get();
       // 【1】当前线程数量小于核心线程数，此次提交任务直接创建一个新的 worker，线程池中多了一个新的线程
       if (workerCountOf(c) < corePoolSize) {
@@ -5991,7 +5959,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
 * addWorker()：**添加线程到线程池**，返回 true 表示创建 Worker 成功，且线程启动
 
   ```java
-  // core == true 表示采用核心线程数量限制，false表示采用 maximumPoolSize
+  // core == true 表示采用核心线程数量限制，false 表示采用 maximumPoolSize
   private boolean addWorker(Runnable firstTask, boolean core) {
       // 自旋判断当前线程池状态是否允许创建线程的，允许就设置线程数量 + 1
       retry:
@@ -6026,6 +5994,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
              
           }
       }
+      
       //【令牌申请成功，开始创建线程】
       
   	// 运行标记，表示创建的 worker 是否已经启动，false未启动  true启动
@@ -6048,8 +6017,9 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
                   int rs = runStateOf(ctl.get());
   				// 判断线程池是否为RUNNING状态，不是再判断当前是否为SHUTDOWN状态且firstTask为空（特殊情况）
                   if (rs < SHUTDOWN || (rs == SHUTDOWN && firstTask == null)) {
-                      // 当线程 start 后，线程 isAlive 会返回 true，否则报错
-                      if (t.isAlive()) throw new IllegalThreadStateException();
+                      // 当线程 start 后，线程 isAlive 会返回 true，这里还没启动线程
+                      if (t.isAlive())
+                          throw new IllegalThreadStateException();
                       
                       //【将新建的 Worker 添加到线程池中】
                       workers.add(w);
@@ -6066,7 +6036,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
               }
               // 添加成功就启动线程【执行任务】
               if (workerAdded) {
-                  // Thread 类中持有 Runnable 任务对象，调用的是 Runnable 的 run 方法
+                  // Thread 类中持有 Runnable 任务对象，调用的是 Runnable 的 run ，也就是 FutureTask
                   t.start();
                   // 运行标记置为 true
                   workerStarted = true;
@@ -6183,7 +6153,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
 
   ```java
   public void unlock() { release(1); }
-  //外部不会直接调用这个方法 这个方法是 AQS 内调用的，外部调用 unlock 时触发此方法
+  // 外部不会直接调用这个方法 这个方法是 AQS 内调用的，外部调用 unlock 时触发此方法
   protected boolean tryRelease(int unused) {
       setExclusiveOwnerThread(null);		// 设置持有者为 null
       setState(0);						// 设置 state = 0
@@ -6191,7 +6161,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
   }
   ```
 
-* getTask()：获取任务，线程空闲时间超过 keepAliveTime 就会被回收，判断的依据是**当前线程超过保活时间没有获取到任务**，方法返回 null 就代表当前线程要被回收了，返回到 runWorker 执行线程退出逻辑
+* getTask()：获取任务，线程空闲时间超过 keepAliveTime 就会被回收，判断的依据是**当前线程阻塞超过保活时间没有获取到任务**，方法返回 null 就代表当前线程要被回收了，返回到 runWorker 执行线程退出逻辑
 
   ```java
   private Runnable getTask() {
@@ -6323,7 +6293,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
   }
   ```
 
-* interruptIdleWorkers()：shutdown 方法会**中断空闲线程**，根据是否可以获取 AQS 独占锁锁判断是否处于工作状态
+* interruptIdleWorkers()：shutdown 方法会**中断空闲线程**，根据是否可以获取 AQS 独占锁判断是否处于工作状态
 
   ```java
   // onlyOne == true 说明只中断一个线程 ，false 则中断所有线程
@@ -6355,7 +6325,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
           }
   
       } finally {
-          //释放全局锁。
+          // 释放全局锁
           mainLock.unlock();
       }
   }
@@ -6472,10 +6442,33 @@ public FutureTask(Callable<V> callable){
 }
 
 public FutureTask(Runnable runnable, V result) {
-    // 使用装饰者模式将 runnable 转换成 callable 接口，外部线程通过 get 获取
-    // 当前任务执行结果时，结果可能为 null 也可能为【传进来】的值，传进来什么返回什么
+    // 装饰
     this.callable = Executors.callable(runnable, result);
     this.state = NEW;       
+}
+```
+
+```java
+public static <T> Callable<T> callable(Runnable task, T result) {
+    if (task == null) throw new NullPointerException();
+    // 使用装饰者模式将 runnable 转换成 callable 接口，外部线程通过 get 获取
+    // 当前任务执行结果时，结果可能为 null 也可能为【传进来】的值，传进来什么返回什么
+    return new RunnableAdapter<T>(task, result);
+}
+static final class RunnableAdapter<T> implements Callable<T> {
+    final Runnable task;
+    final T result;
+    // 构造方法
+    RunnableAdapter(Runnable task, T result) {
+        this.task = task;
+        this.result = result;
+    }
+    public T call() {
+        // 实则调用 Runnable#run 方法
+        task.run();
+        // 返回值为构造 FutureTask 对象时传入的返回值或者是 null
+        return result;
+    }
 }
 ```
 
@@ -6518,7 +6511,7 @@ FutureTask 类的成员属性：
   private Callable<V> callable;	// Runnable 使用装饰者模式伪装成 Callable
   ```
 
-* 返回结果：
+* 存储任务执行的结果，这是 run 方法返回值是 void 也可以获取到执行结果的原因：
 
   ```java
   // 正常情况下：任务正常执行结束，outcome 保存执行结果，callable 返回值。
@@ -6532,7 +6525,7 @@ FutureTask 类的成员属性：
   private volatile Thread runner;	// 当前任务被线程执行期间，保存当前执行任务的线程对象引用
   ```
 
-* 阻塞线程的队列：
+* 线程阻塞队列的头节点：
 
   ```java
   // 会有很多线程去 get 当前任务的结果，这里使用了一种数据结构头插头取（类似栈）的一个队列来保存所有的 get 线程
@@ -6749,13 +6742,13 @@ FutureTask 类的成员方法：
           }
           // 条件成立：说明需要休眠
           else
-              // 【当前 get 操作的线程就会被 park 阻塞了】，除非有其它线程将唤醒或者将当前线程中断
+              // 【当前 get 操作的线程被 park 阻塞】，除非有其它线程将唤醒或者将当前线程中断
               LockSupport.park(this);
       }
   }
   ```
   
-  FutureTask#report：封装运行结果
+  FutureTask#report：封装运行结果，可以获取 run() 方法中设置的成员变量 outcome，**这是 run 方法的返回值是 void 也可以获取到任务执行的结果的原因**
   
   ```java
   private V report(int s) throws ExecutionException {
@@ -6782,7 +6775,8 @@ FutureTask 类的成员方法：
             UNSAFE.compareAndSwapInt(this, stateOffset, NEW,
                                      mayInterruptIfRunning ? INTERRUPTING : CANCELLED)))
           return false;
-      try {   
+      try {
+          // 如果任务已经被执行，是否允许打断
           if (mayInterruptIfRunning) {
               try {
                   // 获取执行当前 FutureTask 的线程
@@ -6854,11 +6848,18 @@ private static void method1() {
 
 任务调度线程池 ScheduledThreadPoolExecutor 继承 ThreadPoolExecutor：
 
+* 使用内部类 ScheduledFutureTask 封装任务
+* 使用内部类 DelayedWorkQueue 作为线程池队列
+* 重写 onShutdown 方法去处理 shutdown 后的任务
+* 提供 decorateTask 方法作为 ScheduledFutureTask 的修饰方法，以便开发者进行扩展
+
 构造方法：`Executors.newScheduledThreadPool(int corePoolSize)`
 
 ```java
 public ScheduledThreadPoolExecutor(int corePoolSize) {
+    // 最大线程数固定为 Integer.MAX_VALUE，最大活跃时间 keepAliveTime 固定为
     super(corePoolSize, Integer.MAX_VALUE, 0, NANOSECONDS,
+          // 阻塞队列是 DelayedWorkQueue
           new DelayedWorkQueue());
 }
 ```
@@ -6890,7 +6891,7 @@ public ScheduledThreadPoolExecutor(int corePoolSize) {
   }
   ```
 
-* 定时任务 scheduleAtFixedRate：**一个任务的启动到下一个任务的启动**之间只要大于间隔时间，抢占到 CPU 就会立即执行
+* 定时任务 scheduleAtFixedRate：**一次任务的启动到下一次任务的启动**之间只要大于间隔时间，抢占到 CPU 就会立即执行
 
   ```java
   public static void main(String[] args) {
@@ -6909,7 +6910,7 @@ public ScheduledThreadPoolExecutor(int corePoolSize) {
   running...Sat Apr 24 18:08:17 CST 2021
   ```
 
-* 定时任务 scheduleWithFixedDelay：**一个任务的结束到下一个任务的启动之间**等于间隔时间，抢占到 CPU 就会立即执行，这个方法才是真正的设置两个任务之间的间隔
+* 定时任务 scheduleWithFixedDelay：**一次任务的结束到下一次任务的启动之间**等于间隔时间，抢占到 CPU 就会立即执行，这个方法才是真正的设置两个任务之间的间隔
 
   ```java
   public static void main(String[] args){
@@ -6925,6 +6926,617 @@ public ScheduledThreadPoolExecutor(int corePoolSize) {
   running...Sat Apr 24 18:11:42 CST 2021
   running...Sat Apr 24 18:11:45 CST 2021
   running...Sat Apr 24 18:11:48 CST 2021
+  ```
+
+
+
+***
+
+
+
+#### 成员属性
+
+##### 成员变量
+
+* shutdown 后是否继续执行定时任务：
+
+  ```java
+  private volatile boolean continueExistingPeriodicTasksAfterShutdown;
+  ```
+
+* shutdown 后是否继续执行延迟任务：
+
+  ```java
+  private volatile boolean executeExistingDelayedTasksAfterShutdown = true;
+  ```
+
+* 取消方法是否将该任务从队列中移除：
+
+  ```java
+  private volatile boolean removeOnCancel = false;
+  ```
+
+* 任务的序列号：
+
+  ```java
+  private static final AtomicLong sequencer = new AtomicLong();
+  ```
+
+  
+
+***
+
+
+
+##### 延迟任务
+
+ScheduledFutureTask 继承 FutureTask，实现 RunnableScheduledFuture 接口，具有延迟执行的特点，覆盖 FutureTask 的 run 方法来实现对延时执行、周期执行的支持。对于延时任务调用 FutureTask#run 而对于周期性任务则调用 FutureTask#runAndReset 并且在成功之后根据 fixed-delay/fixed-rate 模式来设置下次执行时间并重新将任务塞到工作队列。
+
+在调度线程池中无论是 runnable 还是 callable，无论是否需要延迟和定时，所有的任务都会被封装成 ScheduledFutureTask
+
+成员变量：
+
+* 任务序列号：
+
+  ```java
+  private final long sequenceNumber;
+  ```
+
+* 执行时间：
+
+  ```java
+  private long time;			// 任务可以被执行的时间，以纳秒表示
+  private final long period;	// 0 表示非周期任务，正数表示 fixed-rate 模式，负数表示 fixed-delay 模式的周期
+  ```
+
+* 实际的任务：
+
+  ```java
+  RunnableScheduledFuture<V> outerTask = this;
+  ```
+
+* 任务在队列数组中的索引下标：
+
+  ```java
+  int heapIndex;	// -1 代表删除
+  ```
+
+成员方法：
+
+* 构造方法：
+
+  ```java
+  ScheduledFutureTask(Runnable r, V result, long ns, long period) {
+      super(r, result);
+      // 任务的触发时间
+      this.time = ns;
+      // 任务的周期，多长时间执行一次
+      this.period = period;
+      this.sequenceNumber = sequencer.getAndIncrement();
+  }
+  ```
+
+* compareTo()：ScheduledFutureTask 根据执行时间 time 正序排列，如果执行时间相同，在按照序列号 sequenceNumber 正序排列，任务需要放入 DelayedWorkQueue，延迟队列中使用该方法按照从小到大进行排序
+
+* run()：执行任务，**周期任务执行完后会重新放入线程池的阻塞队列**
+
+  ```java
+  public void run() {
+      // 是否周期性，就是判断 period 是否为 0
+      boolean periodic = isPeriodic();
+      // 检查当前状态能否执行任务
+      if (!canRunInCurrentRunState(periodic))
+          // 取消任务
+          cancel(false);
+      // 非周期任务直接执行
+      else if (!periodic)
+          ScheduledFutureTask.super.run();
+      // 周期任务的执行，正常完成后任务的状态不会变化，依旧是 NEW，且返回值为成功或失败，不会设置result属性。
+      // 需要注意，如果本次任务执行出现异常，返回 false，后续的该任务不会再执行
+      else if (ScheduledFutureTask.super.runAndReset()) {
+          // 设置周期任务的下一次执行时间
+          setNextRunTime();
+          // 任务的下一次执行安排，如果当前线程池状态可以执行周期任务，加入队列，并开启新线程
+          reExecutePeriodic(outerTask);
+      }
+  }
+  ```
+
+  ```java
+  protected boolean runAndReset() {
+      // 任务不是新建的状态了，或者被别的线程执行了，直接返回 false
+      if (state != NEW ||
+          !UNSAFE.compareAndSwapObject(this, runnerOffset, null, Thread.currentThread()))
+          return false;
+      boolean ran = false;
+      int s = state;
+      try {
+          Callable<V> c = callable;
+          if (c != null && s == NEW) {
+              try {
+                  // 执行方法，没有返回值
+                  c.call();
+                  ran = true;
+              } catch (Throwable ex) {
+                  // 出现异常，把任务设置为异常状态，唤醒所有的 get 阻塞线程
+                  setException(ex);
+              }
+          }
+      } finally {
+  		// 执行完成把执行线程引用置为 null
+          runner = null;
+          s = state;
+          // 如果线程被中断进行中断处理
+          if (s >= INTERRUPTING)
+              handlePossibleCancellationInterrupt(s);
+      }
+      // 如果正常执行，返回 true
+      return ran && s == NEW;
+  }
+  ```
+
+  ```java
+  // 任务下一次的触发时间
+  private void setNextRunTime() {
+      long p = period;
+      if (p > 0)
+          // fixed-rate 模式，时间设置为上一次时间 +p，两次任务执行的时间差
+          time += p;
+      else
+          // fixed-delay 模式，下一次执行时间是当前这次任务结束的时间（就是现在） +delay 值
+          time = triggerTime(-p);
+  }
+  ```
+
+* reExecutePeriodic()**：准备任务的下一次执行，重新放入阻塞任务队列**
+
+  ```java
+  // ScheduledThreadPoolExecutor#reExecutePeriodic
+  void reExecutePeriodic(RunnableScheduledFuture<?> task) {
+      if (canRunInCurrentRunState(true)) {
+          // 放入任务队列
+          super.getQueue().add(task);
+          // 再次检查是否可以执行，如果不能执行且任务还在队列中未被取走，则取消任务
+          if (!canRunInCurrentRunState(true) && remove(task))
+              task.cancel(false);
+          else
+              // 当前线程池状态可以执行周期任务，加入队列，并根据线程数量是否大于 核心线程数确定是否开启新线程
+              ensurePrestart();
+      }
+  }
+  ```
+
+* cancel()：取消任务
+
+  ```java
+  public boolean cancel(boolean mayInterruptIfRunning) {
+      // 调用父类 FutureTask#cancel 来取消任务
+      boolean cancelled = super.cancel(mayInterruptIfRunning);
+      // removeOnCancel 用于控制任务取消后是否应该从队列中移除
+      if (cancelled && removeOnCancel && heapIndex >= 0)
+          // 从等待队列中删除该任务，并调用 tryTerminate() 判断是否需要停止线程池
+          remove(this);
+      return cancelled;
+  }
+  ```
+
+  
+
+
+
+***
+
+
+
+##### 延迟队列
+
+DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先队列 PriorityQueue （小根堆）存储元素
+
+其他阻塞队列存储节点的数据结构大都是链表，延迟队列是数组，所以延迟队列出队头元素后需要让其他元素（尾）替换到头节点，防止空指针异常
+
+成员变量：
+
+* 容量：
+
+  ```java
+  private static final int INITIAL_CAPACITY = 16;			// 初始容量
+  private int size = 0;									// 节点数量
+  private RunnableScheduledFuture<?>[] queue = 
+      new RunnableScheduledFuture<?>[INITIAL_CAPACITY];	// 存放节点
+  ```
+
+* 锁：
+
+  ```java
+  private final ReentrantLock lock = new ReentrantLock();	// 控制并发
+  private final Condition available = lock.newCondition();//
+  ```
+
+* 阻塞等待头节点的线程：
+
+  ```java
+  // 通过阻塞方式去获取头结点，那么 leader 线程的等待时间为头结点的延迟时间，其它线程则会陷入阻塞状态
+  // leader 线程获取到头结点后需要发送信号唤醒其它线程 available.asignAll()
+  // 使用了 Leader/Follower 来避免不必要的等待，只让leader来等待需要等待的时间，其余线程无限等待直至被唤醒即可
+  private Thread leader = null;
+  ```
+
+成员方法
+
+* offer()：插入节点
+
+  ```java
+  public boolean offer(Runnable x) {
+      // 判空
+      if (x == null)
+          throw new NullPointerException();
+      RunnableScheduledFuture<?> e = (RunnableScheduledFuture<?>)x;
+      // 队列锁
+      final ReentrantLock lock = this.lock;
+      lock.lock();
+      try {
+          int i = size;
+          // 队列数量大于存放节点的数组长度，需要扩容
+          if (i >= queue.length)
+              // 扩容为原来长度的 1.5 倍
+              grow();
+          size = i + 1;
+          // 插入的元素是第一个节点
+          if (i == 0) {
+              queue[0] = e;
+              // 修改 ScheduledFutureTask 的 heapIndex 属性，表示该对象在队列里的下标
+              setIndex(e, 0);
+          } else {
+              // 向上调整元素的位置
+              siftUp(i, e);
+          }
+          // 【插入的元素是头节点，原先的 leader 等待的是原先的头节点，所以 leader 已经无效】
+          if (queue[0] == e) {
+              // 将 leader 设置为 null
+              leader = null;
+              // 直接随便唤醒等待头结点的阻塞线程
+              available.signal();
+          }
+      } finally {
+          lock.unlock();
+      }
+      return true;
+  }
+  ```
+
+  ```java
+  // 插入新节点后对堆进行调整，进行节点上移，保持其特性【节点的值小于子节点的值】，小顶堆
+  private void siftUp(int k, RunnableScheduledFuture<?> key) {
+      while (k > 0) {
+          // 父节点，就是堆排序
+          int parent = (k - 1) >>> 1;
+          RunnableScheduledFuture<?> e = queue[parent];
+          // key 和父节点比，如果大于父节点可以直接返回，否则就继续上浮
+          if (key.compareTo(e) >= 0)
+              break;
+          queue[k] = e;
+          setIndex(e, k);
+          k = parent;
+      }
+      queue[k] = key;
+      setIndex(key, k);
+  }
+  ```
+
+* poll()：非阻塞获取头结点，执行时间最近的
+
+  ```java
+  // 非阻塞获取
+  public RunnableScheduledFuture<?> poll() {
+      final ReentrantLock lock = this.lock;
+      lock.lock();
+      try {
+          // 获取队头节点
+          RunnableScheduledFuture<?> first = queue[0];
+          // 头结点为空或者的延迟时间没到返回 null
+          if (first == null || first.getDelay(NANOSECONDS) > 0)
+              return null;
+          else
+              // 头结点达到延迟时间，【尾节点成为替代节点下移调整堆结构】，返回头结点
+              return finishPoll(first);
+      } finally {
+          lock.unlock();
+      }
+  }
+  ```
+
+  ```java
+  private RunnableScheduledFuture<?> finishPoll(RunnableScheduledFuture<?> f) {
+      int s = --size;
+      // 获取尾节点
+      RunnableScheduledFuture<?> x = queue[s];
+      // 置空
+      queue[s] = null;
+      if (s != 0)
+          // 从索引处0开始向下调整
+          siftDown(0, x);
+      // 出队的元素索引设置为 -1
+      setIndex(f, -1);
+      return f;
+  }
+  ```
+
+* take()：阻塞获取头节点，读取当前堆中最小的也就是执行开始时间最近的任务
+
+  ```java
+  public RunnableScheduledFuture<?> take() throws InterruptedException {
+      final ReentrantLock lock = this.lock;
+      lock.lockInterruptibly();
+      try {
+          for (;;) {
+              // 头节点
+              RunnableScheduledFuture<?> first = queue[0];
+              if (first == null)
+                  // 等待队列不空，直至有任务通过 offer 入队并唤醒
+                  available.await();
+              else {
+                  // 获取头节点的剩延迟时间是否到时
+                  long delay = first.getDelay(NANOSECONDS);
+                  if (delay <= 0)
+                      // 获取头节点并调整堆，选择延迟时间最小的节点放入头部
+                      return finishPoll(first);
+                  
+                  // 逻辑到这说明头节点的延迟时间还没到
+                  first = null;
+                  // 说明有 leader 线程在等待获取头节点，需要阻塞等待
+                  if (leader != null)
+                      available.await();
+                  else {
+                      // 没有 leader 线程，【当前线程作为leader线程，并设置头结点的延迟时间作为阻塞时间】
+                      Thread thisThread = Thread.currentThread();
+                      leader = thisThread;
+                      try {
+                          available.awaitNanos(delay);
+                      } finally {
+                          // 条件成立的情况：
+                          // 1. 原先 thisThread == leader, 然后堆顶更新了，leader 被置为 null
+                          // 2. 堆顶更新，offer 方法释放锁后,有其它线程通过 take/poll 拿到锁,
+                          //    读到 leader == null，然后将自身更新为leader。
+                          if (leader == thisThread)
+                              // leader 置为 null 用以接下来判断是否需要唤醒后继线程
+                              leader = null;
+                      }
+                  }
+              }
+          }
+      } finally {
+          // 没有 leader 线程没有，头结点不为 null，唤醒阻塞获取头节点的线程
+          if (leader == null && queue[0] != null)
+              available.signal();
+          lock.unlock();
+      }
+  }
+  ```
+
+* remove()：删除节点，堆移除一个元素的时间复杂度是 O(log n)，延迟任务维护了 heapIndex，直接访问的时间复杂度是 O(1)，从而可以更快的移除元素，任务在队列中被取消后会进入该逻辑
+
+  ```java
+  public boolean remove(Object x) {
+      final ReentrantLock lock = this.lock;
+      lock.lock();
+      try {
+          // 查找对象在队列数组中的下标
+          int i = indexOf(x);
+          // 节点不存在，返回 false
+          if (i < 0)
+              return false;
+  		// 修改元素的 heapIndex，-1 代表删除
+          setIndex(queue[i], -1);
+          // 尾索引是长度-1
+          int s = --size;
+          // 尾节点作为替代节点
+          RunnableScheduledFuture<?> replacement = queue[s];
+          queue[s] = null;
+          // s == i 说明头节点就是尾节点，队列空了
+          if (s != i) {
+              // 向下调整
+              siftDown(i, replacement);
+              // 说明没发生调整
+              if (queue[i] == replacement)
+                  // 上移和下移不可能同时发生，替代节点大于子节点时下移，否则上移
+                  siftUp(i, replacement);
+          }
+          return true;
+      } finally {
+          lock.unlock();
+      }
+  }
+  ```
+
+  
+
+****
+
+
+
+#### 成员方法
+
+##### 提交任务
+
+* schedule()：延迟执行方法，并指定执行的时间，默认是当前时间
+
+  ```java
+  public void execute(Runnable command) {
+      // 以零延时任务的形式实现
+      schedule(command, 0, NANOSECONDS);
+  }
+  ```
+
+  ```java
+  public ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
+      // 判空
+      if (command == null || unit == null) throw new NullPointerException();
+      // 没有做任何操作，直接将 task 返回，该方法主要目的是用于子类扩展
+      RunnableScheduledFuture<?> t = decorateTask(command, new ScheduledFutureTask<Void>(
+          											command, null, triggerTime(delay, unit)));
+      // 延迟执行
+      delayedExecute(t);
+      return t;
+  }
+  ```
+
+  ```java
+  // 返回【当前时间 + 延迟时间】，就是触发当前任务执行的时间
+  private long triggerTime(long delay, TimeUnit unit) {
+      // 设置触发的时间
+      return triggerTime(unit.toNanos((delay < 0) ? 0 : delay));
+  }
+  long triggerTime(long delay) {
+      // 如果 delay < Long.Max_VALUE/2，则下次执行时间为当前时间 +delay
+      // 否则为了避免队列中出现由于溢出导致的排序紊乱,需要调用overflowFree来修正一下delay
+      return now() + ((delay < (Long.MAX_VALUE >> 1)) ? delay : overflowFree(delay));
+  }
+  ```
+
+  overflowFree 的原因：如果某个任务的 delay 为负数，说明当前可以执行（其实早该执行了）。阻塞队列中维护任务顺序是基于 compareTo 比较的，比较两个任务的顺序会用 time 相减。那么可能出现一个 delay 为正数减去另一个为负数的 delay，结果上溢为负数，则会导致 compareTo 产生错误的结果
+
+  ```java
+  private long overflowFree(long delay) {
+      Delayed head = (Delayed) super.getQueue().peek();
+      if (head != null) {
+          long headDelay = head.getDelay(NANOSECONDS);
+          // 判断一下队首的delay是不是负数，如果是正数就不用管，怎么减都不会溢出
+          // 否则拿当前 delay 减去队首的 delay 来比较看，如果不出现上溢，排序不会乱
+  		// 不然就把当前 delay 值给调整为Long.MAX_VALUE + 队首 delay
+          if (headDelay < 0 && (delay - headDelay < 0))
+              delay = Long.MAX_VALUE + headDelay;
+      }
+      return delay;
+  }
+  ```
+
+* scheduleAtFixedRate()：定时执行，一次任务的启动到下一次任务的启动的间隔
+
+  ```java
+  public ScheduledFuture<?> scheduleAtFixedRate(Runnable command, long initialDelay, long period,
+                                                TimeUnit unit) {
+      if (command == null || unit == null)
+          throw new NullPointerException();
+      if (period <= 0)
+          throw new IllegalArgumentException();
+      // 任务封装，【指定初始的延迟时间和周期时间】
+      ScheduledFutureTask<Void> sft =new ScheduledFutureTask<Void>(command, null,
+                                        triggerTime(initialDelay, unit), unit.toNanos(period));
+      // 默认返回本身
+      RunnableScheduledFuture<Void> t = decorateTask(command, sft);
+      sft.outerTask = t;
+      // 开始执行这个任务
+      delayedExecute(t);
+      return t;
+  }
+  ```
+
+* scheduleWithFixedDelay()：定时执行，一次任务的结束到下一次任务的启动的间隔
+
+  ```java
+  public ScheduledFuture<?> scheduleWithFixedDelay(Runnable command, long initialDelay, long delay,
+                                                   TimeUnit unit) {
+      if (command == null || unit == null) 
+          throw new NullPointerException();
+      if (delay <= 0)
+          throw new IllegalArgumentException();
+      // 任务封装，【指定初始的延迟时间和周期时间】，周期时间为 - 表示是 fixed-delay 模式
+      ScheduledFutureTask<Void> sft = new ScheduledFutureTask<Void>(command, null,
+                                        triggerTime(initialDelay, unit), unit.toNanos(-delay));
+      RunnableScheduledFuture<Void> t = decorateTask(command, sft);
+      sft.outerTask = t;
+      delayedExecute(t);
+      return t;
+  }
+  ```
+
+
+
+***
+
+
+
+##### 运行任务
+
+* delayedExecute()：校验状态，延迟或周期性任务的主要执行方法
+
+  ```java
+  private void delayedExecute(RunnableScheduledFuture<?> task) {
+      // 线程池是 SHUTDOWN 状态，需要执行拒绝策略
+      if (isShutdown())
+          reject(task);
+      else {
+          // 把当前任务放入阻塞队列，因为需要重新获取执行时间最近的
+          super.getQueue().add(task);
+          // 线程池状态为 SHUTDOWN 并且不允许执行任务了，就从队列删除该任务，并设置任务的状态为取消状态
+          if (isShutdown() && !canRunInCurrentRunState(task.isPeriodic()) && remove(task))
+              task.cancel(false);
+          else
+              // 可以执行
+              ensurePrestart();
+      }
+  }
+  ```
+
+* ensurePrestart()：开启线程执行任务
+
+  ```java
+  // ThreadPoolExecutor#ensurePrestart
+  void ensurePrestart() {
+      int wc = workerCountOf(ctl.get());
+      // worker数目小于corePoolSize，则添加一个worker。
+      if (wc < corePoolSize)
+          // 第二个参数 true 表示采用核心线程数量限制，false 表示采用 maximumPoolSize
+          addWorker(null, true);
+      // corePoolSize = 0的情况，至少开启一个线程
+      else if (wc == 0)
+          addWorker(null, false);
+  }
+  ```
+
+* canRunInCurrentRunState()：任务运行时都会被调用以校验当前状态是否可以运行任务
+
+  ```java
+  boolean canRunInCurrentRunState(boolean periodic) {
+      // isRunningOrShutdown 的参数为布尔值，true 则表示shutdown状态也返回true，否则只有running状态返回ture
+      // 根据是否时周期任务来判断是否shutdown了仍然可以执行。
+      return isRunningOrShutdown(periodic ? continueExistingPeriodicTasksAfterShutdown :
+                                 executeExistingDelayedTasksAfterShutdown);
+  }
+  ```
+
+* onShutdown()：删除并取消工作队列中的不需要再执行的任务
+
+  ```java
+  void onShutdown() {
+      BlockingQueue<Runnable> q = super.getQueue();
+      // shutdown 后是否仍然执行延时任务
+      boolean keepDelayed = getExecuteExistingDelayedTasksAfterShutdownPolicy();
+      // shutdown 后是否仍然执行周期任务
+      boolean keepPeriodic = getContinueExistingPeriodicTasksAfterShutdownPolicy();
+      // 如果两者皆不可则对队列中所有 任务 调用 cancel 取消并清空队列
+      if (!keepDelayed && !keepPeriodic) {
+          for (Object e : q.toArray())
+              if (e instanceof RunnableScheduledFuture<?>)
+                  ((RunnableScheduledFuture<?>) e).cancel(false);
+          q.clear();
+      }
+      else {
+          for (Object e : q.toArray()) {
+              if (e instanceof RunnableScheduledFuture) {
+                  RunnableScheduledFuture<?> t = (RunnableScheduledFuture<?>)e;
+                  // 不需要执行的任务删除并取消，已经取消的任务也需要从队列中删除
+                  if ((t.isPeriodic() ? !keepPeriodic : !keepDelayed) ||
+                      t.isCancelled()) {
+                      if (q.remove(t))
+                          t.cancel(false);
+                  }
+              }
+          }
+      }
+      // 因为任务被从队列中清理掉，所以需要调用 tryTerminate 尝试改变 executor 的状态
+      tryTerminate();
+  }
   ```
 
 
@@ -11327,7 +11939,7 @@ ConcurrentSkipListMap 提供了一种线程安全的并发访问的排序映射�
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ConcurrentSkipListMap数据结构.png)
 
-BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引指向链表最下面的节点**
+BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引都指向链表最下面的节点**
 
 
 
@@ -11359,28 +11971,29 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引指向
 
   ```java
   static final class Node<K, V>{
-      final K key;  // key 是 final 的, 说明节点一旦定下来, 除了删除, 不然不会改动 key
-      volatile Object value; // 对应的 value
-      volatile Node<K, V> next; // 下一个节点
+      final K key;  				// key 是 final 的, 说明节点一旦定下来, 除了删除, 一般不会改动 key
+      volatile Object value; 		// 对应的 value
+      volatile Node<K, V> next; 	// 下一个节点
   }
   ```
 
-* 索引节点 Index
+* 索引节点 Index，只有向下和向右的指针
 
   ```java
   static class Index<K, V>{
-      final Node<K, V> node; // 索引指向的节点, 
-      final Index<K, V> down; // 下边level层的Index，分层索引
+      final Node<K, V> node; 		// 索引指向的节点, 
+      final Index<K, V> down; 	// 下边level层的Index，分层索引
       volatile Index<K, V> right; // 右边的Index
   
-      // 在index本身和succ之间插入一个新的节点newSucc
+      // 在 index 本身和 succ 之间插入一个新的节点 newSucc
       final boolean link(Index<K, V> succ, Index<K, V> newSucc){
           Node<K, V> n = node;
           newSucc.right = succ;
+          // 把当前节点的右指针从 succ 改为 newSucc
           return n.value != null && casRight(succ, newSucc);
       }
   
-      // 将当前的节点 index 设置其的 right 为 succ.right 等于删除 succ 节点
+      // 断开当前节点和 succ 节点，将当前的节点 index 设置其的 right 为 succ.right，就是把 succ 删除
       final boolean unlink(Index<K, V> succ){
           return node.value != null && casRight(succ, succ.right);
       }
@@ -11391,7 +12004,7 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引指向
 
   ```java
   static final class HeadIndex<K,V> extends Index<K,V> {
-      final int level;// 标示索引层级，所有的HeadIndex都指向同一个Base_header节点
+      final int level;	// 表示索引层级，所有的 HeadIndex 都指向同一个 Base_header 节点
       HeadIndex(Node<K,V> node, Index<K,V> down, Index<K,V> right, int level) {
           super(node, down, right);
           this.level = level;
@@ -11424,8 +12037,8 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引指向
       entrySet = null;
       values = null;
       descendingMap = null;
-      //初始化索引头节点，Node的Key为null，value为BASE_HEADER对象，下一个节点为null
-      //head的分层索引down为null，链表的后续索引right为null，层级level为第一层。
+      // 初始化索引头节点，Node 的 Key 为 null，value 为 BASE_HEADER 对象，下一个节点为 null
+      // head 的分层索引 down 为 null，链表的后续索引 right 为 null，层级 level 为第一层
       head = new HeadIndex<K,V>(new Node<K,V>(null, BASE_HEADER, null),
                                 null, null, 1);
   }
@@ -11434,7 +12047,7 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引指向
 * cpr：排序
 
   ```java
-  //　x是比较者，y是被比较者，比较者大于被比较者 返回正数，小于返回负数，相等返回0
+  //　x 是比较者，y 是被比较者，比较者大于被比较者 返回正数，小于返回负数，相等返回 0
   static final int cpr(Comparator c, Object x, Object y) {
       return (c != null) ? c.compare(x, y) : ((Comparable)x).compareTo(y);
   }
@@ -11448,43 +12061,45 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引指向
 
 ##### 添加方法
 
-* findPredecessor()：寻找前驱节点
+* findPredecessor()：寻找前置节点
 
-  从最上层的头索引开始向右查找（链表的后续索引），如果后续索引的节点的Key大于要查找的Key，则头索引移到下层链表，在下层链表查找，以此反复，一直查找到没有下层的分层索引为止，返回该索引的节点。如果后续索引的节点的Key小于要查找的Key，则在该层链表中向后查找。由于查找的key可能永远大于索引节点的 key，所以只能找到目标的前置索引节点。如果遇到空值索引的存在，通过CAS来断开索引
+  从最上层的头索引开始向右查找（链表的后续索引），如果后续索引的节点的 key 大于要查找的 key，则头索引移到下层链表，在下层链表查找，以此反复，一直查找到没有下层的分层索引为止，返回该索引的节点。如果后续索引的节点的 key 小于要查找的 key，则在该层链表中向后查找。由于查找的 key 可能永远大于索引节点的 key，所以只能找到目标的前置索引节点。如果遇到空值索引的存在，通过 CAS 来断开索引
 
   ```java
   private Node<K,V> findPredecessor(Object key, Comparator<? super K> cmp) {
       if (key == null)
           throw new NullPointerException(); // don't postpone errors
       for (;;) {
-          // 1.初始化数据q是head，r是最顶层h的右Index节点
+          // 1.初始数据 q 是 head，r 是最顶层 h 的右 Index 节点
           for (Index<K,V> q = head, r = q.right, d;;) {
-              //2.右索引节点不为空，则进行向下查找
+              // 2.右索引节点不为空，则进行向下查找
               if (r != null) {
                   Node<K,V> n = r.node;
                   K k = n.key;
-                  //3.n.value为null说明节点n正在删除的过程中
+                  // 3.n.value 为 null 说明节点 n 正在删除的过程中，此时【当前线程帮其删除索引】
                   if (n.value == null) {
-                      //在index层直接删除r索引节点，用在删除节点中
+                      // 在 index 层直接删除 r 索引节点
                       if (!q.unlink(r))
-                          break;//重新从 head 节点开始查找，break到步骤1
-                      //删除节点r成功，获取新的r节点, 回到步骤 2 
-  					//还是从这层索引开始向右遍历, 直到 r == null
+                          // 删除失败重新从 head 节点开始查找，break 一个 for 到步骤 1，又从初始值开始
+                          break;
+                      
+                      // 删除节点 r 成功，获取新的 r 节点,
                       r = q.right;
+                      // 回到步骤 2，还是从这层索引开始向右遍历
                       continue;
                   }
-                  //4.若参数key > r.node.key，则继续向右遍历, continue到步骤2处
-                  //  若参数key < r.node.key，直接跳到步骤5
+                  // 4.若参数 key > r.node.key，则继续向右遍历, continue 到步骤 2 处获取右节点
+                  //   若参数 key < r.node.key，说明需要进入下层索引，到步骤 5
                   if (cpr(cmp, key, k) > 0) {
                       q = r;
                       r = r.right;
                       continue;
                   }
               }
-              //5.先让d指向q的下一层，判断是否是null，是则说明已经到了数据层，也就是第一层
+              // 5.先让 d 指向 q 的下一层，判断是否是 null，是则说明已经到了数据层，也就是第一层
               if ((d = q.down) == null) 
                   return q.node;
-              //6.未到数据层, 进行重新赋值向下扫描
+              // 6.未到数据层, 进行重新赋值向下扫描
               q = d;	//q指向d
               r = d.right;//r指向q的后续索引节点
           }
@@ -11492,16 +12107,9 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引指向
   }
   ```
 
-  ```java
-  final boolean unlink(Index<K,V> succ) {
-      return node.value != null && casRight(succ, succ.right);
-      //   this.node = q
-  }
-  ```
-
   ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ConcurrentSkipListMap-Put流程.png)
 
-* put()
+* put()：添加数据
 
   ```java
   public V put(K key, V value) {
@@ -11515,88 +12123,90 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引指向
   ```java
   private V doPut(K key, V value, boolean onlyIfAbsent) {
       Node<K,V> z;
-      if (key == null)// 非空判断，key不能为空
+      // 非空判断，key不能为空
+      if (key == null)
           throw new NullPointerException();
       Comparator<? super K> cmp = comparator;
-      // outer循环，处理并发冲突等其他需要重试的情况
+      // outer 循环，【把待插入数据插入到数据层的合适的位置，并在扫描过程中处理 已删除(value = null) 的数据】
       outer: for (;;) {
           //0.for (;;)
-          //1.将 key 对应的前继节点找到, b为前继节点, n是前继节点的next, 
-  		//  若没发生条件竞争，最终key在b与n之间 (找到的b在base_level上)
+          //1.将 key 对应的前继节点找到, b 为前继节点，是数据层的, n 是前继节点的 next, 
+  		//  若没发生条件竞争，最终 key 在 b 与 n 之间 (找到的 b 在 base_level 上)
           for (Node<K,V> b = findPredecessor(key, cmp), n = b.next;;) {
-              // 2.n不为null时b不是链表的最后一个节点
+              // 2.n 不为 null 说明 b 不是链表的最后一个节点
               if (n != null) {
                   Object v; int c;
-                  //3.获取 n 的右节点
+                  // 3.获取 n 的右节点
                   Node<K,V> f = n.next;
-                  //4.条件竞争
-  				//  并发下其他线程在b之后插入节点或直接删除节点n, break到步骤0
+                  // 4.条件竞争，并发下其他线程在 b 之后插入节点或直接删除节点 n, break 到步骤 0
                   if (n != b.next)              
                       break;
-                  //  若节点n已经删除, 则调用helpDelete进行帮助删除
+                  //  若节点 n 已经删除, 则调用 helpDelete 进行帮助删除节点
                   if ((v = n.value) == null) {
                       n.helpDelete(b, f);
                       break;
                   }
-                  //5.节点b被删除中，则break到步骤0,
-  				//  调用findPredecessor帮助删除index层的数据, 
-  				//  node层的数据会通过helpDelete方法进行删除
+                  // 5.节点 b 被删除中，则 break 到步骤 0,
+  				//  【调用findPredecessor帮助删除index层的数据, node层的数据会通过helpDelete方法进行删除】
                   if (b.value == null || v == n) 
                       break;
-                  //6.若key > n.key，则进行向后扫描
-                  //  若key < n.key，则证明key应该存储在b和n之间
+                  // 6.若 key > n.key，则进行向后扫描
+                  //   若 key < n.key，则证明 key 应该存储在 b 和 n 之间
                   if ((c = cpr(cmp, key, n.key)) > 0) {
                       b = n;
                       n = f;
                       continue;
                   }
-                  //7.key的值和n.key相等，则可以直接覆盖赋值
+                  // 7.key 的值和 n.key 相等，则可以直接覆盖赋值
                   if (c == 0) {
-                      // onlyIfAbsent默认false，
+                      // onlyIfAbsent 默认 false，
                       if (onlyIfAbsent || n.casValue(v, value)) {
                           @SuppressWarnings("unchecked") V vv = (V)v;
-                          return vv;//返回被覆盖的值
+                          // 返回被覆盖的值
+                          return vv;
                       }
-                      // cas失败，返回0，重试
+                      // cas失败，break 一层循环，返回 0 重试
                       break;
                   }
                   // else c < 0; fall through
               }
-              //8.此时的情况n.key > key > b.key，对应流程图1中的7
-              //  创建z节点指向n
+              // 8.此时的情况 n.key > key > b.key，对应流程图1中的7，创建z节点指向n
               z = new Node<K,V>(key, value, n);
-              //9.尝试把b.next从n设置成z
+              // 9.尝试把 b.next 从 n 设置成 z
               if (!b.casNext(n, z))
                   // cas失败，返回到步骤0，重试
                   break;
-              //10.break outer后, 上面的for循环不会再执行, 而后执行下面的代码
+              // 10.break outer 后, 上面的 for 循环不会再执行, 而后执行下面的代码
               break outer;
           }
       }
-  	// 以上插入节点已经完成，剩下的任务要根据随机数的值来表示是否向上增加层数与上层索引
+  	// 【以上插入节点已经完成，剩下的任务要根据随机数的值来表示是否向上增加层数与上层索引】
       
       // 随机数
       int rnd = ThreadLocalRandom.nextSecondarySeed();
       
-      //如果随机数的二进制与10000000000000000000000000000001进行与运算为0
-      //即随机数的二进制最高位与最末尾必须为0，其他位无所谓，就进入该循环
-      //如果随机数的二进制最高位与最末位不为0，不增加新节点的层数
+      // 如果随机数的二进制与 10000000000000000000000000000001 进行与运算为 0
+      // 即随机数的二进制最高位与最末尾必须为 0，其他位无所谓，就进入该循环
+      // 如果随机数的二进制最高位与最末位不为 0，不增加新节点的层数
       
-      //11.判断是否需要添加level
+      // 11.判断是否需要添加 level，32 位
       if ((rnd & 0x80000001) == 0) {
-          //索引层level，从1开始
+          // 索引层 level，从 1 开始，就是最底层
           int level = 1, max;
-          //12.判断最低位前面有几个1，有几个leve就加几：0..0 0001 1110，这是4个，则1+4=5
-          //   最大有30个就是 1 + 30
+          // 12.判断最低位前面有几个 1，有几个leve就加几：0..0 0001 1110，这是4个，则1+4=5
+          //    最大有30个就是 1 + 30 = 31
           while (((rnd >>>= 1) & 1) != 0)
               ++level;
-          Index<K,V> idx = null;//最终指向z节点，就是添加的节点 
-          HeadIndex<K,V> h = head;//指向头索引节点
-          //13.判断level是否比当前最高索引小，图中max为3
+          // 最终指向 z 节点，就是添加的节点 
+          Index<K,V> idx = null;
+          // 指向头索引节点
+          HeadIndex<K,V> h = head;
+          
+          // 13.判断level是否比当前最高索引小，图中 max 为 3
           if (level <= (max = h.level)) {
               for (int i = 1; i <= level; ++i)
-                  //根据层数level不断创建新增节点的上层索引，索引的后继索引留空
-                  //第一次idx为null，也就是下层索引为空，第二次把上次的索引作为下层索引
+                  // 根据层数level不断创建新增节点的上层索引，索引的后继索引留空
+                  // 第一次idx为null，也就是下层索引为空，第二次把上次的索引作为下层索引，【类似头插法】
                   idx = new Index<K,V>(z, idx, null);
               // 循环以后的索引结构
               // index-3	← idx
@@ -11607,13 +12217,12 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引指向
               //   ↓
               //  z-node
           }
-          //14.若level > max，则只增加一层index索引层，3+1=4
+          // 14.若 level > max，则只增加一层 index 索引层，3 + 1 = 4
           else { 
               level = max + 1;
-              //创建一个index数组，长度是level+1，假设level是4，创建的数组长度为5
-              @SuppressWarnings("unchecked")Index<K,V>[] idxs =
-                  (Index<K,V>[])new Index<?,?>[level+1];
-              //index[0]的数组slot 并没有使用，只使用 [1,level]这些数组slot了
+              //创建一个 index 数组，长度是 level+1，假设 level 是4，创建的数组长度为 5
+              Index<K,V>[] idxs = (Index<K,V>[])new Index<?,?>[level+1];
+              //index[0]的数组 slot 并没有使用，只使用 [1,level] 这些数组的 slot
               for (int i = 1; i <= level; ++i)
                   idxs[i] = idx = new Index<K,V>(z, idx, null);
                 		// index-4   ← idx
@@ -11630,17 +12239,17 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引指向
                   h = head;
                   //获取头索引的层数
                   int oldLevel = h.level;
-                  // 如果level <= oldLevel，说明其他线程进行了index层增加操作，退出循环
+                  // 如果 level <= oldLevel，说明其他线程进行了 index 层增加操作，退出循环
                   if (level <= oldLevel)
                       break;
-                  //定义一个新的头索引节点
+                  // 定义一个新的头索引节点
                   HeadIndex<K,V> newh = h;
-                  //获取头索引的节点，就是BASE_HEADER
+                  // 获取头索引的节点，就是 BASE_HEADER
                   Node<K,V> oldbase = h.node;
-                  // 升级baseHeader索引，升高一级，并发下可能升高多级
-                  for (int j = oldLevel+1; j <= level; ++j)
+                  // 升级 baseHeader 索引，升高一级，并发下可能升高多级
+                  for (int j = oldLevel + 1; j <= level; ++j)
                       newh = new HeadIndex<K,V>(oldbase, newh, idxs[j], j);
-                  // 执行完for循环之后，baseHeader 索引长这个样子..
+                  // 执行完for循环之后，baseHeader 索引长这个样子，这里只升高一级
                   // index-4             →             index-4	← idx
                   //   ↓                                  ↓
                   // index-3                           index-3     
@@ -11651,53 +12260,56 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引指向
                   //   ↓                                  ↓
                   // baseHeader    →    ....      →     z-node
                   
-                  //cas成功后，map.head字段指向最新的headIndex，baseHeader的index-4s
+                  // cas 成功后，map.head 字段指向最新的 headIndex，baseHeader 的 index-4
                   if (casHead(h, newh)) {
-                      //h指向最新的 index-4 节点
+                      // h 指向最新的 index-4 节点
                       h = newh;
-                      //idx指向z-node的index-3节点，
-  					//因为从index-3-index-1的这些z-node索引节点 都没有插入到索引链表
+                      // idx 指向 z-node 的 index-3 节点，
+  					// 因为从 index-3 - index-1 的这些 z-node 索引节点 都没有插入到索引链表
                       idx = idxs[level = oldLevel];
                       break;
                   }
               }
           }
-          //15.把新加的索引插入索引链表中，有上述两种情况，一种索引高度不变，另一种是高度加1
+          // 15.【把新加的索引插入索引链表中】，有上述两种情况，一种索引高度不变，另一种是高度加 1
+          // 要插入的是第几层的索引
           splice: for (int insertionLevel = level;;) {
-              //获取头索引的层数， 情况1是3，情况2是4
+              // 获取头索引的层数，情况 1 是 3，情况 2 是 4
               int j = h.level;
+              // 【遍历 insertionLevel 层的索引，找到合适的插入位置】
               for (Index<K,V> q = h, r = q.right, t = idx;;) {
-                  //如果头索引为null或者新增节点索引为null，退出插入索引的总循环
+                  // 如果头索引为 null 或者新增节点索引为 null，退出插入索引的总循环
                   if (q == null || t == null)
-                      //此处表示有其他线程删除了头索引或者新增节点的索引
+                      // 此处表示有其他线程删除了头索引或者新增节点的索引
                       break splice;
-                  //头索引的链表后续索引存在，如果是新层则为新节点索引，如果是老层则为原索引
+                  // 头索引的链表后续索引存在，如果是新层则为新节点索引，如果是老层则为原索引
                   if (r != null) {
-                      //获取r的节点
+                      // 获取r的节点
                       Node<K,V> n = r.node;
-                      //插入的key和n.key的比较值
+                      // 插入的key和n.key的比较值
                       int c = cpr(cmp, key, n.key);
-                      //删除空值索引
+                      // 【删除空值索引】
                       if (n.value == null) {
                           if (!q.unlink(r))
                               break;
                           r = q.right;
                           continue;
                       }
-                      //key > n.key，向右扫描
+                      // key > n.key，向右扫描
                       if (c > 0) {
                           q = r;
                           r = r.right;
                           continue;
                       }
                   }
-                  // 执行到这里，说明key < n.key，判断是否第j层插入新增节点的前置索引
+                  // 执行到这里，说明 key < n.key，判断是否是第 j 层插入新增节点的前置索引
                   if (j == insertionLevel) {
-                      // 将新索引节点t插入q r之间
+                      // 【将新索引节点 t 插入 q r 之间】
                       if (!q.link(r, t))
                           break; 
-                      //如果新增节点的值为null，表示该节点已经被其他线程删除
+                      // 如果新增节点的值为 null，表示该节点已经被其他线程删除
                       if (t.node.value == null) {
+                          // 找到该节点
                           findNode(key);
                           break splice;
                       }
@@ -11705,7 +12317,7 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引指向
                       if (--insertionLevel == 0)
                           break splice;
                   }
-  				//其他节点随着插入节点的层数下移而下移
+  				// 其他节点随着插入节点的层数下移而下移
                   if (--j >= insertionLevel && j < level)
                       t = t.down;
                   q = q.down;
@@ -11721,7 +12333,7 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引指向
 
   ```java
   private Node<K,V> findNode(Object key) {
-      //原理与doGet相同，无非是findNode返回节点，doGet返回value
+      // 原理与doGet相同，无非是 findNode 返回节点，doGet 返回 value
       if ((c = cpr(cmp, key, n.key)) == 0)
           return n;
   }
@@ -11736,19 +12348,15 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引指向
 
 ##### 获取方法
 
-* get(key)
-
-  寻找 key 的前继节点 b (这时b.next = null || b.next > key, 则说明不存key对应的 Node)
-
-  接着就判断 b, b.next 与 key之间的关系(其中有些 helpDelete操作)
+* get(key)：获取对应的数据
 
   ```java
   public V get(Object key) {
       return doGet(key);
   }
   ```
-
-* doGet()
+  
+* doGet()：扫描过程会对已 value == null 的元素进行删除处理
 
   ```java
   private V doGet(Object key) {
@@ -11756,31 +12364,31 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引指向
           throw new NullPointerException();
       Comparator<? super K> cmp = comparator;
       outer: for (;;) {
-          //1.找到最底层节点的前置节点
+          // 1.找到最底层节点的前置节点
           for (Node<K,V> b = findPredecessor(key, cmp), n = b.next;;) {
               Object v; int c;
-              //2.如果该前置节点的链表后续节点为null，说明不存在该节点
+              // 2.【如果该前置节点的链表后续节点为 null，说明不存在该节点】
               if (n == null)
                   break outer;
-              //b → n → f
+              // b → n → f
               Node<K,V> f = n.next;
-              //3.如果n不为前置节点的后续节点，表示已经有其他线程删除了该节点
+              // 3.如果n不为前置节点的后续节点，表示已经有其他线程删除了该节点
               if (n != b.next) 
                   break;
-              //4.如果后续节点的值为null，删除该节点
+              // 4.如果后续节点的值为null，删除该节点
               if ((v = n.value) == null) {
                   n.helpDelete(b, f);
                   break;
               }
-              //5.如果前置节点已被其他线程删除，重新循环
+              // 5.如果前置节点已被其他线程删除，重新循环
               if (b.value == null || v == n)
                   break;
-               //6.如果要获取的key与后续节点的key相等，返回节点的value
+               // 6.如果要获取的key与后续节点的key相等，返回节点的value
               if ((c = cpr(cmp, key, n.key)) == 0) {
                   @SuppressWarnings("unchecked") V vv = (V)v;
                   return vv;
               }
-              //7.key < n.key，说明被其他线程删除了，或者不存在该节点
+              // 7.key < n.key，因位 key > b.key，b 和 n 相连，说明不存在该节点或者被其他线程删除了
               if (c < 0)
                   break outer;
               b = n;
@@ -11810,13 +12418,13 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引指向
           throw new NullPointerException();
       Comparator<? super K> cmp = comparator;
       outer: for (;;) {
-          //1.找到最底层目标节点的前置节点，b.key < key
+          // 1.找到最底层目标节点的前置节点，b.key < key
           for (Node<K,V> b = findPredecessor(key, cmp), n = b.next;;) {
               Object v; int c;
-              //2.如果该前置节点的链表后续节点为null，退出循环
+              // 2.如果该前置节点的链表后续节点为 null，退出循环，说明不存在这个元素
               if (n == null)
                   break outer;
-              //b → n → f
+              // b → n → f
               Node<K,V> f = n.next;
               if (n != b.next)                    // inconsistent read
                   break;
@@ -11835,21 +12443,21 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引指向
                   n = f;
                   continue;
               }
-              //5.到这里是 key = n.key，value是n.value
+              //5.到这里是 key = n.key，value 不为空的情况下判断 value 和 n.value 是否相等
               if (value != null && !value.equals(v))
                   break outer;
-              //6.把n节点的value置空
+              //6.把 n 节点的 value 置空
               if (!n.casValue(v, null))
                   break;
-              //7.给n添加一个删除标志mark，mark.next=f，然后把b.next设置为f，成功后n出队
+              //7.给 n 添加一个删除标志 mark，mark.next=f，然后把 b.next 设置为 f，成功后 n 出队
               if (!n.appendMarker(f) || !b.casNext(n, f))
-                  //对key对应的index进行删除
+                  // 对 key 对应的 index 进行删除，调用了 findPredecessor 方法
                   findNode(key);
               else {
-                  //进行操作失败后通过findPredecessor中进行index的删除
+                  // 进行操作失败后通过 findPredecessor 中进行 index 的删除
                   findPredecessor(key, cmp);
                   if (head.right == null)
-                      //进行headIndex 对应的index 层的删除
+                      // 进行headIndex 对应的index 层的删除
                       tryReduceLevel();
               }
               @SuppressWarnings("unchecked") V vv = (V)v;
@@ -11867,9 +12475,9 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引指向
 * appendMarker()
 
   ```java
-  //添加删除标记节点
+  // 添加删除标记节点
   boolean appendMarker(Node<K,V> f) {
-      //通过CAS生成一个key为null，value为this，next为f的标记节点
+      // 通过 CAS 让 n.next 指向一个 key 为 null，value 为 this，next 为 f 的标记节点
       return casNext(f, new Node<K,V>(f));
   }
   ```
@@ -11877,15 +12485,15 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引指向
 * helpDelete()
 
   ```java
-  //将添加了删除标记的节点清除
+  // 将添加了删除标记的节点清除，参数是该节点的前驱和后继节点
   void helpDelete(Node<K,V> b, Node<K,V> f) {
-      //this节点的后续节点为f，且本身为b的后续节点，一般都是正确的，除非被别的线程删除
+      // this 节点的后续节点为 f，且本身为 b 的后续节点，一般都是正确的，除非被别的线程删除
       if (f == next && this == b.next) {
-          //如果n还还没有被标记
+          // 如果 n 还还没有被标记
           if (f == null || f.value != f) 
               casNext(f, new Node<K,V>(f));
           else
-              //通过CAS，将b的下一个节点n变成f.next，即成为图中的样式
+              // 通过 CAS，将 b 的下一个节点 n 变成 f.next，即成为图中的样式
               b.casNext(this, f.next);
       }
   }
@@ -11906,9 +12514,9 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引指向
           h.right == null &&
           //设置头索引
           casHead(h, d) && 
-          //重新检查
+          // 重新检查
           h.right != null) 
-          //重新检查返回true，说明其他线程增加了索引层级，把索引头节点设置回来
+          // 重新检查返回true，说明其他线程增加了索引层级，把索引头节点设置回来
           casHead(d, h);   
   }
   ```
