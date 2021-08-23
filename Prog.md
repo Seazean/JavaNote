@@ -3655,7 +3655,7 @@ Servlet 为了保证其线程安全，一般不为 Servlet 设置成员变量，
 
 #### 基本介绍
 
-ThreadLocal 类用来提供线程内部的局部变量，这种变量在多线程环境下访问（通过get和set方法访问）时能保证各个线程的变量相对独立于其他线程内的变量，分配在 TLAB
+ThreadLocal 类用来提供线程内部的局部变量，这种变量在多线程环境下访问（通过 get 和 set 方法访问）时能保证各个线程的变量相对独立于其他线程内的变量，分配在 TLAB
 
 ThreadLocal 实例通常来说都是 `private static` 类型的，属于一个线程的本地变量，用于关联线程和线程上下文。每个线程都会在 ThreadLocal 中保存一份该线程独有的数据，所以是线程安全的
 
@@ -3876,7 +3876,7 @@ JDK8 前后对比：
   }
   ```
 
-* nextHashCode()：计算哈希值，ThreadLocal 的散列方式称之为 **斐波那契散列**，每次获取哈希值都会加上 HASH_INCREMENT，这样做可以尽量避免 hash 冲突，让哈希值能均匀的分布在 2 的 n 次方的数组中
+* nextHashCode()：计算哈希值，ThreadLocal 的散列方式称之为**斐波那契散列**，每次获取哈希值都会加上 HASH_INCREMENT，这样做可以尽量避免 hash 冲突，让哈希值能均匀的分布在 2 的 n 次方的数组中
 
   ```java
   private static int nextHashCode() {
@@ -4019,7 +4019,7 @@ static class Entry extends WeakReference<ThreadLocal<?>> {
 ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
     // 初始化table，创建一个长度为16的Entry数组
     table = new Entry[INITIAL_CAPACITY];
-    // 寻址算法计算索引
+    // 【寻址算法】计算索引
     int i = firstKey.threadLocalHashCode & (INITIAL_CAPACITY - 1);
     // 创建 entry 对象 存放到指定位置的 slot 中
     table[i] = new Entry(firstKey, firstValue);
@@ -4042,7 +4042,7 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
 
 * set()：添加数据，ThreadLocalMap 使用**线性探测法来解决哈希冲突**
 
-  * 该方法一次探测下一个地址，直到有空的地址后插入，若整个空间都找不到空余的地址，则产生溢出
+  * 该方法会一直探测下一个地址，直到有空的地址后插入，若整个空间都找不到空余的地址，则产生溢出
   * 在探测过程中 ThreadLocal 会占用 key 为 null，value 不为 null 的脏 Entry 对象，防止内存泄漏
   * 假设当前 table 长度为16，计算出来 key 的 hash 值为 14，如果 table[14] 上已经有值，并且其 key 与当前 key 不一致，那么就发生了 hash 冲突，这个时候将 14 加 1 得到 15，取 table[15] 进行判断，如果还是冲突会回到 0，取 table[0]，以此类推，直到可以插入，可以把 Entry[]  table 看成一个**环形数组**
 
@@ -4068,7 +4068,7 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
           
           // key 为 null，但是值不为 null，说明之前的 ThreadLocal 对象已经被回收了，当前是过期数据
           if (k == null) {
-              // 碰到一个过期的 slot，当前数据占用该槽位，替换过期数据
+              // 【碰到一个过期的 slot，当前数据占用该槽位，替换过期数据】
               // 这个方法还进行了垃圾清理动作，防止内存泄漏
               replaceStaleEntry(key, value, i);
               return;
@@ -4125,7 +4125,7 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
               if (slotToExpunge == staleSlot)
                   slotToExpunge = i;
               
-              // 清理过期数据，expungeStaleEntry 探测式清理，cleanSomeSlots 启发式清理
+              // 【清理过期数据，expungeStaleEntry 探测式清理，cleanSomeSlots 启发式清理】
               cleanSomeSlots(expungeStaleEntry(slotToExpunge), len);
               return;
           }
@@ -4140,7 +4140,7 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
       // staleSlot 位置添加数据，上面的所有逻辑都不会更改 staleSlot 的值
       tab[staleSlot] = new Entry(key, value);
   
-      // 条件成立说明除了 staleSlot 以外，还发现其它的过期 slot，所以要开启清理数据的逻辑
+      // 条件成立说明除了 staleSlot 以外，还发现其它的过期 slot，所以要【开启清理数据的逻辑】
       if (slotToExpunge != staleSlot)
           cleanSomeSlots(expungeStaleEntry(slotToExpunge), len);
   }
@@ -4170,7 +4170,7 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
           // 进行线性探测
           return getEntryAfterMiss(key, i, e);
   }
-  
+  // 线性探测寻址
   private Entry getEntryAfterMiss(ThreadLocal<?> key, int i, Entry e) {
       // 获取散列表
       Entry[] tab = table;
@@ -4193,7 +4193,8 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
           // 获取下一个槽位中的 entry
           e = tab[i];
       }
-      // 说明当前区段没有找到相应数据，因为存放数据是线性的向后寻找槽位，所以不可能越过一个 空槽位 在后面存放
+      // 说明当前区段没有找到相应数据
+      // 【因为存放数据是线性的向后寻找槽位，都是紧挨着的，不可能越过一个 空槽位 在后面放】
       return null;
   }
   ```
@@ -4202,10 +4203,10 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
 
   ```java
   private void rehash() {
-      // 清楚当前散列表内的所有过期的数据
+      // 清楚当前散列表内的【所有】过期的数据
       expungeStaleEntries();
       
-      //threshold = len * 2 / 3;
+      // threshold = len * 2 / 3，就是 2/3*(1 - 1/4)
       if (size >= threshold - threshold / 4)
           resize();
   }
@@ -4224,7 +4225,7 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
   }
   ```
 
-  Entry 数组为扩容为原来的 2 倍 ，重新计算 key 的散列值，如果遇到 key 为 null 的情况，会将其 value 也置为 null，帮助 JVM GC
+  Entry **数组为扩容为原来的 2 倍** ，重新计算 key 的散列值，如果遇到 key 为 null 的情况，会将其 value 也置为 null，帮助 GC
 
   ```java
   private void resize() {
@@ -4248,7 +4249,7 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
               } else {
                   // 非过期数据，在新表中进行哈希寻址
                   int h = k.threadLocalHashCode & (newLen - 1);
-                  // 线程探测
+                  // 【线程探测】
                   while (newTab[h] != null)
                       h = nextIndex(h, newLen);
                   // 将数据存放到新表合适的 slot 中
@@ -4273,7 +4274,7 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
 
 ##### 清理方法
 
-* 探测式清理：沿着开始位置向后探测清理过期数据，沿途中碰到未过期数据则将此数据 rehash 在 table 数组中的定位，重定位后的元素理论上更接近 `i = entry.key & (table.length - 1)`，会优化整个散列表查询性能
+* 探测式清理：沿着开始位置向后探测清理过期数据，沿途中碰到未过期数据则将此数据 rehash 在 table 数组中的定位，重定位后的元素理论上更接近 `i = entry.key & (table.length - 1)`，让数据的排列更紧凑，会优化整个散列表查询性能
 
   ```java
   // table[staleSlot] 是一个过期数据，以这个位置开始继续向后查找过期数据
@@ -4326,7 +4327,7 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
 * 启发式清理：
 
   ```java
-  //  i 表示启发式清理工作开始位置，n 一般传递的是 table.length 
+  //  i 表示启发式清理工作开始位置，一般是空 slot，n 一般传递的是 table.length 
   private boolean cleanSomeSlots(int i, int n) {
       // 表示启发式清理工作是否清除了过期数据
       boolean removed = false;
@@ -4334,13 +4335,12 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
       Entry[] tab = table;
       int len = tab.length;
       do {
-          // i 是 null，探测式返回的 slot 为 null 的位置
-          // 获取下一个索引
+          // 获取下一个索引，因为探测式返回的 slot 为 null
           i = nextIndex(i, len);
           Entry e = tab[i];
           // 条件成立说明是过期的数据，key 被 gc 了
           if (e != null && e.get() == null) {
-              // 发现过期数据重置 n 为数组的长度
+              // 【发现过期数据重置 n 为数组的长度】
               n = len;
               // 表示清理过过期数据
               removed = true;
@@ -4349,15 +4349,15 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
           }
           // 假设 table 长度为 16
           // 16 >>> 1 ==> 8，8 >>> 1 ==> 4，4 >>> 1 ==> 2，2 >>> 1 ==> 1，1 >>> 1 ==> 0
-          // 连续经过这么多次循环【没有扫描到过期数据】，就停止循环
+          // 连续经过这么多次循环【没有扫描到过期数据】，就停止循环，扫描到 空slot 不算，因为不是过期数据
       } while ((n >>>= 1) != 0);
       
       // 返回清除标记
       return removed;
   }
   ```
-
   
+
 
 参考视频：https://space.bilibili.com/457326371/
 
@@ -4390,7 +4390,7 @@ Memory leak：内存泄漏是指程序中动态分配的堆内存由于某种原
 
 根本原因：ThreadLocalMap 是 Thread的一个属性，生命周期跟 Thread 一样长，如果没有手动删除对应 Entry 就会导致内存泄漏
 
-解决方法：使用完 ThreadLocal 中存储的内容后将它 **remove** 掉就可以
+解决方法：使用完 ThreadLocal 中存储的内容后将它 remove 掉就可以
 
 ThreadLocal 内部解决方法：在 ThreadLocalMap 中的 set/getEntry 方法中，会对 key 进行判断，如果为 null（ThreadLocal 为 null）的话，会对 Entry 进行垃圾回收。所以**使用弱引用比强引用多一层保障**，就算不调用 remove，也有机会进行 GC
 
@@ -4458,6 +4458,7 @@ private void init(ThreadGroup g, Runnable target, String name, long stackSize, A
     }
     // ..
 }
+// 【本质上还是创建 ThreadLocalMap，只是把父类中的可继承数据设置进去了】
 static ThreadLocalMap createInheritedMap(ThreadLocalMap parentMap) {
     return new ThreadLocalMap(parentMap);
 }
@@ -7852,7 +7853,7 @@ AbstractQueuedSynchronizer 中 state 设计：
       static final Node SHARED = new Node();
       // 枚举：独占模式
       static final Node EXCLUSIVE = null;
-      // node需要构建成 FIFO 队列，prev 指向前继节点
+      // node 需要构建成 FIFO 队列，prev 指向前继节点
       volatile Node prev;
       // next 指向后继节点
       volatile Node next;
@@ -8356,17 +8357,17 @@ Thread-0 释放锁，进入 release 流程
           compareAndSetWaitStatus(node, ws, 0);    
       // 找到需要 unpark 的节点，当前节点的下一个    
       Node s = node.next;    
-      // 不考虑已取消的节点
+      // 已取消的节点不能唤醒，需要找到距离头节点最近的非取消的节点
       if (s == null || s.waitStatus > 0) {
           s = null;
-          // AQS 队列从后至前找需要 unpark 的节点，直到 t == 当前的 node 为止
+          // AQS 队列从后至前找需要 unpark 的节点，直到 t == 当前的 node 为止，找不到就不唤醒了
           for (Node t = tail; t != null && t != node; t = t.prev)
               // 说明当前线程状态需要被唤醒
               if (t.waitStatus <= 0)
                   // 置换引用
                   s = t;
       }
-      // 找到合适的可以被唤醒的 node，则唤醒线程
+      // 【找到合适的可以被唤醒的 node，则唤醒线程】
       if (s != null)
           LockSupport.unpark(s.thread);
   }
@@ -8767,6 +8768,7 @@ public static void main(String[] args) {
               if (shouldParkAfterFailedAcquire(p, node) &&
                   nanosTimeout > spinForTimeoutThreshold)
                   LockSupport.parkNanos(this, nanosTimeout);
+              // 被打断会报异常
               if (Thread.interrupted())
                   throw new InterruptedException();
           }    
@@ -8853,7 +8855,7 @@ Condition 类 API：
 * await 执行后，会释放锁进入 conditionObject 等待
 * await 的线程被唤醒去重新竞争 lock 锁
 
-* 线程在条件队列被打断会抛出中断异常
+* **线程在条件队列被打断会抛出中断异常**
 
 * 竞争 lock 锁成功后，从 await 后继续执行
 
@@ -8909,7 +8911,7 @@ public static void main(String[] args) throws InterruptedException {
           throw new InterruptedException();
       // 将调用 await 的线程包装成 Node 添加到条件队列并返回
       Node node = addConditionWaiter();
-      // 完全释放节点持有的锁，因为其他线程唤醒当前线程的前提是 持有锁
+      // 完全释放节点持有的锁，因为其他线程唤醒当前线程的前提是【持有锁】
       int savedState = fullyRelease(node);
       
       // 设置打断模式为没有被打断，状态码为 0
@@ -8928,7 +8930,7 @@ public static void main(String[] args) throws InterruptedException {
       if (acquireQueued(node, savedState) && interruptMode != THROW_IE)
           interruptMode = REINTERRUPT;
       
-      // node在条件队列时 如果被外部线程中断唤醒，会加入到阻塞队列，但是并未设nextWaiter = null
+      // node 在条件队列时 如果被外部线程中断唤醒，会加入到阻塞队列，但是并未设 nextWaiter = null
       if (node.nextWaiter != null)
           // 清理条件队列内所有已取消的 Node
           unlinkCancelledWaiters();
@@ -8954,7 +8956,7 @@ public static void main(String[] args) throws InterruptedException {
   private Node addConditionWaiter() {
       // 获取当前条件队列的尾节点的引用，保存到局部变量 t 中
       Node t = lastWaiter;
-      // 当前队列中不是空，并且节点的状态不是CONDITION（-2），说明当前节点发生了中断
+      // 当前队列中不是空，并且节点的状态不是 CONDITION（-2），说明当前节点发生了中断
       if (t != null && t.waitStatus != Node.CONDITION) {
           // 清理条件队列内所有已取消的 Node
           unlinkCancelledWaiters();
@@ -8973,7 +8975,7 @@ public static void main(String[] args) throws InterruptedException {
   ```
 
   ```java
-  // 清理条件队列内所有已取消（不是CONDITION）的 node
+  // 清理条件队列内所有已取消（不是CONDITION）的 node，【链表删除的逻辑】
   private void unlinkCancelledWaiters() {
       // 从头节点开始遍历【FIFO】
       Node t = firstWaiter;
@@ -8992,7 +8994,7 @@ public static void main(String[] args) throws InterruptedException {
                   // 更新 firstWaiter 指针为下个节点
                   firstWaiter = next;
               else
-                  // 让上一个正常节点指向 当前取消节点的 下一个节点，删除非正常的节点
+                  // 让上一个正常节点指向 当前取消节点的 下一个节点，【删除非正常的节点】
                   trail.nextWaiter = next;
               // t 是尾节点了，更新 lastWaiter 指向最后一个正常节点
               if (next == null)
@@ -9001,7 +9003,7 @@ public static void main(String[] args) throws InterruptedException {
               // 正常节点赋值给 trail
               trail = t;
           }
-          // 把 t.next 赋值给 t
+          // 把 t.next 赋值给 t，循环遍历
           t = next; 
       }
   }
@@ -9035,26 +9037,27 @@ public static void main(String[] args) throws InterruptedException {
   }
   ```
 
+* fullyRelease 中会 unpark AQS 队列中的下一个节点竞争锁，假设 Thread-1 竞争成功，park 阻塞 Thread-0
+
+  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantLock-条件变量2.png)
+
 * 进入 isOnSyncQueue 逻辑判断节点是否移动到阻塞队列
 
   ```java
   final boolean isOnSyncQueue(Node node) {
-      // node 的状态是 CONDITION，signal 方法是先修改状态再迁移，所以前驱节点为空证明还没有迁移
+      // node 的状态是 CONDITION，signal 方法是先修改状态再迁移，所以前驱节点为空证明还【没有完成迁移】
       if (node.waitStatus == Node.CONDITION || node.prev == null)
           return false;
-      // 说明当前节点已经成功入队到阻塞队列，条件队列的 next 指针为 null，且当前节点后面已经有其它 node
+      // 说明当前节点已经成功入队到阻塞队列，且当前节点后面已经有其它 node，因为条件队列的 next 指针为 null
       if (node.next != null)
           return true;
-  	// 阻塞队列的尾巴开始向前遍历查找 node，如果查找到返回 true，查找不到返回 false
+  	// 说明可能在阻塞队列，但是是尾节点
+      // 从阻塞队列的尾节点开始向前遍历查找 node，如果查找到返回 true，查找不到返回 false
       return findNodeFromTail(node);
   }
   ```
 
-* unpark AQS 队列中的下一个节点竞争锁，假设没那么 Thread-1 竞争成功，park 阻塞 Thread-0
-
-  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantLock-条件变量2.png)
-
-* 线程 park 后如果被 unpark 或者被打断，都会进入 checkInterruptWhileWaiting 判断线程是否被打断：
+* await 线程 park 后如果被 unpark 或者被打断，都会进入 checkInterruptWhileWaiting 判断线程是否被打断：
 
   ```java
   private int checkInterruptWhileWaiting(Node node) {
@@ -9069,7 +9072,7 @@ public static void main(String[] args) throws InterruptedException {
   final boolean transferAfterCancelledWait(Node node) {
       // 条件成立说明当前node一定是在条件队列内，因为 signal 迁移节点到阻塞队列时，会将节点的状态修改为 0
       if (compareAndSetWaitStatus(node, Node.CONDITION, 0)) {
-          // 【中断唤醒的 node 也会被加入到阻塞队列中】
+          // 把【中断唤醒的 node 加入到阻塞队列中】
           enq(node);
           // 表示是在条件队列内被中断了，设置为 THROW_IE -1
           return true;
@@ -9117,7 +9120,7 @@ public static void main(String[] args) throws InterruptedException {
 
   ```java
   public final void signal() {
-      // 判断调用signal方法的线程是否是独占锁持有线程
+      // 判断调用 signal 方法的线程是否是独占锁持有线程
       if (!isHeldExclusively())
           throw new IllegalMonitorStateException();
       // 获取条件队列中第一个 Node
@@ -9132,13 +9135,14 @@ public static void main(String[] args) throws InterruptedException {
   // 唤醒 - 将没取消的第一个节点转移至 AQS 队列尾部
   private void doSignal(Node first) {
       do {
-          // 当前节点是尾节点，所以队列中只有当前一个节点了
+          // 成立说明当前节点是尾节点，所以队列中只有当前一个节点了
           if ((firstWaiter = first.nextWaiter) == null)
               lastWaiter = null;
           first.nextWaiter = null;
       // 将等待队列中的 Node 转移至 AQS 队列, 不成功且还有节点则继续循环
       } while (!transferForSignal(first) && (first = firstWaiter) != null);
   }
+  
   // signalAll() 会调用这个函数，唤醒所有的节点
   private void doSignalAll(Node first) {
       lastWaiter = firstWaiter = null;
@@ -9147,6 +9151,7 @@ public static void main(String[] args) throws InterruptedException {
           first.nextWaiter = null;
           transferForSignal(first);
           first = next;
+      // 唤醒所有的节点，都放到阻塞队列中
       } while (first != null);
   }
   ```
@@ -9157,16 +9162,18 @@ public static void main(String[] args) throws InterruptedException {
   // 如果节点状态是取消, 返回 false 表示转移失败, 否则转移成功
   final boolean transferForSignal(Node node) {
       // CAS 修改当前节点的状态，修改为 0，因为当前节点马上要迁移到阻塞队列了
-      // 如果状态已经不是 Node.CONDITION, 说明线程被取消（await 释放全部锁失败）或者被中断（可打断 cancelAcquire）
+      // 如果状态已经不是 CONDITION, 说明线程被取消（await 释放全部锁失败）或者被中断（可打断 cancelAcquire）
+      // 返回函数调用处继续寻找下一个节点
       if (!compareAndSetWaitStatus(node, Node.CONDITION, 0))
           return false;
       // 将当前 node 入阻塞队列，p 是当前节点在阻塞队列的前驱节点
+      // 所以是 【先改状态，再进行迁移】
       Node p = enq(node);
       int ws = p.waitStatus;
       
       // 如果前驱节点被取消或者不能设置状态为 Node.SIGNAL
       if (ws > 0 || !compareAndSetWaitStatus(p, ws, Node.SIGNAL))
-          // unpark 取消阻塞, 让线程竞争锁，重新同步状态
+          // unpark 取消阻塞, 让 thread-0 线程竞争锁，重新同步状态
           LockSupport.unpark(node.thread);
       return true;
   }
@@ -9309,6 +9316,9 @@ public static void main(String[] args) {
 
   ```java
   //lock()  -> sync.acquire(1);
+  public void lock() {
+      sync.acquire(1);
+  }
   public final void acquire(int arg) {
       // 尝试获得写锁，获得写锁失败，将当前线程关联到一个 Node 对象上, 模式为独占模式 
       if (!tryAcquire(arg) && acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
@@ -9398,7 +9408,7 @@ public static void main(String[] args) {
   }
   ```
 
-* 进入 sync.doAcquireShared(1) 流程，首先也是调用 addWaiter 添加节点，不同之处在于节点被设置为Node.SHARED 模式而非 Node.EXCLUSIVE 模式，注意此时 t2 仍处于活跃状态
+* 进入 sync.doAcquireShared(1) 流程，首先也是调用 addWaiter 添加节点，不同之处在于节点被设置为 Node.SHARED 模式而非 Node.EXCLUSIVE 模式，注意此时 t2 仍处于活跃状态
 
   ```java
   private void doAcquireShared(int arg) {
@@ -9416,6 +9426,7 @@ public static void main(String[] args) {
                   int r = tryAcquireShared(arg);
                   // r >= 0 表示获取成功
                   if (r >= 0) {
+                      //【这里会设置自己为头节点，唤醒相连的后序的共享节点】
                       setHeadAndPropagate(node, r);
                       p.next = null; // help GC
                       if (interrupted)
@@ -9435,6 +9446,57 @@ public static void main(String[] args) {
   }
   ```
 
+  如果没有成功，在 doAcquireShared 内 for (;;) 循环一次，shouldParkAfterFailedAcquire 内把前驱节点的 waitStatus 改为 -1，再 for (;;) 循环一次尝试 tryAcquireShared，不成功在 parkAndCheckInterrupt() 处 park
+
+  <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantReadWriteLock加锁1.png" style="zoom: 80%;" />
+
+* 这种状态下，假设又有 t3 r.lock，t4 w.lock，这期间 t1 仍然持有锁，就变成了下面的样子
+
+  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantReadWriteLock加锁2.png)
+
+
+
+***
+
+
+
+##### 解锁原理
+
+* t1 w.unlock， 写锁解锁
+
+  ```java
+  public void unlock() {
+      // 释放锁
+      sync.release(1);
+  }
+  public final boolean release(int arg) {
+      // 尝试释放锁
+      if (tryRelease(arg)) {
+          Node h = head;
+          // 头节点不为空并且不是等待状态不是 0，唤醒后继的非取消节点
+          if (h != null && h.waitStatus != 0)
+              unparkSuccessor(h);
+          return true;
+      }
+      return false;
+  }
+  protected final boolean tryRelease(int releases) {
+      if (!isHeldExclusively())
+          throw new IllegalMonitorStateException();
+      int nextc = getState() - releases;
+      // 因为可重入的原因, 写锁计数为 0, 才算释放成功
+      boolean free = exclusiveCount(nextc) == 0;
+      if (free)
+          setExclusiveOwnerThread(null);
+      setState(nextc);
+      return free;
+  }
+  ```
+
+* 唤醒流程 sync.unparkSuccessor，这时 t2 在 doAcquireShared 的 parkAndCheckInterrupt() 处恢复运行，继续循环，执行 tryAcquireShared 成功则让读锁计数加一
+
+* 接下来 t2 调用 setHeadAndPropagate(node, 1)，它原本所在节点被置为头节点；还会检查下一个节点是否是 shared，如果是则调用 doReleaseShared() 将 head 的状态从 -1 改为 0 并唤醒下一个节点，这时 t3 在 doAcquireShared 内 parkAndCheckInterrupt() 处恢复运行
+
   ```java
   private void setHeadAndPropagate(Node node, int propagate) {
       Node h = head; 
@@ -9444,9 +9506,9 @@ public static void main(String[] args) {
       if (propagate > 0 || h == null || h.waitStatus < 0 ||
           (h = head) == null || h.waitStatus < 0) {
           Node s = node.next;
-          // 如果是最后一个节点或者是等待共享读锁的节点
+          // 如果是最后一个节点或者是【等待共享读锁的节点】
           if (s == null || s.isShared())
-              // 用来唤醒后继节点
+              // 唤醒后继节点
               doReleaseShared();
       }
   }
@@ -9460,6 +9522,7 @@ public static void main(String[] args) {
           Node h = head;
           if (h != null && h != tail) {
               int ws = h.waitStatus;
+              // SIGNAL 唤醒后继
               if (ws == Node.SIGNAL) {
                   // 因为读锁共享，如果其它线程也在释放读锁，那么需要将 waitStatus 先改为 0
               	// 防止 unparkSuccessor 被多次执行
@@ -9478,43 +9541,6 @@ public static void main(String[] args) {
       }
   }
   ```
-
-* 如果没有成功，在 doAcquireShared 内 for (;;) 循环一次，shouldParkAfterFailedAcquire 内把前驱节点的 waitStatus 改为 -1，再 for (;;) 循环一次尝试 tryAcquireShared，不成功在 parkAndCheckInterrupt() 处 park
-
-  <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantReadWriteLock加锁1.png" style="zoom: 80%;" />
-
-* 这种状态下，假设又有 t3 r.lock，t4 w.lock，这期间 t1 仍然持有锁，就变成了下面的样子
-
-  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantReadWriteLock加锁2.png)
-
-
-
-***
-
-
-
-##### 解锁原理
-
-* t1 w.unlock， 调用 sync.tryRelease(1) 成功
-
-  ```java
-  // sync.release(1) -> tryRelease(1)
-  protected final boolean tryRelease(int releases) {
-      if (!isHeldExclusively())
-          throw new IllegalMonitorStateException();
-      int nextc = getState() - releases;
-      // 因为可重入的原因, 写锁计数为 0, 才算释放成功
-      boolean free = exclusiveCount(nextc) == 0;
-      if (free)
-          setExclusiveOwnerThread(null);
-      setState(nextc);
-      return free;
-  }
-  ```
-
-* 唤醒流程 sync.unparkSuccessor，这时 t2 在 doAcquireShared 的 parkAndCheckInterrupt() 处恢复运行，继续循环，执行 tryAcquireShared 成功则让读锁计数加一
-
-* 接下来 t2 调用 setHeadAndPropagate(node, 1)，它原本所在节点被置为头节点；还会检查下一个节点是否是 shared，如果是则调用 doReleaseShared() 将 head 的状态从 -1 改为 0 并唤醒下一个节点，这时 t3 在 doAcquireShared 内 parkAndCheckInterrupt() 处恢复运行
 
   <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantReadWriteLock解锁1.png" style="zoom: 67%;" />
 
@@ -10663,7 +10689,7 @@ B站视频解析：https://www.bilibili.com/video/BV1n541177Ea
 
   * -1 表示当前 table 正在初始化（有线程在创建 table 数组），当前线程需要自旋等待
 
-  * 其他负数表示当前 map 的 table 数组正在进行扩容，高 16 位表示扩容的标识戳；低 16 位表示 (1 + nThread) 当前参与并发扩容的线程数量
+  * 其他负数表示当前 map 的 table 数组正在进行扩容，高 16 位表示扩容的标识戳；低 16 位表示 (1 + nThread) 当前参与并发扩容的线程数量 + 1
 
   sizeCtl = 0，表示创建 table 数组时使用 DEFAULT_CAPACITY 为数组大小
 
@@ -11156,7 +11182,7 @@ public V put(K key, V value) {
   }
   ```
 
-* addCount()：添加计数，代表哈希表中的数据总量
+* addCount()：添加计数，**代表哈希表中的数据总量**
 
   ```java
   private final void addCount(long x, int check) {
@@ -13149,9 +13175,9 @@ select 调用流程图：
 1. 使用 copy_from_user 从用户空间拷贝 fd_set 到内核空间，进程阻塞
 2. 注册回调函数 _pollwait
 3. 遍历所有 fd，调用其对应的 poll 方法判断当前请求是否准备就绪，对于 socket，这个 poll 方法是 sock_poll，sock_poll 根据情况会调用到 tcp_poll、udp_poll 或者 datagram_poll，以 tcp_poll 为例，其核心实现就是 _pollwait
-4. _pollwait 把 **current（调用 select 的进程）**挂到设备的等待队列，不同设备有不同的等待队列，对于 tcp_poll ，其等待队列是 sk → sk_sleep（把进程挂到等待队列中并不代表进程已经睡眠），在设备收到消息（网络设备）或填写完文件数据（磁盘设备）后，会唤醒设备等待队列上睡眠的进程，这时 current 便被唤醒
+4. _pollwait 把 **current（调用 select 的进程）**挂到设备的等待队列，不同设备有不同的等待队列，对于 tcp_poll ，其等待队列是 sk → sk_sleep（把进程挂到等待队列中并不代表进程已经睡眠），在设备收到消息（网络设备）或填写完文件数据（磁盘设备）后，会唤醒设备等待队列上睡眠的进程，这时 current 便被唤醒，进入就绪队列
 5. poll 方法返回时会返回一个描述读写操作是否就绪的 mask 掩码，根据这个 mask 掩码给 fd_set 赋值
-6. 如果遍历完所有的 fd，还没有返回**一个**可读写的 mask 掩码，则会调用 schedule_timeout 让 current 进程进入睡眠。当设备驱动发生自身资源可读写后，会唤醒其等待队列上睡眠的进程，如果超过一定的超时时间（schedule_timeout指定），没有其他线程唤醒，则调用 select 的进程会重新被唤醒获得 CPU，进而重新遍历 fd，判断有没有就绪的 fd
+6. 如果遍历完所有的 fd，还没有返回一个可读写的 mask 掩码，则会调用 schedule_timeout 让 current 进程进入睡眠。当设备驱动发生自身资源可读写后，会唤醒其等待队列上睡眠的进程，如果超过一定的超时时间（schedule_timeout）没有其他线程唤醒，则调用 select 的进程会重新被唤醒获得 CPU，进而重新遍历 fd，判断有没有就绪的 fd
 7. 把 fd_set 从内核空间拷贝到用户空间，阻塞进程继续执行
 
 
@@ -14392,7 +14418,7 @@ JVM 直接内存图解：
 
 堆外内存不受 JVM GC 控制，可以使用堆外内存进行通信，防止 GC 后缓冲区位置发生变化的情况
 
-NIO 使用的 SocketChannel 的源码解析：
+NIO 使用的 SocketChannel 也是使用的堆外内存，源码解析：
 
 * SocketChannel#write(java.nio.ByteBuffer) → SocketChannelImpl#write(java.nio.ByteBuffer)
 
@@ -14408,16 +14434,16 @@ NIO 使用的 SocketChannel 的源码解析：
 
   ```java
   static int write(FileDescriptor var0, ByteBuffer var1, long var2, NativeDispatcher var4) {
-      //判断是否是直接内存，是则直接写出，不是则封装到直接内存
+      // 判断是否是直接内存，是则直接写出，不是则封装到直接内存
       if (var1 instanceof DirectBuffer) {
           return writeFromNativeBuffer(var0, var1, var2, var4);
       } else {
           //....
-          //从堆内buffer拷贝到堆外buffer
+          // 从堆内buffer拷贝到堆外buffer
           ByteBuffer var8 = Util.getTemporaryDirectBuffer(var7);
           var8.put(var1);
           //...
-          //从堆外写到内核缓冲区
+          // 从堆外写到内核缓冲区
   		int var9 = writeFromNativeBuffer(var0, var8, var2, var4);
   	}
   }
@@ -14507,14 +14533,14 @@ public class Demo1_27 {
 
 #### 共享内存
 
-FileChannel 提供 map 方法返回 MappedByteBuffer 对象，把文件映射到内存，通常情况可以映射整个文件，如果文件比较大，可以进行分段映射，完成映射后对物理内存的操作会被同步到硬盘上
+FileChannel 提供 map 方法返回 MappedByteBuffer 对象，把文件映射到内存，通常情况可以映射整个文件，如果文件比较大，可以进行分段映射，完成映射后对物理内存的操作会被**同步**到硬盘上
 
 FileChannel 中的成员属性：
 
 * MapMode.mode：内存映像文件访问的方式，共三种：
   * `MapMode.READ_ONLY`：只读，试图修改得到的缓冲区将导致抛出异常。
   * `MapMode.READ_WRITE`：读/写，对得到的缓冲区的更改最终将写入文件；但该更改对映射到同一文件的其他程序不一定是可见的
-  * `MapMode.PRIVATE`：私用，可读可写，但是修改的内容不会写入文件，只是 buffer 自身的改变，称之为 copy on write 写时复制
+  * `MapMode.PRIVATE`：私用，可读可写，但是修改的内容不会写入文件，只是 buffer 自身的改变，称之为写时复制
 
 * `public final FileLock lock()`：获取此文件通道的排他锁
 
@@ -14533,7 +14559,7 @@ MappedByteBuffer 较之 ByteBuffer新增的三个方法
 public class MappedByteBufferTest {
     public static void main(String[] args) throws Exception {
         // 读写模式
-        RandomAccessFile ra = (RandomAccess) new RandomAccessFile("1.txt", "rw");
+        RandomAccessFile ra = new RandomAccessFile("1.txt", "rw");
         //获取对应的通道
         FileChannel channel = ra.getChannel();
 
