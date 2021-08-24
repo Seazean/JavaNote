@@ -905,7 +905,7 @@ public class MethodDemo {
   enum Season {
       SPRING , SUMMER , AUTUMN , WINTER;
   }
-  //枚举类的编译以后源代码：
+  // 枚举类的编译以后源代码：
   public final class Season extends java.lang.Enum<Season> {
   	public static final Season SPRING = new Season();
   	public static final Season SUMMER = new Season();
@@ -917,15 +917,17 @@ public class MethodDemo {
   }
   ```
 
-* API使用
+* API 使用
 
   ```java
   public class EnumDemo {
       public static void main(String[] args){
-          //获取索引
-          Season s = Season.SPRING;  // s = SPRING
-          System.out.println(s.ordinal());
-          //获取全部枚举
+          // 获取索引
+          Season s = Season.SPRING;/
+          System.out.println(s);	//SPRING
+          System.out.println(s.ordinal()); // 0，代表索引，summer 就是 1
+          s.s.doSomething();
+          // 获取全部枚举
           Season[] ss = Season.values();
           for(int i = 0; i < ss.length; i++){
               System.out.println(ss[i]);
@@ -937,6 +939,10 @@ public class MethodDemo {
   }
   enum Season {
       SPRING , SUMMER , AUTUMN , WINTER;
+      
+      public void doSomething() {
+          System.out.println("hello ");
+      }
   }
   ```
 
