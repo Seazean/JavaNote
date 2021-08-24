@@ -2845,13 +2845,13 @@ public class MyArraysDemo {
 用于生成伪随机数。
 
 使用步骤：
-1. 导入包：`import java.util.Random;`
-2. 创建对象：`Random r = new Random();`
-3. 随机整数：`int num = r.nextInt(10);`
-解释：10代表的是一个范围，如果括号写10，产生的随机数就是0-9，括号写20的随机数则是0-19
-获取0-10：`int num = r.nextInt(10) + 1`
+1. 导入包：`import java.util.Random`
+2. 创建对象：`Random r = new Random()`
+3. 随机整数：`int num = r.nextInt(10)`
+* 解释：10 代表的是一个范围，如果括号写 10，产生的随机数就是 0-9，括号写 20 的随机数则是 0-19
+* 获取 0-10：`int num = r.nextInt(10 + 1)`
 
-4. 随机小数：`public double nextDouble()`从范围`0.0d`(含)至`1.0d` (不包括)，伪随机地生成并返回
+4. 随机小数：`public double nextDouble()` 从范围 `0.0d` 至 `1.0d` （左闭右开），伪随机地生成并返回
 
 
 
@@ -15727,14 +15727,14 @@ public class MergeSort {
         mergeSort(arr, 0, arr.length - 1);
         System.out.println(Arrays.toString(arr));
     }
-	//low 为arr最小索引，high为最大索引
+	// low 为arr最小索引，high为最大索引
     public static void mergeSort(int[] arr, int low, int high) {
         // low == high 时说明只有一个元素了，直接返回
         if (low < high) {
             int mid = (low + high) / 2;
-            mergeSort(arr, low, mid);//归并排序前半段
-            mergeSort(arr, mid + 1, high);//归并排序后半段
-            merge(arr, low, mid, high);//将两段有序段合成一段有序段
+            mergeSort(arr, low, mid);		//归并排序前半段
+            mergeSort(arr, mid + 1, high);	//归并排序后半段
+            merge(arr, low, mid, high);		//将两段有序段合成一段有序段
         }
     }
 
@@ -16027,9 +16027,9 @@ public class binarySearch {
         int start = 0;
         int end = arr.length - 1;
 
-        //确保不会出现重复查找，越界
+        // 确保不会出现重复查找，越界
         while (start <= end) {
-            //计算出中间索引值
+            // 计算出中间索引值
             int mid = (start + end) / 2;
             if (des == arr[mid]) {
                 return mid;
