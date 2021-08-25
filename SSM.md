@@ -3180,9 +3180,9 @@ IoC 和 DI 的关系：IoC 与 DI 是同一件事站在不同角度看待问题
 
 ##### 构造注入
 
-标签：<constructor-arg>标签，<bean>的子标签
+标签：<constructor-arg> 标签，<bean> 的子标签
 
-作用：使用构造方法的形式为bean提供资源，兼容早期遗留系统的升级工作
+作用：使用构造方法的形式为 bean 提供资源，兼容早期遗留系统的升级工作
 
 格式：
 
@@ -3196,10 +3196,10 @@ IoC 和 DI 的关系：IoC 与 DI 是同一件事站在不同角度看待问题
 属性：
 
 * name：对应bean中的构造方法所携带的参数名
-* value：设定非引用类型构造方法参数对应的值，不能与ref同时使用
-* ref：设定引用类型构造方法参数对应bean的id ，不能与value同时使用
+* value：设定非引用类型构造方法参数对应的值，不能与 ref 同时使用
+* ref：设定引用类型构造方法参数对应 bean 的 id ，不能与 value 同时使用
 * type ：设定构造方法参数的类型，用于按类型匹配参数或进行类型校验
-* index ：设定构造方法参数的位置，用于按位置匹配参数，参数index值从0开始计数
+* index ：设定构造方法参数的位置，用于按位置匹配参数，参数 index 值从 0 开始计数
 
 ```xml
 <constructor-arg name="argsName" value="argsValue" />
@@ -7713,7 +7713,7 @@ AbstractBeanFactory.doGetBean()：获取 Bean，context.getBean() 追踪到此
 
 * `mbd.getDependsOn()`：获取 bean 标签 depends-on
 
-* `if(dependsOn != null)`：**遍历所有的依赖加载**
+* `if(dependsOn != null)`：**遍历所有的依赖加载，解决不了循环依赖**
 
   `isDependent(beanName, dep)`：判断循环依赖，出现循环依赖问题报错
 
@@ -7756,7 +7756,7 @@ AbstractBeanFactory.doGetBean()：获取 Bean，context.getBean() 追踪到此
 
   * `this.singletonsCurrentlyInDestruction`：容器销毁时会设置这个属性为 true，这时就不能再创建 bean 实例了
 
-  * `beforeSingletonCreation(beanName)`：检查构造参数的依赖，**构造参数产生的循环依赖无法解决**
+  * `beforeSingletonCreation(beanName)`：检查构造注入的依赖，**构造参数注入产生的循环依赖无法解决**
 
     `!this.singletonsCurrentlyInCreation.add(beanName)`：将当前 beanName 放入到正在创建中单实例集合，放入成功说明没有产生循环依赖，失败则产生循环依赖，进入判断条件内的逻辑抛出异常
 
@@ -12964,7 +12964,7 @@ public class HelloController {
   ```xml
   <dependencies>
       <!--spring环境-->
-      <<dependency>
+      <dependency>
           <groupId>org.springframework</groupId>
           <artifactId>spring-context</artifactId>
           <version>5.1.9.RELEASE</version>

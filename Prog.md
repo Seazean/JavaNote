@@ -11375,7 +11375,7 @@ public V put(K key, V value) {
                       return;
                   // 所以最后一个线程退出的时候，sizeCtl 的低 16 位为 1
                   finishing = advance = true;
-                  // 这里表示最后一个线程需要重新检查一遍是否有漏掉的
+                  // 【这里表示最后一个线程需要重新检查一遍是否有漏掉的
                   i = n;
               }
           }

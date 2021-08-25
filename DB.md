@@ -336,6 +336,8 @@ mysqlshow -uroot -p1234 test book --count
 
 
 
+
+
 ## 体系结构
 
 ### 整体架构
@@ -406,6 +408,8 @@ SHOW PROCESSLIST：查看当前 MySQL 在进行的线程，可以实时地查看
 * MySQL 5.7 版本，可以在每次执行一个比较大的操作后，通过执行 mysql_reset_connection 来重新初始化连接资源，这个过程不需要重连和重新做权限验证，但是会将连接恢复到刚刚创建完时的状态
 
 <img src="https://gitee.com/seazean/images/raw/master/DB/MySQL-SQL的执行流程.png" style="zoom: 33%;" />
+
+
 
 
 
@@ -567,9 +571,44 @@ select * from t where id = 1;
 
 #### 优化器
 
-优化器是在表里面有多个索引的时候，决定使用哪个索引；或者在一个语句有多表关联（join）的时候，决定各个表的连接顺序。
+##### 扫描行数
 
-优化器阶段完成后，这个语句的执行方案就确定下来了，然后进入执行器阶段。
+优化器是在表里面有多个索引的时候，决定使用哪个索引，找到一个最优的执行方案，用最小的代价去执行语句；或者在一个语句有多表关联（join）的时候，决定各个表的连接顺序
+
+在数据库里面，扫描行数是影响执行代价的因素之一，扫描的行数越少意味着访问磁盘的次数越少，消耗的 CPU 资源越少，优化器还会结合是否使用临时表、是否排序等因素进行综合判断
+
+MySQL 在真正执行语句之前，并不能精确地知道满足条件的记录有多少条，只能根据统计信息来估算记录，统计信息就是索引的区分度,一个索引上不同的值的个数（比如性别只能是男女，就是 2 ），称之为基数（cardinality），基数越大说明区分度越好
+
+* 通过采样统计来获取基数，InnoDB 默认会选择 N 个数据页，统计这些页面上的不同值得到一个平均值，然后乘以这个索引的页面数，就得到了这个索引的基数
+* 数据表是会持续更新的，索引统计信息也不会固定不变，当变更的数据行数超过 1/ M 的时候，会自动触发重新做一次索引统计
+
+* 在 MySQL 中，有两种存储索引统计的方式，可以通过设置参数 innodb_stats_persistent 的值来选择：
+  * 设置为 on 时，表示统计信息会持久化存储，这时默认的 N 是 20，M 是 10
+  * 设置为 off 时，表示统计信息只存储在内存，这时默认的 N 是 8，M 是 16
+
+EXPLAIN 执行计划在优化器阶段生成，如果发现 explain 的结果预估的 rows 值跟实际情况差距比较大，可以执行 `analyze table t ` 重新修正信息
+
+
+
+***
+
+
+
+##### 错选索引
+
+扫描行数本身是估算数据，或者 SQL 语句中的字段选择有问题时，可能导致 MySQL 没有选择正确的执行索引
+
+解决方法：
+
+* 采用 force index 强行选择一个索引
+
+  ```sql
+  SELECT * FROM user FORCE INDEX(name) WHERE NAME='seazean';
+  ```
+
+* 可以考虑修改 SQL 语句，引导 MySQL 使用期望的索引
+
+* 新建一个更合适的索引，来提供给优化器做选择，或删掉误用的索引
 
 
 
@@ -583,7 +622,52 @@ select * from t where id = 1;
 
 
 
+****
+
+
+
+### 数据空间
+
+#### 数据存储
+
+表数据既可以存在共享表空间里，也可以是单独的文件，这个行为是由参数 innodb_file_per_table 控制的：
+
+* OFF：表示表的数据放在系统共享表空间，也就是跟数据字典放在一起
+* ON ：表示每个 InnoDB 表数据存储在一个以 .ibd 为后缀的文件中（默认）
+
+一个表单独存储为一个文件更容易管理，在不需要这个表时通过 drop table 命令，系统就会直接删除这个文件；如果是放在共享表空间中，即使表删掉了，空间也是不会回收的
+
+
+
 ***
+
+
+
+#### 数据删除
+
+MySQL 的数据删除就是移除掉某个记录后，该位置就被标记为可复用，如果有符合范围条件的数据可以插入到这里。符合范围条件的意思是假设删除记录 R4，之后要再插入一个 ID 在 300 和 600 之间的记录时，就会复用这个位置
+
+<img src="https://gitee.com/seazean/images/raw/master/DB/MySQL-删除数据.png" style="zoom:50%;" />
+
+InnoDB 的数据是按页存储的如果删掉了一个数据页上的所有记录，整个数据页就可以被复用了，如果相邻的两个数据页利用率都很小，系统就会把这两个页上的数据合到其中一个页上，另外一个数据页就被标记为可复用
+
+删除命令其实只是把记录的位置，或者数据页标记为了**可复用**，但磁盘文件的大小是不会变的，这些可以复用还没有被使用的空间，看起来就像是空洞，造成数据库的稀疏，因此需要进行紧凑处理
+
+
+
+***
+
+
+
+### 空间收缩
+
+
+
+
+
+***
+
+
 
 
 
@@ -740,7 +824,12 @@ select * from t where id = 1;
     USE db4;	   -- 使用db4数据库
     ```
 
-    
+
+
+
+***
+
+
 
 #### 数据表
 
@@ -929,6 +1018,8 @@ select * from t where id = 1;
 
 
 
+***
+
 
 
 #### UPDATE
@@ -952,6 +1043,10 @@ select * from t where id = 1;
 
   - 修改语句中必须加条件
   - 如果不加条件，则将所有数据都修改
+
+
+
+***
 
 
 
@@ -1181,13 +1276,13 @@ LIMIT		<limit_params>
 
 * 聚合函数分类
 
-  | 函数名      | 功能                             |
-  | ----------- | -------------------------------- |
-  | COUNT(列名) | 统计数量（一般选用不为null的列） |
-  | MAX(列名)   | 最大值                           |
-  | MIN(列名)   | 最小值                           |
-  | SUM(列名)   | 求和                             |
-  | AVG(列名)   | 平均值（AVG() 会忽略 NULL 行）   |
+  | 函数名      | 功能                               |
+  | ----------- | ---------------------------------- |
+  | COUNT(列名) | 统计数量（一般选用不为 null 的列） |
+  | MAX(列名)   | 最大值                             |
+  | MIN(列名)   | 最小值                             |
+  | SUM(列名)   | 求和                               |
+  | AVG(列名)   | 平均值（会忽略 null 行）           |
 
 * 例如
 
@@ -1441,6 +1536,8 @@ SELECT * FROM emp WHERE name REGEXP '[uvw]';-- 匹配包含 uvw 的name值
 
 
 ***
+
+
 
 
 
@@ -1720,6 +1817,8 @@ SELECT * FROM emp WHERE name REGEXP '[uvw]';-- 匹配包含 uvw 的name值
 
 
 ***
+
+
 
 
 
@@ -2193,7 +2292,10 @@ CREATE TABLE us_pro(
 
 
 
-***
+
+****
+
+
 
 
 
@@ -2221,7 +2323,7 @@ CREATE TABLE us_pro(
 
 1. 开启事务：记录回滚点，并通知服务器，将要执行一组操作，要么同时成功、要么同时失败
 
-2. 执行sql语句：执行具体的一条或多条sql语句
+2. 执行 SQL 语句：执行具体的一条或多条 SQL语句
 
 3. 结束事务(提交|回滚)
 
@@ -2243,11 +2345,33 @@ CREATE TABLE us_pro(
   ROLLBACK;
   ```
 
-* 提交事务
+* 提交事务，显示执行是手动提交，MySQL 默认为自动提交
 
   ```mysql
   COMMIT;
   ```
+
+  工作原理：
+
+  * 在自动提交模式下，如果没有 start transaction 显式地开始一个事务，那么每个 SQL 语句都会被当做一个事务执行提交操作
+  * 在手动提交模式下，所有的 SQL 语句都在一个事务中，直到执行了 commit 或 rollback，该事务结束，同时开始了另外一个事务
+
+  * 存在一些特殊的命令，在事务中执行了这些命令会马上强制执行 COMMIT 提交事务，如 DDL 语句 (create/drop/alter/table)、lock tables 语句等
+
+  提交方式语法：
+
+  - 查看事务提交方式
+
+    ```mysql
+    SELECT @@AUTOCOMMIT;  -- 1代表自动提交    0代表手动提交
+    ```
+
+  - 修改事务提交方式
+
+    ```mysql
+    SET @@AUTOCOMMIT=数字;	-- 系统
+    SET AUTOCOMMIT=数字;		-- 会话
+    ```
 
   
 
@@ -2272,39 +2396,6 @@ CREATE TABLE us_pro(
 
   
 
-***
-
-
-
-### 提交方式
-
-提交方式：
-
-- 自动提交（MySQL默认为自动提交）
-- 手动提交：
-
-工作原理：
-
-* 在自动提交模式下，如果没有 start transaction 显式地开始一个事务，那么每个sql语句都会被当做一个事务执行提交操作
-* 在手动提交模式下，所有的 sql 语句都在一个事务中，直到执行了commit 或 rollback，该事务结束，同时开始了另外一个事务
-
-* 存在一些特殊的命令，在事务中执行了这些命令会马上强制执行 COMMIT 提交事务，如DDL语句 (create table/drop table/alter/table)、lock tables 语句等
-
-提交方式语法：
-
-- 查看事务提交方式
-
-  ```mysql
-  SELECT @@AUTOCOMMIT;  -- 1代表自动提交    0代表手动提交
-  ```
-
-- 修改事务提交方式
-
-  ```mysql
-  SET @@AUTOCOMMIT=数字;	-- 系统
-  SET AUTOCOMMIT=数字;		-- 会话
-  ```
-
 
 
 ***
@@ -2317,10 +2408,10 @@ CREATE TABLE us_pro(
 
 事务的四大特征：ACID
 
-- 原子性(atomicity)
-- 一致性(consistency)
-- 隔离性(isolaction)
-- 持久性(durability)
+- 原子性 (atomicity)
+- 一致性 (consistency)
+- 隔离性 (isolaction)
+- 持久性 (durability)
 
 
 
@@ -2347,7 +2438,7 @@ undo log 属于逻辑日志，根据每行操作进行记录，记录了 SQL 执
 
 * 对于每个 update，回滚时会执行一个相反的 update，把数据修改回去
 
-undo log 是采用段 (segment) 的方式来记录，每个 undo 操作在记录的时候占用一个 undo log segment
+undo log 是采用段（segment）的方式来记录，每个 undo 操作在记录的时候占用一个 undo log segment
 
 rollback segment 称为回滚段，每个回滚段中有 1024 个 undo log segment
 
@@ -2409,32 +2500,53 @@ rollback segment 称为回滚段，每个回滚段中有 1024 个 undo log segme
 
 持久性是指一个事务一旦被提交了，那么对数据库中数据的改变就是永久性的，接下来的其他操作或故障不应该对其有任何影响。
 
-InnoDB 作为存储引擎，数据是存放在磁盘中，每次读写数据都需要磁盘 IO，效率会很低。InnoDB 提供了缓存 Buffer Pool，Buffer Pool 中包含了磁盘中部分数据页的映射，作为访问数据库的缓冲：
+Buffer Pool 是一片内存空间，可以通过 innodb_buffer_pool_size 来控制 Buffer Pool 的大小（内存优化部分会详解）
+
+* Change Buffer 是 Buffer Pool 里的内存，不能无限增大，用来对增删改操作提供缓存
+* Change Buffer 的大小可以通过参数 innodb_change_buffer_max_size 来动态设置，设置为 50 时表示 Change Buffer 的大小最多只能占用 Buffer Pool 的 50%
+* 补充知识：唯一索引的更新不能使用 Buffer，一般只有普通索引可以使用，直接写入 Buffer 就结束
+
+InnoDB 的数据是按数据页为单位来读写，每个数据页的大小默认是 16KB。数据是存放在磁盘中，每次读写数据都需要磁盘 IO，效率会很低。InnoDB 提供了缓存 Change Buffer，Buffer 中包含了磁盘中部分数据页的映射，作为访问数据库的缓冲：
 
 * 从数据库读取数据时，会首先从缓存中读取，如果缓存中没有，则从磁盘读取后放入 Buffer Pool
 * 向数据库写入数据时，会首先写入缓存，缓存中修改的数据会**定期刷新**到磁盘，这一过程称为刷脏
 
+
+
+***
+
+
+
+##### 数据恢复
+
 Buffer Pool 的使用提高了读写数据的效率，但是也带了新的问题：如果 MySQL 宕机，此时 Buffer Pool 中修改的数据还没有刷新到磁盘，就会导致数据的丢失，事务的持久性无法保证，所以引入 redo log
 
-* 当数据修改时，除了修改 Buffer Pool 中的数据，还会在 redo log 记录这次操作
-* 如果 MySQL 宕机，重启时可以读取 redo log 中的数据，对数据库进行恢复
+* 当数据修改时，先修改 Change Buffer 中的数据，然后在 redo log buffer 记录这次操作
+* 如果 MySQL 宕机，InnoDB 判断一个数据页在崩溃恢复时丢失了更新，就会将它读到内存，然后根据 redo log 内容更新内存，更新完成后，内存页变成脏页，然后进行刷脏（buffer pool 的任务）
 
 redo log **记录数据页的物理修改**，而不是某一行或某几行的修改，用来恢复提交后的物理数据页，且只能恢复到最后一次提交的位置
 
 redo log 采用的是 WAL（Write-ahead logging，**预写式日志**），所有修改要先写入日志，再更新到磁盘，保证了数据不会因 MySQL 宕机而丢失，从而满足了持久性要求，InnoDB 引擎会在适当的时候，将这个操作记录更新到磁盘里面
 
-redo log 也需要在事务提交时将日志写入磁盘，但是比将 Buffer Pool 中修改的数据写入磁盘快：
+redo log 也需要在事务提交时将日志写入磁盘，但是比将内存中的 Buffer Pool 修改的数据写入磁盘的速度快：
 
 * 刷脏是随机 IO，因为每次修改的数据位置随机，但写 redo log 是尾部追加操作，属于顺序 IO
-* 刷脏是以数据页 (Page) 为单位的，MySQL 默认页大小是 16KB，一个页上的一个小修改都要整页写入，而 redo log 中只包含真正需要写入的部分，无效 IO 大大减少
+* 刷脏是以数据页（Page）为单位的，一个页上的一个小修改都要整页写入，而 redo log 中只包含真正需要写入的部分，减少无效 IO
 
-刷盘策略，就是把内存缓冲区中 redo log 日志持久化到磁盘，通过修改参数 `innodb_flush_log_at_trx_commit` 设置：
+刷盘策略，就是把内存中 redo log buffer 持久化到磁盘：
 
-* 0：表示当提交事务时，并不将缓冲区的 redo 日志写入磁盘，而是等待主线程每秒刷新一次
-* 1：在事务提交时将缓冲区的 redo 日志**同步写入**到磁盘，保证一定会写入成功
-* 2：在事务提交时将缓冲区的 redo 日志异步写入到磁盘，不能保证提交时肯定会写入，只是有这个动作
+* 通过修改参数 `innodb_flush_log_at_trx_commit` 设置：
+  * 0：表示当提交事务时，并不将缓冲区的 redo 日志写入磁盘，而是等待主线程每秒刷新一次
+  * 1：在事务提交时将缓冲区的 redo 日志**同步写入**到磁盘，保证一定会写入成功
+  * 2：在事务提交时将缓冲区的 redo 日志异步写入到磁盘，不能保证提交时肯定会写入，只是有这个动作
+* 如果写入 redo log buffer 的日志已经占据了 redo log buffer 总容量的一半了，此时就会刷入到磁盘文件
 
-InnoDB 的 redo log 是固定大小的，如果写满了就要擦除以前的记录，在擦除之前需要把旧记录更新到数据文件中
+刷脏策略：
+
+* 系统内存不足，需要淘汰部分数据页，如果淘汰的是脏页，就要先将脏页写到磁盘
+* 系统空闲时，后台线程会自动进行刷脏
+* MySQL 正常关闭时，会把内存的脏页都 flush 到磁盘上
+* InnoDB 的 redo log 文件是固定大小的，如果写满了就要擦除以前的记录，在擦除之前需要把旧记录更新到磁盘中的数据文件中
 
 
 
@@ -2464,15 +2576,55 @@ update T set c=c+1 where ID=2;
 
 流程说明：执行引擎将这行新数据更新到内存中（Buffer Pool）后，然后会将这个更新操作记录到 redo log buffer 里，此时 redo log 处于 prepare 状态，代表执行完成随时可以提交事务，然后执行器生成这个操作的 binlog，并**把 binlog 写入磁盘**，在提交事务后 **redo log 也持久化到磁盘**
 
-redo log 和 binlog 都可以用于表示事务的提交状态，而两阶段提交就是让这两个状态保持逻辑上的一致，在恢复数据时
+redo log 和 binlog 都可以用于表示事务的提交状态，而两阶段提交就是让这两个状态保持逻辑上的一致，也有利于主从复制，更好的保持主从数据的一致性
 
-* 如果 redolog 状态为 commit，则说明 binlog 也成功，直接恢复数据
+故障恢复数据：
 
-* 如果 redolog 是 prepare，则需要查询对应的 binlog 事务是否成功，决定是回滚还是提交
+* 如果在时刻 A 发生了崩溃（crash），由于此时 binlog 还没写，redo log 也没提交，所以数据恢复的时候这个事务会回滚
+* 如果在时刻 B 发生了崩溃，redo log 和 binlog 有一个共同的数据字段叫 XID，崩溃恢复的时候，会按顺序扫描 redo log：
+  * 如果 redo log 里面的事务是完整的，也就是已经有了 commit 标识，说明 binlog 也已经记录完整，直接从 redo log 恢复数据
+  * 如果 redo log 里面的事务只有 prepare，就根据 XID 去 binlog 中判断对应的事务是否存在并完整，如果完整可以从 binlog 恢复 redo log 的信息，进而恢复数据，提交事务
+
+
+判断一个事务的 binlog 是否完整的方法：
+
+* statement 格式的 binlog，最后会有 COMMIT
+* row 格式的 binlog，最后会有一个 XID event
+* MySQL 5.6.2 版本以后，引入了 binlog-checksum 参数用来验证 binlog 内容的正确性
 
 
 
-参考文章：https://time.geekbang.org/column/article/68633
+参考文章：https://time.geekbang.org/column/article/73161
+
+
+
+***
+
+
+
+##### 系统优化
+
+系统在进行刷脏时会占用一部分系统资源，会影响系统的性能，产生系统抖动
+
+* 一个查询要淘汰的脏页个数太多，会导致查询的响应时间明显变长
+* 日志写满，更新全部堵住，写性能跌为 0，这种情况对敏感业务来说，是不能接受的
+
+InnoDB 刷脏页的控制策略：
+
+* `innodb_io_capacity` 参数代表磁盘的读写能力，建议设置成磁盘的 IOPS（每秒的 IO 次数）
+
+* 刷脏速度参考两个因素：脏页比例和 redo log 写盘速度
+  * 参数`innodb_max_dirty_pages_pct` 是脏页比例上限，默认值是 75%，InnoDB 会根据当前的脏页比例，算出一个范围在 0 到 100 之间的数字
+  * InnoDB 每次写入的日志都有一个序号，当前写入的序号跟 checkpoint 对应的序号之间的差值，InnoDB 根据差值算出一个范围在 0 到 100 之间的数字
+  * 两者较大的值记为 R，执行引擎按照 innodb_io_capacity 定义的能力乘以 R% 来控制刷脏页的速度
+
+* `innodb_flush_neighbors` 参数置为 1 代表控制刷脏时检查相邻的数据页，如果也是脏页就一起刷脏，并检查邻居的邻居，这个行为会一直蔓延直到不是脏页，在 MySQL 8.0 中该值的默认值是 0，不建议开启此功能
+
+
+
+
+
+
 
 
 
@@ -2503,7 +2655,7 @@ redo log 和 binlog 都可以用于表示事务的提交状态，而两阶段提
 
   > 可重复读的意思是不管读几次，结果都一样，可以重复的读，可以理解为快照读，要读的数据集不会发生变化
 
-* 幻读 (Phantom Reads)：在事务中按某个条件先后两次查询数据库，两次查询结果的数量不同，**数据条目**发生了变化。比如查询某数据不存在，准备插入此记录，但执行插入时发现此记录已存在，无法插入；或查询某数据不存在，执行delete删除，却发现删除成功
+* 幻读 (Phantom Reads)：在事务中按某个条件先后两次查询数据库，两次查询结果的数量不同，**数据条目**发生了变化。比如查询某数据不存在，准备插入此记录，但执行插入时发现此记录已存在，无法插入；或查询某数据不存在，执行删除操作却发现删除成功
 
 **隔离级别操作语法：**
 
@@ -2733,6 +2885,8 @@ RC、RR 级别下的 InnoDB 快照读区别
 
 
 ***
+
+
 
 
 
@@ -3734,6 +3888,8 @@ LOOP 实现简单的循环，退出循环的条件需要使用其他的语句定
 
 
 
+
+
 ## 存储引擎
 
 ### 基本介绍
@@ -3879,11 +4035,14 @@ MERGE存储引擎：
   ALTER TABLE 表名 ENGINE = 引擎名称;
   ```
 
-  
+
+
 
 
 
 ***
+
+
 
 
 
@@ -3931,10 +4090,10 @@ MySQL 官方对索引的定义为：索引（index）是帮助 MySQL 高效获�
   - 外键索引：只有 InnoDB 引擎支持外键索引，用来保证数据的一致性、完整性和实现级联操作
 
 - 结构分类
-  - BTree索引：MySQL使用最频繁的一个索引数据结构，是 InnoDB 和 MyISAM 存储引擎默认的索引类型，底层基于 B+Tree 数据结构
-  - Hash索引：MySQL中 Memory 存储引擎默认支持的索引类型
+  - BTree 索引：MySQL 使用最频繁的一个索引数据结构，是 InnoDB 和 MyISAM 存储引擎默认的索引类型，底层基于 B+Tree 数据结构
+  - Hash 索引：MySQL中 Memory 存储引擎默认支持的索引类型
   - R-tree 索引（空间索引）：空间索引是 MyISAM 引擎的一个特殊索引类型，主要用于地理空间数据类型
-  - Full-text （全文索引） ：快速匹配全部文档的方式。MyISAM支持， InnoDB不支持FULLTEXT类型的索引，但是 InnoDB 可以使用 sphinx 插件支持全文索引，MEMORY引擎不支持
+  - Full-text 索引（全文索引）：快速匹配全部文档的方式。MyISAM 支持， InnoDB 不支持 FULLTEXT 类型的索引，但是 InnoDB 可以使用 sphinx 插件支持全文索引，MEMORY 引擎不支持
   
   | 索引        | InnoDB引擎      | MyISAM引擎 | Memory引擎 |
   | ----------- | --------------- | ---------- | ---------- |
@@ -4179,6 +4338,8 @@ B* 树：是 B+ 树的变体，在 B+ 树的非根和非叶子结点再增加指
 
 MySQL 索引数据结构对经典的 B+Tree 进行了优化，在原 B+Tree 的基础上，增加一个指向相邻叶子节点的链表指针，就形成了带有顺序指针的 B+Tree，**提高区间访问的性能，防止回旋查找**
 
+B+ 树的叶子节点是数据页（page），一个页里面可以存多个数据行
+
 区间访问的意思是访问索引为 5 - 15 的数据，可以直接根据相邻节点的指针遍历
 
 ![](https://gitee.com/seazean/images/raw/master/DB/索引的原理-B+Tree.png)
@@ -4188,7 +4349,7 @@ MySQL 索引数据结构对经典的 B+Tree 进行了优化，在原 B+Tree 的�
 - 有范围：对于主键的范围查找和分页查找
 - 有顺序：从根节点开始，进行随机查找，顺序查找
 
-InnoDB 存储引擎中页的大小为 16KB，一般表的主键类型为 INT（4字节）或 BIGINT（8字节），指针类型也一般为 4 或 8 个字节，也就是说一个页（B+Tree 中的**一个节点**）中大概存储 16KB/(8B+8B)=1K 个键值（估值）。则一个深度为 3 的 B+Tree 索引可以维护 `10^3 * 10^3 * 10^3 = 10亿` 条记录
+InnoDB 中每个数据页的大小默认是 16KB，一般表的主键类型为 INT（4字节）或 BIGINT（8字节），指针类型也一般为 4 或 8 个字节，也就是说一个页（B+Tree 中的**一个节点**）中大概存储 16KB/(8B+8B)=1K 个键值（估值）。则一个深度为 3 的 B+Tree 索引可以维护 `10^3 * 10^3 * 10^3 = 10亿` 条记录
 
 实际情况中每个节点可能不能填充满，因此在数据库中，B+Tree 的高度一般都在 2-4 层。MySQL 的 InnoDB 存储引擎在设计时是**将根节点常驻内存的**，也就是说查找某一键值的行记录时最多只需要 1~3 次磁盘 I/O 操作
 
@@ -4207,8 +4368,8 @@ B+ 树为了维护索引有序性，在插入新值的时候需要做必要的�
 每个索引中每个块存储在磁盘页中，可能会出现以下两种情况：
 
 * 如果所在的数据页已经满了，根据 B+ 树的算法，这时候需要申请一个新的数据页，然后挪动部分数据过去，这个过程称为页分裂
-
 * 当相邻两个页由于删除了数据，利用率很低之后，会将数据页做合并，合并的过程可以认为是分裂过程的逆过程
+* 这两个情况都是由 B+ 树的结构决定的
 
 一般选用数据小的字段做索引，字段长度越小，普通索引的叶子节点就越小，普通索引占用的空间也就越小
 
@@ -4421,6 +4582,8 @@ SELECT * FROM user WHERE name LIKE '张%' AND　age = 10;	-- 头部模糊匹配�
 
 当要索引的列字符很多时，索引会变大变慢，可以只索引列开始的部分字符串，节约索引空间，提高索引效率
 
+注意：使用前缀索引就系统就忽略覆盖索引对查询性能的优化了
+
 优化原则：**降低重复的索引值**
 
 比如地区表：
@@ -4440,6 +4603,15 @@ chinaBeijing	500		eee
 CREATE INDEX idx_area ON table_name(area(7));
 ```
 
+场景：存储身份证
+
+* 直接创建完整索引，这样可能比较占用空间
+* 创建前缀索引，节省空间，但会增加查询扫描次数，并且不能使用覆盖索引
+* 倒序存储，再创建前缀索引，用于绕过字符串本身前缀的区分度不够的问题（前 6 位相同的很多）
+* 创建 hash 字段索引，查询性能稳定，有额外的存储和计算消耗，跟第三种方式一样，都不支持范围扫描
+
+
+
 
 
 
@@ -4448,7 +4620,9 @@ CREATE INDEX idx_area ON table_name(area(7));
 
 
 
-## 语句优化
+
+
+## 系统优化
 
 ### 优化步骤
 
@@ -4717,7 +4891,7 @@ key_len：
 
 * Using index：该值表示相应的 SELECT 操作中使用了**覆盖索引**（Covering Index）
 * Using index condition：第一种情况是搜索条件中虽然出现了索引列，但是有部分条件无法使用索引，会根据能用索引的条件先搜索一遍再匹配无法使用索引的条件，回表查询数据；第二种是使用了索引下推
-* Using where：表示存储引擎收到记录后进行“后过滤”（Post-filter），如果查询未能使用索引，Using where 的作用是提醒我们 MySQL 将用 WHERE 子句来过滤结果集，即需要回表查询
+* Using where：表示存储引擎收到记录后进行后过滤（Post-filter），如果查询未能使用索引，Using where 的作用是提醒我们 MySQL 将用 WHERE 子句来过滤结果集，即需要回表查询
 * Using temporary：表示 MySQL 需要使用临时表来存储结果集，常见于排序和分组查询
 * Using filesort：MySQL 会对数据使用一个外部的索引排序，而不是按照表内的索引顺序进行读取，无法利用索引完成的排序操作称为文件排序
 * Using join buffer：说明在获取连接条件时没有使用索引，并且需要连接缓冲区来存储中间结果
@@ -4912,7 +5086,7 @@ CREATE INDEX idx_seller_name_sta_addr ON tb_seller(name,status,address);
 
   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引7.png)
 
-* 用 **OR** 分割条件，索引失效，导致全表查询：
+* **用 OR 分割条件，索引失效**，导致全表查询：
 
   OR 前的条件中的列有索引而后面的列中没有索引或 OR 前后两个列是同一个复合索引，都造成索引失效
 
@@ -4923,7 +5097,7 @@ CREATE INDEX idx_seller_name_sta_addr ON tb_seller(name,status,address);
 
   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引10.png)
 
-  AND 分割的条件不影响：
+  **AND 分割的条件不影响**：
 
   ```mysql
   EXPLAIN SELECT * FROM tb_seller WHERE name='阿里巴巴' AND createtime = '2088-01-01 12:00:00';
@@ -4931,7 +5105,7 @@ CREATE INDEX idx_seller_name_sta_addr ON tb_seller(name,status,address);
 
   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引11.png)
 
-* 以 % 开头的 LIKE **模糊查询**，索引失效：
+* **以 % 开头的 LIKE 模糊查询**，索引失效：
 
   如果是尾部模糊匹配，索引不会失效；如果是头部模糊匹配，索引失效。
 
@@ -4950,6 +5124,8 @@ CREATE INDEX idx_seller_name_sta_addr ON tb_seller(name,status,address);
   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引13.png)
 
   原因：在覆盖索引的这棵 B+ 数上只需要进行 like 的匹配，或者是基于覆盖索引查询再进行 WHERE 的判断就可以获得结果
+
+系统优化为全表扫描：
 
 * 如果 MySQL 评估使用索引比全表更慢，则不使用索引，索引失效：
 
@@ -5035,7 +5211,7 @@ SHOW GLOBAL STATUS LIKE 'Handler_read%';
 
 
 
-### 优化SQL
+### SQL优化
 
 #### 覆盖索引
 
@@ -5058,6 +5234,35 @@ EXPLAIN SELECT name,status,address,password FROM tb_seller WHERE name='小米科
 ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引9.png)
 
 
+
+****
+
+
+
+#### 减少访问
+
+避免对数据进行重复检索：能够一次连接就获取到结果的，就不用两次连接，这样可以大大减少对数据库无用的重复请求
+
+* 查询数据：
+
+  ```mysql
+  SELECT id,name FROM tb_book;
+  SELECT id,status FROM tb_book; -- 向数据库提交两次请求，数据库就要做两次查询操作
+  -- > 优化为:
+  SELECT id,name,statu FROM tb_book;
+  ```
+
+* 插入数据：
+
+  ```mysql
+  INSERT INTO tb_test VALUES(1,'Tom');
+  INSERT INTO tb_test VALUES(2,'Cat');
+  INSERT INTO tb_test VALUES(3,'Jerry');	-- 连接三次数据库
+  -- >优化为
+  INSERT INTO tb_test VALUES(1,'Tom'),(2,'Cat')，(3,'Jerry');	-- 连接一次
+  ```
+
+增加 cache 层：在应用中增加缓存层来达到减轻数据库负担的目的。可以部分数据从数据库中抽取出来放到应用端以文本方式存储， 或者使用框架（Mybatis）提供的一级缓存 / 二级缓存，或者使用 Redis 数据库来缓存数据 
 
 
 
@@ -5246,40 +5451,6 @@ GROUP BY 也会进行排序操作，与 ORDER BY 相比，GROUP BY 主要只是�
 
 
 
-#### 嵌套查询
-
-MySQL 4.1版本之后，开始支持 SQL 的子查询
-
-* 可以使用 SELECT 语句来创建一个单列的查询结果，然后把结果作为过滤条件用在另一个查询中
-* 使用子查询可以一次性的完成逻辑上需要多个步骤才能完成的 SQL 操作，同时也可以避免事务或者表锁死
-* 在有些情况下，子查询是可以被更高效的连接（JOIN）替代
-
-例如查找有角色的所有的用户信息：
-
-* 执行计划：
-
-  ```mysql
-  EXPLAIN SELECT * FROM t_user WHERE id IN (SELECT user_id FROM user_role);
-  ```
-
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL嵌套查询1.png)
-
-* 优化后：
-
-  ```mysql
-  EXPLAIN SELECT * FROM t_user u , user_role ur WHERE u.id = ur.user_id;
-  ```
-
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL嵌套查询2.png)
-
-  连接查询之所以效率更高 ，是因为不需要在内存中创建临时表来完成逻辑上需要两个步骤的查询工作
-
-
-
-***
-
-
-
 #### OR
 
 对于包含 OR 的查询子句，如果要利用索引，则 OR 之间的每个条件列都必须用到索引，而且不能使用到复合索引，如果没有索引，则应该考虑增加索引
@@ -5316,11 +5487,47 @@ MySQL 4.1版本之后，开始支持 SQL 的子查询
 
 
 
-#### 分页
+#### 嵌套查询
+
+MySQL 4.1 版本之后，开始支持 SQL 的子查询
+
+* 可以使用 SELECT 语句来创建一个单列的查询结果，然后把结果作为过滤条件用在另一个查询中
+* 使用子查询可以一次性的完成逻辑上需要多个步骤才能完成的 SQL 操作，同时也可以避免事务或者表锁死
+* 在有些情况下，子查询是可以被更高效的连接（JOIN）替代
+
+例如查找有角色的所有的用户信息：
+
+* 执行计划：
+
+  ```mysql
+  EXPLAIN SELECT * FROM t_user WHERE id IN (SELECT user_id FROM user_role);
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL嵌套查询1.png)
+
+* 优化后：
+
+  ```mysql
+  EXPLAIN SELECT * FROM t_user u , user_role ur WHERE u.id = ur.user_id;
+  ```
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL嵌套查询2.png)
+
+  连接查询之所以效率更高 ，是因为不需要在内存中创建临时表来完成逻辑上需要两个步骤的查询工作
+
+
+
+
+
+***
+
+
+
+#### 分页查询
 
 一般分页查询时，通过创建覆盖索引能够比较好地提高性能
 
-一个常见的问题是 `LIMIT 200000,10`，此时需要MySQL扫描前 200010 记录，仅仅返回200000 - 200010 之间的记录，其他记录丢弃，查询排序的代价非常大
+一个常见的问题是 `LIMIT 200000,10`，此时需要 MySQL 扫描前 200010 记录，仅仅返回 200000 - 200010 之间的记录，其他记录丢弃，查询排序的代价非常大
 
 * 分页查询：
 
@@ -5387,55 +5594,6 @@ SQL 提示，是优化数据库的一个重要手段，就是在SQL语句中加�
 
 
 
-## 系统优化
-
-### 应用优化
-
-#### 减少访问
-
-避免对数据进行重复检索：能够一次连接就获取到结果的，就不用两次连接，这样可以大大减少对数据库无用的重复请求
-
-* 查询数据：
-
-  ```mysql
-  SELECT id,name FROM tb_book;
-  SELECT id,status FROM tb_book; -- 向数据库提交两次请求，数据库就要做两次查询操作
-  -- > 优化为:
-  SELECT id,name,statu FROM tb_book;
-  ```
-
-* 插入数据：
-
-  ```mysql
-  INSERT INTO tb_test VALUES(1,'Tom');
-  INSERT INTO tb_test VALUES(2,'Cat');
-  INSERT INTO tb_test VALUES(3,'Jerry');	-- 连接三次数据库
-  -- >优化为
-  INSERT INTO tb_test VALUES(1,'Tom'),(2,'Cat')，(3,'Jerry');	-- 连接一次
-  ```
-
-增加 cache 层：在应用中增加缓存层来达到减轻数据库负担的目的。可以部分数据从数据库中抽取出来放到应用端以文本方式存储， 或者使用框架（Mybatis）提供的一级缓存 / 二级缓存，或者使用 Redis 数据库来缓存数据 
-
-
-
-***
-
-
-
-#### 负载均衡
-
-负载均衡是应用中使用非常普遍的一种优化方法，机制就是利用某种均衡算法，将固定的负载量分布到不同的服务器上， 以此来降低单台服务器的负载，达到优化的效果
-
-* 分流查询：通过 MySQL 的主从复制，实现读写分离，使增删改操作走主节点，查询操作走从节点，从而可以降低单台服务器的读写压力
-
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-负载均衡主从复制.jpg)
-
-* 分布式数据库架构：适合大数据量、负载高的情况，具有良好的拓展性和高可用性。通过在多台服务器之间分布数据，可以实现在多台服务器之间的负载均衡，提高访问效率
-
-
-
-***
-
 
 
 ### 内存优化
@@ -5491,7 +5649,7 @@ Innodb 用一块内存区做 IO 缓存池，该缓存池不仅用来缓存 Innod
   SHOW VARIABLES LIKE 'innodb_buffer_pool_size';
   ```
 
-  在保证操作系统及其他程序有足够内存可用的情况下，innodb_buffer_pool_size 的值越大，缓存命中率越高，访问InnoDB表需要的磁盘I/O 就越少，性能也就越高。通过配置文件修改：
+  在保证操作系统及其他程序有足够内存可用的情况下，innodb_buffer_pool_size 的值越大，缓存命中率越高
 
   ```sh
   innodb_buffer_pool_size=512M
@@ -5504,6 +5662,8 @@ Innodb 用一块内存区做 IO 缓存池，该缓存池不仅用来缓存 Innod
   ```sh
   innodb_log_buffer_size=10M
   ```
+
+
 
 
 
@@ -5541,7 +5701,11 @@ MySQL Server 是多线程结构，包括后台线程和客户服务线程。多�
 
 
 
+
+
 ***
+
+
 
 
 
@@ -5629,6 +5793,22 @@ MySQL 的主从复制原理图：
 * 尽量采用短的链路，主库和从库服务器的距离尽量要短，提升端口带宽，减少 binlog 传输的网络延时
 * 实时性要求高的业务读强制走主库，从库只做灾备，备份
 * 强制将写之后**立刻读的操作转移到主库**，比如刚注册的用户，直接登录从库查询可能查询不到，先走主库登录
+
+
+
+***
+
+
+
+### 负载均衡
+
+负载均衡是应用中使用非常普遍的一种优化方法，机制就是利用某种均衡算法，将固定的负载量分布到不同的服务器上， 以此来降低单台服务器的负载，达到优化的效果
+
+* 分流查询：通过 MySQL 的主从复制，实现读写分离，使增删改操作走主节点，查询操作走从节点，从而可以降低单台服务器的读写压力
+
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-负载均衡主从复制.jpg)
+
+* 分布式数据库架构：适合大数据量、负载高的情况，具有良好的拓展性和高可用性。通过在多台服务器之间分布数据，可以实现在多台服务器之间的负载均衡，提高访问效率
 
 
 
@@ -5774,6 +5954,8 @@ MySQL 的主从复制原理图：
 
 
 
+
+
 ## 锁机制
 
 ### 基本介绍
@@ -5805,6 +5987,34 @@ MySQL 的主从复制原理图：
   | BDB      | 支持     | 不支持   | 支持   |
 
 从锁的角度来说：表级锁更适合于以查询为主，只有少量按索引条件更新数据的应用，如 Web 应用；而行级锁则更适合于有大量按索引条件并发更新少量不同数据，同时又有并查询的应用，如一些在线事务处理系统
+
+
+
+***
+
+
+
+### Server
+
+FLUSH TABLES WITH READ LOCK 简称（FTWRL），全局读锁，让整个库处于只读状态，工作流程：
+
+1. 上全局读锁（lock_global_read_lock）
+2. 清理表缓存（close_cached_tables）
+3. 上全局 COMMIT 锁（make_global_read_lock_block_commit）
+
+该命令主要用于备份工具做一致性备份，由于 FTWRL 需要持有两把全局的 MDL 锁，并且还要关闭所有表对象，因此杀伤性很大
+
+MySQL 里面表级别的锁有两种：一种是表锁，一种是元数据锁（meta data lock，MDL)
+
+MDL 叫元数据锁，主要用来保护 Mysql 内部对象的元数据，保证数据读写的正确性，通过 MDL 机制保证 DDL、DML、SELECT 操作的并发，当对一个表做增删改查操作的时候，加 MDL 读锁；当要对表做结构变更操作的时候，加 MDL 写锁
+
+* MDL 锁不需要显式使用，在访问一个表的时候会被自动加上，事务中的 MDL 锁，在语句执行开始时申请，在整个事务提交后释放
+
+* MDL 锁是在 Server 中实现，不是 InnoDB 存储引擎层不能直接实现的锁
+
+* MDL 锁还能实现其他粒度级别的锁，比如全局锁、库级别的锁、表空间级别的锁
+
+
 
 
 
@@ -6347,6 +6557,8 @@ lock_id 是锁 id；lock_trx_id 为事务 id；lock_mode 为 X 代表排它锁�
 
 
 ***
+
+
 
 
 
