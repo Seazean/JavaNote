@@ -573,7 +573,7 @@ select * from t where id = 1;
 
 ##### 扫描行数
 
-优化器是在表里面有多个索引的时候，决定使用哪个索引，找到一个最优的执行方案，用最小的代价去执行语句；或者在一个语句有多表关联（join）的时候，决定各个表的连接顺序
+优化器是在表里面有多个索引的时候，决定使用哪个索引；或者在一个语句有多表关联（join）的时候，决定各个表的连接顺序。找到一个最优的执行方案，用最小的代价去执行语句
 
 在数据库里面，扫描行数是影响执行代价的因素之一，扫描的行数越少意味着访问磁盘的次数越少，消耗的 CPU 资源越少，优化器还会结合是否使用临时表、是否排序等因素进行综合判断
 
@@ -586,7 +586,7 @@ MySQL 在真正执行语句之前，并不能精确地知道满足条件的记�
   * 设置为 on 时，表示统计信息会持久化存储，这时默认的 N 是 20，M 是 10
   * 设置为 off 时，表示统计信息只存储在内存，这时默认的 N 是 8，M 是 16
 
-EXPLAIN 执行计划在优化器阶段生成，如果发现 explain 的结果预估的 rows 值跟实际情况差距比较大，可以执行 `analyze table t ` 重新修正信息
+EXPLAIN 执行计划在优化器阶段生成，如果发现 explain 的结果预估的 rows 值跟实际情况差距比较大，可以执行 `analyze table t ` 重新修正信息，只是对表的索引信息做重新统计（不是重建表），没有修改数据，这个过程中加了 MDL 读锁
 
 
 
@@ -630,12 +630,16 @@ EXPLAIN 执行计划在优化器阶段生成，如果发现 explain 的结果预
 
 #### 数据存储
 
+系统表空间是用来放系统信息的，比如数据字典什么的，对应的磁盘文件是ibdata1，数据表空间是一个个的表数据文件，对应的磁盘文件就是表名.ibd
+
 表数据既可以存在共享表空间里，也可以是单独的文件，这个行为是由参数 innodb_file_per_table 控制的：
 
 * OFF：表示表的数据放在系统共享表空间，也就是跟数据字典放在一起
 * ON ：表示每个 InnoDB 表数据存储在一个以 .ibd 为后缀的文件中（默认）
 
 一个表单独存储为一个文件更容易管理，在不需要这个表时通过 drop table 命令，系统就会直接删除这个文件；如果是放在共享表空间中，即使表删掉了，空间也是不会回收的
+
+
 
 
 
@@ -659,9 +663,56 @@ InnoDB 的数据是按页存储的如果删掉了一个数据页上的所有记�
 
 
 
-### 空间收缩
+#### 空间收缩
+
+重建表就是按照主键 ID 递增的顺序，把数据一行一行地从旧表中读出来再插入到新表中，重建表时 MySQL 会自动完成转存数据、交换表名、删除旧表的操作，重建命令：
+
+```sql
+ALTER TABLE A ENGINE=InnoDB
+```
+
+工作流程：新建临时表 tmp_table B（在 Server 层创建的），把表 A 中的数据导入到表 B 中，操作完成后用表 B 替换 表A，完成重建
+
+重建表的步骤需要 DDL 不是 Online 的，因为在导入数据的过程有新的数据要写入到表 A 的话，就会造成数据丢失
+
+MySQL 5.6 版本开始引入的 Online DDL，重建表的命令默认执行此步骤：
+
+* 建立一个临时文件 tmp_file（InnoDB 创建），扫描表 A 主键的所有数据页
+* 用数据页中表 A 的记录生成 B+ 树，存储到临时文件中
+* 生成临时文件的过程中，将所有对 A 的操作记录在一个日志文件（row log）中，对应的是图中 state2 的状态
+* 临时文件生成后，将日志文件中的操作应用到临时文件，得到一个逻辑数据上与表 A 相同的数据文件，对应的就是图中 state3
+* 用临时文件替换表 A 的数据文件
+
+<img src="https://gitee.com/seazean/images/raw/master/DB/MySQL-重建表.png" style="zoom: 67%;" />
+
+Online DDL 操作会先获取 MDL 写锁，再退化成 MDL 读锁。但 MDL 写锁持有时间比较短，所以可以称为 Online； 而 MDL 读锁，不阻止数据增删查改，但会阻止其它线程修改表结构
+
+问题：想要收缩表空间，执行指令后整体占用空间增大
+
+原因：在重建表后 InnoDB 不会把整张表占满，每个页留了 1/16 给后续的更新使用。表在未整理之前页已经占用 15/16 以上，收缩之后需要保持数据占用空间在 15/16 以下，所以文件占用空间更大才能保持
+
+注意：临时文件也要占用空间，如果空间不足会重建失败
 
 
+
+****
+
+
+
+#### inplace
+
+DDL 中的临时表 tmp_table 是在 Server 层创建的，Online DDL 中的临时文件tmp_file 是 InnoDB 在内部创建出来的，整个 DDL 过程都在 InnoDB 内部完成，对于 Server 层来说，没有把数据挪动到临时表，是一个原地操作，这就是 inplace
+
+两者的关系：
+
+* DDL 过程如果是 Online 的，就一定是 inplace 的
+* inplace 的 DDL，有可能不是 Online 的，截止到 MySQL 8.0，全文索引（FULLTEXT）和空间索引 (SPATIAL ) 属于这种情况
+
+
+
+
+
+参考文章：https://time.geekbang.org/column/article/72388
 
 
 
@@ -2556,7 +2607,7 @@ redo log 也需要在事务提交时将日志写入磁盘，但是比将内存�
 
 ##### 工作流程
 
-MySQL中还存在 binlog（二进制日志）也可以记录写操作并用于数据的恢复，二者的区别是：
+MySQL中还存在 binlog（二进制日志）也可以记录写操作并用于数据的恢复，**保证数据不丢失**，二者的区别是：
 
 * 作用不同：redo log 是用于 crash recovery （故障恢复），保证 MySQL 宕机也不会影响持久性；binlog 是用于 point-in-time recovery 的，保证服务器可以基于时间点恢复数据，此外 binlog 还用于主从复制
 
@@ -2619,10 +2670,6 @@ InnoDB 刷脏页的控制策略：
   * 两者较大的值记为 R，执行引擎按照 innodb_io_capacity 定义的能力乘以 R% 来控制刷脏页的速度
 
 * `innodb_flush_neighbors` 参数置为 1 代表控制刷脏时检查相邻的数据页，如果也是脏页就一起刷脏，并检查邻居的邻居，这个行为会一直蔓延直到不是脏页，在 MySQL 8.0 中该值的默认值是 0，不建议开启此功能
-
-
-
-
 
 
 
@@ -4682,6 +4729,8 @@ Innodb_xxxx：这几个参数只是针对InnoDB 存储引擎的，累加的算�
 
 #### 定位低效
 
+慢 SQL 由三种原因造成：索引没有设计好、SQL 语句没写好、MySQL 选错了索引
+
 通过以下两种方式定位执行效率较低的 SQL 语句
 
 * 慢日志查询： 慢查询日志在查询结束以后才记录，执行效率出现问题时查询日志并不能定位问题
@@ -4745,7 +4794,7 @@ EXPLAIN SELECT * FROM table_1 WHERE id = 1;
 | key           | 表示实际使用的索引                                           |
 | key_len       | 索引字段的长度                                               |
 | ref           | 列与索引的比较，表示表的连接匹配条件，即哪些列或常量被用于查找索引列上的值 |
-| rows          | 扫描出的行数，表示MySQL根据表统计信息及索引选用情况，估算的找到所需的记录所需要读取的行数 |
+| rows          | 扫描出的行数，表示 MySQL 根据表统计信息及索引选用情况，**估算**的找到所需的记录扫描的行数 |
 | filtered      | 按表条件过滤的行百分比                                       |
 | extra         | 执行情况的说明和描述                                         |
 
@@ -4965,7 +5014,7 @@ MySQL 提供了对 SQL 的跟踪， 通过 trace 文件能够进一步了解执�
 * 打开 trace，设置格式为 JSON，并设置 trace 最大能够使用的内存大小，避免解析过程中因为默认内存过小而不能够完整展示
 
   ```mysql
-  SET optimizer_trace="enabled=on",end_markers_in_json=ON;
+  SET optimizer_trace="enabled=on",end_markers_in_json=ON;	-- 会话内有效
   SET optimizer_trace_max_mem_size=1000000;
   ```
 
@@ -5261,6 +5310,24 @@ EXPLAIN SELECT name,status,address,password FROM tb_seller WHERE name='小米科
   -- >优化为
   INSERT INTO tb_test VALUES(1,'Tom'),(2,'Cat')，(3,'Jerry');	-- 连接一次
   ```
+  
+* 在事务中进行数据插入：
+
+  ```mysql
+  start transaction;
+  INSERT INTO tb_test VALUES(1,'Tom');
+  INSERT INTO tb_test VALUES(2,'Cat');
+  INSERT INTO tb_test VALUES(3,'Jerry');
+  commit;	-- 手动提交，分段提交
+  ```
+
+* 数据有序插入：
+
+  ```mysql
+  INSERT INTO tb_test VALUES(1,'Tom');
+  INSERT INTO tb_test VALUES(2,'Cat');
+  INSERT INTO tb_test VALUES(3,'Jerry');
+  ```
 
 增加 cache 层：在应用中增加缓存层来达到减轻数据库负担的目的。可以部分数据从数据库中抽取出来放到应用端以文本方式存储， 或者使用框架（Mybatis）提供的一级缓存 / 二级缓存，或者使用 Redis 数据库来缓存数据 
 
@@ -5270,7 +5337,7 @@ EXPLAIN SELECT name,status,address,password FROM tb_seller WHERE name='小米科
 
 
 
-#### 批量插入
+#### 数据插入
 
 当使用 load 命令导入数据的时候，适当的设置可以提高导入的效率：
 
@@ -5283,6 +5350,8 @@ LOAD DATA LOCAL INFILE = '/home/seazean/sql1.log' INTO TABLE `tb_user_1` FIELD T
 对于 InnoDB 类型的表，有以下几种方式可以提高导入的效率：
 
 1. 主键顺序插入：因为 InnoDB 类型的表是按照主键的顺序保存的，所以将导入的数据按照主键的顺序排列，可以有效的提高导入数据的效率，如果 InnoDB 表没有主键，那么系统会自动默认创建一个内部列作为主键。
+
+   **主键是否连续对性能影响不大，只要是递增的就可以**，比如雪花算法产生的 ID 不是连续的，但是是递增的
 
    * 插入 ID 顺序排列数据：
 
@@ -5301,44 +5370,6 @@ LOAD DATA LOCAL INFILE = '/home/seazean/sql1.log' INTO TABLE `tb_user_1` FIELD T
    事务需要控制大小，事务太大可能会影响执行的效率。MySQL 有 innodb_log_buffer_size 配置项，超过这个值的日志会写入磁盘数据，效率会下降。所以在事务大小达到配置项数据级前进行事务提交可以提高效率
 
    ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL插入数据手动提交事务.png)
-
-
-
-***
-
-
-
-#### INSERT
-
-当进行数据的 INSERT 操作的时候，可以考虑采用以下几种优化方案：
-
-* 如果需要同时对一张表插入很多行数据时，优化为一条插入语句，这种方式将大大的缩减客户端与数据库之间的连接、关闭等消耗
-
-  ```mysql
-  INSERT INTO tb_test VALUES(1,'Tom');
-  INSERT INTO tb_test VALUES(2,'Cat');
-  INSERT INTO tb_test VALUES(3,'Jerry');	-- 连接三次数据库
-  -- 优化为
-  INSERT INTO tb_test VALUES(1,'Tom'),(2,'Cat')，(3,'Jerry');	-- 连接一次
-  ```
-
-* 在事务中进行数据插入：
-
-  ```mysql
-  start transaction;
-  INSERT INTO tb_test VALUES(1,'Tom');
-  INSERT INTO tb_test VALUES(2,'Cat');
-  INSERT INTO tb_test VALUES(3,'Jerry');
-  commit;	-- 手动提交，分段提交
-  ```
-
-* 数据有序插入：
-
-  ```mysql
-  INSERT INTO tb_test VALUES(1,'Tom');
-  INSERT INTO tb_test VALUES(2,'Cat');
-  INSERT INTO tb_test VALUES(3,'Jerry');
-  ```
 
 
 
@@ -5362,7 +5393,7 @@ INSERT INTO `emp` (`id`, `name`, `age`, `salary`) VALUES('1','Tom','25','2300');
 CREATE INDEX idx_emp_age_salary ON emp(age,salary);
 ```
 
-* 第一种是通过对返回数据进行排序，所有不是通过索引直接返回排序结果的排序都叫 FileSort 排序
+* 第一种是通过对返回数据进行排序，所有不是通过索引直接返回排序结果的排序都叫 FileSort 排序，会在内存中重新排序
 
   ```mysql
   EXPLAIN SELECT * FROM emp ORDER BY age DESC;	-- 年龄降序
@@ -5394,7 +5425,7 @@ Filesort 的优化：通过创建合适的索引，能够减少 Filesort 的出�
 
 对于 Filesort ， MySQL 有两种排序算法：
 
-* 两次扫描算法：MySQL4.1 之前，使用该方式排序。首先根据条件取出排序字段和行指针信息，然后在排序区 sort buffer 中排序，如果 sort buffer 不够，则在临时表 temporary table 中存储排序结果。完成排序后，再根据行指针回表读取记录，该操作可能会导致大量随机I/O操作
+* 两次扫描算法：MySQL4.1 之前，使用该方式排序。首先根据条件取出排序字段和行指针信息，然后在排序区 sort buffer 中排序，如果 sort buffer 不够，则在临时表 temporary table 中存储排序结果。完成排序后，再根据行指针**回表读取记录**，该操作可能会导致大量随机 I/O 操作
 * 一次扫描算法：一次性取出满足条件的所有字段，然后在排序区 sort  buffer 中排序后直接输出结果集。排序时内存开销较大，但是排序效率比两次扫描算法高
 
 MySQL 通过比较系统变量 max_length_for_sort_data 的大小和 Query 语句取出的字段的大小，来判定使用哪种排序算法。如果前者大，则说明 sort  buffer 空间足够，使用第二种优化之后的算法，否则使用第一种。
@@ -5483,7 +5514,7 @@ GROUP BY 也会进行排序操作，与 ORDER BY 相比，GROUP BY 主要只是�
 
 
 
-***
+****
 
 
 
@@ -5587,6 +5618,45 @@ SQL 提示，是优化数据库的一个重要手段，就是在SQL语句中加�
   ```
 
   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用提示3.png)
+
+
+
+
+
+***
+
+
+
+#### 统计计数
+
+在不同的 MySQL 引擎中，count(*) 有不同的实现方式：
+
+* MyISAM 引擎把一个表的总行数存在了磁盘上，因此执行 count(*) 的时候会直接返回这个数，效率很高，但不支持事务
+* show table status 命令通过采样估算可以快速获取，但是不准确
+* InnoDB 表执行 count(*) 会遍历全表，虽然结果准确，但会导致性能问题
+
+解决方案：
+
+* 计数保存在 Redis 中，因为更新 MySQL 和 Redis 的操作不是原子的，会存在数据一致性的问题
+
+* 计数直接放到数据库里单独的一张计数表中，利用事务解决计数精确问题：
+
+  <img src="https://gitee.com/seazean/images/raw/master/DB/MySQL-计数count优化.png" style="zoom: 50%;" />
+
+  会话 B 的读操作在 T3 执行的，这时更新事务还没有提交，所以计数值加 1 这个操作对会话 B 还不可见，因此会话 B 看到的结果里， 查计数值和最近 100 条记录看到的结果，逻辑上就是一致的
+
+  并发系统性能的角度考虑，应该先插入操作记录再更新计数表，因为更新计数表涉及到行锁的竞争，**先插入再更新能最大程度地减少事务之间的锁等待，提升并发度**
+
+count 函数的按照效率排序：`count(字段) < count(主键id) < count(1) ≈ count(*)`，所以建议尽量使用 count(*)
+
+* count(主键 id)：InnoDB 引擎会遍历整张表，把每一行的 id 值都取出来返回给 Server 层，Server 判断 id 不为空就按行累加
+* count(1)：InnoDB 引擎遍历整张表但不取值，Server 层对于返回的每一行，放一个数字 1 进去，判断不为空就按行累加
+
+* count(字段)：如果这个字段是定义为 not null 的话，一行行地从记录里面读出这个字段，判断不能为 null，按行累加；如果这个字段定义允许为 null，那么执行的时候，判断到有可能是 null，还要把值取出来再判断一下，不是 null 才累加
+
+
+
+参考文章：https://time.geekbang.org/column/article/72775
 
 
 
@@ -5738,24 +5808,30 @@ MySQL 复制的优点主要包含以下三个方面：
 
 ### 复制原理
 
-MySQL 的主从复制原理图：
+#### 主从结构
+
+MySQL 的主从之间维持了一个长连接。主库内部有一个线程，专门用于服务从库的长连接，连接过程：
+
+* 从库执行 change master 命令，设置主库 A 的 IP、端口、用户名、密码，以及要从哪个位置开始请求 binlog，这个位置包含文件名和日志偏移量
+* 从库执行 start slave 命令，这时从库会启动两个线程，就是图中的 io_thread 和 sql_thread，其中 io_thread 负责与主库建立连接
+* 主库校验完用户名、密码后，开始按照从传过来的位置，从本地读取 binlog 发给从库，开始主从复制
+
+主从复制原理图：
 
 ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-主从复制原理图.jpg)
 
-主从复制主要依赖的是 binlog，MySQL 默认是异步复制，需要三个线程：**master（binlog dump thread）、slave（I/O thread 、SQL thread）**
+主从复制主要依赖的是 binlog，MySQL 默认是异步复制，需要三个线程：
 
-- binlog dump thread：在主库事务提交时，负责把数据变更作为事件 Events 记录在二进制日志文件 binlog 中，并通知 slave 有数据更新
-- I/O thread：负责从主服务器上拉取二进制日志，并将 binlog 日志内容依次写到 relay log 文件的最末端，并将新的 binlog 文件名和 offset 记录到 master-info 文件中，以便下一次读取日志时能告诉 master 服务器从指定 binlog 日志文件及位置开始读取新的 binlog 日志内容
+- binlog dump thread：在主库事务提交时，负责把数据变更记录在二进制日志文件 binlog 中，并通知 slave 有数据更新
+- I/O thread：负责从主服务器上拉取二进制日志，并将 binlog 日志内容依次写到 relay log 中转日志的最末端，并将新的 binlog 文件名和 offset 记录到 master-info 文件中，以便下一次读取日志时能告诉 master 服务器从指定 binlog 日志文件及位置开始读取新的 binlog 日志内容
 - SQL thread：监测本地 relay log 中新增了日志内容，读取中继日志并重做其中的 SQL 语句
 - 从库在 relay-log.info 中记录当前应用中继日志的文件名和位置点以便下一次执行
 
 同步与异步：
 
 * 异步复制有数据丢失风险，例如数据还未同步到从库，主库就给客户端响应，然后主库挂了，此时从库晋升为主库的话数据是缺失的
-* 同步复制，主库需要将 binlog 复制到所有从库，等所有从库响应了之后才会给客户端响应，这样的话性能很差，一般不会选择同步复制
+* 同步复制，主库需要将 binlog 复制到所有从库，等所有从库响应了之后才会给客户端响应，这样的话性能很差，一般不会选择
 * MySQL 5.7 之出现了半同步复制，有参数可以选择成功同步几个从库就返回响应
-
-并行复制：MySQL 5.6 版本增加了并行复制功能，为了改善复制延迟问题，在从库中有两个线程 IO Thread 和 SQL Thread，以采用多线程机制来促进执行，减少从库复制延迟
 
 
 
@@ -5763,15 +5839,37 @@ MySQL 的主从复制原理图：
 
 
 
+#### 主主结构
+
+主主结构就是两个数据库之间总是互为主备关系，这样在切换的时候就不用再修改主备关系
+
+循环复制：在库 A 上更新了一条语句，然后把生成的 binlog 发给库 B，库 B 执行完这条更新语句后也会生成 binlog，会再发给 A
+
+解决方法：
+
+* 两个库的 server id 必须不同，如果相同则它们之间不能设定为主备关系
+* 一个库接到 binlog 并在重放的过程中，生成与原 binlog 的 server id 相同的新的 binlog
+* 每个库在收到从主库发过来的日志后，先判断 server id，如果跟自己的相同，表示这个日志是自己生成的，就直接丢弃这个日志
+
+
+
+***
+
+
+
 ### 主从延迟
 
-主从延迟就是主从之间是存在一定时间的数据不一致：
+#### 延迟原因
+
+正常情况主库执行更新生成的所有 binlog，都可以传到备库并被正确地执行，备库就能达到跟主库一致的状态，这就是最终一致性
+
+主从延迟是主从之间是存在一定时间的数据不一致，就是同一个事务在从库执行完成的时间和主库执行完成的时间的差值，即 T3-T1
 
 - 主库 A 执行完成一个事务，写入 binlog，该时刻记为 T1
 - 传给从库 B，从库接受完这个 binlog 的时刻记为 T2
 - 从库 B 执行完这个事务，该时刻记为 T3
 
-同一个事务，从库执行完成的时间和主库执行完成的时间之间的差值，即 T3-T，通过在从库执行 `show slave status` 命令，返回结果会显示 seconds_behind_master 表示当前从库延迟了多少秒
+通过在从库执行 `show slave status` 命令，返回结果会显示 seconds_behind_master 表示当前从库延迟了多少秒
 
 - 每一个事务的 binlog 都有一个时间字段，用于记录主库上写入的时间
 - 从库取出当前正在执行的事务的时间字段，跟系统的时间进行相减，得到的就是 seconds_behind_master
@@ -5786,13 +5884,104 @@ MySQL 的主从复制原理图：
 
 主从同步问题永远都是**一致性和性能的权衡**，需要根据实际的应用场景，可以采取下面的办法：
 
-* **二次查询**，如果从库查不到数据，则再去主库查一遍，由 API 封装，比较简单，但导致主库压力大
-* 降低多线程大事务并发的概率，优化业务逻辑
 * 优化 SQL，避免慢 SQL，减少批量操作
-* 提高从库机器的配置，减少主库写 binlog 和从库读 binlog 的效率差
+* 降低多线程大事务并发的概率，优化业务逻辑
+* 业务中大多数情况查询操作要比更新操作更多，搭建一主多从结构，让这些从库来分担读的压力
+
 * 尽量采用短的链路，主库和从库服务器的距离尽量要短，提升端口带宽，减少 binlog 传输的网络延时
 * 实时性要求高的业务读强制走主库，从库只做灾备，备份
+
+
+
+***
+
+
+
+#### 并行复制
+
+##### MySQL5.6
+
+高并发情况下，主库的会产生大量的 binlog，在从库中有两个线程 IO Thread 和 SQL Thread单线程执行，会导致主库延迟变大。为了改善复制延迟问题，MySQL 5.6 版本增加了并行复制功能，以采用多线程机制来促进执行
+
+coordinator 就是原来的 sql_thread，并行复制中它不再直接更新数据，只负责读取中转日志和分发事务：
+
+* 线程分配完成并不是立即执行，为了防止造成更新覆盖，更新同一行的两个事务必须被分发到同一个工作线程
+* 同一个事务不能被拆开，必须放到同一个工作线程
+
+MySQL 5.6 版本的策略：每个线程对应一个 hash 表，用于保存当前这个线程的执行队列里的事务所涉及的表，hash 表的 key 是数据库 DB 名，value 是一个数字，表示队列中有多少个事务修改这个库，适用于主库上有多个 DB 的情况
+
+每个事务在分发的时候，跟线程的冲突（事务操作的是同一个 DB）关系包括以下三种情况：
+
+* 如果跟所有线程都不冲突，coordinator 线程就会把这个事务分配给最空闲的线程
+* 如果跟多于一个线程冲突，coordinator 线程就进入等待状态，直到和这个事务存在冲突关系的线程只剩下 1 个
+* 如果只跟一个线程冲突，coordinator 线程就会把这个事务分配给这个存在冲突关系的线程
+
+优缺点：
+
+* 构造 hash 值的时候很快，只需要库名，而且一个实例上 DB 数也不会很多，不会出现需要构造很多个项的情况
+* 不要求 binlog 的格式，statement 格式的 binlog 也可以很容易拿到库名
+* 主库上的表都放在同一个 DB 里面，这个策略就没有效果了；或者不同 DB 的热点不同，比如一个是业务逻辑库，一个是系统配置库，那也起不到并行的效果，需要把相同热度的表均匀分到这些不同的 DB 中，才可以使用这个策略
+
+
+
+***
+
+
+
+##### MySQL5.7
+
+MySQL 5.7 并行复制策略的思想是：所有处于 commit 状态的事务可以并行执行
+
+* 同时处于 prepare 状态的事务，在备库执行时是可以并行的
+* 处于 prepare 状态的事务，与处于 commit 状态的事务之间，在备库执行时也是可以并行的
+
+MySQL 5.7 由参数 slave-parallel-type 来控制并行复制策略：
+
+* 配置为 DATABASE，表示使用 MySQL 5.6 版本的**按库并行策略**
+* 配置为 LOGICAL_CLOCK，表示的**按提交状态并行**执行
+
+MySQL 5.7.22 版本里，MySQL 增加了一个新的并行复制策略，基于 WRITESET 的并行复制。新增了一个参数 binlog-transaction-dependency-tracking，用来控制是否启用这个新策略：
+
+* COMMIT_ORDER：表示根据同时进入 prepare 和 commit 来判断是否可以并行的策略
+
+* WRITESET：表示的是对于事务涉及更新的每一行，计算出这一行的 hash 值，组成集合 writeset，如果两个事务没有操作相同的行，也就是说它们的 writeset 没有交集，就可以并行（**按行并行**）
+
+* WRITESET_SESSION：是在 WRITESET 的基础上多了一个约束，即在主库上同一个线程先后执行的两个事务，在备库执行的时候，要保证相同的先后顺序
+
+  为了唯一标识，这个 hash 表的值是通过 `库名 + 表名 + 索引名 + 值` 计算出来的
+
+MySQL 5.7.22 按行并发的优势：
+
+* writeset 是在主库生成后直接写入到 binlog 里面的，这样在备库执行的时候，不需要解析 binlog 内容，节省了计算量
+* 不需要把整个事务的 binlog 都扫一遍才能决定分发到哪个线程，更省内存
+* 从库的分发策略不依赖于 binlog 内容，所以 binlog 是 statement 格式也可以，更节约内存（因为 row 才记录更改的行）
+
+MySQL 5.7.22 的并行复制策略在通用性上是有保证的，但是对于表上没主键和外键约束的场景，WRITESET 策略也是没法并行的，也会暂时退化为单线程模型
+
+
+
+参考文章：https://time.geekbang.org/column/article/77083
+
+
+
+***
+
+
+
+#### 读写分离
+
+读写分离的主要目标就是分摊主库的压力，这也产生了读写延迟，造成数据的不一致性
+
+假如客户端执行完一个更新事务后马上发起查询，如果查询选择的是从库的话，可能读到的还是以前的数据，叫过期读，解决方案：
+
 * 强制将写之后**立刻读的操作转移到主库**，比如刚注册的用户，直接登录从库查询可能查询不到，先走主库登录
+
+* **二次查询**，如果从库查不到数据，则再去主库查一遍，由 API 封装，比较简单，但导致主库压力大
+
+* 主库更新后，读从库之前先 sleep 一下，类似于执行一条 `select sleep(1)` 命令
+* 确保主备无延迟的方法，每次从库执行查询请求前，先判断 seconds_behind_master 是否已经等于 0，如果不等于那就等到这个参数变为 0 才能执行查询请求
+
+
 
 
 
@@ -5816,9 +6005,11 @@ MySQL 的主从复制原理图：
 
 
 
-### 搭建流程
+### 主从搭建
 
-#### master
+#### 搭建流程
+
+##### master
 
 1. 在master 的配置文件（/etc/mysql/my.cnf）中，配置如下内容：
 
@@ -5878,7 +6069,7 @@ MySQL 的主从复制原理图：
 
 
 
-#### slave
+##### slave
 
 1. 在 slave 端配置文件中，配置如下内容：
 
@@ -5890,7 +6081,7 @@ MySQL 的主从复制原理图：
    log-bin=/var/lib/mysql/mysqlbin
    ```
 
-2. 执行完毕之后，需要重启MySQL
+2. 执行完毕之后，需要重启 MySQL
 
 3. 指定当前从库对应的主库的IP地址、用户名、密码，从哪个日志文件开始的那个位置开始同步推送日志
 
@@ -5917,7 +6108,7 @@ MySQL 的主从复制原理图：
 
 
 
-#### 验证
+##### 验证
 
 1. 在主库中创建数据库，创建表并插入数据：
 
@@ -5945,6 +6136,35 @@ MySQL 的主从复制原理图：
    在该数据库中，查询表中的数据：
 
    ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-主从复制验证2.jpg)
+
+
+
+***
+
+
+
+#### 主从切换
+
+正常切换步骤：
+
+* 在开始切换之前先对主库进行锁表 `flush tables with read lock`，然后等待所有语句执行完成，切换完成后可以释放锁
+
+* 检查 slave 同步状态，在 slave 执行 `show processlist`
+
+* 停止 slave io 线程，执行命令 `STOP SLAVE IO_THREAD`
+
+* 提升 slave 为 master
+
+  ```sql
+  Stop slave;
+  Reset master;
+  Reset slave all;
+  set global read_only=off;	-- 设置为可更新状态
+  ```
+
+* 将原来 master 变为 slave（参考搭建流程中的 slave 方法）
+
+主库发生故障，从库会进行上位，其他从库指向新的主库
 
 
 
@@ -6006,7 +6226,7 @@ FLUSH TABLES WITH READ LOCK 简称（FTWRL），全局读锁，让整个库处�
 
 MySQL 里面表级别的锁有两种：一种是表锁，一种是元数据锁（meta data lock，MDL)
 
-MDL 叫元数据锁，主要用来保护 Mysql 内部对象的元数据，保证数据读写的正确性，通过 MDL 机制保证 DDL、DML、SELECT 操作的并发，当对一个表做增删改查操作的时候，加 MDL 读锁；当要对表做结构变更操作的时候，加 MDL 写锁
+MDL 叫元数据锁，主要用来保护 MySQL内部对象的元数据，保证数据读写的正确性，通过 MDL 机制保证 DDL、DML、SELECT 操作的并发，**当对一个表做增删改查操作的时候，加 MDL 读锁；当要对表做结构变更操作的时候，加 MDL 写锁**
 
 * MDL 锁不需要显式使用，在访问一个表的时候会被自动加上，事务中的 MDL 锁，在语句执行开始时申请，在整个事务提交后释放
 
@@ -6632,8 +6852,12 @@ binlog_format=STATEMENT
 
 日志格式：
 
-* STATEMENT：该日志格式在日志文件中记录的都是 SQL 语句，每一条对数据进行修改的 SQL都会记录在日志文件中，通过 mysqlbinlog 工具，可以查看到每条语句的文本。主从复制时，从库会将日志解析为原语句，并在从库重新执行一
+* STATEMENT：该日志格式在日志文件中记录的都是 SQL 语句，每一条对数据进行修改的 SQL都会记录在日志文件中，通过 mysqlbinlog 工具，可以查看到每条语句的文本。主从复制时，从库会将日志解析为原语句，并在从库重新执行一遍
+
+  缺点：可能会导致主备不一致，因为记录的 SQL 在不同的环境中可能选择的索引不同，导致结果不同
 * ROW：该日志格式在日志文件中记录的是每一行的数据变更，而不是记录 SQL 语句。比如执行 SQL 语句 `update tb_book set status='1'`，如果是 STATEMENT，在日志中会记录一行 SQL 语句； 如果是 ROW，由于是对全表进行更新，就是每一行记录都会发生变更，ROW 格式的日志中会记录每一行的数据变更
+
+  缺点：记录的数据比较多，占用很多的存储空间
 
 * MIXED：这是 MySQL 默认的日志格式，混合了STATEMENT 和 ROW两种格式。MIXED 格式能尽量利用两种模式的优点，而避开它们的缺点
 
@@ -6679,6 +6903,8 @@ mysqlbinlog log-file;
   ```
 
   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-日志读取1.png)
+  
+  日志结尾有 COMMIT
 
 查看 ROW 格式日志：
 
@@ -6702,6 +6928,8 @@ mysqlbinlog log-file;
   ```
 
   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-日志读取2.png)
+
+
 
 
 
@@ -6870,7 +7098,7 @@ long_query_time=10
 
 **3NF：**在满足第二范式的基础上，表中的任何属性不依赖于其它非主属性，消除传递依赖。简而言之，**非主键都直接依赖于主键，而不是通过其它的键来间接依赖于主键**。
 
-作用：可以通过主键id区分相同数据，修改数据的时候只需要修改一张表（方便修改），反之需要修改多表。
+作用：可以通过主键 id 区分相同数据，修改数据的时候只需要修改一张表（方便修改），反之需要修改多表。
 
 ![](https://gitee.com/seazean/images/raw/master/DB/第三范式.png)
 
