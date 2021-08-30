@@ -49,7 +49,7 @@
   同一台计算机的进程通信称为 IPC（Inter-process communication）
 
   * 信号量：信号量是一个计数器，用于多进程对共享数据的访问，解决同步相关的问题并避免竞争条件
-  * 共享存储：多个进程可以访问同一块内存空间，需要使用信号量用来同步对共享存储的访问
+  * 共享存储：多个进程可以访问同一块内存空间，需要使用信号量用来同步对共享存储的访问（MappedByteBuffer）
   * 管道通信：管道是用于连接一个读进程和一个写进程以实现它们之间通信的一个共享文件，pipe 文件
     * 匿名管道（Pipes）：用于具有亲缘关系的父子进程间或者兄弟进程之间的通信，只支持半双工通信
     * 命名管道（Names Pipes）：以磁盘文件的方式存在，可以实现本机任意两个进程通信，遵循 FIFO
@@ -955,25 +955,22 @@ public static void main(String[] args) {
 
 Monitor 被翻译为监视器或管程
 
-每个 Java 对象都可以关联一个 Monitor 对象，如果使用 synchronized 给对象上锁（重量级）之后，该对象头的
-Mark Word 中就被设置指向 Monitor 对象的指针，这就是重量级锁
+每个 Java 对象都可以关联一个 Monitor 对象，Monitor 也是 class，其实例会存储在堆中，如果使用 synchronized 给对象上锁（重量级）之后，该对象头的 Mark Word 中就被设置指向 Monitor 对象的指针，这就是重量级锁
 
-* Mark Word结构：
+* Mark Word 结构：
 
   ![](https://gitee.com/seazean/images/raw/master/Java/JUC-Monitor-MarkWord结构32位.png)
 
-* 64位虚拟机Mark Word：
+* 64位虚拟机 Mark Word：
 
   ![](https://gitee.com/seazean/images/raw/master/Java/JUC-Monitor-MarkWord结构64位.png)
 
 工作流程：
 
 * 开始时 Monitor 中 Owner 为 null
-* 当 Thread-2 执行 synchronized(obj) 就会将 Monitor 的所有者 Owner 置为 Thread-2，Monitor中只能有一
-  个 Owner，**obj 对象的 Mark Word 指向 Monitor**
+* 当 Thread-2 执行 synchronized(obj) 就会将 Monitor 的所有者 Owner 置为 Thread-2，Monitor 中只能有一个 Owner，**obj 对象的 Mark Word 指向 Monitor**
   <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-Monitor工作原理1.png" style="zoom:67%;" />
-* 在 Thread-2 上锁的过程中，Thread-3、Thread-4、Thread-5 也来执行 synchronized(obj)，就会进入
-  EntryList BLOCKED（双向链表）
+* 在 Thread-2 上锁的过程，Thread-3、Thread-4、Thread-5 也执行 synchronized(obj)，就会进入 EntryList BLOCKED（双向链表）
 * Thread-2 执行完同步代码块的内容，根据对象头中 Monitor 地址寻找，设置 Owner 为空，唤醒 EntryList 中等待的线程来竞争锁，竞争是**非公平的**
 * WaitSet 中的 Thread-0，是以前获得过锁，但条件不满足进入 WAITING 状态的线程（wait-notify 机制）
 
@@ -2668,7 +2665,8 @@ public final class Singleton {
         if(INSTANCE == null) { // t2，这里的判断不是线程安全的
             // 首次访问会同步，而之后的使用没有 synchronized
             synchronized(Singleton.class) {
-                if (INSTANCE == null) { // t1，这里是线程安全的，判断防止其他线程在当前线程等待锁的期间完成了初始化
+                // 这里是线程安全的判断，防止其他线程在当前线程等待锁的期间完成了初始化
+                if (INSTANCE == null) { 
                     INSTANCE = new Singleton();
                 }
             }
@@ -2731,7 +2729,7 @@ getInstance 方法对应的字节码为：
 
 步骤 21 和步骤 24 之间不存在数据依赖关系，而且无论重排前后，程序的执行结果在单线程中并没有改变，因此这种重排优化是允许的
 
-* 关键在于 0:getstatic 这行代码在 monitor 控制之外，可以越过 monitor 读取INSTANCE 变量的值
+* 关键在于 0:getstatic 这行代码在 monitor 控制之外，可以越过 monitor 读取 INSTANCE 变量的值
 * 当其他线程访问 instance 不为 null 时，由于 instance 实例未必已初始化，那么 t2 拿到的是将是一个未初
   始化完毕的单例返回，这就造成了线程安全的问题
 
@@ -2747,7 +2745,7 @@ getInstance 方法对应的字节码为：
 
 指令重排只会保证串行语义的执行一致性（单线程），但并不会关系多线程间的语义一致性
 
-引入volatile，来保证出现指令重排的问题，从而保证单例模式的线程安全性：
+引入 volatile，来保证出现指令重排的问题，从而保证单例模式的线程安全性：
 
 ```java
 private static volatile SingletonDemo INSTANCE = null;
@@ -12881,7 +12879,7 @@ final void updateHead(Node<E> h, Node<E> p) {
 
 1. 协议：计算机网络客户端与服务端通信必须约定和彼此遵守的通信规则，HTTP、FTP、TCP、UDP、SMTP
 
-2. IP地址：互联网协议地址(Internet Protocol Address)，用来给一个网络中的计算机设备做唯一的编号
+2. IP地址：互联网协议地址（Internet Protocol Address），用来给一个网络中的计算机设备做唯一的编号
 
    * IPv4 ：4个字节，32位组成，192.168.1.1
    * Pv6：可以实现为所有设备分配 IP  128 位
@@ -12911,11 +12909,11 @@ final void updateHead(Node<E> h, Node<E> p) {
 
 网络通信协议：对计算机必须遵守的规则，只有遵守这些规则，计算机之间才能进行通信
 
-> 应用层：应用程序（QQ,微信,浏览器），可能用到的协议（HTTP,FTP,SMTP）
+> 应用层：应用程序（QQ、微信、浏览器），可能用到的协议（HTTP、FTP、SMTP）
 >
-> 传输层：TCP/IP协议 - UDP协议
+> 传输层：TCP/IP 协议 - UDP 协议
 >
-> 网络层  ：IP协议，封装自己的IP和对方的IP和端口
+> 网络层  ：IP 协议，封装自己的 IP 和对方的 IP 和端口
 >
 > 数据链路层 ： 进入到硬件（网）
 
@@ -12923,12 +12921,12 @@ final void updateHead(Node<E> h, Node<E> p) {
 
 TCP/IP协议：传输控制协议 (Transmission Control Protocol)
 
-传输控制协议 TCP（Transmission Control Protocol）是面向连接的，提供可靠交付，有流量控制，拥塞控制，提供全双工通信，面向字节流（把应用层传下来的报文看成字节流，把字节流组织成大小不等的数据块），每一条 TCP 连接只能是点对点的（一对一）
+传输控制协议 TCP（Transmission Control Protocol）是面向连接的，提供可靠交付，有流量控制，拥塞控制，提供全双工通信，面向字节流，每一条 TCP 连接只能是点对点的（一对一）
 
 * 在通信之前必须确定对方在线并且连接成功才可以通信
 * 例如下载文件、浏览网页等（要求可靠传输）
 
-用户数据报协议 UDP（User Datagram Protocol）是无连接的，尽最大可能交付，没有拥塞控制，面向报文（对于应用程序传下来的报文不合并也不拆分，只是添加 UDP 首部），支持一对一、一对多、多对一和多对多的交互通信
+用户数据报协议 UDP（User Datagram Protocol）是无连接的，尽最大可能交付，不可靠，没有拥塞控制，面向报文，支持一对一、一对多、多对一和多对多的交互通信
 
 * 直接发消息给对方，不管对方是否在线，发消息后也不需要确认
 * 无线（视频会议，通话），性能好，可能丢失一些数据
@@ -12951,26 +12949,32 @@ TCP/IP协议：传输控制协议 (Transmission Control Protocol)
 Java 中的通信模型:
 
 1. BIO 表示同步阻塞式通信，服务器实现模式为一个连接一个线程，即客户端有连接请求时服务器端就需要启动一个线程进行处理，如果这个连接不做任何事情会造成不必要的线程开销，可以通过线程池机制改善。
+   
    同步阻塞式性能极差：大量线程，大量阻塞
-
+   
 2. 伪异步通信：引入线程池，不需要一个客户端一个线程，实现线程复用来处理很多个客户端，线程可控。 
-   高并发下性能还是很差：线程数量少，数据依然是阻塞的；数据没有来线程还是要等待
-
+   
+   高并发下性能还是很差：线程数量少，数据依然是阻塞的，数据没有来线程还是要等待
+   
 3. NIO 表示**同步非阻塞 IO**，服务器实现模式为请求对应一个线程，客户端发送的连接会注册到多路复用器上，多路复用器轮询到连接有 I/O 请求时才启动一个线程进行处理
 
-   工作原理：1个主线程专门负责接收客户端，1个线程轮询所有的客户端，发来了数据才会开启线程处理
+   工作原理：1 个主线程专门负责接收客户端，1 个线程轮询所有的客户端，发来了数据才会开启线程处理
+
    同步：线程还要不断的接收客户端连接，以及处理数据
+
    非阻塞：如果一个管道没有数据，不需要等待，可以轮询下一个管道是否有数据
 
 4. AIO 表示异步非阻塞 IO，AIO 引入异步通道的概念，采用了 Proactor 模式，有效的请求才启动线程，特点是先由操作系统完成后才通知服务端程序启动线程去处理，一般适用于连接数较多且连接时间较长的应用
+   
    异步：服务端线程接收到了客户端管道以后就交给底层处理 IO 通信，线程可以做其他事情
+   
    非阻塞：底层也是客户端有数据才会处理，有了数据以后处理好通知服务器应用来启动线程进行处理
 
 各种模型应用场景：
 
 * BIO 适用于连接数目比较小且固定的架构，该方式对服务器资源要求比较高，并发局限于应用中，程序简单
-* NIO 适用于连接数目多且连接比较短（轻操作）的架构，如聊天服务器，并发局限于应用中，编程复杂，JDK 1.4开始支持
-* AIO 适用于连接数目多且连接比较长（重操作）的架构，如相册服务器，充分调用操作系统参与并发操作，编程复杂，JDK 1.7开始支持
+* NIO 适用于连接数目多且连接比较短（轻操作）的架构，如聊天服务器，并发局限于应用中，编程复杂，JDK 1.4 开始支持
+* AIO 适用于连接数目多且连接比较长（重操作）的架构，如相册服务器，充分调用操作系统参与并发操作，JDK 1.7 开始支持
 
 
 
@@ -13105,8 +13109,8 @@ int select(int n, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct t
 
   ```c
   struct timeval{
-      long tv_sec; //秒
-      long tv_usec;//微秒
+      long tv_sec; 	//秒
+      long tv_usec;	//微秒
   }
   ```
 
@@ -13331,11 +13335,7 @@ else
 
 流程图：https://gitee.com/seazean/images/blob/master/Java/IO-epoll%E5%8E%9F%E7%90%86%E5%9B%BE.jpg
 
-图片来源：https://www.processon.com/view/link/5f62f98f5653bb28eb434add
-
 参考视频：https://www.bilibili.com/video/BV19D4y1o797
-
-参考文章：https://github.com/CyC2018/CS-Notes/blob/master/notes/Socket.md
 
 
 
@@ -13353,8 +13353,8 @@ epoll 的特点：
 * epoll 的时间复杂度 O(1)，epoll 理解为 event poll，不同于忙轮询和无差别轮询，调用 epoll_wait **只是轮询就绪链表**。当监听列表有设备就绪时调用回调函数，把就绪 fd 放入就绪链表中，并唤醒在 epoll_wait 中阻塞的进程，所以 epoll 实际上是**事件驱动**（每个事件关联上fd）的，降低了 system call 的时间复杂度
 * epoll 内核中根据每个 fd 上的 callback 函数来实现，只有活跃的 socket 才会主动调用 callback，所以使用 epoll 没有前面两者的线性下降的性能问题，效率提高
 
-* epoll 每次注册新的事件到 epoll 句柄中时，会把新的 fd 拷贝进内核，但不是每次 epoll_wait 的重复拷贝，对比前面两种，epoll 只需要将描述符从进程缓冲区向内核缓冲区拷贝一次。 epoll 也可以利用 **mmap() 文件映射内存**加速与内核空间的消息传递，减少复制开销
-* 前面两者要把 current 往设备等待队列中挂一次，epoll 也只把 current 往等待队列上挂一次，但是这里的等待队列并不是设备等待队列，只是一个 epoll 内部定义的等待队列，这样节省不少的开销
+* epoll 注册新的事件都是注册到到内核中 epoll 句柄中，不需要每次调用 epoll_wait 时重复拷贝，对比前面两种，epoll 只需要将描述符从进程缓冲区向内核缓冲区拷贝一次。 epoll 也可以利用 **mmap() 文件映射内存**加速与内核空间的消息传递，减少复制开销
+* 前面两者要把 current 往设备等待队列中挂一次，epoll 也只把 current 往等待队列上挂一次，但是这里的等待队列并不是设备等待队列，只是一个 epoll 内部定义的等待队列，这样可以节省开销
 * epoll 对多线程编程更有友好，一个线程调用了 epoll_wait() 另一个线程关闭了同一个描述符，也不会产生像 select 和 poll 的不确定情况
 
 
@@ -13374,15 +13374,15 @@ epoll 的特点：
 应用场景： 
 
 * select 应用场景：
-  * select 的 timeout 参数精度为微秒，poll 和 epoll 为毫秒，因此 select 适用于实时性要求比较高的场景，比如核反应堆的控制
+  * select 的 timeout 参数精度为微秒，poll 和 epoll 为毫秒，因此 select 适用**实时性要求比较高**的场景，比如核反应堆的控制
   * select 可移植性更好，几乎被所有主流平台所支持
 
 * poll 应用场景：poll 没有最大描述符数量的限制，适用于平台支持并且对实时性要求不高的情况
 
 * epoll 应用场景：
-  * 运行在 Linux 平台上，有大量的描述符需要同时轮询，并且这些连接最好是长连接
+  * 运行在 Linux 平台上，有大量的描述符需要同时轮询，并且这些连接最好是**长连接**
   * 需要同时监控小于 1000 个描述符，没必要使用 epoll，因为这个应用场景下并不能体现 epoll 的优势
-  * 需要监控的描述符状态变化多，而且都是非常短暂的，也没有必要使用 epoll。因为 epoll 中的所有描述符都存储在内核中，造成每次需要对描述符的状态改变都需要通过 epoll_ctl() 进行系统调用，频繁系统调用降低效率，并且 epoll 的描述符存储在内核，不容易调试
+  * 需要监控的描述符状态变化多，而且是非常短暂的，就没有必要使用 epoll。因为 epoll 中的所有描述符都存储在内核中，每次对描述符的状态改变都需要通过 epoll_ctl() 进行系统调用，频繁系统调用降低效率，并且 epoll 的描述符存储在内核，不容易调试
 
 
 
@@ -13457,13 +13457,13 @@ DMA (Direct Memory Access) ：直接存储器访问，让外部设备不通过 C
 把内存数据传输到网卡然后发送：
 
 * 没有 DMA：CPU 读内存数据到 CPU 高速缓存，再写到网卡，这样就把 CPU 的速度拉低到和网卡一个速度
-* 使用 DMA：把数据读到 Socket 内核缓存区（CPU复制），CPU 分配给 DMA 开始**异步**操作，DMA 读取 Socket 缓冲区到 DMA 缓冲区，然后写到网卡。DMA 执行完后中断（就是通知） CPU，这时 Socket 内核缓冲区为空，CPU 从用户态切换到内核态，执行中断处理程序，将需要使用 Socket 缓冲区的阻塞进程移到就绪队列
+* 使用 DMA：把数据读到 Socket 内核缓存区（CPU 复制），CPU 分配给 DMA 开始**异步**操作，DMA 读取 Socket 缓冲区到 DMA 缓冲区，然后写到网卡。DMA 执行完后中断（就是通知） CPU，这时 Socket 内核缓冲区为空，CPU 从用户态切换到内核态，执行中断处理程序，将需要使用 Socket 缓冲区的阻塞进程移到就绪队列
 
 一个完整的 DMA 传输过程必须经历 DMA 请求、DMA 响应、DMA 传输、DMA 结束四个步骤：
 
 <img src="https://gitee.com/seazean/images/raw/master/Java/IO-DMA.png" style="zoom: 50%;" />
 
-DMA 方式是一种完全由硬件进行组信息传送的控制方式，通常系统总线由 CPU 管理，在 DMA 方式中，CPU 的主存控制信号被禁止使用，CPU 把总线（地址总线、数据总线、控制总线）让出来由 DMA 控制器接管，用来控制传送的字节数、判断 DMA 是否结束、以及发出 DMA 结束信号，所以 DMA 控制器必须有以下功能：
+DMA 方式是一种完全由硬件进行信息传送的控制方式，通常系统总线由 CPU 管理，在 DMA 方式中，CPU 的主存控制信号被禁止使用，CPU 把总线（地址总线、数据总线、控制总线）让出来由 DMA 控制器接管，用来控制传送的字节数、判断 DMA 是否结束、以及发出 DMA 结束信号，所以 DMA 控制器必须有以下功能：
 
 * 接受外设发出的 DMA 请求，并向 CPU 发出总线接管请求
 * 当 CPU 发出允许接管信号后，进入 DMA 操作周期
@@ -13481,8 +13481,8 @@ DMA 方式是一种完全由硬件进行组信息传送的控制方式，通常�
 
 传统的 I/O 操作进行了 4 次用户空间与内核空间的上下文切换，以及 4 次数据拷贝：
 
-* JVM 发出 read() 系统调用，OS 上下文切换到内核模式（切换1）并将数据从网卡或硬盘等通过 DMA 读取到内核空间缓冲区（拷贝1）
-* OS 内核将数据复制到用户空间缓冲区（拷贝2），然后 read 系统调用返回，又会导致一次内核空间到用户空间的上下文切换（切换2）
+* JVM 发出 read 系统调用，OS 上下文切换到内核模式（切换 1）并将数据从网卡或硬盘等设备通过 DMA 读取到内核空间缓冲区（拷贝 1）
+* OS 内核将数据复制到用户空间缓冲区（拷贝 2），然后 read 系统调用返回，又会导致一次内核空间到用户空间的上下文切换（切换 2）
 * JVM 处理代码逻辑并发送 write() 系统调用，OS 上下文切换到内核模式（切换3）并从用户空间缓冲区复制数据到内核空间缓冲区（拷贝3）
 * 将内核空间缓冲区中的数据写到 hardware（拷贝4），write 系统调用返回，导致内核空间到用户空间的再次上下文切换（切换4）
 
@@ -13508,7 +13508,7 @@ mmap（Memory Mapped Files）加 write 实现零拷贝，**零拷贝就是没有
 
 进行了 4 次用户空间与内核空间的上下文切换，以及 3 次数据拷贝（2 次 DMA，一次 CPU 复制）：
 
-* 发出 mmap 系统调用，DMA 拷贝到内核缓冲区；mmap系统调用返回，无需拷贝
+* 发出 mmap 系统调用，DMA 拷贝到内核缓冲区，映射到共享缓冲区；mmap 系统调用返回，无需拷贝
 * 发出 write 系统调用，将数据从内核缓冲区拷贝到内核 Socket 缓冲区；write系统调用返回，DMA 将内核空间 Socket 缓冲区中的数据传递到协议引擎
 
 ![](https://gitee.com/seazean/images/raw/master/Java/IO-mmap工作流程.png)
@@ -13551,13 +13551,14 @@ Java NIO 对 sendfile 的支持是 `FileChannel.transferTo()/transferFrom()`，�
 
 ### Inet
 
-一个该 InetAddress 类的对象就代表一个IP地址对象
+一个 InetAddress 类的对象就代表一个 IP 地址对象
 
 成员方法：
-`static InetAddress getLocalHost()` : 获得本地主机IP地址对象
-`static InetAddress getByName(String host)` : 根据IP地址字符串或主机名获得对应的IP地址对象
-`String getHostName()` : 获取主机名
-`String getHostAddress()` : 获得IP地址字符串
+
+* `static InetAddress getLocalHost()`：获得本地主机 IP 地址对象
+* `static InetAddress getByName(String host)`：根据 IP 地址字符串或主机名获得对应的IP地址对象
+* `String getHostName()`：获取主机名
+* `String getHostAddress()`：获得 IP 地址字符串
 
 ```java
 public class InetAddressDemo {
@@ -13599,7 +13600,7 @@ UDP（User Datagram Protocol）协议的特点：
 * 发送数据的包的大小限制 **64KB** 以内
 * 因为面向无连接，速度快，但是不可靠，会丢失数据
 
-UDP协议的使用场景：在线视频、网络语音、电话
+UDP 协议的使用场景：在线视频、网络语音、电话
 
 
 
@@ -13618,31 +13619,32 @@ UDP 协议相关的两个类
 
 * DatagramPacket 类
 
-  `public new DatagramPacket(byte[] buf, int length, InetAddress address, int port)` : 创建发送端数据包对象，参数： 
+  `public new DatagramPacket(byte[] buf, int length, InetAddress address, int port)`：创建发送端数据包对象 
 
   * buf：要发送的内容，字节数组
   * length：要发送内容的长度，单位是字节
   * address：接收端的IP地址对象
   * port：接收端的端口号
 
-  `public new DatagramPacket(byte[] buf, int length)` : 创建接收端的数据包对象，参数：
+  `public new DatagramPacket(byte[] buf, int length)`：创建接收端的数据包对象
 
   * buf：用来存储接收到内容		
   * length：能够接收内容的长度
 
 * DatagramPacket 类常用方法
-  `public int getLength()` : 获得实际接收到的字节个数
-  `public byte[] getData()` : 返回数据缓冲区
+  
+  * `public int getLength()`：获得实际接收到的字节个数
+  * `public byte[] getData()`：返回数据缓冲区
 
 **DatagramSocket**：
 
-* DatagramSocket 类构造方法
-  `protected DatagramSocket()` : 创建发送端的 Socket 对象，系统会随机分配一个端口号
-  `protected DatagramSocket(int port)` : 创建接收端的 Socket 对象并指定端口号
+* DatagramSocket 类构造方法：
+  * `protected DatagramSocket()`：创建发送端的 Socket 对象，系统会随机分配一个端口号
+  * `protected DatagramSocket(int port)`：创建接收端的 Socket 对象并指定端口号
 * DatagramSocket 类成员方法
-  `public void send(DatagramPacket dp)` : 发送数据包
-  `public void receive(DatagramPacket p)` : 接收数据包
-  `public void close()` : 关闭数据报套接字
+  * `public void send(DatagramPacket dp)`：发送数据包
+  * `public void receive(DatagramPacket p)`：接收数据包
+  * `public void close()`：关闭数据报套接字
 
 ```java
 public class UDPClientDemo {
@@ -13664,7 +13666,7 @@ public class UDPServerDemo{
         System.out.println("==启动服务端程序==");
         // 1.创建一个接收客户都端的数据包对象（集装箱）
         byte[] buffer = new byte[1024*64];
-        DatagramPacket packet = new DatagramPacket(buffer,bubffer.length);
+        DatagramPacket packet = new DatagramPacket(buffer, bubffer.length);
         // 2.创建一个接收端的码头对象
         DatagramSocket socket = new DatagramSocket(8000);
         // 3.开始接收
@@ -13724,13 +13726,13 @@ TCP/IP 协议的特点：
 * 面向连接的协议
 * 只能由客户端主动发送数据给服务器端，服务器端接收到数据之后，可以给客户端响应数据
 * 通过**三次握手**建立连接，连接成功形成数据传输通道；通过**四次挥手**断开连接
-* 基于IO流进行数据传输
+* 基于字节流进行数据传输
 * 传输数据大小没有限制
 * 因为面向连接的协议，速度慢，但是是可靠的协议。
 
 TCP 协议的使用场景：文件上传和下载、邮件发送和接收、远程登录
 
-注意：**TCP不会为没有数据的ACK超时重传**
+注意：**TCP 不会为没有数据的 ACK 超时重传**
 
 <img src="https://gitee.com/seazean/images/raw/master/Java/三次握手.png" alt="三次握手" style="zoom: 50%;" />
 
@@ -14177,10 +14179,10 @@ public class Server {
 
 **NIO的介绍**：
 
-Java NIO（New IO、Java non-blocking IO），从 Java 1.4 版本开始引入的一个新的 IO API，可以替代标准的  Java IO API，NIO 支持面**向缓冲区**的、基于**通道**的 IO 操作，以更加高效的方式进行文件的读写操作。
+Java NIO（New IO、Java non-blocking IO），从 Java 1.4 版本开始引入的一个新的 IO API，可以替代标准的  Java IO API，NIO 支持面向缓冲区的、基于通道的 IO 操作，以更加高效的方式进行文件的读写操作。
 
 * NIO 有三大核心部分：**Channel( 通道) ，Buffer( 缓冲区)，Selector( 选择器)**
-* NIO 是非阻塞IO，传统 IO 的 read 和 write 只能阻塞执行，线程在读写 IO 期间不能干其他事情，比如调用socket.read()，如果服务器没有数据传输过来，线程就一直阻塞，而 NIO 中可以配置 Socket 为非阻塞模式
+* NIO 是非阻塞IO，传统 IO 的 read 和 write 只能阻塞执行，线程在读写 IO 期间不能干其他事情，比如调用 socket.accept()，如果服务器没有数据传输过来，线程就一直阻塞，而 NIO 中可以配置 Socket 为非阻塞模式
 * NIO 可以做到用一个线程来处理多个操作的。假设有 1000 个请求过来，根据实际情况可以分配20 或者 80个线程来处理，不像之前的阻塞 IO 那样分配 1000 个
 
 NIO 和 BIO 的比较：
@@ -14205,7 +14207,7 @@ NIO 和 BIO 的比较：
 
 ### 实现原理
 
-NIO 三大核心部分：**Channel( 通道) ，Buffer( 缓冲区), Selector( 选择器)**
+NIO 三大核心部分：Channel( 通道) ，Buffer( 缓冲区), Selector( 选择器)
 
 * Buffer 缓冲区
 
@@ -14225,12 +14227,12 @@ NIO 的实现框架：
 
 * 每个 Channel 对应一个 Buffer
 * 一个线程对应 Selector ， 一个 Selector 对应多个 Channel（连接）
-* 程序切换到哪个Channel 是由事件决定的，Event 是一个重要的概念
+* 程序切换到哪个 Channel 是由事件决定的，Event 是一个重要的概念
 * Selector 会根据不同的事件，在各个通道上切换
 * Buffer 是一个内存块 ， 底层是一个数组
 * 数据的读取写入是通过 Buffer 完成的 , BIO 中要么是输入流，或者是输出流，不能双向，NIO 的 Buffer 是可以读也可以写， flip() 切换 Buffer 的工作模式
 
-Java NIO 系统的核心在于：通道和缓冲区，通道表示打开到 IO 设备（例如：文件、 套接字）的连接。若需要使用 NIO 系统，获取用于连接 IO 设备的通道以及用于容纳数据的缓冲区，然后操作缓冲区，对数据进行处理。简而言之，Channel 负责传输， Buffer 负责存取数据
+Java NIO 系统的核心在于：通道和缓冲区，通道表示打开的 IO 设备（例如：文件、 套接字）的连接。若要使用 NIO 系统，获取用于连接 IO 设备的通道以及用于容纳数据的缓冲区，然后操作缓冲区，对数据进行处理。简而言之，Channel 负责传输， Buffer 负责存取数据
 
 
 
@@ -14246,7 +14248,7 @@ Java NIO 系统的核心在于：通道和缓冲区，通道表示打开到 IO �
 
 ![](https://gitee.com/seazean/images/raw/master/Java/NIO-Buffer.png)
 
-Buffer 底层是一个数组，可以保存多个相同类型的数据，根据数据类型不同 ，有以下 Buffer 常用子类：ByteBuffer、CharBuffer、ShortBuffer、IntBuffer、LongBuffer、FloatBuffer、DoubleBuffer 
+**Buffer 底层是一个数组**，可以保存多个相同类型的数据，根据数据类型不同 ，有以下 Buffer 常用子类：ByteBuffer、CharBuffer、ShortBuffer、IntBuffer、LongBuffer、FloatBuffer、DoubleBuffer 
 
 
 
@@ -14258,7 +14260,7 @@ Buffer 底层是一个数组，可以保存多个相同类型的数据，根据�
 
 * 容量（capacity）：作为一个内存块，Buffer 具有固定大小，缓冲区容量不能为负，并且创建后不能更改
 
-* 限制 （limit）：表示缓冲区中可以操作数据的大小（limit 后数据不能进行读写），缓冲区的限制不能为负，并且不能大于其容量。 写入模式，限制等于 buffer 的容量；读取模式下，limit 等于写入的数据量
+* 限制 （limit）：表示缓冲区中可以操作数据的大小（limit 后数据不能进行读写），缓冲区的限制不能为负，并且不能大于其容量。写入模式，limit 等于 buffer 的容量；读取模式下，limit 等于写入的数据量
 
 * 位置（position）：**下一个要读取或写入的数据的索引**，缓冲区的位置不能为负，并且不能大于其限制
 
@@ -14276,7 +14278,7 @@ Buffer 底层是一个数组，可以保存多个相同类型的数据，根据�
 
 #### 常用API
 
-`static XxxBuffer allocate(int capacity)` : 创建一个容量为 capacity 的 XxxBuffer 对象
+`static XxxBuffer allocate(int capacity)`：创建一个容量为 capacity 的 XxxBuffer 对象
 
 Buffer 基本操作：
 
@@ -14318,12 +14320,12 @@ Buffer 数据操作：
 
 #### 读写数据
 
-使用Buffer读写数据一般遵循以下四个步骤：
+使用 Buffer 读写数据一般遵循以下四个步骤：
 
 * 写入数据到 Buffer
 * 调用 flip()方法，转换为读取模式
 * 从 Buffer 中读取数据
-* 调用 buffer.clear() 方法清除缓冲区
+* 调用 buffer.clear() 方法清除缓冲区（不是清空了数据，只是重置指针）
 
 ```java
 public class TestBuffer {
@@ -14402,7 +14404,7 @@ Direct Memory 优点：
 
 数据流的角度：
 
-* 非直接内存的作用链：本地IO → 内核缓冲区→ 用户缓冲区 →内核缓冲区 → 本地IO
+* 非直接内存的作用链：本地IO → 内核缓冲区→ 用户（JVM）缓冲区 →内核缓冲区 → 本地IO
 * 直接内存是：本地IO → 直接内存 → 本地IO
 
 JVM 直接内存图解：
@@ -14439,7 +14441,7 @@ NIO 使用的 SocketChannel 也是使用的堆外内存，源码解析：
 
   ```java
   static int write(FileDescriptor var0, ByteBuffer var1, long var2, NativeDispatcher var4) {
-      // 判断是否是直接内存，是则直接写出，不是则封装到直接内存
+      // 【判断是否是直接内存，是则直接写出，不是则封装到直接内存】
       if (var1 instanceof DirectBuffer) {
           return writeFromNativeBuffer(var0, var1, var2, var4);
       } else {
@@ -14552,7 +14554,7 @@ FileChannel 中的成员属性：
 MappedByteBuffer，可以让文件在直接内存（堆外内存）中进行修改，这种方式叫做**内存映射**，可以直接调用系统底层的缓存，没有 JVM 和 OS 之间的复制操作，提高了传输效率，作用：
 
 * **用在进程间的通信，能达到共享内存页的作用**，但在高并发下要对文件内存进行加锁，防止出现读写内容混乱和不一致性，Java 提供了文件锁 FileLock，但在父/子进程中锁定后另一进程会一直等待，效率不高
-* 读写那些太大而不能放进内存中的文件
+* 读写那些太大而不能放进内存中的文件，分段映射
 
 MappedByteBuffer 较之 ByteBuffer新增的三个方法
 
@@ -14671,7 +14673,7 @@ public class ChannelTest {
 	public void write() throws Exception{
  		// 1、字节输出流通向目标文件
         FileOutputStream fos = new FileOutputStream("data01.txt");
-        // 2、得到字节输出流对应的通道Channel
+        // 2、得到字节输出流对应的通道  【FileChannel】
         FileChannel channel = fos.getChannel();
         // 3、分配缓冲区
         ByteBuffer buffer = ByteBuffer.allocate(1024);
@@ -14708,7 +14710,7 @@ public class ChannelTest {
 
 #### 文件复制
 
-Channel 的两个方法：
+Channel 的方法：sendfile 实现零拷贝
 
 * `abstract long transferFrom(ReadableByteChannel src, long position, long count)`：从给定的可读字节通道将字节传输到该通道的文件中
   * src：源通道
@@ -14800,7 +14802,7 @@ public class ChannelTest {
 
 分散读取（Scatter ）：是指把 Channel 通道的数据读入到多个缓冲区中去
 
-聚集写入（Gathering ）：是指将多个 Buffer 中的数据“聚集”到 Channel。
+聚集写入（Gathering ）：是指将多个 Buffer 中的数据聚集到 Channel
 
 ```java
 public class ChannelTest {
@@ -14868,9 +14870,7 @@ public class ChannelTest {
 * 写 : SelectionKey.OP_WRITE （4）
 * 连接 : SelectionKey.OP_CONNECT （8）
 * 接收 : SelectionKey.OP_ACCEPT （16）
-* 若不止监听一个事件，可以使用“位或”操作符连接：`int interest = SelectionKey.OP_READ | SelectionKey.OP_WRITE`
-
-
+* 若不止监听一个事件，可以使用位或操作符连接：`int interest = SelectionKey.OP_READ | SelectionKey.OP_WRITE`
 
 **Selector API**：
 
@@ -14967,9 +14967,9 @@ ssChannel.register(selector, SelectionKey.OP_ACCEPT);
 
 4. 获取选择器
 
-5. 将通道注册到选择器上, 并且指定“监听接收事件”
+5. 将通道注册到选择器上，并且指定监听接收事件
 
-6. 轮询式的获取选择器上已经“准备就绪”的事件
+6. **轮询式**的获取选择器上已经准备就绪的事件
 
 客户端：
 
