@@ -820,7 +820,7 @@ public class MethodDemo {
 
 #### 参数传递
 
-**Java 的参数是以值传递的形式传入方法中**
+Java 的参数是以**值传递**的形式传入方法中
 
 值传递和引用传递的区别在于传递后会不会影响实参的值：值传递会创建副本，引用传递不会创建副本
 
@@ -2296,7 +2296,7 @@ public boolean equals(Object o) {
 **面试题**：== 和 equals 的区别
 
 * == 比较的是变量（栈）内存中存放的对象的（堆）内存地址，用来判断两个对象的**地址**是否相同，即是否是指相同一个对象，比较的是真正意义上的指针操作
-* 重写 equals 方法比较的是两个对象的**内容**是否相等，所有的类都是继承自 java.lang.Object 类，所以适用于所有对象，如果**没有对该方法进行覆盖的话，调用的仍然是 Object 类中的方法，比较两个对象的引用**
+* Object 类中的方法，默认比较两个对象的引用，重写 equals 方法比较的是两个对象的**内容**是否相等，所有的类都是继承自 java.lang.Object 类，所以适用于所有对象
 
 hashCode 的作用：
 
@@ -2314,7 +2314,7 @@ hashCode 的作用：
 
 深浅拷贝（克隆）的概念：
 
-* 浅拷贝 (shallowCopy)：对基本数据类型进行值传递，对引用数据类型只是复制了引用，被复制对象属性的所有的引用仍然指向原来的对象，简而言之就是增加了一个指针指向原来对象的内存地址
+* 浅拷贝 (shallowCopy)：**对基本数据类型进行值传递，对引用数据类型只是复制了引用**，被复制对象属性的所有的引用仍然指向原来的对象，简而言之就是增加了一个指针指向原来对象的内存地址
 
   Java 中的复制方法基本都是浅克隆：Object.clone()、System.arraycopy()、Arrays.copyOf()
 
@@ -2478,24 +2478,24 @@ s.replace("-","");//12378
 * `public String(char[] chs)` : 根据字符数组的内容，来创建字符串对象
 * `public String(String original)` : 根据传入的字符串内容，来创建字符串对象
 
-直接赋值：`String s = “abc”` 直接赋值的方式创建字符串对象，内容就是 abc
+直接赋值：`String s = "abc"` 直接赋值的方式创建字符串对象，内容就是 abc
 
 - 通过构造方法创建：通过 new 创建的字符串对象，每一次 new 都会申请一个内存空间，虽然内容相同，但是地址值不同，**返回堆内存中对象的引用**
 - 直接赋值方式创建：以“ ”方式给出的字符串，只要字符序列相同（顺序和大小写），无论在程序代码中出现几次，JVM 都只会**在 String Pool 中创建一个字符串对象**，并在字符串池中维护
 
-`String str = new String("abc")`创建字符串对象：
+`String str = new String("abc")` 创建字符串对象：
 
-* 创建一个对象：字符串池中已经存在"abc"对象，那么直接在创建一个对象放入堆中，返回堆内引用
-* 创建两个对象：字符串池中未找到"abc"对象，那么分别在堆中和字符串池中创建一个对象，字符串池中的比较都是采用 equals() 
+* 创建一个对象：字符串池中已经存在 abc 对象，那么直接在创建一个对象放入堆中，返回堆内引用
+* 创建两个对象：字符串池中未找到 abc 对象，那么分别在堆中和字符串池中创建一个对象，字符串池中的比较都是采用 equals() 
   <img src="https://gitee.com/seazean/images/raw/master/Java/String构造方法字节码.png" style="zoom: 67%;" />
 
-`new String("a") + new String("b")`创建字符串对象：
+`new String("a") + new String("b")` 创建字符串对象：
 
-* 对象1：new StringBuilder()
+* 对象 1：new StringBuilder()
 
-* 对象2：new String("a")、对象3：常量池中的"a"
+* 对象 2：new String("a")、对象 3：常量池中的 a
 
-* 对象4：new String("b")、对象5：常量池中的"b"
+* 对象 4：new String("b")、对象 5：常量池中的 b
   <img src="https://gitee.com/seazean/images/raw/master/Java/String拼接方法字节码.png" style="zoom:67%;" />
 
 *  StringBuilder 的 toString()：
@@ -2507,8 +2507,8 @@ s.replace("-","");//12378
   }
   ```
 
-  * 对象6：new String("ab")
-  * StringBuilder 的 toString() 调用，在字符串常量池中没有生成"ab"，new String("ab") 会创建两个对象因为传参数的时候使用字面量创建了对象 “ab ”，当使用数组构造 String 对象时，没有加入常量池的操作
+  * 对象 6：new String("ab")
+  * StringBuilder 的 toString() 调用，**在字符串常量池中没有生成 ab**，new String("ab") 会创建两个对象因为传参数的时候使用字面量创建了对象 ab，当使用数组构造 String 对象时，没有加入常量池的操作
 
 
 
@@ -2549,18 +2549,20 @@ public class Demo {
     // ldc #3 会把 b 符号变为 "b" 字符串对象
     // ldc #4 会把 ab 符号变为 "ab" 字符串对象
     public static void main(String[] args) {
-        String s1 = "a"; // 懒惰的
+        String s1 = "a"; 	// 懒惰的
         String s2 = "b";
-        String s3 = "ab";//串池
-        // new StringBuilder().append("a").append("b").toString()  new String("ab")
+        String s3 = "ab";	// 串池
+        
         String s4 = s1 + s2;	// 返回的是堆内地址
+        // 原理：new StringBuilder().append("a").append("b").toString()  new String("ab")
+        
         String s5 = "a" + "b";  // javac 在编译期间的优化，结果已经在编译期确定为ab
 
         System.out.println(s3 == s4); // false
         System.out.println(s3 == s5); // true
 
         String x2 = new String("c") + new String("d"); // new String("cd")
-        // 虽然new，但是在字符串常量池没有 cd 对象，toString()方法
+        // 虽然 new，但是在字符串常量池没有 cd 对象，toString() 方法
         x2.intern();
         String x1 = "cd";
 
@@ -2575,9 +2577,9 @@ public class Demo {
 结论：
 
 ```java
-String s1 = "ab";	//放入串池
-String s2 = new String("a") + new String("b");	//放入堆
-//上面两条指令的结果和下面的 效果 相同
+String s1 = "ab";								// 仅放入串池
+String s2 = new String("a") + new String("b");	// 仅放入堆
+// 上面两条指令的结果和下面的 效果 相同
 String s = new String("ab");
 ```
 
@@ -4650,14 +4652,13 @@ JDK7 对比 JDK8：
 
 底层数据结构：
 
-* 哈希表（Hash table，也叫散列表），根据关键码值(Key value)而直接访问的数据结构。通过把关键码值映射到表中一个位置来访问记录，以加快查找的速度，这个映射函数叫做散列函数，存放记录的数组叫做散列表
+* 哈希表（Hash table，也叫散列表），根据关键码值而直接访问的数据结构。通过把关键码值映射到表中一个位置来访问记录，以加快查找的速度，这个映射函数叫做散列函数，存放记录的数组叫做散列表
 
 * JDK1.8 之前 HashMap 由 数组+链表 组成
 
   * 数组是 HashMap 的主体
-  * 链表则是为了解决哈希冲突而存在的（**拉链法解决冲突**），拉链法就是头插法
-    两个对象调用的 hashCode 方法计算的哈希码值（键的哈希）一致导致计算的数组索引值相同
-
+  * 链表则是为了解决哈希冲突而存在的（**拉链法解决冲突**），拉链法就是头插法，两个对象调用的 hashCode 方法计算的哈希码值（键的哈希）一致导致计算的数组索引值相同
+  
 * JDK1.8 以后 HashMap 由 **数组+链表 +红黑树**数据结构组成
 
   * 解决哈希冲突时有了较大的变化
@@ -4707,14 +4708,14 @@ HashMap继承关系如下图所示：
 2. 集合的初始化容量（**必须是二的 n 次幂** ）
 
    ```java
-   //默认的初始容量是16 -- 1<<4相当于1*2的4次方---1*16
+   // 默认的初始容量是16 -- 1<<4相当于1*2的4次方---1*16
    static final int DEFAULT_INITIAL_CAPACITY = 1 << 4;   
    ```
 
    HashMap 构造方法指定集合的初始化容量大小：
 
    ```java
-   HashMap(int initialCapacity)//构造一个带指定初始容量和默认加载因子 (0.75) 的空 HashMap
+   HashMap(int initialCapacity)// 构造一个带指定初始容量和默认加载因子 (0.75) 的空 HashMap
    ```
 
    * 为什么必须是 2 的 n 次幂？
@@ -4741,7 +4742,7 @@ HashMap继承关系如下图所示：
 4. 集合最大容量 
 
     ```java
-    //集合最大容量的上限是：2的30次幂
+    // 集合最大容量的上限是：2的30次幂
     static final int MAXIMUM_CAPACITY = 1 << 30;// 0100 0000 0000 0000 0000 0000 0000 0000 = 2 ^ 30
     ```
 
@@ -4753,8 +4754,8 @@ HashMap继承关系如下图所示：
 5. 当链表的值超过 8 则会转红黑树（JDK1.8 新增）
 
     ```java
-     //当桶(bucket)上的结点数大于这个值时会转成红黑树
-     static final int TREEIFY_THRESHOLD = 8;
+    // 当桶(bucket)上的结点数大于这个值时会转成红黑树
+    static final int TREEIFY_THRESHOLD = 8;
     ```
 
     为什么 Map 桶中节点个数大于 8 才转为红黑树？
@@ -4782,14 +4783,14 @@ HashMap继承关系如下图所示：
 6. 当链表的值小 于 6 则会从红黑树转回链表
 
     ```java
-    //当桶(bucket)上的结点数小于这个值时树转链表
+    // 当桶(bucket)上的结点数小于这个值时树转链表
     static final int UNTREEIFY_THRESHOLD = 6;
     ```
 
 7. 当 Map 里面的数量**大于等于**这个阈值时，表中的桶才能进行树形化 ，否则桶内元素超过 8 时会扩容，而不是树形化。为了避免进行扩容、树形化选择的冲突，这个值不能小于 4 * TREEIFY_THRESHOLD (8)
 
     ```java
-    //桶中结构转化为红黑树对应的数组长度最小的值 
+    // 桶中结构转化为红黑树对应的数组长度最小的值 
     static final int MIN_TREEIFY_CAPACITY = 64;
     ```
 
@@ -4798,7 +4799,7 @@ HashMap继承关系如下图所示：
 8. table 用来初始化（必须是二的 n 次幂）
 
     ```java
-    //存储元素的数组 
+    // 存储元素的数组 
     transient Node<K,V>[] table;
     ```
 
@@ -4807,21 +4808,21 @@ HashMap继承关系如下图所示：
  9. HashMap 中存放元素的个数（**重点**）
 
     ```java
-    //存放元素的个数，HashMap中K-V的实时数量，不是table数组的长度
+    // 存放元素的个数，HashMap中K-V的实时数量，不是table数组的长度
     transient int size;
     ```
 
 10. 记录 HashMap 的修改次数 
 
     ```java
-    //每次扩容和更改map结构的计数器
+    // 每次扩容和更改map结构的计数器
      transient int modCount;  
     ```
 
 11. 调整大小下一个容量的值计算方式为（容量 * 负载因子）
 
      ```java
-     //临界值，当实际大小(容量*负载因子)超过临界值时，会进行扩容
+     // 临界值，当实际大小(容量*负载因子)超过临界值时，会进行扩容
      int threshold;
      ```
 
@@ -4945,22 +4946,20 @@ HashMap继承关系如下图所示：
 
 ##### 成员方法
 
-* hash()
-
-  HashMap 是支持 Key 为空的；HashTable 是直接用 Key 来获取 HashCode，key 为空会抛异常
+* hash()：HashMap 是支持 Key 为空的；HashTable 是直接用 Key 来获取 HashCode，key 为空会抛异常
 
   * &（按位与运算）：相同的二进制数位上，都是1的时候，结果为1，否则为零
-  * ^（按位异或运算）：相同的二进制数位上，数字相同，结果为0，不同为1，**不进位加法**
-
+* ^（按位异或运算）：相同的二进制数位上，数字相同，结果为0，不同为1，**不进位加法**
+  
   ```java
-  static final int hash(Object key) {
+static final int hash(Object key) {
       int h;
       // 1）如果key等于null：可以看到当key等于null的时候也是有哈希值的，返回的是0.
       // 2）如果key不等于null：首先计算出key的hashCode赋值给h,然后与h无符号右移16位后的二进制进行按位异或得到最后的hash值
       return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
   }
   ```
-
+  
   计算 hash 的方法：将 hashCode 无符号右移 16 位，高 16bit 和低 16bit 做异或，扰动运算
 
   原因：当数组长度很小，假设是 16，那么 n-1即为 1111 ，这样的值和 hashCode() 直接做按位与操作，实际上只使用了哈希值的后4位。如果当哈希值的高位变化很大，低位变化很小，就很容易造成哈希冲突了，所以这里**把高低位都利用起来，让高16 位也参与运算**，从而解决了这个问题
@@ -4968,13 +4967,11 @@ HashMap继承关系如下图所示：
   哈希冲突的处理方式：
 
   * 开放定址法：线性探查法（ThreadLocalMap 使用），平方探查法（i + 1^2、i - 1^2、i + 2^2……）、双重散列（多个哈希函数）
-  * 链地址法：拉链法
-
+* 链地址法：拉链法
+  
   
 
-* put()
-
-  jdk1.8 前是头插法 (拉链法)，多线程下扩容出现循环链表，jdk1.8 以后引入红黑树，插入方法变成尾插法
+* put()：jdk1.8 前是头插法 (拉链法)，多线程下扩容出现循环链表，jdk1.8 以后引入红黑树，插入方法变成尾插法
 
   第一次调用 put 方法时创建数组 Node[] table，因为散列表耗费内存，为了防止内存浪费，所以**延迟初始化**
 
@@ -4987,18 +4984,18 @@ HashMap继承关系如下图所示：
   3. 如果出现碰撞冲突：如果该桶使用红黑树处理冲突，则调用红黑树的方法插入数据；否则采用传统的链式方法插入，如果链的长度达到临界值，则把链转变为红黑树
 
   4. 如果数组位置相同，通过 equals 比较内容是否相同：相同则新的 value 覆盖旧 value，不相同则将新的键值对添加到哈希表中
-  5. 如果 size 大于阈值 threshold，则进行扩容
-
+5. 如果 size 大于阈值 threshold，则进行扩容
+  
   ```java
-  public V put(K key, V value) {
+public V put(K key, V value) {
       return putVal(hash(key), key, value, false, true);
   }
   ```
-
+  
   putVal() 方法中 key 在这里执行了一下 hash()，在 putVal 函数中使用到了上述 hash 函数计算的哈希值：
 
   ```java
-  final V putVal(int hash, K key, V value, boolean onlyIfAbsent, boolean evict) {
+final V putVal(int hash, K key, V value, boolean onlyIfAbsent, boolean evict) {
   	//。。。。。。。。。。。。。。
   	if ((p = tab[i = (n - 1) & hash]) == null){//这里的n表示数组长度16
   		//.....
@@ -5014,7 +5011,7 @@ HashMap继承关系如下图所示：
       }
   }
   ```
-
+  
   * `(n - 1) & hash`：计算下标位置
 
   <img src="https://gitee.com/seazean/images/raw/master/Java/HashMap-putVal哈希运算.png" style="zoom: 67%;" />
@@ -5039,9 +5036,8 @@ HashMap继承关系如下图所示：
 
   
 
-* tableSizeFor()
-  创建 HashMap 指定容量时，HashMap 通过位移运算和或运算得到比指定初始化容量大的最小的2的 n 次幂
-
+* tableSizeFor()：创建 HashMap 指定容量时，HashMap 通过位移运算和或运算得到比指定初始化容量大的最小的 2 的 n 次幂
+  
   ```java
   static final int tableSizeFor(int cap) {//int cap = 10
       int n = cap - 1;
@@ -5053,18 +5049,18 @@ HashMap继承关系如下图所示：
       return (n < 0) ? 1 : (n >= MAXIMUM_CAPACITY) ? MAXIMUM_CAPACITY : n + 1;
   }
   ```
-
+  
   分析算法：
-
+  
   1. `int n = cap - 1`：防止 cap 已经是 2 的幂。如果 cap 已经是 2 的幂， 不执行减 1 操作，则执行完后面的无符号右移操作之后，返回的 capacity 将是这个 cap 的 2 倍
   2. n=0 （cap-1 之后），则经过后面的几次无符号右移依然是 0，返回的 capacity 是 1，最后有 n+1
   3. |（按位或运算）：相同的二进制数位上，都是 0 的时候，结果为 0，否则为 1
   4. 核心思想：**把最高位是 1 的位以及右边的位全部置 1**，结果加 1 后就是大于指定容量的最小的 2 的 n 次幂
-
+  
   例如初始化的值为 10：
-
+  
   * 第一次右移
-
+  
     ```java
     int n = cap - 1;//cap=10  n=9
     n |= n >>> 1;
@@ -5074,9 +5070,9 @@ HashMap继承关系如下图所示：
     00000000 00000000 00000000 00001101 //按位或之后是13
     //使得n的二进制表示中与最高位的1紧邻的右边一位为1
     ```
-
+  
   * 第二次右移
-
+  
     ```java
     n |= n >>> 2;//n通过第一次右移变为了：n=13
     00000000 00000000 00000000 00001101  // 13
@@ -5085,17 +5081,17 @@ HashMap继承关系如下图所示：
     00000000 00000000 00000000 00001111	 //按位或之后是15
     //无符号右移两位，会将最高位两个连续的1右移两位，然后再与原来的n做或操作，这样n的二进制表示的高位中会有4个连续的1
     ```
-
+  
     注意：容量最大是 32bit 的正数，因此最后 `n |= n >>> 16`，最多是 32 个 1（但是这已经是负数了）。在执行 tableSizeFor 之前，对 initialCapacity 做了判断，如果大于 MAXIMUM_CAPACITY(2 ^ 30)，则取 MAXIMUM_CAPACITY；如果小于 MAXIMUM_CAPACITY(2 ^ 30)，会执行移位操作，所以移位操作之后，最大 30 个 1，加 1 之后得 2 ^ 30
-
+  
   * 得到的 capacity 被赋值给了 threshold
-
+  
     ```java
     this.threshold = tableSizeFor(initialCapacity);//initialCapacity=10
     ```
-
+  
   * JDK 11
-
+  
     ```java
     static final int tableSizeFor(int cap) {
         //无符号右移，高位补0
@@ -5117,10 +5113,10 @@ HashMap继承关系如下图所示：
         return n - (i >>> 1);
     }
     ```
-
+  
     
-
-* resize()
+  
+* resize()：
 
   当 HashMap 中的元素个数超过 `(数组长度)*loadFactor(负载因子)` 或者链表过长时（链表长度 > 8，数组长度 < 64），就会进行数组扩容，创建新的数组，伴随一次重新 hash 分配，并且遍历 hash 表中所有的元素非常耗时，所以要尽量避免 resize
 
@@ -5204,9 +5200,8 @@ HashMap继承关系如下图所示：
 
 ​	
 
-* remove()
-  删除是首先先找到元素的位置，如果是链表就遍历链表找到元素之后删除。如果是用红黑树就遍历树然后找到之后做删除，树小于 6 的时候退化为链表
-
+* remove()：删除是首先先找到元素的位置，如果是链表就遍历链表找到元素之后删除。如果是用红黑树就遍历树然后找到之后做删除，树小于 6 的时候退化为链表
+  
   ```java
    final Node<K,V> removeNode(int hash, Object key, Object value,
                               boolean matchValue, boolean movable) {
@@ -5265,20 +5260,20 @@ HashMap继承关系如下图所示：
   
 * get()
 
-  1. 通过hash值获取该key映射到的桶
+  1. 通过 hash 值获取该 key 映射到的桶
 
-  2. 桶上的key就是要查找的key，则直接找到并返回
+  2. 桶上的 key 就是要查找的 key，则直接找到并返回
 
-  3. 桶上的key不是要找的key，则查看后续的节点：
+  3. 桶上的 key 不是要找的 key，则查看后续的节点：
 
-     * 如果后续节点是红黑树节点，通过调用红黑树的方法根据key获取value
+     * 如果后续节点是红黑树节点，通过调用红黑树的方法根据 key 获取v alue
 
-     * 如果后续节点是链表节点，则通过循环遍历链表根据key获取value 
+     * 如果后续节点是链表节点，则通过循环遍历链表根据 key 获取 value 
 
-  4. 红黑树节点调用的是getTreeNode方法通过树形节点的find方法进行查
+  4. 红黑树节点调用的是 getTreeNode 方法通过树形节点的 find 方法进行查
 
      * 查找红黑树，之前添加时已经保证这个树是有序的，因此查找时就是折半查找，效率更高。
-     * 这里和插入时一样，如果对比节点的哈希值相等并且通过equals判断值也相等，就会判断key相等，直接返回，不相等就从子树中递归查找
+     * 这里和插入时一样，如果对比节点的哈希值相等并且通过 equals 判断值也相等，就会判断 key 相等，直接返回，不相等就从子树中递归查找
 
   5. 时间复杂度 O(1)
 
@@ -9893,7 +9888,7 @@ public static void main(String[] args) {
 
 类元信息：在类编译期间放入方法区，存放了类的基本信息，包括类的方法、参数、接口以及常量池表
 
-常量池表（Constant Pool Table）是 Class 文件的一部分，存储了类在编译期间生成的**字面量、符号引用**，JVM 为每个已加载的类维护一个常量池
+常量池表（Constant Pool Table）是 Class 文件的一部分，存储了**类在编译期间生成的字面量、符号引用**，JVM 为每个已加载的类维护一个常量池
 
 - 字面量：基本数据类型、字符串类型常量、声明为 final 的常量值等
 - 符号引用：类、字段、方法、接口等的符号引用
@@ -10926,13 +10921,12 @@ G1（Garbage-First）是一款面向服务端应用的垃圾收集器，**应用
 
 G1 对比其他处理器的优点：
 
-* **并发与并行：**
+* **并发与并行**：
   * 并行性：G1 在回收期间，可以有多个 GC 线程同时工作，有效利用多核计算能力，此时用户线程 STW
   * 并发性：G1 拥有与应用程序交替执行的能力，部分工作可以和应用程序同时执行，因此不会在整个回收阶段发生完全阻塞应用程序的情况
   * 其他的垃圾收集器使用内置的 JVM 线程执行 GC 的多线程操作，而 G1 GC 可以采用应用线程承担后台运行的 GC 工作，JVM 的 GC 线程处理速度慢时，系统会**调用应用程序线程加速垃圾回收**过程
 
-* **分区算法：**
-
+* **分区算法**：
   * 从分代上看，G1  属于分代型垃圾回收器，区分年轻代和老年代，年轻代依然有 Eden 区和 Survivor 区。从堆结构上看，**新生代和老年代不再物理隔离**，不用担心每个代内存是否足够，这种特性有利于程序长时间运行，分配大对象时不会因为无法找到连续内存空间而提前触发下一次 GC
   * 将整个堆划分成约 2048 个大小相同的独立 Region 块，每个 Region 块大小根据堆空间的实际大小而定，整体被控制在 1MB 到 32 MB之间且为 2 的 N 次幂，所有 Region 大小相同，在 JVM 生命周期内不会被改变。G1 把堆划分成多个大小相等的独立区域，使得每个小空间可以单独进行垃圾回收
   * **新的区域 Humongous**：本身属于老年代区，当出现了一个巨型对象超出了分区容量的一半，该对象就会进入到该区域。如果一个 H 区装不下一个巨型对象，那么 G1 会寻找连续的 H 分区来存储，为了能找到连续的H区，有时候不得不启动 Full GC
@@ -10943,14 +10937,13 @@ G1 对比其他处理器的优点：
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JVM-G1-Region区域.png)
 
-- **空间整合：**
+- **空间整合**：
 
   - CMS：标记-清除算法、内存碎片、若干次 GC 后进行一次碎片整理
   - G1：整体来看是基于标记 - 整理算法实现的收集器，从局部（Region 之间）上来看是基于复制算法实现的，两种算法都可以避免内存碎片
 
-- **可预测的停顿时间模型（软实时 soft real-time）：**
+- **可预测的停顿时间模型（软实时 soft real-time）**：可以指定在 M 毫秒的时间片段内，消耗在 GC 上的时间不得超过 N 毫秒
 
-  - 可以指定在一个长度为 M 毫秒的时间片段内，消耗在 GC 上的时间不得超过 N 毫秒
   - 由于分块的原因，G1 可以只选取部分区域进行内存回收，这样缩小了回收的范围，对于全局停顿情况也能得到较好的控制
   - G1 跟踪各个 Region 里面的垃圾堆积的价值大小（回收所获得的空间大小以及回收所需时间，通过过去回收的经验获得），在后台维护一个**优先列表**，每次根据允许的收集时间优先回收价值最大的 Region，保证了 G1 收集器在有限的时间内可以获取尽可能高的收集效率
 
@@ -11019,7 +11012,7 @@ G1 中提供了三种垃圾回收模式：YoungGC、Mixed GC 和 FullGC，在不
   2. 更新 RSet：处理 dirty card queue 更新 RS，此后 RSet 准确的反映对象的引用关系
      * dirty card queue：类似缓存，产生了引用先记录在这里，然后更新到 RSet
      * 作用：产生引用直接更新 RSet 需要线程同步开销很大，使用队列性能好
-  3. 处理 RSet：识别被老年代对象指向的 Eden 中的对象，这些被指向的对象被认为是存活的对象，把需要回收的分区放入 YoungCSet 中进行回收
+  3. 处理 RSet：识别被老年代对象指向的 Eden 中的对象，这些被指向的对象被认为是存活的对象，把需要回收的分区放入 Young CSet 中进行回收
   4. 复制对象：Eden 区内存段中存活的对象会被复制到 survivor 区，survivor 区内存段中存活的对象如果年龄未达阈值，年龄会加1，达到阀值会被会被复制到 old 区中空的内存分段，如果 survivor 空间不够，Eden 空间的部分数据会直接晋升到老年代空间
   5. 处理引用：处理 Soft，Weak，Phantom，JNI Weak  等引用，最终 Eden 空间的数据为空，GC 停止工作
 
@@ -11120,9 +11113,9 @@ ZGC 目标：
 ZGC 的工作过程可以分为 4 个阶段：
 
 * 并发标记（Concurrent Mark）： 遍历对象图做可达性分析的阶段，也要经过初始标记和最终标记，需要短暂停顿
-* 并发预备重分配（ Concurrent Prepare for Relocate）： 根据特定的查询条件统计得出本次收集过程要清理哪些 Region，将这些 Region 组成重分配集（Relocation Set）
+* 并发预备重分配（ Concurrent Prepare for Relocate）：根据特定的查询条件统计得出本次收集过程要清理哪些 Region，将这些 Region 组成重分配集（Relocation Set）
 * 并发重分配（Concurrent Relocate）： 重分配是 ZGC 执行过程中的核心阶段，这个过程要把重分配集中的存活对象复制到新的 Region 上，并为重分配集中的**每个 Region 维护一个转发表**（Forward Table），记录从旧地址到新地址的转向关系
-* 并发重映射（Concurrent Remap）：修正整个堆中指向重分配集中旧对象的所有引用，ZGC 的并发映射并不是一个必须要立即完成的任务，ZGC 很巧妙地把并发重映射阶段要做的工作，合并到下一次垃圾收集循环中的并发标记阶段里去完成，因为都是要遍历所有对象的，这样合并节省了一次遍历的开销
+* 并发重映射（Concurrent Remap）：修正整个堆中指向重分配集中旧对象的所有引用，ZGC 的并发映射并不是一个必须要立即完成的任务，ZGC 很巧妙地把并发重映射阶段要做的工作，合并到下一次垃圾收集循环中的并发标记阶段里去完成，因为都是要遍历所有对象，这样合并节省了一次遍历的开销
 
 ZGC 几乎在所有地方并发执行的，除了初始标记的是 STW 的，但这部分的实际时间是非常少的，所以响应速度快，在尽可能对吞吐量影响不大的前提下，实现在任意堆内存大小下都可以把垃圾收集的停顿时间限制在十毫秒以内的低延迟
 
@@ -11645,7 +11638,7 @@ Java 对象创建时机：
            System.out.println("4");
        }
    
-       int a = 110;    // 实例变量
+       int a = 110;    		// 实例变量
        static int b = 112;     // 静态变量
    }/* Output: 
            2
@@ -11799,7 +11792,7 @@ Java 对象创建时机：
 类变量初始化：
 
 * static 变量分配空间和赋值是两个步骤：**分配空间在准备阶段完成，赋值在初始化阶段完成**
-* 如果 static 变量是 final 的基本类型以及字符串常量，那么编译阶段值就确定了，准备阶段会显式初始化
+* 如果 static 变量是 final 的基本类型以及字符串常量，那么编译阶段值（方法区）就确定了，准备阶段会显式初始化
 * 如果 static 变量是 final 的，但属于引用类型或者构造器方法的字符串，赋值在初始化阶段完成
 
 实例：
@@ -14052,7 +14045,7 @@ public static void main(String[] args) {
 **数组的循环：**
 
 ```java
-int[] array = {1, 2, 3, 4, 5}; // 数组赋初值的简化写法也是语法糖哦
+int[] array = {1, 2, 3, 4, 5}; // 数组赋初值的简化写法也是语法糖
 for (int e : array) {
 	System.out.println(e);
 }
@@ -15230,8 +15223,6 @@ GCViewer 是一款离线的 GC 日志分析器，用于可视化 Java VM 选项 
 
 
 
-推荐阅读：https://time.geekbang.org/column/article/41440
-
 参考书籍：《数据结构高分笔记》
 
 
@@ -15251,10 +15242,10 @@ GCViewer 是一款离线的 GC 日志分析器，用于可视化 Java VM 选项 
 3. 递归的方向：必须走向终结点
 
 ```java
-//f(x)=f(x-1)+1;   f(1)=1;    f(10)=?
-//1.递归的终结点： f(1)  = 1
-//2.递归的公式：f(x) = f(x - 1) + 1
-//3.递归的方向：必须走向终结点
+// f(x)=f(x-1)+1;   f(1)=1;    f(10)=?
+// 1.递归的终结点： f(1)  = 1
+// 2.递归的公式：f(x) = f(x - 1) + 1
+// 3.递归的方向：必须走向终结点
 public static int f(int x){
     if(x == 1){
         return 1;
@@ -15273,9 +15264,9 @@ public static int f(int x){
 #### 公式转换
 
 ```java
-//已知： f(x) = f(x + 1) + 2,  f(1) = 1。求：f(10) = ?
-//公式转换
-//f(x-1)=f(x-1+1)+2 => f(x)=f(x-1)+2
+// 已知： f(x) = f(x + 1) + 2,  f(1) = 1。求：f(10) = ?
+// 公式转换
+// f(x-1)=f(x-1+1)+2 => f(x)=f(x-1)+2
 //（1）递归的公式：   f(n) = f(n-1)- 2 ;
 //（2）递归的终结点：  f(1) = 1
 //（3）递归的方向：必须走向终结点。
@@ -15358,11 +15349,11 @@ public class Hanoi {
     // 将n个块分治的从x移动到z，y为辅助柱
     private static void hanoi(char x, char y, char z, int n) {
         if (n == 1) {
-            System.out.println(x + "→" + z);    //直接将x的块移动到z
+            System.out.println(x + "→" + z);    // 直接将x的块移动到z
         } else {
-            hanoi(x, z, y, n - 1);           	//分治处理n-1个块，先将n-1个块借助z移到y
-            System.out.println(x + "→" + z);    //然后将x最下面的块（最大的）移动到z
-            hanoi(y, x, z, n - 1);           	//最后将n-1个块从y移动到z，x为辅助柱
+            hanoi(x, z, y, n - 1);           	// 分治处理n-1个块，先将n-1个块借助z移到y
+            System.out.println(x + "→" + z);    // 然后将x最下面的块（最大的）移动到z
+            hanoi(y, x, z, n - 1);           	// 最后将n-1个块从y移动到z，x为辅助柱
         }
     }
 }
@@ -15378,9 +15369,7 @@ public class Hanoi {
 
 #### 啤酒问题
 
-非规律化递归问题。
-
-啤酒2元一瓶，4个盖子可以换一瓶，2个空瓶可以换一瓶。
+非规律化递归问题，啤酒 2 元 1 瓶，4 个盖子可以换 1 瓶，2 个空瓶可以换 1 瓶
 
 ```java
 public class BeerDemo{
@@ -15402,8 +15391,8 @@ public class BeerDemo{
         int currentCoverNum = lastCoverNum + number ;
         // 把他们换算成金额
         int totalMoney = 0 ;
-        totalMoney += (currentBottleNum/2)*2;//除2代表可以换几个瓶子，乘2代表换算成钱，秒！
-        lastBottleNum = currentBottleNum % 2 ;//取余//算出剩余的瓶子
+        totalMoney += (currentBottleNum/2)*2; // 除2代表可以换几个瓶子，乘2代表换算成钱，秒！
+        lastBottleNum = currentBottleNum % 2 ;// 取余//算出剩余的瓶子
      
         totalMoney += (currentCoverNum / 4) * 2;
         lastCoverNum = currentCoverNum % 4 ;
@@ -17365,7 +17354,7 @@ UML 从目标系统的不同角度出发，定义了用例图、类图、对象�
 
 #### 饿汉式
 
-饿汉式在类加载的过程导致该单实例对象被创建，虚拟机会保证类加载的线程安全，但是如果只是为了加载该类不需要实例，则会造成内存的浪费
+饿汉式在类加载的过程导致该单实例对象被创建，**虚拟机会保证类加载的线程安全**，但是如果只是为了加载该类不需要实例，则会造成内存的浪费
 
 * 静态变量的方式：
 
@@ -17388,8 +17377,9 @@ UML 从目标系统的不同角度出发，定义了用例图、类图、对象�
   ```
 
   * 问题1：为什么类加 final 修饰？
-    不被子类继承，防止子类中不适当的行为覆盖父类的方法，破坏了单例
-
+    
+    * 不被子类继承，防止子类中不适当的行为覆盖父类的方法，破坏了单例
+    
   * 问题2：如果实现了序列化接口，怎么防止防止反序列化破坏单例？
 
     * 对单例声明 transient，然后实现 readObject(ObjectInputStream in) 方法，复用原来的单例
@@ -17399,13 +17389,16 @@ UML 从目标系统的不同角度出发，定义了用例图、类图、对象�
     * 实现 readResolve() 方法，当 JVM 从内存中反序列化地"组装"一个新对象，就会自动调用 readResolve 方法返回原来单例
 
   * 问题3：为什么构造方法设置为私有? 是否能防止反射创建新的实例?
-    防止其他类无限创建对象；不能防止反射破坏
-
+    
+    * 防止其他类无限创建对象；不能防止反射破坏
+    
   * 问题4：这种方式是否能保证单例对象创建时的线程安全?
-    能，静态变量初始化在类加载时完成，由 JVM 保证线程安全
-
+    
+    * 能，静态变量初始化在类加载时完成，由 JVM 保证线程安全
+    
   * 问题5：为什么提供静态方法而不是直接将 INSTANCE 设置为 public？
-    更好的封装性、提供泛型支持、可以改进成懒汉单例设计
+    
+    * 更好的封装性、提供泛型支持、可以改进成懒汉单例设计
 
 * 静态代码块的方式：
 
@@ -17622,17 +17615,16 @@ UML 从目标系统的不同角度出发，定义了用例图、类图、对象�
   		switch (tc) {
   			case TC_OBJECT:
   				return checkResolve(readOrdinaryObject(unshared));
-                  //重点查看readOrdinaryObject方法
           }
       } 
   }
   private Object readOrdinaryObject(boolean unshared) throws IOException {
-  	//isInstantiable 返回true，执行 desc.newInstance()，通过反射创建新的单例类
+  	// isInstantiable 返回true，执行 desc.newInstance()，通过反射创建新的单例类
       obj = desc.isInstantiable() ? desc.newInstance() : null; 
-      //添加 readResolve 方法后 desc.hasReadResolveMethod() 方法执行结果为true
+      // 添加 readResolve 方法后 desc.hasReadResolveMethod() 方法执行结果为true
       if (obj != null && handles.lookupException(passHandle) == null && desc.hasReadResolveMethod()) {
       	// 通过反射调用 Singleton 类中的 readResolve 方法，将返回值赋值给rep变量
-      	// 多次调用ObjectInputStream类中的readObject方法，本质调用定义的readResolve方法，所以返回的是同一个对象。
+      	// 多次调用ObjectInputStream类中的readObject方法，本质调用定义的readResolve方法，返回的是同一个对象。
       	Object rep = desc.invokeReadResolve(obj);
       }
       return obj;
@@ -18562,7 +18554,11 @@ Java 中提供了一个动态代理类 Proxy，Proxy 并不是代理对象的类
 `static Object newProxyInstance(ClassLoader loader,Class[] interfaces,InvocationHandler h) `
 
 * 参数一：类加载器，负责加载代理类
+
+  传入类加载器，代理和被代理对象要用一个类加载器才是父子关系，不同类加载器加载相同的类在 JVM 中都不是同一个类对象
+
 * 参数二：被代理业务对象的**全部实现的接口**，代理对象与真实对象实现相同接口，知道为哪些方法做代理
+
 * 参数三：代理真正的执行方法，也就是代理的处理逻辑
 
 代码实现：
@@ -18644,7 +18640,7 @@ public final class $Proxy0 extends Proxy implements SellTickets {
     }
 }
 
-//Java提供的动态代理相关类
+// Java提供的动态代理相关类
 public class Proxy implements java.io.Serializable {
 	protected InvocationHandler h;
 	 
@@ -18683,7 +18679,7 @@ public static Object newProxyInstance(ClassLoader loader,
         checkProxyAccess(Reflection.getCallerClass(), loader, intfs);
     }
 
-    // 从缓存中查找 class 类型的代理对象，参数二是代理需要实现的接口
+    // 从缓存中查找 class 类型的代理对象，会调用 ProxyClassFactory#apply 方法
     Class<?> cl = getProxyClass0(loader, intfs);
 	//proxyClassCache = new WeakCache<>(new KeyFactory(), new ProxyClassFactory())
  

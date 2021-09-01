@@ -4,22 +4,22 @@
 
 ### 概述
 
-进程：程序是静止的，进程实体的运行过程就是进程，是系统进行资源分配的基本单位
+进程：程序是静止的，进程实体的运行过程就是进程，是系统进行**资源分配的基本单位**
 
 进程的特征：并发性、异步性、动态性、独立性、结构性
 
-**线程**：线程是属于进程的，是一个基本的 CPU 执行单元，是程序执行流的最小单元。线程是进程中的一个实体，是被系统独立调度和分配的基本单位，线程本身不拥有系统资源，只拥有一点在运行中必不可少的资源，但它可与同属一个进程的其他线程共享进程所拥有的全部资源。
+**线程**：线程是属于进程的，是一个基本的 CPU 执行单元，是程序执行流的最小单元。线程是进程中的一个实体，是系统**独立调度的基本单位**，线程本身不拥有系统资源，只拥有一点在运行中必不可少的资源，但它可与同属一个进程的其他线程共享进程所拥有的全部资源
 
 关系：一个进程可以包含多个线程，这就是多线程，比如看视频是进程，图画、声音、广告等就是多个线程
 
 线程的作用：使多道程序更好的并发执行，提高资源利用率和系统吞吐量，增强操作系统的并发性能
 
-**并发并行**：
+并发并行：
 
 * 并行：在同一时刻，有多个指令在多个 CPU 上同时执行
 * 并发：在同一时刻，有多个指令在单个 CPU 上交替执行
 
-**同步异步**：
+同步异步：
 
 * 需要等待结果返回，才能继续运行就是同步
 * 不需要等待结果返回，就能继续运行就是异步
@@ -28,7 +28,7 @@
 
 参考视频：https://www.bilibili.com/video/BV16J411h7Rd（推荐观看）
 
-笔记的整体内容依据视频编写，并且补充了很多新知识
+笔记的整体结构依据视频编写，并随着学习的深入补充了很多知识
 
 
 
@@ -49,21 +49,21 @@
   同一台计算机的进程通信称为 IPC（Inter-process communication）
 
   * 信号量：信号量是一个计数器，用于多进程对共享数据的访问，解决同步相关的问题并避免竞争条件
-  * 共享存储：多个进程可以访问同一块内存空间，需要使用信号量用来同步对共享存储的访问（MappedByteBuffer）
+  * 共享存储：多个进程可以访问同一块内存空间，需要使用信号量用来同步对共享存储的访问
   * 管道通信：管道是用于连接一个读进程和一个写进程以实现它们之间通信的一个共享文件，pipe 文件
-    * 匿名管道（Pipes）：用于具有亲缘关系的父子进程间或者兄弟进程之间的通信，只支持半双工通信
+    * 匿名管道（Pipes）：用于具有亲缘关系的父子进程间或者兄弟进程之间的通信，只支持**半双工通信**
     * 命名管道（Names Pipes）：以磁盘文件的方式存在，可以实现本机任意两个进程通信，遵循 FIFO
-  * 消息队列：内核中存储消息的链表，由消息队列标识符标识，能在不同进程之间提供全双工通信，对比管道：
+  * 消息队列：内核中存储消息的链表，由消息队列标识符标识，能在不同进程之间提供**全双工通信**，对比管道：
     * 匿名管道存在于内存中的文件；命名管道存在于实际的磁盘介质或者文件系统；消息队列存放在内核中，只有在内核重启（操作系统重启）或者显示地删除一个消息队列时，该消息队列才被真正删除
     * 读进程可以根据消息类型有选择地接收消息，而不像 FIFO 那样只能默认地接收
 
-  不同计算机之间的进程通信，需要通过网络，并遵守共同的协议，例如 HTTP
+  不同计算机之间的**进程通信**，需要通过网络，并遵守共同的协议，例如 HTTP
 
-  * 套接字：与其它通信机制不同的是，它可用于不同机器间的进程通信
+  * 套接字：与其它通信机制不同的是，它可用于不同机器间的互相通信
 
 * 线程通信相对简单，因为它们共享进程内的内存，一个例子是多个线程可以访问同一个共享变量
 
-  Java 中的通信机制：volatile、等待/通知机制、join方式、InheritableThreadLocal、MappedByteBuffer
+  **Java 中的通信机制**：volatile、等待/通知机制、join 方式、InheritableThreadLocal、MappedByteBuffer
 
 * 线程更轻量，线程上下文切换成本一般上要比进程上下文切换低
 
@@ -86,7 +86,7 @@
 Thread 创建线程方式：创建线程类，匿名内部类方式
 
 * **start() 方法底层其实是给 CPU 注册当前线程，并且触发 run() 方法执行**
-* 线程的启动必须调用 start() 方法，如果线程直接调用 run() 方法，相当于变成了普通类的执行，此时将只有主线程在执行该线程
+* 线程的启动必须调用 start() 方法，如果线程直接调用 run() 方法，相当于变成了普通类的执行，此时主线程将只有执行该线程
 * 建议线程先创建子线程，主线程的任务放在之后，否则主线程（main）永远是先执行完
 
 Thread 构造器：
@@ -95,14 +95,14 @@ Thread 构造器：
 * `public Thread(String name)`
 
 ```java
-puclic class ThreadDemo{
+public class ThreadDemo{
     public static void main(String[] args) {
         Thread t = new MyThread();
         t.start();
        	for(int i = 0 ; i < 100 ; i++ ){
-            System.out.println("main线程"+i)
+            System.out.println("main线程" + i)
         }
-        //   main线程输出放在上面 就变成有先后顺序了
+        // main线程输出放在上面 就变成有先后顺序了，因为是 main 线程驱动的子线程运行
     }
 }
 class MyThread extends Thread{
@@ -149,20 +149,21 @@ public class MyRunnable implements Runnable{
     @Override
     public void run() {
         for(int i = 0 ; i < 10 ; i++ ){
-            System.out.println(Thread.currentThread().getName()+"->"+i);
+            System.out.println(Thread.currentThread().getName() + "->" + i);
         }
     }
 }
 ```
 
-**Thread 类本身也是实现了 Runnable 接口**，Thread 类中持有 Runnable 的属性，用来执行 run 方法：
+**Thread 类本身也是实现了 Runnable 接口**，Thread 类中持有 Runnable 的属性，执行线程 run 方法底层是调用 Runnable#run：
 
 ```java
 public class Thread implements Runnable {
     private Runnable target;
-    // 底层调用的是 Runnable 的 run 方法
+    
     public void run() {
         if (target != null) {
+          	// 底层调用的是 Runnable 的 run 方法
             target.run();
         }
     }
@@ -198,19 +199,19 @@ Runnable 方式的优缺点：
 1. 定义一个线程任务类实现 Callable 接口，申明线程执行的结果类型
 2. 重写线程任务类的 call 方法，这个方法可以直接返回执行的结果
 3. 创建一个 Callable 的线程任务对象
-4. 把 Callable 的线程任务对象包装成一个未来任务对象
+4. 把 Callable 的线程任务对象**包装成一个未来任务对象**
 5. 把未来任务对象包装成线程对象
 6. 调用线程的 start() 方法启动线程
 
-`public FutureTask(Callable<V> callable)`：未来任务对象，在线程执行完后**得到线程的执行结果**
+`public FutureTask(Callable<V> callable)`：未来任务对象，在线程执行完后得到线程的执行结果
 
-* FutureTask 就是 Runnable 对象，因为 Thread 类只能执行 Runnable 实例的任务对象，所以把 Callable 包装成未来任务对象
+* FutureTask 就是 Runnable 对象，因为 **Thread 类只能执行 Runnable 实例的任务对象**，所以把 Callable 包装成未来任务对象
 * 线程池部分详解了 FutureTask 的源码
 
 `public V get()`：同步等待 task 执行完毕的结果，如果在线程中获取另一个线程执行结果，会阻塞等待，用于线程同步
 
 * get() 线程会阻塞等待任务执行完成
-* run() 执行完后会把结果设置到任务中的一个成员变量，get() 线程可以获取到该变量的值
+* run() 执行完后会把结果设置到 FutureTask  的一个成员变量，get() 线程可以获取到该变量的值
 
 优缺点：
 
@@ -318,7 +319,7 @@ start：使用 start 是启动新的线程，此线程处于就绪（可运行�
 **面试问题**：run() 方法中的异常不能抛出，只能 try/catch
 
 * 因为父类中没有抛出任何异常，子类不能比父类抛出更多的异常
-* 异常不能跨线程传播回 main() 中，因此必须在本地进行处理
+* **异常不能跨线程传播回 main() 中**，因此必须在本地进行处理
 
 
 
@@ -330,10 +331,10 @@ start：使用 start 是启动新的线程，此线程处于就绪（可运行�
 
 sleep：
 
-* 调用 sleep 会让当前线程从 Running 进入 `Timed Waiting` 状态（阻塞）
+* 调用 sleep 会让当前线程从 `Running` 进入 `Timed Waiting` 状态（阻塞）
 * sleep() 方法的过程中，线程不会释放对象锁
 * 其它线程可以使用 interrupt 方法打断正在睡眠的线程，这时 sleep 方法会抛出 InterruptedException
-* 睡眠结束后的线程未必会立刻得到执行
+* 睡眠结束后的线程未必会立刻得到执行，需要抢占 CPU
 * 建议用 TimeUnit 的 sleep 代替 Thread 的 sleep 来获得更好的可读性
 
 yield：
@@ -352,7 +353,7 @@ yield：
 
 线程优先级会提示（hint）调度器优先调度该线程，但这仅仅是一个提示，调度器可以忽略它
 
-如果 cpu 比较忙，那么优先级高的线程会获得更多的时间片，但 cpu 闲时，优先级几乎没作用
+如果 CPU 比较忙，那么优先级高的线程会获得更多的时间片，但 CPU 闲时，优先级几乎没作用
 
 
 
@@ -367,17 +368,17 @@ public final void join()：等待这个线程结束
 原理：调用者轮询检查线程 alive 状态，t1.join() 等价于：
 
 ```java
-synchronized (t1) {
-    // 调用者线程进入 t1 的 waitSet 等待, 直到 t1 运行结束
-    while (t1.isAlive()) {
-    	t1.wait(0);
+public final synchronized void join(long millis) throws InterruptedException {
+    // 调用者线程进入 thread 的 waitSet 等待, 直到当前线程运行结束
+    while (isAlive()) {
+        wait(0);
     }
 }
 ```
 
-* join 方法是被 synchronized 修饰的，本质上是一个对象锁，其内部的 wait 方法调用也是释放锁的，但是**释放的是当前线程的对象锁，而不是外面的锁**
+* join 方法是被 synchronized 修饰的，本质上是一个对象锁，其内部的 wait 方法调用也是释放锁的，但是**释放的是当前的线程对象锁，而不是外面的锁**
 
-* t1 会强占 CPU 资源，当调用某个线程的 join 方法后，该线程抢占到 CPU 资源，就不再释放，直到线程执行完毕
+* 当调用某个线程（t1）的 join 方法后，该线程（t1）抢占到 CPU 资源，就不再释放，直到线程执行完毕
 
 线程同步：
 
@@ -426,7 +427,7 @@ public class Test {
 
 `public boolean isInterrupted()`：判断当前线程是否被打断，不清除打断标记
 
-打断的线程会发生上下文切换，操作系统会保存线程信息，抢占到 CPU 后会从中断的地方接着运行
+打断的线程会发生上下文切换，操作系统会保存线程信息，抢占到 CPU 后会从中断的地方接着运行（打断不是停止）
 
 * sleep、wait、join 方法都会让线程进入阻塞状态，打断进程**会清空打断状态**（false）
 
@@ -513,7 +514,7 @@ LockSupport 类在 同步 → park-un 详解
 
 终止模式之两阶段终止模式：Two Phase Termination
 
-目标：在一个线程 T1 中如何“优雅”终止线程 T2？”优雅“指的是给 T2 一个后置处理器
+目标：在一个线程 T1 中如何优雅终止线程 T2？优雅指的是给 T2 一个后置处理器
 
 错误思想：
 
@@ -537,7 +538,7 @@ public class Test {
 }
 class TwoPhaseTermination {
     private Thread monitor;
-    //启动监控线程
+    // 启动监控线程
     public void start() {
         monitor = new Thread(new Runnable() {
             @Override
@@ -549,11 +550,11 @@ class TwoPhaseTermination {
                         break;
                     }
                     try {
-                        Thread.sleep(1000);//睡眠
-                        System.out.println("执行监控记录");//在此被打断不会异常
-                    } catch (InterruptedException e) {//在睡眠期间被打断，进入异常处理的逻辑
+                        Thread.sleep(1000);					// 睡眠
+                        System.out.println("执行监控记录");	// 在此被打断不会异常
+                    } catch (InterruptedException e) {		// 在睡眠期间被打断，进入异常处理的逻辑
                         e.printStackTrace();
-                        //重新设置打断标记
+                        // 重新设置打断标记
                         thread.interrupt();
                     }
                 }
@@ -561,7 +562,7 @@ class TwoPhaseTermination {
         });
         monitor.start();
     }
-    //停止监控线程
+    // 停止监控线程
     public void stop() {
         monitor.interrupt();
     }
@@ -621,6 +622,8 @@ t.start();
 | public final void suspend() | **挂起（暂停）线程运行** |
 | public final void resume()  | 恢复线程运行             |
 
+所以 Java 中线程的状态是阻塞，很少使用挂起
+
 
 
 ***
@@ -631,16 +634,16 @@ t.start();
 
 进程的状态参考操作系统：创建态、就绪态、运行态、阻塞态、终止态
 
-线程由生到死的完整过程（生命周期）：当线程被创建并启动以后，它既不是一启动就进入了执行状态，也不是一直处于执行状态，在 API 中 `java.lang.Thread.State` 这个枚举中给出了六种线程状态：
+线程由生到死的完整过程（生命周期）：当线程被创建并启动以后，既不是一启动就进入了执行状态，也不是一直处于执行状态，在 API 中 `java.lang.Thread.State` 这个枚举中给出了六种线程状态：
 
-| 线程状态                 | 导致状态发生条件                                             |
-| ------------------------ | ------------------------------------------------------------ |
-| NEW (新建)               | 线程刚被创建，但是并未启动，还没调用 start 方法，只有线程对象，没有线程特征 |
-| Runnable (可运行)        | 线程可以在 java 虚拟机中运行的状态，可能正在运行自己代码，也可能没有，这取决于操作系统处理器，调用了 t.start() 方法：就绪（经典叫法） |
-| Blocked (锁阻塞)         | 当一个线程试图获取一个对象锁，而该对象锁被其他的线程持有，则该线程进入 Blocked 状态；当该线程持有锁时，该线程将变成 Runnable 状态 |
-| Waiting (无限等待)       | 一个线程在等待另一个线程执行一个（唤醒）动作时，该线程进入 Waiting 状态，进入这个状态后不能自动唤醒，必须等待另一个线程调用 notify 或者 notifyAll 方法才能唤醒 |
-| Timed Waiting (计时等待) | 有几个方法有超时参数，调用将进入 Timed Waiting 状态，这一状态将一直保持到超时期满或者接收到唤醒通知。带有超时参数的常用方法有 Thread.sleep 、Object.wait |
-| Teminated (被终止)       | run 方法正常退出而死亡，或者因为没有捕获的异常终止了 run 方法而死亡 |
+| 线程状态                   | 导致状态发生条件                                             |
+| -------------------------- | ------------------------------------------------------------ |
+| NEW（新建）                | 线程刚被创建，但是并未启动，还没调用 start 方法，只有线程对象，没有线程特征 |
+| Runnable（可运行）         | 线程可以在 Java 虚拟机中运行的状态，可能正在运行自己代码，也可能没有，这取决于操作系统处理器，调用了 t.start() 方法：就绪（经典叫法） |
+| Blocked（锁阻塞）          | 当一个线程试图获取一个对象锁，而该对象锁被其他的线程持有，则该线程进入 Blocked 状态；当该线程持有锁时，该线程将变成 Runnable 状态 |
+| Waiting（无限等待）        | 一个线程在等待另一个线程执行一个（唤醒）动作时，该线程进入 Waiting 状态，进入这个状态后不能自动唤醒，必须等待另一个线程调用 notify 或者 notifyAll 方法才能唤醒 |
+| Timed Waiting （计时等待） | 有几个方法有超时参数，调用将进入 Timed Waiting 状态，这一状态将一直保持到超时期满或者接收到唤醒通知。带有超时参数的常用方法有 Thread.sleep 、Object.wait |
+| Teminated（被终止）        | run 方法正常退出而死亡，或者因为没有捕获的异常终止了 run 方法而死亡 |
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JUC-线程6种状态.png)
 
@@ -711,14 +714,11 @@ Java：
 
 竞态条件：多个线程在临界区内执行，由于代码的执行序列不同而导致结果无法预测，称之为发生了竞态条件
 
-一个程序运行多个线程本身是没有问题的，多个线程访问共享资源会出现问题：
-
-* 多个线程读共享资源也没有问题
-* 在多个线程对共享资源读写操作时发生指令交错，就会出现问题
+一个程序运行多个线程本身是没有问题的，多个线程访问共享资源会出现问题。多个线程读共享资源也没有问题，在多个线程对共享资源读写操作时发生指令交错，就会出现问题
 
 为了避免临界区的竞态条件发生（解决线程安全问题）：
 
-* 阻塞式的解决方案：synchronized，Lock
+* 阻塞式的解决方案：synchronized，lock
 * 非阻塞式的解决方案：原子变量
 
 管程（monitor）：由局部于自己的若干公共变量和所有访问这些公共变量的过程所组成的软件模块，保证同一时刻只有一个进程在管程内活动，即管程内定义的操作在同一时刻只被一个进程调用（由编译器实现）
@@ -747,7 +747,7 @@ Java：
 
 ##### 同步代码块
 
-锁对象：理论上可以是任意的唯一对象
+锁对象：理论上可以是**任意的唯一对象**
 
 synchronized 是可重入、不公平的重量级锁
 
@@ -755,9 +755,7 @@ synchronized 是可重入、不公平的重量级锁
 
 * 锁对象建议使用共享资源
 * 在实例方法中使用 this 作为锁对象，锁住的 this 正好是共享资源
-* 在静态方法中使用类名 .class 字节码作为锁对象
-  * 因为静态成员属于类，被所有实例对象共享，所以需要锁住类
-  * 锁住类以后，类的所有实例都相当于同一把锁，参考线程八锁
+* 在静态方法中使用类名 .class 字节码作为锁对象，因为静态成员属于类，被所有实例对象共享，所以需要锁住类
 
 格式：
 
@@ -894,11 +892,11 @@ class Room {
 
 ##### 线程八锁
 
-所谓的“线程八锁”，其实就是考察 synchronized 锁住的是哪个对象，直接百度搜索相关的实例
+线程八锁就是考察 synchronized 锁住的是哪个对象，直接百度搜索相关的实例
 
 说明：主要关注锁住的对象是不是同一个
 
-* 锁住类对象，所有类的实例的方法都是安全的
+* 锁住类对象，所有类的实例的方法都是安全的，类的所有实例都相当于同一把锁
 * 锁住 this 对象，只有在当前实例对象的线程内是安全的，如果有多个实例就不安全
 
 线程不安全：因为锁住的不是同一个对象，线程 1 调用 a 方法锁住的类对象，线程 2 调用 b 方法锁住的 n2 对象，不是同一个对象
@@ -955,7 +953,7 @@ public static void main(String[] args) {
 
 Monitor 被翻译为监视器或管程
 
-每个 Java 对象都可以关联一个 Monitor 对象，Monitor 也是 class，其实例会存储在堆中，如果使用 synchronized 给对象上锁（重量级）之后，该对象头的 Mark Word 中就被设置指向 Monitor 对象的指针，这就是重量级锁
+每个 Java 对象都可以关联一个 Monitor 对象，Monitor 也是 class，其**实例存储在堆中**，如果使用 synchronized 给对象上锁（重量级）之后，该对象头的 Mark Word 中就被设置指向 Monitor 对象的指针，这就是重量级锁
 
 * Mark Word 结构：
 
@@ -968,10 +966,11 @@ Monitor 被翻译为监视器或管程
 工作流程：
 
 * 开始时 Monitor 中 Owner 为 null
-* 当 Thread-2 执行 synchronized(obj) 就会将 Monitor 的所有者 Owner 置为 Thread-2，Monitor 中只能有一个 Owner，**obj 对象的 Mark Word 指向 Monitor**
+* 当 Thread-2 执行 synchronized(obj) 就会将 Monitor 的所有者 Owner 置为 Thread-2，Monitor 中只能有一个 Owner，**obj 对象的 Mark Word 指向 Monitor**，把对象原有的 MarkWord 存入线程栈中的锁记录中（轻量级锁部分详解）
   <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-Monitor工作原理1.png" style="zoom:67%;" />
 * 在 Thread-2 上锁的过程，Thread-3、Thread-4、Thread-5 也执行 synchronized(obj)，就会进入 EntryList BLOCKED（双向链表）
-* Thread-2 执行完同步代码块的内容，根据对象头中 Monitor 地址寻找，设置 Owner 为空，唤醒 EntryList 中等待的线程来竞争锁，竞争是**非公平的**
+* Thread-2 执行完同步代码块的内容，根据 obj 对象头中 Monitor 地址寻找，设置 Owner 为空，把线程栈的锁记录中的对象头的值设置到 MarkWord
+* 唤醒 EntryList 中等待的线程来竞争锁，竞争是**非公平的**，如果这时有新的线程想要获取锁，可能直接就抢占到了，阻塞队列的线程就会继续阻塞
 * WaitSet 中的 Thread-0，是以前获得过锁，但条件不满足进入 WAITING 状态的线程（wait-notify 机制）
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JUC-Monitor工作原理2.png)
@@ -1008,16 +1007,16 @@ public static void main(String[] args) {
 8: 	aload_1					// lock （synchronized开始）
 9: 	dup						// 一份用来初始化，一份用来引用
 10: astore_2 				// lock引用 -> slot 2
-11: monitorenter 			// 将 lock对象 MarkWord 置为 Monitor 指针
+11: monitorenter 			// 【将 lock对象 MarkWord 置为 Monitor 指针】
 12: getstatic 		#3		// System.out
 15: ldc 			#4		// "ok"
 17: invokevirtual 	#5 		// invokevirtual println:(Ljava/lang/String;)V
 20: aload_2 				// slot 2(lock引用)
-21: monitorexit 			// 将 lock对象 MarkWord 重置, 唤醒 EntryList
+21: monitorexit 			// 【将 lock对象 MarkWord 重置, 唤醒 EntryList】
 22: goto 30
 25: astore_3 				// any -> slot 3
 26: aload_2 				// slot 2(lock引用)
-27: monitorexit 			// 将 lock对象 MarkWord 重置, 唤醒 EntryList
+27: monitorexit 			// 【将 lock对象 MarkWord 重置, 唤醒 EntryList】
 28: aload_3
 29: athrow
 30: return
@@ -1050,7 +1049,7 @@ LocalVariableTable:
 **synchronized 是可重入、不公平的重量级锁**，所以可以对其进行优化
 
 ```java
-无锁 -> 偏向锁 -> 轻量级锁 -> 重量级锁	//随着竞争的增加，只能锁升级，不能降级
+无锁 -> 偏向锁 -> 轻量级锁 -> 重量级锁	// 随着竞争的增加，只能锁升级，不能降级
 ```
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JUC-锁升级过程.png)
@@ -1065,9 +1064,9 @@ LocalVariableTable:
 
 偏向锁的思想是偏向于让第一个获取锁对象的线程，这个线程之后重新获取该锁不再需要同步操作：
 
-* 当锁对象第一次被线程获得的时候进入偏向状态，标记为101，同时使用 CAS 操作将线程 ID 记录到Mark Word。如果 CAS 操作成功，这个线程以后进入这个锁相关的同步块，查看这个线程 ID 是自己的就表示没有竞争，就不需要再进行任何同步操作
+* 当锁对象第一次被线程获得的时候进入偏向状态，标记为 101，同时使用 CAS 操作将线程 ID 记录到 Mark Word。如果 CAS 操作成功，这个线程以后进入这个锁相关的同步块，查看这个线程 ID 是自己的就表示没有竞争，就不需要再进行任何同步操作
 
-* 当有另外一个线程去尝试获取这个锁对象时，偏向状态就宣告结束，此时撤销偏向（Revoke Bias）后恢复到未锁定状态或轻量级锁状态
+* 当有另外一个线程去尝试获取这个锁对象时，偏向状态就宣告结束，此时撤销偏向（Revoke Bias）后恢复到未锁定或轻量级锁状态
 
 <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-Monitor-MarkWord结构64位.png" style="zoom: 67%;" />
 
@@ -1087,13 +1086,13 @@ LocalVariableTable:
   * 轻量级锁会在锁记录中记录 hashCode
   * 重量级锁会在 Monitor 中记录 hashCode
 * 当有其它线程使用偏向锁对象时，会将偏向锁升级为轻量级锁
-* 调用 wait/notify
+* 调用 wait/notify，需要申请 Monitor，进入 WaitSet
 
 **批量撤销**：如果对象被多个线程访问，但没有竞争，这时偏向了线程 T1 的对象仍有机会重新偏向 T2，重偏向会重置对象的 Thread ID
 
-* 批量重偏向：当撤销偏向锁阈值超过 20 次后，jvm 会觉得是不是偏向错了，于是在给这些对象加锁时重新偏向至加锁线程
+* 批量重偏向：当撤销偏向锁阈值超过 20 次后，JVM 会觉得是不是偏向错了，于是在给这些对象加锁时重新偏向至加锁线程
 
-* 批量撤销：当撤销偏向锁阈值超过 40 次后，jvm 会觉得自己确实偏向错了，根本就不该偏向，于是整个类的所有对象都会变为不可偏向的，新建的对象也是不可偏向的
+* 批量撤销：当撤销偏向锁阈值超过 40 次后，JVM 会觉得自己确实偏向错了，根本就不该偏向，于是整个类的所有对象都会变为不可偏向的，新建的对象也是不可偏向的
 
 
 
@@ -1103,9 +1102,9 @@ LocalVariableTable:
 
 ##### 轻量级锁
 
-一个对象有多个线程要加锁，但加锁的时间是错开的（没有竞争），那么可以使用轻量级锁来优化，轻量级锁对使用者是透明的（不可见）
+一个对象有多个线程要加锁，但加锁的时间是错开的（没有竞争），可以使用轻量级锁来优化，轻量级锁对使用者是透明的（不可见）
 
-可重入锁：**线程可以进入任何一个它已经拥有的锁所同步着的代码块，可重入锁最大的作用是避免死锁**
+可重入锁：线程可以进入任何一个它已经拥有的锁所同步着的代码块，可重入锁最大的作用是**避免死锁**
 
 轻量级锁在没有竞争时（锁重入时），每次重入仍然需要执行 CAS 操作，Java 6 才引入的偏向锁来优化
 
@@ -1126,13 +1125,12 @@ public static void method2() {
 }
 ```
 
-* 创建锁记录（Lock Record）对象，每个线程的栈帧都会包含一个锁记录的结构，存储锁定对象的 Mark Word
+* 创建锁记录（Lock Record）对象，每个线程的**栈帧**都会包含一个锁记录的结构，存储锁定对象的 Mark Word
 
   ![](https://gitee.com/seazean/images/raw/master/Java/JUC-轻量级锁原理1.png)
 
-* 让锁记录中 Object reference 指向锁对象，并尝试用 CAS 替换 Object 的 Mark Word，将 Mark Word 的值存
-  入锁记录
-
+* 让锁记录中 Object reference 指向锁住的对象，并尝试用 CAS 替换 Object 的 Mark Word，将 Mark Word 的值存入锁记录
+  
 * 如果 CAS 替换成功，对象头中存储了锁记录地址和状态 00（轻量级锁） ，表示由该线程给对象加锁
   ![](https://gitee.com/seazean/images/raw/master/Java/JUC-轻量级锁原理2.png)
 
@@ -1182,7 +1180,7 @@ public static void method2() {
 
 ##### 自旋锁
 
-重量级锁竞争时，尝试获取锁的线程不会立即阻塞，可以使用**自旋**来进行优化，采用循环的方式去尝试获取锁
+重量级锁竞争时，尝试获取锁的线程不会立即阻塞，可以使用**自旋**（默认 10 次）来进行优化，采用循环的方式去尝试获取锁
 
 注意：
 
@@ -1279,7 +1277,7 @@ public class SpinLock {
 
 对相同对象多次加锁，导致线程发生多次重入，频繁的加锁操作就会导致性能损耗，可以使用锁粗化方式优化
 
-如果虚拟机探测到一串零碎的操作都对同一个对象加锁，将会把加锁的范围扩展（粗化）到整个操作序列的外部
+如果虚拟机探测到一串的操作都对同一个对象加锁，将会把加锁的范围扩展（粗化）到整个操作序列的外部
 
 * 一些看起来没有加锁的代码，其实隐式的加了很多锁：
 
@@ -1542,7 +1540,7 @@ class TestLiveLock {
 
 #### 基本使用
 
-需要获取对象锁后才可以调用`锁对象.wait()`，notify 随机唤醒一个线程，notifyAll 唤醒所有线程去竞争 CPU
+需要获取对象锁后才可以调用 `锁对象.wait()`，notify 随机唤醒一个线程，notifyAll 唤醒所有线程去竞争 CPU
 
 Object 类 API：
 
@@ -1552,6 +1550,8 @@ public final void notifyAll():唤醒正在等待对象监视器的所有线程�
 public final void wait():导致当前线程等待，直到另一个线程调用该对象的notify()方法或 notifyAll()方法。
 public final native void wait(long timeout):有时限的等待, 到n毫秒后结束等待，或是被唤醒
 ```
+
+说明：**wait 是挂起线程，需要唤醒的都是挂起操作**，阻塞线程可以自己去争抢锁，挂起的线程需要唤醒后去争抢锁
 
 对比 sleep()：
 
@@ -1658,26 +1658,26 @@ public class demo {
 
 ### park-un
 
-LockSupport 是用来创建锁和其他同步类的线程阻塞原语
+LockSupport 是用来创建锁和其他同步类的**线程原语**
 
 LockSupport 类方法：
 
-* `LockSupport.park()`：暂停当前线程，原语
+* `LockSupport.park()`：暂停当前线程，挂起原语
 * `LockSupport.unpark(暂停的线程对象)`：恢复某个线程的运行
 
 ```java
 public static void main(String[] args) {
     Thread t1 = new Thread(() -> {
-        System.out.println("start...");//1
-		Thread.sleep(1000);//Thread.sleep(3000)
-        //先park再unpark 和 先unpark再park效果一样，都会直接恢复线程的运行
-        System.out.println("park...");//2
+        System.out.println("start...");	//1
+		Thread.sleep(1000);// Thread.sleep(3000)
+        // 先 park 再 unpark 和先 unpark 再 park 效果一样，都会直接恢复线程的运行
+        System.out.println("park...");	//2
         LockSupport.park();
         System.out.println("resume...");//4
     },"t1");
     t1.start();
    	Thread.sleep(2000);
-    System.out.println("unpark...");//3
+    System.out.println("unpark...");	//3
     LockSupport.unpark(t1);
 }
 ```
@@ -1685,16 +1685,16 @@ public static void main(String[] args) {
 LockSupport 出现就是为了增强 wait & notify 的功能：
 
 * wait，notify 和 notifyAll 必须配合 Object Monitor 一起使用，而 park、unpark 不需要
-* park & unpark 以线程为单位来阻塞和唤醒线程，而 notify 只能随机唤醒一个等待线程，notifyAll 是唤醒所有等待线程
-* **park & unpark 可以先 unpark**，而 wait & notify 不能先 notify。类比生产消费，先消费发现有产品就消费，没有就等待；先生产就直接产生商品，然后线程直接消费
-* wait 会释放锁资源进入等待队列，park 不会释放锁资源，只负责阻塞当前线程，会释放 CPU
+* park & unpark **以线程为单位**来阻塞和唤醒线程，而 notify 只能随机唤醒一个等待线程，notifyAll 是唤醒所有等待线程
+* park & unpark 可以先 unpark，而 wait & notify 不能先 notify。类比生产消费，先消费发现有产品就消费，没有就等待；先生产就直接产生商品，然后线程直接消费
+* wait 会释放锁资源进入等待队列，**park 不会释放锁资源**，只负责阻塞当前线程，会释放 CPU
 
-原理：
+原理：类似生产者消费者
 
 * 先 park：
   1. 当前线程调用 Unsafe.park() 方法
   2. 检查 _counter ，本情况为 0，这时获得 _mutex 互斥锁
-  3. 线程进入 _cond 条件变量阻塞
+  3. 线程进入 _cond 条件变量挂起
   4. 调用 Unsafe.unpark(Thread_0) 方法，设置 _counter 为 1
   5. 唤醒 _cond 条件变量中的 Thread_0，Thread_0 恢复运行，设置 _counter 为 0
 
@@ -1704,7 +1704,7 @@ LockSupport 出现就是为了增强 wait & notify 的功能：
 
   1. 调用 Unsafe.unpark(Thread_0) 方法，设置 _counter 为 1
   2. 当前线程调用 Unsafe.park() 方法
-  3. 检查 _counter ，本情况为 1，这时线程无需阻塞，继续运行，设置 _counter 为 0
+  3. 检查 _counter ，本情况为 1，这时线程无需挂起，继续运行，设置 _counter 为 0
 
   ![](https://gitee.com/seazean/images/raw/master/Java/JUC-park原理2.png)
 
@@ -1746,21 +1746,21 @@ LockSupport 出现就是为了增强 wait & notify 的功能：
   }
   ```
 
-不可变类线程安全：String、Integer 等都是不可变类，因为内部的状态不可以改变，因此方法是线程安全
+无状态类线程安全，就是没有成员变量的类
 
-* replace等方法底层是新建一个对象，复制过去
+不可变类线程安全：String、Integer 等都是不可变类，**内部的状态不可以改变**，所以方法是线程安全
+
+* replace 等方法底层是新建一个对象，复制过去
 
   ```java
-  Map<String,Object> map = new HashMap<>();	//线程不安全
-  String S1 = "...";							//线程安全
-  final String S2 = "...";					//线程安全
-  Date D1 = new Date();						//线程不安全
-  final Date D2 = new Date();	//线程不安全，final让D2引用的对象不能变，但对象的内容可以变
+  Map<String,Object> map = new HashMap<>();	// 线程不安全
+  String S1 = "...";							// 线程安全
+  final String S2 = "...";					// 线程安全
+  Date D1 = new Date();						// 线程不安全
+  final Date D2 = new Date();					// 线程不安全，final让D2引用的对象不能变，但对象的内容可以变
   ```
 
 抽象方法如果有参数，被重写后行为不确定可能造成线程不安全，被称之为外星方法：`public abstract foo(Student s);`
-
-无状态类线程安全
 
 
 
@@ -2234,9 +2234,9 @@ public static void main(String[] args) {
 
 #### 内存模型
 
-Java 内存模型是 Java MemoryModel（JMM），本身是一种**抽象的概念**，实际上并不存在，描述的是一组规则或规范，通过这组规范定义了程序中各个变量（包括实例字段，静态字段和构成数组对象的元素）的访问方式
+Java 内存模型是 Java Memory Model（JMM），本身是一种**抽象的概念**，实际上并不存在，描述的是一组规则或规范，通过这组规范定义了程序中各个变量（包括实例字段，静态字段和构成数组对象的元素）的访问方式
 
-作用：
+JMM 作用：
 
 * 屏蔽各种硬件和操作系统的内存访问差异，实现让 Java 程序在各种平台下都能达到一致的内存访问效果
 * 规定了线程和内存之间的一些关系
@@ -2250,13 +2250,10 @@ Java 内存模型是 Java MemoryModel（JMM），本身是一种**抽象的概�
 * 主内存：计算机的内存，也就是经常提到的 8G 内存，16G 内存，存储所有共享变量的值
 * 工作内存：存储该线程使用到的共享变量在主内存的的值的副本拷贝
 
+**JVM 和 JMM 之间的关系**：JMM 中的主内存、工作内存与 JVM 中的 Java 堆、栈、方法区等并不是同一个层次的内存划分，这两者基本上是没有关系的，如果两者一定要勉强对应起来：
 
-
-**JVM 和 JMM 之间的关系**：
-
-* JMM 中的主内存、工作内存与 JVM 中的 Java 堆、栈、方法区等并不是同一个层次的内存划分，这两者基本上是没有关系的，如果两者一定要勉强对应起来：
-  * 主内存主要对应于 Java 堆中的对象实例数据部分，而工作内存则对应于虚拟机栈中的部分区域
-  * 从更低层次上说，主内存直接对应于物理硬件的内存，工作内存对应寄存器和高速缓存
+* 主内存主要对应于 Java 堆中的对象实例数据部分，而工作内存则对应于虚拟机栈中的部分区域
+* 从更低层次上说，主内存直接对应于物理硬件的内存，工作内存对应寄存器和高速缓存
 
 
 
@@ -2270,7 +2267,7 @@ Java 内存模型定义了 8 个操作来完成主内存和工作内存的交互
 
 <img src="https://gitee.com/seazean/images/raw/master/Java/JMM-内存交互.png" style="zoom: 67%;" />
 
-* lock：将一个变量标识为被一个线程独占状态
+* lock：将一个变量标识为被一个线程**独占状态**
 * unclock：将一个变量从独占状态释放出来，释放后的变量才可以被其他线程锁定
 * read：把一个变量的值从主内存传输到工作内存中
 * load：在 read 之后执行，把 read 得到的值放入工作内存的变量副本中
@@ -2295,7 +2292,7 @@ Java 内存模型定义了 8 个操作来完成主内存和工作内存的交互
 
 可见性：是指当多个线程访问同一个变量时，一个线程修改了这个变量的值，其他线程能够立即看得到修改的值
 
-存在可见性问题的根本原因是由于缓存的存在，线程持有的是共享变量的副本，无法感知其他线程对于共享变量的更改，导致读取的值不是最新的
+存在不可见问题的根本原因是由于缓存的存在，线程持有的是共享变量的副本，无法感知其他线程对于共享变量的更改，导致读取的值不是最新的
 
 main 线程对 run 变量的修改对于 t 线程不可见，导致了 t 线程无法停止：
 
@@ -2356,12 +2353,12 @@ CPU 的基本工作是执行存储的指令序列，即程序，程序的执行�
 源代码 -> 编译器优化的重排 -> 指令并行的重排 -> 内存系统的重排 -> 最终执行指令
 ```
 
-现代 CPU 支持多级指令流水线，几乎所有的冯•诺伊曼型计算机的 CPU，其工作都可以分为 5 个阶段：取指令、指令译码、执行指令、访存取数和结果写回，可以称之为**五级指令流水线**。这时 CPU 可以在一个时钟周期内，同时运行五条指令的**不同阶段**（每个线程不同的阶段），本质上流水线技术并不能缩短单条指令的执行时间，但变相地提高了指令地吞吐率
+现代 CPU 支持多级指令流水线，几乎所有的冯•诺伊曼型计算机的 CPU，其工作都可以分为 5 个阶段：取指令、指令译码、执行指令、访存取数和结果写回，可以称之为**五级指令流水线**。CPU 可以在一个时钟周期内，同时运行五条指令的**不同阶段**（每个线程不同的阶段），本质上流水线技术并不能缩短单条指令的执行时间，但变相地提高了指令地吞吐率
 
 处理器在进行重排序时，必须要考虑**指令之间的数据依赖性**
 
-* 单线程环境也存在指令重排，由于存在依赖，最终执行结果和代码顺序的结果一致
-* 多线程环境中线程交替执行，由于编译器优化重排，两个线程中使用的变量能否保证一致性是无法确定的
+* 单线程环境也存在指令重排，由于存在依赖性，最终执行结果和代码顺序的结果一致
+* 多线程环境中线程交替执行，由于编译器优化重排，会获取其他线程处在不同阶段的指令同时执行
 
 
 
@@ -2383,19 +2380,19 @@ CPU 处理器速度远远大于在主内存中的，为了解决速度差异，�
 
 <img src="https://gitee.com/seazean/images/raw/master/Java/JMM-CPU缓存结构.png" style="zoom: 50%;" />
 
-| 从 cpu 到 | 大约需要的时钟周期               |
-| --------- | -------------------------------- |
-| 寄存器    | 1 cycle (4GHz 的 CPU 约为0.25ns) |
-| L1        | 3~4 cycle                        |
-| L2        | 10~20 cycle                      |
-| L3        | 40~45 cycle                      |
-| 内存      | 120~240 cycle                    |
+| 从 cpu 到 | 大约需要的时钟周期                |
+| --------- | --------------------------------- |
+| 寄存器    | 1 cycle (4GHz 的 CPU 约为 0.25ns) |
+| L1        | 3~4 cycle                         |
+| L2        | 10~20 cycle                       |
+| L3        | 40~45 cycle                       |
+| 内存      | 120~240 cycle                     |
 
 
 
 ##### 缓存使用
 
-当处理器发出内存访问请求时，会先查看缓存内是否有请求数据，如果存在（命中），则不经访问内存直接返回该数据；如果不存在（失效），则要先把内存中的相应数据载入缓存，再将其返回处理器
+当处理器发出内存访问请求时，会先查看缓存内是否有请求数据，如果存在（命中），则不用访问内存直接返回该数据；如果不存在（失效），则要先把内存中的相应数据载入缓存，再将其返回处理器
 
 缓存之所以有效，主要因为程序运行时对内存的访问呈现局部性（Locality）特征。既包括空间局部性（Spatial Locality），也包括时间局部性（Temporal Locality），有效利用这种局部性，缓存可以达到极高的命中率。
 
@@ -2417,7 +2414,7 @@ CPU 处理器速度远远大于在主内存中的，为了解决速度差异，�
 
 * padding：通过填充，让数据落在不同的 cache line 中
 
-* @Contended：原理参考 无锁 → Addr → 优化机制 → 伪共享
+* @Contended：原理参考 无锁 → Adder → 优化机制 → 伪共享
 
 Linux 查看 CPU 缓存行：
 
@@ -2434,7 +2431,7 @@ Linux 查看 CPU 缓存行：
 
 缓存一致性：当多个处理器运算任务都涉及到同一块主内存区域的时候，将可能导致各自的缓存数据不一样
 
-**MESI**（Modified Exclusive Shared Or Invalid）是一种广泛使用的支持写回策略的缓存一致性协议，CPU 中每个缓存行（caceh line）使用 4 种状态进行标记（使用额外的两位 (bit) 表示)：
+MESI（Modified Exclusive Shared Or Invalid）是一种广泛使用的**支持写回策略的缓存一致性协议**，CPU 中每个缓存行（caceh line）使用 4 种状态进行标记（使用额外的两位 bit 表示)：
 
 * M：被修改（Modified）
 
@@ -2450,7 +2447,7 @@ Linux 查看 CPU 缓存行：
 
 * S：共享的（Shared）
 
-  该状态意味着该缓存行可能被多个 CPU 缓存，并且各个缓存中的数据与主存数据一致 (clear)，当有一个 CPU 修改该缓存行中，其它 CPU 中该缓存行变成无效状态 (Invalid)
+  该状态意味着该缓存行可能被多个 CPU 缓存，并且各个缓存中的数据与主存数据一致，当有一个 CPU 修改该缓存行中，其它 CPU 中该缓存行变成无效状态 (Invalid)
 
 * I：无效的（Invalid）
 
@@ -2514,8 +2511,10 @@ volatile 是 Java 虚拟机提供的**轻量级**的同步机制（三大特性�
 
 **volatile 修饰的变量，可以禁用指令重排**
 
-**synchronized 无法禁止指令重排和处理器优化**，为什么可以保证有序性？
-加了锁之后，只能有一个线程获得到了锁，获得不到锁的线程就要阻塞，所以同一时间只有一个线程执行，相当于单线程，而单线程的指令重排是没有问题的
+**synchronized 无法禁止指令重排和处理器优化**，为什么可以保证有序性可见性
+
+* 加了锁之后，只能有一个线程获得到了锁，获得不到锁的线程就要阻塞，所以同一时间只有一个线程执行，相当于单线程，由于数据依赖性的存在，单线程的指令重排是没有问题的
+* 线程解锁前，必须把共享变量的最新值刷新到主内存中。线程加锁前，将清空工作内存中共享变量的值，使用共享变量时需要从主内存中重新读取最新的值
 
 指令重排实例：
 
@@ -2532,7 +2531,7 @@ volatile 是 Java 虚拟机提供的**轻量级**的同步机制（三大特性�
 
   执行顺序是：1 2 3 4、2 1 3 4、1 3 2 4
 
-  指令重排也有限制不会出现：4321，语句4需要依赖于 y 以及 x 的申明，因为存在数据依赖，无法首先执行
+  指令重排也有限制不会出现：4321，语句 4 需要依赖于 y 以及 x 的申明，因为存在数据依赖，无法首先执行
 
 * example 2：
 
@@ -2572,7 +2571,7 @@ volatile 是 Java 虚拟机提供的**轻量级**的同步机制（三大特性�
 
 使用 volatile 修饰的共享变量，总线会开启 **CPU 总线嗅探机制**来解决 JMM 缓存一致性问题，也就是共享变量在多线程中可见性的问题，实现 MESI 缓存一致性协议
 
-底层是通过汇编 lock 前缀指令，共享变量加了 lock 前缀指令，在线程修改完共享变量后，会马上执行 store 和 write 操作写回主存。在执行 store 操作前，会先执行**缓存锁定**的操作，其他的 CPU 上运行的线程根据 CPU 总线嗅探机制会修改其共享变量为失效状态，读取时会重新从主内存中读取最新的数据
+底层是通过汇编 lock 前缀指令，共享变量加了 lock 前缀指令，在线程修改完共享变量后，会马上执行 store 和 write 操作。在执行 store 操作前，会先执行**缓存锁定**的操作然后写回主存，其他的 CPU 上运行的线程根据 CPU 总线嗅探机制会修改其共享变量为失效状态，读取时会重新从主内存中读取最新的数据
 
 lock 前缀指令就相当于内存屏障，Memory Barrier（Memory Fence）
 
@@ -2635,12 +2634,12 @@ lock 前缀指令就相当于内存屏障，Memory Barrier（Memory Fence）
   i++ 反编译后的指令：
 
   ```java
-  0: iconst_1			//当int取值 -1~5 时，JVM采用iconst指令将常量压入栈中
-  1: istore_1			//将操作数栈顶数据弹出，存入局部变量表的 slot 1
+  0: iconst_1			// 当int取值 -1~5 时，JVM采用iconst指令将常量压入栈中
+  1: istore_1			// 将操作数栈顶数据弹出，存入局部变量表的 slot 1
   2: iinc		1, 1	
   ```
 
-  <img src="https://gitee.com/seazean/images/raw/master/Java/JMM-volatile不能保证原子性.png" style="zoom: 67%;" />
+  <img src="https://gitee.com/seazean/images/raw/master/Java/JMM-volatile不能保证原子性.png" style="zoom:67%;" />
 
 
 
@@ -2654,7 +2653,7 @@ lock 前缀指令就相当于内存屏障，Memory Barrier（Memory Fence）
 
 Double-Checked Locking：双端检锁机制
 
-DCL（双端检锁）机制不一定是线程安全的，原因是有指令重排的存在，加入volatile可以禁止指令重排
+DCL（双端检锁）机制不一定是线程安全的，原因是有指令重排的存在，加入 volatile 可以禁止指令重排
 
 ```java
 public final class Singleton {
@@ -2679,7 +2678,7 @@ public final class Singleton {
 不锁 INSTANCE 的原因：
 
 * INSTANCE 要重新赋值
-* INSTANCE 是 null，线程加锁之前需要获取对象的引用，null 没有引用
+* INSTANCE 是 null，线程加锁之前需要获取对象的引用，设置对象头，null 没有引用
 
 实现特点： 
 
@@ -2727,11 +2726,10 @@ getInstance 方法对应的字节码为：
 * 21 表示利用一个对象引用，调用构造方法初始化对象
 * 24 表示利用一个对象引用，赋值给 static INSTANCE
 
-步骤 21 和步骤 24 之间不存在数据依赖关系，而且无论重排前后，程序的执行结果在单线程中并没有改变，因此这种重排优化是允许的
+步骤 21 和 24 之间不存在数据依赖关系，而且无论重排前后，程序的执行结果在单线程中并没有改变，因此这种重排优化是允许的
 
 * 关键在于 0:getstatic 这行代码在 monitor 控制之外，可以越过 monitor 读取 INSTANCE 变量的值
-* 当其他线程访问 instance 不为 null 时，由于 instance 实例未必已初始化，那么 t2 拿到的是将是一个未初
-  始化完毕的单例返回，这就造成了线程安全的问题
+* 当其他线程访问 instance 不为 null 时，由于 instance 实例未必已初始化，那么 t2 拿到的是将是一个未初始化完毕的单例返回，这就造成了线程安全的问题
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JMM-DCL出现的问题.png)
 
@@ -2761,30 +2759,30 @@ private static volatile SingletonDemo INSTANCE = null;
 
 happens-before 先行发生
 
-Java 内存模型具备一些先天的“有序性”，即不需要通过任何同步手段（volatile、synchronized等）就能够得到保证的安全，这个通常也称为 happens-before 原则，它是可见性与有序性的一套规则总结
+Java 内存模型具备一些先天的“有序性”，即不需要通过任何同步手段（volatile、synchronized 等）就能够得到保证的安全，这个通常也称为 happens-before 原则，它是可见性与有序性的一套规则总结
 
 不符合 happens-before 规则，JMM 并不能保证一个线程的可见性和有序性
 
 1. 程序次序规则 (Program Order Rule)：一个线程内，逻辑上书写在前面的操作先行发生于书写在后面的操作 ，因为多个操作之间有先后依赖关系，则不允许对这些操作进行重排序
 
-2. 锁定规则 (Monitor Lock Rule)：一个 unLock 操作先行发生于后面（时间的先后）对同一个锁的 lock 操作，所以线程解锁 m 之前对变量的写（锁内的写），对于接下来对 m 加锁的其它线程对该变量的读可见
+2. 锁定规则 (Monitor Lock Rule)：一个 unlock 操作先行发生于后面（时间的先后）对同一个锁的 lock 操作，所以线程解锁 m 之前对变量的写（解锁前会刷新到主内存中），对于接下来对 m 加锁的其它线程对该变量的读可见
 
-3. **volatile变量规则** (Volatile Variable Rule)：对 volatile 变量的写操作先行发生于后面对这个变量的读
+3. **volatile 变量规则**  (Volatile Variable Rule)：对 volatile 变量的写操作先行发生于后面对这个变量的读
 
-4. 传递规则 (Transitivity)：具有传递性，如果操作A先行发生于操作B，而操作B又先行发生于操作C，则可以得出操作A先行发生于操作C
+4. 传递规则 (Transitivity)：具有传递性，如果操作 A 先行发生于操作 B，而操作 B 又先行发生于操作 C，则可以得出操作 A 先行发生于操作 C
 
-5. 线程启动规则 (Thread Start Rule)：Thread对象的start()方法先行发生于此线程中的每一个操作
+5. 线程启动规则 (Thread Start Rule)：Thread 对象的 start()方 法先行发生于此线程中的每一个操作
 
    ```java
    static int x = 10;//线程 start 前对变量的写，对该线程开始后对该变量的读可见
    new Thread(()->{	System.out.println(x);	},"t1").start();
    ```
 
-6. 线程中断规则 (Thread Interruption Rule)：对线程interrupt()方法的调用先行发生于被中断线程的代码检测到中断事件的发生
+6. 线程中断规则 (Thread Interruption Rule)：对线程 interrupt() 方法的调用先行发生于被中断线程的代码检测到中断事件的发生
 
-7. 线程终止规则 (Thread Termination Rule)：线程中所有的操作都先行发生于线程的终止检测，可以通过Thread.join()方法结束、Thread.isAlive()的返回值手段检测到线程已经终止执行
+7. 线程终止规则 (Thread Termination Rule)：线程中所有的操作都先行发生于线程的终止检测，可以通过 Thread.join() 方法结束、Thread.isAlive() 的返回值手段检测到线程已经终止执行
 
-8. 对象终结规则（Finaizer Rule）：一个对象的初始化完成（构造函数执行结束）先行发生于它的finalize()方法的开始
+8. 对象终结规则（Finaizer Rule）：一个对象的初始化完成（构造函数执行结束）先行发生于它的 finalize() 方法的开始
 
 
 
@@ -2800,12 +2798,12 @@ Java 内存模型具备一些先天的“有序性”，即不需要通过任何
 
 ```java
 class TwoPhaseTermination {
-    //监控线程
+    // 监控线程
     private Thread monitor;
-    //停止标记
+    // 停止标记
     private volatile boolean stop = false;;
 
-    //启动监控线程
+    // 启动监控线程
     public void start() {
         monitor = new Thread(() -> {
             while (true) {
@@ -2815,7 +2813,7 @@ class TwoPhaseTermination {
                     break;
                 }
                 try {
-                    Thread.sleep(1000);//睡眠
+                    Thread.sleep(1000);// 睡眠
                     System.out.println(thread.getName() + "执行监控记录");
                 } catch (InterruptedException e) {
                    	System.out.println("被打断，退出睡眠");
@@ -2825,13 +2823,13 @@ class TwoPhaseTermination {
         monitor.start();
     }
 
-    //停止监控线程
+    // 停止监控线程
     public void stop() {
         stop = true;
-        monitor.interrupt();//让线程尽快退出Timed Waiting
+        monitor.interrupt();// 让线程尽快退出Timed Waiting
     }
 }
-//测试
+// 测试
 public static void main(String[] args) throws InterruptedException {
     TwoPhaseTermination tpt = new TwoPhaseTermination();
     tpt.start();
@@ -2849,8 +2847,7 @@ public static void main(String[] args) throws InterruptedException {
 
 #### Balking
 
-Balking （犹豫）模式用在一个线程发现另一个线程或本线程已经做了某一件相同的事，那么本线程就无需再做
-了，直接结束返回
+Balking （犹豫）模式用在一个线程发现另一个线程或本线程已经做了某一件相同的事，那么本线程就无需再做了，直接结束返回
 
 ```java
 public class MonitorService {
@@ -2913,13 +2910,13 @@ public class TestVolatile {
 CAS 的全称是 Compare-And-Swap，是 **CPU 并发原语**
 
 * CAS 并发原语体现在 Java 语言中就是 sun.misc.Unsafe 类的各个方法，调用 UnSafe 类中的 CAS 方法，JVM 会实现出 CAS 汇编指令，这是一种完全依赖于硬件的功能，实现了原子操作
-* CAS 是一种系统原语，原语属于操作系统范畴，是由若干条指令组成 ，用于完成某个功能的一个过程，并且**原语的执行必须是连续的，执行过程中不允许被中断**，也就是说 CAS 是一条 CPU 的原子指令，不会造成数据不一致的问题，所以 CAS 是线程安全的
+* CAS 是一种系统原语，原语属于操作系统范畴，是由若干条指令组成 ，用于完成某个功能的一个过程，并且原语的执行必须是连续的，执行过程中不允许被中断，所以 CAS 是一条 CPU 的原子指令，不会造成数据不一致的问题，是线程安全的
 
 底层原理：CAS 的底层是 `lock cmpxchg` 指令（X86 架构），在单核和多核 CPU 下都能够保证比较交换的原子性
 
 * 程序是在单核处理器上运行，会省略 lock 前缀，单处理器自身会维护处理器内的顺序一致性，不需要 lock 前缀的内存屏障效果
 
-* 程序是在多核处理器上运行，会为 cmpxchg 指令加上 lock 前缀（lock cmpxchg）。当某个核执行到带 lock 的指令时，CPU 会执行**总线锁定或缓存锁定**，当这个核把此指令执行完毕，这个过程不会被线程的调度机制所打断，保证了多个线程对内存操作的原子性
+* 程序是在多核处理器上运行，会为 cmpxchg 指令加上 lock 前缀。当某个核执行到带 lock 的指令时，CPU 会执行**总线锁定或缓存锁定**，将修改的变量写入到主存，这个过程不会被线程的调度机制所打断，保证了多个线程对内存操作的原子性
 
 作用：比较当前工作内存中的值和主物理内存中的值，如果相同则执行规定操作，否者继续比较直到主内存和工作内存的值一致为止
 
@@ -2933,7 +2930,7 @@ CAS 缺点：
 - 循环时间长，开销大，因为执行的是循环操作，如果比较不成功一直在循环，最差的情况某个线程一直取到的值和预期值都不一样，就会无限循环导致饥饿，**使用 CAS 线程数不要超过 CPU的 核心数**
 - 只能保证一个共享变量的原子操作
   - 对于一个共享变量执行操作时，可以通过循环 CAS 的方式来保证原子操作
-  - 对于多个共享变量操作时，循环 CAS 就无法保证操作的原子性，这个时候只能用锁来保证原子性
+  - 对于多个共享变量操作时，循环 CAS 就无法保证操作的原子性，这个时候**只能用锁来保证原子性**
 - 引出来 ABA 问题
 
 
@@ -2946,12 +2943,10 @@ CAS 缺点：
 
 #### 乐观锁
 
-CAS 与 Synchronized 总结：
+CAS 与 synchronized 总结：
 
-* Synchronized 是从悲观的角度出发：
-  总是假设最坏的情况，每次去拿数据的时候都认为别人会修改，所以每次在拿数据的时候都会上锁，这样别人想拿这个数据就会阻塞直到它拿到锁。（**共享资源每次只给一个线程使用，其它线程阻塞，用完后再把资源转让给其它线程**），因此 Synchronized 我们也将其称之为悲观锁。jdk中的ReentrantLock也是一种悲观锁，**性能较差**
-* CAS 是从乐观的角度出发:
-  总是假设最好的情况，每次去拿数据的时候都认为别人不会修改，所以不会上锁，但是在更新的时候会判断一下在此期间别人有没有去更新这个数据。**如果别人修改过，则获取现在最新的值。如果别人没修改过，直接修改共享数据的值**，CAS 这种机制我们也可以将其称之为乐观锁。**综合性能较好**
+* synchronized 是从悲观的角度出发：总是假设最坏的情况，每次去拿数据的时候都认为别人会修改，所以每次在拿数据的时候都会上锁，这样别人想拿这个数据就会阻塞（**共享资源每次只给一个线程使用，其它线程阻塞，用完后再把资源转让给其它线程**），因此 synchronized 也称之为悲观锁，ReentrantLock 也是一种悲观锁，**性能较差**
+* CAS 是从乐观的角度出发：总是假设最好的情况，每次去拿数据的时候都认为别人不会修改，所以不会上锁，但是在更新的时候会判断一下在此期间别人有没有去更新这个数据。**如果别人修改过，则获取现在最新的值，如果别人没修改过，直接修改共享数据的值**，CAS 这种机制也称之为乐观锁，**综合性能较好**
 
 
 
@@ -2990,7 +2985,7 @@ CAS 与 Synchronized 总结：
 
 #### 原理分析
 
-**AtomicInteger原理**：自旋锁  + CAS 算法
+**AtomicInteger 原理**：自旋锁  + CAS 算法
 
 CAS 算法：有 3 个操作数（内存值 V， 旧的预期值 A，要修改的值 B）
 
@@ -3023,11 +3018,11 @@ CAS 算法：有 3 个操作数（内存值 V， 旧的预期值 A，要修改�
 * unsafe类：
 
   ```java
-  //val1: AtomicInteger对象本身  var2: 该对象值得引用地址 var4: 需要变动的数
+  // val1: AtomicInteger对象本身，var2: 该对象值得引用地址，var4: 需要变动的数
   public final int getAndSetInt(Object var1, long var2, int var4) {
       int var5;
       do {
-          //var5: 用var1和var2找到的内存中的真实值
+          // var5: 用 var1 和 var2 找到的内存中的真实值
           var5 = this.getIntVolatile(var1, var2);
       } while(!this.compareAndSwapInt(var1, var2, var5, var4));
   
@@ -3037,7 +3032,7 @@ CAS 算法：有 3 个操作数（内存值 V， 旧的预期值 A，要修改�
 
   var5：从主内存中拷贝到工作内存中的值（每次都要从主内存拿到最新的值到本地内存），然后执行 `compareAndSwapInt()` 再和主内存的值进行比较，假设方法返回 false，那么就一直执行 while 方法，直到期望的值和真实值一样，修改数据
 
-* 变量 value 用 volatile 修饰，保证了多线程之间的内存可见性，避免线程从自己的工作缓存中查找变量
+* 变量 value 用 volatile 修饰，保证了多线程之间的内存可见性，避免线程从工作缓存中获取失效的变量
 
   ```java
   private volatile int value
@@ -3099,23 +3094,23 @@ AtomicReference 类：
 * 构造方法：`AtomicReference<T> atomicReference = new AtomicReference<T>()`
 
 * 常用 API：
-  `public final boolean compareAndSet(V expectedValue, V newValue)`：CAS 操作
-  `public final void set(V newValue)`：将值设置为 newValue 
-  `public final V get()`：返回当前值
+  * `public final boolean compareAndSet(V expectedValue, V newValue)`：CAS 操作
+  * `public final void set(V newValue)`：将值设置为 newValue 
+  * `public final V get()`：返回当前值
 
 ```java
 public class AtomicReferenceDemo {
     public static void main(String[] args) {
-        Student s1 = new Student(33,"z3");
+        Student s1 = new Student(33, "z3");
         
-        //创建原子引用包装类
+        // 创建原子引用包装类
         AtomicReference<Student> atomicReference = new AtomicReference<>();
-        //设置主内存共享变量为s1
+        // 设置主内存共享变量为s1
         atomicReference.set(s1);
 
-        //比较并交换，如果现在主物理内存的值为z3，那么交换成l4
+        // 比较并交换，如果现在主物理内存的值为 z3，那么交换成 l4
         while (true) {
-            Student s2 = new Student(44,"l4");
+            Student s2 = new Student(44, "l4");
             if (atomicReference.compareAndSet(s1, s2)) {
                 break;
             }
@@ -3166,7 +3161,7 @@ public final boolean compareAndSet(int i, int expect, int update) {
 
 利用字段更新器，可以针对对象的某个域（Field）进行原子操作，只能配合 volatile 修饰的字段使用，否则会出现异常 `IllegalArgumentException: Must be volatile type`
 
-常用API：
+常用 API：
 
 * `static <U> AtomicIntegerFieldUpdater<U> newUpdater(Class<U> c, String fieldName)`：构造方法
 * `abstract boolean compareAndSet(T obj, int expect, int update)`：CAS
@@ -3193,7 +3188,7 @@ public class UpdateDemo {
 
 #### 原子累加器
 
-原子累加器类：LongAdder、DoubleAdder、LongAccumulator、DoubleAccumulator
+原子累加器类：LongAdder、DoubleAdder、LongAccumulator、DoubleAccumulator 
 
 LongAdder 和 LongAccumulator 区别：
 
@@ -3225,7 +3220,7 @@ LongAdder 是 Java8 提供的类，跟 AtomicLong 有相同的效果，但对 CA
 
 CAS 底层实现是在一个循环中不断地尝试修改目标值，直到修改成功。如果竞争不激烈修改成功率很高，否则失败率很高，失败后这些重复的原子性操作会耗费性能（导致大量线程**空循环，自旋转**）
 
-优化核心思想：数据分离，将 AtomicLong 的**单点的更新压力分担到各个节点**，空间换时间，在低并发的时候直接更新，可以保障和 AtomicLong 的性能基本一致，而在高并发的时候通过分散提高了性能
+优化核心思想：数据分离，将 AtomicLong 的**单点的更新压力分担到各个节点，空间换时间**，在低并发的时候直接更新，可以保障和 AtomicLong 的性能基本一致，而在高并发的时候通过分散减少竞争，提高了性能
 
 **分段 CAS 机制**：
 
@@ -3246,10 +3241,11 @@ CAS 底层实现是在一个循环中不断地尝试修改目标值，直到修�
 Cell 为累加单元：数组访问索引是通过 Thread 里的 threadLocalRandomProbe 域取模实现的，这个域是 ThreadLocalRandom 更新的
 
 ```java
+// Striped64.Cell
 @sun.misc.Contended static final class Cell {
     volatile long value;
     Cell(long x) { value = x; }
-    // 最重要的方法, 用来 cas 方式进行累加, prev 表示旧值, next 表示新值
+    // 用 cas 方式进行累加, prev 表示旧值, next 表示新值
     final boolean cas(long prev, long next) {
     	return UNSAFE.compareAndSwapLong(this, valueOffset, prev, next);
     }
@@ -3257,7 +3253,7 @@ Cell 为累加单元：数组访问索引是通过 Thread 里的 threadLocalRand
 }
 ```
 
-Cell 是数组形式，**在内存中是连续存储的**，64 位系统中，一个 Cell 为 24 字节（16 字节的对象头和 8 字节的 value），每一个 cache line 为 64 字节，因此缓存行可以存下 2 个的 Cell 对象，当 Core-0 要修改 Cell[0]、Core-1 要修改 Cell[1]，无论谁修改成功都会导致当前缓存行失效，导致对方的数据失效，需要重新去主存获取
+Cell 是数组形式，**在内存中是连续存储的**，64 位系统中，一个 Cell 为 24 字节（16 字节的对象头和 8 字节的 value），每一个 cache line 为 64 字节，因此缓存行可以存下 2 个的 Cell 对象，当 Core-0 要修改 Cell[0]、Core-1 要修改 Cell[1]，无论谁修改成功都会导致当前缓存行失效，从而导致对方的数据失效，需要重新去主存获取，影响效率
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JUC-伪共享1.png)
 
@@ -3288,7 +3284,15 @@ transient volatile long base;
 transient volatile int cellsBusy;
 ```
 
-Cells 占用内存是相对比较大的，是惰性加载的，在无竞争的情况下直接更新 base 域，在第一次发生竞争的时候（CAS 失败）就会创建一个大小为 2 的 cells 数组，进行分段累加。如果是更新当前线程对应的 cell 槽位时出现的竞争，就会重新计算线程对应的槽位，继续自旋尝试修改。分段迁移后还出现竞争就会扩容 cells 数组长度为原来的两倍，然后重新 rehash，**数组长度总是 2 的 n 次幂**
+工作流程：
+
+* cells 占用内存是相对比较大的，是惰性加载的，在无竞争或者其他线程正在初始化 cells 数组的情况下，直接更新 base 域
+
+* 在第一次发生竞争时（casBase 失败）会创建一个大小为 2 的 cells 数组，将当前累加的值包装为 Cell 对象，放入映射的槽位上
+* 分段累加的过程中，如果当前线程对应的 cells 槽位为空，就会新建 Cell 填充，如果出现竞争，就会重新计算线程对应的槽位，继续自旋尝试修改
+* 分段迁移后还出现竞争就会扩容 cells 数组长度为原来的两倍，然后 rehash，**数组长度总是 2 的 n 次幂**，默认最大为 CPU 核数，但是可以超过，如果核数是 6 核，数组最长是 8 
+
+方法分析：
 
 * LongAdder#add：累加方法
 
@@ -3299,23 +3303,22 @@ Cells 占用内存是相对比较大的，是惰性加载的，在无竞争的�
       Cell[] as; long b, v; int m; Cell a;
       
       // cells 不为空说明 cells 已经被初始化，线程发生了竞争，去更新对应的 cell 槽位
-      // 为空说明没有初始化，条件为 fasle，进入 || 后的逻辑去更新 base 域，更新失败表示发生竞争进入条件
+      // 进入 || 后的逻辑去更新 base 域，更新失败表示发生竞争进入条件
       if ((as = cells) != null || !casBase(b = base, b + x)) {
-          // uncontended 为 true 表示 cell 没有竞争，false 表示发生竞争
+          // uncontended 为 true 表示 cell 没有竞争
           boolean uncontended = true;
           
           // 条件一: true 说明 cells 未初始化，多线程写 base 发生竞争需要进行初始化 cells 数组
           //		  fasle 说明 cells 已经初始化，进行下一个条件寻找自己的 cell 去累加
           // 条件二: getProbe() 获取 hash 值，& m 的逻辑和 HashMap 的逻辑相同，保证散列的均匀性
           // 		  true 说明当前线程对应下标的 cell 为空，需要创建 cell
-          //        false 说明当前线程对应的 cell 不为空，进行下一个条件想要将 x 值累加到 cell 中
-          // 条件三: true 说明 cas 失败，当前线程对应的 cell 有竞争
-          //		  false 说明 cas 成功，可以直接返回
+          //        false 说明当前线程对应的 cell 不为空，进行下一个条件【将 x 值累加到对应的 cell 中】
+          // 条件三: 有取反符号，false 说明 cas 成功，直接返回，true 说明失败，当前线程对应的 cell 有竞争
           if (as == null || (m = as.length - 1) < 0 ||
               (a = as[getProbe() & m]) == null ||
               !(uncontended = a.cas(v = a.value, v + x)))
               longAccumulate(x, null, uncontended);
-          // uncontended 在对应的 cell 上累加失败的时候才为 false，其余情况均为 true
+          	// 【uncontended 在对应的 cell 上累加失败的时候才为 false，其余情况均为 true】
       }
   }
   ```
@@ -3334,7 +3337,7 @@ Cells 占用内存是相对比较大的，是惰性加载的，在无竞争的�
           // 默认情况下 当前线程肯定是写入到了 cells[0] 位置，不把它当做一次真正的竞争
           wasUncontended = true;
       }
-      // 表示扩容意向，false 一定不会扩容，true 可能会扩容
+      // 表示【扩容意向】，false 一定不会扩容，true 可能会扩容
       boolean collide = false; 
       //自旋
       for (;;) {
@@ -3342,7 +3345,7 @@ Cells 占用内存是相对比较大的，是惰性加载的，在无竞争的�
           Cell[] as; Cell a; int n; long v;
           // 【CASE1】: 表示 cells 已经初始化了，当前线程应该将数据写入到对应的 cell 中
           if ((as = cells) != null && (n = as.length) > 0) {
-              // CASE1.1: true 表示当前线程对应的下标位置的 cell 为 null，需要创建 new Cell
+              // CASE1.1: true 表示当前线程对应的索引下标的 Cell 为 null，需要创建 new Cell
               if ((a = as[(n - 1) & h]) == null) {
                   // 判断 cellsBusy 是否被锁
                   if (cellsBusy == 0) {   
@@ -3350,48 +3353,47 @@ Cells 占用内存是相对比较大的，是惰性加载的，在无竞争的�
                       Cell r = new Cell(x);  
                       // 加锁
                       if (cellsBusy == 0 && casCellsBusy()) {
-                          // 是否创建成功的标记，进入【创建 cell 逻辑】
+                          // 创建成功标记，进入【创建 cell 逻辑】
                           boolean created = false;	
                           try {
                               Cell[] rs; int m, j;
-                              // 把当前 cells 数组赋值给 rs，并且不为n ull
+                              // 把当前 cells 数组赋值给 rs，并且不为 null
                               if ((rs = cells) != null &&
                                   (m = rs.length) > 0 &&
                                   // 再次判断防止其它线程初始化过该位置，当前线程再次初始化该位置会造成数据丢失
-                                  // 因为这里是线程安全的，这里判断后进行的逻辑不会被其他线程影响
+                                  // 因为这里是线程安全的判断，进行的逻辑不会被其他线程影响
                                   rs[j = (m - 1) & h] == null) {
                                   // 把新创建的 cell 填充至当前位置
                                   rs[j] = r;
                                   created = true;	// 表示创建完成
                               }
                           } finally {
-                              cellsBusy = 0;//解锁
+                              cellsBusy = 0;		// 解锁
                           }
-                          if (created)	// true 表示创建完成，可以推出循环了
-                              break;		// 成功则 break, 否则继续 continue 循环
+                          if (created)			// true 表示创建完成，可以推出循环了
+                              break;
                           continue;
                       }
                   }
                   collide = false;
               }
-              // CASE1.2: 线程对应的 cell 有竞争, 改变线程对应的 cell 来重试 cas
+              // CASE1.2: 条件成立说明线程对应的 cell 有竞争, 改变线程对应的 cell 来重试 cas
               else if (!wasUncontended)
                   wasUncontended = true;
-              // CASE 1.3: 当前线程 rehash 过，尝试新命中的 cell 不为空去累加
-              //			 true 表示写成功，退出循环，false 表示 rehash 之后命中的新 cell 也有竞争
+              // CASE 1.3: 当前线程 rehash 过，如果新命中的 cell 不为空，就尝试累加，false 说明新命中也有竞争
               else if (a.cas(v = a.value, ((fn == null) ? v + x :
                                            fn.applyAsLong(v, x))))
                   break;
               // CASE 1.4: cells 长度已经超过了最大长度 CPU 内核的数量或者已经扩容
               else if (n >= NCPU || cells != as)
-                  collide = false; 		// 扩容意向改为false，表示不扩容了
-              // CASE 1.5: 更改扩容意向
+                  collide = false; 		// 扩容意向改为false，【表示不能扩容了】
+              // CASE 1.5: 更改扩容意向，如果 n >= NCPU，这里就永远不会执行到，case1.4 永远先于 1.5 执行
               else if (!collide)
                   collide = true;
               // CASE 1.6: 【扩容逻辑】，进行加锁
               else if (cellsBusy == 0 && casCellsBusy()) {
                   try {
-                      // 再次检查，防止期间被其他线程扩容了
+                      // 线程安全的检查，防止期间被其他线程扩容了
                       if (cells == as) {     
                           // 扩容为以前的 2 倍
                           Cell[] rs = new Cell[n << 1];
@@ -3402,53 +3404,52 @@ Cells 占用内存是相对比较大的，是惰性加载的，在无竞争的�
                           cells = rs;
                       }
                   } finally {
-                      cellsBusy = 0;	//解锁
+                      cellsBusy = 0;	// 解锁
                   }
-                  collide = false;	// 扩容意向改为false，表示不扩容了
+                  collide = false;	// 扩容意向改为 false，表示不扩容了
                   continue;
               }
-              // 重置当前线程 Hash 值，这就是【分段迁移机制】，case1.3
+              // 重置当前线程 Hash 值，这就是【分段迁移机制】
               h = advanceProbe(h);
           }
   
           // 【CASE2】: 运行到这说明 cells 还未初始化，as 为null
-          // 条件一: true 表示当前未加锁
-          // 条件二: 其它线程可能会在当前线程给 as 赋值之后修改了 cells，这里需要判断（这里不是线程安全的判断）
-          // 条件三: true 表示加锁成功
+          // 判断是否没有加锁，没有加锁就用 CAS 加锁
+          // 条件二判断是否其它线程在当前线程给 as 赋值之后修改了 cells，这里不是线程安全的判断
           else if (cellsBusy == 0 && cells == as && casCellsBusy()) {
-              // 初始化标志，这里就进行 【初始化 cells 数组】
+              // 初始化标志，开始 【初始化 cells 数组】
               boolean init = false;
               try { 
-                 	// 再次判断 cells == as 防止其它线程已经初始化了，当前线程再次初始化导致丢失数据
-                  // 因为这里是线程安全的，所以重新检查，经典DCL
+                 	// 再次判断 cells == as 防止其它线程已经提前初始化了，当前线程再次初始化导致丢失数据
+                  // 因为这里是【线程安全的，重新检查，经典 DCL】
                   if (cells == as) {
-                      Cell[] rs = new Cell[2];//初始化数组大小为2
-                      rs[h & 1] = new Cell(x);//填充线程对应的cell
+                      Cell[] rs = new Cell[2];	// 初始化数组大小为2
+                      rs[h & 1] = new Cell(x);	// 填充线程对应的cell
                       cells = rs;
-                      init = true;			//初始化成功
+                      init = true;				// 初始化成功，标记置为 true
                   }
               } finally {
-                  cellsBusy = 0;				//解锁啊
+                  cellsBusy = 0;					// 解锁啊
               }
               if (init)
-                  break;						//初始化成功直接返回
+                  break;							// 初始化成功直接跳出自旋
           }
-          // 【CASE3】: 运行到这说明其他线程在初始化 cells，所以当前线程将值累加到 base，累加成功直接结束自旋
+          // 【CASE3】: 运行到这说明其他线程在初始化 cells，当前线程将值累加到 base，累加成功直接结束自旋
           else if (casBase(v = base, ((fn == null) ? v + x :
                                       fn.applyAsLong(v, x))))
               break; 
       }
   }
   ```
-
-* sum：获取最终结果通过 sum 整合，保持最终一致性，不保证强一致性
+  
+* sum：获取最终结果通过 sum 整合，**保证最终一致性，不保证强一致性**
 
   ```java
   public long sum() {
       Cell[] as = cells; Cell a;
       long sum = base;
       if (as != null) {
-          //遍历 累加
+          // 遍历 累加
           for (int i = 0; i < as.length; ++i) {
               if ((a = as[i]) != null)
                   sum += a.value;
@@ -3470,16 +3471,16 @@ Cells 占用内存是相对比较大的，是惰性加载的，在无竞争的�
 
 ABA 问题：当进行获取主内存值时，该内存值在写入主内存时已经被修改了 N 次，但是最终又改成原来的值
 
-其他线程先把 A 改成 B 又改回 A，主线程仅能判断出共享变量的值与最初值 A 是否相同，不能感知到这种从 A 改为 B 又 改回 A 的情况，这时 CAS 虽然成功，但是过程存在问题
+其他线程先把 A 改成 B 又改回 A，主线程**仅能判断出共享变量的值与最初值 A 是否相同**，不能感知到这种从 A 改为 B 又 改回 A 的情况，这时 CAS 虽然成功，但是过程存在问题
 
 * 构造方法：
-  `public AtomicStampedReference(V initialRef, int initialStamp)`：初始值和初始版本号
+  * `public AtomicStampedReference(V initialRef, int initialStamp)`：初始值和初始版本号
 
 * 常用API：
-  ` public boolean compareAndSet(V expectedReference, V newReference, int expectedStamp, int newStamp)`：期望引用和期望版本号都一致才进行 CAS 修改数据
-  `public void set(V newReference, int newStamp)`：设置值和版本号
-  `public V getReference()`：返回引用的值
-  `public int getStamp()`：返回当前版本号
+  * ` public boolean compareAndSet(V expectedReference, V newReference, int expectedStamp, int newStamp)`：期望引用和期望版本号都一致才进行 CAS 修改数据
+  * `public void set(V newReference, int newStamp)`：设置值和版本号
+  * `public V getReference()`：返回引用的值
+  * `public int getStamp()`：返回当前版本号
 
 ```java
 public static void main(String[] args) {
@@ -3593,15 +3594,15 @@ public class TestFinal {
 0: aload_0
 1: invokespecial #1 // Method java/lang/Object."<init>":()V
 4: aload_0
-5: bipush 20	//将值直接放入栈中
-7: putfield #2 // Field a:I
+5: bipush 20		// 将值直接放入栈中
+7: putfield #2 		// Field a:I
 <-- 写屏障
 10: return
 ```
 
 final 变量的赋值通过 putfield 指令来完成，在这条指令之后也会加入写屏障，保证在其它线程读到它的值时不会出现为 0 的情况
 
-其他线程访问 final 修饰的变量会复制一份放入栈中，效率更高
+其他线程访问 final 修饰的变量**会复制一份放入栈中**，效率更高
 
 
 
@@ -3617,7 +3618,7 @@ final 变量的赋值通过 putfield 指令来完成，在这条指令之后也�
 
 String 类也是不可变的，该类和类中所有属性都是 final 的
 
-* 类用 final 修饰保证了该类中的方法不能被覆盖，防止子类无意间破坏不可变性保
+* 类用 final 修饰保证了该类中的方法不能被覆盖，防止子类无意间破坏不可变性
 
 * 无写入方法（set）确保外部不能对内部属性进行修改
 
@@ -3632,7 +3633,7 @@ String 类也是不可变的，该类和类中所有属性都是 final 的
   }
   ```
   
-* 更改 String 类数据时，会构造新字符串对象，生成新的 char[] value，通过创建副本对象来避免共享的方式称之为**保护性拷贝**
+* 更改 String 类数据时，会构造新字符串对象，生成新的 char[] value，通过**创建副本对象来避免共享的方式称之为保护性拷贝**
 
   
 
@@ -3658,7 +3659,7 @@ Servlet 为了保证其线程安全，一般不为 Servlet 设置成员变量，
 
 #### 基本介绍
 
-ThreadLocal 类用来提供线程内部的局部变量，这种变量在多线程环境下访问（通过 get 和 set 方法访问）时能保证各个线程的变量相对独立于其他线程内的变量，分配在 TLAB
+ThreadLocal 类用来提供线程内部的局部变量，这种变量在多线程环境下访问（通过 get 和 set 方法访问）时能保证各个线程的变量相对独立于其他线程内的变量，分配在堆内的 TLAB 中
 
 ThreadLocal 实例通常来说都是 `private static` 类型的，属于一个线程的本地变量，用于关联线程和线程上下文。每个线程都会在 ThreadLocal 中保存一份该线程独有的数据，所以是线程安全的
 
@@ -3674,7 +3675,7 @@ ThreadLocal 作用：
 
 |        | synchronized                                                 | ThreadLocal                                                  |
 | ------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| 原理   | 同步机制采用**以时间换空间**的方式，只提供了一份变量，让不同的线程排队访问 | ThreadLocal采用**以空间换时间**的方式，为每个线程都提供了一份变量的副本，从而实现同时访问而相不干扰 |
+| 原理   | 同步机制采用**以时间换空间**的方式，只提供了一份变量，让不同的线程排队访问 | ThreadLocal 采用**以空间换时间**的方式，为每个线程都提供了一份变量的副本，从而实现同时访问而相不干扰 |
 | 侧重点 | 多个线程之间访问资源的同步                                   | 多线程中让每个线程之间的数据相互隔离                         |
 
 
@@ -3739,16 +3740,17 @@ public class MyDemo {
 
 ##### 应用场景
 
-ThreadLocal 适用于如下两种场景
+ThreadLocal 适用于下面两种场景：
 
 - 每个线程需要有自己单独的实例
 - 实例需要在多个方法中共享，但不希望被多线程共享
 
-**事务管理**，ThreadLocal 方案有两个突出的优势： 
+ThreadLocal 方案有两个突出的优势： 
 
 1. 传递数据：保存每个线程绑定的数据，在需要的地方可以直接获取，避免参数直接传递带来的代码耦合问题
-
 2. 线程隔离：各线程之间的数据相互隔离却又具备并发性，避免同步方式带来的性能损失
+
+ThreadLocal 用于数据连接的事务管理：
 
 ```java
 public class JdbcUtils {
@@ -3813,7 +3815,7 @@ JDK8 以后：每个 Thread 维护一个 ThreadLocalMap，这个 Map 的 key 是
 
 * 每个 Thread 线程内部都有一个 Map (ThreadLocalMap)
 * Map 里面存储 ThreadLocal 对象（key）和线程的变量副本（value）
-* Thread 内部的 Map 是由 ThreadLocal 维护的，由 ThreadLocal 负责向 map 获取和设置线程的变量值。
+* Thread 内部的 Map 是由 ThreadLocal 维护的，由 ThreadLocal 负责向 map 获取和设置线程的变量值
 * 对于不同的线程，每次获取副本值时，别的线程并不能获取到当前线程的副本值，形成副本的隔离，互不干扰
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ThreadLocal数据结构JDK8后.png)
@@ -3831,7 +3833,7 @@ JDK8 前后对比：
 
 ##### 成员变量
 
-* Thread 类的相关属性：每一个线程持有一个 ThreadLocalMap 对象，存放由 ThreadLocal 和数据组成的 Entry 键值对
+* Thread 类的相关属性：**每一个线程持有一个 ThreadLocalMap 对象**，存放由 ThreadLocal 和数据组成的 Entry 键值对
 
   ```java
   ThreadLocal.ThreadLocalMap threadLocals = null
@@ -3851,7 +3853,7 @@ JDK8 前后对比：
   private static AtomicInteger nextHashCode = new AtomicInteger()
   ```
 
-* **斐波那契数**也叫黄金分割数，hash 的增量就是这个数字，带来的好处是 hash 分布非常均匀：
+* 斐波那契数也叫黄金分割数，hash 的**增量**就是这个数字，带来的好处是 hash 分布非常均匀：
 
   ```java
   private static final int HASH_INCREMENT = 0x61c88647
@@ -3865,11 +3867,11 @@ JDK8 前后对比：
 
 ##### 成员方法
 
-方法都是线程安全的，因为 ThreadLocal 只属于一个线程
+方法都是线程安全的，因为 ThreadLocal 属于一个线程的，ThreadLocal 中的方法，逻辑都是获取当前线程维护的 ThreadLocalMap 对象，然后进行数据的增删改查，没有指定初始值的 threadlcoal 对象默认赋值为 null
 
 * initialValue()：返回该线程局部变量的初始值
 
-  * 延迟调用的方法，在 set 方法还未调用而先调用了 get 方法时才执行，并且仅执行 1 次
+  * 延迟调用的方法，在执行 get 方法时才执行
   * 该方法缺省（默认）实现直接返回一个 null
   * 如果想要一个初始值，可以重写此方法， 该方法是一个 `protected` 的方法，为了让子类覆盖而设计的
 
@@ -3888,13 +3890,13 @@ JDK8 前后对比：
   }
   ```
 
-* set()：修改当前线程与当前 threadLocal 对象相关联的线程局部变量
+* set()：修改当前线程与当前 threadlocal 对象相关联的线程局部变量
 
   ```java
   public void set(T value) {
       // 获取当前线程对象
       Thread t = Thread.currentThread();
-      // 获取此线程对象中维护的ThreadLocalMap对象
+      // 获取此线程对象中维护的 ThreadLocalMap 对象
       ThreadLocalMap map = getMap(t);
       // 判断 map 是否存在
       if (map != null)
@@ -3907,13 +3909,13 @@ JDK8 前后对比：
   ```
 
   ```java
-  // 获取当前线程 Thread 对应维护的ThreadLocalMap 
+  // 获取当前线程 Thread 对应维护的 ThreadLocalMap 
   ThreadLocalMap getMap(Thread t) {
       return t.threadLocals;
   }
   // 创建当前线程Thread对应维护的ThreadLocalMap 
   void createMap(Thread t, T firstValue) {
-      //这里的 this 是调用此方法的 threadLocal，创建一个新的 Map 并设置第一个数据
+      // 【这里的 this 是调用此方法的 threadLocal】，创建一个新的 Map 并设置第一个数据
       t.threadLocals = new ThreadLocalMap(this, firstValue);
   }
   ```
@@ -3937,7 +3939,7 @@ JDK8 前后对比：
       }
       /*有两种情况有执行当前代码
         第一种情况: map 不存在，表示此线程没有维护的 ThreadLocalMap 对象
-        第二种情况: map 存在, 但是没有与当前 ThreadLocal 关联的 entry*/
+        第二种情况: map 存在, 但是【没有与当前 ThreadLocal 关联的 entry】，就会设置为默认值 */
       // 初始化当前线程与当前 threadLocal 对象相关联的 value
       return setInitialValue();
   }
@@ -3951,7 +3953,7 @@ JDK8 前后对比：
       ThreadLocalMap map = getMap(t);
       // 判断 map 是否初始化过
       if (map != null)
-          // 存在则调用 map.set 设置此实体 entry
+          // 存在则调用 map.set 设置此实体 entry，value 是默认的值
           map.set(this, value);
       else
           // 调用 createMap 进行 ThreadLocalMap 对象的初始化中
@@ -4010,6 +4012,7 @@ private int threshold;
 static class Entry extends WeakReference<ThreadLocal<?>> {
     Object value;
     Entry(ThreadLocal<?> k, Object v) {
+        // this.referent = referent = key;
         super(k);
         value = v;
     }
@@ -4024,7 +4027,7 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
     table = new Entry[INITIAL_CAPACITY];
     // 【寻址算法】计算索引
     int i = firstKey.threadLocalHashCode & (INITIAL_CAPACITY - 1);
-    // 创建 entry 对象 存放到指定位置的 slot 中
+    // 创建 entry 对象，存放到指定位置的 slot 中
     table[i] = new Entry(firstKey, firstValue);
     // 数据总量是 1
     size = 1;
@@ -4045,33 +4048,35 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
 
 * set()：添加数据，ThreadLocalMap 使用**线性探测法来解决哈希冲突**
 
-  * 该方法会一直探测下一个地址，直到有空的地址后插入，若整个空间都找不到空余的地址，则产生溢出
-  * 在探测过程中 ThreadLocal 会占用 key 为 null，value 不为 null 的脏 Entry 对象，防止内存泄漏
-  * 假设当前 table 长度为16，计算出来 key 的 hash 值为 14，如果 table[14] 上已经有值，并且其 key 与当前 key 不一致，那么就发生了 hash 冲突，这个时候将 14 加 1 得到 15，取 table[15] 进行判断，如果还是冲突会回到 0，取 table[0]，以此类推，直到可以插入，可以把 Entry[]  table 看成一个**环形数组**
+  * 该方法会一直探测下一个地址，直到有空的地址后插入，若插入后 Map 数量超过阈值，数组会扩容为原来的 2 倍
+
+    假设当前 table 长度为16，计算出来 key 的 hash 值为 14，如果 table[14] 上已经有值，并且其 key 与当前 key 不一致，那么就发生了 hash 冲突，这个时候将 14 加 1 得到 15，取 table[15] 进行判断，如果还是冲突会回到 0，取 table[0]，以此类推，直到可以插入，可以把 Entry[]  table 看成一个**环形数组**
 
   * 线性探测法会出现**堆积问题**，可以采取平方探测法解决
+
+  * 在探测过程中 ThreadLocal 会复用 key 为 null 的脏 Entry 对象，并进行垃圾清理，防止出现内存泄漏
 
   ```java
   private void set(ThreadLocal<?> key, Object value) {
       // 获取散列表
       ThreadLocal.ThreadLocalMap.Entry[] tab = table;
       int len = tab.length;
-      // 计算当前 key 在散列表中的对应的位置
+      // 哈希寻址
       int i = key.threadLocalHashCode & (len-1);
       // 使用线性探测法向后查找元素，碰到 entry 为空时停止探测
       for (ThreadLocal.ThreadLocalMap.Entry e = tab[i]; e != null; e = tab[i = nextIndex(i, len)]) {
           // 获取当前元素 key
           ThreadLocal<?> k = e.get();
-          // ThreadLocal 对应的 key 存在，直接覆盖之前的值
+          // ThreadLocal 对应的 key 存在，【直接覆盖之前的值】
           if (k == key) {
               e.value = value;
               return;
           }
           // 【这两个条件谁先成立不一定，所以 replaceStaleEntry 中还需要判断 k == key 的情况】
           
-          // key 为 null，但是值不为 null，说明之前的 ThreadLocal 对象已经被回收了，当前是过期数据
+          // key 为 null，但是值不为 null，说明之前的 ThreadLocal 对象已经被回收了，当前是【过期数据】
           if (k == null) {
-              // 【碰到一个过期的 slot，当前数据占用该槽位，替换过期数据】
+              // 【碰到一个过期的 slot，当前数据复用该槽位，替换过期数据】
               // 这个方法还进行了垃圾清理动作，防止内存泄漏
               replaceStaleEntry(key, value, i);
               return;
@@ -4079,11 +4084,10 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
       }
   	// 逻辑到这说明碰到 slot == null 的位置，则在空元素的位置创建一个新的 Entry
       tab[i] = new Entry(key, value);
-      //新添加，++size 后赋值给 sz
+      // 数量 + 1
       int sz = ++size;
       
-      // 做一次启发式清理
-      // 如果没有清除任何 entry 并且当前使用量达到了负载因子所定义，那么进行 rehash
+      // 【做一次启发式清理】，如果没有清除任何 entry 并且当前使用量达到了负载因子所定义，那么进行 rehash
       if (!cleanSomeSlots(i, sz) && sz >= threshold)
           // 扩容
           rehash();
@@ -4091,7 +4095,7 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
   ```
 
   ```java
-  // 获取环形数组的下一个索引
+  // 获取【环形数组】的下一个索引
   private static int nextIndex(int i, int len) {
       // 索引越界后从 0 开始继续获取
       return ((i + 1 < len) ? i + 1 : 0);
@@ -4105,26 +4109,28 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
       Entry[] tab = table;
       int len = tab.length;
       Entry e;
-  	// 探测式清理过期数据的开始下标，默认从当前 staleSlot 开始
+  	// 探测式清理的开始下标，默认从当前 staleSlot 开始
       int slotToExpunge = staleSlot;
       // 以当前 staleSlot 开始【向前迭代查找】，找到索引靠前过期数据，找到以后替换 slotToExpunge 值
+      // 【保证在一个区间段内，从最前面的过期数据开始清理】
       for (int i = prevIndex(staleSlot, len); (e = tab[i]) != null; i = prevIndex(i, len))
           if (e.get() == null)
               slotToExpunge = i;
   
-  	// 以 staleSlot 向后去查找，直到碰到 null 为止
+  	// 以 staleSlot 【向后去查找】，直到碰到 null 为止，还是线性探测
       for (int i = nextIndex(staleSlot, len); (e = tab[i]) != null; i = nextIndex(i, len)) {
           // 获取当前节点的 key
           ThreadLocal<?> k = e.get();
   		// 条件成立说明是【替换逻辑】
           if (k == key) {
               e.value = value;
-              // 因为本来要在 staleSlot 索引处插入该数据，现在找到了i索引处的key与数据一致，所以需要交换位置
-  			// 将 table[staleSlot] 这个过期数据放到当前循环到的 table[i] 这个位置
+              // 因为本来要在 staleSlot 索引处插入该数据，现在找到了i索引处的key与数据一致
+              // 但是 i 位置距离正确的位置更远，因为是向后查找，所以还是要在 staleSlot 位置插入当前 entry
+              // 然后将 table[staleSlot] 这个过期数据放到当前循环到的 table[i] 这个位置，
               tab[i] = tab[staleSlot];
               tab[staleSlot] = e;
   			
-              // 条件成立说明向前查找过期数据并未找到过期的 entry，并且 staleSlot 位置不是过期数据了，i 位置才是
+              // 条件成立说明向前查找过期数据并未找到过期的 entry，但 staleSlot 位置已经不是过期数据了，i 位置才是
               if (slotToExpunge == staleSlot)
                   slotToExpunge = i;
               
@@ -4137,10 +4143,10 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
               // 探测式清理过期数据的开始下标修改为当前循环的 index，因为 staleSlot 会放入要添加的数据
               slotToExpunge = i;
       }
-  	// 向后查找过程中并未发现 k == key 的 entry，说明当前是一个【添加逻辑】
+  	// 向后查找过程中并未发现 k == key 的 entry，说明当前是一个【取代过期数据逻辑】
       // 删除原有的数据引用，防止内存泄露
       tab[staleSlot].value = null;
-      // staleSlot 位置添加数据，上面的所有逻辑都不会更改 staleSlot 的值
+      // staleSlot 位置添加数据，【上面的所有逻辑都不会更改 staleSlot 的值】
       tab[staleSlot] = new Entry(key, value);
   
       // 条件成立说明除了 staleSlot 以外，还发现其它的过期 slot，所以要【开启清理数据的逻辑】
@@ -4186,9 +4192,8 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
           // 条件成立说明找到了，直接返回
           if (k == key)
               return e;
-          // 过期数据
           if (k == null)
-              // 探测式过期数据回收
+               // 过期数据，【探测式过期数据回收】
               expungeStaleEntry(i);
           else
               // 更新 index 继续向后走
@@ -4197,11 +4202,11 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
           e = tab[i];
       }
       // 说明当前区段没有找到相应数据
-      // 【因为存放数据是线性的向后寻找槽位，都是紧挨着的，不可能越过一个 空槽位 在后面放】
+      // 【因为存放数据是线性的向后寻找槽位，都是紧挨着的，不可能越过一个 空槽位 在后面放】，可以减少遍历的次数
       return null;
   }
   ```
-
+  
 * rehash()：触发一次全量清理，如果数组长度大于等于长度的 `2/3 * 3/4 = 1/2`，则进行 resize
 
   ```java
@@ -4209,7 +4214,7 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
       // 清楚当前散列表内的【所有】过期的数据
       expungeStaleEntries();
       
-      // threshold = len * 2 / 3，就是 2/3*(1 - 1/4)
+      // threshold = len * 2 / 3，就是 2/3 * (1 - 1/4)
       if (size >= threshold - threshold / 4)
           resize();
   }
@@ -4219,7 +4224,7 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
   private void expungeStaleEntries() {
       Entry[] tab = table;
       int len = tab.length;
-      // 遍历所有的槽位，清理过期数据
+      // 【遍历所有的槽位，清理过期数据】
       for (int j = 0; j < len; j++) {
           Entry e = tab[j];
           if (e != null && e.get() == null)
@@ -4239,7 +4244,7 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
       Entry[] newTab = new Entry[newLen];
       // 统计新table中的entry数量
       int count = 0;
-  	// 遍历老表，进行数据迁移
+  	// 遍历老表，进行【数据迁移】
       for (int j = 0; j < oldLen; ++j) {
           // 访问老表的指定位置的 entry
           Entry e = oldTab[j];
@@ -4261,11 +4266,32 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
               }
           }
       }
-  	//设置下一次触发扩容的指标：threshold = len * 2 / 3;
+  	// 设置下一次触发扩容的指标：threshold = len * 2 / 3;
       setThreshold(newLen);
       size = count;
       // 将扩容后的新表赋值给 threadLocalMap 内部散列表数组引用
       table = newTab;
+  }
+  ```
+
+* remove()：删除 Entry
+
+  ```java
+  private void remove(ThreadLocal<?> key) {
+      Entry[] tab = table;
+      int len = tab.length;
+      // 哈希寻址
+      int i = key.threadLocalHashCode & (len-1);
+      for (Entry e = tab[i]; e != null; e = tab[i = nextIndex(i, len)]) {
+          // 找到了对应的 key
+          if (e.get() == key) {
+              // 设置 key 为 null
+              e.clear();
+              // 探测式清理
+              expungeStaleEntry(i);
+              return;
+          }
+      }
   }
   ```
 
@@ -4277,7 +4303,7 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
 
 ##### 清理方法
 
-* 探测式清理：沿着开始位置向后探测清理过期数据，沿途中碰到未过期数据则将此数据 rehash 在 table 数组中的定位，重定位后的元素理论上更接近 `i = entry.key & (table.length - 1)`，让数据的排列更紧凑，会优化整个散列表查询性能
+* 探测式清理：沿着开始位置向后探测清理过期数据，沿途中碰到未过期数据则将此数据 rehash 在 table 数组中的定位，重定位后的元素理论上更接近 `i = entry.key & (table.length - 1)`，让**数据的排列更紧凑**，会优化整个散列表查询性能
 
   ```java
   // table[staleSlot] 是一个过期数据，以这个位置开始继续向后查找过期数据
@@ -4286,7 +4312,7 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
       Entry[] tab = table;
       int len = tab.length;
   
-      // help gc，先把 entry 置空，在取消对 entry 的引用
+      // help gc，先把当前过期的 entry 置空，在取消对 entry 的引用
       tab[staleSlot].value = null;
       tab[staleSlot] = null;
       // 数量-1
@@ -4294,7 +4320,7 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
   
       Entry e;
       int i;
-      // 从 staleSlot 开始向后遍历，直到碰到 slot == null 结束
+      // 从 staleSlot 开始向后遍历，直到碰到 slot == null 结束，【区间内清理过期数据】
       for (i = nextIndex(staleSlot, len); (e = tab[i]) != null; i = nextIndex(i, len)) {
           ThreadLocal<?> k = e.get();
           // 当前 entry 是过期数据
@@ -4304,6 +4330,7 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
               tab[i] = null;
               size--;
           } else {
+              // 当前 entry 不是过期数据的逻辑
               // 重新计算当前 entry 对应的 index
               int h = k.threadLocalHashCode & (len - 1);
               // 条件成立说明当前 entry 存储时发生过 hash 冲突，向后偏移过了
@@ -4318,7 +4345,7 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
               }
           }
       }
-      // 返回 slot = null 的槽位索引，图例是 7
+      // 返回 slot = null 的槽位索引，图例是 7，这个索引代表【索引前面的区间已经清理完成垃圾了】
       return i;
   }
   ```
@@ -4327,7 +4354,7 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
 
   <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-ThreadLocal探测式清理2.png" style="zoom:67%;" />
 
-* 启发式清理：
+* 启发式清理：向后循环扫描过期数据，发现过期数据调用探测式清理方法，如果连续几次的循环都没有发现过期数据，就停止扫描
 
   ```java
   //  i 表示启发式清理工作开始位置，一般是空 slot，n 一般传递的是 table.length 
@@ -4352,13 +4379,14 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
           }
           // 假设 table 长度为 16
           // 16 >>> 1 ==> 8，8 >>> 1 ==> 4，4 >>> 1 ==> 2，2 >>> 1 ==> 1，1 >>> 1 ==> 0
-          // 连续经过这么多次循环【没有扫描到过期数据】，就停止循环，扫描到 空slot 不算，因为不是过期数据
+          // 连续经过这么多次循环【没有扫描到过期数据】，就停止循环，扫描到空 slot 不算，因为不是过期数据
       } while ((n >>>= 1) != 0);
       
       // 返回清除标记
       return removed;
   }
   ```
+  
   
 
 
@@ -4374,15 +4402,11 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
 
 Memory leak：内存泄漏是指程序中动态分配的堆内存由于某种原因未释放或无法释放，造成系统内存的浪费，导致程序运行速度减慢甚至系统崩溃等严重后果，内存泄漏的堆积终将导致内存溢出
 
-* 如果 key 使用强引用：
-
-  使用完 ThreadLocal ，threadLocal Ref 被回收，但是 threadLocalMap 的 Entry 强引用了 threadLocal，造成 threadLocal 无法被回收，无法完全避免内存泄漏
+* 如果 key 使用强引用：使用完 ThreadLocal ，threadLocal Ref 被回收，但是 threadLocalMap 的 Entry 强引用了 threadLocal，造成 threadLocal 无法被回收，无法完全避免内存泄漏
 
   <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-ThreadLocal内存泄漏强引用.png" style="zoom:67%;" />
 
-* 如果 key 使用弱引用：
-
-  使用完 ThreadLocal ，threadLocal Ref 被回收，ThreadLocalMap 只持有 ThreadLocal 的弱引用，所以threadlocal 也可以被回收，此时 Entry 中的 key=null。但没有手动删除这个 Entry 或者 CurrentThread 依然运行，依然存在强引用链，value 不会被回收，而这块 value 永远不会被访问到，导致 value 内存泄漏
+* 如果 key 使用弱引用：使用完 ThreadLocal ，threadLocal Ref 被回收，ThreadLocalMap 只持有 ThreadLocal 的弱引用，所以threadlocal 也可以被回收，此时 Entry 中的 key = null。但没有手动删除这个 Entry 或者 CurrentThread 依然运行，依然存在强引用链，value 不会被回收，而这块 value 永远不会被访问到，也会导致 value 内存泄漏
 
   <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-ThreadLocal内存泄漏弱引用.png" style="zoom:67%;" />
 
@@ -4395,7 +4419,7 @@ Memory leak：内存泄漏是指程序中动态分配的堆内存由于某种原
 
 解决方法：使用完 ThreadLocal 中存储的内容后将它 remove 掉就可以
 
-ThreadLocal 内部解决方法：在 ThreadLocalMap 中的 set/getEntry 方法中，会对 key 进行判断，如果为 null（ThreadLocal 为 null）的话，会对 Entry 进行垃圾回收。所以**使用弱引用比强引用多一层保障**，就算不调用 remove，也有机会进行 GC
+ThreadLocal 内部解决方法：在 ThreadLocalMap 中的 set/getEntry 方法中，通过线性探测法对 key 进行判断，如果 key 为 null（ThreadLocal 为 null）会对 Entry 进行垃圾回收。所以**使用弱引用比强引用多一层保障**，就算不调用 remove，也有机会进行 GC
 
 
 
@@ -4474,7 +4498,7 @@ private ThreadLocalMap(ThreadLocalMap parentMap) {
     int len = parentTable.length;
     setThreshold(len);
     table = new Entry[len];
-	// 逐个复制父线程 ThreadLocalMap 中的数据
+	// 【逐个复制父线程 ThreadLocalMap 中的数据】
     for (int j = 0; j < len; j++) {
         Entry e = parentTable[j];
         if (e != null) {
@@ -4578,7 +4602,7 @@ java.util.concurrent.BlockingQueue 接口有以下阻塞队列的实现：**FIFO
   * 移除方法：成功返回出队列元素，队列没有就返回 null
 * 阻塞组：
   * 当阻塞队列满时，生产者继续往队列里 put 元素，队列会一直阻塞生产线程直到 put 数据或响应中断退出
-  * 当阻塞队列空时，消费者线程试图从队列里 take 元素，队列会一直阻塞消费者线程直到队列可用
+  * 当阻塞队列空时，消费者线程试图从队列里 take 元素，队列会一直阻塞消费者线程直到队列中有可用元素
 * 超时退出：当阻塞队列满时，队里会阻塞生产者线程一定时间，超过限时后生产者线程会退出
 
 
@@ -4611,9 +4635,9 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
 }
 ```
 
-入队：
+入队：尾插法
 
-* 初始化链表 `last = head = new Node<E>(null)`，Dummy 节点用来占位，item 为 null
+* 初始化链表 `last = head = new Node<E>(null)`，**Dummy 节点用来占位**，item 为 null
 
   ```java
   public LinkedBlockingQueue(int capacity) {
@@ -4637,7 +4661,7 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
 
 * 再来一个节点入队 `last = last.next = node`
 
-出队：出队首节点，先入先出
+出队：出队首节点，FIFO
 
 * 出队源码：
 
@@ -4651,7 +4675,7 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
       head = first;
       // 出队的元素
       E x = first.item;
-      // 当前节点置为 Dummy 节点
+      // 【当前节点置为 Dummy 节点】
       first.item = null;
       return x;
   }
@@ -4696,7 +4720,7 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
   private final ReentrantLock putLock = new ReentrantLock();
   private final Condition notFull = putLock.newCondition();	// 阻塞等待不满，说明已经满了
   
-  // 用户 take(阻塞) poll(非阻塞)
+  // 用于 take(阻塞) poll(非阻塞)
   private final ReentrantLock takeLock = new ReentrantLock();
   private final Condition notEmpty = takeLock.newCondition();	// 阻塞等待不空，说明已经是空的
   ```
@@ -4721,7 +4745,7 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
       try {
       	// 队列满了等待
           while (count.get() == capacity) {
-              // 等待队列不满时，就可以生产数据
+              // 【等待队列不满时，就可以生产数据】，线程处于 Waiting
               notFull.await();
           }
           // 有空位, 入队且计数加一，尾插法
@@ -4735,7 +4759,7 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
           // 解锁
           putLock.unlock();
       }
-      // c自增前是0，说明生产了一个元素，唤醒 take 线程
+      // c自增前是0，说明生产了一个元素，唤醒一个 take 线程
       if (c == 0)
           signalNotEmpty();
   }
@@ -4769,7 +4793,7 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
       try {
           // 没有元素可以出队
           while (count.get() == 0) {
-              // 阻塞等待队列不空，就可以消费数据
+              // 【阻塞等待队列不空，就可以消费数据】，线程处于 Waiting
               notEmpty.await();
           }
           // 出队，计数减一，FIFO，出队头节点
@@ -4836,7 +4860,7 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
   static final int maxTimedSpins = (NCPUS < 2) ? 0 : 32;
   ```
 
-  自旋的原因：线程挂起唤醒需要进行上下文切换，涉及到用户态和内核态的转变，是非常消耗资源的。自旋期间线程会一直检查自己的状态是否被匹配到，如果自旋期间被匹配到，那么直接就返回了，如果自旋次数达到某个指标后，还是会将当前线程挂起的。
+  自旋的原因：线程挂起唤醒需要进行上下文切换，涉及到用户态和内核态的转变，是非常消耗资源的。自旋期间线程会一直检查自己的状态是否被匹配到，如果自旋期间被匹配到，那么直接就返回了，如果自旋次数达到某个指标后，还是会将当前线程挂起
 
 * 未指定超时时间，当前线程最大自旋次数：
 
@@ -4859,7 +4883,7 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
   abstract static class Transferer<E> {
       /**
       * 参数一：可以为 null，null 时表示这个请求是一个 REQUEST 类型的请求，反之是一个 DATA 类型的请求
-      * 参数二：如果为 true 表示指定了超时时间，如果为 false 表示不支持超时，会一直阻塞到匹配或者倍打断
+      * 参数二：如果为 true 表示指定了超时时间，如果为 false 表示不支持超时，会一直阻塞到匹配或者被打断
       * 参数三：超时时间限制，单位是纳秒
       
       * 返回值：返回值如果不为 null 表示匹配成功，DATA 类型的请求返回当前线程 put 的数据
@@ -4874,7 +4898,7 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
   ```java
   public SynchronousQueue(boolean fair) {
       // fair 默认 false
-      // 非公平模式实现的同步队列，内部数据结构是 栈，公平的是的队列
+      // 非公平模式实现的数据结构是栈，公平模式的数据结构是队列
       transferer = fair ? new TransferQueue<E>() : new TransferStack<E>();
   }
   ```
@@ -4967,6 +4991,7 @@ TransferStack 类成员变量：
       // 当前 node 尚未与任何节点发生过匹配，CAS 设置 match 字段为 s 节点，表示当前 node 已经被匹配
       if (match == null && UNSAFE.compareAndSwapObject(this, matchOffset, null, s)) {
           // 当前 node 如果自旋结束，会 park 阻塞，阻塞前将 node 对应的 Thread 保留到 waiter 字段
+          // 获取当前 node 对应的阻塞线程
           Thread w = waiter;
           // 条件成立说明 node 对应的 Thread 正在阻塞
           if (w != null) {
@@ -4986,7 +5011,7 @@ TransferStack 类成员变量：
   ```java
   // 取消节点的方法
   void tryCancel() {
-      // match 字段保留当前 node 对象本身，表示这个 node 是取消状态，取消状态的 node，最终会被强制移除出栈
+      // match 字段指向自己，表示这个 node 是取消状态，取消状态的 node，最终会被强制移除出栈
       UNSAFE.compareAndSwapObject(this, matchOffset, null, this);
   }
   
@@ -5003,6 +5028,7 @@ TransferStack 类成员方法：
   static SNode snode(SNode s, Object e, SNode next, int mode) {
       // 引用指向空时，snode 方法会创建一个 SNode 对象 
       if (s == null) s = new SNode(e);
+      // 填充数据
       s.mode = mode;
       s.next = next;
       return s;
@@ -5047,12 +5073,12 @@ TransferStack 类成员方法：
                   if ((h = head) != null && h.next == s)
                       casHead(h, s.next);
                   // 当前 node 模式为 REQUEST 类型，返回匹配节点的 m.item 数据域
-                  // 当前 node 模式为 DATA 类型：返回 Node.item 数据域，当前请求提交的数据 e
+                  // 当前 node 模式为 DATA 类型：返回 node.item 数据域，当前请求提交的数据 e
                   return (E) ((mode == REQUEST) ? m.item : s.item);
               }
-          // 【CASE2】：逻辑到这说明请求模式不一致，如果栈顶不是 FULFILLING 说明没被其他节点匹配，说明可以匹配
+          // 【CASE2】：逻辑到这说明请求模式不一致，如果栈顶不是 FULFILLING 说明没被其他节点匹配，【当前可以匹配】
           } else if (!isFulfilling(h.mode)) {
-              // 头节点是取消节点，协助出栈
+              // 头节点是取消节点，match 指向自己，协助出栈
               if (h.isCancelled())
                   casHead(h, h.next);
               // 入栈当前请求的节点
@@ -5088,6 +5114,7 @@ TransferStack 类成员方法：
                   casHead(h, null);
               else {
                   SNode mn = m.next;
+                  // m 和 h 匹配，唤醒 m 中的线程
                   if (m.tryMatch(h))
                       casHead(h, mn);
                   else
@@ -5121,7 +5148,7 @@ TransferStack 类成员方法：
           // 执行了超时限制就判断是否超时
           if (timed) {
               nanos = deadline - System.nanoTime();
-              // 超时了，取消节点
+              // 【超时了，取消节点】
               if (nanos <= 0L) {
                   s.tryCancel();
                   continue;
@@ -5133,7 +5160,7 @@ TransferStack 类成员方法：
               spins = shouldSpin(s) ? (spins - 1) : 0;
           // 说明没有自旋次数了
           else if (s.waiter == null)
-              // 把当前 node 对应的 Thread 保存到 node.waiter 字段中，要阻塞了
+              //【把当前 node 对应的 Thread 保存到 node.waiter 字段中，要阻塞了】
               s.waiter = w;
           // 没有超时限制直接阻塞
           else if (!timed)
@@ -5171,7 +5198,7 @@ TransferStack 类成员方法：
           past = past.next;
   
       SNode p;
-      // 从栈顶开始向下检查，将栈顶开始向下的 取消状态 的节点全部清理出去，直到碰到 past 或者不是取消状态为止
+      // 从栈顶开始向下检查，【将栈顶开始向下的 取消状态 的节点全部清理出去】，直到碰到 past 或者不是取消状态为止
       while ((p = head) != null && p != past && p.isCancelled())
           // 修改的是内存地址对应的值，p 指向该内存地址所以数据一直在变化
           casHead(p, p.next);
@@ -5289,8 +5316,8 @@ TransferQueue 类成员方法：
           QNode h = head;
           if (t == null || h == null)
               continue;
-  		// head 和 tail 同时指向 dummy 节点，说明是【空队列，或者是不匹配的情况】
-          // 队尾节点与当前请求类型是一致的情况，说明阻塞队列中都无法匹配，无法匹配
+  		// head 和 tail 同时指向 dummy 节点，说明是空队列
+          // 队尾节点与当前请求类型是一致的情况，说明阻塞队列中都无法匹配，
           if (h == t || t.isData == isData) {
               // 获取队尾 t 的 next 节点
               QNode tn = t.next;
@@ -5317,12 +5344,12 @@ TransferQueue 类成员方法：
               // 当前节点 等待匹配....
               Object x = awaitFulfill(s, e, timed, nanos);
               
-              // 说明当前 node 状态为 取消状态，需要做出队逻辑
+              // 说明【当前 node 状态为 取消状态】，需要做出队逻辑
               if (x == s) {
                   clean(t, s);
                   return null;
               }
-  			// 说明当前 node 仍然在队列内，需要做匹配成功后 出队逻辑
+  			// 说明当前 node 仍然在队列内，匹配成功，需要做出队逻辑
               if (!s.isOffList()) {
                   // t 是当前 s 节点的前驱节点，判断 t 是不是头节点，是就更新 dummy 节点为 s 节点
                   advanceHead(t, s);
@@ -5348,7 +5375,7 @@ TransferQueue 类成员方法：
                   advanceHead(h, m);
                   continue;
               }
-  			// 【匹配完成】，将头节点出队，让这个真正的头结点成为 dummy 节点
+  			// 【匹配完成】，将头节点出队，让这个新的头结点成为 dummy 节点
               advanceHead(h, m);
               // 唤醒该匹配节点的线程
               LockSupport.unpark(m.waiter);
@@ -5448,7 +5475,7 @@ public ThreadPoolExecutor(int corePoolSize,
 
 * unit：`keepAliveTime` 参数的时间单位
 
-* workQueue：阻塞队列，被提交但尚未被执行的任务
+* workQueue：阻塞队列，存放被提交但尚未被执行的任务
 
 * threadFactory：线程工厂，创建新线程时用到，可以为线程创建时起名字
 
@@ -5481,11 +5508,11 @@ public ThreadPoolExecutor(int corePoolSize,
    * 如果队列满了且正在运行的线程数量大于或等于 maximumPoolSize，那么线程池会启动饱和**拒绝策略**来执行
 3. 当一个线程完成任务时，会从队列中取下一个任务来执行
 
-4. 当一个线程无事可做超过一定的时间（keepAliveTime）时，线程池会判断：如果当前运行的线程数大于 corePoolSize，那么这个线程就被停掉，所以线程池的所有任务完成后最终会收缩到 corePoolSize 大小
+4. 当一个线程空闲超过一定的时间（keepAliveTime）时，线程池会判断：如果当前运行的线程数大于 corePoolSize，那么这个线程就被停掉，所以线程池的所有任务完成后最终会收缩到 corePoolSize 大小
 
 
 
-图片来源：https://space.bilibili.com/457326371/
+参考视频：https://space.bilibili.com/457326371/
 
 
 
@@ -5495,7 +5522,7 @@ public ThreadPoolExecutor(int corePoolSize,
 
 ##### Executors
 
-Executors提供了四种线程池的创建：newCachedThreadPool、newFixedThreadPool、newSingleThreadExecutor、newScheduledThreadPool
+Executors 提供了四种线程池的创建：newCachedThreadPool、newFixedThreadPool、newSingleThreadExecutor、newScheduledThreadPool
 
 * newFixedThreadPool：创建一个拥有 n 个线程的线程池
 
@@ -5538,16 +5565,16 @@ Executors提供了四种线程池的创建：newCachedThreadPool、newFixedThrea
 
   对比：
 
-  * 创建一个单线程串行执行任务，如果任务执行失败而终止那么没有任何补救措施，而线程池还会新建一
-    个线程，保证池的正常工作
+  * 创建一个单线程串行执行任务，如果任务执行失败而终止那么没有任何补救措施，线程池会新建一个线程，保证池的正常工作
+  
+* Executors.newSingleThreadExecutor() 线程个数始终为1，不能修改。FinalizableDelegatedExecutorService 应用的是装饰器模式，只对外暴露了 ExecutorService 接口，因此不能调用 ThreadPoolExecutor 中特有的方法
+  
+  原因：父类不能直接调用子类中的方法，需要反射或者创建对象的方式，可以调用子类静态方法
+  
+* Executors.newFixedThreadPool(1) 初始时为1，可以修改。对外暴露的是 ThreadPoolExecutor 对象，可以强转后调用 setCorePoolSize 等方法进行修改
+  
 
-  * Executors.newSingleThreadExecutor() 线程个数始终为1，不能修改。F...D..ExecutorService 应用的是装饰器模式，只对外暴露了 ExecutorService 接口，因此不能调用 ThreadPoolExecutor 中特有的方法
-
-    原因：父类不能直接调用子类中的方法，需要反射或者创建对象的方式，可以调用子类静态方法
-
-  * Executors.newFixedThreadPool(1) 初始时为1，可以修改。对外暴露的是 ThreadPoolExecutor 对象，可以强转后调用 setCorePoolSize 等方法进行修改
-
-  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-newSingleThreadExecutor.png)
+![](https://gitee.com/seazean/images/raw/master/Java/JUC-newSingleThreadExecutor.png)
 
 
 
@@ -5562,7 +5589,7 @@ Executors提供了四种线程池的创建：newCachedThreadPool、newFixedThrea
 - **线程资源必须通过线程池提供，不允许在应用中自行显式创建线程**
 
   - 使用线程池的好处是减少在创建和销毁线程上所消耗的时间以及系统资源的开销，解决资源不足的问题
-  - 如果不使用线程池，有可能造成系统创建大量同类线程而导致消耗完内存或者“过度切换”的问题
+  - 如果不使用线程池，有可能造成系统创建大量同类线程而导致消耗完内存或者过度切换的问题
 
 - 线程池不允许使用 Executors 去创建，而是通过 ThreadPoolExecutor 的方式，这样的处理方式更加明确线程池的运行规则，规避资源耗尽的风险
 
@@ -5583,11 +5610,11 @@ Executors提供了四种线程池的创建：newCachedThreadPool、newFixedThrea
 
 核心线程数常用公式：
 
-- **CPU 密集型任务(N+1)：** 这种任务消耗的是 CPU 资源，可以将核心线程数设置为 N (CPU 核心数) + 1，比 CPU 核心数多出来的一个线程是为了防止线程发生缺页中断，或者其它原因导致的任务暂停而带来的影响。一旦任务暂停，CPU 就会处于空闲状态，而在这种情况下多出来的一个线程就可以充分利用 CPU 的空闲时间
+- **CPU 密集型任务(N+1)：** 这种任务消耗的是 CPU 资源，可以将核心线程数设置为 N (CPU 核心数) + 1，比 CPU 核心数多出来的一个线程是为了防止线程发生缺页中断，或者其它原因导致的任务暂停而带来的影响。一旦任务暂停，CPU 某个核心就会处于空闲状态，而在这种情况下多出来的一个线程就可以充分利用 CPU 的空闲时间
 
-  CPU 密集型简单理解就是利用 CPU 计算能力的任务比如你在内存中对大量数据进行分析
+  CPU 密集型简单理解就是利用 CPU 计算能力的任务比如在内存中对大量数据进行分析
 
-- **I/O 密集型任务：** 这种系统 CPU 处于阻塞状态，用大部分的时间来处理 I/O 交互，而线程在处理 I/O 的时间段内不会占用 CPU 来处理，这时就可以将 CPU 交出给其它线程使用，因此在 I/O 密集型任务的应用中，我们可以多配置一些线程，具体的计算方法是 2N 或 CPU核数/ (1-阻塞系数)，阻塞系数在0.8~0.9之间
+- **I/O 密集型任务：** 这种系统 CPU 处于阻塞状态，用大部分的时间来处理 I/O 交互，而线程在处理 I/O 的时间段内不会占用 CPU 来处理，这时就可以将 CPU 交出给其它线程使用，因此在 I/O 密集型任务的应用中，我们可以多配置一些线程，具体的计算方法是 2N 或 CPU 核数/ (1-阻塞系数)，阻塞系数在 0.8~0.9 之间
 
   IO 密集型就是涉及到网络读取，文件读取此类任务 ，特点是 CPU 计算耗费时间相比于等待 IO 操作完成的时间来说很少，大部分时间都花在了等待 IO 操作完成上
 
@@ -5614,7 +5641,7 @@ ExecutorService 类 API：
 
 execute 和 submit 都属于线程池的方法，对比：
 
-* execute 只能提交 Runnable 类型的任务，没有返回值； submit 既能提交 Runnable 类型任务也能提交 Callable 类型任务，底层是封装成 FutureTask 调用 execute 执行
+* execute 只能执行 Runnable 类型的任务，没有返回值； submit 既能提交 Runnable 类型任务也能提交 Callable 类型任务，底层是封装成 FutureTask，然后调用 execute 执行
 
 * execute 会直接抛出任务执行时的异常，submit 会吞掉异常，可通过 Future 的 get 方法将任务执行时的异常重新抛出
 
@@ -5630,7 +5657,7 @@ ExecutorService 类 API：
 
 | 方法                                                  | 说明                                                         |
 | ----------------------------------------------------- | ------------------------------------------------------------ |
-| void shutdown()                                       | 线程池状态变为 SHUTDOWN，等待任务执行完后关闭线程池，不会接收新任务，但已提交任务会执行完 |
+| void shutdown()                                       | 线程池状态变为 SHUTDOWN，等待任务执行完后关闭线程池，不会接收新任务，但已提交任务会执行完，而且也可以添加线程 |
 | List<Runnable> shutdownNow()                          | 线程池状态变为 STOP，用 interrupt 中断正在执行的任务，直接关闭线程池，不会接收新任务，会将队列中的任务返回 |
 | boolean isShutdown()                                  | 不在 RUNNING 状态的线程池，此执行者已被关闭，方法返回 true   |
 | boolean isTerminated()                                | 线程池状态是否是 TERMINATED，如果所有任务在关闭后完成，返回 true |
@@ -5702,7 +5729,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
 * 四种状态：
 
   ```java
-  // 111 000000000000000000，转换成整数后其实就是一个负数
+  // 111 000000000000000000，转换成整数后其实就是一个【负数】
   private static final int RUNNING    = -1 << COUNT_BITS;
   // 000 000000000000000000
   private static final int SHUTDOWN   =  0 << COUNT_BITS;
@@ -5745,7 +5772,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
 * 重置当前线程池状态 ctl：
 
   ```java
-  // rs 表示线程池状态，wc 表示当前线程池中 worker（线程）数量，类似相加操作
+  // rs 表示线程池状态，wc 表示当前线程池中 worker（线程）数量，相与以后就是合并后的状态
   private static int ctlOf(int rs, int wc) { return rs | wc; }
   ```
 
@@ -5833,14 +5860,14 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
 * 控制核心线程数量内的线程是否可以被回收：
 
   ```java
-  // false 代表不可以，为 true 时核心线程空闲超过 keepAliveTime 也会被回收
-  // allowCoreThreadTimeOut 可以设置该值
+  // false（默认）代表不可以，为 true 时核心线程空闲超过 keepAliveTime 也会被回收
+  // allowCoreThreadTimeOut(boolean value) 方法可以设置该值
   private volatile boolean allowCoreThreadTimeOut;
   ```
 
 内部类：
 
-* Worker 类：**每个 Worker 对象会绑定一个初始任务**，启动 Worker 时优先执行，这也是造成线程池不公平的原因。Worker 继承自 AQS，采用了独占锁的模式，state = 0 表示未被占用，> 0 表示被占用，< 0 表示初始状态，这种情况下不能被抢锁
+* Worker 类：**每个 Worker 对象会绑定一个初始任务**，启动 Worker 时优先执行，这也是造成线程池不公平的原因。Worker 继承自 AQS，本身具有锁的特性，采用独占锁模式，state = 0 表示未被占用，> 0 表示被占用，< 0 表示初始状态不能被抢锁
 
   ```java
   private final class Worker extends AbstractQueuedSynchronizer implements Runnable {
@@ -5854,11 +5881,25 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
          	setState(-1);
           // firstTask不为空时，当worker启动后，内部线程会优先执行firstTask，执行完后会到queue中去获取下个任务
           this.firstTask = firstTask;
-          // 使用【线程工厂创建一个线程】，并且将当前worker指定为Runnable，所以thread启动时会调用 worker.run()
+          // 使用线程工厂创建一个线程，并且【将当前worker指定为Runnable】，所以thread启动时会调用 worker.run()
           this.thread = getThreadFactory().newThread(this);
       }
   }
   ```
+  
+  ```java
+  public Thread newThread(Runnable r) {
+      // 将当前 worker 指定为 thread 的执行方法，线程调用 start 会调用 r.run()
+      Thread t = new Thread(group, r, namePrefix + threadNumber.getAndIncrement(), 0);
+      if (t.isDaemon())
+          t.setDaemon(false);
+      if (t.getPriority() != Thread.NORM_PRIORITY)
+          t.setPriority(Thread.NORM_PRIORITY);
+      return t;
+  }
+  ```
+  
+  
   
 * 拒绝策略相关的内部类
 
@@ -5899,7 +5940,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
 
   ```java
   protected <T> RunnableFuture<T> newTaskFor(Runnable runnable, T value) {
-      // Runnable 封装成 FutureTask，指定返回值
+      // Runnable 封装成 FutureTask，【指定返回值】
       return new FutureTask<T>(runnable, value);
   }
   protected <T> RunnableFuture<T> newTaskFor(Callable<T> callable) {
@@ -5908,7 +5949,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
   }
   ```
 
-* execute()：执行任务，但是没有返回值，没办法获取任务执行结果，出现异常会直接抛出任务执行时的异常
+* execute()：执行任务，但是没有返回值，没办法获取任务执行结果，出现异常会直接抛出任务执行时的异常。根据线程池中的线程数，选择添加任务时的处理方式
 
   ```java
   // command 可以是普通的 Runnable 实现类，也可以是 FutureTask，不能是 Callable
@@ -5928,12 +5969,12 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
           // SHUTDOWN 状态下也有可能创建成功，前提 firstTask == null 而且当前 queue 不为空（特殊情况）
           c = ctl.get();
       }
-      // 执行到这说明当前线程数量已经达到核心线程数量 或者 addWorker 失败
-      // 【2】条件成立说明当前线程池处于running状态，则尝试将 task 放入到 workQueue 中，核心满了
+      // 【2】执行到这说明当前线程数量已经达到核心线程数量 或者 addWorker 失败
+      // 	判断当前线程池是否处于running状态，成立就尝试将 task 放入到 workQueue 中
       if (isRunning(c) && workQueue.offer(command)) {
           int recheck = ctl.get();
           // 条件一成立说明线程池状态被外部线程给修改了，可能是执行了 shutdown() 方法，该状态不能接收新提交的任务
-          // 所以要把刚提交的任务删除，删除成功说明提交之后线程池中的线程还未消费该任务（处理）
+          // 所以要把刚提交的任务删除，删除成功说明提交之后线程池中的线程还未消费（处理）该任务
           if (!isRunning(recheck) && remove(command))
               // 任务出队成功，走拒绝策略
               reject(command);
@@ -5943,7 +5984,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
               addWorker(null, false);
       }
       // 【3】offer失败说明queue满了
-      // 如果线程数量尚未达到 maximumPoolSize，会创建非核心 worker 线程执行 command，这也是不公平的原因
+      // 如果线程数量尚未达到 maximumPoolSize，会创建非核心 worker 线程直接执行 command，【这也是不公平的原因】
       // 如果当前线程数量达到 maximumPoolSiz，这里 addWorker 也会失败，走拒绝策略
       else if (!addWorker(command, false))
           reject(command);
@@ -5960,12 +6001,14 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
 
 ##### 添加线程
 
-* addWorker()：**添加线程到线程池**，返回 true 表示创建 Worker 成功，且线程启动
+* addWorker()：**添加线程到线程池**，返回 true 表示创建 Worker 成功，且线程启动。首先判断线程池是否允许添加线程，允许就让线程数量 + 1，然后去创建 Worker 加入线程池
+
+  注意：SHUTDOWN 状态也能添加线程，但是要求新加的 Woker 没有 firstTask
 
   ```java
   // core == true 表示采用核心线程数量限制，false 表示采用 maximumPoolSize
   private boolean addWorker(Runnable firstTask, boolean core) {
-      // 自旋判断当前线程池状态是否允许创建线程的，允许就设置线程数量 + 1
+      // 自旋【判断当前线程池状态是否允许创建线程】，允许就设置线程数量 + 1
       retry:
       for (;;) {
           // 获取 ctl 的值
@@ -5975,12 +6018,12 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
           
           // 判断当前线程池状态【是否允许添加线程】
           
-          // 当前线程池是 SHUTDOWN 状态，但是队列里面还有任务尚未处理完，
-          // 需要处理完 queue 中的任务，但是【不允许再提交新的 task】，所以 addWorker 返回 false
+          // 当前线程池是 SHUTDOWN 状态，但是队列里面还有任务尚未处理完，需要处理完 queue 中的任务
+          // 【不允许再提交新的 task，所以 firstTask 为空，但是可以继续添加 worker】
           if (rs >= SHUTDOWN && !(rs == SHUTDOWN && firstTask == null && !workQueue.isEmpty()))
               return false;
           for (;;) {
-              // 获取当前线程池中线程数量
+              // 获取线程池中线程数量
               int wc = workerCountOf(c);
               // 条件一一般不成立，CAPACITY是5亿多，根据 core 判断使用哪个大小限制线程数量，超过了返回 false
               if (wc >= CAPACITY || wc >= (core ? corePoolSize : maximumPoolSize))
@@ -5991,7 +6034,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
                   break retry;
               // CAS 失败，没有成功的申请到令牌
               c = ctl.get();
-              // 判断当前线程池状态是否发生过变化，被其他线程修改了，可能调用了 shutdown() 方法
+              // 判断当前线程池状态是否发生过变化，被其他线程修改了，可能其他线程调用了 shutdown() 方法
               if (runStateOf(c) != rs)
                   // 返回外层循环检查是否能创建线程，在 if 语句中返回 false
                   continue retry;
@@ -6007,28 +6050,28 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
       boolean workerAdded = false;
       Worker w = null;
       try {
-          // 创建 Worker，底层通过线程工厂创建执行线程，指定了先执行的任务
+          // 【创建 Worker，底层通过线程工厂 newThread 方法创建执行线程，指定了首先执行的任务】
           w = new Worker(firstTask);
-          // 将新创建的 worker 节点的线程赋值给 t
+          // 将新创建的 worker 节点中的线程赋值给 t
           final Thread t = w.thread;
-          // 为了防止 ThreadFactory 程序员自定义的实现类有 bug，创造不出线程
+          // 这里的判断为了防止 程序员自定义的 ThreadFactory 实现类有 bug，创造不出线程
           if (t != null) {
               final ReentrantLock mainLock = this.mainLock;
-              // 加互斥锁
+              // 加互斥锁，要添加 worker 了
               mainLock.lock();
               try {
                   // 获取最新线程池运行状态保存到 rs
                   int rs = runStateOf(ctl.get());
-  				// 判断线程池是否为RUNNING状态，不是再判断当前是否为SHUTDOWN状态且firstTask为空（特殊情况）
+  				// 判断线程池是否为RUNNING状态，不是再【判断当前是否为SHUTDOWN状态且firstTask为空，特殊情况】
                   if (rs < SHUTDOWN || (rs == SHUTDOWN && firstTask == null)) {
-                      // 当线程 start 后，线程 isAlive 会返回 true，这里还没启动线程
+                      // 当线程start后，线程isAlive会返回true，这里还没开始启动线程，如果被启动了就需要报错
                       if (t.isAlive())
                           throw new IllegalThreadStateException();
                       
                       //【将新建的 Worker 添加到线程池中】
                       workers.add(w);
                       int s = workers.size();
-                      // 条件成立说明当前线程数量是一个新高，更新 largestPoolSize
+  					// 当前池中的线程数量是一个新高，更新 largestPoolSize
                       if (s > largestPoolSize)
                           largestPoolSize = s;
                       // 添加标记置为 true
@@ -6038,7 +6081,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
                   // 解锁啊
                   mainLock.unlock();
               }
-              // 添加成功就启动线程【执行任务】
+              // 添加成功就【启动线程执行任务】
               if (workerAdded) {
                   // Thread 类中持有 Runnable 任务对象，调用的是 Runnable 的 run ，也就是 FutureTask
                   t.start();
@@ -6055,7 +6098,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
       return workerStarted;
   }
   ```
-  
+
 * addWorkerFailed()：清理任务
 
   ```java
@@ -6069,6 +6112,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
               workers.remove(w);
           // 将线程池计数 -1，相当于归还令牌。
           decrementWorkerCount();
+          // 尝试停止线程池
           tryTerminate();
       } finally {
           //释放线程池全局锁。
@@ -6085,7 +6129,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
 
 ##### 运行方法
 
-* Worker#run：Worker 实现了 Runnable 接口，当某个 worker 启动时，会执行 run()
+* Worker#run：Worker 实现了 Runnable 接口，当线程启动时，会调用 Worker 的 run() 方法
 
   ```java
   public void run() {
@@ -6101,17 +6145,18 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
       Thread wt = Thread.currentThread();	
       // 获取 worker 的 firstTask
       Runnable task = w.firstTask;
-      // 引用置空，防止复用该线程时【重复执行】该任务
+      // 引用置空，【防止复用该线程时重复执行该任务】
       w.firstTask = null;
-      // 初始化 worker 时设置 state = -1，这里需要设置 state = 0 和 exclusiveOwnerThread = null
+      // 初始化 worker 时设置 state = -1，表示不允许抢占锁
+      // 这里需要设置 state = 0 和 exclusiveOwnerThread = null，开始独占模式抢锁
       w.unlock();
       // true 表示发生异常退出，false 表示正常退出。
       boolean completedAbruptly = true;
       try {
           // firstTask 不是 null 就直接运行，否则去 queue 中获取任务
-          // 【getTask 如果是阻塞获取任务，会一直阻塞在take方法，获取后继续循环，不会走返回null的逻辑】
+          // 【getTask 如果是阻塞获取任务，会一直阻塞在take方法，直到获取任务，不会走返回null的逻辑】
           while (task != null || (task = getTask()) != null) {
-              // worker 加锁，shutdown 时会判断当前 worker 状态，根据独占锁是否【空闲】
+              // worker 加锁，shutdown 时会判断当前 worker 状态，【根据独占锁状态判断是否空闲】
               w.lock();
               
   			// 说明线程池状态大于 STOP，目前处于 STOP/TIDYING/TERMINATION，此时给线程一个中断信号
@@ -6121,24 +6166,20 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
                   // 中断线程，设置线程的中断标志位为 true
                   wt.interrupt();
               try {
-                  // 钩子方法，任务执行的前置处理
+                  // 钩子方法，【任务执行的前置处理】
                   beforeExecute(wt, task);
                   Throwable thrown = null;
                   try {
                       // 【执行任务】
                       task.run();
-                  } catch (RuntimeException x) {
-                      thrown = x; throw x;
-                  } catch (Error x) {
-                      thrown = x; throw x;
-                  } catch (Throwable x) {
-                      thrown = x; throw new Error(x);
+                  } catch (Exception x) {
+                   	//.....
                   } finally {
-                      // 钩子方法，任务执行的后置处理
+                      // 钩子方法，【任务执行的后置处理】
                       afterExecute(task, thrown);
                   }
               } finally {
-                  task = null;		// 将局部变量task置为null
+                  task = null;		// 将局部变量task置为null，代表任务执行完成
                   w.completedTasks++;	// 更新worker完成任务数量
                   w.unlock();			// 解锁
               }
@@ -6147,7 +6188,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
           completedAbruptly = false;	
       } finally {
           // 正常退出 completedAbruptly = false
-         	// 异常退出 completedAbruptly = true，从 task.run() 内部抛出异常时，跳到这一行
+         	// 异常退出 completedAbruptly = true，【从 task.run() 内部抛出异常】时，跳到这一行
           processWorkerExit(w, completedAbruptly);
       }
   }
@@ -6165,11 +6206,11 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
   }
   ```
 
-* getTask()：获取任务，线程空闲时间超过 keepAliveTime 就会被回收，判断的依据是**当前线程阻塞超过保活时间没有获取到任务**，方法返回 null 就代表当前线程要被回收了，返回到 runWorker 执行线程退出逻辑
+* getTask()：获取任务，线程空闲时间超过 keepAliveTime 就会被回收，判断的依据是**当前线程阻塞获取任务超过保活时间**，方法返回 null 就代表当前线程要被回收了，返回到 runWorker 执行线程退出逻辑。线程池具有担保机制，对于 RUNNING 状态下的超时回收，要保证线程池中最少有一个线程运行，或者任务阻塞队列已经是空
 
   ```java
   private Runnable getTask() {
-      // 超时标记，表示当前线程获取任务是否超时，默认 false，true 表示已超时
+      // 超时标记，表示当前线程获取任务是否超时，true 表示已超时
       boolean timedOut = false; 
       for (;;) {
           int c = ctl.get();
@@ -6187,16 +6228,16 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
   		// 获取线程池中的线程数量
           int wc = workerCountOf(c);
   
-          // 线程没有明确的区分谁是核心或者非核心，是根据当前池中的线程数量判断
+          // 线程没有明确的区分谁是核心或者非核心线程，是根据当前池中的线程数量判断
           
           // timed = false 表示当前这个线程 获取task时不支持超时机制的，当前线程会使用 queue.take() 阻塞获取
           // timed = true 表示当前这个线程 获取task时支持超时机制，使用 queue.poll(xxx,xxx) 超时获取
           // 条件一代表允许回收核心线程，那就无所谓了，全部线程都执行超时回收
-          // 条件二成立说明线程数量大于核心线程数，当前线程认为是非核心线程，空闲一定时间就需要退出，去超时获取任务
+          // 条件二成立说明线程数量大于核心线程数，当前线程认为是非核心线程，有保活时间，去超时获取任务
           boolean timed = allowCoreThreadTimeOut || wc > corePoolSize;
           
   		// 如果线程数量是否超过最大线程数，直接回收
-          // 如果当前线程允许超时回收并且已经超时了，就应该被回收了，但是由于【担保机制】还要做判断：
+          // 如果当前线程【允许超时回收并且已经超时了】，就应该被回收了，由于【担保机制】还要做判断：
           // 	  wc > 1 说明线程池还用其他线程，当前线程可以直接回收
           //    workQueue.isEmpty() 前置条件是 wc = 1，如果当前任务队列也是空了，最后一个线程就可以安全的退出
           if ((wc > maximumPoolSize || (timed && timedOut)) && (wc > 1 || workQueue.isEmpty())) {
@@ -6216,7 +6257,8 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
               // 获取任务为 null 说明超时了，将超时标记设置为 true，下次自旋时返 null
               timedOut = true;
           } catch (InterruptedException retry) {
-              // 阻塞线程被打断后超时标记置为 false，说明被打断不算超时，要继续获取，直到超时或者获取到任务
+              // 阻塞线程被打断后超时标记置为 false，【说明被打断不算超时】，要继续获取，直到超时或者获取到任务
+              // 如果线程池 SHUTDOWN 状态下的打断，会在循环获取任务前判断，返回 null
               timedOut = false;
           }
       }
@@ -6228,13 +6270,14 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
   ```java
   // 正常退出 completedAbruptly = false，异常退出为 true
   private void processWorkerExit(Worker w, boolean completedAbruptly) {
-      // 条件成立代表当前 worker 是发生异常退出的，task 任务执行过程中向上抛出异常了，
+      // 条件成立代表当前 worker 是发生异常退出的，task 任务执行过程中向上抛出异常了
       if (completedAbruptly) 
           // 从异常时到这里 ctl 一直没有 -1，需要在这里 -1
           decrementWorkerCount();
   
       final ReentrantLock mainLock = this.mainLock;
-      mainLock.lock();	// 加锁
+      // 加锁
+      mainLock.lock();
       try {
           // 将当前 worker 完成的 task 数量，汇总到线程池的 completedTaskCount
           completedTaskCount += w.completedTasks;
@@ -6247,20 +6290,21 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
       tryTerminate();
   
       int c = ctl.get();
-      // 线程池不是停止状态就应该有线程运行
+      // 线程池不是停止状态就应该有线程运行【担保机制】
       if (runStateLessThan(c, STOP)) {
-          // 正常退出的逻辑，是空闲线程回收
+          // 正常退出的逻辑，是对空闲线程回收，不是执行出错
           if (!completedAbruptly) {
               // 根据是否回收核心线程确定【线程池中的线程数量最小值】
               int min = allowCoreThreadTimeOut ? 0 : corePoolSize;
-              // 最小值为 0，但是线程队列不为空，需要一个线程来完成任务【担保机制】
+              // 最小值为 0，但是线程队列不为空，需要一个线程来完成任务担保机制
               if (min == 0 && !workQueue.isEmpty())
                   min = 1;
               // 线程池中的线程数量大于最小值可以直接返回
               if (workerCountOf(c) >= min)
                   return;
           }
-          // 执行 task 时发生异常，这里要创建一个新 worker 加进线程池，有个线程因为异常终止了
+          // 执行 task 时发生异常，有个线程因为异常终止了，需要添加
+          // 或者线程池中的数量小于最小值，这里要创建一个新 worker 加进线程池
           addWorker(null, false);
       }
   }
@@ -6274,7 +6318,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
 
 ##### 停止方法
 
-* shutdown()：
+* shutdown()：停止线程池
 
   ```java
   public void shutdown() {
@@ -6283,7 +6327,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
       mainLock.lock();
       try {
           checkShutdownAccess();
-          // 设置线程池状态为 SHUTDOWN
+          // 设置线程池状态为 SHUTDOWN，如果线程池状态大于 SHUTDOWN，就不会设置直接返回
           advanceRunState(SHUTDOWN);
           // 中断空闲线程
           interruptIdleWorkers();
@@ -6297,22 +6341,22 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
   }
   ```
 
-* interruptIdleWorkers()：shutdown 方法会**中断空闲线程**，根据是否可以获取 AQS 独占锁判断是否处于工作状态
+* interruptIdleWorkers()：shutdown 方法会**中断所有空闲线程**，根据是否可以获取 AQS 独占锁判断是否处于工作状态。线程之所以空闲是因为阻塞队列没有任务，不会中断正在运行的线程，所以 shutdown 方法会让所有的任务执行完毕。
 
   ```java
   // onlyOne == true 说明只中断一个线程 ，false 则中断所有线程
   private void interruptIdleWorkers(boolean onlyOne) {
       final ReentrantLock mainLock = this.mainLock;
-      //持有全局锁
+      / /持有全局锁
       mainLock.lock();
       try {
-          // 遍历所有worker
+          // 遍历所有 worker
           for (Worker w : workers) {
               // 获取当前 worker 的线程
               Thread t = w.thread;
-              //条件一成立：说明当前迭代的这个线程尚未中断
-              //条件二成立：说明当前worker处于空闲状态，阻塞在poll或者take，因为worker执行task时是要加锁的
-              //          每个worker有一个独占锁，w.tryLock()尝试加锁，加锁成功返回 true
+              // 条件一成立：说明当前迭代的这个线程尚未中断
+              // 条件二成立：说明当前worker处于空闲状态，阻塞在poll或者take，因为worker执行task时是要加锁的
+              //           每个worker有一个独占锁，w.tryLock()尝试加锁，加锁成功返回 true
               if (!t.isInterrupted() && w.tryLock()) {
                   try {
                       // 中断线程，处于 queue 阻塞的线程会被唤醒，进入下一次自旋，返回 null，执行退出相逻辑
@@ -6335,29 +6379,29 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
   }
   ```
 
-* shutdownNow()：
+* shutdownNow()：直接关闭线程池，不会等待任务执行完成
 
   ```java
   public List<Runnable> shutdownNow() {
       // 返回值引用
       List<Runnable> tasks;
       final ReentrantLock mainLock = this.mainLock;
-      //获取线程池全局锁
+      // 获取线程池全局锁
       mainLock.lock();
       try {
           checkShutdownAccess();
-          //设置线程池状态为STOP
+          // 设置线程池状态为STOP
           advanceRunState(STOP);
-          //中断线程池中所有线程
+          // 中断线程池中【所有线程】
           interruptWorkers();
-          //导出未处理的task
+          // 从阻塞队列中导出未处理的task
           tasks = drainQueue();
       } finally {
           mainLock.unlock();
       }
   
       tryTerminate();
-      //返回当前任务队列中 未处理的任务。
+      // 返回当前任务队列中 未处理的任务。
       return tasks;
   }
   ```
@@ -6378,8 +6422,9 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
           // 执行到这里说明线程池状态为 STOP 或者线程池状态为 SHUTDOWN 并且队列已经是空
           // 判断线程池中线程的数量
           if (workerCountOf(c) != 0) {
-              // 中断一个【空闲线程】，在 queue.take() | queue.poll() 阻塞空闲
-              // 唤醒后的线程会在getTask()方法返回null，执行退出逻辑时会再次调用tryTerminate()唤醒下一个空闲线程
+              // 【中断一个空闲线程】，在 queue.take() | queue.poll() 阻塞空闲
+              // 唤醒后的线程会在getTask()方法返回null，
+              // 执行 processWorkerExit 退出逻辑时会再次调用 tryTerminate() 唤醒下一个空闲线程
               interruptIdleWorkers(ONLY_ONE);
               return;
           }
@@ -6396,7 +6441,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
                   } finally {
                       // 设置线程池状态为TERMINATED状态。
                       ctl.set(ctlOf(TERMINATED, 0));
-                      // 唤醒所有调用 awaitTermination() 方法的线程
+                      // 【唤醒所有调用 awaitTermination() 方法的线程】
                       termination.signalAll();
                   }
                   return;
@@ -6444,15 +6489,14 @@ public FutureTask(Callable<V> callable){
 	this.callable = callable;	// 属性注入
     this.state = NEW; 			// 任务状态设置为 new
 }
-
-public FutureTask(Runnable runnable, V result) {
-    // 装饰
-    this.callable = Executors.callable(runnable, result);
-    this.state = NEW;       
-}
 ```
 
 ```java
+public FutureTask(Runnable runnable, V result) {
+    // 适配器模式
+    this.callable = Executors.callable(runnable, result);
+    this.state = NEW;       
+}
 public static <T> Callable<T> callable(Runnable task, T result) {
     if (task == null) throw new NullPointerException();
     // 使用装饰者模式将 runnable 转换成 callable 接口，外部线程通过 get 获取
@@ -6499,7 +6543,7 @@ FutureTask 类的成员属性：
   private static final int COMPLETING   = 1;
   // 当前任务正常结束
   private static final int NORMAL       = 2;
-  // 当前任务执行过程中发生了异常。 内部封装的 callable.run() 向上抛出异常了
+  // 当前任务执行过程中发生了异常，内部封装的 callable.run() 向上抛出异常了
   private static final int EXCEPTIONAL  = 3;
   // 当前任务被取消
   private static final int CANCELLED    = 4;
@@ -6515,10 +6559,10 @@ FutureTask 类的成员属性：
   private Callable<V> callable;	// Runnable 使用装饰者模式伪装成 Callable
   ```
 
-* 存储任务执行的结果，这是 run 方法返回值是 void 也可以获取到执行结果的原因：
+* **存储任务执行的结果**，这是 run 方法返回值是 void 也可以获取到执行结果的原因：
 
   ```java
-  // 正常情况下：任务正常执行结束，outcome 保存执行结果，callable 返回值。
+  // 正常情况下：任务正常执行结束，outcome 保存执行结果，callable 返回值
   // 非正常情况：callable 向上抛出异常，outcome 保存异常
   private Object outcome; 
   ```
@@ -6540,7 +6584,7 @@ FutureTask 类的成员属性：
 
   ```java
   static final class WaitNode {
-      //单向链表
+      // 单向链表
       volatile Thread thread;
       volatile WaitNode next;
       WaitNode() { thread = Thread.currentThread(); }
@@ -6569,18 +6613,17 @@ FutureTask 类的成员方法：
           !UNSAFE.compareAndSwapObject(this, runnerOffset, null, Thread.currentThread()))
           return;
       try {
-          // 执行到这里，当前 task 一定是 NEW 状态，而且当前线程也抢占 task 成功！
+          // 执行到这里，当前 task 一定是 NEW 状态，而且【当前线程也抢占 task 成功】
           Callable<V> c = callable;
           // 判断任务是否为空，防止空指针异常；判断 state 状态，防止外部线程在此期间 cancel 掉当前任务
-          // 因为 task 的执行者已经设置为当前线程，所以这里是线程安全的，
+          // 【因为 task 的执行者已经设置为当前线程，所以这里是线程安全的】
           if (c != null && state == NEW) {
-              // 结果引用
               V result;
               // true 表示 callable.run 代码块执行成功 未抛出异常
               // false 表示 callable.run 代码块执行失败 抛出异常
               boolean ran;
               try {
-  				// 调用自定义的方法
+  				// 【调用自定义的方法，执行结果赋值给 result】
                   result = c.call();
                   // 没有出现异常
                   ran = true;
@@ -6608,13 +6651,13 @@ FutureTask 类的成员方法：
   }
   ```
   
-  FutureTask#set：设置正常返回值
+  FutureTask#set：设置正常返回值，首先将任务状态设置为 COMPLETING 状态代表完成中，逻辑执行完设置为 NORMAL 状态代表任务正常执行完成，最后唤醒 get() 阻塞线程
   
   ```java
   protected void set(V v) {
       // CAS 方式设置当前任务状态为完成中，设置失败说明其他线程取消了该任务
       if (UNSAFE.compareAndSwapInt(this, stateOffset, NEW, COMPLETING)) {
-          // 将结果赋值给 outcome
+          // 【将结果赋值给 outcome】
           outcome = v;
           // 将当前任务状态修改为 NORMAL 正常结束状态。
           UNSAFE.putOrderedInt(this, stateOffset, NORMAL);
@@ -6643,7 +6686,7 @@ FutureTask 类的成员方法：
   private void finishCompletion() {
       // 遍历所有的等待的节点，q 指向头节点
       for (WaitNode q; (q = waiters) != null;) {
-          // 使用cas设置 waiters 为 null，防止外部线程使用 cancel 取消当前任务，也会触发finishCompletion方法
+          // 使用cas设置 waiters 为 null，防止外部线程使用cancel取消当前任务，触发finishCompletion方法重复执行
           if (UNSAFE.compareAndSwapObject(this, waitersOffset, q, null)) {
               // 自旋
               for (;;) {
@@ -6659,6 +6702,7 @@ FutureTask 类的成员方法：
                   // 当前节点是最后一个节点了
                   if (next == null)
                       break;
+                  // 断开链表
                   q.next = null; // help gc
                   q = next;
               }
@@ -6682,7 +6726,7 @@ FutureTask 类的成员方法：
   }
   ```
   
-* **FutureTask#get**：获取任务执行的返回值，执行 run 和 get 的不是同一个线程，可能有多个线程 get，只有一个线程 run
+* **FutureTask#get**：获取任务执行的返回值，执行 run 和 get 的不是同一个线程，一般有多个线程 get，只有一个线程 run
 
   ```java
   public V get() throws InterruptedException, ExecutionException {
@@ -6696,7 +6740,7 @@ FutureTask 类的成员方法：
   }
   ```
 
-  FutureTask#awaitDone：**get 线程阻塞等待**，封装成 WaitNode 对象进入阻塞队列
+  FutureTask#awaitDone：**get 线程封装成 WaitNode 对象进入阻塞队列阻塞等待**
 
   ```java
   private int awaitDone(boolean timed, long nanos) throws InterruptedException {
@@ -6704,9 +6748,9 @@ FutureTask 类的成员方法：
       final long deadline = timed ? System.nanoTime() + nanos : 0L;
       // 引用当前线程，封装成 WaitNode 对象
       WaitNode q = null;
-      // 表示当前线程 waitNode 对象 有没有入队/压栈
+      // 表示当前线程 waitNode 对象，是否进入阻塞队列
       boolean queued = false;
-      // 自旋，三次自旋开始休眠
+      // 【三次自旋开始休眠】
       for (;;) {
           // 判断当前 get() 线程是否被打断，打断返回 true，清除打断标记
           if (Thread.interrupted()) {
@@ -6716,35 +6760,35 @@ FutureTask 类的成员方法：
           }
   		// 获取任务状态
           int s = state;
-          // 条件成立：说明当前任务执行完成已经有结果了
+          // 条件成立说明当前任务执行完成已经有结果了
           if (s > COMPLETING) {
-              // 条件成立说明已经为当前线程创建了 WaitNode，置空帮助 GC
+              // 条件成立说明已经为当前线程创建了 WaitNode，置空 help GC
               if (q != null)
                   q.thread = null;
               // 返回当前的状态
               return s;
           }
-          // 条件成立：说明当前任务接近完成状态，这里让当前线程释放 cpu ，进行下一次抢占 cpu
+          // 条件成立说明当前任务接近完成状态，这里让当前线程释放一下 cpu ，等待进行下一次抢占 cpu
           else if (s == COMPLETING) 
               Thread.yield();
-          // 条件成立：【第一次自旋】，当前线程还未创建 WaitNode 对象，此时为当前线程创建 WaitNode对象
+          // 【第一次自旋】，当前线程还未创建 WaitNode 对象，此时为当前线程创建 WaitNode对象
           else if (q == null)
               q = new WaitNode();
-          // 条件成立：【第二次自旋】，当前线程已经创建 WaitNode 对象了，但是node对象还未入队
+          // 【第二次自旋】，当前线程已经创建 WaitNode 对象了，但是node对象还未入队
           else if (!queued)
               // waiters 指向队首，让当前 WaitNode 成为新的队首，【头插法】，失败说明其他线程修改了新的队首
               queued = UNSAFE.compareAndSwapObject(this, waitersOffset, q.next = waiters, q);
-          // 条件成立：【第三次自旋】，会到这里。
+          // 【第三次自旋】，会到这里，或者 else 内
           else if (timed) {
               nanos = deadline - System.nanoTime();
               if (nanos <= 0L) {
                   removeWaiter(q);
                   return state;
               }
-              // 休眠指定的时间
+              // 阻塞指定的时间
               LockSupport.parkNanos(this, nanos);
           }
-          // 条件成立：说明需要休眠
+          // 条件成立：说明需要阻塞
           else
               // 【当前 get 操作的线程被 park 阻塞】，除非有其它线程将唤醒或者将当前线程中断
               LockSupport.park(this);
@@ -6756,14 +6800,14 @@ FutureTask 类的成员方法：
   
   ```java
   private V report(int s) throws ExecutionException {
-      // 获取执行结果，都在一个 futuretask 对象中的属性，可以直接获取
+      // 获取执行结果，是在一个 futuretask 对象中的属性，可以直接获取
       Object x = outcome;
       // 当前任务状态正常结束
       if (s == NORMAL)
           return (V)x;	// 直接返回 callable 的逻辑结果
       // 当前任务被取消或者中断
       if (s >= CANCELLED)
-          throw new CancellationException();		//抛出异常
+          throw new CancellationException();		// 抛出异常
       // 执行到这里说明自定义的 callable 中的方法有异常，使用 outcome 上层抛出异常
       throw new ExecutionException((Throwable)x);	
   }
@@ -6861,14 +6905,14 @@ private static void method1() {
 
 ```java
 public ScheduledThreadPoolExecutor(int corePoolSize) {
-    // 最大线程数固定为 Integer.MAX_VALUE，最大活跃时间 keepAliveTime 固定为
+    // 最大线程数固定为 Integer.MAX_VALUE，保活时间 keepAliveTime 固定为 0
     super(corePoolSize, Integer.MAX_VALUE, 0, NANOSECONDS,
           // 阻塞队列是 DelayedWorkQueue
           new DelayedWorkQueue());
 }
 ```
 
-常用API：
+常用 API：
 
 * `ScheduledFuture<?> schedule(Runnable/Callable<V>, long delay, TimeUnit u)`：延迟执行任务
 * `ScheduledFuture<?> scheduleAtFixedRate(Runnable/Callable<V>, long initialDelay, long period, TimeUnit unit)`：定时执行任务，参数为初始延迟时间、间隔时间、单位
@@ -6895,7 +6939,7 @@ public ScheduledThreadPoolExecutor(int corePoolSize) {
   }
   ```
 
-* 定时任务 scheduleAtFixedRate：**一次任务的启动到下一次任务的启动**之间只要大于间隔时间，抢占到 CPU 就会立即执行
+* 定时任务 scheduleAtFixedRate：**一次任务的启动到下一次任务的启动**之间只要大于等于间隔时间，抢占到 CPU 就会立即执行
 
   ```java
   public static void main(String[] args) {
@@ -6974,7 +7018,7 @@ public ScheduledThreadPoolExecutor(int corePoolSize) {
 
 ##### 延迟任务
 
-ScheduledFutureTask 继承 FutureTask，实现 RunnableScheduledFuture 接口，具有延迟执行的特点，覆盖 FutureTask 的 run 方法来实现对延时执行、周期执行的支持。对于延时任务调用 FutureTask#run 而对于周期性任务则调用 FutureTask#runAndReset 并且在成功之后根据 fixed-delay/fixed-rate 模式来设置下次执行时间并重新将任务塞到工作队列。
+ScheduledFutureTask 继承 FutureTask，实现 RunnableScheduledFuture 接口，具有延迟执行的特点，覆盖 FutureTask 的 run 方法来实现对**延时执行、周期执行**的支持。对于延时任务调用 FutureTask#run 而对于周期性任务则调用 FutureTask#runAndReset 并且在成功之后根据 fixed-delay/fixed-rate 模式来设置下次执行时间并重新将任务塞到工作队列。
 
 在调度线程池中无论是 runnable 还是 callable，无论是否需要延迟和定时，所有的任务都会被封装成 ScheduledFutureTask
 
@@ -6990,10 +7034,12 @@ ScheduledFutureTask 继承 FutureTask，实现 RunnableScheduledFuture 接口，
 
   ```java
   private long time;			// 任务可以被执行的时间，以纳秒表示
-  private final long period;	// 0 表示非周期任务，正数表示 fixed-rate 模式，负数表示 fixed-delay 模式的周期
+  private final long period;	// 0 表示非周期任务，正数表示 fixed-rate 模式的周期，负数表示 fixed-delay 模式
   ```
 
-* 实际的任务：
+  fixed-rate：两次开始启动的间隔，fixed-delay：一次执行结束到下一次开始启动
+
+* 实际的任务对象：
 
   ```java
   RunnableScheduledFuture<V> outerTask = this;
@@ -7002,7 +7048,7 @@ ScheduledFutureTask 继承 FutureTask，实现 RunnableScheduledFuture 接口，
 * 任务在队列数组中的索引下标：
 
   ```java
-  int heapIndex;	// -1 代表删除
+  int heapIndex;				// -1 代表删除
   ```
 
 成员方法：
@@ -7016,27 +7062,26 @@ ScheduledFutureTask 继承 FutureTask，实现 RunnableScheduledFuture 接口，
       this.time = ns;
       // 任务的周期，多长时间执行一次
       this.period = period;
+      // 任务的序号
       this.sequenceNumber = sequencer.getAndIncrement();
   }
   ```
 
 * compareTo()：ScheduledFutureTask 根据执行时间 time 正序排列，如果执行时间相同，在按照序列号 sequenceNumber 正序排列，任务需要放入 DelayedWorkQueue，延迟队列中使用该方法按照从小到大进行排序
 
-* run()：执行任务，**周期任务执行完后会重新放入线程池的阻塞队列**
+* run()：执行任务，非周期任务直接完成直接结束，**周期任务执行完后会设置下一次的执行时间，重新放入线程池的阻塞队列**，如果线程池中的线程数量少于核心线程，就会添加 Worker 开启新线程
 
   ```java
   public void run() {
       // 是否周期性，就是判断 period 是否为 0
       boolean periodic = isPeriodic();
-      // 检查当前状态能否执行任务
+      // 检查当前状态能否执行任务，不能执行就取消任务
       if (!canRunInCurrentRunState(periodic))
-          // 取消任务
           cancel(false);
-      // 非周期任务直接执行
+      // 非周期任务，直接调用 FutureTask#run 执行
       else if (!periodic)
           ScheduledFutureTask.super.run();
-      // 周期任务的执行，正常完成后任务的状态不会变化，依旧是 NEW，且返回值为成功或失败，不会设置result属性。
-      // 需要注意，如果本次任务执行出现异常，返回 false，后续的该任务不会再执行
+      // 周期任务的执行，返回 true 表示执行成功
       else if (ScheduledFutureTask.super.runAndReset()) {
           // 设置周期任务的下一次执行时间
           setNextRunTime();
@@ -7045,6 +7090,8 @@ ScheduledFutureTask 继承 FutureTask，实现 RunnableScheduledFuture 接口，
       }
   }
   ```
+
+  周期任务正常完成后任务的状态不会变化，依旧是 NEW，不会设置 outcome 属性。但是如果本次任务执行出现异常，会进入 setException 方法将任务状态置为异常，把异常保存在 outcome 中，方法返回 false，后续的该任务将不会再周期的执行
 
   ```java
   protected boolean runAndReset() {
@@ -7074,7 +7121,7 @@ ScheduledFutureTask 继承 FutureTask，实现 RunnableScheduledFuture 接口，
           if (s >= INTERRUPTING)
               handlePossibleCancellationInterrupt(s);
       }
-      // 如果正常执行，返回 true
+      // 如果正常执行，返回 true，并且任务状态没有被取消
       return ran && s == NEW;
   }
   ```
@@ -7084,10 +7131,10 @@ ScheduledFutureTask 继承 FutureTask，实现 RunnableScheduledFuture 接口，
   private void setNextRunTime() {
       long p = period;
       if (p > 0)
-          // fixed-rate 模式，时间设置为上一次时间 +p，两次任务执行的时间差
+          // fixed-rate 模式，【时间设置为上一次执行任务的时间 +p】，两次任务执行的时间差
           time += p;
       else
-          // fixed-delay 模式，下一次执行时间是当前这次任务结束的时间（就是现在） +delay 值
+          // fixed-delay 模式，下一次执行时间是当【前这次任务结束的时间（就是现在） +delay 值】
           time = triggerTime(-p);
   }
   ```
@@ -7098,13 +7145,13 @@ ScheduledFutureTask 继承 FutureTask，实现 RunnableScheduledFuture 接口，
   // ScheduledThreadPoolExecutor#reExecutePeriodic
   void reExecutePeriodic(RunnableScheduledFuture<?> task) {
       if (canRunInCurrentRunState(true)) {
-          // 放入任务队列
+          // 【放入任务队列】
           super.getQueue().add(task);
           // 再次检查是否可以执行，如果不能执行且任务还在队列中未被取走，则取消任务
           if (!canRunInCurrentRunState(true) && remove(task))
               task.cancel(false);
           else
-              // 当前线程池状态可以执行周期任务，加入队列，并根据线程数量是否大于 核心线程数确定是否开启新线程
+              // 当前线程池状态可以执行周期任务，加入队列，并【根据线程数量是否大于核心线程数确定是否开启新线程】
               ensurePrestart();
       }
   }
@@ -7134,9 +7181,9 @@ ScheduledFutureTask 继承 FutureTask，实现 RunnableScheduledFuture 接口，
 
 ##### 延迟队列
 
-DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先队列 PriorityQueue （小根堆）存储元素
+DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先队列 PriorityQueue（小根堆）存储元素
 
-其他阻塞队列存储节点的数据结构大都是链表，延迟队列是数组，所以延迟队列出队头元素后需要让其他元素（尾）替换到头节点，防止空指针异常
+其他阻塞队列存储节点的数据结构大都是链表，**延迟队列是数组**，所以延迟队列出队头元素后需要让其他元素（尾）替换到头节点，防止空指针异常
 
 成员变量：
 
@@ -7185,13 +7232,13 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
               // 扩容为原来长度的 1.5 倍
               grow();
           size = i + 1;
-          // 插入的元素是第一个节点
+          // 当前是第一个要插入的节点
           if (i == 0) {
               queue[0] = e;
               // 修改 ScheduledFutureTask 的 heapIndex 属性，表示该对象在队列里的下标
               setIndex(e, 0);
           } else {
-              // 向上调整元素的位置
+              // 向上调整元素的位置，并更新 heapIndex 
               siftUp(i, e);
           }
           // 【插入的元素是头节点，原先的 leader 等待的是原先的头节点，所以 leader 已经无效】
@@ -7227,7 +7274,7 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
   }
   ```
 
-* poll()：非阻塞获取头结点，执行时间最近的
+* poll()：非阻塞获取头结点，**获取执行时间最近的**
 
   ```java
   // 非阻塞获取
@@ -7235,7 +7282,7 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
       final ReentrantLock lock = this.lock;
       lock.lock();
       try {
-          // 获取队头节点
+          // 获取队头节点，因为是小顶堆
           RunnableScheduledFuture<?> first = queue[0];
           // 头结点为空或者的延迟时间没到返回 null
           if (first == null || first.getDelay(NANOSECONDS) > 0)
@@ -7257,7 +7304,7 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
       // 置空
       queue[s] = null;
       if (s != 0)
-          // 从索引处0开始向下调整
+          // 从索引处 0 开始向下调整
           siftDown(0, x);
       // 出队的元素索引设置为 -1
       setIndex(f, -1);
@@ -7282,7 +7329,7 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
                   // 获取头节点的剩延迟时间是否到时
                   long delay = first.getDelay(NANOSECONDS);
                   if (delay <= 0)
-                      // 获取头节点并调整堆，选择延迟时间最小的节点放入头部
+                      // 到时了，获取头节点并调整堆，重新选择延迟时间最小的节点放入头部
                       return finishPoll(first);
                   
                   // 逻辑到这说明头节点的延迟时间还没到
@@ -7317,7 +7364,7 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
   }
   ```
 
-* remove()：删除节点，堆移除一个元素的时间复杂度是 O(log n)，延迟任务维护了 heapIndex，直接访问的时间复杂度是 O(1)，从而可以更快的移除元素，任务在队列中被取消后会进入该逻辑
+* remove()：删除节点，堆移除一个元素的时间复杂度是 O(log n)，**延迟任务维护了 heapIndex**，直接访问的时间复杂度是 O(1)，从而可以更快的移除元素，任务在队列中被取消后会进入该逻辑
 
   ```java
   public boolean remove(Object x) {
@@ -7375,7 +7422,7 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
   public ScheduledFuture<?> schedule(Runnable command, long delay, TimeUnit unit) {
       // 判空
       if (command == null || unit == null) throw new NullPointerException();
-      // 没有做任何操作，直接将 task 返回，该方法主要目的是用于子类扩展
+      // 没有做任何操作，直接将 task 返回，该方法主要目的是用于子类扩展，并且【根据延迟时间设置任务触发的时间点】
       RunnableScheduledFuture<?> t = decorateTask(command, new ScheduledFutureTask<Void>(
           											command, null, triggerTime(delay, unit)));
       // 延迟执行
@@ -7406,7 +7453,7 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
           long headDelay = head.getDelay(NANOSECONDS);
           // 判断一下队首的delay是不是负数，如果是正数就不用管，怎么减都不会溢出
           // 否则拿当前 delay 减去队首的 delay 来比较看，如果不出现上溢，排序不会乱
-  		// 不然就把当前 delay 值给调整为Long.MAX_VALUE + 队首 delay
+  		// 不然就把当前 delay 值给调整为 Long.MAX_VALUE + 队首 delay
           if (headDelay < 0 && (delay - headDelay < 0))
               delay = Long.MAX_VALUE + headDelay;
       }
@@ -7462,7 +7509,7 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
 
 ##### 运行任务
 
-* delayedExecute()：校验状态，延迟或周期性任务的主要执行方法
+* delayedExecute()：**校验线程池状态**，延迟或周期性任务的主要执行方法
 
   ```java
   private void delayedExecute(RunnableScheduledFuture<?> task) {
@@ -7470,7 +7517,7 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
       if (isShutdown())
           reject(task);
       else {
-          // 把当前任务放入阻塞队列，因为需要重新获取执行时间最近的
+          // 把当前任务放入阻塞队列，因为需要【获取执行时间最近的】
           super.getQueue().add(task);
           // 线程池状态为 SHUTDOWN 并且不允许执行任务了，就从队列删除该任务，并设置任务的状态为取消状态
           if (isShutdown() && !canRunInCurrentRunState(task.isPeriodic()) && remove(task))
@@ -7482,7 +7529,7 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
   }
   ```
 
-* ensurePrestart()：开启线程执行任务
+* ensurePrestart()：**开启线程执行任务**
 
   ```java
   // ThreadPoolExecutor#ensurePrestart
@@ -7492,7 +7539,7 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
       if (wc < corePoolSize)
           // 第二个参数 true 表示采用核心线程数量限制，false 表示采用 maximumPoolSize
           addWorker(null, true);
-      // corePoolSize = 0的情况，至少开启一个线程
+      // corePoolSize = 0的情况，至少开启一个线程，【担保机制】
       else if (wc == 0)
           addWorker(null, false);
   }
@@ -7502,8 +7549,7 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
 
   ```java
   boolean canRunInCurrentRunState(boolean periodic) {
-      // isRunningOrShutdown 的参数为布尔值，true 则表示shutdown状态也返回true，否则只有running状态返回ture
-      // 根据是否时周期任务来判断是否shutdown了仍然可以执行。
+      // 根据是否是周期任务判断，在线程池 shutdown 后是否继续执行该任务，默认非周期任务是继续执行的
       return isRunningOrShutdown(periodic ? continueExistingPeriodicTasksAfterShutdown :
                                  executeExistingDelayedTasksAfterShutdown);
   }
@@ -7518,7 +7564,7 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
       boolean keepDelayed = getExecuteExistingDelayedTasksAfterShutdownPolicy();
       // shutdown 后是否仍然执行周期任务
       boolean keepPeriodic = getContinueExistingPeriodicTasksAfterShutdownPolicy();
-      // 如果两者皆不可则对队列中所有 任务 调用 cancel 取消并清空队列
+      // 如果两者皆不可，则对队列中【所有任务】调用 cancel 取消并清空队列
       if (!keepDelayed && !keepPeriodic) {
           for (Object e : q.toArray())
               if (e instanceof RunnableScheduledFuture<?>)
@@ -7538,7 +7584,7 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
               }
           }
       }
-      // 因为任务被从队列中清理掉，所以需要调用 tryTerminate 尝试改变 executor 的状态
+      // 因为任务被从队列中清理掉，所以需要调用 tryTerminate 尝试【改变线程池的状态】
       tryTerminate();
   }
   ```
@@ -7555,9 +7601,9 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
 
 Fork/Join：线程池的实现，体现是分治思想，适用于能够进行任务拆分的 CPU 密集型运算，用于**并行计算**
 
-任务拆分：是将一个大任务拆分为算法上相同的小任务，直至不能拆分可以直接求解。跟递归相关的一些计算，如归并排序、斐波那契数列都可以用分治思想进行求解
+任务拆分：将一个大任务拆分为算法上相同的小任务，直至不能拆分可以直接求解。跟递归相关的一些计算，如归并排序、斐波那契数列都可以用分治思想进行求解
 
-* Fork/Join 在分治的基础上加入了多线程，把每个任务的分解和合并交给不同的线程来完成，提升了运算效率
+* Fork/Join 在**分治的基础上加入了多线程**，把每个任务的分解和合并交给不同的线程来完成，提升了运算效率
 
 * ForkJoin 使用 ForkJoinPool 来启动，是一个特殊的线程池，默认会创建与 CPU 核心数大小相同的线程池
 * 任务有返回值继承 RecursiveTask，没有返回值继承 RecursiveAction
@@ -7763,7 +7809,7 @@ AQS 核心思想：
 
 * 如果被请求的共享资源空闲，则将当前请求资源的线程设置为有效的工作线程，并将共享资源设置锁定状态
 
-* 被请求的共享资源被占用，AQS 用 CLH 队列实现线程阻塞等待以及被唤醒时锁分配的（park）机制，将暂时获取不到锁的线程加入到队列中
+* 请求的共享资源被占用，AQS 用 CLH 队列实现线程阻塞等待以及被唤醒时锁分配的机制，将暂时获取不到锁的线程加入到队列中
 
   CLH 是一种基于单向链表的**高性能、公平的自旋锁**，AQS 是将每条请求共享资源的线程封装成一个 CLH 锁队列的一个结点（Node）来实现锁的分配
 
@@ -7782,7 +7828,7 @@ AQS 核心思想：
 * 获取锁：
 
   ```java
-  while(state 状态不允许获取) {	//tryAcquire(arg)
+  while(state 状态不允许获取) {	// tryAcquire(arg)
       if(队列中还没有此线程) {
           入队并阻塞 park
       }
@@ -7793,7 +7839,7 @@ AQS 核心思想：
 * 释放锁：
 
   ```java
-  if(state 状态允许了) {	//tryRelease(arg)
+  if(state 状态允许了) {	// tryRelease(arg)
   	恢复阻塞的线程(s) unpark
   }
   ```
@@ -7814,7 +7860,7 @@ AbstractQueuedSynchronizer 中 state 设计：
 
   * `protected final int getState()`：获取 state 状态
   * `protected final void setState(int newState)`：设置 state 状态
-  * `protected final boolean compareAndSetState(int expect,int update)`：**cas** 安全设置 state
+  * `protected final boolean compareAndSetState(int expect,int update)`：**CAS** 安全设置 state
 
 封装线程的 Node 节点中 waitstate 设计：
 
@@ -7827,7 +7873,7 @@ AbstractQueuedSynchronizer 中 state 设计：
   volatile int waitStatus;
   // 由于超时或中断，此节点被取消，不会再改变状态
   static final int CANCELLED =  1;
-  // 此节点后面的节点已（或即将）被阻止（通过park），当前节点在释放或取消时必须唤醒后面的节点
+  // 此节点后面的节点已（或即将）被阻止（通过park），【当前节点在释放或取消时必须唤醒后面的节点】
   static final int SIGNAL    = -1;
   // 此节点当前在条件队列中
   static final int CONDITION = -2;
@@ -7860,7 +7906,7 @@ AbstractQueuedSynchronizer 中 state 设计：
       volatile Node prev;
       // next 指向后继节点
       volatile Node next;
-      // 当前node封装的线程
+      // 当前 node 封装的线程
       volatile Thread thread;
       // 条件队列是单向链表，只有后继指针
       Node nextWaiter;
@@ -7993,7 +8039,7 @@ class MyLock implements Lock {
 
 #### 锁对比
 
-ReentrantLock 相对于 synchronized 它具备如下特点：
+ReentrantLock 相对于 synchronized 具备如下特点：
 
 1. 锁的实现：synchronized 是 JVM 实现的，而 ReentrantLock 是 JDK 实现的
 2. 性能：新版本 Java 对 synchronized 进行了很多优化，synchronized 与 ReentrantLock 大致相同
@@ -8084,40 +8130,46 @@ public ReentrantLock() {
 
 NonfairSync 继承自 AQS
 
-没有竞争：ExclusiveOwnerThread 属于 Thread-0，state 设置为 1
-
 ```java
-// ReentrantLock.NonfairSync#lock
-final void lock() {
-    // 用 cas 尝试（仅尝试一次）将 state 从 0 改为 1, 如果成功表示【获得了独占锁】
-    if (compareAndSetState(0, 1))
-        // 设置当前线程为独占线程
-        setExclusiveOwnerThread(Thread.currentThread());
-    else
-        acquire(1);//失败进入
+public void lock() {
+    sync.lock();
 }
+
 ```
 
-第一个竞争出现：
+* 没有竞争：ExclusiveOwnerThread 属于 Thread-0，state 设置为 1
 
-```java
-// AbstractQueuedSynchronizer#acquire
-public final void acquire(int arg) {
-    // tryAcquire 尝试获取锁失败返回为 false 时, 会调用 addWaiter 将当前线程封装成node入队，
-    // 然后 acquireQueued 挂起当前线程，返回 true 表示挂起过程中线程被中断唤醒过，false 表示未被中断过
-    if (!tryAcquire(arg) && acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
-        // 如果线程被中断了逻辑来到这，完成一次真正的打断效果
-        selfInterrupt();
-}
-```
+  ```java
+  // ReentrantLock.NonfairSync#lock
+  final void lock() {
+      // 用 cas 尝试（仅尝试一次）将 state 从 0 改为 1, 如果成功表示【获得了独占锁】
+      if (compareAndSetState(0, 1))
+          // 设置当前线程为独占线程
+          setExclusiveOwnerThread(Thread.currentThread());
+      else
+          acquire(1);//失败进入
+  }
+  ```
+
+* 第一个竞争出现：Thread-1 执行，CAS 尝试将 state 由 0 改为 1，结果失败（第一次），进入 acquire 逻辑
+
+  ```java
+  // AbstractQueuedSynchronizer#acquire
+  public final void acquire(int arg) {
+      // tryAcquire 尝试获取锁失败时, 会调用 addWaiter 将当前线程封装成node入队，acquireQueued 阻塞当前线程，
+      // acquireQueued 返回 true 表示挂起过程中线程被中断唤醒过，false 表示未被中断过
+      if (!tryAcquire(arg) && acquireQueued(addWaiter(Node.EXCLUSIVE), arg))
+          // 如果线程被中断了逻辑来到这，完成一次真正的打断效果
+          selfInterrupt();
+  }
+  ```
 
 <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantLock-非公平锁1.png" style="zoom:80%;" />
 
-Thread-1 执行：
+* 进入 tryAcquire 尝试获取锁逻辑，这时 state 已经是1，结果仍然失败（第二次），加锁成功有两种情况：
 
-* CAS 尝试将 state 由 0 改为 1，结果失败（第一次）
-
-* 进入 tryAcquire 尝试获取锁逻辑，这时 state 已经是1，结果仍然失败（第二次）
+  * 当前 AQS 处于无锁状态
+  * 加锁线程就是当前线程，说明发生了锁重入
 
   ```java
   // ReentrantLock.NonfairSync#tryAcquire
@@ -8129,7 +8181,7 @@ Thread-1 执行：
       final Thread current = Thread.currentThread();
       // state 值
       int c = getState();
-      // 条件成立说明当前处于无锁状态
+      // 条件成立说明当前处于【无锁状态】
       if (c == 0) {
           //如果还没有获得锁，尝试用cas获得，这里体现非公平性: 不去检查 AQS 队列是否有阻塞线程直接获取锁        
       	if (compareAndSetState(0, acquires)) {
@@ -8138,7 +8190,7 @@ Thread-1 执行：
               return true;
            }    
   	}    
-     	// 如果已经有线程获得了锁, 独占锁线程还是当前线程, 表示发生了锁重入    
+     	// 如果已经有线程获得了锁, 独占锁线程还是当前线程, 表示【发生了锁重入】
   	else if (current == getExclusiveOwnerThread()) {
           // 更新锁重入的值
           int nextc = c + acquires;
@@ -8157,8 +8209,7 @@ Thread-1 执行：
 * 接下来进入 addWaiter 逻辑，构造 Node 队列，前置条件是当前线程获取锁失败，说明有线程占用了锁
 
   * 图中黄色三角表示该 Node 的 waitStatus 状态，其中 0 为默认**正常状态**
-  * Node 的创建是懒惰的
-  * 其中第一个 Node 称为 **Dummy（哑元）或哨兵**，用来占位，并不关联线程
+  * Node 的创建是懒惰的，其中第一个 Node 称为 **Dummy（哑元）或哨兵**，用来占位，并不关联线程
 
   ```java
   // AbstractQueuedSynchronizer#addWaiter，返回当前线程的 node 节点
@@ -8170,13 +8221,13 @@ Thread-1 执行：
       if (pred != null) {
           // 将当前节点的前驱节点指向 尾节点
           node.prev = pred;
-          // 通过 cas 将 Node 对象加入 AQS 队列，成为尾节点
+          // 通过 cas 将 Node 对象加入 AQS 队列，成为尾节点，【尾插法】
           if (compareAndSetTail(pred, node)) {
               pred.next = node;// 双向链表
               return node;
           }
       }
-      // 等待队列为空或者 CAS 失败进入逻辑
+      // 初始时没有队列为空，或者 CAS 失败进入这里
       enq(node);
       return node;
   }
@@ -8188,17 +8239,17 @@ Thread-1 执行：
       // 自旋入队，必须入队成功才结束循环
       for (;;) {
           Node t = tail;
-          // 说明当前锁被占用，且当前线程可能是【第一个获取锁失败】的线程，还没有建立队列
+          // 说明当前锁被占用，且当前线程可能是【第一个获取锁失败】的线程，【还没有建立队列】
           if (t == null) {
               // 设置一个【哑元节点】，头尾指针都指向该节点
               if (compareAndSetHead(new Node()))
                   tail = head;
           } else {
-              //自旋到这，普通入队方式
+              // 自旋到这，普通入队方式，【尾插法】
               node.prev = t;
               if (compareAndSetTail(t, node)) {
                   t.next = node;
-                  return t;	//返回当前 node 的前驱节点
+                  return t;	// 返回当前 node 的前驱节点
               }
           }
       }
@@ -8209,21 +8260,21 @@ Thread-1 执行：
 
 * 线程节点加入阻塞队列成功，进入 AbstractQueuedSynchronizer#acquireQueued 逻辑阻塞线程
 
-  * acquireQueued 会在一个死循环中不断尝试获得锁，失败后进入 park 阻塞
+  * acquireQueued 会在一个自旋中不断尝试获得锁，失败后进入 park 阻塞
 
   * 如果当前线程是在 head 节点后，会再次 tryAcquire 尝试获取锁，state 仍为 1 则失败（第三次）
 
   ```java
   final boolean acquireQueued(final Node node, int arg) {
-      //true 表示当前线程抢占锁失败，false 表示成功
+      // true 表示当前线程抢占锁失败，false 表示成功
       boolean failed = true;
       try {
-          // 表示当前线程是否被中断
+          // 中断标记，表示当前线程是否被中断
           boolean interrupted = false;
           for (;;) {
               // 获得当前线程节点的前驱节点
               final Node p = node.predecessor();
-              // 前驱节点 head, FIFO 队列的特性表示轮到当前线程可以去获取锁
+              // 前驱节点是 head, FIFO 队列的特性表示轮到当前线程可以去获取锁
               if (p == head && tryAcquire(arg)) {
                   // 获取成功, 设置当前线程自己的 node 为 head
                   setHead(node);
@@ -8239,7 +8290,7 @@ Thread-1 执行：
                   interrupted = true;
           }
       } finally {
-          // 可打断模式下才会进入该逻辑
+          // 【可打断模式下才会进入该逻辑】
           if (failed)
               cancelAcquire(node);
       }
@@ -8254,28 +8305,26 @@ Thread-1 执行：
       // 表示前置节点是个可以唤醒当前节点的节点，返回 true
       if (ws == Node.SIGNAL)
           return true;
-      // 前置节点的状态处于取消状态，需要删除前面所有取消的节点, 返回到外层循环重试
+      // 前置节点的状态处于取消状态，需要【删除前面所有取消的节点】, 返回到外层循环重试
       if (ws > 0) {
           do {
               node.prev = pred = pred.prev;
           } while (pred.waitStatus > 0);
           // 获取到非取消的节点，连接上当前节点
           pred.next = node;
-      // 【默认情况下 node 的 waitStatus 是 0，进入这里的逻辑】
+      // 默认情况下 node 的 waitStatus 是 0，进入这里的逻辑
       } else {
-          // 设置上一个节点状态为 Node.SIGNAL，返回外层循环重试
+          // 【设置上一个节点状态为 Node.SIGNAL】，返回外层循环重试
           compareAndSetWaitStatus(pred, ws, Node.SIGNAL);
       }
-      // 返回不应该 park
+      // 返回不应该 park，再次尝试一次
       return false;
   }
   ```
 
   * shouldParkAfterFailedAcquire 执行完毕回到 acquireQueued ，再次 tryAcquire 尝试获取锁，这时 state 仍为 1 获取失败（第四次）
-  * 当再次进入 shouldParkAfterFailedAcquire 时，这时其前驱 node 的 waitStatus 已经是 -1，返回 true
-  * 进入 parkAndCheckInterrupt， Thread-1 park（灰色表示），再有多个线程经历竞争失败后：
-
-  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantLock-非公平锁3.png)
+  * 当再次进入 shouldParkAfterFailedAcquire 时，这时其前驱 node 的 waitStatus 已经是 -1 了，返回 true
+  * 进入 parkAndCheckInterrupt， Thread-1 park（灰色表示）
 
   ```java
   private final boolean parkAndCheckInterrupt() {
@@ -8286,7 +8335,11 @@ Thread-1 执行：
   }
   ```
 
-  
+* 再有多个线程经历竞争失败后：
+
+  ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantLock-非公平锁3.png)
+
+
 
 ***
 
@@ -8306,16 +8359,16 @@ Thread-0 释放锁，进入 release 流程
 
 * 进入 tryRelease，设置 exclusiveOwnerThread 为 null，state = 0
 
-* 当前队列不为 null，并且 head 的 waitStatus = -1，进入 unparkSuccessor 
+* 当前队列不为 null，并且 head 的 waitStatus = -1，进入 unparkSuccessor
 
   ```java
   // AbstractQueuedSynchronizer#release
   public final boolean release(int arg) {
-      // 尝试释放锁，tryRelease 返回 true 表示当前线程已经完全释放锁
+      // 尝试释放锁，tryRelease 返回 true 表示当前线程已经【完全释放锁，重入的释放了】
       if (tryRelease(arg)) {
           // 队列头节点
           Node h = head;
-          // 头节点什么时候是空？没有发生锁竞争，没有竞争线程帮忙创建哑元节点
+          // 头节点什么时候是空？没有发生锁竞争，没有竞争线程创建哑元节点
           // 条件成立说明阻塞队列有等待线程，需要唤醒 head 节点后面的线程
           if (h != null && h.waitStatus != 0)
               unparkSuccessor(h);
@@ -8348,7 +8401,7 @@ Thread-0 释放锁，进入 release 流程
 
 * 进入 AbstractQueuedSynchronizer#unparkSuccessor 方法，唤醒当前节点的后继节点
 
-  * 找到队列中离 head 最近的一个 Node（没取消的），unpark 恢复其运行，本例中即为 Thread-1
+  * 找到队列中距离 head 最近的一个没取消的 Node，unpark 恢复其运行，本例中即为 Thread-1
   * 回到 Thread-1 的 acquireQueued 流程
 
   ```java
@@ -8356,14 +8409,14 @@ Thread-0 释放锁，进入 release 流程
       // 当前节点的状态
       int ws = node.waitStatus;    
       if (ws < 0)        
-          // 尝试重置状态为 0，因为当前节点要完成对后续节点的唤醒任务了，不需要 -1 了
+          // 【尝试重置状态为 0】，因为当前节点要完成对后续节点的唤醒任务了，不需要 -1 了
           compareAndSetWaitStatus(node, ws, 0);    
       // 找到需要 unpark 的节点，当前节点的下一个    
       Node s = node.next;    
       // 已取消的节点不能唤醒，需要找到距离头节点最近的非取消的节点
       if (s == null || s.waitStatus > 0) {
           s = null;
-          // AQS 队列从后至前找需要 unpark 的节点，直到 t == 当前的 node 为止，找不到就不唤醒了
+          // AQS 队列【从后至前】找需要 unpark 的节点，直到 t == 当前的 node 为止，找不到就不唤醒了
           for (Node t = tail; t != null && t != node; t = t.prev)
               // 说明当前线程状态需要被唤醒
               if (t.waitStatus <= 0)
@@ -8379,12 +8432,12 @@ Thread-0 释放锁，进入 release 流程
 * 唤醒的线程会从 park 位置开始执行，如果加锁成功（没有竞争），会设置
 
   * exclusiveOwnerThread 为 Thread-1，state = 1
-  * head 指向刚刚 Thread-1 所在的 Node，该 Node 清空 Thread
-  * 原本的 head 因为从链表断开，而可被垃圾回收（途中有错误，原来的头节点的 waitStatus 为 0）
+  * head 指向刚刚 Thread-1 所在的 Node，该 Node 会清空 Thread
+  * 原本的 head 因为从链表断开，而可被垃圾回收（图中有错误，原来的头节点的 waitStatus 被改为 0 了）
 
   ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantLock-非公平锁4.png)
 
-* 如果这时候有其它线程来竞争**（非公平）**，例如这时有 Thread-4 来了并抢占了锁
+* 如果这时有其它线程来竞争**（非公平）**，例如这时有 Thread-4 来了并抢占了锁
 
   * Thread-4 被设置为 exclusiveOwnerThread，state = 1
   * Thread-1 再次进入 acquireQueued 流程，获取锁失败，重新进入 park 阻塞
@@ -8427,14 +8480,15 @@ static final class FairSync extends Sync {
 
 ```java
 public final boolean hasQueuedPredecessors() {    
-    Node t = tail;     
-    Node h = head;    
+    Node t = tail;
+    Node h = head;
     Node s;    
     // 头尾指向一个节点，链表为空，返回false
-    return h != t &&        
-        // 头尾之间有节点，判断头节点的下一个是不是空        
-        // 不是空进入最后的判断，第二个节点的线程是否是本线程
-        ((s = h.next) == null || s.thread != Thread.currentThread());}
+    return h != t &&
+        // 头尾之间有节点，判断头节点的下一个是不是空
+        // 不是空进入最后的判断，第二个节点的线程是否是本线程，不是返回 true，表示当前节点有前驱节点，洛矶歪
+        ((s = h.next) == null || s.thread != Thread.currentThread());
+}
 ```
 
 
@@ -8542,7 +8596,7 @@ public static void main(String[] args) throws InterruptedException {
 
 ##### 实现原理
 
-* 不可打断模式：即使它被打断，仍会驻留在 AQS 队列中，一直要**等到获得锁后才能得知自己被打断**了
+* 不可打断模式：即使它被打断，仍会驻留在 AQS 阻塞队列中，一直要**等到获得锁后才能得知自己被打断**了
 
   ```java
   public final void acquire(int arg) {    
@@ -8580,7 +8634,7 @@ public static void main(String[] args) throws InterruptedException {
       }
   }
    private final boolean parkAndCheckInterrupt() {    
-       // 阻塞当前线程，如果打断标记已经是 true, 则 park 会失效    
+       // 阻塞当前线程，如果打断标记已经是 true, 则 park 会失效
        LockSupport.park(this);    
        // 判断当前线程是否被打断，清除打断标记，被打断返回true
        return Thread.interrupted();
@@ -8612,11 +8666,11 @@ public static void main(String[] args) throws InterruptedException {
           for (;;) {
               //...
               if (shouldParkAfterFailedAcquire(p, node) && parkAndCheckInterrupt())
-                  // 在 park 过程中如果被 interrupt 会抛出异常, 而不会再次进入循环获取锁后才完成打断效果
+                  // 【在 park 过程中如果被 interrupt 会抛出异常】, 而不会再次进入循环获取锁后才完成打断效果
                   throw new InterruptedException();
           }    
       } finally {
-          // 抛出异常前x进入这里
+          // 抛出异常前会进入这里
           if (failed)
               // 取消当前线程的节点
               cancelAcquire(node);
@@ -8625,7 +8679,7 @@ public static void main(String[] args) throws InterruptedException {
   ```
 
   ```java
-  // 所有的节取消节点出队的逻辑
+  // 取消节点出队的逻辑
   private void cancelAcquire(Node node) {
       // 判空
       if (node == null)
@@ -8634,7 +8688,7 @@ public static void main(String[] args) throws InterruptedException {
       node.thread = null;
   	// 获取当前取消的 node 的前驱节点
       Node pred = node.prev;
-      // 前驱节点也被取消了，循环找到前面最近的不是取消节点的节点
+      // 前驱节点也被取消了，循环找到前面最近的没被取消的节点
       while (pred.waitStatus > 0)
           node.prev = pred = pred.prev;
       
@@ -8663,7 +8717,7 @@ public static void main(String[] args) throws InterruptedException {
               Node next = node.next;
               // 当前节点的后继节点是正常节点
               if (next != null && next.waitStatus <= 0)
-                  // 把 前驱节点的后继节点 设置为 当前节点的后继节点，从队列中删除了当前节点
+                  // 把 前驱节点的后继节点 设置为 当前节点的后继节点，【从队列中删除了当前节点】
                   compareAndSetNext(pred, predNext, next);
           } else {
               // 当前节点是 head.next 节点，唤醒当前节点的后继节点
@@ -8732,11 +8786,20 @@ public static void main(String[] args) {
 
 ##### 实现原理
 
+* 成员变量：指定超时限制的阈值，小于该值的线程不会被挂起
+
+  ```java
+  static final long spinForTimeoutThreshold = 1000L;
+  ```
+
+  超时时间设置的小于该值，就会被禁止挂起，因为阻塞在唤醒的成本太高，不如选择自旋空转
+
 * tryLock()
 
   ```java
-  public boolean tryLock() {    
-      return sync.nonfairTryAcquire(1);//只尝试一次
+  public boolean tryLock() {   
+      // 只尝试一次
+      return sync.nonfairTryAcquire(1);
   }
   ```
 
@@ -8746,7 +8809,7 @@ public static void main(String[] args) {
   public final boolean tryAcquireNanos(int arg, long nanosTimeout) {
       if (Thread.interrupted())        
           throw new InterruptedException();    
-      //tryAcquire 尝试一次
+      // tryAcquire 尝试一次
       return tryAcquire(arg) || doAcquireNanos(arg, nanosTimeout);
   }
   protected final boolean tryAcquire(int acquires) {    
@@ -8769,9 +8832,10 @@ public static void main(String[] args) {
               if (nanosTimeout <= 0L)	//时间已到     
                   return false;
               if (shouldParkAfterFailedAcquire(p, node) &&
+                  // 如果 nanosTimeout 大于该值，才有阻塞的意义，否则直接自旋会好点
                   nanosTimeout > spinForTimeoutThreshold)
                   LockSupport.parkNanos(this, nanosTimeout);
-              // 被打断会报异常
+              // 【被打断会报异常】
               if (Thread.interrupted())
                   throw new InterruptedException();
           }    
@@ -8843,7 +8907,7 @@ class Chopstick extends ReentrantLock {
 
 ##### 基本使用
 
-synchronized 的条件变量，是当条件不满足时进入 waitSet 等待；ReentrantLock 的条件变量比 synchronized 强大之处在于，它支持多个条件变量
+synchronized 的条件变量，是当条件不满足时进入 WaitSet 等待；ReentrantLock 的条件变量比 synchronized 强大之处在于，它支持多个条件变量
 
 ReentrantLock 类获取 Condition 对象：`public Condition newCondition()`
 
@@ -8855,7 +8919,7 @@ Condition 类 API：
 使用流程：
 
 * **await / signal 前需要获得锁**
-* await 执行后，会释放锁进入 conditionObject 等待
+* await 执行后，会释放锁进入 ConditionObject 等待
 * await 的线程被唤醒去重新竞争 lock 锁
 
 * **线程在条件队列被打断会抛出中断异常**
@@ -8905,6 +8969,8 @@ public static void main(String[] args) throws InterruptedException {
 
 ###### await
 
+总体流程是将 await 线程包装成 node 节点放入 ConditionObject 的阻条件塞队列，如果被唤醒就将 node 转移到 AQS 的执行阻塞队列，等待获取锁
+
 * 开始 Thread-0 持有锁，调用 await，线程进入 ConditionObject 等待，直到被唤醒或打断，调用 await 方法的线程都是持锁状态的，所以说逻辑里**不存在并发**
 
   ```java
@@ -8912,7 +8978,7 @@ public static void main(String[] args) throws InterruptedException {
        // 判断当前线程是否是中断状态，是就直接给个中断异常
       if (Thread.interrupted())
           throw new InterruptedException();
-      // 将调用 await 的线程包装成 Node 添加到条件队列并返回
+      // 将调用 await 的线程包装成 Node，添加到条件队列并返回
       Node node = addConditionWaiter();
       // 完全释放节点持有的锁，因为其他线程唤醒当前线程的前提是【持有锁】
       int savedState = fullyRelease(node);
@@ -8929,7 +8995,7 @@ public static void main(String[] args) throws InterruptedException {
       }
       // 逻辑到这说明当前线程退出等待队列，进入【阻塞队列】
       
-      // 释放了多少锁就重新获取多少锁，获取锁成功判断打断模式
+      // 释放了多少锁就【重新获取多少锁】，获取锁成功判断打断模式
       if (acquireQueued(node, savedState) && interruptMode != THROW_IE)
           interruptMode = REINTERRUPT;
       
@@ -9003,7 +9069,7 @@ public static void main(String[] args) throws InterruptedException {
               if (next == null)
                   lastWaiter = trail;
           } else {
-              // 正常节点赋值给 trail
+              // trail 指向的是正常节点 
               trail = t;
           }
           // 把 t.next 赋值给 t，循环遍历
@@ -9040,11 +9106,11 @@ public static void main(String[] args) throws InterruptedException {
   }
   ```
 
-* fullyRelease 中会 unpark AQS 队列中的下一个节点竞争锁，假设 Thread-1 竞争成功，park 阻塞 Thread-0
+* fullyRelease 中会 unpark AQS 队列中的下一个节点竞争锁，假设 Thread-1 竞争成功
 
   ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantLock-条件变量2.png)
 
-* 进入 isOnSyncQueue 逻辑判断节点是否移动到阻塞队列
+* 进入 isOnSyncQueue 逻辑判断节点**是否移动到阻塞队列**，没有就 park 阻塞 Thread-0
 
   ```java
   final boolean isOnSyncQueue(Node node) {
@@ -9054,7 +9120,7 @@ public static void main(String[] args) throws InterruptedException {
       // 说明当前节点已经成功入队到阻塞队列，且当前节点后面已经有其它 node，因为条件队列的 next 指针为 null
       if (node.next != null)
           return true;
-  	// 说明可能在阻塞队列，但是是尾节点
+  	// 说明【可能在阻塞队列，但是是尾节点】
       // 从阻塞队列的尾节点开始向前遍历查找 node，如果查找到返回 true，查找不到返回 false
       return findNodeFromTail(node);
   }
@@ -9071,13 +9137,13 @@ public static void main(String[] args) throws InterruptedException {
   ```
 
   ```java
-  // 这个方法只有在线程是被中断唤醒时才会调用
+  // 这个方法只有在线程是被打断唤醒时才会调用
   final boolean transferAfterCancelledWait(Node node) {
       // 条件成立说明当前node一定是在条件队列内，因为 signal 迁移节点到阻塞队列时，会将节点的状态修改为 0
       if (compareAndSetWaitStatus(node, Node.CONDITION, 0)) {
           // 把【中断唤醒的 node 加入到阻塞队列中】
           enq(node);
-          // 表示是在条件队列内被中断了，设置为 THROW_IE -1
+          // 表示是在条件队列内被中断了，设置为 THROW_IE 为 -1
           return true;
       }
   
@@ -9089,7 +9155,7 @@ public static void main(String[] args) throws InterruptedException {
       while (!isOnSyncQueue(node))
           Thread.yield();
   
-      // 表示当前节点被中断唤醒时不在条件队列了，设置为 REINTERRUPT 1
+      // 表示当前节点被中断唤醒时不在条件队列了，设置为 REINTERRUPT 为 1
       return false;
   }
   ```
@@ -9098,11 +9164,11 @@ public static void main(String[] args) throws InterruptedException {
 
   ```java
   private void reportInterruptAfterWait(int interruptMode) throws InterruptedException {
-      // 条件成立说明在条件队列内发生过中断，此时 await 方法抛出中断异常
+      // 条件成立说明【在条件队列内发生过中断，此时 await 方法抛出中断异常】
       if (interruptMode == THROW_IE)
           throw new InterruptedException();
   
-      // 条件成立说明在条件队列外发生的中断，此时设置当前线程的中断标记位为 true
+      // 条件成立说明【在条件队列外发生的中断，此时设置当前线程的中断标记位为 true】
       else if (interruptMode == REINTERRUPT)
           // 进行一次自己打断，产生中断的效果
           selfInterrupt();
@@ -9119,7 +9185,7 @@ public static void main(String[] args) throws InterruptedException {
 
 ###### signal
 
-* 假设 Thread-1 要来唤醒 Thread-0，进入 ConditionObject 的 doSignal 流程，取得等待队列中第一个 Node，即 Thread-0 所在 Node，必须持有锁才能唤醒, 因此 doSignal 内**线程安全**
+* 假设 Thread-1 要来唤醒 Thread-0，进入 ConditionObject 的 doSignal 流程，**取得等待队列中第一个 Node**，即 Thread-0 所在 Node，必须持有锁才能唤醒, 因此 doSignal 内线程安全
 
   ```java
   public final void signal() {
@@ -9135,14 +9201,14 @@ public static void main(String[] args) throws InterruptedException {
   ```
 
   ```java
-  // 唤醒 - 将没取消的第一个节点转移至 AQS 队列尾部
+  // 唤醒 - 【将没取消的第一个节点转移至 AQS 队列尾部】
   private void doSignal(Node first) {
       do {
-          // 成立说明当前节点是尾节点，所以队列中只有当前一个节点了
+          // 成立说明当前节点的下一个节点是 null，当前节点是尾节点了，队列中只有当前一个节点了
           if ((firstWaiter = first.nextWaiter) == null)
               lastWaiter = null;
           first.nextWaiter = null;
-      // 将等待队列中的 Node 转移至 AQS 队列, 不成功且还有节点则继续循环
+      // 将等待队列中的 Node 转移至 AQS 队列，不成功且还有节点则继续循环
       } while (!transferForSignal(first) && (first = firstWaiter) != null);
   }
   
@@ -9159,24 +9225,25 @@ public static void main(String[] args) throws InterruptedException {
   }
   ```
 
-* 执行 transferForSignal，将该 Node 加入 AQS 阻塞队列尾部，将 Thread-0 的 waitStatus 改为 0，Thread-3 的 waitStatus 改为 -1
+* 执行 transferForSignal，**先将节点的 waitStatus 改为 0，然后加入 AQS 阻塞队列尾部**，将 Thread-3 的 waitStatus 改为 -1
 
   ```java
   // 如果节点状态是取消, 返回 false 表示转移失败, 否则转移成功
   final boolean transferForSignal(Node node) {
       // CAS 修改当前节点的状态，修改为 0，因为当前节点马上要迁移到阻塞队列了
       // 如果状态已经不是 CONDITION, 说明线程被取消（await 释放全部锁失败）或者被中断（可打断 cancelAcquire）
-      // 返回函数调用处继续寻找下一个节点
       if (!compareAndSetWaitStatus(node, Node.CONDITION, 0))
+          // 返回函数调用处继续寻找下一个节点
           return false;
-      // 将当前 node 入阻塞队列，p 是当前节点在阻塞队列的前驱节点
-      // 所以是 【先改状态，再进行迁移】
+      
+      // 【先改状态，再进行迁移】
+      // 将当前 node 入阻塞队列，p 是当前节点在阻塞队列的【前驱节点】
       Node p = enq(node);
       int ws = p.waitStatus;
       
-      // 如果前驱节点被取消或者不能设置状态为 Node.SIGNAL
+      // 如果前驱节点被取消或者不能设置状态为 Node.SIGNAL，就 unpark 取消当前节点线程的阻塞状态, 
+      // 让 thread-0 线程竞争锁，重新同步状态
       if (ws > 0 || !compareAndSetWaitStatus(p, ws, Node.SIGNAL))
-          // unpark 取消阻塞, 让 thread-0 线程竞争锁，重新同步状态
           LockSupport.unpark(node.thread);
       return true;
   }
@@ -9343,12 +9410,12 @@ public static void main(String[] args) {
           // 锁重入计数超过低 16 位, 报异常
           if (w + exclusiveCount(acquires) > MAX_COUNT)
               throw new Error("Maximum lock count exceeded");
-          // 写锁重入, 获得锁成功
+          // 【写锁重入, 获得锁成功】
           setState(c + acquires);
           return true;
       }
       
-      // c == 0，没有任何锁，判断写锁是否该阻塞，不阻塞尝试获取锁，获取失败返回 false
+      // c == 0，没有任何锁，判断写锁是否该阻塞，是 false 就尝试获取锁，失败返回 false
       if (writerShouldBlock() || !compareAndSetState(c, c + acquires))
           return false;
       // 获得锁成功，设置锁的持有线程为当前线程
@@ -9388,7 +9455,7 @@ public static void main(String[] args) {
       Thread current = Thread.currentThread();
       int c = getState();
       // 低 16 位, 代表写锁的 state
-      // 如果是其它线程持有写锁, 并且写锁的持有者不是当前线程，获取读锁失败，写锁允许降级
+      // 如果是其它线程持有写锁, 并且写锁的持有者不是当前线程，获取读锁失败，【写锁允许降级】
       if (exclusiveCount(c) != 0 && getExclusiveOwnerThread() != current)
           return -1;
       
@@ -9411,7 +9478,7 @@ public static void main(String[] args) {
   }
   ```
 
-* 进入 sync.doAcquireShared(1) 流程，首先也是调用 addWaiter 添加节点，不同之处在于节点被设置为 Node.SHARED 模式而非 Node.EXCLUSIVE 模式，注意此时 t2 仍处于活跃状态
+* 获取读锁失败，进入 sync.doAcquireShared(1) 流程开始阻塞，首先也是调用 addWaiter 添加节点，不同之处在于节点被设置为 Node.SHARED 模式而非 Node.EXCLUSIVE 模式，注意此时 t2 仍处于活跃状态
 
   ```java
   private void doAcquireShared(int arg) {
@@ -9498,7 +9565,7 @@ public static void main(String[] args) {
 
 * 唤醒流程 sync.unparkSuccessor，这时 t2 在 doAcquireShared 的 parkAndCheckInterrupt() 处恢复运行，继续循环，执行 tryAcquireShared 成功则让读锁计数加一
 
-* 接下来 t2 调用 setHeadAndPropagate(node, 1)，它原本所在节点被置为头节点；还会检查下一个节点是否是 shared，如果是则调用 doReleaseShared() 将 head 的状态从 -1 改为 0 并唤醒下一个节点，这时 t3 在 doAcquireShared 内 parkAndCheckInterrupt() 处恢复运行
+* 接下来 t2 调用 setHeadAndPropagate(node, 1)，它原本所在节点被置为头节点；还会检查下一个节点是否是 shared，如果是则调用 doReleaseShared() 将 head 的状态从 -1 改为 0 并唤醒下一个节点，这时 t3 在 doAcquireShared 内 parkAndCheckInterrupt() 处恢复运行，**唤醒连续的所有的共享节点**
 
   ```java
   private void setHeadAndPropagate(Node node, int propagate) {
@@ -9508,8 +9575,9 @@ public static void main(String[] args) {
       // propagate 表示有共享资源（例如共享读锁或信号量），为 0 就没有资源
       if (propagate > 0 || h == null || h.waitStatus < 0 ||
           (h = head) == null || h.waitStatus < 0) {
+          // 获取下一个节点
           Node s = node.next;
-          // 如果是最后一个节点或者是【等待共享读锁的节点】
+          // 如果当前是最后一个节点，或者下一个节点是【等待共享读锁的节点】
           if (s == null || s.isShared())
               // 唤醒后继节点
               doReleaseShared();
@@ -9535,10 +9603,11 @@ public static void main(String[] args) {
                   unparkSuccessor(h);
               }
               // 如果已经是 0 了，改为 -3，用来解决传播性
-              else if (ws == 0 &&
-                       !compareAndSetWaitStatus(h, 0, Node.PROPAGATE))
+              else if (ws == 0 && !compareAndSetWaitStatus(h, 0, Node.PROPAGATE))
                   continue;                
           }
+          // 条件不成立说明被唤醒的节点非常积极，直接将自己设置为了新的head，
+          // 此时唤醒它的节点（前驱）执行 h == head 不成立，所以不会跳出循环，会继续唤醒新的 head 节点的后继节点
           if (h == head)                   
               break;
       }
@@ -9549,7 +9618,7 @@ public static void main(String[] args) {
 
 * 下一个节点不是 shared 了，因此不会继续唤醒 t4 所在节点
 
-* t2 进入 sync.releaseShared(1) 中，调用 tryReleaseShared(1) 让计数减一，但计数还不为零，t3 同样让计数减一，计数为零，进入doReleaseShared() 将头节点从 -1 改为 0 并唤醒下一个节点
+* t2 读锁解锁，进入 sync.releaseShared(1) 中，调用 tryReleaseShared(1) 让计数减一，但计数还不为零，t3 同样让计数减一，计数为零，进入doReleaseShared() 将头节点从 -1 改为 0 并唤醒下一个节点
   
   ```java
   public void unlock() {
@@ -9570,9 +9639,9 @@ public static void main(String[] args) {
       for (;;) {
           int c = getState();
           int nextc = c - SHARED_UNIT;
-          // 读锁的计数不会影响其它获取读锁线程, 但会影响其它获取写锁线程
-  		// 计数为 0 才是真正释放
+          // 读锁的计数不会影响其它获取读锁线程, 但会影响其它获取写锁线程，计数为 0 才是真正释放
           if (compareAndSetState(c, nextc))
+              // 返回是否已经完全释放了 
               return nextc == 0;
       }
   }
@@ -9605,7 +9674,7 @@ StampedLock：读写锁，该类自 JDK 8 加入，是为了进一步优化读�
 
   ```java
   long stamp = lock.readLock();
-  lock.unlockRead(stamp);
+  lock.unlockRead(stamp);			// 类似于 unpark，解指定的锁
   ```
 
 * 加解写锁：
@@ -9651,12 +9720,13 @@ class DataContainerStamped {
         long stamp = lock.tryOptimisticRead();
         System.out.println(new Date() + " optimistic read locking" + stamp);
         Thread.sleep(readTime);
+        // 戳有效，直接返回数据
         if (lock.validate(stamp)) {
             Sout(new Date() + " optimistic read finish..." + stamp);
             return data;
         }
 
-        //锁升级
+        // 说明其他线程更改了戳，需要锁升级了，从乐观读升级到读锁
         System.out.println(new Date() + " updating to read lock" + stamp);
         try {
             stamp = lock.readLock();
@@ -9698,7 +9768,7 @@ class DataContainerStamped {
 
 #### 基本使用
 
-CountDownLatch：计数器，用来进行线程同步协作，等待所有线程完成
+CountDownLatch：计数器，用来进行线程同步协作，**等待所有线程完成**
 
 构造器：
 
@@ -9749,7 +9819,7 @@ public static void main(String[] args) throws InterruptedException {
 
 阻塞等待：
 
-* 线程调用 await() 等待其他线程完成任务：
+* 线程调用 await() 等待其他线程完成任务：支持打断
 
   ```java
   public void await() throws InterruptedException {
@@ -9760,7 +9830,7 @@ public static void main(String[] args) throws InterruptedException {
       // 判断线程是否被打断，抛出打断异常
       if (Thread.interrupted())
           throw new InterruptedException();
-      // 尝试获取共享锁，条件成立说明 state > 0，此时线程入队阻塞等待
+      // 尝试获取共享锁，条件成立说明 state > 0，此时线程入队阻塞等待，等待其他线程获取共享资源
       // 条件不成立说明 state = 0，此时不需要阻塞线程，直接结束函数调用
       if (tryAcquireShared(arg) < 0)
           doAcquireSharedInterruptibly(arg);
@@ -9852,7 +9922,7 @@ public static void main(String[] args) throws InterruptedException {
   protected boolean tryReleaseShared(int releases) {
       for (;;) {
           int c = getState();
-          // 条件成立说明前面已经有线程触发唤醒操作了，这里返回 false
+          // 条件成立说明前面【已经有线程触发唤醒操作】了，这里返回 false
           if (c == 0)
               return false;
           // 计数器减一
@@ -9864,7 +9934,7 @@ public static void main(String[] args) throws InterruptedException {
   }
   ```
 
-* state = 0 时，当前线程需要执行唤醒阻塞节点的任务
+* state = 0 时，当前线程需要执行**唤醒阻塞节点的任务**
 
   ```java
   private void doReleaseShared() {
@@ -9925,7 +9995,7 @@ public static void main(String[] args) {
         System.out.println("task1 task2 finish...");
     });
 
-    for (int i = 0; i < 3; i++) {// 循环重用
+    for (int i = 0; i < 3; i++) { // 循环重用
         service.submit(() -> {
             System.out.println("task1 begin...");
             try {
@@ -9960,7 +10030,7 @@ public static void main(String[] args) {
 
 ##### 成员属性
 
-* 全局锁：
+* 全局锁：利用可重入锁实现的工具类
 
   ```java
   // barrier 实现是依赖于Condition条件队列，condition 条件队列必须依赖lock才能使用
@@ -9989,7 +10059,7 @@ public static void main(String[] args) {
   private Generation generation = new Generation();
   private static class Generation {
       // 表示当前“代”是否被打破，如果被打破再来到这一代的线程 就会直接抛出 BrokenException 异常
-      // 且在这一代挂起的线程 都会被唤醒，然后抛出 BrokerException 异常。
+      // 且在这一代挂起的线程都会被唤醒，然后抛出 BrokerException 异常。
       boolean broken = false;
   }
   ```
@@ -10044,7 +10114,7 @@ public static void main(String[] args) {
           // 【如果当前代是已经被打破状态，则当前调用await方法的线程，直接抛出Broken异常】
           if (g.broken)
               throw new BrokenBarrierException();
-  		// 如果当前线程的中断标记位为 true，则打破当前代，然后当前线程抛出中断异常
+  		// 如果当前线程被中断了，则打破当前代，然后当前线程抛出中断异常
           if (Thread.interrupted()) {
               // 设置当前代的状态为 broken 状态，唤醒在 trip 条件队列内的线程
               breakBarrier();
@@ -10062,7 +10132,7 @@ public static void main(String[] args) {
               try {
                   final Runnable command = barrierCommand;
                   if (command != null)
-                      // 启动任务
+                      // 启动触发的任务
                       command.run();
                   // run()未抛出异常的话，启动标记设置为 true
                   ranAction = true;
@@ -10093,7 +10163,7 @@ public static void main(String[] args) {
                   if (g == generation && !g.broken) {
                       // 打破屏障
                       breakBarrier();
-                      // node节点在【条件队列】内收到中断信号时 会抛出中断异常
+                      // node 节点在【条件队列】内收到中断信号时 会抛出中断异常
                       throw ie;
                   } else {
                       // 等待过程中代变化了，完成一次自我打断
@@ -10125,9 +10195,9 @@ public static void main(String[] args) {
 
   ```java
   private void breakBarrier() {
-      //将代中的 broken 设置为 true，表示这一代是被打破了，再来到这一代的线程，直接抛出异常
+      // 将代中的 broken 设置为 true，表示这一代是被打破了，再来到这一代的线程，直接抛出异常
       generation.broken = true;
-      //重置 count 为 parties
+      // 重置 count 为 parties
       count = parties;
       // 将在trip条件队列内挂起的线程全部唤醒，唤醒后的线程会检查当前是否是打破的，然后抛出异常
       trip.signalAll();
@@ -10224,7 +10294,7 @@ public static void main(String[] args) {
   假设其中 Thread-1，Thread-2，Thread-4 CAS 竞争成功，permits 变为 0，而 Thread-0 和 Thread-3 竞争失败，进入 AQS 队列park 阻塞
 
   ```java
-  // acquire() -> sync.acquireSharedInterruptibly(1);
+  // acquire() -> sync.acquireSharedInterruptibly(1)，可中断
   public final void acquireSharedInterruptibly(int arg) {
       if (Thread.interrupted())
           throw new InterruptedException();
@@ -10238,7 +10308,7 @@ public static void main(String[] args) {
   // 非公平，公平锁会在循环内 hasQueuedPredecessors()方法判断阻塞队列是否有临头节点(第二个节点)
   final int nonfairTryAcquireShared(int acquires) {
       for (;;) {
-          // 获取 state ，state 这里表示通行证
+          // 获取 state ，state 这里【表示通行证】
           int available = getState();
           // 计算当前线程获取通行证完成之后，通行证还剩余数量
           int remaining = available - acquires;
@@ -10262,7 +10332,7 @@ public static void main(String[] args) {
               final Node p = node.predecessor();
               // 前驱节点是头节点可以再次获取许可
               if (p == head) {
-                  // 再次尝试获取许可
+                  // 再次尝试获取许可，【返回剩余的许可证数量】
                   int r = tryAcquireShared(arg);
                   if (r >= 0) {
                       // 成功后本线程出队（AQS）, 所在 Node设置为 head
@@ -10519,16 +10589,16 @@ class ThreadB extends Thread{
 
 三种集合：
 
-* HashMap是线程不安全的，性能好
-* Hashtable线程安全基于synchronized，综合性能差，已经被淘汰
-* ConcurrentHashMap保证了线程安全，综合性能较好，不止线程安全，而且效率高，性能好
+* HashMap 是线程不安全的，性能好
+* Hashtable 线程安全基于 synchronized，综合性能差，已经被淘汰
+* ConcurrentHashMap 保证了线程安全，综合性能较好，不止线程安全，而且效率高，性能好
 
 集合对比：
 
 1. Hashtable 继承 Dictionary 类，HashMap、ConcurrentHashMap 继承 AbstractMap，均实现 Map 接口
 2. Hashtable 底层是数组 + 链表，JDK8 以后 HashMap 和 ConcurrentHashMap 底层是数组 + 链表 + 红黑树
 3. HashMap 线程非安全，Hashtable 线程安全，Hashtable 的方法都加了 synchronized 关来确保线程同步
-4. ConcurrentHashMap、Hashtable 不允许 null 值，HashMap 允许 null 值
+4. ConcurrentHashMap、Hashtable **不允许 null 值**，HashMap 允许 null 值
 5. ConcurrentHashMap、HashMap 的初始容量为 16，Hashtable 初始容量为11，填充因子默认都是 0.75，两种 Map 扩容是当前容量翻倍：capacity * 2，Hashtable 扩容时是容量翻倍 + 1：capacity*2 + 1
 
 ![ConcurrentHashMap数据结构](https://gitee.com/seazean/images/raw/master/Java/ConcurrentHashMap数据结构.png)
@@ -10536,10 +10606,8 @@ class ThreadB extends Thread{
 工作步骤：
 
 1. 初始化，使用 cas 来保证并发安全，懒惰初始化 table
-2. 树化，当 table.length < 64 时，先尝试扩容，超过 64 时，并且 bin.length > 8 时，会将**链表树化**，树化过程
-   会用 synchronized 锁住链表头
-3. put，如果该 bin 尚未创建，只需要使用 cas 创建 bin；如果已经有了，锁住链表头进行后续 put 操作，元素
-   添加至 bin 的尾部
+2. 树化，当 table.length < 64 时，先尝试扩容，超过 64 时，并且 bin.length > 8 时，会将**链表树化**，树化过程会用 synchronized 锁住链表头
+3. put，如果该 bin 尚未创建，只需要使用 cas 创建 bin；如果已经有了，锁住链表头进行后续 put 操作，元素添加至 bin 的尾部
 4. get，无锁操作仅需要保证可见性，扩容过程中 get 操作拿到的是 ForwardingNode 会让 get 操作在新 table 进行搜索
 5. 扩容，扩容时以 bin 为单位进行，需要对 bin 进行 synchronized，但这时其它竞争线程也不是无事可做，它们会帮助把其它 bin 进行扩容
 6. size，元素个数保存在 baseCount 中，并发时的个数变动保存在 CounterCell[] 当中，最后统计数量时累加
@@ -10583,22 +10651,22 @@ resize() 中节点（Entry）转移的源代码：
 ```java
 void transfer(Entry[] newTable, boolean rehash) {
     int newCapacity = newTable.length;//得到新数组的长度   
-    //遍历整个数组对应下标下的链表，e代表一个节点
+    // 遍历整个数组对应下标下的链表，e代表一个节点
     for (Entry<K,V> e : table) {   
-        //当e == null时，则该链表遍历完了，继续遍历下一数组下标的链表 
+        // 当e == null时，则该链表遍历完了，继续遍历下一数组下标的链表 
         while(null != e) { 
-            //先把e节点的下一节点存起来
+            // 先把e节点的下一节点存起来
             Entry<K,V> next = e.next; 
             if (rehash) {              //得到新的hash值
                 e.hash = null == e.key ? 0 : hash(e.key);  
             }
-            //在新数组下得到新的数组下标
+            // 在新数组下得到新的数组下标
             int i = indexFor(e.hash, newCapacity);  
-             //将e的next指针指向新数组下标的位置
+             // 将e的next指针指向新数组下标的位置
             e.next = newTable[i];   
-            //将该数组下标的节点变为e节点
+            // 将该数组下标的节点变为e节点
             newTable[i] = e; 
-            //遍历链表的下一节点
+            // 遍历链表的下一节点
             e = next;                                   
         }
     }
@@ -10624,8 +10692,8 @@ B站视频解析：https://www.bilibili.com/video/BV1n541177Ea
 * 散列表的长度：
 
   ```java
-  private static final int MAXIMUM_CAPACITY = 1 << 30;	//最大长度
-  private static final int DEFAULT_CAPACITY = 16;			//默认长度
+  private static final int MAXIMUM_CAPACITY = 1 << 30;	// 最大长度
+  private static final int DEFAULT_CAPACITY = 16;			// 默认长度
   ```
 
 * 并发级别，JDK7 遗留下来，1.8 中不代表并发级别：
@@ -10643,27 +10711,27 @@ B站视频解析：https://www.bilibili.com/video/BV1n541177Ea
 * 阈值：
 
   ```java
-  static final int TREEIFY_THRESHOLD = 8;		//链表树化的阈值
-  static final int UNTREEIFY_THRESHOLD = 6;	//红黑树转化为链表的阈值
-  static final int MIN_TREEIFY_CAPACITY = 64;	//当数组长度达到 64 且某个桶位中的链表长度超过 8，才会真正树化
+  static final int TREEIFY_THRESHOLD = 8;		// 链表树化的阈值
+  static final int UNTREEIFY_THRESHOLD = 6;	// 红黑树转化为链表的阈值
+  static final int MIN_TREEIFY_CAPACITY = 64;	// 当数组长度达到64且某个桶位中的链表长度超过8，才会真正树化
   ```
 
 * 扩容相关：
 
   ```java
-  private static final int MIN_TRANSFER_STRIDE = 16;	//线程迁移数据最小步长，控制线程迁移任务的最小区间
-  private static int RESIZE_STAMP_BITS = 16;			//用来计算扩容时生成的标识戳
-  private static final int MAX_RESIZERS = (1 << (32 - RESIZE_STAMP_BITS)) - 1;//65535-1 并发扩容最多线程数
-  private static final int RESIZE_STAMP_SHIFT = 32 - RESIZE_STAMP_BITS;		//扩容时使用
+  private static final int MIN_TRANSFER_STRIDE = 16;	// 线程迁移数据【最小步长】，控制线程迁移任务的最小区间
+  private static int RESIZE_STAMP_BITS = 16;			// 用来计算扩容时生成的【标识戳】
+  private static final int MAX_RESIZERS = (1 << (32 - RESIZE_STAMP_BITS)) - 1;// 65535-1并发扩容最多线程数
+  private static final int RESIZE_STAMP_SHIFT = 32 - RESIZE_STAMP_BITS;		// 扩容时使用
   ```
 
 * 节点哈希值：
 
   ```java
-  static final int MOVED     = -1; 			//表示当前节点是 FWD 节点
-  static final int TREEBIN   = -2; 			//表示当前节点已经树化，且当前节点为 TreeBin 对象
-  static final int RESERVED  = -3; 			//表示节点时临时节点
-  static final int HASH_BITS = 0x7fffffff; 	//正常节点的哈希值的可用的位数
+  static final int MOVED     = -1; 			// 表示当前节点是 FWD 节点
+  static final int TREEBIN   = -2; 			// 表示当前节点已经树化，且当前节点为 TreeBin 对象
+  static final int RESERVED  = -3; 			// 表示节点时临时节点
+  static final int HASH_BITS = 0x7fffffff; 	// 正常节点的哈希值的可用的位数
   ```
 
 * 扩容过程：
@@ -10671,7 +10739,7 @@ B站视频解析：https://www.bilibili.com/video/BV1n541177Ea
   ```java
   // 扩容过程中，会将扩容中的新 table 赋值给 nextTable 保持引用，扩容结束之后，这里会被设置为 null
   private transient volatile Node<K,V>[] nextTable;
-  // 扩容过程中，记录当前进度。所有线程都要从 transferIndex 中分配区间任务，简单说就是老表转移到哪了，索引从高到低转移
+  // 记录扩容进度，所有线程都要从 0 - transferIndex 中分配区间任务，简单说就是老表转移到哪了，索引从高到低转移
   private transient volatile int transferIndex;
   ```
 
@@ -10702,7 +10770,7 @@ B站视频解析：https://www.bilibili.com/video/BV1n541177Ea
   * 如果 table 已经初始化，表示下次扩容时的触发条件（阈值）
 
   ```java
-  private transient volatile int sizeCtl;
+  private transient volatile int sizeCtl;		// volatile 保持可见性
   ```
 
 
@@ -10717,10 +10785,11 @@ B站视频解析：https://www.bilibili.com/video/BV1n541177Ea
 
   ```java
   static class Node<K,V> implements Entry<K,V> {
+      // 节点哈希值
       final int hash;
       final K key;
       volatile V val;
-      //单向链表
+      // 单向链表
       volatile Node<K,V> next;
   }
   ```
@@ -10741,7 +10810,7 @@ B站视频解析：https://www.bilibili.com/video/BV1n541177Ea
        static final int WRITER = 1;
        // 等待者状态（写线程在等待），当 TreeBin 中有读线程目前正在读取数据时，写线程无法修改数据
        static final int WAITER = 2;
-       // 读锁状态是共享，同一时刻可以有多个线程 同时进入到 TreeBi 对象中获取数据，每一个线程都给 lockStat + 4
+       // 读锁状态是共享，同一时刻可以有多个线程 同时进入到 TreeBi 对象中获取数据，每一个线程都给 lockState + 4
        static final int READER = 4;
    }
   ```
@@ -10758,7 +10827,7 @@ B站视频解析：https://www.bilibili.com/video/BV1n541177Ea
   }
   ```
 
-* ForwardingNode 节点：
+* ForwardingNode 节点：转移节点
 
   ```java
    static final class ForwardingNode<K,V> extends Node<K,V> {
@@ -10811,10 +10880,10 @@ B站视频解析：https://www.bilibili.com/video/BV1n541177Ea
   // numberOfLeadingZeros(n)：返回当前数值转换为二进制后，从高位到低位开始统计，看有多少个0连续在一起
   // 8 → 1000 numberOfLeadingZeros(8) = 28
   // 4 → 100 numberOfLeadingZeros(4) = 29   int 值就是占4个字节
+  ASHIFT = 31 - Integer.numberOfLeadingZeros(scale);
   
   // ASHIFT = 31 - 29 = 2 ，int 的大小就是 2 的 2 次方
   // ABASE + （5 << ASHIFT） 用位移运算替代了乘法，获取 arr[5] 的值
-  ASHIFT = 31 - Integer.numberOfLeadingZeros(scale);
   ```
 
 
@@ -10843,6 +10912,7 @@ B站视频解析：https://www.bilibili.com/video/BV1n541177Ea
       int cap = ((initialCapacity >= (MAXIMUM_CAPACITY >>> 1)) ?
                  MAXIMUM_CAPACITY :
                  // 假如传入的参数是 16，16 + 8 + 1 ，最后得到 32
+                 // 传入 12， 12 + 6 + 1 = 19，最后得到 32，尽可能的大，与 HashMap不一样
                  tableSizeFor(initialCapacity + (initialCapacity >>> 1) + 1));
       // sizeCtl > 0，当目前 table 未初始化时，sizeCtl 表示初始化容量
       this.sizeCtl = cap;
@@ -10869,7 +10939,6 @@ B站视频解析：https://www.bilibili.com/video/BV1n541177Ea
   public ConcurrentHashMap(int initialCapacity, float loadFactor, int concurrencyLevel) {
       if (!(loadFactor > 0.0f) || initialCapacity < 0 || concurrencyLevel <= 0)
           throw new IllegalArgumentException();
-  
       // 初始容量小于并发级别
       if (initialCapacity < concurrencyLevel)  
           // 把并发级别赋值给初始容量
@@ -10882,23 +10951,71 @@ B站视频解析：https://www.bilibili.com/video/BV1n541177Ea
       this.sizeCtl = cap;
   }
   ```
-
-* 集合构造方法
+  
+* 集合构造方法：
 
   ```java
   public ConcurrentHashMap(Map<? extends K, ? extends V> m) {
-      this.sizeCtl = DEFAULT_CAPACITY;	//默认16
+      this.sizeCtl = DEFAULT_CAPACITY;	// 默认16
       putAll(m);
   }
   public void putAll(Map<? extends K, ? extends V> m) {
-      //扩容为 2 倍
+      // 尝试触发扩容
       tryPresize(m.size());
       for (Entry<? extends K, ? extends V> e : m.entrySet())
           putVal(e.getKey(), e.getValue(), false);
   }
   ```
 
+  ```java
+  private final void tryPresize(int size) {
+      // 扩容为大于 2 倍的最小的 2 的 n 次幂
+      int c = (size >= (MAXIMUM_CAPACITY >>> 1)) ? MAXIMUM_CAPACITY :
+      	tableSizeFor(size + (size >>> 1) + 1);
+      int sc;
+      while ((sc = sizeCtl) >= 0) {
+          Node<K,V>[] tab = table; int n;
+          // 数组还未初始化，【一般是调用集合构造方法才会成立，put 后调用该方法都是不成立的】
+          if (tab == null || (n = tab.length) == 0) {
+              n = (sc > c) ? sc : c;
+              if (U.compareAndSwapInt(this, SIZECTL, sc, -1)) {
+                  try {
+                      if (table == tab) {
+                          Node<K,V>[] nt = (Node<K,V>[])new Node<?,?>[n];
+                          table = nt;
+                          sc = n - (n >>> 2);// 扩容阈值：n - 1/4 n
+                      }
+                  } finally {
+                      sizeCtl = sc;	// 扩容阈值赋值给sizeCtl
+                  }
+              }
+          }
+          // 未达到扩容阈值或者数组长度已经大于最大长度
+          else if (c <= sc || n >= MAXIMUM_CAPACITY)
+              break;
+          // 与 addCount 逻辑相同
+          else if (tab == table) {
+              int rs = resizeStamp(n);
+              if (sc < 0) {
+                  Node<K,V>[] nt;
+                  if ((sc >>> RESIZE_STAMP_SHIFT) != rs || sc == rs + 1 ||
+                      sc == rs + MAX_RESIZERS || (nt = nextTable) == null ||
+                      transferIndex <= 0)
+                      break;
+                  if (U.compareAndSwapInt(this, SIZECTL, sc, sc + 1))
+                      transfer(tab, nt);
+              }
+              else if (U.compareAndSwapInt(this, SIZECTL, sc,
+                                           (rs << RESIZE_STAMP_SHIFT) + 2))
+                  transfer(tab, null);
+          }
+      }
+  }
+  ```
   
+  
+
+
 
 ***
 
@@ -10946,7 +11063,7 @@ B站视频解析：https://www.bilibili.com/video/BV1n541177Ea
 
 ```java
 public V put(K key, V value) {
-    //第三个参数 onlyIfAbsent 为 false 表示哈希表中存在相同的 key 时用当前数据覆盖旧数据
+    // 第三个参数 onlyIfAbsent 为 false 表示哈希表中存在相同的 key 时【用当前数据覆盖旧数据】
     return putVal(key, value, false);
 }
 ```
@@ -10955,12 +11072,11 @@ public V put(K key, V value) {
 
   ```java
   final V putVal(K key, V value, boolean onlyIfAbsent) {
-      // ConcurrentHashMap 不能存放 null 值
+      // 【ConcurrentHashMap 不能存放 null 值】
       if (key == null || value == null) throw new NullPointerException();
-      // 扰动运算，高低位都参与寻址运算。
+      // 扰动运算，高低位都参与寻址运算
       int hash = spread(key.hashCode());
       // 表示当前 k-v 封装成 node 后插入到指定桶位后，在桶位中的所属链表的下标位置
-      // 0 表示当前桶位为 null，node 可以直接放入，2 表示当前桶位已经是红黑树
       int binCount = 0;
       // tab 引用当前 map 的数组 table，开始自旋
       for (Node<K,V>[] tab = table;;) {
@@ -10968,36 +11084,36 @@ public V put(K key, V value) {
           // i 表示 key 通过寻址计算后得到的桶位下标，fh 表示桶位头结点的 hash 值
           Node<K,V> f; int n, i, fh;
           
-          // 【CASE1】：条件成立表示当前 map 中的 table 尚未初始化
+          // 【CASE1】：表示当前 map 中的 table 尚未初始化
           if (tab == null || (n = tab.length) == 0)
               //【延迟初始化】
               tab = initTable();
           
-          // 【CASE2】：i 表示 key 使用寻址算法得到 key 对应数组的下标位置，tabAt 获取指定桶位的头结点 f
+          // 【CASE2】：i 表示 key 使用【寻址算法】得到 key 对应数组的下标位置，tabAt 获取指定桶位的头结点f
           else if ((f = tabAt(tab, i = (n - 1) & hash)) == null) {
-              // 对应的数组为 null 说明没有哈希冲突，直接添加到表中
+              // 对应的数组为 null 说明没有哈希冲突，直接新建节点添加到表中
               if (casTabAt(tab, i, null,
                            new Node<K,V>(hash, key, value, null)))
                   break;
           }
-          // 【CASE3】：走到这里说明数组已经被初始化，并且当前 key 对应的位置不为null
+          // 【CASE3】：逻辑说明数组已经被初始化，并且当前 key 对应的位置不为 null
           // 条件成立表示当前桶位的头结点为 FWD 结点，表示目前 map 正处于扩容过程中
           else if ((fh = f.hash) == MOVED)
-              // 当前线程需要去帮助哈希表完成扩容
+              // 当前线程【需要去帮助哈希表完成扩容】
               tab = helpTransfer(tab, f);
           
           // 【CASE4】：哈希表没有在扩容，当前桶位可能是链表也可能是红黑树
           else {
               // 当插入 key 存在时，会将旧值赋值给 oldVal 返回
               V oldVal = null;
-              // 锁住当前 key 寻址的桶位的头节点，当前逻辑是前面的 if else 语句判断后到达的，所以这里的 f 有值
+              // 【锁住当前 key 寻址的桶位的头节点】
               synchronized (f) {
-                  // 这里重新获取一下桶的头节点有没有被修改，因为期间可能被其他线程修改过
+                  // 这里重新获取一下桶的头节点有没有被修改，因为可能被其他线程修改过，这里是线程安全的获取
                   if (tabAt(tab, i) == f) {
                       // 头节点的哈希值大于 0 说明当前桶位是普通的链表节点
                       if (fh >= 0) {
                           // 当前的插入操作没出现重复的 key，追加到链表的末尾，binCount表示链表长度 -1
-                          // 插入的key与链表中的某个元素的 key 一致，变成替换操作，binCount表示第几个节点冲突
+                          // 插入的key与链表中的某个元素的 key 一致，变成替换操作，binCount 表示第几个节点冲突
                           binCount = 1;
                           // 迭代循环当前桶位的链表，e 是每次循环处理节点，e 初始是头节点
                           for (Node<K,V> e = f;; ++binCount) {
@@ -11017,7 +11133,7 @@ public V put(K key, V value) {
                                   break;
                               }
                               Node<K,V> pred = e;
-                              // 如果下一个节点为空，把数据封装成节点插入链表尾部，binCount 代表长度 - 1
+                              // 如果下一个节点为空，把数据封装成节点插入链表尾部，【binCount 代表长度 - 1】
                               if ((e = e.next) == null) {
                                   pred.next = new Node<K,V>(hash, key,
                                                             value, null);
@@ -11041,7 +11157,7 @@ public V put(K key, V value) {
               
               // 条件成立说明当前是链表或者红黑树
               if (binCount != 0) {
-                  // 如果 binCount>=8 表示处理的桶位一定是链表，说明长度是9
+                  // 如果 binCount >= 8 表示处理的桶位一定是链表，说明长度是 9
                   if (binCount >= TREEIFY_THRESHOLD)
                       // 树化
                       treeifyBin(tab, i);
@@ -11051,16 +11167,16 @@ public V put(K key, V value) {
               }
           }
       }
-      // 统计当前 table 一共有多少数据
-      // 判断是否达到扩容阈值标准，触发扩容
+      // 统计当前 table 一共有多少数据，判断是否达到扩容阈值标准，触发扩容
+      // binCount = 0 表示当前桶位为 null，node 可以直接放入，2 表示当前桶位已经是红黑树
       addCount(1L, binCount);
       return null;
   }
   ```
-
+  
 * spread()：扰动函数
 
-  将 hashCode 无符号右移 16 位，高 16bit 和低 16bit 做异或，最后与 HASH_BITS 相与变成正数，与树化节点和转移节点区分，把高低位都利用起来减少哈希冲突，保证散列的均匀性
+  将 hashCode 无符号右移 16 位，高 16bit 和低 16bit 做异或，最后与 HASH_BITS 相与变成正数，**与树化节点和转移节点区分**，把高低位都利用起来减少哈希冲突，保证散列的均匀性
 
   ```java
   static final int spread(int h) {
@@ -11076,20 +11192,21 @@ public V put(K key, V value) {
       Node<K,V>[] tab; int sc;
       // table 尚未初始化，开始自旋
       while ((tab = table) == null || tab.length == 0) {
-          // sc < 0 说明 table 正在初始化或者正在扩容，当前线程释放 CPU 资源
+          // sc < 0 说明 table 正在初始化或者正在扩容，当前线程可以释放 CPU 资源
           if ((sc = sizeCtl) < 0)
               Thread.yield();
-          // sizeCtl 设置为-1，相当于加锁，设置的是 SIZECTL 位置的数据，不是 sc 的数据，sc 只起到对比作用
+          // sizeCtl 设置为 -1，相当于加锁，【设置的是 SIZECTL 位置的数据】，
+          // 因为是 sizeCtl 是基本类型，不是引用类型，所以 sc 保存的是数据的副本
           else if (U.compareAndSwapInt(this, SIZECTL, sc, -1)) {
               try {
                   // 线程安全的逻辑，再进行一次判断
                   if ((tab = table) == null || tab.length == 0) {
-                      // sc > 0 创建 table 时使用 sc 为指定大小，否则使用 16 默认值.
+                      // sc > 0 创建 table 时使用 sc 为指定大小，否则使用 16 默认值
                       int n = (sc > 0) ? sc : DEFAULT_CAPACITY;
                       // 创建哈希表数组
                       Node<K,V>[] nt = (Node<K,V>[])new Node<?,?>[n];
                       table = tab = nt;
-                      // n >>> 2  => 等于 1/4 n     n - (1/4)n = 3/4 n => 0.75 * n
+                      // 扩容阈值，n >>> 2  => 等于 1/4 n ，n - (1/4)n = 3/4 n => 0.75 * n
                       sc = n - (n >>> 2);
                   }
               } finally {
@@ -11109,21 +11226,20 @@ public V put(K key, V value) {
   private final void treeifyBin(Node<K,V>[] tab, int index) {
       Node<K,V> b; int n, sc;
       if (tab != null) {
-          //条件成立：说明当前table数组长度 未达到 64，此时不进行树化操作，进行扩容操作。
+          // 条件成立：【说明当前 table 数组长度未达到 64，此时不进行树化操作，进行扩容操作】
           if ((n = tab.length) < MIN_TREEIFY_CAPACITY)
               // 当前容量的 2 倍
               tryPresize(n << 1);
   
-          //条件成立：说明当前桶位有数据，且是普通 node 数据。
+          // 条件成立：说明当前桶位有数据，且是普通 node 数据。
           else if ((b = tabAt(tab, index)) != null && b.hash >= 0) {
+              // 【树化加锁】
               synchronized (b) {
-                  //条件成立：表示加锁没问题。
+                  // 条件成立：表示加锁没问题。
                   if (tabAt(tab, index) == b) {
                       TreeNode<K,V> hd = null, tl = null;
                       for (Node<K,V> e = b; e != null; e = e.next) {
-                          TreeNode<K,V> p =
-                              new TreeNode<K,V>(e.hash, e.key, e.val,
-                                                null, null);
+                          TreeNode<K,V> p = new TreeNode<K,V>(e.hash, e.key, e.val,null, null);
                           if ((p.prev = tl) == null)
                               hd = p;
                           else
@@ -11137,70 +11253,22 @@ public V put(K key, V value) {
       }
   }
   ```
-
-  tryPresize(int size)：尝试触发扩容
-
-  ```java
-  private final void tryPresize(int size) {
-      // 又扩大一次，4倍
-      int c = (size >= (MAXIMUM_CAPACITY >>> 1)) ? MAXIMUM_CAPACITY :
-      	tableSizeFor(size + (size >>> 1) + 1);
-      int sc;
-      while ((sc = sizeCtl) >= 0) {
-          Node<K,V>[] tab = table; int n;
-          // 数组还未初始化，一般是调用集合构造方法才会成立，put 后调用该方法都是不成立的
-          if (tab == null || (n = tab.length) == 0) {
-              n = (sc > c) ? sc : c;
-              if (U.compareAndSwapInt(this, SIZECTL, sc, -1)) {
-                  try {
-                      if (table == tab) {
-                          Node<K,V>[] nt = (Node<K,V>[])new Node<?,?>[n];
-                          table = nt;
-                          sc = n - (n >>> 2);//扩容阈值：n - 1/4 n
-                      }
-                  } finally {
-                      sizeCtl = sc;	//扩容阈值赋值给sizeCtl
-                  }
-              }
-          }
-          // 未达到扩容阈值或者数组长度已经大于最大长度
-          else if (c <= sc || n >= MAXIMUM_CAPACITY)
-              break;
-          else if (tab == table) {// 与 addCount 逻辑相同
-              int rs = resizeStamp(n);
-              if (sc < 0) {
-                  Node<K,V>[] nt;
-                  if ((sc >>> RESIZE_STAMP_SHIFT) != rs || sc == rs + 1 ||
-                      sc == rs + MAX_RESIZERS || (nt = nextTable) == null ||
-                      transferIndex <= 0)
-                      break;
-                  if (U.compareAndSwapInt(this, SIZECTL, sc, sc + 1))
-                      transfer(tab, nt);
-              }
-              else if (U.compareAndSwapInt(this, SIZECTL, sc,
-                                           (rs << RESIZE_STAMP_SHIFT) + 2))
-                  transfer(tab, null);
-          }
-      }
-  }
-  ```
-
+  
 * addCount()：添加计数，**代表哈希表中的数据总量**
 
   ```java
   private final void addCount(long x, int check) {
-      // as 表示 LongAdder.cells，b 表示 LongAdder.base，s 表示当前 map.table 中元素的数量
+      // 【上面这部分的逻辑就是 LongAdder 的累加逻辑】
       CounterCell[] as; long b, s;
       // 判断累加数组 cells 是否初始化，没有就去累加 base 域，累加失败进入条件内逻辑
       if ((as = counterCells) != null ||
           !U.compareAndSwapLong(this, BASECOUNT, b = baseCount, s = b + x)) {
-          // a 表示当前线程 hash 寻址命中的cell，v 表示当前线程写cell时的期望值，m 表示当前cells数组的长度
           CounterCell a; long v; int m;
-          // true -> 未竞争，false -> 发生竞争
+          // true 未竞争，false 发生竞争
           boolean uncontended = true;
           // 判断 cells 是否被其他线程初始化
           if (as == null || (m = as.length - 1) < 0 ||
-              // 前面的条件为 fasle 说明cells 被其他线程初始化，通过 hash 寻址对应的槽位
+              // 前面的条件为 fasle 说明 cells 被其他线程初始化，通过 hash 寻址对应的槽位
               (a = as[ThreadLocalRandom.getProbe() & m]) == null ||
               // 尝试去对应的槽位累加，累加失败进入 fullAddCount 进行重试或者扩容
               !(uncontended = U.compareAndSwapLong(a, CELLVALUE, v = a.value, v + x))) {
@@ -11208,45 +11276,48 @@ public V put(K key, V value) {
               fullAddCount(x, uncontended);
               return;
           }
-          if (check <= 1)	// 表示当前桶位是 null，或者一个链表节点
+          // 表示当前桶位是 null，或者一个链表节点
+          if (check <= 1)	
               return;
-          s = sumCount();	// 获取当前散列表元素个数，这是一个期望值
+      	// 【获取当前散列表元素个数】，这是一个期望值
+          s = sumCount();
       }
-      //表示一定 【是一个 put 操作调用的 addCount】
+      
+      // 表示一定 【是一个 put 操作调用的 addCount】
       if (check >= 0) {
-          // tab 表示map.table，nt 表示map.nextTable，n 表示map.table数组的长度，sc 表示sizeCtl的临时值
           Node<K,V>[] tab, nt; int n, sc;
           
-          // 条件一：true 说明当前 sizeCtl 为一个负数，表示正在扩容中，或者 sizeCtl 是一个正数，表示扩容阈值
+          // 条件一：true 说明当前 sizeCtl 可能为一个负数表示正在扩容中，或者 sizeCtl 是一个正数，表示扩容阈值
           //        false 表示哈希表的数据的数量没达到扩容条件
-          // 条件二：条件一为 true 进入条件二，判断当前 table 数组是否初始化了
-          // 条件三：true->当前 table 长度小于最大值限制，则可以进行扩容
+          // 然后判断当前 table 数组是否初始化了，当前 table 长度是否小于最大值限制，就可以进行扩容
           while (s >= (long)(sc = sizeCtl) && (tab = table) != null &&
                  (n = tab.length) < MAXIMUM_CAPACITY) {
-              // 扩容批次唯一标识戳
-              // 16 -> 32 扩容 标识为：1000 0000 0001 1011，负数
+              // 16 -> 32 扩容 标识为：1000 0000 0001 1011，【负数，扩容批次唯一标识戳】
               int rs = resizeStamp(n);
-              // 条件成立说明表示当前 table，【正在扩容】，sc 高 16 位是扩容标识戳，低 16 位是线程数 + 1
+              
+              // 表示当前 table，【正在扩容】，sc 高 16 位是扩容标识戳，低 16 位是线程数 + 1
               if (sc < 0) {
                   // 条件一：判断扩容标识戳是否一样，fasle 代表一样
-                  // 条件二是：sc == (rs << 16 ) + 1，true 代表扩容完成，因为低 16 位是1代表没有线程扩容了
+                  // 勘误两个条件：
+                  // 条件二是：sc == (rs << 16 ) + 1，true 代表扩容完成，因为低16位是1代表没有线程扩容了
                   // 条件三是：sc == (rs << 16) + MAX_RESIZERS，判断是否已经超过最大允许的并发扩容线程数
-                  // 条件四：判断新表是否是 null，代表扩容完成
-                  // 条件五：扩容是从高位到低位扩容，transferIndex < 0 说明没有区间需要扩容了
+                  // 条件四：判断新表的引用是否是 null，代表扩容完成
+                  // 条件五：【扩容是从高位到低位转移】，transferIndex < 0 说明没有区间需要扩容了
                   if ((sc >>> RESIZE_STAMP_SHIFT) != rs || sc == rs + 1 ||
                       sc == rs + MAX_RESIZERS || (nt = nextTable) == null ||
                       transferIndex <= 0)
                       break;
-                  // 条件成立表示当前线程成功参与到扩容任务中，并且将 sc 低 16 位值加 1，表示多一个线程参与扩容
-                  // 条件失败说明其他线程或者 transfer 内部修改了 sizeCtl 值
+                  
+                  // 设置当前线程参与到扩容任务中，将 sc 低 16 位值加 1，表示多一个线程参与扩容
+                  // 条设置失败其他线程或者 transfer 内部修改了 sizeCtl 值
                   if (U.compareAndSwapInt(this, SIZECTL, sc, sc + 1))
                       //【协助扩容线程】，持有nextTable参数
                       transfer(tab, nt);
               }
-              // 条件成立表示当前线程是触发扩容的第一个线程，【+ 2】
+              // 逻辑到这说明当前线程是触发扩容的第一个线程，线程数量 + 2
               // 1000 0000 0001 1011 0000 0000 0000 0000 +2 => 1000 0000 0001 1011 0000 0000 0000 0010
               else if (U.compareAndSwapInt(this, SIZECTL, sc,(rs << RESIZE_STAMP_SHIFT) + 2))
-                  //【触发扩容条件的线程】，不持有 nextTable，自己新建 nextTable
+                  //【触发扩容条件的线程】，不持有 nextTable，初始线程会新建 nextTable
                   transfer(tab, null);
               s = sumCount();
           }
@@ -11254,13 +11325,13 @@ public V put(K key, V value) {
   }
   ```
 
-* resizeStamp()：扩容标识符，每次扩容都会产生一个，不是每个线程都产生，16 扩容到 32 产生一个，32 扩容到 64 产生一个
+* resizeStamp()：扩容标识符，**每次扩容都会产生一个，不是每个线程都产生**，16 扩容到 32 产生一个，32 扩容到 64 产生一个
 
   ```java
   /**
    * 扩容的标识符
    * 16 -> 32 从16扩容到32
-   * numberOfLeadingZeros(16) => 1 0000 =>27 =>0000 0000 0001 1011
+   * numberOfLeadingZeros(16) => 1 0000 => 32 - 5 = 27 => 0000 0000 0001 1011
    * (1 << (RESIZE_STAMP_BITS - 1)) => 1000 0000 0000 0000 => 32768
    * ---------------------------------------------------------------
    * 0000 0000 0001 1011
@@ -11270,7 +11341,7 @@ public V put(K key, V value) {
    */
   static final int resizeStamp(int n) {
       // 或运算
-      return Integer.numberOfLeadingZeros(n) | (1 << (RESIZE_STAMP_BITS - 1));//(16 -1 = 15)
+      return Integer.numberOfLeadingZeros(n) | (1 << (RESIZE_STAMP_BITS - 1)); // (16 -1 = 15)
   }
   ```
 
@@ -11298,22 +11369,22 @@ public V put(K key, V value) {
   private final void transfer(Node<K,V>[] tab, Node<K,V>[] nextTab) {
       // n 表示扩容之前 table 数组的长度
       int n = tab.length, stride;
-      //stride 表示分配给线程任务的步长，认为是 16 
+      // stride 表示分配给线程任务的步长，默认就是 16 
       if ((stride = (NCPU > 1) ? (n >>> 3) / NCPU : n) < MIN_TRANSFER_STRIDE)
           stride = MIN_TRANSFER_STRIDE;
       // 如果当前线程为触发本次扩容的线程，需要做一些扩容准备工作，【协助线程不做这一步】
       if (nextTab == null) {
           try {
-              // 创建一个容量为之前二倍的 table 数组
+              // 创建一个容量是之前【二倍的 table 数组】
               Node<K,V>[] nt = (Node<K,V>[])new Node<?,?>[n << 1];
               nextTab = nt;
           } catch (Throwable ex) {
               sizeCtl = Integer.MAX_VALUE;
               return;
           }
-          // 赋值给对象属性 nextTable，方便其他线程获取新表
+          // 把新表赋值给对象属性 nextTable，方便其他线程获取新表
           nextTable = nextTab;
-          // 记录迁移数据整体位置的一个标记，transferIndex计数从1开始不是 0，所以这里是长度，不是长度-1
+          // 记录迁移数据整体位置的一个标记，transferIndex 计数从1开始不是 0，所以这里是长度，不是长度-1
           transferIndex = n;
       }
       // 新数组的长度
@@ -11328,7 +11399,6 @@ public V put(K key, V value) {
       // i 表示分配给当前线程任务，执行到的桶位
       // bound 表示分配给当前线程任务的下界限制，因为是倒序迁移，16 迁移完 迁移 15，15完成去迁移14
       for (int i = 0, bound = 0;;) {
-          // f 桶位的头结点，fh 是头节点的哈希值
           Node<K,V> f; int fh;
           
           // 给当前线程【分配任务区间】
@@ -11336,7 +11406,7 @@ public V put(K key, V value) {
               // 分配任务的开始下标，分配任务的结束下标
               int nextIndex, nextBound;
            
-              // --i 就让当前线程处理下一个，true 说明当前的迁移任务尚未完成，false 说明线程已经完成或者还未分配
+              // --i 让当前线程处理下一个索引，true说明当前的迁移任务尚未完成，false说明线程已经完成或者还未分配
               if (--i >= bound || finishing)
                   advance = false;
               // 迁移的开始下标，小于0说明没有区间需要迁移了，设置当前线程的 i 变量为 -1 跳出循环
@@ -11344,25 +11414,22 @@ public V put(K key, V value) {
                   i = -1;
                   advance = false;
               }
-              // 走到这里说明还有区间需要分配
-              // 条件成立表示给当前线程分配任务成功，上一个线程结束的下标就是这个线程开始的下标
-              else if (U.compareAndSwapInt
-                       (this, TRANSFERINDEX, nextIndex,
-                        //判断剩余的区间是否还够 一个步长的范围，，不够就全部分配
+              // 逻辑到这说明还有区间需要分配，然后给当前线程分配任务，
+              else if (U.compareAndSwapInt(this, TRANSFERINDEX, nextIndex,
+                        // 判断区间是否还够一个步长，不够就全部分配
                         nextBound = (nextIndex > stride ? nextIndex - stride : 0))) {
                   // 当前线程的结束下标
                   bound = nextBound;
-                  // 当前线程的开始下标
+                  // 当前线程的开始下标，上一个线程结束的下标的下一个索引就是这个线程开始的下标
                   i = nextIndex - 1;
                   // 任务分配结束，跳出循环执行迁移操作
                   advance = false;
               }
           }
           
-          // 【数据迁移操作】
-          // 【CASE1】：i < 0 成立表示当前线程未分配到任务
+          // 【分配完成，开始数据迁移操作】
+          // 【CASE1】：i < 0 成立表示当前线程未分配到任务，或者任务执行完了
           if (i < 0 || i >= n || i + n >= nextn) {
-              // 保存 sizeCtl 的变量
               int sc;
               // 如果迁移完成
               if (finishing) {
@@ -11378,12 +11445,12 @@ public V put(K key, V value) {
                       return;
                   // 所以最后一个线程退出的时候，sizeCtl 的低 16 位为 1
                   finishing = advance = true;
-                  // 【这里表示最后一个线程需要重新检查一遍是否有漏掉的
+                  // 【这里表示最后一个线程需要重新检查一遍是否有漏掉的区间】
                   i = n;
               }
           }
           
-          // 【CASE2】：说明当前桶位未存放数据，只需要将此处设置为 fwd 节点即可。
+          // 【CASE2】：当前桶位未存放数据，只需要将此处设置为 fwd 节点即可。
           else if ((f = tabAt(tab, i)) == null)
               advance = casTabAt(tab, i, null, fwd);
           // 【CASE3】：说明当前桶位已经迁移过了，当前线程不用再处理了，直接处理下一个桶位即可
@@ -11391,7 +11458,7 @@ public V put(K key, V value) {
               advance = true; 
           // 【CASE4】：当前桶位有数据，而且 node 节点不是 fwd 节点，说明这些数据需要迁移
           else {
-              // 锁住头节点
+              // 【锁住头节点】
               synchronized (f) {
                   // 二次检查，防止头节点已经被修改了，因为这里才是线程安全的访问
                   if (tabAt(tab, i) == f) {
@@ -11400,13 +11467,13 @@ public V put(K key, V value) {
                       // ln 表示低位链表引用
                       // hn 表示高位链表引用
                       Node<K,V> ln, hn;
-                      // 条件成立：表示当前桶位是链表桶位
+                      // 哈希 > 0 表示当前桶位是链表桶位
                       if (fh >= 0) {
                           // 和 HashMap 的处理方式一致，与老数组长度相与，16 是 10000
                           // 判断对应的 1 的位置上是 0 或 1 分成高低位链表
                           int runBit = fh & n;
                           Node<K,V> lastRun = f;
-                          //遍历链表，获取逆序看最长的对应位相同的链表，看下面的图更好的理解
+                          // 遍历链表，寻找逆序看最长的对应位相同的链表，看下面的图更好的理解
                           for (Node<K,V> p = f.next; p != null; p = p.next) {
                               // 将当前节点的哈希 与 n
                               int b = p.hash & n;
@@ -11416,12 +11483,12 @@ public V put(K key, V value) {
                                   lastRun = p;
                               }
                           }
-                          // 成立说明筛选出的链表是低位的
+                          // 判断筛选出的链表是低位的还是高位的
                           if (runBit == 0) {
                               ln = lastRun;	// ln 指向该链表
                               hn = null;		// hn 为 null
                           }
-                          // 否则，说明 lastRun 引用的链表为高位链表，就让 hn 指向 高位链表
+                          // 说明 lastRun 引用的链表为高位链表，就让 hn 指向高位链表头节点
                           else {
                               hn = lastRun;
                               ln = null;
@@ -11430,7 +11497,8 @@ public V put(K key, V value) {
                           for (Node<K,V> p = f; p != lastRun; p = p.next) {
                               int ph = p.hash; K pk = p.key; V pv = p.val;
                               if ((ph & n) == 0)
-                                  // ln 是上一个节点的下一个节点的引用【头插法】
+                                  // 【头插法】，从右往左看，首先 ln 指向的是上一个节点，
+                                  // 所以这次新建的节点的 next 指向上一个节点，然后更新 ln 的引用
                                   ln = new Node<K,V>(ph, pk, pv, ln);
                               else
                                   hn = new Node<K,V>(ph, pk, pv, hn);
@@ -11474,7 +11542,7 @@ public V put(K key, V value) {
                                   ++hc;
                               }
                           }
-                          // 拆成的高位低位两个链，判断是否需要需要转化为链表，反之保持树化
+                          // 拆成的高位低位两个链，【判断是否需要需要转化为链表】，反之保持树化
                           ln = (lc <= UNTREEIFY_THRESHOLD) ? untreeify(lo) :
                           (hc != 0) ? new TreeBin<K,V>(lo) : t;
                           hn = (hc <= UNTREEIFY_THRESHOLD) ? untreeify(hi) :
@@ -11490,12 +11558,12 @@ public V put(K key, V value) {
       }
   }
   ```
-
-  链表处理的 LastRun 机制，**可以减少节点的创建**：
-
+  
+  链表处理的 LastRun 机制，**可以减少节点的创建**
+  
   ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ConcurrentHashMap-LastRun机制.png)
-
-* helpTransfer()：帮助扩容
+  
+* helpTransfer()：帮助扩容机制
 
   ```java
   final Node<K,V>[] helpTransfer(Node<K,V>[] tab, Node<K,V> f) {
@@ -11503,13 +11571,14 @@ public V put(K key, V value) {
       // 数组不为空，节点是转发节点，获取转发节点指向的新表开始协助主线程扩容
       if (tab != null && (f instanceof ForwardingNode) &&
           (nextTab = ((ForwardingNode<K,V>)f).nextTable) != null) {
+          // 扩容标识戳
           int rs = resizeStamp(tab.length);
           // 判断数据迁移是否完成，迁移完成会把 新表赋值给 nextTable 属性
-          while (nextTab == nextTable && table == tab &&
-                 (sc = sizeCtl) < 0) {
+          while (nextTab == nextTable && table == tab && (sc = sizeCtl) < 0) {
               if ((sc >>> RESIZE_STAMP_SHIFT) != rs || sc == rs + 1 ||
                   sc == rs + MAX_RESIZERS || transferIndex <= 0)
                   break;
+              // 设置扩容线程数量 + 1
               if (U.compareAndSwapInt(this, SIZECTL, sc, sc + 1)) {
                   // 协助扩容
                   transfer(tab, nextTab);
@@ -11521,7 +11590,7 @@ public V put(K key, V value) {
       return table;
   }
   ```
-
+  
   
 
 
@@ -11551,10 +11620,10 @@ ConcurrentHashMap 使用 get()  方法获取指定 key 的数据
               if ((ek = e.key) == key || (ek != null && key.equals(ek)))
                   return e.val;
           }
-          // 当前槽位的哈希值小于0说明是红黑树节点或者是正在扩容的 fwd 节点
+          // 当前槽位的【哈希值小于0】说明是红黑树节点或者是正在扩容的 fwd 节点
           else if (eh < 0)
               return (p = e.find(h, key)) != null ? p.val : null;
-          // 当前桶位已经形成链表，迭代查找
+          // 当前桶位是【链表】，循环遍历查找
           while ((e = e.next) != null) {
               if (e.hash == h &&
                   ((ek = e.key) == key || (ek != null && key.equals(ek))))
@@ -11565,52 +11634,48 @@ ConcurrentHashMap 使用 get()  方法获取指定 key 的数据
   }
   ```
   
-* ForwardingNode#find
+* ForwardingNode#find：转移节点的查找方法
 
   ```java
   Node<K,V> find(int h, Object k) {
       // 获取新表的引用
       outer: for (Node<K,V>[] tab = nextTable;;)  {
-          //e 表示在扩容而创建新表使用寻址算法得到的桶位头结点，n 表示为扩容而创建的新表的长度
+          // e 表示在扩容而创建新表使用寻址算法得到的桶位头结点，n 表示为扩容而创建的新表的长度
           Node<K,V> e; int n;
-  
-          //条件四：在新扩容表中 重新定位 hash 对应的头结点
-          //  	条件成立说明在 oldTable 中对应的桶位在迁移之前就是 null
+   
           if (k == null || tab == null || (n = tab.length) == 0 ||
+              // 在新表中重新定位 hash 对应的头结点，表示在 oldTable 中对应的桶位在迁移之前就是 null
               (e = tabAt(tab, (n - 1) & h)) == null)
               return null;
   
           for (;;) {
-              //eh 新扩容后表指定桶位的当前节点的hash，ek 新扩容后表指定桶位的当前节点的key
               int eh; K ek;
-              //条件成立说明新表当前命中桶位中的数据，即为查询想要数据。
-              if ((eh = e.hash) == h &&
-                  ((ek = e.key) == k || (ek != null && k.equals(ek))))
+              // 【哈希相同值也相同】，表示新表当前命中桶位中的数据，即为查询想要数据
+              if ((eh = e.hash) == h && ((ek = e.key) == k || (ek != null && k.equals(ek))))
                   return e;
   
-              // eh < 0 说明当前头节点 TreeBin 类型，或者是 FWD 类型，
-              // 在并发很大的情况下新扩容的表还没完成可能【再次扩容】，在此方法处再次拿到 FWD 类型
+              // eh < 0 说明当前新表中该索引的头节点是 TreeBin 类型，或者是 FWD 类型
               if (eh < 0) {
+                  // 在并发很大的情况下新扩容的表还没完成可能【再次扩容】，在此方法处再次拿到 FWD 类型
                   if (e instanceof ForwardingNode) {
-                      // 继续获取新的 fwd 指向的新数组的地址
+                      // 继续获取新的 fwd 指向的新数组的地址，递归了
                       tab = ((ForwardingNode<K,V>)e).nextTable;
                       continue outer;
                   }
                   else
-                      //说明此桶位 为 TreeBin 节点，使用TreeBin.find 查找红黑树中相应节点。
+                      // 说明此桶位为 TreeBin 节点，使用TreeBin.find 查找红黑树中相应节点。
                       return e.find(h, k);
               }
   
-              // 逻辑到这说明当前桶位头结点 并没有命中查询，说明此桶位是链表
-              // 将当前元素指向链表的下一个元素，判断当前元素的下一个位置是否为空
+              // 逻辑到这说明当前桶位是链表，将当前元素指向链表的下一个元素，判断当前元素的下一个位置是否为空
               if ((e = e.next) == null)
-                  //条件成立说明迭代到链表末尾，未找到对应的数据，返回 你ull
+                  // 条件成立说明迭代到链表末尾，【未找到对应的数据，返回 null】
                   return null;
           }
       }
   }
   ```
-
+  
   
 
 
@@ -11629,22 +11694,20 @@ ConcurrentHashMap 使用 get()  方法获取指定 key 的数据
   }
   ```
 
-* replaceNode()：替代指定的元素，会协助扩容，增删改都会协助扩容，只有查询操作不会
+* replaceNode()：替代指定的元素，会协助扩容，**增删改（写）都会协助扩容，只有查询（读）操作不会**
 
   ```java
   final V replaceNode(Object key, V value, Object cv) {
       // 计算 key 扰动运算后的 hash
       int hash = spread(key.hashCode());
-      // 自旋
+      // 开始自旋
       for (Node<K,V>[] tab = table;;) {
-          // f 表示桶位的头节点，n 表示当前 table 数组长度，i 表示 hash 映射的数组下标，fh 表示头节点的哈希值
           Node<K,V> f; int n, i, fh;
           
-          //【CASE1】：table 还未初始化或者哈希寻址的数组索引处为 null，直接结束自旋，返回 null
-          if (tab == null || (n = tab.length) == 0 ||
-              (f = tabAt(tab, i = (n - 1) & hash)) == null)
+          // 【CASE1】：table 还未初始化或者哈希寻址的数组索引处为 null，直接结束自旋，返回 null
+          if (tab == null || (n = tab.length) == 0 || (f = tabAt(tab, i = (n - 1) & hash)) == null)
               break;
-          // 【CASE2】：条件成立说明当前 table 正在扩容，当前是个写操作，所以当前线程需要协助 table 完成扩容
+          // 【CASE2】：条件成立说明当前 table 正在扩容，【当前是个写操作，所以当前线程需要协助 table 完成扩容】
           else if ((fh = f.hash) == MOVED)
               tab = helpTransfer(tab, f);
           // 【CASE3】：当前桶位可能是 链表 也可能是 红黑树 
@@ -11653,7 +11716,7 @@ ConcurrentHashMap 使用 get()  方法获取指定 key 的数据
               V oldVal = null;
               // 校验标记
               boolean validated = false;
-              // 加锁当前桶位头结点，加锁成功之后会进入代码块
+              // 【加锁当前桶位头结点】，加锁成功之后会进入代码块
               synchronized (f) {
                   // 双重检查
                   if (tabAt(tab, i) == f) {
@@ -11673,12 +11736,12 @@ ConcurrentHashMap 使用 get()  方法获取指定 key 的数据
                                       (ev != null && cv.equals(ev))) {
                                       // 将当前节点的值 赋值给 oldVal 后续返回会用到
                                       oldVal = ev;
-                                      if (value != null)		//条件成立说明是替换操作
+                                      if (value != null)		// 条件成立说明是替换操作
                                           e.val = value;	
-                                      else if (pred != null)	//非头节点删除操作，断开链表
+                                      else if (pred != null)	// 非头节点删除操作，断开链表
                                           pred.next = e.next;	
                                       else
-                                          //说明当前节点即为头结点，将桶位头节点设置为以前头节点的下一个节点
+                                          // 说明当前节点即为头结点，将桶位头节点设置为以前头节点的下一个节点
                                           setTabAt(tab, i, e.next);
                                   }
                                   break;
@@ -11710,10 +11773,10 @@ ConcurrentHashMap 使用 get()  方法获取指定 key 的数据
                       }
                   }
               }
-              //其他线程修改过桶位头结点时，当前线程 sync 头结点锁错对象，validated 为 false，会进入下次 for 自旋
+              // 其他线程修改过桶位头结点时，当前线程 sync 头结点锁错对象，validated 为 false，会进入下次 for 自旋
               if (validated) {
                   if (oldVal != null) {
-                      // 替换的值为 null，说明当前是一次删除操作，更新当前元素个数计数器
+                      // 替换的值为 null，【说明当前是一次删除操作，更新当前元素个数计数器】
                       if (value == null)
                           addCount(-1L, -1);
                       return oldVal;
@@ -11742,7 +11805,7 @@ ConcurrentHashMap 对锁粒度进行了优化，**分段锁技术**，将整张�
 
 底层结构： **Segment 数组 + HashEntry 数组 + 链表**（数组 + 链表是 HashMap 的结构）
 
-* 优点：如果多个线程访问不同的 segment，实际是没有冲突的，这与 jdk8 中是类似的
+* 优点：如果多个线程访问不同的 segment，实际是没有冲突的，这与 JDK8 中是类似的
 
 * 缺点：Segments 数组默认大小为16，这个容量初始化指定后就不能改变了，并且不是懒惰初始化
 
@@ -11762,7 +11825,7 @@ ConcurrentHashMap 对锁粒度进行了优化，**分段锁技术**，将整张�
 
 #### 原理分析
 
-CopyOnWriteArrayList 采用了**写入时拷贝**的思想，增删改操作会将底层数组拷贝一份，更改操作在新数组上执行，不影响其它线程的**并发读，读写分离**
+CopyOnWriteArrayList 采用了**写入时拷贝**的思想，增删改操作会将底层数组拷贝一份，在新数组上执行操作，不影响其它线程的**并发读，读写分离**
 
 CopyOnWriteArraySet 底层对 CopyOnWriteArrayList 进行了包装，装饰器模式
 
@@ -11775,10 +11838,16 @@ public CopyOnWriteArraySet() {
 * 存储结构：
 
   ```java
-  private transient volatile Object[] array;//保证了读写线程之间的可见性
+  private transient volatile Object[] array;	// 保证了读写线程之间的可见性
   ```
 
-* 新增数据：
+* 全局锁：保证线程的执行安全
+
+  ```java
+  final transient ReentrantLock lock = new ReentrantLock();
+  ```
+  
+* 新增数据：需要加锁，**创建新的数组操作**
 
   ```java
   public boolean add(E e) {
@@ -11789,11 +11858,11 @@ public CopyOnWriteArraySet() {
           // 获取旧的数组
           Object[] elements = getArray();
           int len = elements.length;
-          // 拷贝新的数组（这里是比较耗时的操作，但不影响其它读线程）
+          // 【拷贝新的数组（这里是比较耗时的操作，但不影响其它读线程）】
           Object[] newElements = Arrays.copyOf(elements, len + 1);
           // 添加新元素
           newElements[len] = e;
-          // 替换旧的数组
+          // 替换旧的数组，【这个操作以后，其他线程获取数组就是获取的新数组了】
           setArray(newElements);
           return true;
       } finally {
@@ -11802,32 +11871,24 @@ public CopyOnWriteArraySet() {
   }
   ```
 
-* 读操作：
+* 读操作：不加锁，**在原数组上操作**
 
   ```java
-  public void forEach(Consumer<? super E> action) {
-      if (action == null) throw new NullPointerException();
-      // 获取当前存储数据的数组
-      Object[] elements = getArray();
-      int len = elements.length;
-      for (int i = 0; i < len; ++i) {
-          //遍历
-          @SuppressWarnings("unchecked") 
-          E e = (E) elements[i];
-          // 对给定的参数执行此操作
-          action.accept(e);
-      }
+  public E get(int index) {
+      return get(getArray(), index);
+  }
+  private E get(Object[] a, int index) {
+      return (E) a[index];
   }
   ```
 
   适合读多写少的应用场景
 
-* 迭代器：
-
-  CopyOnWriteArrayList 在返回一个迭代器时，会基于创建这个迭代器时内部数组所拥有的数据，创建一个该内部数组当前的快照，即使其他替换了原始数组，迭代器遍历的是该快照依然引用的是创建快照时的数组，所以这种实现方式也存在一定的数据延迟性，即对其他线程并行添加的数据不可见
+* 迭代器：CopyOnWriteArrayList 在返回一个迭代器时，创建一个该内部数组当前的快照，即使其他线程替换了原始数组，迭代器遍历的是该快照依然引用的是创建快照时的数组，所以这种实现方式也存在一定的数据延迟性，对其他线程并行添加的数据不可见
 
   ```java
   public Iterator<E> iterator() {
+      // 获取到数组引用，整个遍历的过程该数组都不会变，一直引用的都是老数组，
       return new COWIterator<E>(getArray(), 0);
   }
   
@@ -11836,14 +11897,18 @@ public CopyOnWriteArraySet() {
       // 内部数组快照
       private final Object[] snapshot;
   
-  	//...
+      private COWIterator(Object[] elements, int initialCursor) {
+          cursor = initialCursor;
+          // 数组的引用在迭代过程不会改变
+          snapshot = elements;
+      }
       // 不支持写操作
       public void remove() {
           throw new UnsupportedOperationException();
       } 
   }
   ```
-
+  
   
 
 ***
@@ -11959,11 +12024,11 @@ public boolean add(E e) {
 
 对于单链表，即使链表是有序的，如果查找数据也只能从头到尾遍历链表，所以采用链表上建索引的方式提高效率，跳表的查询时间复杂度是 **O(logn)**，空间复杂度 O(n)
 
-ConcurrentSkipListMap 提供了一种线程安全的并发访问的排序映射表，内部是跳表结构实现，通过 CAS +　volatile 保证线程安全
+ConcurrentSkipListMap 提供了一种线程安全的并发访问的排序映射表，内部是跳表结构实现，通过 CAS + volatile 保证线程安全
 
 平衡树和跳表的区别：
 
-* 对平衡树的插入和删除往往很可能导致平衡树进行一次全局的调整；而对跳表的插入和删除，只需要对整个数据结构的局部进行操作
+* 对平衡树的插入和删除往往很可能导致平衡树进行一次全局的调整；而对跳表的插入和删除，**只需要对整个结构的局部进行操作**
 * 在高并发的情况下，保证整个平衡树的线程安全需要一个全局锁；对于跳表则只需要部分锁，拥有更好的性能
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ConcurrentSkipListMap数据结构.png)
@@ -12002,7 +12067,7 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引都指
   static final class Node<K, V>{
       final K key;  				// key 是 final 的, 说明节点一旦定下来, 除了删除, 一般不会改动 key
       volatile Object value; 		// 对应的 value
-      volatile Node<K, V> next; 	// 下一个节点
+      volatile Node<K, V> next; 	// 下一个节点，单向链表
   }
   ```
 
@@ -12010,7 +12075,7 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引都指
 
   ```java
   static class Index<K, V>{
-      final Node<K, V> node; 		// 索引指向的节点, 
+      final Node<K, V> node; 		// 索引指向的节点，每个都会指向数据节点
       final Index<K, V> down; 	// 下边level层的Index，分层索引
       volatile Index<K, V> right; // 右边的Index
   
@@ -12055,7 +12120,7 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引都指
 
   ```java
   public ConcurrentSkipListMap() {
-      this.comparator = null;	// comparator为null，使用key的自然序，如字典序
+      this.comparator = null;	// comparator 为 null，使用 key 的自然序，如字典序
       initialize();
   }
   ```
@@ -12066,13 +12131,12 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引都指
       entrySet = null;
       values = null;
       descendingMap = null;
-      // 初始化索引头节点，Node 的 Key 为 null，value 为 BASE_HEADER 对象，下一个节点为 null
-      // head 的分层索引 down 为 null，链表的后续索引 right 为 null，层级 level 为第一层
-      head = new HeadIndex<K,V>(new Node<K,V>(null, BASE_HEADER, null),
-                                null, null, 1);
+      // 初始化索引头节点，Node 的 key 为 null，value 为 BASE_HEADER 对象，下一个节点为 null
+      // head 的分层索引 down 为 null，链表的后续索引 right 为 null，层级 level 为第 1 层
+      head = new HeadIndex<K,V>(new Node<K,V>(null, BASE_HEADER, null), null, null, 1);
   }
   ```
-
+  
 * cpr：排序
 
   ```java
@@ -12129,8 +12193,8 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引都指
               if ((d = q.down) == null) 
                   return q.node;
               // 6.未到数据层, 进行重新赋值向下扫描
-              q = d;	//q指向d
-              r = d.right;//r指向q的后续索引节点
+              q = d;		// q 指向 d
+              r = d.right;// r 指向 q 的后续索引节点，此时(q.key < key < r.key)
           }
       }
   }
@@ -12152,11 +12216,11 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引都指
   ```java
   private V doPut(K key, V value, boolean onlyIfAbsent) {
       Node<K,V> z;
-      // 非空判断，key不能为空
+      // 非空判断，key 不能为空
       if (key == null)
           throw new NullPointerException();
       Comparator<? super K> cmp = comparator;
-      // outer 循环，【把待插入数据插入到数据层的合适的位置，并在扫描过程中处理 已删除(value = null) 的数据】
+      // outer 循环，【把待插入数据插入到数据层的合适的位置，并在扫描过程中处理已删除(value = null)的数据】
       outer: for (;;) {
           //0.for (;;)
           //1.将 key 对应的前继节点找到, b 为前继节点，是数据层的, n 是前继节点的 next, 
@@ -12170,7 +12234,7 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引都指
                   // 4.条件竞争，并发下其他线程在 b 之后插入节点或直接删除节点 n, break 到步骤 0
                   if (n != b.next)              
                       break;
-                  //  若节点 n 已经删除, 则调用 helpDelete 进行帮助删除节点
+                  //  若节点 n 已经删除, 则调用 helpDelete 进行【帮助删除节点】
                   if ((v = n.value) == null) {
                       n.helpDelete(b, f);
                       break;
@@ -12226,7 +12290,7 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引都指
           //    【最大有30个就是 1 + 30 = 31
           while (((rnd >>>= 1) & 1) != 0)
               ++level;
-          // 最终指向 z 节点，就是添加的节点 
+          // 最终会指向 z 节点，就是添加的节点 
           Index<K,V> idx = null;
           // 指向头索引节点
           HeadIndex<K,V> h = head;
@@ -12246,19 +12310,17 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引都指
               //   ↓
               //  z-node
           }
-          // 14.若 level > max，则只增加一层 index 索引层，3 + 1 = 4
+          // 14.若 level > max，则【只增加一层 index 索引层】，3 + 1 = 5
           else { 
               level = max + 1;
-              //创建一个 index 数组，长度是 level+1，假设 level 是4，创建的数组长度为 5
+              //创建一个 index 数组，长度是 level+1，假设 level 是 4，创建的数组长度为 5
               Index<K,V>[] idxs = (Index<K,V>[])new Index<?,?>[level+1];
-              //index[0]的数组 slot 并没有使用，只使用 [1,level] 这些数组的 slot
+              // index[0]的数组 slot 并没有使用，只使用 [1,level] 这些数组的 slot
               for (int i = 1; i <= level; ++i)
                   idxs[i] = idx = new Index<K,V>(z, idx, null);
                 		// index-4   ← idx
                       //   ↓
-                      // index-3
-                      //   ↓
-                      // index-2
+                    	// ......
                       //   ↓
                       // index-1
                       //   ↓
@@ -12266,7 +12328,7 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引都指
               
               for (;;) {
                   h = head;
-                  //获取头索引的层数
+                  // 获取头索引的层数
                   int oldLevel = h.level;
                   // 如果 level <= oldLevel，说明其他线程进行了 index 层增加操作，退出循环
                   if (level <= oldLevel)
@@ -12293,7 +12355,7 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引都指
                   if (casHead(h, newh)) {
                       // h 指向最新的 index-4 节点
                       h = newh;
-                      // idx 指向 z-node 的 index-3 节点，
+                      // 让 idx 指向 z-node 的 index-3 节点，
   					// 因为从 index-3 - index-1 的这些 z-node 索引节点 都没有插入到索引链表
                       idx = idxs[level = oldLevel];
                       break;
@@ -12324,14 +12386,14 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引都指
                           r = q.right;
                           continue;
                       }
-                      // key > n.key，向右扫描
+                      // key > r.node.key，向右扫描
                       if (c > 0) {
                           q = r;
                           r = r.right;
                           continue;
                       }
                   }
-                  // 执行到这里，说明 key < n.key，判断是否是第 j 层插入新增节点的前置索引
+                  // 执行到这里，说明 key < r.node.key，判断是否是第 j 层插入新增节点的前置索引
                   if (j == insertionLevel) {
                       // 【将新索引节点 t 插入 q r 之间】
                       if (!q.link(r, t))
@@ -12385,7 +12447,7 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引都指
   }
   ```
   
-* doGet()：扫描过程会对已 value == null 的元素进行删除处理
+* doGet()：扫描过程会对已 value = null 的元素进行删除处理
 
   ```java
   private V doGet(Object key) {
@@ -12404,7 +12466,7 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引都指
               // 3.如果n不为前置节点的后续节点，表示已经有其他线程删除了该节点
               if (n != b.next) 
                   break;
-              // 4.如果后续节点的值为null，删除该节点
+              // 4.如果后续节点的值为null，【需要帮助删除该节点】
               if ((v = n.value) == null) {
                   n.helpDelete(b, f);
                   break;
@@ -12475,10 +12537,10 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引都指
               //5.到这里是 key = n.key，value 不为空的情况下判断 value 和 n.value 是否相等
               if (value != null && !value.equals(v))
                   break outer;
-              //6.把 n 节点的 value 置空
+              //6.【把 n 节点的 value 置空】
               if (!n.casValue(v, null))
                   break;
-              //7.给 n 添加一个删除标志 mark，mark.next=f，然后把 b.next 设置为 f，成功后 n 出队
+              //7.【给 n 添加一个删除标志 mark】，mark.next = f，然后把 b.next 设置为 f，成功后n出队
               if (!n.appendMarker(f) || !b.casNext(n, f))
                   // 对 key 对应的 index 进行删除，调用了 findPredecessor 方法
                   findNode(key);
@@ -12517,6 +12579,7 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引都指
   // 将添加了删除标记的节点清除，参数是该节点的前驱和后继节点
   void helpDelete(Node<K,V> b, Node<K,V> f) {
       // this 节点的后续节点为 f，且本身为 b 的后续节点，一般都是正确的，除非被别的线程删除
+      // b 
       if (f == next && this == b.next) {
           // 如果 n 还还没有被标记
           if (f == null || f.value != f) 

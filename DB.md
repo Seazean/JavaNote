@@ -2585,12 +2585,12 @@ InnoDB 引擎会在适当的时候，把内存中 redo log buffer 持久化到�
   * 0：表示当提交事务时，并不将缓冲区的 redo 日志写入磁盘，而是等待主线程每秒刷新一次
   * 1：在事务提交时将缓冲区的 redo 日志**同步写入**到磁盘，保证一定会写入成功
   * 2：在事务提交时将缓冲区的 redo 日志异步写入到磁盘，不能保证提交时肯定会写入，只是有这个动作
-* 如果写入 redo log buffer 的日志已经占据了 redo log buffer 总容量的一半了，此时就会刷入到磁盘文件
+* 如果写入 redo log buffer 的日志已经占据了 redo log buffer 总容量的一半了，此时就会刷入到磁盘文件，这时会影响执行效率，所以开发中应该**避免大事务**
 
 刷脏策略：
 
 * redo log 文件是固定大小的，如果写满了就要擦除以前的记录，在擦除之前需要把旧记录更新到磁盘中的数据文件中
-* 系统内存不足，需要淘汰部分数据页，如果淘汰的是脏页，就要先将脏页写到磁盘
+* 系统内存不足，需要淘汰部分数据页，如果淘汰的是脏页，就要先将脏页写到磁盘（大事务）
 * 系统空闲时，后台线程会自动进行刷脏
 * MySQL 正常关闭时，会把内存的脏页都 flush 到磁盘上
 
@@ -4756,7 +4756,7 @@ Innodb_xxxx：这几个参数只是针对InnoDB 存储引擎的，累加的算�
   SHOW VARIABLES LIKE '%query%'
   ```
 
-* SHOW PROCESSLIST：查看当前 MySQL 在进行的连接线程，包括线程的状态、是否锁表等，可以实时地查看 SQL 的执行情况，同时对一些锁表操作进行优化
+* SHOW PROCESSLIST：**实时查看**当前 MySQL 在进行的连接线程，包括线程的状态、是否锁表、SQL 的执行情况，同时对一些锁表操作进行优化
 
   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-SHOW PROCESSLIST命令.png)
 
@@ -4948,7 +4948,7 @@ key_len：
 
 #### PROFILES
 
-SHOW PROFILES 能够在做 SQL 优化时分析当前会话中语句执行的资源消耗情况
+SHOW PROFILES 能够在做 SQL 优化时分析当前会话中语句执行的**资源消耗**情况
 
 * 通过 have_profiling 参数，能够看到当前 MySQL 是否支持 profile：
   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-have_profiling.png)
