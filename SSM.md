@@ -10,7 +10,7 @@ ORM（Object Relational Mapping）： 对象关系映射，指的是持久化数
 
 * MyBatis 是一个优秀的基于 Java 的持久层框架，它内部封装了 JDBC，使开发者只需关注 SQL 语句本身，而不需要花费精力去处理加载驱动、创建连接、创建 Statement 等过程。
 
-* MyBatis通过 xml 或注解的方式将要执行的各种 Statement 配置起来，并通过 Java 对象和 Statement 中 SQL 的动态参数进行映射生成最终执行的 SQL 语句。
+* MyBatis通过 XML 或注解的方式将要执行的各种 Statement 配置起来，并通过 Java 对象和 Statement 中 SQL 的动态参数进行映射生成最终执行的 SQL 语句。
 
 * MyBatis 框架执行 SQL 并将结果映射为 Java 对象并返回。采用 ORM 思想解决了实体和数据库映射的问题，对 JDBC 进行了封装，屏蔽了 JDBC 底层 API 的调用细节，使我们不用操作 JDBC API，就可以完成对数据库的持久化操作。
 
@@ -2293,7 +2293,7 @@ MyBatis 运行过程：
    * 查询方法调用 sqlSession.selectOne()，从 Configuration 中获取执行者对象 MappedStatement，然后 Executor 调用 executor.query 开始执行查询方法
    * 首先通过 CachingExecutor 去二级缓存查询，查询不到去一级缓存查询，**最后去数据库查询并放入一级缓存**
    * Configuration 对象根据 <select> 标签的 statementType 属性创建 StatementHandler 对象，在 StatementHandler 的构造方法中，创建了 ParameterHandler 和 ResultSetHandler 对象
-   * 最后获取 **JDBC 原生的** Connection 数据库连接对象，创建 Statement 执行者对象，然后通过 ParameterHandler 设置预编译参数，通过 StatementHandler 回调执行者对象执行增删改查，最后调用 ResultsetHandler 处理查询结果
+   * 最后获取 **JDBC 原生的** Connection 数据库连接对象，创建 Statement 执行者对象，然后通过 ParameterHandler 设置预编译参数，底层是 TypeHandler#setParameter 方法，然后通过 StatementHandler 回调执行者对象执行增删改查，最后调用 ResultsetHandler 处理查询结果
 
 **四大对象**：
 
@@ -2328,13 +2328,28 @@ XMLConfigBuilder.parse()：解析核心配置文件每个标签的信息（**XPa
 
   `mapperElement(root.evalNode("mappers"))`：解析 mappers 信息，分为 package 和 单个注册两种
 
-  * `Configuration.addMappers()`：将核心配置文件配置的映射器添加到 mapperRegistry 中，用来**获取代理对象**
   * `if...else...`：根据映射方法选择合适的读取方式
+
   * `XMLMapperBuilder.parse()`：解析 mapper 的标签的信息
+    
     * `configurationElement(parser.evalNode("/mapper"))`：解析 mapper 文件，顶层节点 <mapper>
       * `buildStatementFromContext(context.evalNodes("select..."))`：解析操作标签
       * `XMLStatementBuilder.parseStatementNode()`：解析操作标签的所有的属性
-      * `builderAssistant.addMappedStatement(...)`：封装成 MappedStatement 对象加入
+      * `builderAssistant.addMappedStatement(...)`：封装成 MappedStatement 对象加入 Configuration 对象
+    
+  * `Class<?> mapperInterface = Resources.classForName(mapperClass)`：加载 Mapper 接口
+
+  * `Configuration.addMappers()`：将核心配置文件配置的映射器添加到 mapperRegistry 中，用来**获取代理对象**
+
+    * `MapperAnnotationBuilder parser = new MapperAnnotationBuilder(config, type)`：创建解析器
+
+    * `parser.parse()`：解析 Mapper 接口
+
+      * `SqlSource sqlSource = getSqlSourceFromAnnotations()`：获取 SQL 的资源对象
+
+        ![](https://gitee.com/seazean/images/raw/master/Frame/MyBatis-SQL资源对象.png)
+
+      * `builderAssistant.addMappedStatement(...)`：封装成 MappedStatement 对象加入 Configuration 对象
 
 * `return configuration`：返回配置完成的 configuration 对象
 
@@ -2463,6 +2478,7 @@ Executor#query()：
       * 判断 BoundSql 是否被创建，没有创建会重新封装参数信息到 BoundSql
       * **StatementHandler 的构造方法中，创建了 ParameterHandler 和 ResultSetHandler 对象**
       * `interceptorChain.pluginAll(statementHandler)`：拦截器链
+      
     * `prepareStatement()`：通过 StatementHandler 创建 JDBC 原生的 Statement 对象
       * `getConnection()`：获取 JDBC 的 Connection 对象
       * `handler.prepare()`：初始化 Statement 对象
@@ -2472,7 +2488,18 @@ Executor#query()：
       * `handler.parameterize()`：进行参数的设置
         * `ParameterHandler.setParameters()`：**通过 ParameterHandler 设置参数**
           * `typeHandler.setParameter()`：底层通过 TypeHandler 实现
-    * `StatementHandler.query()`：**封装成 JDBC 的 PreparedStatement 执行 SQL**
+      
+    * `StatementHandler.query()`：**调用 JDBC 原生的 PreparedStatement 执行 SQL**
+    
+      ```java
+      public <E> List<E> query(Statement statement, ResultHandler resultHandler) {
+          // 获取 SQL 语句
+          String sql = boundSql.getSql();
+          statement.execute(sql);
+          return resultSetHandler.handleResultSets(statement);
+        }
+      ```
+    
     * `resultSetHandler.handleResultSets(ps)`：**通过 ResultSetHandler 对象封装结果集**
   * `localCache.putObject(key, list)`：放入本地缓存
 

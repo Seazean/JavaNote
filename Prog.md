@@ -1736,7 +1736,7 @@ LockSupport 出现就是为了增强 wait & notify 的功能：
 
 * 线程安全的是指，多个线程调用它们同一个实例的某个方法时，是线程安全的
 
-* 每个方法是原子的，但多个方法的组合不是原子的，只能保证调用的方法内部安全：
+* **每个方法是原子的，但多个方法的组合不是原子的**，只能保证调用的方法内部安全：
 
   ```java
   Hashtable table = new Hashtable();
@@ -3299,7 +3299,7 @@ transient volatile int cellsBusy;
   ```java
   public void add(long x) {
       // as 为累加单元数组的引用，b 为基础值，v 表示期望值
-      // m 表示 cells 数组的长度，a 表示当前线程命中的 cell 单元格
+      // m 表示 cells 数组的长度 - 1，a 表示当前线程命中的 cell 单元格
       Cell[] as; long b, v; int m; Cell a;
       
       // cells 不为空说明 cells 已经被初始化，线程发生了竞争，去更新对应的 cell 槽位
@@ -3381,8 +3381,7 @@ transient volatile int cellsBusy;
               else if (!wasUncontended)
                   wasUncontended = true;
               // CASE 1.3: 当前线程 rehash 过，如果新命中的 cell 不为空，就尝试累加，false 说明新命中也有竞争
-              else if (a.cas(v = a.value, ((fn == null) ? v + x :
-                                           fn.applyAsLong(v, x))))
+              else if (a.cas(v = a.value, ((fn == null) ? v + x : fn.applyAsLong(v, x))))
                   break;
               // CASE 1.4: cells 长度已经超过了最大长度 CPU 内核的数量或者已经扩容
               else if (n >= NCPU || cells != as)
@@ -10689,6 +10688,12 @@ B站视频解析：https://www.bilibili.com/video/BV1n541177Ea
 
 ##### 变量
 
+* 存储数组：
+
+  ```java
+  transient volatile Node<K,V>[] table;
+  ```
+
 * 散列表的长度：
 
   ```java
@@ -10767,7 +10772,7 @@ B站视频解析：https://www.bilibili.com/video/BV1n541177Ea
   sizeCtl > 0：
 
   * 如果 table 未初始化，表示初始化大小
-  * 如果 table 已经初始化，表示下次扩容时的触发条件（阈值）
+  * 如果 table 已经初始化，表示下次扩容时的触发条件（阈值，元素个数，不是数组的长度）
 
   ```java
   private transient volatile int sizeCtl;		// volatile 保持可见性
@@ -11359,7 +11364,7 @@ public V put(K key, V value) {
 
 * 当链表中元素个数超过 8 个，数组的大小还未超过 64 时，此时进行数组的扩容，如果超过则将链表转化成红黑树
 * put 数据后调用 addCount() 方法，判断当前哈希表的容量超过阈值 sizeCtl，超过进行扩容
-* 发现其他线程正在扩容，帮其扩容
+* 增删改线程发现其他线程正在扩容，帮其扩容
 
 常见方法：
 
@@ -11884,7 +11889,7 @@ public CopyOnWriteArraySet() {
 
   适合读多写少的应用场景
 
-* 迭代器：CopyOnWriteArrayList 在返回一个迭代器时，创建一个该内部数组当前的快照，即使其他线程替换了原始数组，迭代器遍历的是该快照依然引用的是创建快照时的数组，所以这种实现方式也存在一定的数据延迟性，对其他线程并行添加的数据不可见
+* 迭代器：CopyOnWriteArrayList 在返回迭代器时，**创建一个该内部数组当前的快照（引用）**，即使其他线程替换了原始数组，迭代器遍历的快照依然引用的是创建快照时的数组，所以这种实现方式也存在一定的数据延迟性，对其他线程并行添加的数据不可见
 
   ```java
   public Iterator<E> iterator() {
@@ -11902,7 +11907,7 @@ public CopyOnWriteArraySet() {
           // 数组的引用在迭代过程不会改变
           snapshot = elements;
       }
-      // 不支持写操作
+      // 【不支持写操作】，因为是在快照上操作，无法同步回去
       public void remove() {
           throw new UnsupportedOperationException();
       } 
@@ -11916,8 +11921,6 @@ public CopyOnWriteArraySet() {
 
 
 #### 弱一致性
-
-##### get方法
 
 数据一致性就是读到最新更新的数据：
 
@@ -11947,33 +11950,6 @@ Thread-0 读到了脏数据
 
 
 
-##### 迭代器
-
-```java
-public static void main(String[] args) throws InterruptedException {
-    CopyOnWriteArrayList<Integer> list = new CopyOnWriteArrayList<>();
-    list.add(1);
-    list.add(2);
-    list.add(3);
-    Iterator<Integer> iter = list.iterator();
-    new Thread(() -> {
-        list.remove(0);
-        System.out.println(list);[2,3]
-    }).start();
-    
-    Thread.sleep(1000);
-    while (iter.hasNext()) {
-        System.out.println(iter.next());// 1 2 3
-    }
-}
-```
-
-
-
-***
-
-
-
 #### 安全失败
 
 在 java.util 包的集合类就都是快速失败的，而 java.util.concurrent 包下的类都是安全失败
@@ -11981,7 +11957,43 @@ public static void main(String[] args) throws InterruptedException {
 * 快速失败：在 A 线程使用**迭代器**对集合进行遍历的过程中，此时 B 线程对集合进行修改（增删改），或者 A 线程在遍历过程中对集合进行修改，都会导致 A 线程抛出 ConcurrentModificationException 异常
   * AbstractList 类中的成员变量 modCount，用来记录 List 结构发生变化的次数，**结构发生变化**是指添加或者删除至少一个元素的操作，或者是调整内部数组的大小，仅仅设置元素的值不算结构发生变化
   * 在进行序列化或者迭代等操作时，需要比较操作前后 modCount 是否改变，如果改变了抛出 CME 异常
-* 安全失败：采用安全失败机制的集合容器，在**迭代器**遍历时不是直接在集合内容上访问的，而是先复制原有集合内容，在复制集合上进行遍历。由于迭代时不是对原集合进行遍历，所以在遍历过程中对原集合所作的修改并不能被迭代器检测到，故不会抛 ConcurrentModificationException 异常
+  
+* 安全失败：采用安全失败机制的集合容器，在**迭代器**遍历时直接在原集合数组内容上访问，但其他线程的增删改都会新建数组进行修改，就算修改了集合底层的数组容器，迭代器依然引用着以前的数组（快照思想），所以不会出现异常
+
+  ConcurrentHashMap 不会出现并发时的迭代异常，因为在迭代过程中 CHM 的迭代器并没有判断结构的变化，迭代器还可以根据迭代的节点状态去寻找并发扩容时的新表进行迭代
+
+  ```java
+  ConcurrentHashMap map = new ConcurrentHashMap();
+  // KeyIterator
+  Iterator iterator = map.keySet().iterator();
+  ```
+
+  ```java
+   Traverser(Node<K,V>[] tab, int size, int index, int limit) {
+       // 引用还是原来集合的 Node 数组，所以其他线程对数据的修改是可见的
+       this.tab = tab;
+       this.baseSize = size;
+       this.baseIndex = this.index = index;
+       this.baseLimit = limit;
+       this.next = null;
+   }
+  ```
+
+  ```java
+  public final boolean hasNext() { return next != null; }
+  public final K next() {
+      Node<K,V> p;
+      if ((p = next) == null)
+          throw new NoSuchElementException();
+      K k = p.key;
+      lastReturned = p;
+      // 在方法中进行下一个节点的获取，会进行槽位头节点的状态判断
+      advance();
+      return k;
+  }
+  ```
+
+  
 
 
 

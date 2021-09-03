@@ -4112,6 +4112,47 @@ public class ArrayList<E> extends AbstractList<E>
 * **Fail-Fast**：快速失败，modCount 用来记录 ArrayList **结构发生变化**的次数，结构发生变化是指添加或者删除至少一个元素的所有操作，或者是调整内部数组的大小，仅仅只是设置元素的值不算结构发生变化
 
   在进行序列化或者迭代等操作时，需要比较操作前后 modCount 是否改变，改变了抛出 ConcurrentModificationException 异常
+  
+  ```java
+  public Iterator<E> iterator() {
+      return new Itr();
+  }
+  ```
+  
+  ```java
+  private class Itr implements Iterator<E> {
+      int cursor;       // index of next element to return
+      int lastRet = -1; // index of last element returned; -1 if no such
+      int expectedModCount = modCount;
+  
+      Itr() {}
+  
+      public boolean hasNext() {
+          return cursor != size;
+      }
+  
+     	// 获取下一个元素时首先判断结构是否发生变化
+      public E next() {
+          checkForComodification();
+         	// .....
+      }
+      // modCount 被其他线程改变抛出并发修改异常
+      final void checkForComodification() {
+          if (modCount != expectedModCount)
+              throw new ConcurrentModificationException();
+      }
+  	// 允许删除操作
+      public void remove() {
+          // ...
+          checkForComodification();
+          // ...
+          // 删除后重置 expectedModCount
+          expectedModCount = modCount;
+      }
+  }
+  ```
+  
+  
 
 
 
@@ -4805,7 +4846,7 @@ HashMap继承关系如下图所示：
 
     jdk8 之前数组类型是 Entry<K,V>类型，之后是 Node<K,V> 类型。只是换了个名字，都实现了一样的接口 Map.Entry<K,V>，负责存储键值对数据的
 
- 9. HashMap 中存放元素的个数（**重点**）
+ 9. HashMap 中**存放元素的个数**（**重点**）
 
     ```java
     // 存放元素的个数，HashMap中K-V的实时数量，不是table数组的长度
@@ -4861,7 +4902,7 @@ HashMap继承关系如下图所示：
   ```java
   public HashMap() {
   	this.loadFactor = DEFAULT_LOAD_FACTOR; 
-  	//将默认的加载因子0.75赋值给loadFactor，并没有创建数组
+  	// 将默认的加载因子0.75赋值给loadFactor，并没有创建数组
   }
   ```
 
@@ -4878,26 +4919,24 @@ HashMap继承关系如下图所示：
 
   ```java
   public HashMap(int initialCapacity, float loadFactor) {
-      //进行判断
-      //将指定的加载因子赋值给HashMap成员变量的负载因子loadFactor
+      // 进行判断
+      // 将指定的加载因子赋值给HashMap成员变量的负载因子loadFactor
       this.loadFactor = loadFactor;
-    	//最后调用了tableSizeFor
+    	// 最后调用了tableSizeFor
       this.threshold = tableSizeFor(initialCapacity);
   }
   ```
 
-  * 对于`this.threshold = tableSizeFor(initialCapacity);` 
+  * 对于 `this.threshold = tableSizeFor(initialCapacity)` 
 
-    有些人会觉得这里是一个bug应该这样书写：
-    `this.threshold = tableSizeFor(initialCapacity) * this.loadFactor;`
-    这样才符合 threshold 的概念，但是在 jdk8 以后的构造方法中，并没有对 table 这个成员变量进行初始化，table 的初始化被推迟到了 put 方法中，在 put 方法中会对 threshold 重新计算
-
-* 包含另一个`Map`的构造函数 
+    JDK8 以后的构造方法中，并没有对 table 这个成员变量进行初始化，table 的初始化被推迟到了 put 方法中，在 put 方法中会对 threshold 重新计算
+  
+* 包含另一个 `Map` 的构造函数 
 
   ```java
-  //构造一个映射关系与指定 Map 相同的新 HashMap
+  // 构造一个映射关系与指定 Map 相同的新 HashMap
   public HashMap(Map<? extends K, ? extends V> m) {
-      //负载因子loadFactor变为默认的负载因子0.75
+      // 负载因子loadFactor变为默认的负载因子0.75
       this.loadFactor = DEFAULT_LOAD_FACTOR;
       putMapEntries(m, false);
   }
@@ -4949,10 +4988,10 @@ HashMap继承关系如下图所示：
 * hash()：HashMap 是支持 Key 为空的；HashTable 是直接用 Key 来获取 HashCode，key 为空会抛异常
 
   * &（按位与运算）：相同的二进制数位上，都是1的时候，结果为1，否则为零
-* ^（按位异或运算）：相同的二进制数位上，数字相同，结果为0，不同为1，**不进位加法**
+  * ^（按位异或运算）：相同的二进制数位上，数字相同，结果为0，不同为1，**不进位加法**
   
   ```java
-static final int hash(Object key) {
+  static final int hash(Object key) {
       int h;
       // 1）如果key等于null：可以看到当key等于null的时候也是有哈希值的，返回的是0.
       // 2）如果key不等于null：首先计算出key的hashCode赋值给h,然后与h无符号右移16位后的二进制进行按位异或得到最后的hash值
@@ -4961,16 +5000,14 @@ static final int hash(Object key) {
   ```
   
   计算 hash 的方法：将 hashCode 无符号右移 16 位，高 16bit 和低 16bit 做异或，扰动运算
-
+  
   原因：当数组长度很小，假设是 16，那么 n-1即为 1111 ，这样的值和 hashCode() 直接做按位与操作，实际上只使用了哈希值的后4位。如果当哈希值的高位变化很大，低位变化很小，就很容易造成哈希冲突了，所以这里**把高低位都利用起来，让高16 位也参与运算**，从而解决了这个问题
-
+  
   哈希冲突的处理方式：
-
+  
   * 开放定址法：线性探查法（ThreadLocalMap 使用），平方探查法（i + 1^2、i - 1^2、i + 2^2……）、双重散列（多个哈希函数）
-* 链地址法：拉链法
+  * 链地址法：拉链法
   
-  
-
 * put()：jdk1.8 前是头插法 (拉链法)，多线程下扩容出现循环链表，jdk1.8 以后引入红黑树，插入方法变成尾插法
 
   第一次调用 put 方法时创建数组 Node[] table，因为散列表耗费内存，为了防止内存浪费，所以**延迟初始化**
@@ -4978,45 +5015,50 @@ static final int hash(Object key) {
   存储数据步骤（存储过程）：
 
   1. 先通过 hash 值计算出 key 映射到哪个桶，哈希寻址
-
   2. 如果桶上没有碰撞冲突，则直接插入
-
   3. 如果出现碰撞冲突：如果该桶使用红黑树处理冲突，则调用红黑树的方法插入数据；否则采用传统的链式方法插入，如果链的长度达到临界值，则把链转变为红黑树
-
   4. 如果数组位置相同，通过 equals 比较内容是否相同：相同则新的 value 覆盖旧 value，不相同则将新的键值对添加到哈希表中
-5. 如果 size 大于阈值 threshold，则进行扩容
-  
+  5. 最后判断 size 是否大于阈值 threshold，则进行扩容
+
   ```java
-public V put(K key, V value) {
+  public V put(K key, V value) {
       return putVal(hash(key), key, value, false, true);
   }
   ```
   
   putVal() 方法中 key 在这里执行了一下 hash()，在 putVal 函数中使用到了上述 hash 函数计算的哈希值：
-
+  
   ```java
-final V putVal(int hash, K key, V value, boolean onlyIfAbsent, boolean evict) {
-  	//。。。。。。。。。。。。。。
-  	if ((p = tab[i = (n - 1) & hash]) == null){//这里的n表示数组长度16
-  		//.....
-      } else {
-          if (e != null) { // existing mapping for key
-              V oldValue = e.value;
-              //onlyIfAbsent默认为false，所以可以覆盖已经存在的数据，如果为true说明不能覆盖
-              if (!onlyIfAbsent || oldValue == null)
-                  e.value = value;
-              afterNodeAccess(e);
-              return oldValue;
-          }
-      }
+  final V putVal(int hash, K key, V value, boolean onlyIfAbsent, boolean evict) {
+    	//。。。。。。。。。。。。。。
+    	if ((p = tab[i = (n - 1) & hash]) == null){//这里的n表示数组长度16
+    		//.....
+        } else {
+            if (e != null) { // existing mapping for key
+                V oldValue = e.value;
+                //onlyIfAbsent默认为false，所以可以覆盖已经存在的数据，如果为true说明不能覆盖
+                if (!onlyIfAbsent || oldValue == null)
+                    e.value = value;
+                afterNodeAccess(e);
+                // 如果这里允许覆盖，就直接返回了
+                return oldValue;
+            }
+        }
+      // 如果是添加操作，modCount ++，如果不是替换，不会走这里的逻辑，modCount用来记录逻辑的变化
+      ++modCount;
+      // 数量大于扩容阈值
+      if (++size > threshold)
+          resize();
+      afterNodeInsertion(evict);
+      return null;
   }
   ```
   
-  * `(n - 1) & hash`：计算下标位置
-
-  <img src="https://gitee.com/seazean/images/raw/master/Java/HashMap-putVal哈希运算.png" style="zoom: 67%;" />
-
-  * 余数本质是不断做除法，把剩余的数减去，运算效率要比位运算低
+    * `(n - 1) & hash`：计算下标位置
+  
+    <img src="https://gitee.com/seazean/images/raw/master/Java/HashMap-putVal哈希运算.png" style="zoom: 67%;" />
+  
+    * 余数本质是不断做除法，把剩余的数减去，运算效率要比位运算低
 
   
 
@@ -5118,7 +5160,7 @@ final V putVal(int hash, K key, V value, boolean onlyIfAbsent, boolean evict) {
   
 * resize()：
 
-  当 HashMap 中的元素个数超过 `(数组长度)*loadFactor(负载因子)` 或者链表过长时（链表长度 > 8，数组长度 < 64），就会进行数组扩容，创建新的数组，伴随一次重新 hash 分配，并且遍历 hash 表中所有的元素非常耗时，所以要尽量避免 resize
+  当 HashMap 中的**元素个数**超过 `(数组长度)*loadFactor(负载因子)` 或者链表过长时（链表长度 > 8，数组长度 < 64），就会进行数组扩容，创建新的数组，伴随一次重新 hash 分配，并且遍历 hash 表中所有的元素非常耗时，所以要尽量避免 resize
 
   扩容机制为扩容为原来容量的 2 倍：
 
@@ -5278,8 +5320,91 @@ final V putVal(int hash, K key, V value, boolean onlyIfAbsent, boolean evict) {
   5. 时间复杂度 O(1)
 
      * 若为树，则在树中通过key.equals(k)查找，**O(logn)** 
-
      * 若为链表，则在链表中通过key.equals(k)查找，**O(n)**
+
+
+
+****
+
+
+
+##### 并发异常
+
+HashMap 和 ArrayList 一样，内部采用 modCount 用来记录集合结构发生变化的次数，结构发生变化是指添加或者删除至少一个元素的所有操作，或者是调整内部数组的大小，仅仅只是设置元素的值不算结构发生变化
+
+在进行序列化或者迭代等操作时，需要比较操作前后 modCount 是否改变，如果**其他线程此时修改了集合内部的结构**，就会直接抛出 ConcurrentModificationException 异常
+
+```java
+HashMap map = new HashMap();
+Iterator iterator = map.keySet().iterator();
+```
+
+```java
+final class KeySet extends AbstractSet<K> {
+    // 底层获取的是 KeyIterator
+	public final Iterator<K> iterator()     { 
+        return new KeyIterator(); 
+    }
+}
+final class KeyIterator extends HashIterator implements Iterator<K> {
+    // 回调 HashMap.HashIterator#nextNode
+    public final K next() { 
+        return nextNode().key; 
+    }
+}
+```
+
+```java
+abstract class HashIterator {
+    Node<K,V> next;        // next entry to return
+    Node<K,V> current;     // current entry
+    int expectedModCount;  // for 【fast-fail】，快速失败
+    int index;             // current slot
+
+    HashIterator() {
+        // 把当前 map 的数量赋值给 expectedModCount，迭代时判断
+        expectedModCount = modCount;
+        Node<K,V>[] t = table;
+        current = next = null;
+        index = 0;
+        if (t != null && size > 0) { // advance to first entry
+            do {} while (index < t.length && (next = t[index++]) == null);
+        }
+    }
+
+    public final boolean hasNext() {
+        return next != null;
+    }
+	// iterator.next() 会调用这个函数
+    final Node<K,V> nextNode() {
+        Node<K,V>[] t;
+        Node<K,V> e = next;
+        // 这里会判断 集合的结构是否发生了变化，变化后 modCount 会改变，直接抛出并发异常
+        if (modCount != expectedModCount)
+            throw new ConcurrentModificationException();
+        if (e == null)
+            throw new NoSuchElementException();
+        if ((next = (current = e).next) == null && (t = table) != null) {
+            do {} while (index < t.length && (next = t[index++]) == null);
+        }
+        return e;
+    }
+	// 迭代器允许删除集合的元素，【删除后会重置 expectedModCount = modCount】
+    public final void remove() {
+        Node<K,V> p = current;
+        if (p == null)
+            throw new IllegalStateException();
+        if (modCount != expectedModCount)
+            throw new ConcurrentModificationException();
+        current = null;
+        K key = p.key;
+        removeNode(hash(key), key, null, false, false);
+        // 同步expectedModCount
+        expectedModCount = modCount;
+    }
+```
+
+
 
 
 
@@ -15480,7 +15605,7 @@ public class BubbleSort {
 
 实现思路：
 
-1. 控制选择几轮：数组的长度-1
+1. 控制选择几轮：数组的长度 - 1
 2. 控制每轮从当前位置开始比较几次
 
 <img src="https://gitee.com/seazean/images/raw/master/Java/Sort-选择排序.gif" style="zoom: 80%;" />
@@ -15613,9 +15738,9 @@ public class InsertSort {
         int[] arr = {55, 22, 2, 5, 1, 3, 8, 5, 7, 4, 3, 99, 88};
         for (int i = 1; i < arr.length; i++) {
             for (int j = i; j > 0; j--) {
-                //比较索引j处的值和索引j-1处的值，
-                //如果索引j-1处的值比索引j处的值大，则交换数据，
-                //如果不大，那么就找到合适的位置了，退出循环即可；
+                // 比较索引j处的值和索引j-1处的值，
+                // 如果索引j-1处的值比索引j处的值大，则交换数据，
+                // 如果不大，那么就找到合适的位置了，退出循环即可；
                 if (arr[j - 1] > arr[j]) {
                     int temp = arr[j];
                     arr[j] = arr[j - 1];
@@ -15660,18 +15785,18 @@ public class InsertSort {
 public class ShellSort {
     public static void main(String[] args) {
         int[] arr = {55, 22, 2, 5, 1, 3, 8, 5, 7, 4, 3, 99, 88};
-        //1. 确定增长量h的初始值
+        // 确定增长量h的初始值
         int h = 1;
         while (h < arr.length / 2) {
             h = 2 * h + 1;
         }
-        //2. 希尔排序
+        // 希尔排序
         while (h >= 1) {
-            //2.1 找到待插入的元素
+            // 找到待插入的元素
             for (int i = h; i < arr.length; i++) {
-                //2.2 把待插入的元素插到有序数列中
+                // 把待插入的元素插到有序数列中
                 for (int j = i; j >= h; j -= h) {
-                    //待插入的元素是arr[j]，比较arr[j]和arr[j-h]
+                    // 待插入的元素是arr[j]，比较arr[j]和arr[j-h]
                     if (arr[j] < arr[j - h]) {
                         int temp = arr[j];
                         arr[j] = arr[j - h];
@@ -15679,7 +15804,7 @@ public class ShellSort {
                     }
                 }
             }
-            //3. 减小h的值，减小规则为：
+            // 减小h的值，减小规则为：
             h = h / 2;
         }
         System.out.println(Arrays.toString(arr));
@@ -15734,20 +15859,20 @@ public class MergeSort {
         mergeSort(arr, 0, arr.length - 1);
         System.out.println(Arrays.toString(arr));
     }
-	// low 为arr最小索引，high为最大索引
+	// low为arr最小索引，high为最大索引
     public static void mergeSort(int[] arr, int low, int high) {
         // low == high 时说明只有一个元素了，直接返回
         if (low < high) {
             int mid = (low + high) / 2;
-            mergeSort(arr, low, mid);		//归并排序前半段
-            mergeSort(arr, mid + 1, high);	//归并排序后半段
-            merge(arr, low, mid, high);		//将两段有序段合成一段有序段
+            mergeSort(arr, low, mid);		// 归并排序前半段
+            mergeSort(arr, mid + 1, high);	// 归并排序后半段
+            merge(arr, low, mid, high);		// 将两段有序段合成一段有序段
         }
     }
 
     private static void merge(int[] arr, int low, int mid, int high) {
         int index = 0;
-        //定义左右指针
+        // 定义左右指针
         int left = low, right = mid + 1;
         int[] assist = new int[high - low + 1];
         
@@ -15803,15 +15928,15 @@ public class QuickSort {
     }
 
     public static void quickSort(int[] arr, int low, int high) {
-        //递归结束的条件
+        // 递归结束的条件
         if (low >= high) {
             return;
         }
         
         int left = low;
         int right = high;
-        
-        int temp = arr[left];//基准数
+        // 基准数
+        int temp = arr[left];
         while (left < right) {
             // 用 >= 可以防止多余的交换
             while (arr[right] >= temp && right > left) {
@@ -15820,7 +15945,7 @@ public class QuickSort {
             // 做判断防止相等
             if (right > left) {
                 // 到这里说明 arr[right] < temp 
-                arr[left] = arr[right];//此时把arr[right]元素视为空
+                arr[left] = arr[right];// 此时把arr[right]元素视为空
                 left++;
             }
             while (arr[left] <= temp && left < right) {
