@@ -4915,7 +4915,7 @@ HashMap继承关系如下图所示：
   }
   ```
 
-* 构造一个具有指定的初始容量和负载因子的HashMap
+* 构造一个具有指定的初始容量和负载因子的 HashMap
 
   ```java
   public HashMap(int initialCapacity, float loadFactor) {
@@ -4942,7 +4942,7 @@ HashMap继承关系如下图所示：
   }
   ```
 
-  putMapEntries源码分析：
+  putMapEntries 源码分析：
 
   ```java
   final void putMapEntries(Map<? extends K, ? extends V> m, boolean evict) {
@@ -4987,8 +4987,8 @@ HashMap继承关系如下图所示：
 
 * hash()：HashMap 是支持 Key 为空的；HashTable 是直接用 Key 来获取 HashCode，key 为空会抛异常
 
-  * &（按位与运算）：相同的二进制数位上，都是1的时候，结果为1，否则为零
-  * ^（按位异或运算）：相同的二进制数位上，数字相同，结果为0，不同为1，**不进位加法**
+  * &（按位与运算）：相同的二进制数位上，都是 1 的时候，结果为 1，否则为零
+  * ^（按位异或运算）：相同的二进制数位上，数字相同，结果为 0，不同为 1，**不进位加法**
   
   ```java
   static final int hash(Object key) {
@@ -5185,9 +5185,9 @@ HashMap继承关系如下图所示：
 
   HashMap 在进行扩容后，节点**要么就在原来的位置，要么就被分配到"原位置+旧容量"的位置**
 
-  判断：e.hash 与 oldCap 对应的有效高位上的值是 1，即当前数组长度 n 为 1 的位为  x，如果 key 的哈希值 x 位也为 1，则扩容后的索引为 now + n
+  判断：e.hash 与 oldCap 对应的有效高位上的值是 1，即当前数组长度 n 二进制为 1 的位为 x 位，如果 key 的哈希值 x 位也为 1，则扩容后的索引为 now + n
 
-  注意：这里也要求**数组长度 2 的幂**
+  注意：这里要求**数组长度 2 的幂**
 
   ![](https://gitee.com/seazean/images/raw/master/Java/HashMap-resize扩容.png)
 
@@ -10614,7 +10614,7 @@ objD.fieldG = G;     	// 写
 
 * **写屏障 (Store Barrier) + SATB**：当原来成员变量的引用发生变化之前，记录下原来的引用对象
 
-  保留 GC 开始时的对象图，即原始快照 SATB，当 GC Roots 确定后，对象图就已经确定，那后续的标记也应该是按照这个时刻的对象图走，如果期间对白色对象有了新的引用会记录下来，并且将白色对象变灰（说明可达了），重新扫描该对象
+  保留 GC 开始时的对象图，即原始快照 SATB，当 GC Roots 确定后，对象图就已经确定，那后续的标记也应该是按照这个时刻的对象图走，如果期间对白色对象有了新的引用会记录下来，并且将白色对象变灰（说明可达了），重新扫描该对象的引用关系
 
   SATB (Snapshot At The Beginning) 破坏了条件一，从而保证了不会漏标
 
@@ -11046,7 +11046,7 @@ G1（Garbage-First）是一款面向服务端应用的垃圾收集器，**应用
 
 G1 对比其他处理器的优点：
 
-* **并发与并行**：
+* 并发与并行：
   * 并行性：G1 在回收期间，可以有多个 GC 线程同时工作，有效利用多核计算能力，此时用户线程 STW
   * 并发性：G1 拥有与应用程序交替执行的能力，部分工作可以和应用程序同时执行，因此不会在整个回收阶段发生完全阻塞应用程序的情况
   * 其他的垃圾收集器使用内置的 JVM 线程执行 GC 的多线程操作，而 G1 GC 可以采用应用线程承担后台运行的 GC 工作，JVM 的 GC 线程处理速度慢时，系统会**调用应用程序线程加速垃圾回收**过程
@@ -11062,7 +11062,7 @@ G1 对比其他处理器的优点：
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JVM-G1-Region区域.png)
 
-- **空间整合**：
+- 空间整合：
 
   - CMS：标记-清除算法、内存碎片、若干次 GC 后进行一次碎片整理
   - G1：整体来看是基于标记 - 整理算法实现的收集器，从局部（Region 之间）上来看是基于复制算法实现的，两种算法都可以避免内存碎片
@@ -11146,7 +11146,7 @@ G1 中提供了三种垃圾回收模式：YoungGC、Mixed GC 和 FullGC，在不
   * 初始标记：标记从根节点直接可达的对象，这个阶段是 STW 的，并且会触发一次年轻代 GC
   * 根区域扫描 (Root Region Scanning)：扫描 Survivor 区中指向老年代的，被初始标记标记了的引用及引用的对象，这一个过程是并发进行的，但是必须在 Young GC 之前完成
   * 并发标记 (Concurrent Marking)：在整个堆中进行并发标记（应用程序并发执行），可能被 YoungGC 中断。会计算每个区域的对象活性，即区域中存活对象的比例，若区域中的所有对象都是垃圾，则这个区域会被立即回收（实时回收），给浮动垃圾准备出更多的空间，把需要收集的 Region 放入 CSet 当中
-  * 最终标记：为了修正在并发标记期间因用户程序继续运作而导致标记产生变动的那一部分标记记录，虚拟机将这段时间对象变化记录在线程的 Remembered Set Logs 里面，最终标记阶段需要把 Remembered Set Logs 的数据合并到 Remembered Set 中，这阶段需要停顿线程，但是可并行执行（防止漏标）
+  * 最终标记：为了修正在并发标记期间因用户程序继续运作而导致标记产生变动的那一部分标记记录，虚拟机将这段时间对象变化记录在线程的 Remembered Set Logs 里面，最终标记阶段需要把 Remembered Set Logs 的数据合并到 Remembered Set 中，这阶段需要停顿线程，但是可并行执行（**防止漏标**）
   * 筛选回收：并发清理阶段，首先对 CSet 中各个 Region 中的回收价值和成本进行排序，根据用户所期望的 GC 停顿时间来制定回收计划。此阶段其实也可以做到与用户程序一起并发执行，但是因为只回收一部分 Region，时间是用户可控制的，而且停顿用户线程将大幅度提高收集效率
 
   ![](https://gitee.com/seazean/images/raw/master/Java/JVM-G1收集器.jpg)
@@ -14875,7 +14875,7 @@ option 参数：
 
 #### jhat
 
-jhat（JVM Heap Analysis Tool）：Sun JDK 提供的 jhat 命令与 jmap 命令搭配使用，用于分析 jmap 生成的 heap dump 文件（堆转储快照），jhat 内置了一个微型的 HTTP/HTML 服务器，生成 dump 文件的分析结果后，用户可以在浏览器中查看分析结果
+jhat（JVM Heap Analysis Tool）：Sun JDK 提供的 jhat 命令与 jmap 命令搭配使用，用于**分析 jmap 生成的 heap dump 文件**（堆转储快照），jhat 内置了一个微型的 HTTP/HTML 服务器，生成 dump 文件的分析结果后，用户可以在浏览器中查看分析结果
 
 使用语法：`jhat <options> <dumpfile>`
 
@@ -14930,7 +14930,7 @@ options 参数：
 
 - 对象等待中：Object.wait() 或 TIMED＿WAITING
 
-- 停止，：Parked
+- 停止：Parked
 
 
 
@@ -14985,6 +14985,8 @@ jstatd 是一个 RMI 服务端程序，相当于代理服务器，建立本地�
 ### GUI工具
 
 工具的使用此处不再多言，推荐一个写的非常好的文章，JVM 调优部分的笔记全部参考此文章编写
+
+
 
 视频链接：https://www.bilibili.com/video/BV1PJ411n7xZ?p=304
 
@@ -16515,7 +16517,7 @@ public class Kmp {
 
 平衡二叉树（AVL）的特点：
 
-+ 二叉树左右两个子树的高度差不超过1
++ 二叉树左右两个子树的高度差不超过 1
 + 任意节点的左右两个子树都是一颗平衡二叉树
 
 平衡二叉树旋转：

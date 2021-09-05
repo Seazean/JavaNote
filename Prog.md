@@ -1263,7 +1263,7 @@ public class SpinLock {
 
 ##### 锁消除
 
-锁消除是指对于被检测出不可能存在竞争的共享数据的锁进行消除
+锁消除是指对于被检测出不可能存在竞争的共享数据的锁进行消除，这是 JVM **即时编译器的优化**
 
 锁消除主要是通过**逃逸分析**来支持，如果堆上的共享数据不可能逃逸出去被其它线程访问到，那么就可以把它们当成私有数据对待，也就可以将它们的锁进行消除（同步消除：JVM 内存分配）
 
@@ -4086,7 +4086,7 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
       // 数量 + 1
       int sz = ++size;
       
-      // 【做一次启发式清理】，如果没有清除任何 entry 并且当前使用量达到了负载因子所定义，那么进行 rehash
+      // 【做一次启发式清理】，如果没有清除任何 entry 并且【当前使用量达到了负载因子所定义，那么进行 rehash
       if (!cleanSomeSlots(i, sz) && sz >= threshold)
           // 扩容
           rehash();
@@ -5898,8 +5898,6 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
   }
   ```
   
-  
-  
 * 拒绝策略相关的内部类
 
 
@@ -6238,7 +6236,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
   		// 如果线程数量是否超过最大线程数，直接回收
           // 如果当前线程【允许超时回收并且已经超时了】，就应该被回收了，由于【担保机制】还要做判断：
           // 	  wc > 1 说明线程池还用其他线程，当前线程可以直接回收
-          //    workQueue.isEmpty() 前置条件是 wc = 1，如果当前任务队列也是空了，最后一个线程就可以安全的退出
+          //    workQueue.isEmpty() 前置条件是 wc = 1，【如果当前任务队列也是空了，最后一个线程就可以退出】
           if ((wc > maximumPoolSize || (timed && timedOut)) && (wc > 1 || workQueue.isEmpty())) {
               // 使用 CAS 机制将 ctl 值 -1 ,减 1 成功的线程，返回 null，代表可以退出
               if (compareAndDecrementWorkerCount(c))
@@ -6264,7 +6262,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
   }
   ```
   
-* processWorkerExit()：**线程退出线程池**
+* processWorkerExit()：**线程退出线程池**，也有担保机制，保证队列中的任务被执行
 
   ```java
   // 正常退出 completedAbruptly = false，异常退出为 true
@@ -13813,6 +13811,8 @@ TCP 协议的使用场景：文件上传和下载、邮件发送和接收、远�
 
 <img src="https://gitee.com/seazean/images/raw/master/Java/四次挥手.png" alt="四次挥手" style="zoom: 67%;" />
 
+推荐阅读：https://yuanrengu.com/2020/77eef79f.html
+
 
 
 ***
@@ -13849,6 +13849,8 @@ ServerSocket 类：
 
 * 构造方法：`public ServerSocket(int port)`
 * 常用API：`public Socket accept()`，**阻塞等待**接收一个客户端的 Socket 管道连接请求，连接成功返回一个 Socket 对象
+
+  三次握手后 TCP 连接建立成功，服务器内核会把连接从 SYN 半连接队列中移出，移入 accept （全连接）队列，等待进程调用 accept 函数时把连接取出。如果进程不能及时调用 accept 函数，就会造成 accept 队列溢出，最终导致建立好的 TCP 连接被丢弃
 
 相当于客户端和服务器建立一个数据管道，管道一般不用 close
 
@@ -14530,6 +14532,8 @@ NIO 使用的 SocketChannel 也是使用的堆外内存，源码解析：
   	}
   }
   ```
+
+* 读操作相同
 
 
 

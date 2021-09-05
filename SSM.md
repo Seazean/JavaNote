@@ -4,7 +4,7 @@
 
 ORM（Object Relational Mapping）： 对象关系映射，指的是持久化数据和实体对象的映射模式，解决面向对象与关系型数据库存在的互不匹配的现象
 
-![](https://gitee.com/seazean/images/raw/master/Frame/ORM介绍.png)
+![](https://gitee.com/seazean/images/raw/master/Frame/MyBatis-ORM介绍.png)
 
 **MyBatis**：
 
@@ -1470,7 +1470,7 @@ Mapper 接口开发需要遵循以下规范：
 
 一级缓存是 SqlSession 级别的缓存
 
-<img src="https://gitee.com/seazean/images/raw/master/Frame/MyBatis一级缓存.png" style="zoom: 67%;" />
+<img src="https://gitee.com/seazean/images/raw/master/Frame/MyBatis-一级缓存.png" style="zoom: 67%;" />
 
 工作流程：第一次发起查询用户 id 为 1 的用户信息，先去找缓存中是否有 id 为 1 的用户信息，如果没有，从数据库查询用户信息，得到用户信息，将用户信息存储到一级缓存中；第二次发起查询用户 id 为 1 的用户信息，先去找缓存中是否有 id 为 1 的用户信息，缓存中有，直接从缓存中获取用户信息。
 
@@ -2722,7 +2722,7 @@ PageInfo相关API：
 
 Spring 是分层的 JavaSE/EE 应用 full-stack 轻量级开源框架
 
-![](https://gitee.com/seazean/images/raw/master/Frame/Spring框架介绍.png)
+![](https://gitee.com/seazean/images/raw/master/Frame/Spring-框架介绍.png)
 
 Spring 优点：
 
@@ -2735,7 +2735,7 @@ Spring 优点：
 
 体系结构：
 
-![](https://gitee.com/seazean/images/raw/master/Frame/Spring体系结构.png)
+![](https://gitee.com/seazean/images/raw/master/Frame/Spring-体系结构.png)
 
 
 
@@ -2751,7 +2751,7 @@ Spring 优点：
 - **Spring 控制的资源全部放置在 Spring 容器中，该容器称为 IoC 容器**
 - 官方网站：https://spring.io/ → Projects → spring-framework → LEARN → Reference Doc
 
-![](https://gitee.com/seazean/images/raw/master/Frame/Spring_ioc介绍.png)
+![](https://gitee.com/seazean/images/raw/master/Frame/Spring-IOC介绍.png)
 
 
 
@@ -2835,7 +2835,7 @@ Spring 优点：
    }
    ```
 
-   ![](https://gitee.com/seazean/images/raw/master/Frame/Spring_ioc实现.png)
+   ![](https://gitee.com/seazean/images/raw/master/Frame/Spring-IOC实现.png)
 
 
 
@@ -3091,7 +3091,7 @@ ApplicationContext 子类相关API：
 
 - DI（Dependency Injection）依赖注入，应用程序运行依赖的资源由 Spring 为其提供，资源进入应用程序的方式称为注入。简单说就是利用反射机制为类的属性赋值的操作
 
-  ![](https://gitee.com/seazean/images/raw/master/Frame/DI介绍.png)
+  ![](https://gitee.com/seazean/images/raw/master/Frame/Spring-DI介绍.png)
 
 IoC 和 DI 的关系：IoC 与 DI 是同一件事站在不同角度看待问题
 
@@ -4582,7 +4582,7 @@ ApplicationContext：
 
 FileSystemXmlApplicationContext：加载文件系统中任意位置的配置文件，而 ClassPathXmlAC 只能加载类路径下的配置文件
 
-![](https://gitee.com/seazean/images/raw/master/Frame/ApplicationContext层级结构图.png)
+![](https://gitee.com/seazean/images/raw/master/Frame/Spring-ApplicationContext层级结构图.png)
 
 BeanFactory 的成员属性：
 
@@ -8521,7 +8521,7 @@ protected Object[] getAdvicesAndAdvisorsForBean(Class<?> beanClass, String beanN
 
 AbstractAdvisorAutoProxyCreator.findEligibleAdvisors()：
 
-* `candidateAdvisors = findCandidateAdvisors()`：**获取当前容器内可以使用（所有）的 advisor**，调用的是 AnnotationAwareAspectJAutoProxyCreator 类的方法
+* `candidateAdvisors = findCandidateAdvisors()`：**获取当前容器内可以使用（所有）的 advisor**，调用的是 AnnotationAwareAspectJAutoProxyCreator 类的方法，每个方法对应一个 Advisor 
 
   * `advisors = super.findCandidateAdvisors()`：**查询出 XML 配置的所有 Advisor 类型**
 
@@ -8580,7 +8580,7 @@ AbstractAdvisorAutoProxyCreator.findEligibleAdvisors()：
       * `if (!Proxy.isProxyClass(targetClass))`：判断当前实例是不是代理类，确保 class 内存储的数据包括目标对象的class  而不是代理类的 class
       * `for (Class<?> clazz : classes)`：**检查目标 class 和上级接口的所有方法，查看是否会被方法匹配器匹配**，如果有一个方法匹配成功，就说明目标对象 AOP 代理需要增强
         * `specificMethod = AopUtils.getMostSpecificMethod(method, targetClass)`：方法可能是接口的，判断当前类有没有该方法
-        * `return (specificMethod != method && matchesMethod(specificMethod))`：**类和方法的匹配**，不包括参数，就是静态匹配
+        * `return (specificMethod != method && matchesMethod(specificMethod))`：**类和方法的匹配**，不包括参数
 
 * `extendAdvisors(eligibleAdvisors)`：在 eligibleAdvisors 列表的索引 0 的位置添加 DefaultPointcutAdvisor，**封装了 ExposeInvocationInterceptor 拦截器**
 
@@ -9128,7 +9128,7 @@ SpringMVC 优点：
 
 - 数据层：负责数据操作
 
-  ![](https://gitee.com/seazean/images/raw/master/Frame/MVC三层架构.png)
+  ![](https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-MVC三层架构.png)
 
 MVC（Model View Controller），一种用于设计创建Web应用程序表现层的模式
 
@@ -9143,7 +9143,7 @@ MVC（Model View Controller），一种用于设计创建Web应用程序表现�
   * Servlet
   * SpringMVC
 
-  ![](https://gitee.com/seazean/images/raw/master/Frame/MVC功能图示.png)
+  ![](https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-MVC功能图示.png)
 
 
 
@@ -10651,7 +10651,7 @@ SpringMVC 提供访问原始 Servlet 接口的功能
 
 * View：视图， View 最后对页面进行渲染将结果返回给用户。SpringMVC 框架提供了很多的 View 视图类型，包括：jstlView、freemarkerView、pdfView 等
 
-  ![](https://gitee.com/seazean/images/raw/master/Frame/SpingMVC-技术架构.png)
+  ![](https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-技术架构.png)
 
 
 
@@ -12982,6 +12982,8 @@ public class HelloController {
 
 ### 结构搭建
 
+整合 SSM 三种框架进行项目开发
+
 * 创建项目，组织项目结构，创建包
 
 * 创建表与实体类
@@ -12993,7 +12995,7 @@ public class HelloController {
   * 业务层接口 + 业务层实现类
   * 表现层类
 
-  ![](https://gitee.com/seazean/images/raw/master/Frame/SSM目录结构.png)
+  ![](https://gitee.com/seazean/images/raw/master/Frame/SSM-目录结构.png)
 
 
 
@@ -13778,7 +13780,7 @@ public class ProjectExceptionAdivce {
 
 ### applicationContext.xml
 
-![](https://gitee.com/seazean/images/raw/master/Frame/IoC注解整合MyBatis图解.png)
+![](https://gitee.com/seazean/images/raw/master/Frame/SSM-IoC注解整合MyBatis图解.png)
 
 * JdbcConfig
 
