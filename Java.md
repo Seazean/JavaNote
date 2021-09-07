@@ -2856,8 +2856,8 @@ public class MyArraysDemo {
 1. 导入包：`import java.util.Random`
 2. 创建对象：`Random r = new Random()`
 3. 随机整数：`int num = r.nextInt(10)`
-* 解释：10 代表的是一个范围，如果括号写 10，产生的随机数就是 0-9，括号写 20 的随机数则是 0-19
-* 获取 0-10：`int num = r.nextInt(10 + 1)`
+   * 解释：10 代表的是一个范围，如果括号写 10，产生的随机数就是 0 - 9，括号写 20 的随机数则是 0 - 19	
+   * 获取 0 - 10：`int num = r.nextInt(10 + 1)`
 
 4. 随机小数：`public double nextDouble()` 从范围 `0.0d` 至 `1.0d` （左闭右开），伪随机地生成并返回
 
@@ -12217,7 +12217,7 @@ ClassLoader 类常用方法：
 * `loadclass(String name)`：加载名为 name 的类，返回结果为 Class 类的实例，**该方法就是双亲委派模式**
 * `findclass(String name)`：查找二进制名称为 name 的类，返回结果为 Class 类的实例，该方法会在检查完父类加载器之后被 loadClass() 方法调用
 * `findLoadedClass(String name)`：查找名称为 name 的已经被加载过的类，final 修饰无法重写
-* `defineClass(String name, byte[] b, int off, int len)`：将字节流解析成 JVM 能够识别的类对象
+* `defineClass(String name, byte[] b, int off, int len)`：将**字节流**解析成 JVM 能够识别的类对象
 * `resolveclass(Class<?> c)`：链接指定的 Java 类，可以使类的 Class 对象创建完成的同时也被解析
 * `InputStream getResourceAsStream(String name)`：指定资源名称获取输入流
 
@@ -12424,21 +12424,21 @@ public class MyClassLoader extends ClassLoader{
        BufferedInputStream bis = null;
         ByteArrayOutputStream baos = null;
         try {
-            //获取字节码文件的完整路径
+            // 获取字节码文件的完整路径
             String fileName = classPath + className + ".class";
-            //获取一个输入流
+            // 获取一个输入流
             bis = new BufferedInputStream(new FileInputStream(fileName));
-            //获取一个输出流
+            // 获取一个输出流
             baos = new ByteArrayOutputStream();
-            //具体读入数据并写出的过程
+            // 具体读入数据并写出的过程
             int len;
             byte[] data = new byte[1024];
             while ((len = bis.read(data)) != -1) {
                 baos.write(data, 0, len);
             }
-            //获取内存中的完整的字节数组的数据
+            // 获取内存中的完整的字节数组的数据
             byte[] byteCodes = baos.toByteArray();
-            //调用 defineClass()，将字节数组的数据转换为 Class 的实例。
+            // 调用 defineClass()，将字节数组的数据转换为 Class 的实例。
             Class clazz = defineClass(null, byteCodes, 0, byteCodes.length);
             return clazz;
         } catch (IOException e) {
@@ -12507,7 +12507,7 @@ public static void main(String[] args) {
 
 ### 执行过程
 
- Java文件编译执行的过程：
+ Java 文件编译执行的过程：
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JVM-Java文件编译执行的过程.png)
 

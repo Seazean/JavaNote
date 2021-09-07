@@ -628,7 +628,7 @@ Mapper 接口开发需要遵循以下规范：
 
 <resultType>：返回的是一个集合，要写集合中元素的类型
 
-<resultMap>：返回一条记录的Map，key 是列名，value 是对应的值，用来配置字段和对象属性的映射关系标签，结果映射（和 resultType 二选一）
+<resultMap>：返回一条记录的 Map，key 是列名，value 是对应的值，用来配置字段和对象属性的映射关系标签，结果映射（和 resultType 二选一）
 
 * id 属性：唯一标识
 * type 属性：实体对象类型
@@ -650,7 +650,7 @@ Mapper 接口开发需要遵循以下规范：
 
 * <discriminator>：鉴别器，用来判断某列的值，根据得到某列的不同值做出不同自定义的封装行为
 
-自定义封装规则可以将数据库中比较复杂的数据类型映射为 javaBean 中的属性
+自定义封装规则可以将数据库中比较复杂的数据类型映射为 JavaBean 中的属性
 
 
 
@@ -1374,14 +1374,14 @@ Mapper 接口开发需要遵循以下规范：
 
 学生和课程
 
-* SQL查询语句
+* SQL 查询语句
 
   ```mysql
   SELECT DISTINCT s.id,s.name,s.age FROM student s,stu_cr sc WHERE sc.sid=s.id
   SELECT c.id,c.name FROM stu_cr sc,course c WHERE sc.cid=c.id AND sc.sid=#{id}
   ```
   
-* CourseMapper接口
+* CourseMapper 接口
 
   ```java
   public interface CourseMapper {
@@ -1391,7 +1391,7 @@ Mapper 接口开发需要遵循以下规范：
   }
   ```
 
-* StudentMapper接口
+* StudentMapper 接口
 
   ```java
   public interface StudentMapper {
@@ -2901,7 +2901,7 @@ Spring 容器中 Bean 的**线程安全**问题：
 
 * 原型 Bean，每次创建一个新对象，线程之间并不存在 Bean 共享，所以不会有线程安全的问题
 
-* 单例Bean，所有线程共享一个单例实例 Bean，因此是存在资源的竞争，如果单例 Bean是一个**无状态 Bean**，也就是线程中的操作不会对 Bean 的成员执行查询以外的操作，那么这个单例 Bean 是线程安全的
+* 单例 Bean，所有线程共享一个单例实例 Bean，因此是存在资源的竞争，如果单例 Bean是一个**无状态 Bean**，也就是线程中的操作不会对 Bean 的成员执行查询以外的操作，那么这个单例 Bean 是线程安全的
 
   解决方法：开发人员来进行线程安全的保证，最简单的办法就是把 Bean 的作用域 singleton 改为 protopyte
 
@@ -14089,7 +14089,7 @@ SpringBoot 功能：
 
 #### SpringBoot
 
-@SpringBootApplication()：启动注解，实现 SpringBoot 的自动部署
+@SpringBootApplication：启动注解，实现 SpringBoot 的自动部署
 
 * 参数 scanBasePackages：可以指定扫描范围
 * 默认扫描当前引导类所在包及其子包
