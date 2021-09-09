@@ -478,7 +478,7 @@ SqlSession：构建者对象接口，用于执行 SQL、管理事务、接口代
   defaultExecutorType：配置默认的执行器
 
   * SIMPLE 就是普通的执行器（默认）
-  * REUSE 执行器会重用预处理语句（PreparedStatement）
+  * REUSE 执行器会重用预处理语句
   * BATCH 执行器不仅重用语句还会执行批量更新
 
 * SqlSession **会话内批量**操作：
@@ -2618,9 +2618,9 @@ public class MyFirstPlugin implements Interceptor{
 
 1. 导入 PageHelper 的 Maven 坐标
 
-2. 在 mybatis 核心配置文件中配置 PageHelper 插件
+2. 在 MyBatis 核心配置文件中配置 PageHelper 插件
 
-   注意：分页助手的插件配置在通用 mapper 之前
+   注意：分页助手的插件配置在通用 Mapper 之前
 
    ```xml
    <plugins>
@@ -2633,8 +2633,9 @@ public class MyFirstPlugin implements Interceptor{
    ```
 
 3. 与 MySQL 分页查询页数计算公式不同
-   static <E> Page<E> startPage(int pageNum, int pageSize) : pageNum第几页，pageSize页面大小
-
+   
+   `static <E> Page<E> startPage(int pageNum, int pageSize)`：pageNum第几页，pageSize页面大小
+   
    ```java
    @Test
    public void selectAll() {
@@ -2646,7 +2647,7 @@ public class MyFirstPlugin implements Interceptor{
        }
    }
    ```
-
+   
    
 
 ****
@@ -6515,7 +6516,7 @@ Spring 在事务开始时，根据当前环境中设置的隔离级别，调整�
 
 TransactionDefinition 接口中定义了五个表示隔离级别的常量：
 
-- TransactionDefinition.ISOLATION_DEFAULT：使用后端数据库默认的隔离级别，Mysql 默认采用的 REPEATABLE_READ隔离级别，Oracle 默认采用的 READ_COMMITTED隔离级别.
+- TransactionDefinition.ISOLATION_DEFAULT：使用后端数据库默认的隔离级别，Mysql 默认采用的 REPEATABLE_READ 隔离级别，Oracle 默认采用的 READ_COMMITTED隔离级别.
 - TransactionDefinition.ISOLATION_READ_UNCOMMITTED：最低的隔离级别，允许读取尚未提交的数据变更，可能会导致脏读、幻读或不可重复读
 - TransactionDefinition.ISOLATION_READ_COMMITTED：允许读取并发事务已经提交的数据，可以阻止脏读，但是幻读或不可重复读仍有可能发生
 - TransactionDefinition.ISOLATION_REPEATABLE_READ：对同一字段的多次读取结果都是一致的，除非数据是被本身事务自己所修改，可以阻止脏读和不可重复读，但幻读仍有可能发生。
@@ -7227,7 +7228,7 @@ public void addAccount{}
   public int update(){}
   ```
 
-  
+* 情况 7：注解在接口上，代理对象是 CGLIB
 
 
 

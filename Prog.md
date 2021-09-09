@@ -261,7 +261,7 @@ Java Virtual Machine Stacks（Java 虚拟机栈）：每个线程启动后，虚
 * 线程的 CPU 时间片用完
 * 垃圾回收
 * 有更高优先级的线程需要运行
-* 线程自己调用了 sleep、yield、wait、join、park、synchronized、lock 等方法
+* 线程自己调用了 sleep、yield、wait、join、park 等方法
 
 程序计数器（Program Counter Register）：记住下一条 JVM 指令的执行地址，是线程私有的
 
@@ -4634,7 +4634,7 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
 }
 ```
 
-入队：尾插法
+入队：**尾插法**
 
 * 初始化链表 `last = head = new Node<E>(null)`，**Dummy 节点用来占位**，item 为 null
 
@@ -4660,7 +4660,7 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
 
 * 再来一个节点入队 `last = last.next = node`
 
-出队：出队首节点，FIFO
+出队：**出队头节点**，FIFO
 
 * 出队源码：
 
@@ -5511,7 +5511,7 @@ public ThreadPoolExecutor(int corePoolSize,
 
 
 
-参考视频：https://space.bilibili.com/457326371/
+图片来源：https://space.bilibili.com/457326371/
 
 
 
@@ -6810,7 +6810,7 @@ FutureTask 类的成员方法：
   }
   ```
   
-* FutureTask#cancel：任务取消
+* FutureTask#cancel：任务取消，打断正在执行该任务的线程
 
   ```java
   public boolean cancel(boolean mayInterruptIfRunning) {
@@ -6830,7 +6830,7 @@ FutureTask 类的成员方法：
                       // 打断执行的线程
                       t.interrupt();
               } finally {
-                  // 设置任务状态为中断完成
+                  // 设置任务状态为【中断完成】
                   UNSAFE.putOrderedInt(this, stateOffset, INTERRUPTED);
               }
           }
@@ -7015,7 +7015,7 @@ public ScheduledThreadPoolExecutor(int corePoolSize) {
 
 ##### 延迟任务
 
-ScheduledFutureTask 继承 FutureTask，实现 RunnableScheduledFuture 接口，具有延迟执行的特点，覆盖 FutureTask 的 run 方法来实现对**延时执行、周期执行**的支持。对于延时任务调用 FutureTask#run 而对于周期性任务则调用 FutureTask#runAndReset 并且在成功之后根据 fixed-delay/fixed-rate 模式来设置下次执行时间并重新将任务塞到工作队列。
+ScheduledFutureTask 继承 FutureTask，实现 RunnableScheduledFuture 接口，具有延迟执行的特点，覆盖 FutureTask 的 run 方法来实现对**延时执行、周期执行**的支持。对于延时任务调用 FutureTask#run，而对于周期性任务则调用 FutureTask#runAndReset 并且在成功之后根据 fixed-delay/fixed-rate 模式来设置下次执行时间并重新将任务塞到工作队列。
 
 在调度线程池中无论是 runnable 还是 callable，无论是否需要延迟和定时，所有的任务都会被封装成 ScheduledFutureTask
 
@@ -7160,7 +7160,7 @@ ScheduledFutureTask 继承 FutureTask，实现 RunnableScheduledFuture 接口，
   public boolean cancel(boolean mayInterruptIfRunning) {
       // 调用父类 FutureTask#cancel 来取消任务
       boolean cancelled = super.cancel(mayInterruptIfRunning);
-      // removeOnCancel 用于控制任务取消后是否应该从队列中移除
+      // removeOnCancel 用于控制任务取消后是否应该从阻塞队列中移除
       if (cancelled && removeOnCancel && heapIndex >= 0)
           // 从等待队列中删除该任务，并调用 tryTerminate() 判断是否需要停止线程池
           remove(this);
@@ -7197,7 +7197,7 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
 
   ```java
   private final ReentrantLock lock = new ReentrantLock();	// 控制并发
-  private final Condition available = lock.newCondition();//
+  private final Condition available = lock.newCondition();// 条件队列
   ```
 
 * 阻塞等待头节点的线程：
@@ -7271,7 +7271,7 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
   }
   ```
 
-* poll()：非阻塞获取头结点，**获取执行时间最近的**
+* poll()：非阻塞获取头结点，**获取执行时间最近并且可以执行的**
 
   ```java
   // 非阻塞获取
@@ -7514,7 +7514,7 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
       if (isShutdown())
           reject(task);
       else {
-          // 把当前任务放入阻塞队列，因为需要【获取执行时间最近的】
+          // 把当前任务放入阻塞队列，因为需要【获取执行时间最近的】，当前任务需要比较
           super.getQueue().add(task);
           // 线程池状态为 SHUTDOWN 并且不允许执行任务了，就从队列删除该任务，并设置任务的状态为取消状态
           if (isShutdown() && !canRunInCurrentRunState(task.isPeriodic()) && remove(task))
@@ -7681,7 +7681,7 @@ class AddTask extends RecursiveTask<Integer> {
 
 ForkJoinPool 实现了**工作窃取算法**来提高 CPU 的利用率：
 
-* 每个线程都维护了一个双端队列，用来存储需要执行的任务
+* 每个线程都维护了一个**双端队列**，用来存储需要执行的任务
 * 工作窃取算法允许空闲的线程从其它线程的双端队列中窃取一个任务来执行
 * 窃取的必须是**最晚的任务**，避免和队列所属线程发生竞争，但是队列中只有一个任务时还是会发生竞争
 
