@@ -2445,21 +2445,24 @@ s = s + "cd"; //s = abccd 新对象
 
 #### 常用方法
 
-`public boolean equals(String s)` : 比较两个字符串内容是否相同、区分大小写
-`public boolean equalsIgnoreCase(String anotherString)` : 比较字符串的内容，忽略大小写
-`public int length()` : 返回此字符串的长度
-`public String trim()` : 返回一个字符串，其值为此字符串，并删除任何前导和尾随空格
-`public String[] split(String regex)` : 将字符串按给定的正则表达式分割成字符串数组
-`public char charAt(int index)` : 取索引处的值
-`public char[] toCharArray()` : 将字符串拆分为字符数组后返回
-`public boolean startsWith(String prefix)` : 测试此字符串是否以指定的前缀开头
-`public int indexOf(String str)` : 返回指定子字符串第一次出现的字符串内的索引，没有返回-1
-`public int lastIndexOf(String str)` : 返回字符串最后一次出现str的索引，没有返回-1
-`public String substring(int beginIndex)` : 返回子字符串，以原字符串指定索引处到结尾
-`public String substring(int i, int j)` : 指定索引处扩展到 j - 1 的位置，字符串长度为 j - i
-`public String toLowerCase()` : 将此 String 所有字符转换为小写，使用默认语言环境的规则
-`public String toUpperCase()` : 使用默认语言环境的规则将此 String 所有字符转换为大写
-`public String replace(CharSequence target, CharSequence replacement)` : 使用新值，将字符串中的旧值替换，得到新的字符串
+常用 API：
+
+* `public boolean equals(String s)` : 比较两个字符串内容是否相同、区分大小写
+
+* `public boolean equalsIgnoreCase(String anotherString)` : 比较字符串的内容，忽略大小写
+* `public int length()` : 返回此字符串的长度
+* `public String trim()` : 返回一个字符串，其值为此字符串，并删除任何前导和尾随空格
+* `public String[] split(String regex)` : 将字符串按给定的正则表达式分割成字符串数组
+* `public char charAt(int index)` : 取索引处的值
+* `public char[] toCharArray()` : 将字符串拆分为字符数组后返回
+* `public boolean startsWith(String prefix)` : 测试此字符串是否以指定的前缀开头
+* `public int indexOf(String str)` : 返回指定子字符串第一次出现的字符串内的索引，没有返回 -1
+* `public int lastIndexOf(String str)` : 返回字符串最后一次出现str的索引，没有返回 -1
+* `public String substring(int beginIndex)` : 返回子字符串，以原字符串指定索引处到结尾
+* `public String substring(int i, int j)` : 指定索引处扩展到 j - 1 的位置，字符串长度为 j - i
+* `public String toLowerCase()` : 将此 String 所有字符转换为小写，使用默认语言环境的规则
+* `public String toUpperCase()` : 使用默认语言环境的规则将此 String 所有字符转换为大写
+* `public String replace(CharSequence target, CharSequence replacement)` : 使用新值，将字符串中的旧值替换，得到新的字符串
 
 ```java
 String s = 123-78;
@@ -7070,12 +7073,9 @@ public class FileDemo {
 
 #### 遍历目录
 
-- `public String[] list()`：
-        获取当前目录下所有的"一级文件名称"到一个字符串数组中去返回。
-- `public File[] listFiles()(常用)`：
-        获取当前目录下所有的"一级文件对象"到一个**文件对象数组**中去返回（**重点**）
-- `public long lastModified` :
-       返回此抽象路径名表示的文件上次修改的时间。 
+- `public String[] list()`：获取当前目录下所有的"一级文件名称"到一个字符串数组中去返回。
+- `public File[] listFiles()(常用)`：获取当前目录下所有的"一级文件对象"到一个**文件对象数组**中去返回（**重点**）
+- `public long lastModified`：返回此抽象路径名表示的文件上次修改的时间。 
 
 ```java
 public class FileDemo {
@@ -7109,9 +7109,10 @@ public class FileDemo {
 
 #### 文件搜索
 
-递归实现文件搜索(非规律递归)
-	（1）定义一个方法用于做搜索。
-	（2）进入方法中进行业务搜索分析。
+递归实现文件搜索（非规律递归）
+
+* 定义一个方法用于做搜索
+* 进入方法中进行业务搜索分析
 
 ```java
 /**
