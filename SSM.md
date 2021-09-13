@@ -49,6 +49,8 @@ SqlSession：构建者对象接口，用于执行 SQL、管理事务、接口代
 
 注：**update 数据需要提交事务，或开启默认提交**
 
+SqlSession 常用 API：
+
 | 方法                                                  | 说明                           |
 | ----------------------------------------------------- | ------------------------------ |
 | List<E> selectList(String statement,Object parameter) | 执行查询语句，返回List集合     |
@@ -477,9 +479,9 @@ SqlSession：构建者对象接口，用于执行 SQL、管理事务、接口代
 
   defaultExecutorType：配置默认的执行器
 
-  * SIMPLE 就是普通的执行器（默认）
-  * REUSE 执行器会重用预处理语句
-  * BATCH 执行器不仅重用语句还会执行批量更新
+  * SIMPLE 就是普通的执行器（默认，每次执行都要重新设置参数）
+  * REUSE 执行器会重用预处理语句（只预设置一次参数，多次执行）
+  * BATCH 执行器不仅重用语句还会执行批量更新（只针对**修改操作**）
 
 * SqlSession **会话内批量**操作：
 
@@ -626,12 +628,13 @@ Mapper 接口开发需要遵循以下规范：
 
 ### 相关标签
 
-<resultType>：返回的是一个集合，要写集合中元素的类型
+<resultType>：返回结果映射对象类型，和对应方法的返回值类型保持一致，但是如果返回值是 List 则和其泛型保持一致
 
-<resultMap>：返回一条记录的 Map，key 是列名，value 是对应的值，用来配置字段和对象属性的映射关系标签，结果映射（和 resultType 二选一）
+<resultMap>：返回一条记录的 Map，key 是列名，value 是对应的值，用来配置**字段和对象属性**的映射关系标签，结果映射（和 resultType 二选一）
 
 * id 属性：唯一标识
 * type 属性：实体对象类型
+* autoMapping 属性：结果自动映射
 
 <resultMap>内的核心配置文件标签：
 
@@ -641,9 +644,10 @@ Mapper 接口开发需要遵循以下规范：
   * property 属性： 实体对象变量名称
 
 * <association>：配置被包含对象的映射关系标签，嵌套封装结果集（多对一、一对一）
-  *  property 属性：被包含对象的变量名，要进行映射的属性名（Java 中的 Bean 类）
-  *  javaType 属性：被包含对象的数据类型，要进行映射的属性的类型
-
+  *  property 属性：被包含对象的**变量名，**要进行映射的属性名
+  *  javaType 属性：被包含对象的**数据类型**，要进行映射的属性的类型（Java 中的 Bean 类）
+  *  select 属性：加载复杂类型属性的映射语句的 ID，会从 column 属性指定的列中检索数据，作为参数传递给目标 select 语句
+  
 * <collection>：配置被包含集合对象的映射关系标签，嵌套封装结果集（一对多、多对多）
   * property 属性：被包含集合对象的变量名
   * ofType 属性：集合中保存的对象数据类型 
@@ -654,11 +658,59 @@ Mapper 接口开发需要遵循以下规范：
 
 
 
+***
+
+
+
+### 嵌套查询
+
+子查询：
+
+```java
+public class Blog {
+    private int id;
+    private String msg;
+    private Author author;
+    // set + get
+}
+```
+
+```xml
+<resultMap id="blogResult" type="Blog" autoMapping = "true">
+    <association property="author" column="author_id" javaType="Author" select="selectAuthor"/>
+</resultMap>
+
+<select id="selectBlog" resultMap="blogResult">
+    SELECT * FROM BLOG WHERE ID = #{id}
+</select>
+
+<select id="selectAuthor" resultType="Author">
+    SELECT * FROM AUTHOR WHERE ID = #{id}
+</select>
+```
+
+循环引用：通过缓存解决
+
+```xml
+<resultMap id="blogResult" type="Blog" autoMapping = "true">
+    <id column="id" property="id"/>
+    <collection property="comment" ofType="Comment">
+        <association property="blog" javaType="Blog" resultMap="blogResult"/><!--y-->
+    </collection>
+</resultMap
+```
+
+
+
+
+
 ****
 
 
 
-### 一对一
+### 多表查询
+
+#### 一对一
 
 一对一实现：
 
@@ -712,7 +764,6 @@ Mapper 接口开发需要遵循以下规范：
       <resultMap id="oneToOne" type="card">
          	<!--column 表中字段名称，property 实体对象变量名称-->
           <id column="cid" property="id" />
-          <!--column 表中字段名称，property 实体对象变量名称-->
           <result column="number" property="number" />
           <!--
               association：配置被包含对象的映射关系
@@ -731,7 +782,7 @@ Mapper 接口开发需要遵循以下规范：
       </select>
   </mapper>
   ```
-
+  
 * 核心配置文件 MyBatisConfig.xml
 
   ```xml
@@ -784,7 +835,7 @@ Mapper 接口开发需要遵循以下规范：
 
 
 
-### 一对多
+#### 一对多
 
 一对多实现：
 
@@ -871,7 +922,7 @@ Mapper 接口开发需要遵循以下规范：
 
 
 
-### 多对多
+#### 多对多
 
 学生课程例子，中间表不需要 bean 实体类
 
@@ -1049,13 +1100,10 @@ Mapper 接口开发需要遵循以下规范：
 
   ```java
   public interface PersonMapper {
-      /**
-       * 为了演示分步查询的一对多另写的一个方法
-       */
       User findPersonByid(int id);
   }
   ```
-
+  
 * 测试文件
 
   ```java
@@ -1066,12 +1114,12 @@ Mapper 接口开发需要遵循以下规范：
           SqlSessionFactory ssf = new SqlSessionFactoryBuilder().build(is);
           SqlSession sqlSession = ssf.openSession(true);
           OneToOneMapper mapper = sqlSession.getMapper(OneToOneMapper.class);
-          //调用实现类的方法，接收结果
+          // 调用实现类的方法，接收结果
           List<Card> list = mapper.selectAll();
           
-        	//不能遍历，遍历就是相当于使用了该数据，需要加载，不遍历就是没有使用。
+        	// 不能遍历，遍历就是相当于使用了该数据，需要加载，不遍历就是没有使用。
           
-          //释放资源
+          // 释放资源
           sqlSession.close();
           is.close();
       }
@@ -1095,7 +1143,7 @@ Mapper 接口开发需要遵循以下规范：
   一对多映射：
   
   * column 是用于指定使用哪个字段的值作为条件查询
-  * select 是用于指定查询账户的唯一标识（账户的dao全限定类名加上方法名称） 
+  * select 是用于指定查询账户的唯一标识（账户的 dao 全限定类名加上方法名称） 
   
   ```xml
   <mapper namespace="OneToManyMapper">
@@ -1478,8 +1526,8 @@ Mapper 接口开发需要遵循以下规范：
 
 * SqlSession 不同
 * SqlSession 相同，查询条件不同时（还未缓存该数据）
-* SqlSession 相同，手动清除了一级缓存，调用 `openSession.clearCache()`
-* SqlSession 相同，执行 commit 操作（执行插入、更新、删除），清空 SqlSession 中的一级缓存，这样做的目的为了让缓存中存储的是最新的信息，**避免脏读**
+* SqlSession 相同，手动清除了一级缓存，调用 `sqlSession.clearCache()`
+* SqlSession 相同，执行 commit 操作或者执行插入、更新、删除，清空 SqlSession 中的一级缓存，这样做的目的为了让缓存中存储的是最新的信息，**避免脏读**
 
 测试一级缓存存在
 
@@ -1517,9 +1565,13 @@ public void testFirstLevelCache(){
 
 ### 二级缓存
 
-二级缓存是 mapper 的缓存，只要是同一个 mapper 的 SqlSession 就共享二级缓存的内容，并且可以操作二级缓存
+#### 基本介绍
 
-工作流程：一个会话查询一条数据，这个数据就会被放在当前会话的一级缓存中，如果**会话关闭**一级缓存中的数据会保存到二级缓存
+二级缓存是 mapper 的缓存，只要是同一个命名空间（namespace）的 SqlSession 就共享二级缓存的内容，并且可以操作二级缓存
+
+作用：作用范围是整个应用，可以跨线程使用，适合缓存一些修改较少的数据
+
+工作流程：一个会话查询数据，这个数据就会被放在当前会话的一级缓存中，如果**会话关闭或提交**一级缓存中的数据会保存到二级缓存
 
 二级缓存的基本使用：
 
@@ -1568,7 +1620,15 @@ public void testFirstLevelCache(){
    public class User implements Serializable{}
    ```
 
-相关属性：
+
+
+
+
+***
+
+
+
+#### 相关属性
 
 1. select 标签的 useCache 属性
 
@@ -1582,9 +1642,106 @@ public void testFirstLevelCache(){
    </select>
    ```
 
-2. 每个增删改标签都有 flushCache 属性，默认为 true，代表在**执行增删改之后就会清除一、二级缓存**，而查询标签默认值为 false，所以查询不会清空缓存
+2. 每个增删改标签都有 flushCache 属性，默认为 true，代表在**执行增删改之后就会清除一、二级缓存**，保证缓存的一致性；而查询标签默认值为 false，所以查询不会清空缓存
 
 3. localCacheScope：本地缓存作用域，<settings> 中的配置项，默认值为 SESSION，当前会话的所有数据保存在会话缓存中，设置为 STATEMENT 禁用一级缓存
+
+
+
+***
+
+
+
+#### 源码解析
+
+事务提交二级缓存才生效：DefaultSqlSession 调用 commit() 时会回调 `executor.commit()`
+
+* CachingExecutor#query()：执行查询方法，查询出的数据会先放入 entriesToAddOnCommit 集合暂存
+
+  ```java
+  // 从二缓存中获取数据，获取不到去一级缓存获取
+  List<E> list = (List<E>) tcm.getObject(cache, key);
+  if (list == null) {
+      // 回调 BaseExecutor#query
+      list = delegate.query(ms, parameterObject, rowBounds, resultHandler, key, boundSql);
+      // 将数据放入 entriesToAddOnCommit 集合暂存，此时还没放入二级缓存
+      tcm.putObject(cache, key, list);
+  }
+  ```
+
+* commit()：事务提交，清空一级缓存，二级缓存使用 TransactionalCacheManager（tcm）管理
+
+  ```java
+  public void commit(boolean required) throws SQLException {
+      // 首先调用 BaseExecutor#commit 方法，【清空一级缓存】
+      delegate.commit(required);
+      tcm.commit();
+  }
+  ```
+
+* TransactionalCacheManager#commit：查询出的数据放入二级缓存
+
+  ```java
+  public void commit() {
+      // 获取所有的缓存事务，挨着进行提交
+      for (TransactionalCache txCache : transactionalCaches.values()) {
+          txCache.commit();
+      }
+  }
+  ```
+
+  ```java
+  public void commit() {
+      if (clearOnCommit) {
+          delegate.clear();
+      }
+      // 将 entriesToAddOnCommit 中的数据放入二级缓存
+      flushPendingEntries();
+      // 清空相关集合
+      reset();
+  }
+  ```
+
+  ```java
+  private void flushPendingEntries() {
+      for (Map.Entry<Object, Object> entry : entriesToAddOnCommit.entrySet()) {
+          // 将数据放入二级缓存
+          delegate.putObject(entry.getKey(), entry.getValue());
+      }
+  }
+  ```
+
+增删改操作会清空缓存：
+
+* update()：CachingExecutor 的更新操作
+
+  ```java
+  public int update(MappedStatement ms, Object parameterObject) throws SQLException {
+      flushCacheIfRequired(ms);
+      // 回调 BaseExecutor#update 方法，也会清空一级缓存
+      return delegate.update(ms, parameterObject);
+  }
+  ```
+
+* flushCacheIfRequired()：判断是否需要清空二级缓存
+
+  ```java
+  private void flushCacheIfRequired(MappedStatement ms) {
+      Cache cache = ms.getCache();
+      // 判断二级缓存是否存在
+      // 判断标签的 flushCache 的值，增删改操作的 flushCache 属性默认为 true
+      if (cache != null && ms.isFlushCacheRequired()) {
+          // 清空二级缓存
+          tcm.clear(cache);
+      }
+  }
+  ```
+
+  
+
+
+
+
 
 
 
@@ -1878,7 +2035,7 @@ trim 标记是一个格式化的标记，可以完成 set 或者是 where 标记
 * suffix：给拼串后的整个字符串加一个后缀
 * suffixOverrides：去掉整个字符串后面多余的字符
 
-改写 if+where 语句：
+改写 if + where 语句：
 
 ```xml
 <select id="selectUserByUsernameAndSex" resultType="user" parameterType="com.ys.po.User">
@@ -1894,7 +2051,7 @@ trim 标记是一个格式化的标记，可以完成 set 或者是 where 标记
 </select>
 ```
 
-改写 if+set 语句：
+改写 if + set 语句：
 
 ```xml
 <!-- 根据 id 更新 user 表的数据 -->
@@ -2129,7 +2286,7 @@ MyBatis 提供了 org.apache.ibatis.jdbc.SQL 功能类，专门用于构建 SQL 
 
 #### 基本操作
 
-* MyBatisConfig.xml配置
+* MyBatisConfig.xml 配置
 
   ```xml
    <!-- mappers引入映射配置文件 -->
@@ -2138,7 +2295,7 @@ MyBatis 提供了 org.apache.ibatis.jdbc.SQL 功能类，专门用于构建 SQL 
   </mappers>
   ```
 
-* Mapper类
+* Mapper 类
 
   ```java
   public interface StudentMapper {
@@ -2161,7 +2318,7 @@ MyBatis 提供了 org.apache.ibatis.jdbc.SQL 功能类，专门用于构建 SQL 
   }
   ```
 
-* ReturnSql类
+* ReturnSQL 类
 
   ```java
   public class ReturnSql {
@@ -2454,6 +2611,12 @@ Executor#query()：
 
 * `CachingExecutor.query()`：先执行 CachingExecutor 去二级缓存获取数据
 
+  ```java
+  public class CachingExecutor implements Executor {
+    private final Executor delegate;		// 包装了 BaseExecutor，二级缓存不存在数据调用 BaseExecutor 查询
+  }
+  ```
+
   * `MappedStatement.getBoundSql(parameterObject)`：**把 parameterObject 封装成 BoundSql**
     
     构造函数中有：`this.parameterObject = parameterObject`
@@ -2466,13 +2629,14 @@ Executor#query()：
 
   * `tcm.getObject(cache, key)`：尝试从**二级缓存**中获取数据
 
-* `BaseExecutor.query()`：获取不到缓存继续执行该方法
+* `BaseExecutor.query()`：二级缓存不存在该数据，调用该方法
 
   * `localCache.getObject(key) `：尝试从**本地缓存（一级缓存**）获取数据
 
 * `BaseExecutor.queryFromDatabase()`：缓存获取数据失败，**开始从数据库获取数据，并放入本地缓存**
 
   * `SimpleExecutor.doQuery()`：执行 query
+
     * `configuration.newStatementHandler()`：创建 StatementHandler 对象
       * 根据 <select> 标签的 statementType 属性，根据属性选择创建哪种对象
       * 判断 BoundSql 是否被创建，没有创建会重新封装参数信息到 BoundSql
@@ -2487,27 +2651,45 @@ Executor#query()：
           * 获取预编译执行者对象：`Connection.prepareStatement()`
       * `handler.parameterize()`：进行参数的设置
         * `ParameterHandler.setParameters()`：**通过 ParameterHandler 设置参数**
-          * `typeHandler.setParameter()`：底层通过 TypeHandler 实现
+          * `typeHandler.setParameter()`：底层通过 TypeHandler 实现，回调 JDBC 的接口进行设置
       
     * `StatementHandler.query()`：**调用 JDBC 原生的 PreparedStatement 执行 SQL**
-    
+
       ```java
       public <E> List<E> query(Statement statement, ResultHandler resultHandler) {
           // 获取 SQL 语句
           String sql = boundSql.getSql();
           statement.execute(sql);
+          // 通过 ResultSetHandler 对象封装结果集，映射成 JavaBean
           return resultSetHandler.handleResultSets(statement);
         }
       ```
-    
-    * `resultSetHandler.handleResultSets(ps)`：**通过 ResultSetHandler 对象封装结果集**
+
+      `resultSetHandler.handleResultSets(statement)`：处理结果集
+
+      * `handleResultSet(rsw, resultMap, multipleResults, null)`：底层回调
+
+        * `handleRowValues()`：逐行处理数据，根据是否配置了 <resultMap> 属性选择是否使用简单结果集映射
+
+          * 首先判断数据是否被限制行数，然后进行结果集的映射
+
+          * 最后将数据存入 ResultHandler 对象，底层就是 List 集合
+
+            ```java
+            public class DefaultResultHandler implements ResultHandler<Object> {
+            	private final List<Object> list;
+              	public void handleResult(ResultContext<?> context) {
+                	list.add(context.getResultObject());
+              	}
+            }
+            ```
+
+      * `return collapseSingleResultList(multipleResults)`：可能存在多个结果集的情况
   * `localCache.putObject(key, list)`：放入本地缓存
 
 `return list.get(0)`：返回结果集的第一个数据
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/MyBatis-执行SQL过程.png)
-
-
 
 
 
@@ -4646,7 +4828,22 @@ FactoryBean与 BeanFactory 区别：
   }
   ```
 
+* MapperFactoryBean 继承 SqlSessionDaoSupport，可以获取 SqlSessionTemplate，完成 MyBatis 的整合
 
+  ```java
+  public abstract class SqlSessionDaoSupport extends DaoSupport {
+    	private SqlSessionTemplate sqlSessionTemplate;
+  	// 获取 SqlSessionTemplate 对象
+  	public void setSqlSessionFactory(SqlSessionFactory sqlSessionFactory) {
+      	if (this.sqlSessionTemplate == null || 
+          	sqlSessionFactory != this.sqlSessionTemplate.getSqlSessionFactory()) {
+        		this.sqlSessionTemplate = createSqlSessionTemplate(sqlSessionFactory);
+      	}
+    	}
+  }
+  ```
+
+* MapperScannerConfigurer 实现了 BeanDefinitionRegistryPostProcessor 接口，重写 postProcessBeanDefinitionRegistry() 方法，可以扫描到 MyBatis 的 Mapper
 
 
 

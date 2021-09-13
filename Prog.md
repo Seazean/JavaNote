@@ -13683,14 +13683,14 @@ UDP 协议的使用场景：在线视频、网络语音、电话
 
 #### 实现UDP
 
-UDP 协议相关的两个类
+UDP 协议相关的两个类：
 
 * DatagramPacket（数据包对象）：用来封装要发送或要接收的数据，比如：集装箱
 * DatagramSocket（发送对象）：用来发送或接收数据包，比如：码头
 
 **DatagramPacket**：
 
-* DatagramPacket 类
+* DatagramPacket 类：
 
   `public new DatagramPacket(byte[] buf, int length, InetAddress address, int port)`：创建发送端数据包对象 
 
@@ -13704,7 +13704,7 @@ UDP 协议相关的两个类
   * buf：用来存储接收到内容		
   * length：能够接收内容的长度
 
-* DatagramPacket 类常用方法
+* DatagramPacket 类常用方法：
   
   * `public int getLength()`：获得实际接收到的字节个数
   * `public byte[] getData()`：返回数据缓冲区
@@ -13714,7 +13714,7 @@ UDP 协议相关的两个类
 * DatagramSocket 类构造方法：
   * `protected DatagramSocket()`：创建发送端的 Socket 对象，系统会随机分配一个端口号
   * `protected DatagramSocket(int port)`：创建接收端的 Socket 对象并指定端口号
-* DatagramSocket 类成员方法
+* DatagramSocket 类成员方法：
   * `public void send(DatagramPacket dp)`：发送数据包
   * `public void receive(DatagramPacket p)`：接收数据包
   * `public void close()`：关闭数据报套接字
@@ -13725,8 +13725,7 @@ public class UDPClientDemo {
         System.out.println("===启动客户端===");
         // 1.创建一个集装箱对象，用于封装需要发送的数据包!
         byte[] buffer = "我学Java".getBytes();
-        DatagramPacket packet = new DatagramPacket(buffer,bubffer.length
-											,InetAddress.getLoclHost,8000);
+        DatagramPacket packet = new DatagramPacket(buffer,bubffer.length,InetAddress.getLoclHost,8000);
         // 2.创建一个码头对象
         DatagramSocket socket = new DatagramSocket();
         // 3.开始发送数据包对象
@@ -13747,7 +13746,7 @@ public class UDPServerDemo{
         // 4.从集装箱中获取本次读取的数据量
         int len = packet.getLength();
         // 5.输出数据
-        //String rs = new String(socket.getData(), 0, len)
+        // String rs = new String(socket.getData(), 0, len)
         String rs = new String(buffer , 0 , len);
         System.out.println(rs);
         // 6.服务端还可以获取发来信息的客户端的IP和端口。
@@ -13828,7 +13827,7 @@ TCP 协议相关的类：
 * Socket：一个该类的对象就代表一个客户端程序。
 * ServerSocket：一个该类的对象就代表一个服务器端程序。
 
-Socket 类
+Socket 类：
 
 * 构造方法：
   
@@ -13899,7 +13898,7 @@ ServerSocket 类：
 public class ClientDemo {
     public static void main(String[] args) throws Exception {
         // 1.客户端要请求于服务端的socket管道连接。
-        Socket socket = new Socket("127.0.0.1",8080);
+        Socket socket = new Socket("127.0.0.1", 8080);
         // 2.从socket通信管道中得到一个字节输出流
         OutputStream os = new socket.getOutputStream();
         // 3.把低级的字节输出流包装成高级的打印流。
@@ -13932,7 +13931,7 @@ public class ServerDemo{
 
 
 
-需求二：客户2端可以反复发送数据，服务端可以反复数据2
+需求二：客户端可以反复发送数据，服务端可以反复数据
 
 ```java
 public class ClientDemo {
@@ -13974,7 +13973,7 @@ public class ServerDemo{
 
 
 
-需求三：实现一个服务端可以同时接收多个客户端的消息。
+需求三：实现一个服务端可以同时接收多个客户端的消息
 
 ```java
 public class ClientDemo {
@@ -14029,10 +14028,11 @@ class ServerReaderThread extends Thread{
 
 ##### 伪异步
 
-一个客户端要一个线程，这种模型是不行的，并发越高系统瘫痪的越快，可以在服务端引入线程池，使用线程池来处理与客户端的消息通信
+一个客户端要一个线程，并发越高系统瘫痪的越快，可以在服务端引入线程池，使用线程池来处理与客户端的消息通信
 
-优势：不会引起系统的死机，可以控制并发线程的数量
-劣势：同时可以并发的线程将受到限制
+* 优势：不会引起系统的死机，可以控制并发线程的数量
+
+* 劣势：同时可以并发的线程将受到限制
 
 ```java
 public class BIOServer {
@@ -14953,15 +14953,15 @@ public class ChannelTest {
 
 **Selector API**：
 
-| 方法                                             | 说明                                  |
-| ------------------------------------------------ | ------------------------------------- |
-| public static Selector open()                    | 打开选择器                            |
-| public abstract void close()                     | 关闭此选择器                          |
-| public abstract int select()                     | 阻塞选择一组通道准备好进行I/O操作的键 |
-| public abstract int select(long timeout)         | 阻塞等待 timeout 毫秒                 |
-| public abstract int selectNow()                  | 获取一下，不阻塞，立刻返回            |
-| public abstract Selector wakeup()                | 唤醒正在阻塞的 selector               |
-| public abstract Set<SelectionKey> selectedKeys() | 返回此选择器的选择键集                |
+| 方法                                             | 说明                                        |
+| ------------------------------------------------ | ------------------------------------------- |
+| public static Selector open()                    | 打开选择器                                  |
+| public abstract void close()                     | 关闭此选择器                                |
+| public abstract int select()                     | **阻塞**选择一组通道准备好进行 I/O 操作的键 |
+| public abstract int select(long timeout)         | **阻塞**等待 timeout 毫秒                   |
+| public abstract int selectNow()                  | 获取一下，**不阻塞**，立刻返回              |
+| public abstract Selector wakeup()                | 唤醒正在阻塞的 selector                     |
+| public abstract Set<SelectionKey> selectedKeys() | 返回此选择器的选择键集                      |
 
 SelectionKey API:
 

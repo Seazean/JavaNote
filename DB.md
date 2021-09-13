@@ -26,11 +26,9 @@
   - 可以指定列名、数据类型、约束等
   - 一个表中可以存储多条数据
 
-- 数据
+- 数据：想要永久化存储的数据
 
-  - 想要永久化存储的数据
-
-  ![](https://gitee.com/seazean/images/raw/master/DB/数据库、数据表、数据之间的关系.png)
+  <img src="https://gitee.com/seazean/images/raw/master/DB/数据库、数据表、数据之间的关系.png" style="zoom:50%;" />
 
 
 
@@ -381,7 +379,7 @@ mysqlshow -uroot -p1234 test book --count
 
 池化技术：对于访问数据库来说，建立连接的代价是比较昂贵的，频繁的创建关闭连接比较耗费资源，有必要建立数据库连接池，以提高访问的性能
 
-首先连接到数据库上，这时连接器发挥作用，连接完成后如果没有后续的动作，这个连接就处于空闲状态，通过指令查看连接状态：
+首先连接到数据库上，这时连接器发挥作用，连接完成后如果没有后续的动作，这个连接就处于空闲状态，通过指令查看连接状态
 
 SHOW PROCESSLIST：查看当前 MySQL 在进行的线程，可以实时地查看 SQL 的执行情况，其中的 Command 列显示为 Sleep 的这一行，就表示现在系统里面有一个空闲连接
 
@@ -939,12 +937,12 @@ DDL 中的临时表 tmp_table 是在 Server 层创建的，Online DDL 中的临�
     | TIMESTAMP | 时间戳类型，包含年月日时分秒：yyyy-MM-dd HH:mm:ss<br />如果不给这个字段赋值或赋值为null，则默认使用当前的系统时间 |
     | VARCHAR   | 字符串<br />name varchar(20):姓名最大20个字符：zhangsan8个字符,张三2个字符 |
 
-    `INT(n)`：n代表位数
+    `INT(n)`：n 代表位数
 
-    * 3：int（9）显示结果为000000010
-    * 3：int（3）显示结果为010
+    * 3：int（9）显示结果为 000000010
+    * 3：int（3）显示结果为 010
   
-    `varchar(n)`：n表示的是字符数
+    `varchar(n)`：n 表示的是字符数
   
   - 例如：
   
@@ -1030,19 +1028,19 @@ DDL 中的临时表 tmp_table 是在 Server 层创建的，Online DDL 中的临�
 
 * 新增表数据
 
-  * 新增格式1：给指定列添加数据
+  * 新增格式 1：给指定列添加数据
 
     ```mysql
     INSERT INTO 表名(列名1,列名2...) VALUES (值1,值2...);
     ```
 
-  * 新增格式2：默认给全部列添加数据
+  * 新增格式 2：默认给全部列添加数据
 
     ```mysql
     INSERT INTO 表名 VALUES (值1,值2,值3,...);
     ```
 
-  * 新增格式3：批量添加数据
+  * 新增格式 3：批量添加数据
 
     ```mysql
     -- 给指定列批量添加数据
@@ -2399,7 +2397,7 @@ CREATE TABLE us_pro(
 
   工作原理：
 
-  * 自动提交模式下，如果没有 start transaction 显式地开始一个事务，那么每个 SQL 语句都会被当做一个事务执行提交操作
+  * 自动提交模式下，如果没有 start transaction 显式地开始一个事务，那么**每个 SQL 语句都会被当做一个事务执行提交操作**
   * 手动提交模式下，所有的 SQL 语句都在一个事务中，直到执行了 commit 或 rollback，该事务结束的同时开启另外一个事务
 
   * 存在一些特殊的命令，在事务中执行了这些命令会马上强制执行 COMMIT 提交事务，如 DDL 语句 (create/drop/alter/table)、lock tables 语句等

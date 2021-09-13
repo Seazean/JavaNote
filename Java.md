@@ -4494,8 +4494,8 @@ PriorityQueue 是优先级队列，底层存储结构为 Object[]，默认实现
 
 常用 API：
 
-* `public boolean offer(E e)`：将指定的元素插入到此优先级队列中尾部
-* `public E poll() `：检索并删除此队列的头元素，如果此队列为空，则返回 null 
+* `public boolean offer(E e)`：将指定的元素插入到此优先级队列中**尾部**
+* `public E poll() `：检索并删除此队列的**头元素**，如果此队列为空，则返回 null 
 * `public E peek()`：检索但不删除此队列的头，如果此队列为空，则返回 null
 * `public boolean remove(Object o)`：从该队列中删除指定元素（如果存在），删除元素 e 使用 o.equals(e) 比较，如果队列包含多个这样的元素，删除第一个
 
@@ -5858,7 +5858,7 @@ public class GenericDemo {
         Integer[] num = {10 , 20 , 30 , 40 , 50};
         String s1 = arrToString(nums);
      
-        String[] name = {"贾乃亮","王宝绿","陈羽凡"};
+        String[] name = {"张三","李四","王五"};
         String s2 = arrToString(names);
     }
 
@@ -5873,6 +5873,7 @@ public class GenericDemo {
 自定义泛型接口
 
 泛型接口：使用了泛型定义的接口就是泛型接口。
+
 泛型接口的格式：
 
 ```java
@@ -8614,16 +8615,16 @@ public class MyBook {
 
 #### 普通属性
 
-注解可以有属性，**属性名必须带()**，在用注解的时候，属性必须赋值，除非属性有默认值
+注解可以有属性，**属性名必须带 ()**，在用注解的时候，属性必须赋值，除非属性有默认值
 
 属性的格式：
 
-* 格式1：数据类型 属性名();
-* 格式2：数据类型 属性名() default 默认值;
+* 格式 1：数据类型 属性名()
+* 格式 2：数据类型 属性名() default 默认值
 
 属性适用的数据类型:
 
-* 八种数据数据类型(int，short，long，double，byte，char，boolean，float) 和 String、Class
+* 八种数据数据类型（int，short，long，double，byte，char，boolean，float）和 String、Class
 * 以上类型的数组形式都支持
 
 ```java
@@ -8744,7 +8745,7 @@ Class 类 API ：
 * `boolean isAnnotationPresent(Class<Annotation> class)`：判断对象是否使用了指定的注解
 * `boolean isAnnotation()`：此 Class 对象是否表示注释类型
 
-注解原理：注解本质是一个继承了 `Annotation` 的特殊接口，其具体实现类是 Java 运行时生成的**动态代理类**，通过反射获取注解时，返回的是 Java 运行时生成的动态代理对象 `$Proxy1`，通过代理对象调用自定义注解（接口）的方法，会最终调用 `AnnotationInvocationHandler` 的 `invoke` 方法，该方法会从 `memberValues`  这个Map 中找出对应的值，而 `memberValues` 的来源是 Java 常量池
+注解原理：注解本质是一个继承了 `Annotation` 的特殊接口，其具体实现类是 Java 运行时生成的**动态代理类**，通过反射获取注解时，返回的是运行时生成的动态代理对象 `$Proxy1`，通过代理对象调用自定义注解（接口）的方法，回调 `AnnotationInvocationHandler` 的 `invoke` 方法，该方法会从 `memberValues`  这个Map 中找出对应的值，而 `memberValues` 的来源是 Java 常量池
 
 解析注解数据的原理：注解在哪个成分上，就先拿哪个成分对象，比如注解作用在类上，则要该类的Class对象，再来拿上面的注解
 
@@ -8849,12 +8850,12 @@ XML介绍：
 - XML 被设计为具有自我描述性，易于阅读
 - XML 是 W3C 的推荐标准
 
-**xml与html的区别**：
+**XML 与 HTML 的区别**：
 
-​	XML 不是 HTML 的替代，XML 和 HTML 为不同的目的而设计。
-​	XML 被设计为传输和存储数据，其焦点是数据的内容；XMl标签可自定义，便于阅读。
-​	HTML 被设计用来显示数据，其焦点是数据的外观；HTML标签被预设好，便于浏览器识别。
-​	HTML 旨在显示信息，而 XML 旨在传输信息。
+* XML 不是 HTML 的替代，XML 和 HTML 为不同的目的而设计
+* XML 被设计为传输和存储数据，其焦点是数据的内容；XMl标签可自定义，便于阅读
+* HTML 被设计用来显示数据，其焦点是数据的外观；HTML标签被预设好，便于浏览器识别
+* HTML 旨在显示信息，而 XML 旨在传输信息
 
 
 
@@ -8883,41 +8884,40 @@ person.xml
 
 ### 组成
 
-XML文件中常见的组成元素有:文档声明、元素、属性、注释、转义字符、字符区。文件后缀名为xml
+XML 文件中常见的组成元素有:文档声明、元素、属性、注释、转义字符、字符区。文件后缀名为 xml
 
 * **文档声明** 
-  ``<?xml version="1.0" encoding="utf-8" standalone="yes" ?>``
-  文档声明必须在第一行，以<?xml开头，以？>结束，
-  	version：指定XML文档版本。必须属性，这里一般选择1.0；
-  	enconding：指定当前文档的编码，可选属性，默认值是utf-8；
-    standalone: 该属性不是必须的，描述XML文件是否依赖其他的xml文件，取值为yes/no
+  `<?xml version="1.0" encoding="utf-8" standalone="yes" ?>`，文档声明必须在第一行，以 `<?xml` 开头，以 `?>` 结束，
+  
+  * version：指定 XML 文档版本。必须属性，这里一般选择 1.0
+  * enconding：指定当前文档的编码，可选属性，默认值是 utf-8
+  * standalone：该属性不是必须的，描述 XML 文件是否依赖其他的 xml 文件，取值为 yes/no
   
 * **元素**        
   
-  * 格式1:`<person></person> ` 
-    格式2:`<person/>`
-    普通元素的结构由开始标签、元素体、结束标签组成;
-    标签由一对尖括号和合法标识符组成，标签必须成对出现。特殊的标签可以不成对,必须有结束标记</>;
+  * 格式 1：`<person></person> ` 
+  * 格式 2：`<person/>`
+  * 普通元素的结构由开始标签、元素体、结束标签组成
+  * 标签由一对尖括号和合法标识符组成，标签必须成对出现。特殊的标签可以不成对，必须有结束标记 </>
   
 * 元素体：可以是元素，也可以是文本，例如：``<person><name>张三</name></person>``
   * 空元素：空元素只有标签，而没有结束标签，但**元素必须自己闭合**，例如：``<sex/>``
-  * 元素命名：区分大小写、不能使用空格冒号、不建议用XML xml Xml等开头
+  * 元素命名：区分大小写、不能使用空格冒号、不建议用 XML、xml、Xml 等开头
   * 必须存在一个根标签，有且只能有一个
   
-* **属性**
-  `<name id="1" desc="高富帅">`
-  属性是元素的一部分，它必须出现在元素的开始标签中
-  属性的定义格式：`属性名=“属性值”`，其中属性值必须使用单引或双引号括起来
-  一个元素可以有0~N个属性，但一个元素中不能出现同名属性
-  属性名不能使用空格 , 不要使用冒号等特殊字符，且必须以字母开头
+* **属性**：`<name id="1" desc="高富帅">`
+  
+  * 属性是元素的一部分，它必须出现在元素的开始标签中
+  * 属性的定义格式：`属性名=“属性值”`，其中属性值必须使用单引或双引号括起来
+  * 一个元素可以有 0~N 个属性，但一个元素中不能出现同名属性
+  * 属性名不能使用空格 , 不要使用冒号等特殊字符，且必须以字母开头
 
-* **注释**
-  <!--注释内容-->
-  XML的注释与HTML相同，既以``<!--``开始，``-->``结束。
-
+* **注释**：<!--注释内容-->
+  XML的注释与HTML相同，既以 `<!--` 开始，`-->` 结束。
+  
 * **转义字符**
-  XML中的转义字符与HTML一样。因为很多符号已经被文档结构所使用，所以在元素体或属性值中想使用这些符号就必须使用转义字符（也叫实体字符），例如：">"、"<"、"'"、"""、"&"。
-  XML 中仅有字符 "<"和"&" 是非法的。省略号、引号和大于号是合法的，把它们替换为实体引用
+  XML 中的转义字符与 HTML 一样。因为很多符号已经被文档结构所使用，所以在元素体或属性值中想使用这些符号就必须使用转义字符（也叫实体字符），例如：">"、"<"、"'"、"""、"&"
+  XML 中仅有字符 < 和 & 是非法的。省略号、引号和大于号是合法的，把它们替换为实体引用
 
   | 字符 | 预定义的转义字符 |  说明  |
   | :--: | :--------------: | :----: |
@@ -8939,9 +8939,9 @@ XML文件中常见的组成元素有:文档声明、元素、属性、注释、�
 * CDATA 部分由 "<![CDATA[" 开始，由 "]]>" 结束；
   * 大量的转义字符在xml文档中时，会使XML文档的可读性大幅度降低。这时使用CDATA段就会好一些
   
-  * 规则
-         CDATA 部分不能包含字符串 "]]>"。也不允许嵌套的 CDATA 部分。
-         标记 CDATA 部分结尾的 "]]>" 不能包含空格或折行。
+  * 规则：
+     * CDATA 部分不能包含字符串 ]]>，也不允许嵌套的 CDATA 部分
+     * 标记 CDATA 部分结尾的 ]]> 不能包含空格或折行
   
   ```xml
   <?xml version="1.0" encoding="UTF-8" ?>
@@ -9079,23 +9079,25 @@ DTD 是文档类型定义（Document Type Definition）。DTD 可以定义在 XM
    
      
 
+****
+
 
 
 ##### DTD引入
 
-* 引入本地dtd
+* 引入本地 dtd
 
   ```dtd
   <!DOCTYPE 根元素名称 SYSTEM ‘DTD文件的路径'>
   ```
 
-* 在xml文件内部引入
+* 在 xml 文件内部引入
 
   ```dtd
   <!DOCTYPE 根元素名称 [ dtd文件内容 ]>
   ```
 
-* 引入网络dtd
+* 引入网络 dtd
 
   ```dtd
   <!DOCTYPE 根元素的名称 PUBLIC "DTD文件名称" "DTD文档的URL">
@@ -9153,9 +9155,13 @@ DTD 是文档类型定义（Document Type Definition）。DTD 可以定义在 XM
 
 
 
+***
+
+
+
 ##### DTD实现
 
-persondtd.dtd文件
+persondtd.dtd 文件
 
 ```dtd
 <!ELEMENT persons (person+)>   	<!--约束人们至少一个人-->
@@ -9192,29 +9198,33 @@ persondtd.dtd文件
 
 ##### XSD定义
 
-1.Schema 语言也可作为 XSD（XML Schema Definition）
-2.schema 约束文件本身也是一个 xml 文件，符合 xml 的语法，这个文件的后缀名.xsd
-3.一个 xml 中可以引用多个 schema 约束文件，多个 schema 使用名称空间区分（名称空间类似于java包名）
-4.dtd 里面元素类型的取值比较单一常见的是 PCDATA 类型，但是在 schema 里面可以支持很多个数据类型
-**5.Schema 文件约束 xml 文件的同时也被别的文件约束着**
+1. Schema 语言也可作为 XSD（XML Schema Definition）
+2. Schema 约束文件本身也是一个 xml 文件，符合 xml 的语法，这个文件的后缀名 .xsd
+3. 一个 xml 中可以引用多个 Schema 约束文件，多个 Schema 使用名称空间区分（名称空间类似于 Java 包名）
+4. dtd 里面元素类型的取值比较单一常见的是 PCDATA 类型，但是在 Schema 里面可以支持很多个数据类型
+5. **Schema 文件约束 xml 文件的同时也被别的文件约束着**
+
+
+
+***
 
 
 
 ##### XSD规则
 
-1、创建一个文件，这个文件的后缀名为.xsd。
-2、定义文档声明
-3、schema文件的根标签为： <schema>
-4、在<schema>中定义属性：
-	  xmlns=http://www.w3.org/2001/XMLSchema
-	  代表当前文件时约束别人的，同时这个文件也对该Schema进行约束
-5、在<schema>中定义属性 ：
-	  targetNamespace = 唯一的url地址，指定当前这个schema文件的名称空间。
-	  **名称空间**：当其他xml使用该schema文件，需要引入此空间
-6、在<schema>中定义属性 ：
-	  elementFormDefault="qualified“，表示当前schema文件是一个质量良好的文件。
-7、通过element定义元素
-8、**判断当前元素是简单元素还是复杂元素**
+1. 创建一个文件，这个文件的后缀名为 .xsd
+2. 定义文档声明
+3. schema 文件的根标签为： <schema>
+4. 在 <schema> 中定义属性：
+   * xmlns=http://www.w3.org/2001/XMLSchema
+   * 代表当前文件时约束别人的，同时这个文件也对该 Schema 进行约束
+5. 在<schema>中定义属性 ：
+   * targetNamespace = 唯一的 url 地址，指定当前这个 schema 文件的名称空间。
+   * **名称空间**：当其他 xml 使用该 schema 文件，需要引入此空间
+6. 在<schema>中定义属性 ：
+   * elementFormDefault="qualified“，表示当前 schema 文件是一个质量良好的文件。
+7. 通过 element 定义元素
+8. **判断当前元素是简单元素还是复杂元素**
 
 person.xsd
 
@@ -9247,14 +9257,16 @@ person.xsd
 
 
 
+****
+
+
+
 ##### XSD引入
 
-1、在根标签上定义属性xmlns="http://www.w3.org/2001/XMLSchema-instance"
-2、**通过xmlns引入约束文件的名称空间**
-3、给某一个xmlns属性添加一个标识，用于区分不同的名称空间
-	  格式为: xmlns:标识=“名称空间url” ,标识可以是任意的，但是一般取值都是xsi
-4、通过xsi:schemaLocation指定名称空间所对应的约束文件路径
-	  格式为: xsi:schemaLocation = "名称空间url 文件路径“
+1. 在根标签上定义属性 xmlns="http://www.w3.org/2001/XMLSchema-instance"
+2. **通过 xmlns 引入约束文件的名称空间**
+3. 给某一个 xmlns 属性添加一个标识，用于区分不同的名称空间，格式为 `xmlns:标识="名称空间url"` ，标识可以是任意的，但是一般取值都是 xsi
+4. 通过 xsi:schemaLocation 指定名称空间所对应的约束文件路径，格式为 `xsi:schemaLocation = "名称空间url 文件路径`
 
 ```scheme
 <?xml version="1.0" encoding="UTF-8" ?>
@@ -9271,6 +9283,10 @@ person.xsd
 
 </persons>
 ```
+
+
+
+****
 
 
 
@@ -9333,21 +9349,21 @@ person.xsd
 
 #### 解析
 
-xml 解析就是从 xml 中获取到数据，DOM 是解析思想
+XML 解析就是从 XML 中获取到数据，DOM 是解析思想
 
-DOM(Document Object Model)：文档对象模型，把文档的各个组成部分看做成对应的对象，把 xml 文件全部加载到内存，在内存中形成一个树形结构，再获取对应的值
+DOM（Document Object Model）：文档对象模型，把文档的各个组成部分看做成对应的对象，把 XML 文件全部加载到内存，在内存中形成一个树形结构，再获取对应的值
 
-dom4j 实现
-* dom4j 解析器构造方法：`SAXReader saxReader = new SAXReader();`
+Dom4J 实现：
+* Dom4J 解析器构造方法：`SAXReader saxReader = new SAXReader()`
 
 * SAXReader 常用API：
 
-  `public Document read(File file)` : Reads a Document from the given File
-  `public Document read(InputStream in)` : Reads a Document from the given stream using SAX
+  * `public Document read(File file)`：Reads a Document from the given File
+  * `public Document read(InputStream in)`：Reads a Document from the given stream using SAX
 
 * Java Class 类API：
   
-  `public InputStream getResourceAsStream(String path)`：加载文件成为一个字节输入流返回
+  * `public InputStream getResourceAsStream(String path)`：加载文件成为一个字节输入流返回
 
 
 
@@ -9357,7 +9373,7 @@ dom4j 实现
 
 #### 根元素
 
-Document 方法：Element getRootElement() 获取根元素。
+Document 方法：`Element getRootElement()` 获取根元素
 
 ```java
 // 需求：解析books.xml文件成为一个Document文档树对象，得到根元素对象。
@@ -9452,14 +9468,14 @@ public class Dom4JDemo {
 
 Element 元素的 API：
 
-* List<Attribute> attributes()：获取元素的全部属性对象。
-* Attribute attribute(String name)：根据名称获取某个元素的属性对象。
-* String attributeValue(String var)：直接获取某个元素的某个属性名称的值。
+* List<Attribute> attributes()：获取元素的全部属性对象
+* Attribute attribute(String name)：根据名称获取某个元素的属性对象
+* String attributeValue(String var)：直接获取某个元素的某个属性名称的值
 
-Attribute 对象的API：
+Attribute 对象的 API：
 
-* String getName()：获取属性名称。
-* String getValue()：获取属性值。
+* String getName()：获取属性名称
+* String getValue()：获取属性值
 
 ```java
 public class Dom4JDemo {
@@ -9499,8 +9515,8 @@ Element：
 
 * String elementText(String name)：可以直接获取当前元素的子元素的文本内容
 * String elementTextTrim(String name)：去前后空格,直接获取当前元素的子元素的文本内容
-* String getText()：直接获取当前元素的文本内容。
-* String getTextTrim()：去前后空格,直接获取当前元素的文本内容。
+* String getText()：直接获取当前元素的文本内容
+* String getTextTrim()：去前后空格,直接获取当前元素的文本内容
 
 ```java
 public class Dom4JDemo {
