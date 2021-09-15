@@ -19,10 +19,6 @@
 
 
 
-参考视频：https://www.bilibili.com/video/BV1TE41177mP
-
-
-
 ***
 
 
@@ -6403,7 +6399,7 @@ public class AgeIllegalRuntimeException extends RuntimeException{
 
 
 
-### 异常规范
+### 处理规范
 
 异常的语法注意：
 
@@ -7180,10 +7176,10 @@ B  66
 
 中国人：中国人有 9 万左右字符，2 个字节编码一个中文字符，1 个字节编码一个英文字符，这套编码叫：GBK 编码，兼容 ASCII 编码表
 
-美国人：收集全球所有的字符，统一编号，这套编码叫 Unicode编码（万国码），一个英文等于两个字节，一个中文（含繁体）等于两个字节，中文标点占两个字节，英文标点占两个字节
+美国人：收集全球所有的字符，统一编号，这套编码叫 Unicode 编码（万国码），一个英文等于两个字节，一个中文（含繁体）等于两个字节，中文标点占两个字节，英文标点占两个字节
 
 * UTF-8 是变种形式，也必须兼容ASCII编码表
-* UTF-8一个中文一般占 3 个字节，中文标点占 3 个，英文字母和数字 1 个字节
+* UTF-8 一个中文一般占 3 个字节，中文标点占 3 个，英文字母和数字 1 个字节
 
 编码前与编码后的编码集必须一致才不会乱码
 
@@ -7513,7 +7509,11 @@ fw.close;
 
 
 
-##### 字节缓冲输入流
+***
+
+
+
+##### 字节缓冲输入
 
 字节缓冲输入流：BufferedInputStream
 
@@ -7543,7 +7543,11 @@ public class BufferedInputStreamDemo01 {
 
 
 
-##### 字节缓冲输出流
+***
+
+
+
+##### 字节缓冲输出
 
 字节缓冲输出流：BufferedOutputStream
 
@@ -7572,7 +7576,7 @@ public class BufferedOutputStreamDemo02 {
 
 
 
-##### 字节流的性能分析
+##### 字节流性能
 
 利用字节流的复制统计各种写法形式下缓冲流的性能执行情况。
 
@@ -7591,7 +7595,7 @@ public class BufferedOutputStreamDemo02 {
 
 
 
-##### 字符缓冲输入流
+##### 字符缓冲输入
 
 字符缓冲输入流：BufferedReader
 
@@ -7625,7 +7629,11 @@ public static void main(String[] args) throws Exception {
 
 
 
-##### 字符缓冲输出流
+***
+
+
+
+##### 字符缓冲输出
 
 符缓冲输出流：BufferedWriter
 
@@ -7656,19 +7664,19 @@ public static void main(String[] args) throws Exception {
 
 ##### 高效原因
 
-字符型缓冲流高效的原因：
+字符型缓冲流高效的原因：（空间换时间）
 
-* BufferedReader：每次调用read方法，只有第一次从磁盘中读取了8192（**8k**）个字符，存储到该类型对象的缓冲区数组中，将其中一个返回给调用者，再次调用read方法时，就不需要访问磁盘，直接从缓冲区中拿出一个数据即可，提升了效率
-* BufferedWriter：每次调用write方法，不会直接将字符刷新到文件中，而是存储到字符数组中，等字符数组写满了，才一次性刷新到文件中，减少了和磁盘交互的次数，提升了效率
+* BufferedReader：每次调用 read 方法，只有第一次从磁盘中读取了 8192（**8k**）个字符，存储到该类型对象的缓冲区数组中，将其中一个返回给调用者，再次调用 read 方法时，就不需要访问磁盘，直接从缓冲区中拿出一个数据即可，提升了效率
+* BufferedWriter：每次调用 write 方法，不会直接将字符刷新到文件中，而是存储到字符数组中，等字符数组写满了，才一次性刷新到文件中，减少了和磁盘交互的次数，提升了效率
 
 字节型缓冲流高效的原因：
 
-* BufferedInputStream：在该类型中准备了一个数组，存储字节信息，当外界调用read()方法想获取一个字节的时候，该对象从文件中一次性读取了8192个字节到数组中，只返回了第一个字节给调用者。将来调用者再次调用read方法时，当前对象就不需要再次访问磁盘，只需要从数组中取出一个字节返回给调用者即可，由于读取的是数组，所以速度非常快。当8192个字节全都读取完成之后，再需要读取一个字节，就得让该对象到文件中读取下一个8192个字节
-* BufferedOutputStream：在该类型中准备了一个数组，存储字节信息，当外界调用write方法想写出一个字节的时候，该对象直接将这个字节存储到了自己的数组中，而不刷新到文件中。一直到该数组所有8192个位置全都占满，该对象才把这个数组中的所有数据一次性写出到目标文件中。如果最后一次循环过程中，没有将数组写满，最终在关闭流对象的时候，也会将该数组中的数据刷新到文件中。 
+* BufferedInputStream：在该类型中准备了一个数组，存储字节信息，当外界调用 read() 方法想获取一个字节的时候，该对象从文件中一次性读取了 8192 个字节到数组中，只返回了第一个字节给调用者。将来调用者再次调用 read 方法时，当前对象就不需要再次访问磁盘，只需要从数组中取出一个字节返回给调用者即可，由于读取的是数组，所以速度非常快。当 8192 个字节全都读取完成之后，再需要读取一个字节，就得让该对象到文件中读取下一个 8192 个字节
+* BufferedOutputStream：在该类型中准备了一个数组，存储字节信息，当外界调用 write 方法想写出一个字节的时候，该对象直接将这个字节存储到了自己的数组中，而不刷新到文件中。一直到该数组所有 8192 个位置全都占满，该对象才把这个数组中的所有数据一次性写出到目标文件中。如果最后一次循环没有将数组写满，最终在关闭流对象的时候，也会将该数组中的数据刷新到文件中。 
 
 
 
-注意：**字节流和字符流，都是装满时自动写出，或者没满时手动flush写出，或close时刷新写出**
+注意：**字节流和字符流，都是装满时自动写出，或者没满时手动 flush 写出，或 close 时刷新写出**
 
 
 
@@ -7689,8 +7697,8 @@ GBK                GBK             不乱码!
 UTF-8              GBK             乱码!
 ```
 
-如果代码编码和读取的文件编码一致。字符流读取的时候不会乱码。
-如果代码编码和读取的文件编码不一致。字符流读取的时候会乱码。
+如果代码编码和读取的文件编码一致，字符流读取的时候不会乱码。
+如果代码编码和读取的文件编码不一致，字符流读取的时候会乱码。
 
 
 
@@ -7698,7 +7706,7 @@ UTF-8              GBK             乱码!
 
 
 
-##### 字符输入转换流
+##### 字符输入
 
 字符输入转换流：InputStreamReader
 
@@ -7707,7 +7715,7 @@ UTF-8              GBK             乱码!
 构造器：
 
 * `public InputStreamReader(InputStream is)` : 使用当前代码默认编码 UTF-8 转换成字符流
-* `public InputStreamReader(InputStream is,String charset)` : 指定编码把字节流转换成字符流
+* `public InputStreamReader(InputStream is, String charset)` : 指定编码把字节流转换成字符流
 
 ```java
 public class InputStreamReaderDemo{
@@ -7729,7 +7737,11 @@ public class InputStreamReaderDemo{
 
 
 
-##### 字符输出转换流
+***
+
+
+
+##### 字符输出
 
 字符输出转换流：OutputStreamWriter
 
@@ -7738,7 +7750,7 @@ public class InputStreamReaderDemo{
 构造器：
 
 * `public OutputStreamWriter(OutputStream os)` : 用默认编码 UTF-8 把字节输出流转换成字符输出流
-* `public OutputStreamWriter(OutputStream os ,String charset)` : 指定编码把字节输出流转换成
+* `public OutputStreamWriter(OutputStream os, String charset)` : 指定编码把字节输出流转换成
 
 ```Java
 OutputStream os = new FileOutputStream("Day10Demo/src/dlei07.txt");
@@ -9669,6 +9681,8 @@ JVM、JRE、JDK对比：
 <img src="https://gitee.com/seazean/images/raw/master/Java/JVM-JRE关系.png" style="zoom: 80%;" />
 
 
+
+参考书籍：https://book.douban.com/subject/34907497/
 
 参考视频：https://www.bilibili.com/video/BV1PJ411n7xZ
 
@@ -15370,7 +15384,7 @@ GCViewer 是一款离线的 GC 日志分析器，用于可视化 Java VM 选项 
 
 
 
-参考书籍：《数据结构高分笔记》
+参考书籍：https://book.douban.com/subject/35263893/
 
 
 

@@ -26,7 +26,7 @@
 
 
 
-参考视频：https://www.bilibili.com/video/BV16J411h7Rd（推荐观看）
+参考视频：https://www.bilibili.com/video/BV16J411h7Rd
 
 笔记的整体结构依据视频编写，并随着学习的深入补充了很多知识
 
@@ -12958,8 +12958,8 @@ final void updateHead(Node<E> h, Node<E> p) {
    * Pv6：可以实现为所有设备分配 IP  128 位
 
    * ipconfig：查看本机的 IP
-     ​      ping 检查本机与某个 IP 指定的机器是否联通，或者说是检测对方是否在线。
-     ​      ping 空格 IP地址 ：ping 220.181.57.216，ping www.baidu.com
+     * ping 检查本机与某个 IP 指定的机器是否联通，或者说是检测对方是否在线。
+     * ping 空格 IP地址 ：ping 220.181.57.216，ping www.baidu.com
 
    特殊的IP地址： 本机IP地址，**127.0.0.1 == localhost**，回环测试
 
