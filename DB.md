@@ -5112,13 +5112,15 @@ CREATE INDEX idx_seller_name_sta_addr ON tb_seller(name, status, address);
 
   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引4.png)
 
+  虽然索引列失效，但是系统**使用了索引下推进行了优化**
+
 * **范围查询**右边的列，不能使用索引：
 
   ```mysql
   EXPLAIN SELECT * FROM tb_seller WHERE name='小米科技' AND status>'1' AND address='西安市';
   ```
 
-  根据前面的两个字段 name ， status 查询是走索引的， 但是最后一个条件 address 没有用到索引
+  根据前面的两个字段 name ， status 查询是走索引的， 但是最后一个条件 address 没有用到索引，使用了索引下推
 
   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引5.png)
 

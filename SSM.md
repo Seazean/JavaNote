@@ -7897,7 +7897,7 @@ AbstractBeanFactory.doGetBean()：获取 Bean，context.getBean() 追踪到此
 
   原因：先加载 A，把 A 加入集合，A 依赖 B 去加载 B，B 又依赖 A，去加载 A，发现 A 在正在创建集合中，产生循环依赖
 
-* `markBeanAsCreated(beanName)`：把 bean 标记为已经创建
+* `markBeanAsCreated(beanName)`：把 bean 标记为已经创建，**防止其他线程重新创建 Bean**
 
 * `mbd = getMergedLocalBeanDefinition(beanName)`：**获取合并父 BD 后的 BD 对象**，BD 是直接继承的，合并后的 BD 信息是包含父类的 BD 信息
 

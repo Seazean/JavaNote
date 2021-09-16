@@ -15072,7 +15072,7 @@ public class Server {
         Selector selector = Selector.open();
         // 5、将通道都注册到选择器上去，并且开始指定监听接收事件
         serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
-		// 6、使用Selector选择器轮询已经就绪好的事件
+		// 6、使用Selector选择器阻塞等待轮已经就绪好的事件
         while (selector.select() > 0) {
             System.out.println("----开始新一轮的时间处理----");
             // 7、获取选择器中的所有注册的通道中已经就绪好的事件
