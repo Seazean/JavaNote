@@ -2726,7 +2726,7 @@ getInstance 方法对应的字节码为：
 * 21 表示利用一个对象引用，调用构造方法初始化对象
 * 24 表示利用一个对象引用，赋值给 static INSTANCE
 
-步骤 21 和 24 之间不存在数据依赖关系，而且无论重排前后，程序的执行结果在单线程中并没有改变，因此这种重排优化是允许的
+**步骤 21 和 24 之间不存在数据依赖关系**，而且无论重排前后，程序的执行结果在单线程中并没有改变，因此这种重排优化是允许的
 
 * 关键在于 0:getstatic 这行代码在 monitor 控制之外，可以越过 monitor 读取 INSTANCE 变量的值
 * 当其他线程访问 instance 不为 null 时，由于 instance 实例未必已初始化，那么 t2 拿到的是将是一个未初始化完毕的单例返回，这就造成了线程安全的问题
@@ -14359,29 +14359,30 @@ Java NIO 系统的核心在于：通道和缓冲区，通道表示打开的 IO �
 
 Buffer 基本操作：
 
-| 方法                                        | 说明                                                    |
-| ------------------------------------------- | ------------------------------------------------------- |
-| public Buffer clear()                       | 清空缓冲区，不清空内容，将位置设置为零，限制设置为容量  |
-| public Buffer flip()                        | 翻转缓冲区，将缓冲区的界限设置为当前位置，position 置 0 |
-| public int capacity()                       | 返回 Buffer的 capacity 大小                             |
-| public final int limit()                    | 返回 Buffer 的界限 limit 的位置                         |
-| public Buffer limit(int n)                  | 设置缓冲区界限为 n                                      |
-| public Buffer mark()                        | 在此位置对缓冲区设置标记                                |
-| public final int position()                 | 返回缓冲区的当前位置 position                           |
-| public Buffer position(int n)               | 设置缓冲区的当前位置为n                                 |
-| public Buffer reset()                       | 将位置 position 重置为先前 mark 标记的位置              |
-| public Buffer rewind()                      | 将位置设为为0，取消设置的 mark                          |
-| public final int remaining()                | 返回当前位置 position 和 limit 之间的元素个数           |
-| public final boolean hasRemaining()         | 判断缓冲区中是否还有元素                                |
-| public static ByteBuffer wrap(byte[] array) | 将一个字节数组包装到缓冲区中                            |
-| abstract ByteBuffer asReadOnlyBuffer()      | 创建一个新的只读字节缓冲区                              |
+| 方法                                        | 说明                                                         |
+| ------------------------------------------- | ------------------------------------------------------------ |
+| public Buffer clear()                       | 清空缓冲区，不清空内容，将位置设置为零，限制设置为容量       |
+| public Buffer flip()                        | 翻转缓冲区，将缓冲区的界限设置为当前位置，position 置 0      |
+| public int capacity()                       | 返回 Buffer的 capacity 大小                                  |
+| public final int limit()                    | 返回 Buffer 的界限 limit 的位置                              |
+| public Buffer limit(int n)                  | 设置缓冲区界限为 n                                           |
+| public Buffer mark()                        | 在此位置对缓冲区设置标记                                     |
+| public final int position()                 | 返回缓冲区的当前位置 position                                |
+| public Buffer position(int n)               | 设置缓冲区的当前位置为n                                      |
+| public Buffer reset()                       | 将位置 position 重置为先前 mark 标记的位置                   |
+| public Buffer rewind()                      | 将位置设为为 0，取消设置的 mark                              |
+| public final int remaining()                | 返回当前位置 position 和 limit 之间的元素个数                |
+| public final boolean hasRemaining()         | 判断缓冲区中是否还有元素                                     |
+| public static ByteBuffer wrap(byte[] array) | 将一个字节数组包装到缓冲区中                                 |
+| abstract ByteBuffer asReadOnlyBuffer()      | 创建一个新的只读字节缓冲区                                   |
+| public abstract ByteBuffer compact()        | 缓冲区当前位置与其限制（如果有）之间的字节被复制到缓冲区的开头 |
 
 Buffer 数据操作：
 
 | 方法                                              | 说明                                            |
 | ------------------------------------------------- | ----------------------------------------------- |
-| public abstract byte get()                        | 读取该缓冲区当前位置的单个字节，然后增加位置    |
-| public ByteBuffer get(byte[] dst)                 | 读取多个字节到字节数组dst中                     |
+| public abstract byte get()                        | 读取该缓冲区当前位置的单个字节，然后位置 + 1    |
+| public ByteBuffer get(byte[] dst)                 | 读取多个字节到字节数组 dst 中                   |
 | public abstract byte get(int index)               | 读取指定索引位置的字节，不移动 position         |
 | public abstract ByteBuffer put(byte b)            | 将给定单个字节写入缓冲区的当前位置，position+1  |
 | public final ByteBuffer put(byte[] src)           | 将 src 字节数组写入缓冲区的当前位置             |
@@ -14449,6 +14450,57 @@ public class TestBuffer {
     }
 }
 ```
+
+
+
+****
+
+
+
+#### 粘包拆包
+
+网络上有多条数据发送给服务端，数据之间使用 \n 进行分隔，但这些数据在接收时，被进行了重新组合
+
+```java
+// Hello,world\n
+// I'm zhangsan\n
+// How are you?\n
+------ > 黏包，半包
+// Hello,world\nI'm zhangsan\nHo
+// w are you?\n
+```
+
+```java
+public static void main(String[] args) {
+    ByteBuffer source = ByteBuffer.allocate(32);
+    //                     11            24
+    source.put("Hello,world\nI'm zhangsan\nHo".getBytes());
+    split(source);
+
+    source.put("w are you?\nhaha!\n".getBytes());
+    split(source);
+}
+
+private static void split(ByteBuffer source) {
+    source.flip();
+    int oldLimit = source.limit();
+    for (int i = 0; i < oldLimit; i++) {
+        if (source.get(i) == '\n') {
+            // 根据数据的长度设置缓冲区
+            ByteBuffer target = ByteBuffer.allocate(i + 1 - source.position());
+            // 0 ~ limit
+            source.limit(i + 1);
+            target.put(source); // 从source 读，向 target 写
+            // debugAll(target); 访问 buffer 的方法
+            source.limit(oldLimit);
+        }
+    }
+    // 访问过的数据复制到开头
+    source.compact();
+}
+```
+
+
 
 
 
@@ -14700,11 +14752,12 @@ public class MappedByteBufferTest {
 
 3. Channel 在 NIO 中是一个接口：`public interface Channel extends Closeable{}`
 
-
-
 Channel 实现类：
 
-* FileChannel：用于读取、写入、映射和操作文件的通道
+* FileChannel：用于读取、写入、映射和操作文件的通道，只能工作在阻塞模式下
+  * 通过 FileInputStream 获取的 Channel 只能读
+  * 通过 FileOutputStream 获取的 Channel 只能写
+  * 通过 RandomAccessFile 是否能读写根据构造 RandomAccessFile 时的读写模式决定
 * DatagramChannel：通过 UDP 读写网络中的数据通道
 * SocketChannel：通过 TCP 读写网络中的数据
 * ServerSocketChannel：可以监听新进来的 TCP 连接，对每一个新进来的连接都会创建一个SocketChannel。
@@ -14729,9 +14782,9 @@ Channel 基本操作：
 | 方法                                       | 说明                                                     |
 | ------------------------------------------ | -------------------------------------------------------- |
 | public abstract int read(ByteBuffer dst)   | 从 Channel 中读取数据到 ByteBuffer，从 position 开始储存 |
-| public final long read(ByteBuffer[] dsts)  | 将Channel中的数据“分散”到ByteBuffer[]                    |
+| public final long read(ByteBuffer[] dsts)  | 将 Channel 中的数据分散到 ByteBuffer[]                   |
 | public abstract int write(ByteBuffer src)  | 将 ByteBuffer 中的数据写入 Channel，从 position 开始写出 |
-| public final long write(ByteBuffer[] srcs) | 将ByteBuffer[]到中的数据“聚集”到Channel                  |
+| public final long write(ByteBuffer[] srcs) | 将 ByteBuffer[] 到中的数据聚集到 Channel                 |
 | public abstract long position()            | 返回此通道的文件位置                                     |
 | FileChannel position(long newPosition)     | 设置此通道的文件位置                                     |
 | public abstract long size()                | 返回此通道的文件的当前大小                               |
@@ -14941,7 +14994,7 @@ public class ChannelTest {
 
 创建 Selector：`Selector selector = Selector.open();`
 
-向选择器注册通道：`SelectableChannel.register(Selector sel, int ops)`
+向选择器注册通道：`SelectableChannel.register(Selector sel, int ops, Object att)`
 
 选择器对通道的监听事件，需要通过第二个参数 ops 指定。监听的事件类型用四个常量表示：
 
@@ -14969,6 +15022,7 @@ SelectionKey API:
 | ------------------------------------------- | -------------------------------------------------- |
 | public abstract void cancel()               | 取消该键的通道与其选择器的注册                     |
 | public abstract SelectableChannel channel() | 返回创建此键的通道，该方法在取消键之后仍将返回通道 |
+| public final Object attachment()            | 返回当前 key 关联的缓冲                            |
 | public final boolean isAcceptable()         | 检测此密钥的通道是否已准备好接受新的套接字连接     |
 | public final boolean isConnectable()        | 检测此密钥的通道是否已完成或未完成其套接字连接操作 |
 | public final boolean isReadable()           | 检测此密钥的频道是否可以阅读                       |
@@ -15057,7 +15111,7 @@ ssChannel.register(selector, SelectionKey.OP_ACCEPT);
 3. 分配指定大小的缓冲区：`ByteBuffer buffer = ByteBuffer.allocate(1024)`
 4. 发送数据给服务端
 
-37 行代码，如果判断条件改为 !=-1，需要客户端 shutdown 一下
+37 行代码，如果判断条件改为 !=-1，需要客户端 close 一下
 
 ```java
 public class Server {
@@ -15087,6 +15141,11 @@ public class Server {
                     SocketChannel socketChannel = serverSocketChannel.accept();
                     // 11 、切换成非阻塞模式
                     socketChannel.configureBlocking(false);
+                    /*
+                     ByteBuffer buffer = ByteBuffer.allocate(16);
+                	 // 将一个 byteBuffer 作为附件【关联】到 selectionKey 上
+                	 SelectionKey scKey = sc.register(selector, 0, buffer);
+                    */
                     // 12、将本客户端通道注册到选择器
                     socketChannel.register(selector, SelectionKey.OP_READ);
                 } else if (key.isReadable()) {
@@ -15095,6 +15154,8 @@ public class Server {
                     SocketChannel socketChannel = (SocketChannel) channel;
                     // 14、读取数据
                     ByteBuffer buffer = ByteBuffer.allocate(1024);
+                    // 获取关联的附件
+                    // ByteBuffer buffer = (ByteBuffer) key.attachment();
                     int len;
                     while ((len = socketChannel.read(buffer)) > 0) {
                         buffer.flip();
@@ -15124,7 +15185,7 @@ public class Client {
         while (true){
             System.out.print("请说：");
             String msg = sc.nextLine();
-            buffer.put(("波妞：" + msg).getBytes());
+            buffer.put(("Client：" + msg).getBytes());
             buffer.flip();
             socketChannel.write(buffer);
             buffer.clear();
