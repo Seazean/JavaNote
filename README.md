@@ -5,6 +5,7 @@
 内容说明：
 
 * DB：MySQL、Redis
+* Frame：Maven、Netty
 * Java：JavaSE、JVM、Algorithm、Design Pattern
 * Prog：Concurrent、Network Programming
 * SSM：MyBatis、Spring、SpringMVC、SpringBoot
