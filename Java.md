@@ -17520,7 +17520,7 @@ UML 从目标系统的不同角度出发，定义了用例图、类图、对象�
 * 静态变量的方式：
 
   ```java
-  public class Singleton {
+  public final class Singleton {
       // 私有构造方法
       private Singleton() {}
       // 在成员位置创建该类的对象
@@ -17565,23 +17565,23 @@ UML 从目标系统的不同角度出发，定义了用例图、类图、对象�
 
   ```java
   public class Singleton {
-      //私有构造方法
+      // 私有构造方法
       private Singleton() {}
       
-      //在成员位置创建该类的对象
+      // 在成员位置创建该类的对象
       private static Singleton instance;
       static {
           instance = new Singleton();
       }
       
-      //对外提供静态方法获取该对象
+      // 对外提供静态方法获取该对象
       public static Singleton getInstance() {
           return instance;
       }
   }
   ```
 
-* 枚举方式：枚举类型是所用单例实现中**唯一一种**不会被破坏的单例实现模式
+* 枚举方式：枚举类型是所用单例实现中**唯一一种不会被破坏**的单例实现模式
 
   ```java
   public enum Singleton {
@@ -17605,7 +17605,7 @@ UML 从目标系统的不同角度出发，定义了用例图、类图、对象�
   反编译结果：
 
   ```java
-  public final class Singleton extends java.lang.Enum<Singleton> {//Enum实现序列化接口
+  public final class Singleton extends java.lang.Enum<Singleton> { // Enum实现序列化接口
   	public static final Singleton INSTANCE = new Singleton();
   }
   ```
@@ -17624,16 +17624,16 @@ UML 从目标系统的不同角度出发，定义了用例图、类图、对象�
 
   ```java
   public class Singleton {
-      //私有构造方法
+      // 私有构造方法
       private Singleton() {}
   
-      //在成员位置创建该类的对象
+      // 在成员位置创建该类的对象
       private static Singleton instance;
   
-      //对外提供静态方法获取该对象
+      // 对外提供静态方法获取该对象
       public static Singleton getInstance() {
           if(instance == null) {
-              //多线程环境，会出现线程安全问题，可能多个线程同时进入这里
+              // 多线程环境，会出现线程安全问题，可能多个线程同时进入这里
               instance = new Singleton();
           }
           return instance;
@@ -18943,12 +18943,10 @@ private static final class ProxyClassFactory {
         String proxyName = proxyPkg + proxyClassNamePrefix + num;
 
         // 【生成二进制字节码，这个字节码写入到文件内】，就是编译好的 class 文件
-        byte[] proxyClassFile = ProxyGenerator.generateProxyClass(
-proxyName, interfaces, accessFlags);
+        byte[] proxyClassFile = ProxyGenerator.generateProxyClass(proxyName, interfaces, accessFlags);
         try {
             // 【使用加载器加载二进制到 jvm】，并且返回 class
-            return defineClass0(loader, proxyName,
-                                proxyClassFile, 0, proxyClassFile.length);
+            return defineClass0(loader, proxyName, proxyClassFile, 0, proxyClassFile.length);
         } catch (ClassFormatError e) { }
     }
 }
