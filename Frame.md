@@ -1674,6 +1674,8 @@ Netty 主要基于主从 Reactors 多线程模型做了一定的改进，Netty �
           new ServerBootstrap()
                   // 2. 线程组，boss 只负责【处理 accept 事件】， worker 只【负责 channel 上的读写】
                   .group(boss, worker)
+             	 	//.option() 		// 给 ServerSocketChannel 配置参数
+              	//.childOption()   	// 给 SocketChannel 配置参数
                   // 3. 选择服务器的 ServerSocketChannel 实现
                   .channel(NioServerSocketChannel.class)
                   // 4. boss 负责处理连接，worker(child) 负责处理读写，决定了能执行哪些操作(handler)
@@ -1709,6 +1711,7 @@ Netty 主要基于主从 Reactors 多线程模型做了一定的改进，Netty �
           new Bootstrap()
                   // 2. 添加 EventLoop
                   .group(new NioEventLoopGroup())
+              	//.option() 	//给 SocketChannel 配置参数
                   // 3. 选择客户端 channel 实现
                   .channel(NioSocketChannel.class)
                   // 4. 添加处理器
@@ -1734,6 +1737,8 @@ Netty 主要基于主从 Reactors 多线程模型做了一定的改进，Netty �
 
 
 
+参考视频：https://www.bilibili.com/video/BV1py4y1E7oA
+
 
 
 
@@ -1751,7 +1756,7 @@ Netty 主要基于主从 Reactors 多线程模型做了一定的改进，Netty �
 
 事件循环对象 EventLoop，本质是一个单线程执行器（同时维护了一个 selector），里面有 run 方法处理 Channel 上源源不断的 IO 事件
 
-事件循环组 EventLoopGroup 是一组 EventLoop，Channel 会调用 EventLoopGroup 的 register 方法来绑定其中一个 EventLoop，后续这个 Channel 上的 IO 事件都由此 EventLoop 来处理，保证了事件处理时的线程安全
+事件循环组 EventLoopGroup 是一组 EventLoop，Channel 会调用 Boss EventLoopGroup 的 register 方法来绑定其中一个 Worker 的 EventLoop，后续这个 Channel 上的 IO 事件都由此 EventLoop 来处理，保证了事件处理时的线程安全
 
 EventLoopGroup 类 API：
 
@@ -1806,6 +1811,10 @@ public class EventLoopServer {
 源码分析：
 
 ```java
+public ChannelHandlerContext fireChannelRead(final Object msg) {
+    invokeChannelRead(findContextInbound(MASK_CHANNEL_READ), msg);
+    return this;
+}
 static void invokeChannelRead(final AbstractChannelHandlerContext next, Object msg) {
     final Object m = next.pipeline.touch(ObjectUtil.checkNotNull(msg, "msg"), next);
     EventExecutor executor = next.executor();
@@ -1835,7 +1844,7 @@ static void invokeChannelRead(final AbstractChannelHandlerContext next, Object m
 
 ### Channel
 
-#### 基本使用
+#### 基本介绍
 
 Channel 类 API：
 
@@ -1915,6 +1924,7 @@ public class CloseFutureClient {
                 })
                 .connect(new InetSocketAddress("127.0.0.1", 8080));
         Channel channel = channelFuture.sync().channel();
+        // 发送数据
         new Thread(() -> {
             Scanner sc = new Scanner(System.in);
             while (true) {
@@ -1926,9 +1936,9 @@ public class CloseFutureClient {
                 channel.writeAndFlush(line);
             }
         }, "input").start();
-
         // 获取 CloseFuture 对象
         ChannelFuture closeFuture = channel.closeFuture();
+        
         // 1. 同步处理关闭
         System.out.println("waiting close...");
         closeFuture.sync();
@@ -1976,7 +1986,7 @@ Future 类 API：
 
 ```java
 public class NettyFutureDemo {
-    public static void main(String[] args) throws ExecutionException, InterruptedException {
+    public static void main(String[] args) throws Exception {
         NioEventLoopGroup group = new NioEventLoopGroup();
         EventLoop eventLoop = group.next();
         Future<Integer> future = eventLoop.submit(new Callable<Integer>() {
@@ -2018,7 +2028,7 @@ public class NettyPromiseDemo {
     public static void main(String[] args) throws Exception {
         // 1. 准备 EventLoop 对象
         EventLoop eventLoop = new NioEventLoopGroup().next();
-        // 2. 主动创建promise
+        // 2. 主动创建 promise
         DefaultPromise<Integer> promise = new DefaultPromise<>(eventLoop);
         // 3. 任意一个线程执行计算，计算完毕后向 promise 填充结果
         new Thread(() -> {
@@ -2048,7 +2058,7 @@ public class NettyPromiseDemo {
 ChannelHandler 用来处理 Channel 上的各种事件，分为入站出站两种，所有 ChannelHandler 连接成双向链表就是 Pipeline
 
 * 入站处理器通常是 ChannelInboundHandlerAdapter 的子类，主要用来读取客户端数据，写回结果
-* 出站处理器通常是 ChannelOutboundHandlerAdapter 的子类，主要对写回结果进行加工
+* 出站处理器通常是 ChannelOutboundHandlerAdapter 的子类，主要对写回结果进行加工（入站和出站是对于服务端来说的）
 
 ```java
 public static void main(String[] args) {
@@ -2109,7 +2119,7 @@ public static void main(String[] args) {
 入站事件和出站事件在一个双向链表中，两种类型的 handler 互不干扰：
 
 * 入站事件会从链表 head 往后传递到最后一个入站的 handler
-* 出站事件会从链表 tail 往前传递到最前一个出站的handler
+* 出站事件会从链表 tail 往前传递到最前一个出站的 handler
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/Netty-ChannelPipeline.png)
 
@@ -2159,7 +2169,7 @@ ByteBuf 是对字节数据的封装，优点：
 * **推荐**的创建方式：在添加处理器的方法中
 
   ```java
-  pipeline.addLast("h1", new ChannelInboundHandlerAdapter() {
+  pipeline.addLast(new ChannelInboundHandlerAdapter() {
       @Override
       public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
           ByteBuf buffer = ctx.alloc().buffer();
@@ -2172,7 +2182,7 @@ ByteBuf 是对字节数据的封装，优点：
 * 直接内存创建和销毁的代价昂贵，但读写性能高（少一次内存复制），适合配合池化功能一起用
 * 直接内存对 GC 压力小，因为这部分内存不受 JVM 垃圾回收的管理，但也要注意及时主动释放
 
-池化的意义在于可以重用 ByteBuf，高并发时池化功能更节约内存，减少内存溢出的可能，与非池化对比：
+池化的意义在于可以**重用 ByteBuf**，高并发时池化功能更节约内存，减少内存溢出的可能，与非池化对比：
 
 * 非池化，每次都要创建新的 ByteBuf 实例，这个操作对直接内存代价昂贵，堆内存会增加 GC 压力
 * 池化，可以重用池中 ByteBuf 实例，并且采用了与 jemalloc 类似的内存分配算法提升分配效率
@@ -2240,7 +2250,7 @@ Netty 中三种内存的回收：
 
 * UnpooledHeapByteBuf 使用的是 JVM 内存，只需等 GC 回收内存
 * UnpooledDirectByteBuf 使用的就是直接内存了，需要特殊的方法来回收内存
-* PooledByteBuf 和它的子类使用了池化机制，需要更复杂的规则来回收内存
+* PooledByteBuf 和子类使用了池化机制，需要更复杂的规则来回收内存
 
 Netty 采用了引用计数法来控制回收内存，每个 ByteBuf 都实现了 ReferenceCounted 接口，回收的规则：
 
@@ -2336,12 +2346,13 @@ Pipeline 的存在，需要将 ByteBuf 传递给下一个 ChannelHandler，如�
       buf1.writeBytes(new byte[]{6, 7, 8, 9, 10});
   
       CompositeByteBuf buf = ByteBufAllocator.DEFAULT.compositeBuffer();
+      // true 表示增加新的 ByteBuf 自动递增 write index, 否则 write index 会始终为 0
       buf.addComponents(true, buf1, buf2);
   }
   ```
-
+  
   CompositeByteBuf 是一个组合的 ByteBuf，内部维护了一个 Component 数组，每个 Component 管理一个 ByteBuf，记录了这个 ByteBuf 相对于整体偏移量等信息，代表着整体中某一段的数据
-
+  
   * 优点：对外是一个虚拟视图，组合这些 ByteBuf 不会产生内存复制
   * 缺点：复杂了很多，多次操作会带来性能的损耗
 
@@ -2363,7 +2374,596 @@ Pipeline 的存在，需要将 ByteBuf 传递给下一个 ChannelHandler，如�
   ByteBuf buf = Unpooled.wrappedBuffer(buf1, buf2);
   ```
 
+
+
+
+
+
+****
+
+
+
+
+
+## 粘包半包
+
+### 现象演示
+
+在 TCP 传输中，客户端发送消息时，实际上是将数据写入TCP的缓存，此时数据的大小和缓存的大小就会造成粘包和半包
+
+* 当数据超过 TCP 缓存容量时，就会被拆分成多个包，通过 Socket 多次发送到服务端，服务端每次从缓存中取数据，产生半包问题
+
+* 当数据小于 TCP 缓存容量时，缓存中可以存放多个包，客户端和服务端一次通信就可能传递多个包，这时候服务端就可能一次读取多个包，产生粘包的问题
+
+代码演示：
+
+* 客户端代码：
+
+  ```java
+  public class HelloWorldClient {
+      public static void main(String[] args) {
+          send();
+      }
   
+      private static void send() {
+          NioEventLoopGroup worker = new NioEventLoopGroup();
+          try {
+              Bootstrap bootstrap = new Bootstrap();
+              bootstrap.channel(NioSocketChannel.class);
+              bootstrap.group(worker);
+              bootstrap.handler(new ChannelInitializer<SocketChannel>() {
+                  @Override
+                  protected void initChannel(SocketChannel ch) throws Exception {
+                      ch.pipeline().addLast(new ChannelInboundHandlerAdapter() {
+                          // 【在连接 channel 建立成功后，会触发 active 方法】
+                          @Override
+                          public void channelActive(ChannelHandlerContext ctx) throws Exception {
+                              // 发送内容随机的数据包
+                              Random r = new Random();
+                              char c = '0';
+                              ByteBuf buf = ctx.alloc().buffer();
+                              for (int i = 0; i < 10; i++) {
+                                  byte[] bytes = new byte[10];
+                                  for (int j = 0; j < r.nextInt(9) + 1; j++) {
+                                      bytes[j] = (byte) c;
+                                  }
+                                  c++;
+                                  buf.writeBytes(bytes);
+                              }
+                              ctx.writeAndFlush(buf);
+                          }
+                      });
+                  }
+              });
+              ChannelFuture channelFuture = bootstrap.connect("127.0.0.1", 8080).sync();
+              channelFuture.channel().closeFuture().sync();
+  
+          } catch (InterruptedException e) {
+              log.error("client error", e);
+          } finally {
+              worker.shutdownGracefully();
+          }
+      }
+  }
+  ```
+
+* 服务器代码：
+
+  ```java
+  public class HelloWorldServer {
+      public static void main(String[] args) {
+          NioEventLoopGroup boss = new NioEventLoopGroup(1);
+          NioEventLoopGroup worker = new NioEventLoopGroup();
+          try {
+              ServerBootstrap serverBootstrap = new ServerBootstrap();
+              serverBootstrap.channel(NioServerSocketChannel.class);
+              // 调整系统的接受缓冲区【滑动窗口】
+              //serverBootstrap.option(ChannelOption.SO_RCVBUF, 10);
+              // 调整 netty 的接受缓冲区（ByteBuf）
+              //serverBootstrap.childOption(ChannelOption.RCVBUF_ALLOCATOR, 
+              //                            new AdaptiveRecvByteBufAllocator(16, 16, 16));
+              serverBootstrap.group(boss, worker);
+              serverBootstrap.childHandler(new ChannelInitializer<SocketChannel>() {
+                  @Override
+                  protected void initChannel(SocketChannel ch) throws Exception {
+                      // 【这里可以添加解码器】
+                      // LoggingHandler 用来打印消息
+                      ch.pipeline().addLast(new LoggingHandler(LogLevel.DEBUG));
+                  }
+              });
+              ChannelFuture channelFuture = serverBootstrap.bind(8080);
+              channelFuture.sync();
+              channelFuture.channel().closeFuture().sync();
+          } catch (InterruptedException e) {
+              log.error("server error", e);
+          } finally {
+              boss.shutdownGracefully();
+              worker.shutdownGracefully();
+              log.debug("stop");
+          }
+      }
+  }
+  ```
+
+* 粘包效果展示：
+
+  ```java
+  09:57:27.140 [nioEventLoopGroup-3-1] DEBUG io.netty.handler.logging.LoggingHandler - [id: 0xddbaaef6, L:/127.0.0.1:8080 - R:/127.0.0.1:8701] READ: 100B	// 读了 100 字节，发生粘包
+           +-------------------------------------------------+
+           |  0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f |
+  +--------+-------------------------------------------------+----------------+
+  |00000000| 30 30 30 30 30 00 00 00 00 00 31 00 00 00 00 00 |00000.....1.....|
+  |00000010| 00 00 00 00 32 32 32 32 00 00 00 00 00 00 33 00 |....2222......3.|
+  |00000020| 00 00 00 00 00 00 00 00 34 34 00 00 00 00 00 00 |........44......|
+  |00000030| 00 00 35 35 35 35 00 00 00 00 00 00 36 36 36 00 |..5555......666.|
+  |00000040| 00 00 00 00 00 00 37 37 37 37 00 00 00 00 00 00 |......7777......|
+  |00000050| 38 38 38 38 38 00 00 00 00 00 39 39 00 00 00 00 |88888.....99....|
+  |00000060| 00 00 00 00                                     |....            |
+  +--------+-------------------------------------------------+----------------+
+  ```
+
+解决方法：通过调整系统的接受缓冲区的滑动窗口和 Netty 的接受缓冲区保证每条包只含有一条数据，滑动窗口大小，仅决定了 Netty 读取的**最小单位**，实际每次读取的一般是它的整数倍
+
+
+
+***
+
+
+
+### 解决方案
+
+#### 短连接
+
+发一个包建立一次连接，这样连接建立到连接断开之间就是消息的边界，缺点就是效率很低
+
+客户端代码改造：
+
+```java
+public class HelloWorldClient {
+    public static void main(String[] args) {
+        // 分 10 次发送
+        for (int i = 0; i < 10; i++) {
+            send();
+        }
+    }
+}
+```
+
+
+
+****
+
+
+
+#### 固定长度
+
+服务器端加入定长解码器，每一条消息采用固定长度，缺点浪费空间
+
+```java
+serverBootstrap.childHandler(new ChannelInitializer<SocketChannel>() {
+    @Override
+    protected void initChannel(SocketChannel ch) throws Exception {
+        ch.pipeline().addLast(new FixedLengthFrameDecoder(8));
+        // LoggingHandler 用来打印消息
+        ch.pipeline().addLast(new LoggingHandler(LogLevel.DEBUG));
+    }
+});
+```
+
+```java
+10:29:06.522 [nioEventLoopGroup-3-1] DEBUG io.netty.handler.logging.LoggingHandler - [id: 0x38a70fbf, L:/127.0.0.1:8080 - R:/127.0.0.1:10144] READ: 10B
+         +-------------------------------------------------+
+         |  0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f |
++--------+-------------------------------------------------+----------------+
+|00000000| 31 31 00 00 00 00 00 00 00 00                   |11........      |
++--------+-------------------------------------------------+----------------+
+10:29:06.522 [nioEventLoopGroup-3-1] DEBUG io.netty.handler.logging.LoggingHandler - [id: 0x38a70fbf, L:/127.0.0.1:8080 - R:/127.0.0.1:10144] READ: 10B
+         +-------------------------------------------------+
+         |  0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f |
++--------+-------------------------------------------------+----------------+
+|00000000| 32 32 32 32 32 32 00 00 00 00                   |222222....      |
++--------+-------------------------------------------------+----------------+
+```
+
+
+
+****
+
+
+
+#### 分隔符
+
+服务端加入行解码器，默认以 `\n` 或 `\r\n` 作为分隔符，如果超出指定长度仍未出现分隔符，则抛出异常：
+
+```java
+serverBootstrap.childHandler(new ChannelInitializer<SocketChannel>() {
+    @Override
+    protected void initChannel(SocketChannel ch) throws Exception {
+        ch.pipeline().addLast(new FixedLengthFrameDecoder(8));
+        ch.pipeline().addLast(new LoggingHandler(LogLevel.DEBUG));
+    }
+});
+```
+
+客户端在每条消息之后，加入 `\n` 分隔符：
+
+```java
+public void channelActive(ChannelHandlerContext ctx) throws Exception {
+    Random r = new Random();
+    char c = 'a';
+    ByteBuf buffer = ctx.alloc().buffer();
+    for (int i = 0; i < 10; i++) {
+        for (int j = 1; j <= r.nextInt(16)+1; j++) {
+            buffer.writeByte((byte) c);
+        }
+        // 10 代表 '\n'
+        buffer.writeByte(10);
+        c++;
+    }
+    ctx.writeAndFlush(buffer);
+}
+```
+
+
+
+****
+
+
+
+#### 预设长度
+
+LengthFieldBasedFrameDecoder 解码器自定义长度解决 TCP 粘包黏包问题
+
+```java
+int maxFrameLength		// 数据最大长度
+int lengthFieldOffset 	// 长度字段偏移量，从第几个字节开始是内容的长度字段
+int lengthFieldLength	// 长度字段本身的长度
+int lengthAdjustment 	// 长度字段为基准，几个字节后才是内容
+int initialBytesToStrip	// 从头开始剥离几个字节解码后显示
+```
+
+```java
+lengthFieldOffset   = 1 (= the length of HDR1)
+lengthFieldLength   = 2
+lengthAdjustment    = 1 (= the length of HDR2)
+initialBytesToStrip = 3 (= the length of HDR1 + LEN)
+
+BEFORE DECODE (16 bytes)                       AFTER DECODE (13 bytes)//解码
++------+--------+------+----------------+      +------+----------------+
+| HDR1 | Length | HDR2 | Actual Content |----->| HDR2 | Actual Content |
+| 0xCA | 0x000C | 0xFE | "HELLO, WORLD" |      | 0xFE | "HELLO, WORLD" |
++------+--------+------+----------------+      +------+----------------+
+```
+
+代码实现：
+
+```java
+public class LengthFieldDecoderDemo {
+    public static void main(String[] args) {
+        EmbeddedChannel channel = new EmbeddedChannel(
+                // int 占 4 字节，版本号一个字节
+                new LengthFieldBasedFrameDecoder(1024, 0, 4, 1,5),
+                new LoggingHandler(LogLevel.DEBUG)
+        );
+
+        // 4 个字节的内容长度， 实际内容
+        ByteBuf buffer = ByteBufAllocator.DEFAULT.buffer();
+        send(buffer, "Hello, world");
+        send(buffer, "Hi!");
+        // 写出缓存
+        channel.writeInbound(buffer);
+    }
+    // 写入缓存
+    private static void send(ByteBuf buffer, String content) {
+        byte[] bytes = content.getBytes();  // 实际内容
+        int length = bytes.length;          // 实际内容长度
+        buffer.writeInt(length);
+        buffer.writeByte(1);                // 表示版本号
+        buffer.writeBytes(bytes);
+    }
+}
+```
+
+```java
+10:49:59.344 [main] DEBUG io.netty.handler.logging.LoggingHandler - [id: 0xembedded, L:embedded - R:embedded] READ: 12B
+         +-------------------------------------------------+
+         |  0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f |
++--------+-------------------------------------------------+----------------+
+|00000000| 48 65 6c 6c 6f 2c 20 77 6f 72 6c 64             |Hello, world    |
++--------+-------------------------------------------------+----------------+
+10:49:59.344 [main] DEBUG io.netty.handler.logging.LoggingHandler - [id: 0xembedded, L:embedded - R:embedded] READ: 3B
+         +-------------------------------------------------+
+         |  0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f |
++--------+-------------------------------------------------+----------------+
+|00000000| 48 69 21                                        |Hi!             |
++--------+-------------------------------------------------+----------------+
+```
+
+
+
+****
+
+
+
+### 协议设计
+
+#### HTTP协议
+
+访问URL：http://localhost:8080/
+
+```java
+public class HttpDemo {
+    public static void main(String[] args) {
+        NioEventLoopGroup boss = new NioEventLoopGroup();
+        NioEventLoopGroup worker = new NioEventLoopGroup();
+        try {
+            ServerBootstrap serverBootstrap = new ServerBootstrap();
+            serverBootstrap.channel(NioServerSocketChannel.class);
+            serverBootstrap.group(boss, worker);
+            serverBootstrap.childHandler(new ChannelInitializer<SocketChannel>() {
+                @Override
+                protected void initChannel(SocketChannel ch) throws Exception {
+                    ch.pipeline().addLast(new LoggingHandler(LogLevel.DEBUG));
+                    ch.pipeline().addLast(new HttpServerCodec());
+                    // 只针对某一种类型的请求处理，此处针对 HttpRequest
+                    ch.pipeline().addLast(new SimpleChannelInboundHandler<HttpRequest>() {
+                        @Override
+                        protected void channelRead0(ChannelHandlerContext ctx, HttpRequest msg) throws Exception {
+                            // 获取请求
+                            log.debug(msg.uri());
+
+                            // 返回响应
+                            DefaultFullHttpResponse response = new DefaultFullHttpResponse(
+                                msg.protocolVersion(), HttpResponseStatus.OK);
+
+                            byte[] bytes = "<h1>Hello, world!</h1>".getBytes();
+
+                            response.headers().setInt(CONTENT_LENGTH, bytes.length);
+                            response.content().writeBytes(bytes);
+
+                            // 写回响应
+                            ctx.writeAndFlush(response);
+                        }
+                    });
+                }
+            });
+            ChannelFuture channelFuture = serverBootstrap.bind(8080).sync();
+            channelFuture.channel().closeFuture().sync();
+        } catch (InterruptedException e) {
+            log.error("n3.server error", e);
+        } finally {
+            boss.shutdownGracefully();
+            worker.shutdownGracefully();
+        }
+    }
+}
+```
+
+
+
+
+
+***
+
+
+
+#### 自定义协议
+
+处理器代码：
+
+```java
+@Slf4j
+public class MessageCodec extends ByteToMessageCodec<Message> {
+    // 编码
+    @Override
+    public void encode(ChannelHandlerContext ctx, Message msg, ByteBuf out) throws Exception {
+        // 4 字节的魔数
+        out.writeBytes(new byte[]{1, 2, 3, 4});
+        // 1 字节的版本,
+        out.writeByte(1);
+        // 1 字节的序列化方式 jdk 0 , json 1
+        out.writeByte(0);
+        // 1 字节的指令类型
+        out.writeByte(msg.getMessageType());
+        // 4 个字节
+        out.writeInt(msg.getSequenceId());
+        // 无意义，对齐填充, 1 字节
+        out.writeByte(0xff);
+        // 获取内容的字节数组，msg 对象序列化
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(bos);
+        oos.writeObject(msg);
+        byte[] bytes = bos.toByteArray();
+        // 长度
+        out.writeInt(bytes.length);
+        // 写入内容
+        out.writeBytes(bytes);
+    }
+
+    // 解码
+    @Override
+    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+        int magicNum = in.readInt();
+        byte version = in.readByte();
+        byte serializerType = in.readByte();
+        byte messageType = in.readByte();
+        int sequenceId = in.readInt();
+        in.readByte();
+        int length = in.readInt();
+        byte[] bytes = new byte[length];
+        in.readBytes(bytes, 0, length);
+        ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(bytes));
+        Message message = (Message) ois.readObject();
+        log.debug("{}, {}, {}, {}, {}, {}", magicNum, version, serializerType, messageType, sequenceId, length);
+        log.debug("{}", message);
+        out.add(message);
+    }
+}
+```
+
+测试代码：
+
+```java
+public static void main(String[] args) throws Exception {
+    EmbeddedChannel channel = new EmbeddedChannel(new LoggingHandler(), new MessageCodec());
+    // encode
+    LoginRequestMessage message = new LoginRequestMessage("zhangsan", "123");
+    channel.writeOutbound(message);
+
+    // decode
+    ByteBuf buf = ByteBufAllocator.DEFAULT.buffer();
+    new MessageCodec().encode(null, message, buf);
+    // 入站
+    channel.writeInbound(buf);
+}
+public class LoginRequestMessage extends Message {
+    private String username;
+    private String password;
+    // set + get 
+}
+```
+
+![](https://gitee.com/seazean/images/raw/master/Frame/Netty-自定义协议.png)
+
+
+
+***
+
+
+
+#### Sharable
+
+@Sharable 注解的添加时机：
+
+* 当 handler 不保存状态时，就可以安全地在多线程下被共享
+
+* 对于编解码器类不能继承 ByteToMessageCodec 或 CombinedChannelDuplexHandler，它们的构造方法对 @Sharable 有限制
+
+  ```java
+  protected ByteToMessageCodec(boolean preferDirect) {
+      ensureNotSharable();
+      outboundMsgMatcher = TypeParameterMatcher.find(this, ByteToMessageCodec.class, "I");
+      encoder = new Encoder(preferDirect);
+  }
+  ```
+
+  ```java
+  protected void ensureNotSharable() {
+      // 如果类上有该注解
+      if (isSharable()) {
+          throw new IllegalStateException();
+      }
+  }
+  ```
+
+* 如果能确保编解码器不会保存状态，可以继承 MessageToMessageCodec 父类
+
+```java
+@Slf4j
+@ChannelHandler.Sharable
+// 必须和 LengthFieldBasedFrameDecoder 一起使用，确保接到的 ByteBuf 消息是完整的
+public class MessageCodecSharable extends MessageToMessageCodec<ByteBuf, Message> {
+    @Override
+    protected void encode(ChannelHandlerContext ctx, Message msg, List<Object> outList) throws Exception {
+        ByteBuf out = ctx.alloc().buffer();
+        // 4 字节的魔数
+        out.writeBytes(new byte[]{1, 2, 3, 4});
+		// ....
+        outList.add(out);
+    }
+
+    @Override
+    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+        //....
+    }
+}
+```
+
+
+
+
+
+***
+
+
+
+
+
+## 场景优化
+
+### 空闲检测
+
+#### 连接假死
+
+连接假死就是客户端数据发不出去，服务端也一直收不到数据，保持这种状态，假死的连接占用的资源不能自动释放，而且向假死连接发送数据，得到的反馈是发送超时
+
+解决方案：每隔一段时间就检查这段时间内是否接收到客户端数据，没有就可以判定为连接假死
+
+IdleStateHandler 是 Netty 提供的处理空闲状态的处理器，用来判断是不是读空闲时间或写空闲时间过长
+
+* 参数一 long readerIdleTime：读空闲，表示多长时间没有读
+* 参数二 long writerIdleTime：写空闲，表示多长时间没有写
+* 参数三 long allIdleTime：读写空闲，表示多长时间没有读写
+
+```java
+serverBootstrap.childHandler(new ChannelInitializer<SocketChannel>() {
+	@Override
+	protected void initChannel(SocketChannel ch) throws Exception {
+        ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(1024, 12, 4, 0, 0));
+        ch.pipeline().addLast(new MessageCodec());
+        // 5s 内如果没有收到 channel 的数据，会触发一个 IdleState#READER_IDLE 事件，
+        ch.pipeline().addLast(new IdleStateHandler(5, 0, 0));
+        // ChannelDuplexHandler 【可以同时作为入站和出站】处理器
+        ch.pipeline().addLast(new ChannelDuplexHandler() {
+            // 用来触发特殊事件
+            @Override
+            public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception{
+                IdleStateEvent event = (IdleStateEvent) evt;
+                // 触发了读空闲事件
+                if (event.state() == IdleState.READER_IDLE) {
+                    log.debug("已经 5s 没有读到数据了");
+                    ctx.channel().close();
+                }
+            }
+        });
+    }
+}
+```
+
+
+
+***
+
+
+
+#### 心跳机制
+
+客户端定时向服务器端发送数据，**时间间隔要小于服务器定义的空闲检测的时间间隔**，就能防止误判连接假死，这就是心跳机制
+
+```java
+bootstrap.handler(new ChannelInitializer<SocketChannel>() {
+    @Override
+    protected void initChannel(SocketChannel ch) throws Exception {
+        ch.pipeline().addLast(new LengthFieldBasedFrameDecoder(1024, 12, 4, 0, 0));
+        ch.pipeline().addLast(new MessageCodec());
+        // 3s 内如果没有向服务器写数据，会触发一个 IdleState#WRITER_IDLE 事件
+        ch.pipeline().addLast(new IdleStateHandler(0, 3, 0));
+        // ChannelDuplexHandler 可以同时作为入站和出站处理器
+        ch.pipeline().addLast(new ChannelDuplexHandler() {
+            // 用来触发特殊事件
+            @Override
+            public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+                IdleStateEvent event = (IdleStateEvent) evt;
+                // 触发了写空闲事件
+                if (event.state() == IdleState.WRITER_IDLE) {
+                    // 3s 没有写数据了，【发送一个心跳包】
+                    ctx.writeAndFlush(new PingMessage());
+                }
+            }
+        });
+    }
+}
+```
 
 
 
@@ -2374,3 +2974,22 @@ Pipeline 的存在，需要将 ByteBuf 传递给下一个 ChannelHandler，如�
 
 
 # Tail
+
+```java
+// 发送内容随机的数据包
+Random r = new Random();
+char c = '0';
+ByteBuf buf = ctx.alloc().buffer();
+for (int i = 0; i < 10; i++) {
+    byte[] bytes = new byte[10];
+    for (int j = 0; j < r.nextInt(10); j++) {
+        bytes[j] = (byte) c;
+    }
+    c++;
+    buf.writeBytes(bytes);
+}
+ctx.writeAndFlush(buf);
+```
+
+
+
