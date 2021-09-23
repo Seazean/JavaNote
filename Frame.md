@@ -2973,23 +2973,482 @@ bootstrap.handler(new ChannelInitializer<SocketChannel>() {
 
 
 
-# Tail
+### 序列化
+
+#### 普通方式
+
+序列化，反序列化主要用在消息正文的转换上
+
+* 序列化时，需要将 Java 对象变为要传输的数据（可以是 byte[]，或 json 等，最终都需要变成 byte[]）
+* 反序列化时，需要将传入的正文数据还原成 Java 对象，便于处理
+
+代码实现：
+
+* 抽象一个 Serializer 接口
+
+  ```java
+  public interface Serializer {
+      // 反序列化方法
+      <T> T deserialize(Class<T> clazz, byte[] bytes);
+      // 序列化方法
+      <T> byte[] serialize(T object);
+  }
+  ```
+
+* 提供两个实现
+
+  ```java
+  enum SerializerAlgorithm implements Serializer {
+  	// Java 实现
+      Java {
+          @Override
+          public <T> T deserialize(Class<T> clazz, byte[] bytes) {
+              try {
+                  ObjectInputStream in = 
+                      new ObjectInputStream(new ByteArrayInputStream(bytes));
+                  Object object = in.readObject();
+                  return (T) object;
+              } catch (IOException | ClassNotFoundException e) {
+                  throw new RuntimeException("SerializerAlgorithm.Java 反序列化错误", e);
+              }
+          }
+  
+          @Override
+          public <T> byte[] serialize(T object) {
+              try {
+                  ByteArrayOutputStream out = new ByteArrayOutputStream();
+                  new ObjectOutputStream(out).writeObject(object);
+                  return out.toByteArray();
+              } catch (IOException e) {
+                  throw new RuntimeException("SerializerAlgorithm.Java 序列化错误", e);
+              }
+          }
+      }, 
+      // Json 实现(引入了 Gson 依赖)
+      Json {
+          @Override
+          public <T> T deserialize(Class<T> clazz, byte[] bytes) {
+              return new Gson().fromJson(new String(bytes, StandardCharsets.UTF_8), clazz);
+          }
+  
+          @Override
+          public <T> byte[] serialize(T object) {
+              return new Gson().toJson(object).getBytes(StandardCharsets.UTF_8);
+          }
+      };
+  
+      // 需要从协议的字节中得到是哪种序列化算法
+      public static SerializerAlgorithm getByInt(int type) {
+          SerializerAlgorithm[] array = SerializerAlgorithm.values();
+          if (type < 0 || type > array.length - 1) {
+              throw new IllegalArgumentException("超过 SerializerAlgorithm 范围");
+          }
+          return array[type];
+      }
+  }
+  ```
+
+  
+
+
+
+***
+
+
+
+#### ProtoBuf
+
+##### 基本介绍
+
+Codec（编解码器）的组成部分有两个：Decoder（解码器）和 Encoder（编码器）。Encoder 负责把业务数据转换成字节码数据，Decoder 负责把字节码数据转换成业务数据
+
+<img src="https://gitee.com/seazean/images/raw/master/Frame/Netty-编码解码.png" style="zoom: 67%;" />
+
+
+
+Protobuf 是 Google 发布的开源项目，全称  Google Protocol Buffers ，是一种轻便高效的结构化数据存储格式，可以用于结构化数据串行化，或者说序列化。很适合做数据存储或  RPC（远程过程调用  remote procedure call）数据交换格式。目前很多公司从 HTTP + Json 转向 TCP + Protobuf ，效率会更高
+
+Protobuf 是以 message 的方式来管理数据，支持跨平台、跨语言（客户端和服务器端可以是不同的语言编写的），高性能、高可靠性
+
+工作过程：使用 Protobuf 编译器自动生成代码，Protobuf 是将类的定义使用 .proto 文件进行描述，然后通过 protoc.exe 编译器根据  .proto 自动生成 .java 文件
+
+
+
+***
+
+
+
+##### 代码实现
+
+* 单个 message：
+
+  ```protobuf
+  syntax = "proto3"; 								// 版本
+  option java_outer_classname = "StudentPOJO";	// 生成的外部类名，同时也是文件名
+  // protobuf 使用 message 管理数据
+  message Student { 	// 在 StudentPOJO 外部类种生成一个内部类 Student，是真正发送的 POJO 对象
+      int32 id = 1; 	// Student 类中有一个属性：名字为 id 类型为 int32(protobuf类型) ，1表示属性序号，不是值
+      string name = 2;
+  }
+  ```
+
+  <img src="https://gitee.com/seazean/images/raw/master/Frame/Netty-Protobuf编译文件.png" style="zoom:80%;" />
+
+  编译 `protoc.exe --java_out=.Student.proto`（cmd 窗口输入） 将生成的 StudentPOJO 放入到项目使用
+
+  Server 端：
+
+  ```java
+  new ServerBootstrap() //...
+      .childHandler(new ChannelInitializer<SocketChannel>() {	// 创建一个通道初始化对象
+          // 给pipeline 设置处理器
+          @Override
+          protected void initChannel(SocketChannel ch) throws Exception {
+              // 在pipeline加入ProtoBufDecoder，指定对哪种对象进行解码
+              ch.pipeline().addLast("decoder", new ProtobufDecoder(
+                  							StudentPOJO.Student.getDefaultInstance()));
+              ch.pipeline().addLast(new NettyServerHandler());
+          }
+      }); 
+  }
+  ```
+
+  Client 端：
+
+  ```java
+  new Bootstrap().group(group) 			// 设置线程组
+      .channel(NioSocketChannel.class) 	// 设置客户端通道的实现类(反射)
+      .handler(new ChannelInitializer<SocketChannel>() {
+          @Override
+          protected void initChannel(SocketChannel ch) throws Exception {
+              // 在pipeline中加入 ProtoBufEncoder
+              ch.pipeline().addLast("encoder", new ProtobufEncoder());
+              ch.pipeline().addLast(new NettyClientHandler()); // 加入自定义的业务处理器
+          }
+      });
+  ```
+
+* 多个 message：Protobuf 可以使用 message 管理其他的 message。假设某个项目需要传输 20 个对象，可以在一个文件里定义 20 个 message，最后再用一个总的 message 来决定在实际传输时真正需要传输哪一个对象
+
+  ```protobuf
+  syntax = "proto3";
+  option optimize_for = SPEED; 					// 加快解析
+  option java_package="com.atguigu.netty.codec2";	// 指定生成到哪个包下
+  option java_outer_classname="MyDataInfo"; 		// 外部类名, 文件名
+  
+  message MyMessage {
+      // 定义一个枚举类型，DataType 如果是 0 则表示一个 Student 对象实例，DataType 这个名称自定义
+      enum DataType {
+          StudentType = 0; //在 proto3 要求 enum 的编号从 0 开始
+          WorkerType = 1;
+      }
+  
+      // 用 data_type 来标识传的是哪一个枚举类型，这里才真正开始定义 Message 的数据类型
+      DataType data_type = 1;  // 所有后面的数字都只是编号而已
+  
+      // oneof 关键字，表示每次枚举类型进行传输时，限制最多只能传输一个对象。
+      // dataBody名称也是自定义的
+      // MyMessage 里出现的类型只有两个 DataType 类型，Student 或者 Worker 类型，在真正传输的时候只会有一个出现
+      oneof dataBody {
+          Student student = 2;  //注意这后面的数字也都只是编号而已，上面DataType data_type = 1  占了第一个序号了
+          Worker worker = 3;
+      }
+  
+  
+  }
+  
+  message Student {
+      int32 id = 1;		// Student类的属性
+      string name = 2; 	//
+  }
+  message Worker {
+      string name=1;
+      int32 age=2;
+  }
+  ```
+
+  编译：
+
+  Server 端：
+
+  ```java
+  ch.pipeline().addLast("decoder", new ProtobufDecoder(MyDataInfo.MyMessage.getDefaultInstance()));
+  ```
+
+  Client 端：
+
+  ```java
+  pipeline.addLast("encoder", new ProtobufEncoder());
+  ```
+
+
+
+
+
+***
+
+
+
+### 长连接
+
+HTTP 协议是无状态的，浏览器和服务器间的请求响应一次，下一次会重新创建连接。实现基于 WebSocket 的长连接的全双工的交互，改变 HTTP 协议多次请求的约束
+
+开发需求：
+
+* 实现长连接，服务器与浏览器相互通信客户端
+* 浏览器和服务器端会相互感知，比如服务器关闭了，浏览器会感知，同样浏览器关闭了，服务器会感知
+
+代码实现：
+
+* WebSocket：
+
+  * WebSocket 的数据是**以帧（frame）形式传递**，WebSocketFrame 下面有六个子类，代表不同的帧格式
+
+  * 浏览器请求 URL：ws://localhost:8080/xxx
+
+  ```java
+  public class MyWebSocket {
+      public static void main(String[] args) throws Exception {
+          // 创建两个线程组
+          EventLoopGroup bossGroup = new NioEventLoopGroup(1);
+          EventLoopGroup workerGroup = new NioEventLoopGroup();
+          try {
+  
+              ServerBootstrap serverBootstrap = new ServerBootstrap();
+              serverBootstrap.group(bossGroup, workerGroup);
+              serverBootstrap.channel(NioServerSocketChannel.class);
+              serverBootstrap.handler(new LoggingHandler(LogLevel.INFO));
+              serverBootstrap.childHandler(new ChannelInitializer<SocketChannel>() {
+                  @Override
+                  protected void initChannel(SocketChannel ch) throws Exception {
+                      ChannelPipeline pipeline = ch.pipeline();
+  
+                      // 基于 http 协议，使用 http 的编码和解码器
+                      pipeline.addLast(new HttpServerCodec());
+                      // 是以块方式写，添加 ChunkedWriteHandler 处理器
+                      pipeline.addLast(new ChunkedWriteHandler());
+  
+                      // http 数据在传输过程中是分段, HttpObjectAggregator 就是可以将多个段聚合
+                      //  这就就是为什么，当浏览器发送大量数据时，就会发出多次 http 请求
+                      pipeline.addLast(new HttpObjectAggregator(8192));
+          
+                      // WebSocketServerProtocolHandler 核心功能是【将 http 协议升级为 ws 协议】，保持长连接
+                      pipeline.addLast(new WebSocketServerProtocolHandler("/hello"));
+  
+                      // 自定义的handler ，处理业务逻辑
+                      pipeline.addLast(new MyTextWebSocketFrameHandler());
+                  }
+              });
+  
+              //启动服务器
+              ChannelFuture channelFuture = serverBootstrap.bind(7000).sync();
+              channelFuture.channel().closeFuture().sync();
+  
+          } finally {
+              bossGroup.shutdownGracefully();
+              workerGroup.shutdownGracefully();
+          }
+      }
+  }
+  ```
+
+* 处理器：
+
+  ```java
+  public class MyTextWebSocketFrameHandler extends SimpleChannelInboundHandler<TextWebSocketFrame> {
+      // TextWebSocketFrame 类型，表示一个文本帧(frame)
+      @Override
+      protected void channelRead0(ChannelHandlerContext ctx, TextWebSocketFrame msg) throws Exception {
+          System.out.println("服务器收到消息 " + msg.text());
+          // 回复消息
+          ctx.writeAndFlush(new TextWebSocketFrame("服务器时间" + LocalDateTime.now() + " " + msg.text()));
+      }
+  
+      // 当web客户端连接后， 触发方法
+      @Override
+      public void handlerAdded(ChannelHandlerContext ctx) throws Exception {
+          // id 表示唯一的值，LongText 是唯一的 ShortText 不是唯一
+          System.out.println("handlerAdded 被调用" + ctx.channel().id().asLongText());
+          System.out.println("handlerAdded 被调用" + ctx.channel().id().asShortText());
+      }
+  
+      @Override
+      public void handlerRemoved(ChannelHandlerContext ctx) throws Exception {
+          System.out.println("handlerRemoved 被调用" + ctx.channel().id().asLongText());
+      }
+  
+      @Override
+      public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+          System.out.println("异常发生 " + cause.getMessage());
+          ctx.close(); // 关闭连接
+      }
+  }
+  ```
+
+* HTML：
+
+  ```html
+  <!DOCTYPE html>
+  <html lang="en">
+  <head>
+      <meta charset="UTF-8">
+      <title>Title</title>
+  </head>
+  <body>
+  <script>
+      var socket;
+      // 判断当前浏览器是否支持websocket
+      if(window.WebSocket) {
+          //go on
+          socket = new WebSocket("ws://localhost:7000/hello2");
+          //相当于channelReado, ev 收到服务器端回送的消息
+          socket.onmessage = function (ev) {
+              var rt = document.getElementById("responseText");
+              rt.value = rt.value + "\n" + ev.data;
+          }
+  
+          //相当于连接开启(感知到连接开启)
+          socket.onopen = function (ev) {
+              var rt = document.getElementById("responseText");
+              rt.value = "连接开启了.."
+          }
+  
+          //相当于连接关闭(感知到连接关闭)
+          socket.onclose = function (ev) {
+  
+              var rt = document.getElementById("responseText");
+              rt.value = rt.value + "\n" + "连接关闭了.."
+          }
+      } else {
+          alert("当前浏览器不支持websocket")
+      }
+  
+      // 发送消息到服务器
+      function send(message) {
+          if(!window.socket) { //先判断socket是否创建好
+              return;
+          }
+          if(socket.readyState == WebSocket.OPEN) {
+              //通过socket 发送消息
+              socket.send(message)
+          } else {
+              alert("连接没有开启");
+          }
+      }
+  </script>
+      <form onsubmit="return false">
+          <textarea name="message" style="height: 300px; width: 300px"></textarea>
+          <input type="button" value="发生消息" onclick="send(this.form.message.value)">
+          <textarea id="responseText" style="height: 300px; width: 300px"></textarea>
+          <input type="button" value="清空内容" onclick="document.getElementById('responseText').value=''">
+      </form>
+  </body>
+  </html>
+  ```
+
+
+
+
+
+***
+
+
+
+### 参数调优
+
+#### CONNECT
+
+参数配置方式：
+
+* 客户端通过 .option() 方法配置参数，给 SocketChannel 配置参数
+* 服务器端：
+  * new ServerBootstrap().option()： 给 ServerSocketChannel 配置参数
+  * new ServerBootstrap().childOption()：给 SocketChannel 配置参数
+
+CONNECT_TIMEOUT_MILLIS 参数：
+
+* 属于 SocketChannal 参数
+* 在客户端建立连接时，如果在指定毫秒内无法连接，会抛出 timeout 异常
+
+* SO_TIMEOUT 主要用在阻塞 IO，阻塞 IO 中 accept，read 等都是无限等待的，如果不希望永远阻塞，可以调整超时时间
 
 ```java
-// 发送内容随机的数据包
-Random r = new Random();
-char c = '0';
-ByteBuf buf = ctx.alloc().buffer();
-for (int i = 0; i < 10; i++) {
-    byte[] bytes = new byte[10];
-    for (int j = 0; j < r.nextInt(10); j++) {
-        bytes[j] = (byte) c;
+public class ConnectionTimeoutTest {
+    public static void main(String[] args) {
+        NioEventLoopGroup group = new NioEventLoopGroup();
+        try {
+            Bootstrap bootstrap = new Bootstrap()
+                    .group(group)
+                    .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
+                    .channel(NioSocketChannel.class)
+                    .handler(new LoggingHandler());
+            ChannelFuture future = bootstrap.connect("127.0.0.1", 8080);
+            future.sync().channel().closeFuture().sync();
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.debug("timeout");
+        } finally {
+            group.shutdownGracefully();
+        }
     }
-    c++;
-    buf.writeBytes(bytes);
 }
-ctx.writeAndFlush(buf);
 ```
+
+
+
+****
+
+
+
+#### SO_BACKLOG
+
+属于 ServerSocketChannal 参数，通过 `option(ChannelOption.SO_BACKLOG, value)` 来设置大小
+
+在 Linux 2.2 之前，backlog 大小包括了两个队列的大小，在 2.2 之后，分别用下面两个参数来控制
+
+* sync queue：半连接队列，大小通过 `/proc/sys/net/ipv4/tcp_max_syn_backlog` 指定，在 `syncookies` 启用的情况下，逻辑上没有最大值限制
+* accept queue：全连接队列，大小通过 `/proc/sys/net/core/somaxconn` 指定，在使用 listen 函数时，内核会根据传入的 backlog 参数与系统参数，取二者的较小值。如果 accpet queue 队列满了，server 将**发送一个拒绝连接的错误信息**到 client
+
+![](https://gitee.com/seazean/images/raw/master/Frame/Netty-TCP三次握手.png)
+
+
+
+****
+
+
+
+#### 其他参数
+
+ALLOCATOR：属于 SocketChannal 参数，用来分配 ByteBuf， ctx.alloc()
+
+RCVBUF_ALLOCATOR：属于 SocketChannal 参数
+
+* 控制 Netty 接收缓冲区大小
+* 负责入站数据的分配，决定入站缓冲区的大小（并可动态调整），统一采用 direct 直接内存，具体池化还是非池化由 allocator 决定
+
+
+
+
+
+***
+
+
+
+
+
+
+
+# Tail
+
+
+
+
+
+
+
+
+
+
 
 
 

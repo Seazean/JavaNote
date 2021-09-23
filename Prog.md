@@ -5946,7 +5946,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
   }
   ```
 
-* execute()：执行任务，但是没有返回值，没办法获取任务执行结果，出现异常会直接抛出任务执行时的异常。根据线程池中的线程数，选择添加任务时的处理方式
+* execute()：执行任务，**但是没有返回值，没办法获取任务执行结果**，出现异常会直接抛出任务执行时的异常。根据线程池中的线程数，选择添加任务时的处理方式
 
   ```java
   // command 可以是普通的 Runnable 实现类，也可以是 FutureTask，不能是 Callable
@@ -13851,7 +13851,9 @@ ServerSocket 类：
 * 构造方法：`public ServerSocket(int port)`
 * 常用API：`public Socket accept()`，**阻塞等待**接收一个客户端的 Socket 管道连接请求，连接成功返回一个 Socket 对象
 
-  三次握手后 TCP 连接建立成功，服务器内核会把连接从 SYN 半连接队列中移出，移入 accept （全连接）队列，等待进程调用 accept 函数时把连接取出。如果进程不能及时调用 accept 函数，就会造成 accept 队列溢出，最终导致建立好的 TCP 连接被丢弃
+  三次握手后 TCP 连接建立成功，服务器内核会把连接从 SYN 半连接队列中移出，移入 accept 全连接队列，等待进程调用 accept 函数时把连接取出。如果进程不能及时调用 accept 函数，就会造成 accept 队列溢出，最终导致建立好的 TCP 连接被丢弃
+  
+  <img src="https://gitee.com/seazean/images/raw/master/Frame/Netty-TCP三次握手.png" style="zoom:67%;" />
 
 相当于客户端和服务器建立一个数据管道，管道一般不用 close
 
@@ -14998,13 +15000,14 @@ public class ChannelTest {
 
 向选择器注册通道：`SelectableChannel.register(Selector sel, int ops, Object att)`
 
-选择器对通道的监听事件，需要通过第二个参数 ops 指定。监听的事件类型用四个常量表示：
-
-* 读 : SelectionKey.OP_READ （1）
-* 写 : SelectionKey.OP_WRITE （4）
-* 连接 : SelectionKey.OP_CONNECT （8）
-* 接收 : SelectionKey.OP_ACCEPT （16）
-* 若不止监听一个事件，可以使用位或操作符连接：`int interest = SelectionKey.OP_READ | SelectionKey.OP_WRITE`
+* 参数一：选择器，指定当前 Channel 注册到的选择器
+* 参数二：选择器对通道的监听事件，监听的事件类型用四个常量表示
+  * 读 : SelectionKey.OP_READ （1）
+  * 写 : SelectionKey.OP_WRITE （4）
+  * 连接 : SelectionKey.OP_CONNECT （8）
+  * 接收 : SelectionKey.OP_ACCEPT （16）
+  * 若不止监听一个事件，使用位或操作符连接：`int interest = SelectionKey.OP_READ | SelectionKey.OP_WRITE`
+* 参数三：**关联一个附件**，可以是任何对象
 
 **Selector API**：
 
@@ -15024,7 +15027,7 @@ SelectionKey API:
 | ------------------------------------------- | -------------------------------------------------- |
 | public abstract void cancel()               | 取消该键的通道与其选择器的注册                     |
 | public abstract SelectableChannel channel() | 返回创建此键的通道，该方法在取消键之后仍将返回通道 |
-| public final Object attachment()            | 返回当前 key 关联的缓冲                            |
+| public final Object attachment()            | 返回当前 key 关联的附件                            |
 | public final boolean isAcceptable()         | 检测此密钥的通道是否已准备好接受新的套接字连接     |
 | public final boolean isConnectable()        | 检测此密钥的通道是否已完成或未完成其套接字连接操作 |
 | public final boolean isReadable()           | 检测此密钥的频道是否可以阅读                       |
