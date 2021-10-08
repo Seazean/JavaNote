@@ -4418,7 +4418,7 @@ B+Tree 优点：提高查询速度，减少磁盘的 IO 次数，树形结构较
 
 ##### 索引维护
 
-B+ 树为了维护索引有序性，在插入新值的时候需要做必要的维护
+B+ 树为了保持索引的有序性，在插入新值的时候需要做相应的维护
 
 每个索引中每个块存储在磁盘页中，可能会出现以下两种情况：
 
@@ -5400,7 +5400,7 @@ INSERT INTO `emp` (`id`, `name`, `age`, `salary`) VALUES('1','Tom','25','2300');
 CREATE INDEX idx_emp_age_salary ON emp(age,salary);
 ```
 
-* 第一种是通过对返回数据进行排序，所有不是通过索引直接返回排序结果的排序都叫 FileSort 排序，会在内存中重新排序
+* 第一种是通过对返回数据进行排序，所有不通过索引直接返回结果的排序都叫 FileSort 排序，会在内存中重新排序
 
   ```mysql
   EXPLAIN SELECT * FROM emp ORDER BY age DESC;	-- 年龄降序
@@ -5408,7 +5408,7 @@ CREATE INDEX idx_emp_age_salary ON emp(age,salary);
 
   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL ORDER BY排序1.png)
 
-* 第二种通过有序索引顺序扫描直接返回有序数据，这种情况为 Using index，不需要额外排序，操作效率高
+* 第二种通过有序索引顺序扫描直接返回**有序数据**，这种情况为 Using index，不需要额外排序，操作效率高
 
   ```mysql
   EXPLAIN SELECT id, age, salary FROM emp ORDER BY age DESC;
@@ -5588,7 +5588,7 @@ MySQL 4.1 版本之后，开始支持 SQL 的子查询
 
   ```mysql
   EXPLAIN SELECT * FROM tb_user_1 WHERE id > 200000 LIMIT 10;				-- 写法 1
-  EXPLAIN SELECT * FROM tb_user_1 WHERE id BETWEEN  200000 and 200010;	-- 写法 2
+  EXPLAIN SELECT * FROM tb_user_1 WHERE id BETWEEN 200000 and 200010;	-- 写法 2
   ```
   
   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL分页查询3.png)

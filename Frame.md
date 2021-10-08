@@ -3241,7 +3241,7 @@ HTTP 协议是无状态的，浏览器和服务器间的请求响应一次，下
               });
   
               //启动服务器
-              ChannelFuture channelFuture = serverBootstrap.bind(7000).sync();
+              ChannelFuture channelFuture = serverBootstrap.bind(8080).sync();
               channelFuture.channel().closeFuture().sync();
   
           } finally {
@@ -3300,7 +3300,7 @@ HTTP 协议是无状态的，浏览器和服务器间的请求响应一次，下
       // 判断当前浏览器是否支持websocket
       if(window.WebSocket) {
           //go on
-          socket = new WebSocket("ws://localhost:7000/hello2");
+          socket = new WebSocket("ws://localhost:8080/hello");
           //相当于channelReado, ev 收到服务器端回送的消息
           socket.onmessage = function (ev) {
               var rt = document.getElementById("responseText");
@@ -3325,11 +3325,12 @@ HTTP 协议是无状态的，浏览器和服务器间的请求响应一次，下
   
       // 发送消息到服务器
       function send(message) {
-          if(!window.socket) { //先判断socket是否创建好
+          // 先判断socket是否创建好
+          if(!window.socket) {
               return;
           }
           if(socket.readyState == WebSocket.OPEN) {
-              //通过socket 发送消息
+              // 通过socket 发送消息
               socket.send(message)
           } else {
               alert("连接没有开启");
@@ -3435,10 +3436,6 @@ RCVBUF_ALLOCATOR：属于 SocketChannal 参数
 
 
 
-
-
-
-# Tail
 
 
 

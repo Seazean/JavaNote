@@ -6780,7 +6780,7 @@ list.stream().filter(s -> s.startsWith("张"));
 Collection<String> c = new ArrayList<>();
 Stream<String> listStream = c.stream();
 
-//Map集合获取流
+// Map集合获取流
 // 先获取键的Stream流。
 Stream<String> keysStream = map.keySet().stream();
 // 在获取值的Stream流
@@ -8579,6 +8579,7 @@ public class ReflectDemo {
 * 注解是 JDK1.5 的新特性
 * 注解是给编译器或 JVM 看的，编译器或 JVM 可以根据注解来完成对应的功能
 * 注解类似修饰符，应用于包、类型、构造方法、方法、成员变量、参数及本地变量的声明语句中
+* 父类中的注解是不能被子类继承的
 
 注解作用：
 
@@ -8757,9 +8758,9 @@ Class 类 API ：
 * `boolean isAnnotationPresent(Class<Annotation> class)`：判断对象是否使用了指定的注解
 * `boolean isAnnotation()`：此 Class 对象是否表示注释类型
 
-注解原理：注解本质是一个继承了 `Annotation` 的特殊接口，其具体实现类是 Java 运行时生成的**动态代理类**，通过反射获取注解时，返回的是运行时生成的动态代理对象 `$Proxy1`，通过代理对象调用自定义注解（接口）的方法，回调 `AnnotationInvocationHandler` 的 `invoke` 方法，该方法会从 `memberValues`  这个Map 中找出对应的值，而 `memberValues` 的来源是 Java 常量池
+注解原理：注解本质是**特殊接口**，继承了 `Annotation` ，其具体实现类是 Java 运行时生成的**动态代理类**，通过反射获取注解时，返回的是运行时生成的动态代理对象 `$Proxy1`，通过代理对象调用自定义注解（接口）的方法，回调 `AnnotationInvocationHandler` 的 `invoke` 方法，该方法会从 `memberValues`  这个 Map 中找出对应的值，而 `memberValues` 的来源是 Java 常量池
 
-解析注解数据的原理：注解在哪个成分上，就先拿哪个成分对象，比如注解作用在类上，则要该类的Class对象，再来拿上面的注解
+解析注解数据的原理：注解在哪个成分上，就先拿哪个成分对象，比如注解作用在类上，则要该类的 Class 对象，再来拿上面的注解
 
 ```java
 public class AnnotationDemo{
