@@ -2631,9 +2631,9 @@ update T set c=c+1 where ID=2;
 
 <img src="https://gitee.com/seazean/images/raw/master/DB/MySQL-update的执行流程.png" style="zoom: 33%;" />
 
-流程说明：执行引擎将这行新数据更新到内存中（Buffer Pool）后，然后会将这个更新操作记录到 redo log buffer 里，此时 redo log 处于 prepare 状态，代表执行完成随时可以提交事务，然后执行器生成这个操作的 binlog，并**把 binlog 写入磁盘**，在提交事务后 **redo log 也持久化到磁盘**
+流程说明：执行引擎将这行新数据更新到内存中（Buffer Pool）后，然后会将这个更新操作记录到 redo log buffer 里，此时 redo log 处于 prepare 状态，代表执行完成随时可以提交事务，然后执行器生成这个操作的 binlog 并**把 binlog 写入磁盘**，在提交事务后 **redo log 也持久化到磁盘**
 
-redo log 和 binlog 都可以用于表示事务的提交状态，而两阶段提交就是让这两个状态保持逻辑上的一致，也有利于主从复制，更好的保持主从数据的一致性
+redo log 和 binlog 都可以用于表示事务的提交状态，而**两阶段提交就是让这两个状态保持逻辑上的一致**，也有利于主从复制，更好的保持主从数据的一致性
 
 故障恢复数据：
 
@@ -11497,7 +11497,7 @@ Cache Aside Pattern 中服务端需要同时维系 DB 和 cache，并且是以 D
 
 #### 读写穿透
 
-读写穿透模式 Read/Write Through Pattern：服务端把 cache 视为主要数据存储，从中读取数据并将数据写入其中，cache 负责将此数据读取和写入 DB，从而减轻了应用程序的职责
+读写穿透模式 Read/Write Through Pattern：服务端把 cache 视为主要数据存储，从中读取数据并将数据写入其中，cache 负责将此数据同步写入 DB，从而减轻了应用程序的职责
 
 * 写操作：先查 cache，cache 中不存在，直接更新 DB；cache 中存在则先更新 cache，然后 cache 服务更新 DB（同步更新 cache 和 DB）
 
