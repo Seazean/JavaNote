@@ -328,7 +328,7 @@ git push origin branch-name：推送到远程仓库，origin 是引用名
 
 ### 切换分支
 
-git checkout branch-name：切换到branch-name分支
+git checkout branch-name：切换到 branch-name 分支
 
 
 
