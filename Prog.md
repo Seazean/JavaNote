@@ -8966,7 +8966,7 @@ public static void main(String[] args) throws InterruptedException {
 
 ###### await
 
-总体流程是将 await 线程包装成 node 节点放入 ConditionObject 的阻条件塞队列，如果被唤醒就将 node 转移到 AQS 的执行阻塞队列，等待获取锁
+总体流程是将 await 线程包装成 node 节点放入 ConditionObject 的条件队列，如果被唤醒就将 node 转移到 AQS 的执行阻塞队列，等待获取锁
 
 * 开始 Thread-0 持有锁，调用 await，线程进入 ConditionObject 等待，直到被唤醒或打断，调用 await 方法的线程都是持锁状态的，所以说逻辑里**不存在并发**
 
