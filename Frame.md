@@ -2858,26 +2858,26 @@ public class LoginRequestMessage extends Message {
 
 * 如果能确保编解码器不会保存状态，可以继承 MessageToMessageCodec 父类
 
-```java
-@Slf4j
-@ChannelHandler.Sharable
-// 必须和 LengthFieldBasedFrameDecoder 一起使用，确保接到的 ByteBuf 消息是完整的
-public class MessageCodecSharable extends MessageToMessageCodec<ByteBuf, Message> {
-    @Override
-    protected void encode(ChannelHandlerContext ctx, Message msg, List<Object> outList) throws Exception {
-        ByteBuf out = ctx.alloc().buffer();
-        // 4 字节的魔数
-        out.writeBytes(new byte[]{1, 2, 3, 4});
-		// ....
-        outList.add(out);
-    }
-
-    @Override
-    protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
-        //....
-    }
-}
-```
+  ````java
+  @Slf4j
+  @ChannelHandler.Sharable
+  // 必须和 LengthFieldBasedFrameDecoder 一起使用，确保接到的 ByteBuf 消息是完整的
+  public class MessageCodecSharable extends MessageToMessageCodec<ByteBuf, Message> {
+      @Override
+      protected void encode(ChannelHandlerContext ctx, Message msg, List<Object> outList) throws Exception {
+          ByteBuf out = ctx.alloc().buffer();
+          // 4 字节的魔数
+          out.writeBytes(new byte[]{1, 2, 3, 4});
+  		// ....
+          outList.add(out);
+      }
+  
+      @Override
+      protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
+          //....
+      }
+  }
+  ````
 
 
 
@@ -3436,6 +3436,10 @@ RCVBUF_ALLOCATOR：属于 SocketChannal 参数
 
 
 
+
+
+
+# RocketMQ
 
 
 

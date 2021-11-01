@@ -12975,9 +12975,9 @@ attributes[]（属性表）：属性表的每个项的值必须是 attribute_inf
   | Exceptions                            | 方法表             | 方法抛出的异常                                               |
   | EnclosingMethod                       | 类文件             | 仅当一个类为局部类或者匿名类是才能拥有这个属性，这个属性用于标识这个类所在的外围方法 |
   | InnerClass                            | 类文件             | 内部类列表                                                   |
-  | LineNumberTable                       | Code属性           | Java 源码的行号与字节码指令的对应关系                        |
-  | LocalVariableTable                    | Code属性           | 方法的局部变量描述                                           |
-  | StackMapTable                         | Code属性           | JDK1.6中新增的属性，供新的类型检查检验器检查和处理目标方法的局部变量和操作数有所需要的类是否匹配 |
+  | LineNumberTable                       | Code 属性          | Java 源码的行号与字节码指令的对应关系                        |
+  | LocalVariableTable                    | Code 属性          | 方法的局部变量描述                                           |
+  | StackMapTable                         | Code 属性          | JDK1.6 中新增的属性，供新的类型检查检验器检查和处理目标方法的局部变量和操作数有所需要的类是否匹配 |
   | Signature                             | 类，方法表，字段表 | 用于支持泛型情况下的方法签名                                 |
   | SourceFile                            | 类文件             | 记录源文件名称                                               |
   | SourceDebugExtension                  | 类文件             | 用于存储额外的调试信息                                       |
