@@ -177,7 +177,7 @@ Path 下配置：`%MAVEN_HOME%\bin`
 
 ### 手动搭建
 
-1. 在 E 盘下创建目录 `mvnproject 进入该目录，作为我们的操作目录
+1. 在 E 盘下创建目录 mvnproject 进入该目录，作为我们的操作目录
 
 2. 创建我们的 Maven 项目，创建一个目录 `project-java` 作为我们的项目文件夹，并进入到该目录
 
@@ -283,7 +283,7 @@ Path 下配置：`%MAVEN_HOME%\bin`
 1. 在 IDEA 中配置 Maven，选择 maven3.6.1 防止依赖问题
    <img src="https://gitee.com/seazean/images/raw/master/Frame/IDEA配置Maven.png" alt="IDEA配置Maven" style="zoom:67%;" />
 
-2. 创建 Maven，New Module → Maven→ 不选中 Create from archetype
+2. 创建 Maven，New Module → Maven → 不选中 Create from archetype
 
 3. 填写项目的坐标
 
@@ -320,15 +320,15 @@ Path 下配置：`%MAVEN_HOME%\bin`
 
 
 
-web 工程：
+Web 工程：
 
-1. 选择 web 对应的原型骨架（选择 Maven 开头的是简化的）
+1. 选择 Web 对应的原型骨架（选择 Maven 开头的是简化的）
 
    ![](https://gitee.com/seazean/images/raw/master/Frame/IDEA创建Maven-webapp.png)
 
-2. 通过原型创建 web 项目得到的目录结构是不全的，因此需要我们自行补全，同时要标记正确
+2. 通过原型创建 Web 项目得到的目录结构是不全的，因此需要我们自行补全，同时要标记正确
 
-3. web 工程创建之后需要启动运行，使用 tomcat 插件来运行项目，在 `pom.xml` 中添加插件的坐标：
+3. Web 工程创建之后需要启动运行，使用 tomcat 插件来运行项目，在 `pom.xml` 中添加插件的坐标：
 
    ```xml
    <?xml version="1.0" encoding="UTF-8"?>
@@ -413,7 +413,6 @@ web 工程：
 
   注意：直接依赖和间接依赖其实也是一个相对关系
 
-  
 
 依赖传递的冲突问题：在依赖传递过程中产生了冲突，有三种优先法则
 
@@ -423,9 +422,7 @@ web 工程：
 
 * 特殊优先：当同级配置了相同资源的不同版本时，后配置的覆盖先配置的
 
-
-
-**可选依赖：**对外隐藏当前所依赖的资源，不透明
+**可选依赖**：对外隐藏当前所依赖的资源，不透明
 
 ```xml
 <dependency>    
@@ -437,7 +434,7 @@ web 工程：
 </dependency>
 ```
 
-**排除依赖：主动**断开依赖的资源，被排除的资源无需指定版本
+**排除依赖**：主动断开依赖的资源，被排除的资源无需指定版本
 
 ```xml
 <dependency>    
@@ -663,30 +660,31 @@ Maven 的插件用来执行生命周期中的相关事件
 
       - 间接依赖 ssm_dao、ssm_pojo
 
-        ```xml
-        <dependencies>   
-            <!--导入资源文件service-->    
-            <dependency>      
-                <groupId>demo</groupId>         
-                <artifactId>ssm_service</artifactId>   
-                <version>1.0-SNAPSHOT</version>     
-            </dependency>  
-            <!--springmvc环境-->  
-            <!--jackson相关坐标3个--> 
-            <!--servlet环境--> 
-        </dependencies> 
-        <build>   
-            <!--设置插件-->    
-            <plugins>    
-                <!--具体的插件配置-->  
-                <plugin>
-                </plugin> 
-            </plugins> 
-        </build>
-        ```
-
+    
+      ```xml
+      <dependencies>   
+          <!--导入资源文件service-->    
+          <dependency>      
+              <groupId>demo</groupId>         
+              <artifactId>ssm_service</artifactId>   
+              <version>1.0-SNAPSHOT</version>     
+          </dependency>  
+          <!--springmvc环境-->  
+          <!--jackson相关坐标3个--> 
+          <!--servlet环境--> 
+      </dependencies> 
+      <build>   
+          <!--设置插件-->    
+          <plugins>    
+              <!--具体的插件配置-->  
+              <plugin>
+              </plugin> 
+          </plugins> 
+      </build>
+      ```
+    
     - 修改 web.xml 配置文件中加载 Spring 环境的配置文件名称，使用*通配，加载所有 applicationContext- 开始的配置文件：
-
+    
       ```xml
       <!--加载配置文件-->
       <context-param>   
@@ -694,13 +692,13 @@ Maven 的插件用来执行生命周期中的相关事件
           <param-value>classpath*:applicationContext-*.xml</param-value>
       </context-param>
       ```
-
+    
     - spring-mvc
-
+    
       ```xml
       <mvc:annotation-driven/><context:component-scan base-package="controller"/>
       ```
-
+    
       
 
 ***
@@ -856,7 +854,11 @@ Maven 的插件用来执行生命周期中的相关事件
 
 * 属性类别：
 
-  1.自定义属性   2.内置属性    3.Setting属性   4.Java系统属性   5.环境变量属性
+  1. 自定义属性  
+  2. 内置属性
+  3. setting 属性
+  4. Java 系统属性
+  5. 环境变量属性
 
 * 自定义属性：
 
@@ -898,13 +900,14 @@ Maven 的插件用来执行生命周期中的相关事件
 
   * vresion 是 1.0-SNAPSHOT
 
-    ```xml
-    <groupId>demo</groupId>
-    <artifactId>ssm</artifactId>
-    <version>1.0-SNAPSHOT</version>
-    ```
 
-* Setting 属性
+  ```xml
+  <groupId>demo</groupId>
+  <artifactId>ssm</artifactId>
+  <version>1.0-SNAPSHOT</version>
+  ```
+
+* setting 属性
 
   - 使用 Maven 配置文件 setting.xml 中的标签属性，用于动态配置
 
@@ -920,7 +923,7 @@ Maven 的插件用来执行生命周期中的相关事件
 
   调用格式：
 
-  ```
+  ```xml
   ${user.home}
   ```
 
@@ -936,7 +939,7 @@ Maven 的插件用来执行生命周期中的相关事件
 
   调用格式：
 
-  ```
+  ```xml
   ${env.JAVA_HOME} 
   ```
 
@@ -977,9 +980,7 @@ RELEASE（发布版本）
 
 - 里程碑版本：表明一个版本的里程碑（版本内部）。这样的版本同下一个正式版本相比，相对来说不是很稳定，有待更多的测试
 
-范例：
 
-- 5.1.9.RELEASE
 
 
 
