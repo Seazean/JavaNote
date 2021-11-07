@@ -12869,7 +12869,7 @@ DispatcherServlet#checkMultipart：
 校验分类：客户端校验和服务端校验
 
 * 格式校验
-  * 客户端：使用Js技术，利用正则表达式校验
+  * 客户端：使用 js 技术，利用正则表达式校验
   * 服务端：使用校验框架 
 * 逻辑校验
   * 客户端：使用ajax发送要校验的数据，在服务端完成逻辑校验，返回校验结果
@@ -12903,8 +12903,9 @@ DispatcherServlet#checkMultipart：
   ```
 
 **注意：**
-tomcat7：搭配hibernate-validator版本5.*.*.Final
-tomcat8.5↑：搭配hibernate-validator版本6.*.*.Final  
+
+* tomcat7：搭配 hibernate-validator 版本 5.*.*.Final
+* tomcat8.5：搭配 hibernate-validator 版本 6.*.*.Final  
 
  
 
@@ -12917,9 +12918,13 @@ tomcat8.5↑：搭配hibernate-validator版本6.*.*.Final
 ##### 开启校验
 
 名称：@Valid、@Validated
+
 类型：形参注解
+
 位置：处理器类中的实体类类型的方法形参前方
+
 作用：设定对当前实体类类型参数进行校验
+
 范例：  
 
 ```java
@@ -12934,9 +12939,13 @@ public String addEmployee(@Valid Employee employee) {
 ##### 设置校验规则
 
 名称：@NotNull
+
 类型：属性注解等
+
 位置：实体类属性上方
+
 作用：设定当前属性校验规则
+
 范例：每个校验规则所携带的参数不同，根据校验规则进行相应的调整，具体的校验规则查看对应的校验框架进行获取
 
 ```java
@@ -13012,9 +13021,13 @@ public String addEmployee(@Valid Employee employee, Errors errors, Model model){
 #### 嵌套校验
 
 名称：@Valid
+
 类型：属性注解
+
 位置：实体类中的引用类型属性上方
+
 作用：设定当前应用类型属性中的属性开启校验
+
 范例：
 
 ```java
