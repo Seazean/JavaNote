@@ -14691,7 +14691,7 @@ MappedByteBuffer，可以让文件在直接内存（堆外内存）中进行修�
 * **用在进程间的通信，能达到共享内存页的作用**，但在高并发下要对文件内存进行加锁，防止出现读写内容混乱和不一致性，Java 提供了文件锁 FileLock，但在父/子进程中锁定后另一进程会一直等待，效率不高
 * 读写那些太大而不能放进内存中的文件，分段映射
 
-MappedByteBuffer 较之 ByteBuffer新增的三个方法
+MappedByteBuffer 较之 ByteBuffer 新增的三个方法：
 
 - `final MappedByteBuffer force()`：缓冲区是 READ_WRITE 模式下，对缓冲区内容的修改强行写入文件
 - `final MappedByteBuffer load()`：将缓冲区的内容载入物理内存，并返回该缓冲区的引用
@@ -14752,13 +14752,13 @@ public class MappedByteBufferTest {
    * 通道可以实现异步读写数据
    * 通道可以从缓冲读数据，也可以写数据到缓冲
 
-2. BIO 中的 stream 是单向的，NIO中的 Channel 是双向的，可以读操作，也可以写操作
+2. BIO 中的 Stream 是单向的，NIO中的 Channel 是双向的，可以读操作，也可以写操作
 
 3. Channel 在 NIO 中是一个接口：`public interface Channel extends Closeable{}`
 
 Channel 实现类：
 
-* FileChannel：用于读取、写入、映射和操作文件的通道，只能工作在阻塞模式下
+* FileChannel：用于读取、写入、映射和操作文件的通道，**只能工作在阻塞模式下**
   * 通过 FileInputStream 获取的 Channel 只能读
   * 通过 FileOutputStream 获取的 Channel 只能写
   * 通过 RandomAccessFile 是否能读写根据构造 RandomAccessFile 时的读写模式决定

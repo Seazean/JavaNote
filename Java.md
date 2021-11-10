@@ -9677,7 +9677,7 @@ JVM 结构：
 
 <img src="https://gitee.com/seazean/images/raw/master/Java/JVM-概述图.png" style="zoom: 80%;" />
 
-JVM、JRE、JDK对比：
+JVM、JRE、JDK 对比：
 
 <img src="https://gitee.com/seazean/images/raw/master/Java/JVM-JRE关系.png" style="zoom: 80%;" />
 
@@ -12568,7 +12568,7 @@ Java 语言：跨平台的语言（write once ，run anywhere）
 
 编译过程中的编译器：
 
-* 前端编译器： Sun 的全量式编译器 javac、 Eclipse 的增量式编译器 ECJ，把源代码编译为字节码文件.class
+* 前端编译器： Sun 的全量式编译器 javac、 Eclipse 的增量式编译器 ECJ，把源代码编译为字节码文件 .class
 
   * IntelliJ IDEA 使用 javac 编译器
   * Eclipse 中，当开发人员编写完代码后保存时，ECJ 编译器就会把未编译部分的源码逐行进行编译，而非每次都全量编译，因此 ECJ 的编译效率会比 javac 更加迅速和高效

@@ -3444,7 +3444,9 @@ RCVBUF_ALLOCATOR：属于 SocketChannal 参数
 
 # RocketMQ
 
-## 消息队列
+## 基本介绍
+
+### 消息队列
 
 消息队列是一种先进先出的数据结构，常见的应用场景：
 
@@ -3483,10 +3485,6 @@ RCVBUF_ALLOCATOR：属于 SocketChannal 参数
 ****
 
 
-
-
-
-## 概念模型
 
 ### 安装测试
 
@@ -3547,107 +3545,28 @@ RCVBUF_ALLOCATOR：属于 SocketChannal 参数
 
 
 
-****
-
-
-
-### 基本概念
-
-#### 服务相关
-
-RocketMQ 主要由 Producer、Broker、Consumer 三部分组成，其中 Producer 负责生产消息，Consumer 负责消费消息，Broker 负责存储消息，NameServer 负责管理 Broker
-
-* 代理服务器（Broker Server）：消息中转角色，负责**存储消息、转发消息**。在 RocketMQ 系统中负责接收从生产者发送来的消息并存储、同时为消费者的拉取请求作准备，也存储消息相关的元数据，包括消费者组、消费进度偏移和主题和队列消息等
-
-* 名字服务（Name Server）：充当**路由消息**的提供者。生产者或消费者能够通过名字服务查找各主题相应的 Broker IP 列表
-
-* 消息生产者（Producer）：负责**生产消息**，把业务应用系统里产生的消息发送到 Broker 服务器。RocketMQ 提供多种发送方式，同步发送、异步发送、顺序发送、单向发送，同步和异步方式均需要 Broker 返回确认信息，单向发送不需要；可以通过 MQ 的负载均衡模块选择相应的 Broker 集群队列进行消息投递，投递的过程支持快速失败并且低延迟
-* 消息消费者（Consumer）：负责**消费消息**，一般是后台系统负责异步消费，一个消息消费者会从 Broker 服务器拉取消息、并将其提供给应用程序。从用户应用的角度而提供了两种消费形式：
-  * 拉取式消费（Pull Consumer）：应用通主动调用 Consumer 的拉消息方法从 Broker 服务器拉消息，主动权由应用控制，一旦获取了批量消息，应用就会启动消费过程
-  * 推动式消费（Push Consumer）：该模式下 Broker 收到数据后会主动推送给消费端，实时性较高
-
-* 生产者组（Producer Group）：同一类 Producer 的集合，都发送同一类消息且发送逻辑一致。如果发送的是事务消息且原始生产者在发送之后崩溃，**则 Broker 服务器会联系同一生产者组的其他生产者实例以提交或回溯消费**
-
-* 消费者组（Consumer Group）：同一类 Consumer 的集合，消费者实例必须订阅完全相同的 Topic，消费同一类消息且消费逻辑一致。消费者组使得在消息消费方面更容易的实现负载均衡和容错。RocketMQ 支持两种消息模式：
-  *  集群消费（Clustering）：相同 Consumer Group 的每个 Consumer 实例平均分摊消息
-  * 广播消费（Broadcasting）：相同 Consumer Group 的每个 Consumer 实例都接收全量的消息
-
-
-
 ***
 
 
 
-#### 消息相关
+### 工作流程
 
-每个 Broker 可以存储多个 Topic 的消息，每个 Topic 的消息也可以分片存储于不同的 Broker，Message Queue（消息队列）是用于存储消息的物理地址，每个 Topic 中的消息地址存储于多个 Message Queue 中
-
-* 主题（Topic）：表示一类消息的集合，每个主题包含若干条消息，每条消息只属于一个主题，是 RocketMQ 消息订阅的基本单位
-
-* 消息（Message）：消息系统所传输信息的物理载体，生产和消费数据的最小单位，每条消息必须属于一个主题。RocketMQ 中每个消息拥有唯一的 Message ID，且可以携带具有业务标识的 Key，系统提供了通过 Message ID 和 Key 查询消息的功能
-
-* 标签（Tag）：为消息设置的标志，用于同一主题下区分不同类型的消息。标签能够有效地保持代码的清晰度和连贯性，并优化 RocketMQ 提供的查询系统，消费者可以根据 Tag 实现对不同子主题的不同消费逻辑，实现更好的扩展性
-
-* 普通顺序消息（Normal Ordered Message）：消费者通过同一个消息队列（Topic 分区）收到的消息是有顺序的，不同消息队列收到的消息则可能是无顺序的
-
-* 严格顺序消息（Strictly Ordered Message）：消费者收到的所有消息均是有顺序的
-
-
-
-官方文档：https://github.com/apache/rocketmq/blob/master/docs/cn/concept.md（基础知识部分的笔记参考官方文档编写）
-
-
-
-
-
-***
-
-
-
-
-
-### 集群设计
-
-#### 集群模式
-
-常用的以下几种模式：
-
-* 单 Master 模式：这种方式风险较大，一旦 Broker 重启或者宕机，会导致整个服务不可用
-
-* 多 Master 模式：一个集群无 Slave，全是 Master
-
-  - 优点：配置简单，单个 Master 宕机或重启维护对应用无影响，在磁盘配置为 RAID10 时，即使机器宕机不可恢复情况下，由于 RAID10 磁盘非常可靠，消息也不会丢（异步刷盘丢失少量消息，同步刷盘一条不丢），性能最高
-
-  - 缺点：单台机器宕机期间，这台机器上未被消费的消息在机器恢复之前不可订阅，消息实时性会受到影响
-
-* 多 Master 多 Slave 模式（同步）：每个 Master 配置一个 Slave，有多对 Master-Slave，HA 采用同步双写方式，即只有主备都写成功，才向应用返回成功
-
-  * 优点：数据与服务都无单点故障，Master 宕机情况下，消息无延迟，服务可用性与数据可用性都非常高
-  * 缺点：性能比异步复制略低（大约低 10% 左右），发送单个消息的 RT 略高，目前不能实现主节点宕机，备机自动切换为主机
-
-* 多 Master 多 Slave 模式（异步）：HA 采用异步复制的方式，会造成主备有短暂的消息延迟（毫秒级别）
-
-  - 优点：即使磁盘损坏，消息丢失的非常少，且消息实时性不会受影响，同时 Master 宕机后，消费者仍然可以从 Slave 消费，而且此过程对应用透明，不需要人工干预，性能同多 Master 模式几乎一样
-
-  - 缺点：Master 宕机，磁盘损坏情况下会丢失少量消息
-
-
-
-
-***
-
-
-
-#### 系统架构
-
-NameServer 是一个简单的 Topic 路由注册中心，支持 Broker 的动态注册与发现。NameServer 通常是集群的方式部署，各实例间相互不进行信息通讯。Broker 向每一台 NameServer 注册自己的路由信息，所以每个 NameServer 实例上面**都保存一份完整的路由信息**。当某个 NameServer 因某种原因下线了，Broker 仍可以向其它 NameServer 同步其路由信息
+NameServer 是一个简单的 Topic 路由注册中心，支持 Broker 的动态注册与发现，生产者或消费者能够通过名字服务查找各主题相应的 Broker IP 列表
 
 NameServer 主要包括两个功能：
 
 * Broker 管理，NameServer 接受 Broker 集群的注册信息并保存下来作为路由信息的基本数据，提供**心跳检测**检查 Broker 活性
 * 路由信息管理，每个 NameServer 将保存关于 Broker 集群的整个路由信息和用于客户端查询的队列信息，然后 Producer 和 Conumser 通过 NameServer 就可以知道整个 Broker 集群的路由信息，从而进行消息的投递和消费
 
-BrokerServer 主要负责消息的存储、投递和查询以及服务高可用保证，为了实现这些功能，Broker 包含了以下几个重要子模块：
+NameServer 特点：
+
+* NameServer 通常是集群的方式部署，各实例间相互不进行信息通讯
+* Broker 向每一台 NameServer 注册自己的路由信息，所以每个 NameServer 实例上面**都保存一份完整的路由信息**
+* 当某个 NameServer 因某种原因下线了，Broker 仍可以向其它 NameServer 同步其路由信息
+
+BrokerServer 主要负责消息的存储、投递和查询以及服务高可用保证，在 RocketMQ 系统中负责接收从生产者发送来的消息并存储、同时为消费者的拉取请求作准备，也存储消息相关的元数据，包括消费者组、消费进度偏移和主题和队列消息等
+
+Broker 包含了以下几个重要子模块：
 
 * Remoting Module：整个 Broker 的实体，负责处理来自 clients 端的请求
 
@@ -3667,35 +3586,36 @@ BrokerServer 主要负责消息的存储、投递和查询以及服务高可用�
 
 
 
-#### 集群架构
+### 相关概念
 
-RocketMQ 网络部署特点：
+RocketMQ 主要由 Producer、Broker、Consumer 三部分组成，其中 Producer 负责生产消息，Consumer 负责消费消息，Broker 负责存储消息，NameServer 负责管理 Broker
 
-- NameServer 是一个几乎**无状态节点**，节点之间相互独立，无任何信息同步
+* 消息生产者（Producer）：负责**生产消息**，把业务应用系统里产生的消息发送到 Broker 服务器。RocketMQ 提供多种发送方式，同步发送、异步发送、顺序发送、单向发送，同步和异步方式均需要 Broker 返回确认信息，单向发送不需要；可以通过 MQ 的负载均衡模块选择相应的 Broker 集群队列进行消息投递，投递的过程支持快速失败并且低延迟
+* 消息消费者（Consumer）：负责**消费消息**，一般是后台系统负责异步消费，一个消息消费者会从 Broker 服务器拉取消息、并将其提供给应用程序。从用户应用的角度而提供了两种消费形式：
+  * 拉取式消费（Pull Consumer）：应用通主动调用 Consumer 的拉消息方法从 Broker 服务器拉消息，主动权由应用控制，一旦获取了批量消息，应用就会启动消费过程
+  * 推动式消费（Push Consumer）：该模式下 Broker 收到数据后会主动推送给消费端，实时性较高
 
-- Broker 部署相对复杂，Broker 分为 Master 与 Slave，Master 可以部署多个，一个 Master 可以对应多个 Slave，但是一个 Slave 只能对应一个 Master，Master 与 Slave 的对应关系通过指定相同 BrokerName、不同 BrokerId 来定义，BrokerId 为 0 是 Master，非 0 表示 Slave。**每个 Broker 与 NameServer 集群中的所有节点建立长连接**，定时注册 Topic 信息到所有 NameServer
+* 生产者组（Producer Group）：同一类 Producer 的集合，都发送同一类消息且发送逻辑一致。如果发送的是事务消息且原始生产者在发送之后崩溃，**则 Broker 服务器会联系同一生产者组的其他生产者实例以提交或回溯消费**
 
-  注意：部署架构上也支持一 Master 多 Slave，但只有 BrokerId=1 的从服务器才会参与消息的读负载（读写分离）
+* 消费者组（Consumer Group）：同一类 Consumer 的集合，消费者实例必须订阅完全相同的 Topic，消费同一类消息且消费逻辑一致。消费者组使得在消息消费方面更容易的实现负载均衡和容错。RocketMQ 支持两种消息模式：
+  *  集群消费（Clustering）：相同 Consumer Group 的每个 Consumer 实例平均分摊消息
+  *  广播消费（Broadcasting）：相同 Consumer Group 的每个 Consumer 实例都接收全量的消息
 
-- Producer 与 NameServer 集群中的其中**一个节点（随机选择）建立长连接**，定期从 NameServer 获取 Topic 路由信息，并向提供 Topic 服务的 Master 建立长连接，且定时向 Master **发送心跳**。Producer 完全无状态，可集群部署
+每个 Broker 可以存储多个 Topic 的消息，每个 Topic 的消息也可以分片存储于不同的 Broker，Message Queue（消息队列）是用于存储消息的物理地址，每个 Topic 中的消息地址存储于多个 Message Queue 中
 
-- Consumer 与 NameServer 集群中的其中一个节点（随机选择）建立长连接，定期从 NameServer 获取 Topic 路由信息，并向提供  Topic 服务的 Master、Slave 建立长连接，且定时向 Master、Slave 发送心跳
+* 主题（Topic）：表示一类消息的集合，每个主题包含若干条消息，每条消息只属于一个主题，是 RocketMQ 消息订阅的基本单位
 
-  Consumer 既可以从 Master 订阅消息，也可以从 Slave 订阅消息，在向 Master 拉取消息时，Master 服务器会根据拉取偏移量与最大偏移量的距离（判断是否读老消息，产生读 I/O），以及从服务器是否可读等因素建议下一次是从 Master 还是 Slave 拉取
+* 消息（Message）：消息系统所传输信息的物理载体，生产和消费数据的最小单位，每条消息必须属于一个主题。RocketMQ 中每个消息拥有唯一的 Message ID，且可以携带具有业务标识的 Key，系统提供了通过 Message ID 和 Key 查询消息的功能
 
-![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-集群架构.png)
+* 标签（Tag）：为消息设置的标志，用于同一主题下区分不同类型的消息。标签能够有效地保持代码的清晰度和连贯性，并优化 RocketMQ 提供的查询系统，消费者可以根据 Tag 实现对不同子主题的不同消费逻辑，实现更好的扩展性
 
-集群工作流程：
+* 普通顺序消息（Normal Ordered Message）：消费者通过同一个消息队列（Topic 分区）收到的消息是有顺序的，不同消息队列收到的消息则可能是无顺序的
 
-- 启动 NameServer 监听端口，等待 Broker、Producer、Consumer 连上来，相当于一个路由控制中心
-- Broker 启动，跟所有的 NameServer 保持长连接，定时发送心跳包。心跳包中包含当前 Broker 信息（IP、端口等）以及存储所有 Topic 信息。注册成功后，NameServer 集群中就有 Topic 跟 Broker 的映射关系
-- 收发消息前，先创建 Topic，创建 Topic 时需要指定该 Topic 要存储在哪些 Broker 上，也可以在发送消息时自动创建 Topic
-- Producer 发送消息，启动时先跟 NameServer 集群中的其中一台建立长连接，并从 NameServer 中获取当前发送的 Topic 存在哪些 Broker 上，轮询从队列列表中选择一个队列，然后与队列所在的 Broker 建立长连接从而向 Broker 发消息。
-- Consumer 跟 Producer 类似，跟其中一台 NameServer 建立长连接，获取当前订阅 Topic 存在哪些 Broker 上，然后直接跟 Broker 建立连接通道，开始消费消息
+* 严格顺序消息（Strictly Ordered Message）：消费者收到的所有消息均是有顺序的
 
 
 
-官方文档：https://github.com/apache/rocketmq/blob/master/docs/cn/architecture.md
+官方文档：https://github.com/apache/rocketmq/tree/master/docs/cn（基础知识部分的笔记参考官方文档编写）
 
 
 
@@ -3707,11 +3627,13 @@ RocketMQ 网络部署特点：
 
 
 
-## 基本操作
+## 消息操作
 
 ### 基本样例
 
-#### 工作流程
+#### 订阅发布
+
+消息的发布是指某个生产者向某个 Topic 发送消息，消息的订阅是指某个消费者关注了某个 Topic 中带有某些 Tag 的消息，进而从该 Topic 消费数据
 
 导入 MQ 客户端依赖
 
@@ -4420,11 +4342,11 @@ RocketMQ 支持分布式事务消息，采用了 2PC 的思想来实现了提交
 
 RocketMQ 会开启一个定时任务，从 Topic 为 RMQ_SYS_TRANS_HALF_TOPIC 中拉取消息进行消费，根据生产者组获取一个服务提供者发送回查事务状态请求，根据事务状态来决定是提交或回滚消息
 
-在 RocketMQ 中，每条消息都会有对应的索引信息，Consumer 通过 ConsumeQueue 这个二级索引来读取消息实体内容，如图：
+在 RocketMQ 中，每条消息都会有对应的索引信息，Consumer 通过 ConsumeQueue（在 Broker 端）这个类似二级索引的结构来读取消息实体内容
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-事务工作流程.png)
 
-RocketMQ 的具体实现策略：如果写入的是事务消息，对消息的 Topic 和 Queue 等属性进行替换，同时将原来的 Topic 和 Queue 信息存储到消息的属性中，因为消息主题被替换，消息并不会转发到该原主题的消息消费队列，消费者无法感知消息的存在，不会消费
+RocketMQ 的具体实现策略：如果写入的是事务消息，对消息的 Topic 和 Queue 等属性进行替换，同时将原来的 Topic 和 Queue 信息存储到**消息的属性**中，因为消息的主题被替换，所以消息不会转发到该原主题的消息消费队列，消费者无法感知消息的存在，不会消费
 
 
 
@@ -4436,13 +4358,13 @@ RocketMQ 的具体实现策略：如果写入的是事务消息，对消息的 T
 
 一阶段写入不可见的消息后，二阶段操作：
 
-* 如果执行 Commit 操作，则需要让消息对用户可见，构建出 Half 消息的索引。一阶段的 Half 消息写到一个特殊的 Topic，所以构建索引时需要读取出 Half 消息，并将 Topic 和 Queue 替换成真正的目标的 Topic 和 Queue，然后通过一次普通消息的写入操作来生成一条对用户可见的消息
+* 如果执行 Commit 操作，则需要让消息对用户可见，构建出 Half 消息的索引。一阶段的 Half 消息写到一个特殊的 Topic，构建索引时需要读取出 Half 消息，然后通过一次普通消息的写入操作将 Topic 和 Queue 替换成真正的目标 Topic 和 Queue，生成一条对用户可见的消息。其实就是利用了一阶段存储的消息的内容，在二阶段时恢复出一条完整的普通消息，然后走一遍消息写入流程
 
-* 如果是 Rollback 则需要撤销一阶段的消息，因为消息本就不可见，所以并不需要真正撤销消息（实际上 RocketMQ 也无法去删除一条消息，因为是顺序写文件的），为了区分这条消息没有确定的状态（Pending 状态），RocketMQ 用 Op 消息标识事务消息已经确定的状态（Commit 或者 Rollback）
+* 如果是 Rollback 则需要撤销一阶段的消息，因为消息本就不可见，所以并不需要真正撤销消息（实际上 RocketMQ 也无法去删除一条消息，因为是顺序写文件的）。RocketMQ 为了区分这条消息没有确定状态的消息（Pending 状态），采用 Op 消息标识已经确定状态的事务消息（Commit 或者 Rollback）
 
 事务消息无论是 Commit 或者 Rollback 都会记录一个 Op 操作，两者的区别是 Commit 相对于 Rollback 在写入 Op 消息前创建 Half 消息的索引。如果一条事务消息没有对应的 Op 消息，说明这个事务的状态还无法确定（可能是二阶段失败了）
 
-RocketMQ 将 Op 消息写入到全局一个特定的 Topic 中，通过源码中的方法 `TransactionalMessageUtil.buildOpTopic()`，这个主题是一个内部的 Topic（像 Half 消息的 Topic 一样），不会被用户消费。Op 消息的内容为对应的 Half 消息的存储的 Offset，这样通过 Op  消息能索引到 Half 消息进行后续的回查操作
+RocketMQ 将 Op 消息写入到全局一个特定的 Topic 中，通过源码中的方法 `TransactionalMessageUtil.buildOpTopic()`，这个主题是一个内部的 Topic（像 Half 消息的 Topic 一样），不会被用户消费。Op 消息的内容为对应的 Half 消息的存储的 Offset，这样**通过 Op  消息能索引到 Half 消息**进行后续的回查操作
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-OP消息.png)
 
@@ -4454,9 +4376,9 @@ RocketMQ 将 Op 消息写入到全局一个特定的 Topic 中，通过源码中
 
 ##### 补偿机制
 
-如果在 RocketMQ 事务消息的二阶段过程中失败了，例如在做 Commit 操作时，出现网络问题导致 Commit 失败，那么需要通过一定的策略使这条消息最终被 Commit，RocketMQ采用了一种补偿机制，称为回查
+如果在 RocketMQ 事务消息的二阶段过程中失败了，例如在做 Commit 操作时，出现网络问题导致 Commit 失败，那么需要通过一定的策略使这条消息最终被 Commit，RocketMQ 采用了一种补偿机制，称为回查
 
-Broker 端通过对比 Half 消息和 Op 消息，对未确定状态的消息发起回查并且推进CheckPoint（记录那些事务消息的状态是确定的），将消息发送到对应的 Producer 端（同一个 Group 的 Producer），由 Producer 根据消息来检查本地事务的状态，然后执行提交或回滚
+Broker 端通过对比 Half 消息和 Op 消息，对未确定状态的消息发起回查并且推进 CheckPoint（记录哪些事务消息的状态是确定的），将消息发送到对应的 Producer 端（同一个 Group 的 Producer），由 Producer 根据消息来检查本地事务的状态，然后执行提交或回滚
 
 注意：RocketMQ 并不会无休止的进行事务状态回查，默认回查 15 次，如果 15 次回查还是无法得知事务状态，则默认回滚该消息
 
@@ -4494,40 +4416,6 @@ Broker 端通过对比 Half 消息和 Op 消息，对未确定状态的消息发
 
 
 ##### 代码实现
-
-使用 **TransactionMQProducer** 类创建事务性生产者，并指定唯一的 `ProducerGroup`，就可以设置自定义线程池来处理这些检查请求，执行本地事务后、需要根据执行结果对消息队列进行回复
-
-```java
-public class Producer {
-	public static void main(String[] args) throws MQClientException, InterruptedException {
-       	// 创建事务监听器
-		TransactionListener transactionListener = new TransactionListenerImpl();
-        // 创建消息生产者
-       	TransactionMQProducer producer = new TransactionMQProducer("please_rename_unique_group_name");
-       	ExecutorService executorService = new ThreadPoolExecutor(2, 5, 100, TimeUnit.SECONDS);
-        producer.setExecutorService(executorService);
-        // 生产者的监听器
-        producer.setTransactionListener(transactionListener);
-        producer.start();
-        String[] tags = new String[] {"TagA", "TagB", "TagC", "TagD", "TagE"};
-        for (int i = 0; i < 10; i++) {
-            try {
-                Message msg = new Message("TransactionTopic", tags[i % tags.length], "KEY" + i,
-                                ("Hello RocketMQ " + i).getBytes(RemotingHelper.DEFAULT_CHARSET));
-                SendResult sendResult = producer.sendMessageInTransaction(msg, null);
-                System.out.printf("%s%n", sendResult);
-                Thread.sleep(10);
-            } catch (MQClientException | UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
-        }
-       	//Thread.sleep(1000000);
-        //producer.shutdown();暂时不关闭
-    }
-}
-```
-
-消费者代码和前面的实例相同的
 
 实现事务的监听接口，当发送半消息成功时：
 
@@ -4567,6 +4455,43 @@ public class TransactionListenerImpl implements TransactionListener {
 }
 ```
 
+使用 **TransactionMQProducer** 类创建事务性生产者，并指定唯一的 `ProducerGroup`，就可以设置自定义线程池来处理这些检查请求，执行本地事务后、需要根据执行结果对消息队列进行回复
+
+```java
+public class Producer {
+	public static void main(String[] args) throws MQClientException, InterruptedException {
+        // 创建消息生产者
+       	TransactionMQProducer producer = new TransactionMQProducer("please_rename_unique_group_name");
+       	ExecutorService executorService = new ThreadPoolExecutor(2, 5, 100, TimeUnit.SECONDS);
+        producer.setExecutorService(executorService);
+        
+        // 创建事务监听器
+		TransactionListener transactionListener = new TransactionListenerImpl();
+        // 生产者的监听器
+        producer.setTransactionListener(transactionListener);
+       	// 启动生产者
+        producer.start();
+        String[] tags = new String[] {"TagA", "TagB", "TagC", "TagD", "TagE"};
+        for (int i = 0; i < 10; i++) {
+            try {
+                Message msg = new Message("TransactionTopic", tags[i % tags.length], "KEY" + i,
+                                ("Hello RocketMQ " + i).getBytes(RemotingHelper.DEFAULT_CHARSET));
+                // 发送消息
+                SendResult sendResult = producer.sendMessageInTransaction(msg, null);
+                System.out.printf("%s%n", sendResult);
+                Thread.sleep(10);
+            } catch (MQClientException | UnsupportedEncodingException e) {
+                e.printStackTrace();
+            }
+        }
+       	//Thread.sleep(1000000);
+        //producer.shutdown();暂时不关闭
+    }
+}
+```
+
+消费者代码和前面的实例相同的
+
 
 
 
@@ -4577,7 +4502,64 @@ public class TransactionListenerImpl implements TransactionListener {
 
 
 
-## 高级特性
+## 系统机制
+
+### 集群设计
+
+#### 集群模式
+
+常用的以下几种模式：
+
+* 单 Master 模式：这种方式风险较大，一旦 Broker 重启或者宕机，会导致整个服务不可用
+* 多 Master 模式：一个集群无 Slave，全是 Master
+
+  - 优点：配置简单，单个 Master 宕机或重启维护对应用无影响，在磁盘配置为 RAID10 时，即使机器宕机不可恢复情况下，由于 RAID10 磁盘非常可靠，消息也不会丢（异步刷盘丢失少量消息，同步刷盘一条不丢），性能最高
+
+  - 缺点：单台机器宕机期间，这台机器上未被消费的消息在机器恢复之前不可订阅，消息实时性会受到影响
+* 多 Master 多 Slave 模式（同步）：每个 Master 配置一个 Slave，有多对 Master-Slave，HA 采用同步双写方式，即只有主备都写成功，才向应用返回成功
+
+  * 优点：数据与服务都无单点故障，Master 宕机情况下，消息无延迟，服务可用性与数据可用性都非常高
+  * 缺点：性能比异步复制略低（大约低 10% 左右），发送单个消息的 RT 略高，目前不能实现主节点宕机，备机自动切换为主机
+* 多 Master 多 Slave 模式（异步）：HA 采用异步复制的方式，会造成主备有短暂的消息延迟（毫秒级别）
+
+  - 优点：即使磁盘损坏，消息丢失的非常少，且消息实时性不会受影响，同时 Master 宕机后，消费者仍然可以从 Slave 消费，而且此过程对应用透明，不需要人工干预，性能同多 Master 模式几乎一样
+  - 缺点：Master 宕机，磁盘损坏情况下会丢失少量消息
+
+
+
+***
+
+
+
+#### 集群架构
+
+RocketMQ 网络部署特点：
+
+- NameServer 是一个几乎**无状态节点**，节点之间相互独立，无任何信息同步
+
+- Broker 部署相对复杂，Broker 分为 Master 与 Slave，Master 可以部署多个，一个 Master 可以对应多个 Slave，但是一个 Slave 只能对应一个 Master，Master 与 Slave 的对应关系通过指定相同 BrokerName、不同 BrokerId 来定义，BrokerId 为 0 是 Master，非 0 表示 Slave。**每个 Broker 与 NameServer 集群中的所有节点建立长连接**，定时注册 Topic 信息到所有 NameServer
+
+  注意：部署架构上也支持一 Master 多 Slave，但只有 BrokerId=1 的从服务器才会参与消息的读负载（读写分离）
+
+- Producer 与 NameServer 集群中的其中**一个节点（随机选择）建立长连接**，定期从 NameServer 获取 Topic 路由信息，并向提供 Topic 服务的 Master 建立长连接，且定时向 Master **发送心跳**。Producer 完全无状态，可集群部署
+
+- Consumer 与 NameServer 集群中的其中一个节点（随机选择）建立长连接，定期从 NameServer 获取 Topic 路由信息，并向提供  Topic 服务的 Master、Slave 建立长连接，且定时向 Master、Slave 发送心跳
+
+  Consumer 既可以从 Master 订阅消息，也可以从 Slave 订阅消息，在向 Master 拉取消息时，Master 服务器会根据拉取偏移量与最大偏移量的距离（判断是否读老消息，产生读 I/O），以及从服务器是否可读等因素建议下一次是从 Master 还是 Slave 拉取
+
+![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-集群架构.png)
+
+集群工作流程：
+
+- 启动 NameServer 监听端口，等待 Broker、Producer、Consumer 连上来，相当于一个路由控制中心
+- Broker 启动，跟所有的 NameServer 保持长连接，定时发送心跳包。心跳包中包含当前 Broker 信息（IP、端口等）以及存储所有 Topic 信息。注册成功后，NameServer 集群中就有 Topic 跟 Broker 的映射关系
+- 收发消息前，先创建 Topic，创建 Topic 时需要指定该 Topic 要存储在哪些 Broker 上，也可以在发送消息时自动创建 Topic
+- Producer 发送消息，启动时先跟 NameServer 集群中的其中一台建立长连接，并从 NameServer 中获取当前发送的 Topic 存在哪些 Broker 上，轮询从队列列表中选择一个队列，然后与队列所在的 Broker 建立长连接从而向 Broker 发消息。
+- Consumer 跟 Producer 类似，跟其中一台 NameServer 建立长连接，获取当前订阅 Topic 存在哪些 Broker 上，然后直接跟 Broker 建立连接通道，开始消费消息
+
+
+
+官方文档：https://github.com/apache/rocketmq/blob/master/docs/cn/architecture.md
 
 
 
