@@ -3975,13 +3975,37 @@ public class ConsumerInOrder {
 
 ### 延时消息
 
-提交了一个订单就可以发送一个延时消息，1h 后去检查这个订单的状态，如果还是未付款就取消订单释放库存
+#### 原理解析
+
+定时消息（延迟队列）是指消息发送到 Broker 后，不会立即被消费，等待特定时间投递给真正的 Topic
 
 RocketMQ 并不支持任意时间的延时，需要设置几个固定的延时等级，从 1s 到 2h 分别对应着等级 1 到 18，消息消费失败会进入延时消息队列，消息发送时间与设置的延时等级和重试次数有关，详见代码 `SendMessageProcessor.java`
 
 ```java
 private String messageDelayLevel = "1s 5s 10s 30s 1m 2m 3m 4m 5m 6m 7m 8m 9m 10m 20m 30m 1h 2h";
 ```
+
+Broker 可以配置 messageDelayLevel，该属性是 Broker 的属性，不属于某个 Topic
+
+发消息时，可以设置延迟等级 `msg.setDelayLevel(level)`，level 有以下三种情况：
+
+- level == 0：消息为非延迟消息
+- 1<=level<=maxLevel：消息延迟特定时间，例如 level==1，延迟 1s
+- level > maxLevel：则 level== maxLevel，例如 level==20，延迟 2h
+
+定时消息会暂存在名为 SCHEDULE_TOPIC_XXXX 的 Topic 中，并根据 delayTimeLevel 存入特定的 queue，队列的标识`queueId = delayTimeLevel – 1`，即一个 queue 只存相同延迟的消息，保证具有相同发送延迟的消息能够顺序消费。Broker 会调度地消费 SCHEDULE_TOPIC_XXXX，将消息写入真实的 Topic
+
+注意：定时消息在第一次写入和调度写入真实 Topic 时都会计数，因此发送数量、tps 都会变高。
+
+
+
+***
+
+
+
+#### 代码实现
+
+提交了一个订单就可以发送一个延时消息，1h 后去检查这个订单的状态，如果还是未付款就取消订单释放库存
 
 ```java
 public class ScheduledMessageProducer {
@@ -4467,7 +4491,11 @@ public class Producer {
 
 ### 消息存储
 
-#### 工作流程
+#### 生产消费
+
+At least Once：至少一次，指每个消息必须投递一次，Consumer 先 Pull 消息到本地，消费完成后才向服务器返回 ACK，如果没有消费一定不会 ACK 消息
+
+回溯消费：指 Consumer 已经消费成功的消息，由于业务上需求需要重新消费，Broker 在向 Consumer 投递成功消息后，消息仍然需要保留。并且重新消费一般是按照时间维度，例如由于 Consumer 系统故障，恢复后需要重新消费 1 小时前的数据，RocketMQ 支持按照时间回溯消费，时间维度精确到毫秒
 
 分布式队列因为有高可靠性的要求，所以数据要进行持久化存储
 
@@ -4476,7 +4504,7 @@ public class Producer {
 3. 返回 ACK 给生产者
 4. MQ push 消息给对应的消费者，然后等待消费者返回 ACK
 5. 如果消息消费者在指定时间内成功返回 ACK，那么 MQ 认为消息消费成功，在存储中删除消息；如果 MQ 在指定时间内没有收到 ACK，则认为消息消费失败，会尝试重新 push 消息，重复执行 4、5、6 步骤
-6. MQ删除消息
+6. MQ 删除消息
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-消息存取.png)
 
@@ -4503,8 +4531,6 @@ RocketMQ 消息的存储是由 ConsumeQueue 和 CommitLog 配合完成 的，消
 RocketMQ 采用的是混合型的存储结构，即为 Broker 单个实例下所有的队列共用一个日志数据文件（CommitLog）来存储。混合型存储结构（多个 Topic 的消息实体内容都存储于一个 CommitLog 中）**针对 Producer 和 Consumer 分别采用了数据和索引部分相分离的存储结构**，Producer 发送消息至 Broker 端，然后 Broker 端使用同步或者异步的方式对消息刷盘持久化，保存至 CommitLog 中。只要消息被持久化至磁盘文件 CommitLog 中，Producer 发送的消息就不会丢失，Consumer 也就肯定有机会去消费这条消息
 
 服务端支持长轮询模式，当消费者无法拉取到消息后，可以等下一次消息拉取，Broker 允许等待 30s 的时间，只要这段时间内有新消息到达，将直接返回给消费端。RocketMQ 的具体做法是，使用 Broker 端的后台服务线程 ReputMessageService 不停地分发请求并异步构建 ConsumeQueue（逻辑消费队列）和 IndexFile（索引文件）数据
-
-
 
 
 
@@ -4681,11 +4707,302 @@ RocketMQ 网络部署特点：
 
 
 
+****
 
+
+
+#### 高可用
+
+在 Consumer 的配置文件中，并不需要设置是从 Master 读还是从 Slave 读，当 Master 不可用或者繁忙的时候，Consumer 会被自动切换到从 Slave 读。有了自动切换的机制，当一个 Master 机器出现故障后，Consumer 仍然可以从 Slave 读取消息，不影响 Consumer 程序，达到了消费端的高可用性
+
+在创建 Topic 的时候，把 Topic 的多个 Message Queue 创建在多个 Broker 组上（相同 Broker 名称，不同 brokerId 的机器组成一个 Broker 组），当一个 Broker 组的 Master 不可用后，其他组的 Master 仍然可用，Producer 仍然可以发送消息。
+
+RocketMQ 目前还不支持把 Slave 自动转成 Master，需要手动停止 Slave 角色的 Broker，更改配置文件，用新的配置文件启动 Broker
+
+![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-高可用.png)
+
+5)、6)属于单点故障，且无法恢复，一旦发生，在此单点上的消息全部丢失。RocketMQ在这两种情况下，通过异步复制，可保证99%的消息不丢，但是仍然会有极少量的消息可能丢失。通过同步双写技术可以完全避免单点，同步双写势必会影响性能，适合对消息可靠性要求极高的场合，例如与Money相关的应用。注：RocketMQ从3.0版本开始支持同步双写。
 
 
 
 ****
+
+
+
+#### 主从复制
+
+如果一个 Broker 组有 Master 和 Slave，消息需要从 Master 复制到 Slave 上，有同步和异步两种复制方式：
+
+* 同步复制方式：Master 和 Slave 均写成功后才反馈给客户端写成功状态。在同步复制方式下，如果 Master 出故障， Slave 上有全部的备份数据，容易恢复，但是同步复制会增大数据写入延迟，降低系统吞吐量
+
+* 异步复制方式：只要 Master 写成功，即可反馈给客户端写成功状态，系统拥有较低的延迟和较高的吞吐量，但是如果 Master 出了故障，有些数据因为没有被写入 Slave，有可能会丢失
+
+同步复制和异步复制是通过 Broker 配置文件里的 brokerRole 参数进行设置的，可以设置成 ASYNC_MASTE、RSYNC_MASTER、SLAVE 三个值中的一个
+
+一般把刷盘机制配置成 ASYNC_FLUSH，主从复制为 SYNC_MASTER，这样即使有一台机器出故障，仍然能保证数据不丢
+
+RocketMQ 支持消息的高可靠，影响消息可靠性的几种情况：
+
+1. Broker 非正常关闭
+2. Broker 异常 Crash
+3. OS Crash
+4. 机器掉电，但是能立即恢复供电情况
+5. 机器无法开机（可能是 CPU、主板、内存等关键设备损坏）
+6. 磁盘设备损坏
+
+前四种情况都属于硬件资源可立即恢复情况，RocketMQ 在这四种情况下能保证消息不丢，或者丢失少量数据（依赖刷盘方式）
+
+后两种属于单点故障，且无法恢复，一旦发生，在此单点上的消息全部丢失。RocketMQ 在这两种情况下，通过主从异步复制，可保证 99% 的消息不丢，但是仍然会有极少量的消息可能丢失。通过**同步双写技术**可以完全避免单点，但是会影响性能，适合对消息可靠性要求极高的场合，RocketMQ 从 3.0 版本开始支持同步双写
+
+
+
+****
+
+
+
+### 负载均衡
+
+#### 生产端
+
+Producer 端，每个实例在发消息的时候，默认会轮询所有的 Message Queue 发送，以让消息平均落在不同的 queue 上。而由于 queue可以散落在不同的 Broker，所以消息就发送到不同的 Broker 下
+
+![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-producer负载均衡.png)
+
+图中箭头线条上的标号代表顺序，发布方会把第一条消息发送至 Queue 0，然后第二条消息发送至 Queue 1，以此类推
+
+
+
+***
+
+
+
+#### 消费端
+
+广播模式下要求一条消息需要投递到一个消费组下面所有的消费者实例，所以不存在负载均衡，在实现上，Consumer 分配 queue 时，所有 Consumer 都分到所有的queue。
+
+在集群消费模式下，每条消息只需要投递到订阅这个 Topic 的 Consumer Group 下的一个实例即可，RocketMQ 采用主动拉取的方式拉取并消费消息，在拉取的时候需要明确指定拉取哪一条 Message Queue
+
+而每当实例的数量有变更，都会触发一次所有实例的负载均衡，这时候会按照 queue 的数量和实例的数量平均分配 queue 给每个实例。默认的分配算法是 AllocateMessageQueueAveragely：
+
+![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-consumer负载均衡1.png)
+
+  还有一种平均的算法是 AllocateMessageQueueAveragelyByCircle，以环状轮流均分 queue 的形式：
+
+![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-consumer负载均衡2.png)
+
+集群模式下，queue 都是只允许分配只一个实例，如果多个实例同时消费一个 queue 的消息，由于拉取哪些消息是 Consumer 主动控制的，会导致同一个消息在不同的实例下被消费多次
+
+通过增加 Consumer 实例去分摊 queue 的消费，可以起到水平扩展的消费能力的作用。而当有实例下线时，会重新触发负载均衡，这时候原来分配到的 queue 将分配到其他实例上继续消费
+
+但是如果 Consumer 实例的数量比 Message Queue 的总数量还多的话，多出来的 Consumer 实例将无法分到 queue，也就无法消费到消息，也就无法起到分摊负载的作用了，所以需要控制让 queue 的总数量大于等于 Consumer 的数量
+
+
+
+****
+
+
+
+### 消息重试
+
+todo：以下还需要修改，明日完成
+
+顺序消息的重试
+
+对于顺序消息，当消费者消费消息失败后，消息队列 RocketMQ 会自动不断进行消息重试（每次间隔时间为 1 秒），这时，应用会出现消息消费被阻塞的情况。因此，在使用顺序消息时，务必保证应用能够及时监控并处理消费失败的情况，避免阻塞现象的发生。
+
+1.4.2 无序消息的重试
+
+对于无序消息（普通、定时、延时、事务消息），当消费者消费消息失败时，您可以通过设置返回状态达到消息重试的结果。
+
+无序消息的重试只针对集群消费方式生效；广播方式不提供失败重试特性，即消费失败后，失败消息不再重试，继续消费新的消息。
+
+1）重试次数
+
+消息队列 RocketMQ 默认允许每条消息最多重试 16 次，每次重试的间隔时间如下：
+
+| 第几次重试 | 与上次重试的间隔时间 | 第几次重试 | 与上次重试的间隔时间 |
+| :--------: | :------------------: | :--------: | :------------------: |
+|     1      |        10 秒         |     9      |        7 分钟        |
+|     2      |        30 秒         |     10     |        8 分钟        |
+|     3      |        1 分钟        |     11     |        9 分钟        |
+|     4      |        2 分钟        |     12     |       10 分钟        |
+|     5      |        3 分钟        |     13     |       20 分钟        |
+|     6      |        4 分钟        |     14     |       30 分钟        |
+|     7      |        5 分钟        |     15     |        1 小时        |
+|     8      |        6 分钟        |     16     |        2 小时        |
+
+如果消息重试 16 次后仍然失败，消息将不再投递。如果严格按照上述重试时间间隔计算，某条消息在一直消费失败的前提下，将会在接下来的 4 小时 46 分钟之内进行 16 次重试，超过这个时间范围消息将不再重试投递。
+
+**注意：** 一条消息无论重试多少次，这些重试消息的 Message ID 不会改变。
+
+2）配置方式
+
+**消费失败后，重试配置方式**
+
+集群消费方式下，消息消费失败后期望消息重试，需要在消息监听器接口的实现中明确进行配置（三种方式任选一种）：
+
+- 返回 Action.ReconsumeLater （推荐）
+- 返回 Null
+- 抛出异常
+
+```java
+public class MessageListenerImpl implements MessageListener {
+    @Override
+    public Action consume(Message message, ConsumeContext context) {
+        //处理消息
+        doConsumeMessage(message);
+        //方式1：返回 Action.ReconsumeLater，消息将重试
+        return Action.ReconsumeLater;
+        //方式2：返回 null，消息将重试
+        return null;
+        //方式3：直接抛出异常， 消息将重试
+        throw new RuntimeException("Consumer Message exceotion");
+    }
+}
+```
+
+**消费失败后，不重试配置方式**
+
+集群消费方式下，消息失败后期望消息不重试，需要捕获消费逻辑中可能抛出的异常，最终返回 Action.CommitMessage，此后这条消息将不会再重试。
+
+```java
+public class MessageListenerImpl implements MessageListener {
+    @Override
+    public Action consume(Message message, ConsumeContext context) {
+        try {
+            doConsumeMessage(message);
+        } catch (Throwable e) {
+            //捕获消费逻辑中的所有异常，并返回 Action.CommitMessage;
+            return Action.CommitMessage;
+        }
+        //消息处理正常，直接返回 Action.CommitMessage;
+        return Action.CommitMessage;
+    }
+}
+```
+
+**自定义消息最大重试次数**
+
+消息队列 RocketMQ 允许 Consumer 启动的时候设置最大重试次数，重试时间间隔将按照如下策略：
+
+- 最大重试次数小于等于 16 次，则重试时间间隔同上表描述。
+- 最大重试次数大于 16 次，超过 16 次的重试时间间隔均为每次 2 小时。
+
+```java
+Properties properties = new Properties();
+//配置对应 Group ID 的最大消息重试次数为 20 次
+properties.put(PropertyKeyConst.MaxReconsumeTimes,"20");
+Consumer consumer =ONSFactory.createConsumer(properties);
+```
+
+> 注意：
+
+- 消息最大重试次数的设置对相同 Group ID 下的所有 Consumer 实例有效。
+- 如果只对相同 Group ID 下两个 Consumer 实例中的其中一个设置了 MaxReconsumeTimes，那么该配置对两个 Consumer 实例均生效。
+- 配置采用覆盖的方式生效，即最后启动的 Consumer 实例会覆盖之前的启动实例的配置
+
+**获取消息重试次数**
+
+消费者收到消息后，可按照如下方式获取消息的重试次数：
+
+```java
+public class MessageListenerImpl implements MessageListener {
+    @Override
+    public Action consume(Message message, ConsumeContext context) {
+        //获取消息的重试次数
+        System.out.println(message.getReconsumeTimes());
+        return Action.CommitMessage;
+    }
+}
+```
+
+
+
+
+
+***
+
+
+
+### 死信队列
+
+当一条消息初次消费失败，消息队列 RocketMQ 会自动进行消息重试；达到最大重试次数后，若消费依然失败，则表明消费者在正常情况下无法正确地消费该消息，此时，消息队列 RocketMQ 不会立刻将消息丢弃，而是将其发送到该消费者对应的特殊队列中。
+
+在消息队列 RocketMQ 中，这种正常情况下无法被消费的消息称为死信消息（Dead-Letter Message），存储死信消息的特殊队列称为死信队列（Dead-Letter Queue）。
+
+死信消息具有以下特性
+
+- 不会再被消费者正常消费。
+- 有效期与正常消息相同，均为 3 天，3 天后会被自动删除。因此，请在死信消息产生后的 3 天内及时处理。
+
+死信队列具有以下特性：
+
+- 一个死信队列对应一个 Group ID， 而不是对应单个消费者实例。
+- 如果一个 Group ID 未产生死信消息，消息队列 RocketMQ 不会为其创建相应的死信队列。
+- 一个死信队列包含了对应 Group ID 产生的所有死信消息，不论该消息属于哪个 Topic。
+
+一条消息进入死信队列，意味着某些因素导致消费者无法正常消费该消息，因此，通常需要您对其进行特殊处理。排查可疑因素并解决问题后，可以在消息队列 RocketMQ 控制台重新发送该消息，让消费者重新消费一次。
+
+
+
+****
+
+
+
+### 幂等消费
+
+消息队列 RocketMQ 消费者在接收到消息以后，有必要根据业务上的唯一 Key 对消息做幂等处理的必要性。
+
+1.6.1 消费幂等的必要性
+
+在互联网应用中，尤其在网络不稳定的情况下，消息队列 RocketMQ 的消息有可能会出现重复，这个重复简单可以概括为以下情况：
+
+- 发送时消息重复
+
+  当一条消息已被成功发送到服务端并完成持久化，此时出现了网络闪断或者客户端宕机，导致服务端对客户端应答失败。 如果此时生产者意识到消息发送失败并尝试再次发送消息，消费者后续会收到两条内容相同并且 Message ID 也相同的消息。
+
+- 投递时消息重复
+
+  消息消费的场景下，消息已投递到消费者并完成业务处理，当客户端给服务端反馈应答的时候网络闪断。 为了保证消息至少被消费一次，消息队列 RocketMQ 的服务端将在网络恢复后再次尝试投递之前已被处理过的消息，消费者后续会收到两条内容相同并且 Message ID 也相同的消息。
+
+- 负载均衡时消息重复（包括但不限于网络抖动、Broker 重启以及订阅方应用重启）
+
+  当消息队列 RocketMQ 的 Broker 或客户端重启、扩容或缩容时，会触发 Rebalance，此时消费者可能会收到重复消息。
+
+1.6.2 处理方式
+
+因为 Message ID 有可能出现冲突（重复）的情况，所以真正安全的幂等处理，不建议以 Message ID 作为处理依据。 最好的方式是以业务唯一标识作为幂等处理的关键依据，而业务的唯一标识可以通过消息 Key 进行设置：
+
+```java
+Message message = new Message();
+message.setKey("ORDERID_100");
+SendResult sendResult = producer.send(message);
+```
+
+订阅方收到消息时可以根据消息的 Key 进行幂等处理：
+
+```java
+consumer.subscribe("ons_test", "*", new MessageListener() {
+    public Action consume(Message message, ConsumeContext context) {
+        String key = message.getKey()
+        // 根据业务唯一标识的 key 做幂等处理
+    }
+});
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+***
 
 
 
