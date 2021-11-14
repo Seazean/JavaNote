@@ -1468,7 +1468,7 @@ Netty 的功能特性：
 
 #### 设计思想
 
-Reactor 模式，通过一个或多个输入同时传递给服务处理器的事件驱动处理模式。 服务端程序处理传入的多路请求，并将它们同步分派给对应的处理线程，Reactor 模式也叫 Dispatcher 模式，即 I/O 多路复用统一监听事件，收到事件后分发（Dispatch 给某线程）
+Reactor 模式，通过一个或多个输入同时传递给服务处理器的**事件驱动处理模式**。 服务端程序处理传入的多路请求，并将它们同步分派给对应的处理线程，Reactor 模式也叫 Dispatcher 模式，即 I/O 多路复用统一监听事件，收到事件后分发（Dispatch 给某线程）
 
 **I/O 复用结合线程池**，就是 Reactor 模式基本设计思想：
 
@@ -1477,7 +1477,7 @@ Reactor 模式，通过一个或多个输入同时传递给服务处理器的事
 Reactor 模式关键组成：
 
 - Reactor：在一个单独的线程中运行，负责监听和分发事件，分发给适当的处理程序来对 I/O 事件做出反应
-- Handlers：处理程序执行 I/O 事件要完成的实际事件，Reactor 通过调度适当的处理程序来响应 I/O 事件，处理程序执行非阻塞操作
+- Handler：处理程序执行 I/O 要完成的实际事件，Reactor 通过调度适当的处理程序来响应 I/O 事件，处理程序执行**非阻塞操作**
 
 Reactor 模式具有如下的优点：
 
@@ -1486,7 +1486,7 @@ Reactor 模式具有如下的优点：
 - 可扩展性，可以方便的通过增加 Reactor 实例个数来充分利用 CPU 资源
 - 可复用性，Reactor 模型本身与具体事件处理逻辑无关，具有很高的复用性
 
-根据Reactor的数量和处理资源池线程的数量不同，有3种典型的实现：
+根据 Reactor 的数量和处理资源池线程的数量不同，有三种典型的实现：
 
 - 单 Reactor 单线程
 - 单 Reactor 多线程
@@ -1505,6 +1505,8 @@ Reactor 对象通过 select 监控客户端请求事件，收到事件后通过 
 * 如果是建立连接请求事件，则由 Acceptor 通过 accept 处理连接请求，然后创建一个 Handler 对象处理连接完成后的后续业务处理
 
 * 如果不是建立连接事件，则 Reactor 会分发给连接对应的 Handler 来响应，Handler 会完成 read、业务处理、send 的完整流程
+
+  说明：Handler 和 Acceptor 属于同一个线程
 
 <img src="https://gitee.com/seazean/images/raw/master/Frame/Netty-单Reactor单线程.png" style="zoom:50%;" />
 
@@ -1533,7 +1535,7 @@ Reactor 对象通过 select 监控客户端请求事件，收到事件后通过 
 
 <img src="https://gitee.com/seazean/images/raw/master/Frame/Netty-单Reactor多线程.png" style="zoom:50%;" />
 
-模型优点：可以充分利用多核CPU的处理能力
+模型优点：可以充分利用多核 CPU 的处理能力
 
 模型缺点：
 
@@ -1575,7 +1577,7 @@ Reactor 对象通过 select 监控客户端请求事件，收到事件后通过 
 
 ### Proactor
 
-Reactor 模式中，Reactor 等待某个事件的操作状态发生变化（文件描述符可读写，socket 可读写），然后把事件传递给事先注册的 Handler 来做实际的读写操作，其中的读写操作都需要应用程序同步操作，所以 Reactor 是非阻塞同步网络模型（NIO）
+Reactor 模式中，Reactor 等待某个事件的操作状态发生变化（文件描述符可读写，socket 可读写），然后把事件传递给事先注册的 Handler 来做实际的读写操作，其中的读写操作都需要应用程序同步操作，所以 **Reactor 是非阻塞同步网络模型（NIO）**
 
 把 I/O 操作改为异步，交给操作系统来完成就能进一步提升性能，这就是异步网络模型 Proactor（AIO）：
 
@@ -1587,7 +1589,7 @@ Reactor 模式中，Reactor 等待某个事件的操作状态发生变化（文�
 * AsyOptProcessor 处理注册请求，并处理 I/O 操作，完成I/O后通知 Proactor
 * Proactor 根据不同的事件类型回调不同的 Handler 进行业务处理，最后由 Handler 完成业务处理
 
-对比 Reactor：Reactor 在事件发生时就通知事先注册的处理器（读写在应用程序线程中处理完成）；Proactor是在事件发生时基于异步 I/O 完成读写操作（内核完成），I/O 完成后才回调应用程序的处理器进行业务处理
+对比：Reactor 在事件发生时就通知事先注册的处理器（读写在应用程序线程中处理完成）；Proactor 是在事件发生时基于异步 I/O 完成读写操作（内核完成），I/O 完成后才回调应用程序的处理器进行业务处理
 
 模式优点：异步 I/O 更加充分发挥 DMA（Direct Memory Access 直接内存存取）的优势
 
@@ -3559,7 +3561,7 @@ RocketMQ 主要由 Producer、Broker、Consumer 三部分组成，其中 Produce
 * 消息消费者（Consumer）：负责**消费消息**，一般是后台系统负责异步消费，一个消息消费者会从 Broker 服务器拉取消息、并将其提供给应用程序。从用户应用的角度而提供了两种消费形式：
   * 拉取式消费（Pull Consumer）：应用通主动调用 Consumer 的拉消息方法从 Broker 服务器拉消息，主动权由应用控制，一旦获取了批量消息，应用就会启动消费过程
   * 推动式消费（Push Consumer）：该模式下 Broker 收到数据后会主动推送给消费端，实时性较高
-* 生产者组（Producer Group）：同一类 Producer 的集合，都发送同一类消息且发送逻辑一致。如果发送的是事务消息且原始生产者在发送之后崩溃，**则 Broker 服务器会联系同一生产者组的其他生产者实例以提交或回溯消费**
+* 生产者组（Producer Group）：同一类 Producer 的集合，发送同一类消息且发送逻辑一致。如果发送的是事务消息且原始生产者在发送之后崩溃，**则 Broker 服务器会联系同一生产者组的其他生产者实例以提交或回溯消费**
 * 消费者组（Consumer Group）：同一类 Consumer 的集合，消费者实例必须订阅完全相同的 Topic，消费同一类消息且消费逻辑一致。消费者组使得在消息消费方面更容易的实现负载均衡和容错。RocketMQ 支持两种消息模式：
   *  集群消费（Clustering）：相同 Consumer Group 的每个 Consumer 实例平均分摊消息
   *  广播消费（Broadcasting）：相同 Consumer Group 的每个 Consumer 实例都接收全量的消息
@@ -4487,7 +4489,136 @@ public class Producer {
 
 
 
-## 系统机制
+## 系统特性
+
+### 工作机制
+
+#### 模块介绍
+
+NameServer 是一个简单的 Topic 路由注册中心，支持 Broker 的动态注册与发现，生产者或消费者能够通过名字服务查找各主题相应的 Broker IP 列表
+
+NameServer 主要包括两个功能：
+
+* Broker 管理，NameServer 接受 Broker 集群的注册信息并保存下来作为路由信息的基本数据，提供**心跳检测**检查 Broker 活性
+* 路由信息管理，每个 NameServer 将保存关于 Broker 集群的整个路由信息和用于客户端查询的队列信息，然后 Producer 和 Conumser 通过 NameServer 就可以知道整个 Broker 集群的路由信息，从而进行消息的投递和消费
+
+NameServer 特点：
+
+* NameServer 通常是集群的方式部署，各实例间相互不进行信息通讯
+* Broker 向每一台 NameServer 注册自己的路由信息，所以每个 NameServer 实例上面**都保存一份完整的路由信息**
+* 当某个 NameServer 因某种原因下线了，Broker 仍可以向其它 NameServer 同步其路由信息
+
+BrokerServer 主要负责消息的存储、投递和查询以及服务高可用保证，在 RocketMQ 系统中接收从生产者发送来的消息并存储、同时为消费者的拉取请求作准备，也存储消息相关的元数据，包括消费者组、消费进度偏移和主题和队列消息等
+
+Broker 包含了以下几个重要子模块：
+
+* Remoting Module：整个 Broker 的实体，负责处理来自 clients 端的请求
+
+* Client Manager：负责管理客户端（Producer/Consumer）和维护 Consumer 的 Topic 订阅信息
+
+* Store Service：提供方便简单的 API 接口处理消息存储到物理硬盘和查询功能
+
+* HA Service：高可用服务，提供 Master Broker 和 Slave Broker 之间的数据同步功能
+
+* Index Service：根据特定的 Message key 对投递到 Broker 的消息进行索引服务，以提供消息的快速查询
+
+![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-Broker工作流程.png)
+
+
+
+***
+
+
+
+#### 工作流程
+
+RocketMQ 的工作流程：
+
+- 启动 NameServer 监听端口，等待 Broker、Producer、Consumer 连上来，相当于一个路由控制中心
+- Broker 启动，跟所有的 NameServer 保持长连接，每隔 30s 时间向 NameServer 上报 Topic 路由信息（心跳包）。心跳包中包含当前 Broker 信息（IP、端口等）以及存储所有 Topic 信息。注册成功后，NameServer 集群中就有 Topic 跟 Broker 的映射关系
+- 收发消息前，先创建 Topic，创建 Topic 时需要指定该 Topic 要存储在哪些 Broker 上，也可以在发送消息时自动创建 Topic
+- Producer 启动时先跟 NameServer 集群中的**其中一台**建立长连接，并从 NameServer 中获取当前发送的 Topic 存在哪些 Broker 上，同时 Producer 会默认每隔 30s 向 NameServer 拉取一次路由信息
+- Producer 发送消息时，根据消息的 Topic 从本地缓存的 TopicPublishInfoTable 获取路由信息，如果没有则会从 NameServer 上重新拉取并更新，轮询队列列表并选择一个队列 MessageQueue，然后与队列所在的 Broker 建立长连接，向 Broker 发消息
+- Consumer 跟 Producer 类似，跟其中一台 NameServer 建立长连接获取路由信息，根据当前订阅 Topic 存在哪些 Broker 上，直接跟 Broker 建立连接通道，在完成客户端的负载均衡后，选择其中的某一个或者某几个 MessageQueue 来拉取消息并进行消费
+
+
+
+****
+
+
+
+#### 协议设计
+
+在 Client 和 Server 之间完成一次消息发送时，需要对发送的消息进行一个协议约定，所以自定义 RocketMQ 的消息协议。为了高效地在网络中传输消息和对收到的消息读取，就需要对消息进行编解码。在 RocketMQ 中，RemotingCommand 这个类在消息传输过程中对所有数据内容的封装，不但包含了所有的数据结构，还包含了编码解码操作
+
+| Header字段 | 类型                    | Request 说明                                                 | Response 说明                               |
+| ---------- | ----------------------- | ------------------------------------------------------------ | ------------------------------------------- |
+| code       | int                     | 请求操作码，应答方根据不同的请求码进行不同的处理             | 应答响应码，0 表示成功，非 0 则表示各种错误 |
+| language   | LanguageCode            | 请求方实现的语言                                             | 应答方实现的语言                            |
+| version    | int                     | 请求方程序的版本                                             | 应答方程序的版本                            |
+| opaque     | int                     | 相当于 requestId，在同一个连接上的不同请求标识码，与响应消息中的相对应 | 应答不做修改直接返回                        |
+| flag       | int                     | 区分是普通 RPC 还是 onewayRPC 的标志                         | 区分是普通 RPC 还是 onewayRPC的标志         |
+| remark     | String                  | 传输自定义文本信息                                           | 传输自定义文本信息                          |
+| extFields  | HashMap<String, String> | 请求自定义扩展信息                                           | 响应自定义扩展信息                          |
+
+![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-消息协议.png)
+
+传输内容主要可以分为以下四部分：
+
+* 消息长度：总长度，四个字节存储，占用一个 int 类型
+
+* 序列化类型&消息头长度：同样占用一个 int 类型，第一个字节表示序列化类型，后面三个字节表示消息头长度
+
+* 消息头数据：经过序列化后的消息头数据
+
+* 消息主体数据：消息主体的二进制字节数据内容
+
+
+
+*****
+
+
+
+#### 通信原理
+
+==todo：后期学习了源码会进行扩充，现在暂时 copy 官方文档==
+
+在 RocketMQ 消息队列中支持通信的方式主要有同步（sync）、异步（async）、单向（oneway）三种，其中单向通信模式相对简单，一般用在发送心跳包场景下，无需关注其 Response
+
+RocketMQ 的异步通信流程：
+
+![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-异步通信流程.png)
+
+RocketMQ 的 RPC 通信采用 Netty 组件作为底层通信库，同样也遵循了 Reactor 多线程模型，同时又在这之上做了一些扩展和优化
+
+![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-Reactor设计.png)
+
+RocketMQ 基于 NettyRemotingServer 的 Reactor 多线程模型：
+
+* 一个 Reactor 主线程（eventLoopGroupBoss）负责监听 TCP 网络连接请求，建立好连接，创建 SocketChannel，并注册到 selector 上。RocketMQ 会自动根据 OS 的类型选择 NIO 和 Epoll，也可以通过参数配置），然后监听真正的网络数据
+
+* 拿到网络数据交给 Worker 线程池（eventLoopGroupSelector，默认设置为 3），在真正执行业务逻辑之前需要进行 SSL 验证、编解码、空闲检查、网络连接管理，这些工作交给 defaultEventExecutorGroup（默认设置为 8）去做
+* 处理业务操作放在业务线程池中执行，根据 RomotingCommand 的业务请求码 code 去 processorTable 这个本地缓存变量中找到对应的 processor，封装成 task 任务提交给对应的业务 processor 处理线程池来执行（sendMessageExecutor，以发送消息为例）
+* 从入口到业务逻辑的几个步骤中线程池一直再增加，这跟每一步逻辑复杂性相关，越复杂，需要的并发通道越宽
+
+| 线程数 | 线程名                         | 线程具体说明              |
+| ------ | ------------------------------ | ------------------------- |
+| 1      | NettyBoss_%d                   | Reactor 主线程            |
+| N      | NettyServerEPOLLSelector_%d_%d | Reactor 线程池            |
+| M1     | NettyServerCodecThread_%d      | Worker 线程池             |
+| M2     | RemotingExecutorThread_%d      | 业务 processor 处理线程池 |
+
+
+
+官方文档：https://github.com/apache/rocketmq/blob/master/docs/cn/design.md#2-%E9%80%9A%E4%BF%A1%E6%9C%BA%E5%88%B6
+
+
+
+
+
+***
+
+
 
 ### 消息存储
 
@@ -4518,9 +4649,11 @@ At least Once：至少一次，指每个消息必须投递一次，Consumer 先 
 
 #### 存储结构
 
-RocketMQ 消息的存储是由 ConsumeQueue 和 CommitLog 配合完成 的，消息真正的物理存储文件是 CommitLog，ConsumeQueue 是消息的逻辑队列，类似数据库的索引节点，存储的是指向物理存储的地址。每个 Topic 下的每个 Message Queue 都有一个对应的 ConsumeQueue 文件
+Broker 负责存储消息转发消息，所以以下的结构是存储在 Broker Server 上的
 
-每条消息都会有对应的索引信息，Consumer 通过 ConsumeQueue（在 Broker 端）这个结构来读取消息实体内容
+RocketMQ 消息的存储是由 ConsumeQueue 和 CommitLog 配合完成 的，消息真正的物理存储文件是 CommitLog，ConsumeQueue 是消息的逻辑队列，类似数据库的索引节点，存储的是指向物理存储的地址。**每个 Topic 下的每个 Message Queue 都有一个对应的 ConsumeQueue 文件**
+
+每条消息都会有对应的索引信息，Consumer 通过 ConsumeQueue 这个结构来读取消息实体内容
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-消息存储结构.png)
 
@@ -4550,7 +4683,7 @@ RocketMQ 采用的是混合型的存储结构，即为 Broker 单个实例下所
 
   注意：磁盘的顺序读写要比随机读写快很多，可以匹配上网络的速度，RocketMQ 的消息采用的顺序写
 
-页缓存（PageCache）是 OS 对文件的缓存，用于加速对文件的读写。程序对文件进行顺序读写的速度几乎接近于内存的读写速度，就是因为 OS 将一部分的内存用作 PageCache，对读写访问操作进行了性能优化，
+页缓存（PageCache）是 OS 对文件的缓存，用于加速对文件的读写。程序对文件进行顺序读写的速度几乎接近于内存的读写速度，就是因为 OS 将一部分的内存用作 PageCache，对读写访问操作进行了性能优化
 
 * 对于数据的写入，OS 会先写入至 Cache 内，随后通过异步的方式由 pdflush 内核线程将 Cache 内的数据刷盘至物理磁盘上
 * 对于数据的读取，如果一次读取文件时出现未命中 PageCache 的情况，OS 从物理磁盘上访问读取文件的同时，会顺序对其他相邻块的数据文件进行预读取（局部性原理）
@@ -4609,36 +4742,38 @@ MappedByteBuffer 内存映射的方式限制一次只能映射 1.5~2G 的文件�
 
 
 
-### 通信机制
+### 消息查询
 
-NameServer 是一个简单的 Topic 路由注册中心，支持 Broker 的动态注册与发现，生产者或消费者能够通过名字服务查找各主题相应的 Broker IP 列表
+#### Message ID
 
-NameServer 主要包括两个功能：
+RocketMQ 支持按照两种维度进行消息查询：按照 Message ID 查询消息、按照 Message Key 查询消息
 
-* Broker 管理，NameServer 接受 Broker 集群的注册信息并保存下来作为路由信息的基本数据，提供**心跳检测**检查 Broker 活性
-* 路由信息管理，每个 NameServer 将保存关于 Broker 集群的整个路由信息和用于客户端查询的队列信息，然后 Producer 和 Conumser 通过 NameServer 就可以知道整个 Broker 集群的路由信息，从而进行消息的投递和消费
+RocketMQ 中的 MessageId 的长度总共有 16 字节，其中包含了消息存储主机地址（IP 地址和端口），消息 Commit Log offset
 
-NameServer 特点：
+实现方式：Client 端从 MessageId 中解析出 Broker 的地址（IP 地址和端口）和 Commit Log 的偏移地址，封装成一个 RPC 请求后通过 Remoting 通信层发送（业务请求码 VIEW_MESSAGE_BY_ID）。Broker 端走的是 QueryMessageProcessor，读取消息的过程用其中的 CommitLog 的 offset 和 size 去 CommitLog 中找到真正的记录并解析成一个完整的消息返回
 
-* NameServer 通常是集群的方式部署，各实例间相互不进行信息通讯
-* Broker 向每一台 NameServer 注册自己的路由信息，所以每个 NameServer 实例上面**都保存一份完整的路由信息**
-* 当某个 NameServer 因某种原因下线了，Broker 仍可以向其它 NameServer 同步其路由信息
 
-BrokerServer 主要负责消息的存储、投递和查询以及服务高可用保证，在 RocketMQ 系统中负责接收从生产者发送来的消息并存储、同时为消费者的拉取请求作准备，也存储消息相关的元数据，包括消费者组、消费进度偏移和主题和队列消息等
 
-Broker 包含了以下几个重要子模块：
+***
 
-* Remoting Module：整个 Broker 的实体，负责处理来自 clients 端的请求
 
-* Client Manager：负责管理客户端（Producer/Consumer）和维护 Consumer 的 Topic 订阅信息
 
-* Store Service：提供方便简单的 API 接口处理消息存储到物理硬盘和查询功能
+#### Message Key 
 
-* HA Service：高可用服务，提供 Master Broker 和 Slave Broker 之间的数据同步功能
+按照 Message Key 查询消息，主要是基于 RocketMQ 的 IndexFile 索引文件来实现的，RocketMQ 的索引文件逻辑结构，类似 JDK 中 HashMap 的实现，具体结构如下：
 
-* Index Service：根据特定的 Message key 对投递到 Broker 的消息进行索引服务，以提供消息的快速查询
+![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-IndexFile索引文件.png)
 
-![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-Broker工作流程.png)
+IndexFile 索引文件为提供了通过 Message Key 查询消息的服务，IndexFile 文件的存储在 `$HOME\store\index${fileName}`，文件名 fileName 是以创建时的时间戳命名，文件大小是固定的，等于 `40+500W*4+2000W*20= 420000040` 个字节大小。如果消息的 properties 中设置了 UNIQ_KEY 这个属性，就用 `topic + “#” + UNIQ_KEY` 作为 key 来做写入操作；如果消息设置了 KEYS 属性（多个 KEY 以空格分隔），也会用 `topic + “#” + KEY` 来做索引
+
+整个 Index File 的结构如图，40 Byte 的 Header 用于保存一些总的统计信息，`4*500W` 的 Slot Table 并不保存真正的索引数据，而是保存每个槽位对应的单向链表的头，即一个 Index File 可以保存 2000W 个索引，`20*2000W` 是真正的索引数据
+
+索引数据包含了 Key Hash/CommitLog Offset/Timestamp/NextIndex offset 这四个字段，一共 20 Byte
+
+* NextIndex offset 即前面读出来的 slotValue，如果有 hash 冲突，就可以用这个字段将所有冲突的索引用链表的方式串起来
+* Timestamp 记录的是消息 storeTimestamp 之间的差，并不是一个绝对的时间
+
+实现方式：通过 Broker 端的 QueryMessageProcessor 业务处理器来查询，读取消息的过程用 Topic 和 Key 找到 IndexFile 索引文件中的一条记录，根据其中的 CommitLog Offset 从 CommitLog 文件中读取消息的实体内容
 
 
 
@@ -4693,13 +4828,7 @@ RocketMQ 网络部署特点：
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-集群架构.png)
 
-集群工作流程：
-
-- 启动 NameServer 监听端口，等待 Broker、Producer、Consumer 连上来，相当于一个路由控制中心
-- Broker 启动，跟所有的 NameServer 保持长连接，定时发送心跳包。心跳包中包含当前 Broker 信息（IP、端口等）以及存储所有 Topic 信息。注册成功后，NameServer 集群中就有 Topic 跟 Broker 的映射关系
-- 收发消息前，先创建 Topic，创建 Topic 时需要指定该 Topic 要存储在哪些 Broker 上，也可以在发送消息时自动创建 Topic
-- Producer 发送消息，启动时先跟 NameServer 集群中的其中一台建立长连接，并从 NameServer 中获取当前发送的 Topic 存在哪些 Broker 上，轮询从队列列表中选择一个队列，然后与队列所在的 Broker 建立长连接从而向 Broker 发消息。
-- Consumer 跟 Producer 类似，跟其中一台 NameServer 建立长连接，获取当前订阅 Topic 存在哪些 Broker 上，然后直接跟 Broker 建立连接通道，开始消费消息
+集群工作流程：参考通信机制 → 工作流程
 
 
 
@@ -4720,8 +4849,6 @@ RocketMQ 网络部署特点：
 RocketMQ 目前还不支持把 Slave 自动转成 Master，需要手动停止 Slave 角色的 Broker，更改配置文件，用新的配置文件启动 Broker
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-高可用.png)
-
-5)、6)属于单点故障，且无法恢复，一旦发生，在此单点上的消息全部丢失。RocketMQ在这两种情况下，通过异步复制，可保证99%的消息不丢，但是仍然会有极少量的消息可能丢失。通过同步双写技术可以完全避免单点，同步双写势必会影响性能，适合对消息可靠性要求极高的场合，例如与Money相关的应用。注：RocketMQ从3.0版本开始支持同步双写。
 
 
 
@@ -4764,11 +4891,20 @@ RocketMQ 支持消息的高可靠，影响消息可靠性的几种情况：
 
 #### 生产端
 
-Producer 端，每个实例在发消息的时候，默认会轮询所有的 Message Queue 发送，以让消息平均落在不同的 queue 上。而由于 queue可以散落在不同的 Broker，所以消息就发送到不同的 Broker 下
+RocketMQ 中的负载均衡可以分为 Producer 端发送消息时候的负载均衡和 Consumer 端订阅消息的负载均衡
+
+Producer 端在发送消息时，会先根据 Topic 找到指定的 TopicPublishInfo，在获取了 TopicPublishInfo 路由信息后，RocketMQ 的客户端在默认方式调用 selectOneMessageQueue() 方法从 TopicPublishInfo 中的 messageQueueList 中选择一个队列 MessageQueue 进行发送消息
+
+默认会轮询所有的 Message Queue 发送，以让消息平均落在不同的 queue 上，而由于 queue可以散落在不同的 Broker，所以消息就发送到不同的 Broker 下，图中箭头线条上的标号代表顺序，发布方会把第一条消息发送至 Queue 0，然后第二条消息发送至 Queue 1，以此类推：
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-producer负载均衡.png)
 
-图中箭头线条上的标号代表顺序，发布方会把第一条消息发送至 Queue 0，然后第二条消息发送至 Queue 1，以此类推
+容错策略均在 MQFaultStrategy 这个类中定义，有一个 sendLatencyFaultEnable 开关变量：
+
+* 如果开启，会在随机递增取模的基础上，再过滤掉 not available 的 Broker 代理
+* 如果关闭，采用随机递增取模的方式选择一个队列（MessageQueue）来发送消息
+
+latencyFaultTolerance 机制是实现消息发送高可用的核心关键所在，对之前失败的，按一定的时间做退避。例如上次请求的 latency 超过 550Lms，就退避 3000Lms；超过 1000L，就退避 60000L
 
 
 
@@ -4778,11 +4914,15 @@ Producer 端，每个实例在发消息的时候，默认会轮询所有的 Mess
 
 #### 消费端
 
-广播模式下要求一条消息需要投递到一个消费组下面所有的消费者实例，所以不存在负载均衡，在实现上，Consumer 分配 queue 时，所有 Consumer 都分到所有的queue。
+在 RocketMQ 中，Consumer 端的两种消费模式（Push/Pull）都是基于拉模式来获取消息的，而在 Push 模式只是对 Pull 模式的一种封装，其本质实现为消息拉取线程在从服务器拉取到一批消息，提交到消息消费线程池后，又继续向服务器再次尝试拉取消息，如果未拉取到消息，则延迟一下又继续拉取
 
-在集群消费模式下，每条消息只需要投递到订阅这个 Topic 的 Consumer Group 下的一个实例即可，RocketMQ 采用主动拉取的方式拉取并消费消息，在拉取的时候需要明确指定拉取哪一条 Message Queue
+在两种基于拉模式的消费方式（Push/Pull）中，均需要 Consumer 端在知道从 Broker 端的哪一个消息队列—队列中去获取消息，所以在 Consumer 端来做负载均衡，即 Broker 端中多个 MessageQueue 分配给同一个 ConsumerGroup 中的哪些 Consumer 消费
 
-而每当实例的数量有变更，都会触发一次所有实例的负载均衡，这时候会按照 queue 的数量和实例的数量平均分配 queue 给每个实例。默认的分配算法是 AllocateMessageQueueAveragely：
+* 广播模式下要求一条消息需要投递到一个消费组下面所有的消费者实例，所以不存在负载均衡，在实现上，Consumer 分配 queue 时，所有 Consumer 都分到所有的queue。
+
+* 在集群消费模式下，每条消息只需要投递到订阅这个 Topic 的 Consumer Group 下的一个实例即可，RocketMQ 采用主动拉取的方式拉取并消费消息，在拉取的时候需要明确指定拉取哪一条 Message Queue
+
+集群模式下，每当实例的数量有变更，都会触发一次所有实例的负载均衡，这时候会按照 queue 的数量和实例的数量平均分配 queue 给每个实例。默认的分配算法是 AllocateMessageQueueAveragely：
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-consumer负载均衡1.png)
 
@@ -4792,9 +4932,45 @@ Producer 端，每个实例在发消息的时候，默认会轮询所有的 Mess
 
 集群模式下，queue 都是只允许分配只一个实例，如果多个实例同时消费一个 queue 的消息，由于拉取哪些消息是 Consumer 主动控制的，会导致同一个消息在不同的实例下被消费多次
 
-通过增加 Consumer 实例去分摊 queue 的消费，可以起到水平扩展的消费能力的作用。而当有实例下线时，会重新触发负载均衡，这时候原来分配到的 queue 将分配到其他实例上继续消费
+通过增加 Consumer 实例去分摊 queue 的消费，可以起到水平扩展的消费能力的作用。而当有实例下线时，会重新触发负载均衡，这时候原来分配到的 queue 将分配到其他实例上继续消费。但是如果 Consumer 实例的数量比 Message Queue 的总数量还多的话，多出来的 Consumer 实例将无法分到 queue，也就无法消费到消息，也就无法起到分摊负载的作用了，所以需要控制让 queue 的总数量大于等于 Consumer 的数量
 
-但是如果 Consumer 实例的数量比 Message Queue 的总数量还多的话，多出来的 Consumer 实例将无法分到 queue，也就无法消费到消息，也就无法起到分摊负载的作用了，所以需要控制让 queue 的总数量大于等于 Consumer 的数量
+
+
+***
+
+
+
+#### 原理解析
+
+==todo：暂时 copy 官方文档，学习源码后更新，建议粗略看一下，真想搞懂过程还需要研究一下源码==
+
+在 Consumer 启动后，会通过定时任务不断地向 RocketMQ 集群中的所有 Broker 实例发送心跳包。Broke r端在收到 Consumer 的心跳消息后，会将它维护 在ConsumerManager 的本地缓存变量 consumerTable，同时并将封装后的客户端网络通道信息保存在本地缓存变量 channelInfoTable 中，为 Consumer 端的负载均衡提供可以依据的元数据信息
+
+Consumer 端实现负载均衡的核心类 **RebalanceImpl**
+
+在 Consumer 实例的启动流程中的启动 MQClientInstance 实例部分，会完成负载均衡服务线程 RebalanceService 的启动（每隔 20s 执行一次），RebalanceService 线程的 run() 方法最终调用的是 RebalanceImpl 类的 rebalanceByTopic() 方法，该方法是实现 Consumer 端负载均衡的核心。rebalanceByTopic() 方法会根据消费者通信类型为广播模式还是集群模式做不同的逻辑处理。这里主要看下集群模式下的处理流程：
+
+* 从 rebalanceImpl 实例的本地缓存变量 topicSubscribeInfoTable 中，获取该 Topic 主题下的消息消费队列集合 mqSet
+
+* 根据 Topic 和 consumerGroup 为参数调用 `mQClientFactory.findConsumerIdList()` 方法向 Broker 端发送获取该消费组下消费者 ID 列表的 RPC 通信请求（Broker 端基于前面 Consumer 端上报的心跳包数据而构建的 consumerTable 做出响应返回，业务请求码 `GET_CONSUMER_LIST_BY_GROUP`）
+
+* 先对 Topic 下的消息消费队列、消费者 ID 排序，然后用消息队列分配策略算法（默认是消息队列的平均分配算法），计算出待拉取的消息队列。平均分配算法类似于分页的算法，将所有 MessageQueue 排好序类似于记录，将所有消费端 Consumer 排好序类似页数，并求出每一页需要包含的平均 size 和每个页面记录的范围 range，最后遍历整个 range 而计算出当前 Consumer 端应该分配到的记录（这里即为 MessageQueue）
+
+  ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-负载均衡平均分配算法.png)
+
+* 调用 updateProcessQueueTableInRebalance() 方法，先将分配到的消息队列集合 mqSet 与 processQueueTable 做一个过滤比对
+
+  ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-负载均衡重新平衡算法.png)
+
+* processQueueTable 标注的红色部分，表示与分配到的消息队列集合 mqSet 互不包含，将这些队列设置 Dropped 属性为 true，然后查看这些队列是否可以移除出 processQueueTable 缓存变量。具体执行 removeUnnecessaryMessageQueue() 方法，即每隔 1s  查看是否可以获取当前消费处理队列的锁，拿到的话返回 true；如果等待 1s 后，仍然拿不到当前消费处理队列的锁则返回 false。如果返回 true，则从 processQueueTable 缓存变量中移除对应的 Entry
+
+* processQueueTable 的绿色部分，表示与分配到的消息队列集合 mqSet 的交集，判断该 ProcessQueue 是否已经过期了，在 Pull 模式的不用管，如果是 Push 模式的，设置 Dropped 属性为 true，并且调用 removeUnnecessaryMessageQueue() 方法，像上面一样尝试移除 Entry
+
+* 为过滤后的消息队列集合 mqSet 中每个 MessageQueue 创建 ProcessQueue 对象存入 RebalanceImpl 的 processQueueTable 队列中（其中调用 RebalanceImpl 实例的 `computePullFromWhere(MessageQueue mq)` 方法获取该 MessageQueue 对象的下一个进度消费值 offset，随后填充至接下来要创建的 pullRequest 对象属性中），并创建拉取请求对象 pullRequest 添加到拉取列表 pullRequestList 中，最后执行 dispatchPullRequest() 方法，将 Pull 消息的请求对象 PullRequest 依次放入 PullMessageService 服务线程的阻塞队列 pullRequestQueue 中，待该服务线程取出后向 Broker 端发起 Pull 消息的请求。
+
+  对比下 RebalancePushImpl 和 RebalancePullImpl 两个实现类的 dispatchPullRequest() 方法，RebalancePullImpl 类里面的该方法为空
+
+消息消费队列在同一消费组不同消费者之间的负载均衡，其核心设计理念是在一个消息消费队列在同一时间只允许被同一消费组内的一个消费者消费，一个消息消费者能同时消费多个消息队列
 
 
 
@@ -4804,19 +4980,20 @@ Producer 端，每个实例在发消息的时候，默认会轮询所有的 Mess
 
 ### 消息重试
 
-todo：以下还需要修改，明日完成
+#### 重试机制
 
-顺序消息的重试
+Consumer 消费消息失败后，提供了一种重试机制，令消息再消费一次。Consumer 消费消息失败可以认为有以下几种情况：
 
-对于顺序消息，当消费者消费消息失败后，消息队列 RocketMQ 会自动不断进行消息重试（每次间隔时间为 1 秒），这时，应用会出现消息消费被阻塞的情况。因此，在使用顺序消息时，务必保证应用能够及时监控并处理消费失败的情况，避免阻塞现象的发生。
+- 由于消息本身的原因，例如反序列化失败，消息数据本身无法处理等。这种错误通常需要跳过这条消息，再消费其它消息，而这条失败的消息即使立刻重试消费，99% 也不成功，所以需要提供一种定时重试机制，即过 10秒 后再重试
+- 由于依赖的下游应用服务不可用，例如 DB 连接不可用，外系统网络不可达等。这种情况即使跳过当前失败的消息，消费其他消息同样也会报错，这种情况建议应用 sleep 30s，再消费下一条消息，这样可以减轻 Broker 重试消息的压力
 
-1.4.2 无序消息的重试
+RocketMQ 会为每个消费组都设置一个 Topic 名称为 `%RETRY%+consumerGroup` 的重试队列（这个 Topic 的重试队列是针对消费组，而不是针对每个 Topic 设置的），用于暂时保存因为各种异常而导致 Consumer 端无法消费的消息
 
-对于无序消息（普通、定时、延时、事务消息），当消费者消费消息失败时，您可以通过设置返回状态达到消息重试的结果。
+* 顺序消息的重试，当消费者消费消息失败后，消息队列 RocketMQ 会自动不断进行消息重试（每次间隔时间为 1 秒），这时应用会出现消息消费被阻塞的情况。所以在使用顺序消息时，必须保证应用能够及时监控并处理消费失败的情况，避免阻塞现象的发生
 
-无序消息的重试只针对集群消费方式生效；广播方式不提供失败重试特性，即消费失败后，失败消息不再重试，继续消费新的消息。
+* 无序消息（普通、定时、延时、事务消息）的重试，可以通过设置返回状态达到消息重试的结果。无序消息的重试只针对集群消费方式生效，广播方式不提供失败重试特性，即消费失败后，失败消息不再重试，继续消费新的消息
 
-1）重试次数
+**无序消息情况下**，因为异常恢复需要一些时间，会为重试队列设置多个重试级别，每个重试级别都有对应的重新投递延时，重试次数越多投递延时就越大。RocketMQ 对于重试消息的处理是先保存至 Topic 名称为 `SCHEDULE_TOPIC_XXXX` 的延迟队列中，后台定时任务按照对应的时间进行 Delay 后重新保存至 `%RETRY%+consumerGroup` 的重试队列中
 
 消息队列 RocketMQ 默认允许每条消息最多重试 16 次，每次重试的间隔时间如下：
 
@@ -4831,25 +5008,29 @@ todo：以下还需要修改，明日完成
 |     7      |        5 分钟        |     15     |        1 小时        |
 |     8      |        6 分钟        |     16     |        2 小时        |
 
-如果消息重试 16 次后仍然失败，消息将不再投递。如果严格按照上述重试时间间隔计算，某条消息在一直消费失败的前提下，将会在接下来的 4 小时 46 分钟之内进行 16 次重试，超过这个时间范围消息将不再重试投递。
+如果消息重试 16 次后仍然失败，消息将**不再投递**，如果严格按照上述重试时间间隔计算，某条消息在一直消费失败的前提下，将会在接下来的 4 小时 46 分钟之内进行 16 次重试，超过这个时间范围消息将不再重试投递
 
-**注意：** 一条消息无论重试多少次，这些重试消息的 Message ID 不会改变。
+说明：一条消息无论重试多少次，消息的 Message ID 是不会改变的
 
-2）配置方式
 
-**消费失败后，重试配置方式**
+
+***
+
+
+
+#### 重试操作
 
 集群消费方式下，消息消费失败后期望消息重试，需要在消息监听器接口的实现中明确进行配置（三种方式任选一种）：
 
 - 返回 Action.ReconsumeLater （推荐）
-- 返回 Null
+- 返回 null
 - 抛出异常
 
 ```java
 public class MessageListenerImpl implements MessageListener {
     @Override
     public Action consume(Message message, ConsumeContext context) {
-        //处理消息
+        // 处理消息
         doConsumeMessage(message);
         //方式1：返回 Action.ReconsumeLater，消息将重试
         return Action.ReconsumeLater;
@@ -4861,9 +5042,7 @@ public class MessageListenerImpl implements MessageListener {
 }
 ```
 
-**消费失败后，不重试配置方式**
-
-集群消费方式下，消息失败后期望消息不重试，需要捕获消费逻辑中可能抛出的异常，最终返回 Action.CommitMessage，此后这条消息将不会再重试。
+集群消费方式下，消息失败后期望消息不重试，需要捕获消费逻辑中可能抛出的异常，最终返回 Action.CommitMessage，此后这条消息将不会再重试
 
 ```java
 public class MessageListenerImpl implements MessageListener {
@@ -4872,7 +5051,7 @@ public class MessageListenerImpl implements MessageListener {
         try {
             doConsumeMessage(message);
         } catch (Throwable e) {
-            //捕获消费逻辑中的所有异常，并返回 Action.CommitMessage;
+            // 捕获消费逻辑中的所有异常，并返回 Action.CommitMessage;
             return Action.CommitMessage;
         }
         //消息处理正常，直接返回 Action.CommitMessage;
@@ -4881,27 +5060,22 @@ public class MessageListenerImpl implements MessageListener {
 }
 ```
 
-**自定义消息最大重试次数**
+自定义消息最大重试次数，RocketMQ 允许 Consumer 启动的时候设置最大重试次数，重试时间间隔将按照如下策略：
 
-消息队列 RocketMQ 允许 Consumer 启动的时候设置最大重试次数，重试时间间隔将按照如下策略：
-
-- 最大重试次数小于等于 16 次，则重试时间间隔同上表描述。
-- 最大重试次数大于 16 次，超过 16 次的重试时间间隔均为每次 2 小时。
+- 最大重试次数小于等于 16 次，则重试时间间隔同上表描述
+- 最大重试次数大于 16 次，超过 16 次的重试时间间隔均为每次 2 小时
 
 ```java
 Properties properties = new Properties();
-//配置对应 Group ID 的最大消息重试次数为 20 次
+// 配置对应 Group ID 的最大消息重试次数为 20 次
 properties.put(PropertyKeyConst.MaxReconsumeTimes,"20");
-Consumer consumer =ONSFactory.createConsumer(properties);
+Consumer consumer = ONSFactory.createConsumer(properties);
 ```
 
-> 注意：
+注意：
 
-- 消息最大重试次数的设置对相同 Group ID 下的所有 Consumer 实例有效。
-- 如果只对相同 Group ID 下两个 Consumer 实例中的其中一个设置了 MaxReconsumeTimes，那么该配置对两个 Consumer 实例均生效。
+- 消息最大重试次数的设置对相同 Group ID 下的所有 Consumer 实例有效。例如只对相同 Group ID 下两个 Consumer 实例中的其中一个设置了 MaxReconsumeTimes，那么该配置对两个 Consumer 实例均生效
 - 配置采用覆盖的方式生效，即最后启动的 Consumer 实例会覆盖之前的启动实例的配置
-
-**获取消息重试次数**
 
 消费者收到消息后，可按照如下方式获取消息的重试次数：
 
@@ -4909,12 +5083,28 @@ Consumer consumer =ONSFactory.createConsumer(properties);
 public class MessageListenerImpl implements MessageListener {
     @Override
     public Action consume(Message message, ConsumeContext context) {
-        //获取消息的重试次数
+        // 获取消息的重试次数
         System.out.println(message.getReconsumeTimes());
         return Action.CommitMessage;
     }
 }
 ```
+
+
+
+***
+
+
+
+#### 重投机制
+
+生产者在发送消息时，同步消息失败会重投，异步消息有重试，oneway 没有任何保证。消息重投保证消息尽可能发送成功、不丢失，但当出现消息量大、网络抖动时，可能会造成消息重复；生产者主动重发、Consumer 负载变化也会导致重复消息。
+
+消息重复在 RocketMQ 中是无法避免的问题，如下方法可以设置消息重试策略：
+
+- retryTimesWhenSendFailed：同步发送失败重投次数，默认为 2，因此生产者会最多尝试发送 retryTimesWhenSendFailed + 1 次。不会选择上次失败的 Broker，尝试向其他 Broker 发送，最大程度保证消息不丢。超过重投次数抛出异常，由客户端保证消息不丢。当出现 RemotingException、MQClientException 和部分 MQBrokerException 时会重投
+- retryTimesWhenSendAsyncFailed：异步发送失败重试次数，异步重试不会选择其他 Broker，仅在同一个 Broker 上做重试，不保证消息不丢
+- retryAnotherBrokerWhenNotStoreOK：消息刷盘（主或备）超时或 slave 不可用（返回状态非 SEND_OK），是否尝试发送到其他  Broker，默认 false，十分重要消息可以开启
 
 
 
@@ -4926,22 +5116,24 @@ public class MessageListenerImpl implements MessageListener {
 
 ### 死信队列
 
-当一条消息初次消费失败，消息队列 RocketMQ 会自动进行消息重试；达到最大重试次数后，若消费依然失败，则表明消费者在正常情况下无法正确地消费该消息，此时，消息队列 RocketMQ 不会立刻将消息丢弃，而是将其发送到该消费者对应的特殊队列中。
+正常情况下无法被消费的消息称为死信消息（Dead-Letter Message），存储死信消息的特殊队列称为死信队列（Dead-Letter Queue）
 
-在消息队列 RocketMQ 中，这种正常情况下无法被消费的消息称为死信消息（Dead-Letter Message），存储死信消息的特殊队列称为死信队列（Dead-Letter Queue）。
+当一条消息初次消费失败，消息队列 RocketMQ 会自动进行消息重试，达到最大重试次数后，若消费依然失败，则表明消费者在正常情况下无法正确地消费该消息，此时 RocketMQ 不会立刻将消息丢弃，而是将其发送到该消费者对应的死信队列中
 
-死信消息具有以下特性
+死信消息具有以下特性：
 
-- 不会再被消费者正常消费。
-- 有效期与正常消息相同，均为 3 天，3 天后会被自动删除。因此，请在死信消息产生后的 3 天内及时处理。
+- 不会再被消费者正常消费
+- 有效期与正常消息相同，均为 3 天，3 天后会被自动删除，所以请在死信消息产生后的 3 天内及时处理
 
 死信队列具有以下特性：
 
-- 一个死信队列对应一个 Group ID， 而不是对应单个消费者实例。
-- 如果一个 Group ID 未产生死信消息，消息队列 RocketMQ 不会为其创建相应的死信队列。
-- 一个死信队列包含了对应 Group ID 产生的所有死信消息，不论该消息属于哪个 Topic。
+- 一个死信队列对应一个 Group ID， 而不是对应单个消费者实例
+- 如果一个 Group ID 未产生死信消息，消息队列 RocketMQ 不会为其创建相应的死信队列
+- 一个死信队列包含了对应 Group ID 产生的所有死信消息，不论该消息属于哪个 Topic
 
-一条消息进入死信队列，意味着某些因素导致消费者无法正常消费该消息，因此，通常需要您对其进行特殊处理。排查可疑因素并解决问题后，可以在消息队列 RocketMQ 控制台重新发送该消息，让消费者重新消费一次。
+一条消息进入死信队列，需要排查可疑因素并解决问题后，可以在消息队列 RocketMQ 控制台重新发送该消息，让消费者重新消费一次
+
+
 
 
 
@@ -4951,52 +5143,66 @@ public class MessageListenerImpl implements MessageListener {
 
 ### 幂等消费
 
-消息队列 RocketMQ 消费者在接收到消息以后，有必要根据业务上的唯一 Key 对消息做幂等处理的必要性。
+消息队列 RocketMQ 消费者在接收到消息以后，需要根据业务上的唯一 Key 对消息做幂等处理
 
-1.6.1 消费幂等的必要性
+在互联网应用中，尤其在网络不稳定的情况下，消息队列 RocketMQ 的消息有可能会出现重复，几种情况：
 
-在互联网应用中，尤其在网络不稳定的情况下，消息队列 RocketMQ 的消息有可能会出现重复，这个重复简单可以概括为以下情况：
+- 发送时消息重复：当一条消息已被成功发送到服务端并完成持久化，此时出现了网络闪断或客户端宕机，导致服务端对客户端应答失败。此时生产者意识到消息发送失败并尝试再次发送消息，消费者后续会收到两条内容相同并且 Message ID 也相同的消息
 
-- 发送时消息重复
+- 投递时消息重复：消息消费的场景下，消息已投递到消费者并完成业务处理，当客户端给服务端反馈应答的时候网络闪断。为了保证消息至少被消费一次，消息队列 RocketMQ 的服务端将在网络恢复后再次尝试投递之前已被处理过的消息，消费者后续会收到两条内容相同并且 Message ID 也相同的消息
 
-  当一条消息已被成功发送到服务端并完成持久化，此时出现了网络闪断或者客户端宕机，导致服务端对客户端应答失败。 如果此时生产者意识到消息发送失败并尝试再次发送消息，消费者后续会收到两条内容相同并且 Message ID 也相同的消息。
+- 负载均衡时消息重复：当消息队列 RocketMQ 的 Broker 或客户端重启、扩容或缩容时，会触发 Rebalance，此时消费者可能会收到重复消息
 
-- 投递时消息重复
 
-  消息消费的场景下，消息已投递到消费者并完成业务处理，当客户端给服务端反馈应答的时候网络闪断。 为了保证消息至少被消费一次，消息队列 RocketMQ 的服务端将在网络恢复后再次尝试投递之前已被处理过的消息，消费者后续会收到两条内容相同并且 Message ID 也相同的消息。
+处理方式：
 
-- 负载均衡时消息重复（包括但不限于网络抖动、Broker 重启以及订阅方应用重启）
+* 因为 Message ID 有可能出现冲突（重复）的情况，所以真正安全的幂等处理，不建议以 Message ID 作为处理依据，最好的方式是以业务唯一标识作为幂等处理的关键依据，而业务的唯一标识可以通过消息 Key 进行设置：
 
-  当消息队列 RocketMQ 的 Broker 或客户端重启、扩容或缩容时，会触发 Rebalance，此时消费者可能会收到重复消息。
+  ```java
+  Message message = new Message();
+  message.setKey("ORDERID_100");
+  SendResult sendResult = producer.send(message);
+  ```
 
-1.6.2 处理方式
+* 订阅方收到消息时可以根据消息的 Key 进行幂等处理：
 
-因为 Message ID 有可能出现冲突（重复）的情况，所以真正安全的幂等处理，不建议以 Message ID 作为处理依据。 最好的方式是以业务唯一标识作为幂等处理的关键依据，而业务的唯一标识可以通过消息 Key 进行设置：
+  ```java
+  consumer.subscribe("ons_test", "*", new MessageListener() {
+      public Action consume(Message message, ConsumeContext context) {
+          String key = message.getKey()
+          // 根据业务唯一标识的 key 做幂等处理
+      }
+  });
+  ```
 
-```java
-Message message = new Message();
-message.setKey("ORDERID_100");
-SendResult sendResult = producer.send(message);
-```
-
-订阅方收到消息时可以根据消息的 Key 进行幂等处理：
-
-```java
-consumer.subscribe("ons_test", "*", new MessageListener() {
-    public Action consume(Message message, ConsumeContext context) {
-        String key = message.getKey()
-        // 根据业务唯一标识的 key 做幂等处理
-    }
-});
-```
+  
 
 
 
+***
 
 
 
+### 流量控制
 
+生产者流控，因为 Broker 处理能力达到瓶颈；消费者流控，因为消费能力达到瓶颈
 
+生产者流控：
+
+- CommitLog 文件被锁时间超过 osPageCacheBusyTimeOutMills 时，参数默认为 1000ms，返回流控
+- 如果开启 transientStorePoolEnable == true，且 Broker 为异步刷盘的主机，且 transientStorePool 中资源不足，拒绝当前 send 请求，返回流控
+- Broker 每隔 10ms 检查 send 请求队列头部请求的等待时间，如果超过 waitTimeMillsInSendQueue，默认 200ms，拒绝当前 send 请求，返回流控。
+- Broker 通过拒绝 send 请求方式实现流量控制
+
+注意：生产者流控，不会尝试消息重投
+
+消费者流控：
+
+- 消费者本地缓存消息数超过 pullThresholdForQueue 时，默认 1000
+- 消费者本地缓存消息大小超过 pullThresholdSizeForQueue 时，默认 100MB
+- 消费者本地缓存消息跨度超过 consumeConcurrentlyMaxSpan 时，默认 2000
+
+消费者流控的结果是降低拉取频率
 
 
 
