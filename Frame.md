@@ -4942,7 +4942,7 @@ latencyFaultTolerance 机制是实现消息发送高可用的核心关键所在�
 
 #### 原理解析
 
-==todo：暂时 copy 官方文档，学习源码后更新，建议粗略看一下，真想搞懂过程还需要研究一下源码==
+==todo：暂时 copy 官方文档，学习源码后更新，真想搞懂过程还需要研究一下源码==
 
 在 Consumer 启动后，会通过定时任务不断地向 RocketMQ 集群中的所有 Broker 实例发送心跳包。Broke r端在收到 Consumer 的心跳消息后，会将它维护 在ConsumerManager 的本地缓存变量 consumerTable，同时并将封装后的客户端网络通道信息保存在本地缓存变量 channelInfoTable 中，为 Consumer 端的负载均衡提供可以依据的元数据信息
 

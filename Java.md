@@ -2442,22 +2442,22 @@ s = s + "cd"; //s = abccd 新对象
 
 常用 API：
 
-* `public boolean equals(String s)` : 比较两个字符串内容是否相同、区分大小写
+* `public boolean equals(String s)`：比较两个字符串内容是否相同、区分大小写
 
-* `public boolean equalsIgnoreCase(String anotherString)` : 比较字符串的内容，忽略大小写
-* `public int length()` : 返回此字符串的长度
-* `public String trim()` : 返回一个字符串，其值为此字符串，并删除任何前导和尾随空格
-* `public String[] split(String regex)` : 将字符串按给定的正则表达式分割成字符串数组
-* `public char charAt(int index)` : 取索引处的值
-* `public char[] toCharArray()` : 将字符串拆分为字符数组后返回
-* `public boolean startsWith(String prefix)` : 测试此字符串是否以指定的前缀开头
-* `public int indexOf(String str)` : 返回指定子字符串第一次出现的字符串内的索引，没有返回 -1
-* `public int lastIndexOf(String str)` : 返回字符串最后一次出现str的索引，没有返回 -1
-* `public String substring(int beginIndex)` : 返回子字符串，以原字符串指定索引处到结尾
-* `public String substring(int i, int j)` : 指定索引处扩展到 j - 1 的位置，字符串长度为 j - i
-* `public String toLowerCase()` : 将此 String 所有字符转换为小写，使用默认语言环境的规则
-* `public String toUpperCase()` : 使用默认语言环境的规则将此 String 所有字符转换为大写
-* `public String replace(CharSequence target, CharSequence replacement)` : 使用新值，将字符串中的旧值替换，得到新的字符串
+* `public boolean equalsIgnoreCase(String anotherString)`：比较字符串的内容，忽略大小写
+* `public int length()`：返回此字符串的长度
+* `public String trim()`：返回一个字符串，其值为此字符串，并删除任何前导和尾随空格
+* `public String[] split(String regex)`：将字符串按给定的正则表达式分割成字符串数组
+* `public char charAt(int index)`：取索引处的值
+* `public char[] toCharArray()`：将字符串拆分为字符数组后返回
+* `public boolean startsWith(String prefix)`：测试此字符串是否以指定的前缀开头
+* `public int indexOf(String str)`：返回指定子字符串第一次出现的字符串内的索引，没有返回 -1
+* `public int lastIndexOf(String str)`：返回字符串最后一次出现str的索引，没有返回 -1
+* `public String substring(int beginIndex)`：返回子字符串，以原字符串指定索引处到结尾
+* `public String substring(int i, int j)`：指定索引处扩展到 j - 1 的位置，字符串长度为 j - i
+* `public String toLowerCase()`：将此 String 所有字符转换为小写，使用默认语言环境的规则
+* `public String toUpperCase()`：使用默认语言环境的规则将此 String 所有字符转换为大写
+* `public String replace(CharSequence target, CharSequence replacement)`：使用新值，将字符串中的旧值替换，得到新的字符串
 
 ```java
 String s = 123-78;
@@ -2474,9 +2474,9 @@ s.replace("-","");//12378
 
 构造方法：
 
-* `public String()` : 创建一个空白字符串对象，不含有任何内容
-* `public String(char[] chs)` : 根据字符数组的内容，来创建字符串对象
-* `public String(String original)` : 根据传入的字符串内容，来创建字符串对象
+* `public String()`：创建一个空白字符串对象，不含有任何内容
+* `public String(char[] chs)`：根据字符数组的内容，来创建字符串对象
+* `public String(String original)`：根据传入的字符串内容，来创建字符串对象
 
 直接赋值：`String s = "abc"` 直接赋值的方式创建字符串对象，内容就是 abc
 
@@ -3009,20 +3009,20 @@ JDK1.8 新增，线程安全
 
 常用API：
 
-| 方法名                                                    | 说明                                                        |
-| --------------------------------------------------------- | ----------------------------------------------------------- |
-| public int getYear()                                      | 获取年                                                      |
-| public int getMonthValue()                                | 获取月份（1-12）                                            |
-| public int getDayOfMonth()                                | 获取月份中的第几天（1-31）                                  |
-| public int getDayOfYear()                                 | 获取一年中的第几天（1-366）                                 |
-| public DayOfWeek getDayOfWeek()                           | 获取星期                                                    |
-| public int getMinute()                                    | 获取分钟                                                    |
-| public int getHour()                                      | 获取小时                                                    |
-| public LocalDate  toLocalDate()                           | 转换成为一个LocalDate对象（年月日）                         |
-| public LocalTime toLocalTime()                            | 转换成为一个LocalTime对象（时分秒）                         |
-| public String format(指定格式)                            | 把一个LocalDateTime格式化成为一个字符串                     |
-| public LocalDateTime parse(准备解析的字符串, 解析格式)    | 把一个日期字符串解析成为一个LocalDateTime对象               |
-| public static DateTimeFormatter ofPattern(String pattern) | 使用指定的日期模板获取一个日期格式化器DateTimeFormatter对象 |
+| 方法名                                                    | 说明                                                         |
+| --------------------------------------------------------- | ------------------------------------------------------------ |
+| public int getYear()                                      | 获取年                                                       |
+| public int getMonthValue()                                | 获取月份（1-12）                                             |
+| public int getDayOfMonth()                                | 获取月份中的第几天（1-31）                                   |
+| public int getDayOfYear()                                 | 获取一年中的第几天（1-366）                                  |
+| public DayOfWeek getDayOfWeek()                           | 获取星期                                                     |
+| public int getMinute()                                    | 获取分钟                                                     |
+| public int getHour()                                      | 获取小时                                                     |
+| public LocalDate  toLocalDate()                           | 转换成为一个 LocalDate 对象（年月日）                        |
+| public LocalTime toLocalTime()                            | 转换成为一个 LocalTime 对象（时分秒）                        |
+| public String format(指定格式)                            | 把一个 LocalDateTime 格式化成为一个字符串                    |
+| public LocalDateTime parse(准备解析的字符串, 解析格式)    | 把一个日期字符串解析成为一个 LocalDateTime 对象              |
+| public static DateTimeFormatter ofPattern(String pattern) | 使用指定的日期模板获取一个日期格式化器 DateTimeFormatter 对象 |
 
 ```java
 public class JDK8DateDemo2 {
