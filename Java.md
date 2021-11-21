@@ -4414,7 +4414,7 @@ TreeSet 集合自排序的方式：
 
    * 直接为**对象的类**实现比较器规则接口 Comparable，重写比较方法：
      
-          方法：`public int compareTo(Employee o): this 是比较者, o 是被比较者`
+         方法：`public int compareTo(Employee o): this 是比较者, o 是被比较者`
          
            * 比较者大于被比较者，返回正数（升序）
            * 比较者小于被比较者，返回负数
@@ -5948,8 +5948,8 @@ class Dog{}
 + 这个集合不能添加，不能删除，不能修改
 + 但是可以结合集合的带参构造，实现集合的批量添加
 
-在Map接口中，还有一个ofEntries方法可以提高代码的阅读性
-+ 首先会把键值对封装成一个Entry对象，再把这个Entry对象添加到集合当中
+在 Map 接口中，还有一个 ofEntries 方法可以提高代码的阅读性
++ 首先会把键值对封装成一个 Entry 对象，再把这个 Entry 对象添加到集合当中
 
 ````java
 public class MyVariableParameter4 {

@@ -6845,9 +6845,6 @@ FutureTask 类的成员方法：
 
 
 
-参考视频：https://www.bilibili.com/video/BV13E411N7pp
-
-
 
 ****
 
@@ -6912,8 +6909,8 @@ public ScheduledThreadPoolExecutor(int corePoolSize) {
 常用 API：
 
 * `ScheduledFuture<?> schedule(Runnable/Callable<V>, long delay, TimeUnit u)`：延迟执行任务
-* `ScheduledFuture<?> scheduleAtFixedRate(Runnable/Callable<V>, long initialDelay, long period, TimeUnit unit)`：定时执行任务，参数为初始延迟时间、间隔时间、单位
-* `ScheduledFuture<?> scheduleWithFixedDelay(Runnable/Callable<V>, long initialDelay, long delay, TimeUnit unit)`：定时执行任务，参数为初始延迟时间、间隔时间、单位
+* `ScheduledFuture<?> scheduleAtFixedRate(Runnable/Callable<V>, long initialDelay, long period, TimeUnit unit)`：定时执行周期任务，不考虑执行的耗时，参数为初始延迟时间、间隔时间、单位
+* `ScheduledFuture<?> scheduleWithFixedDelay(Runnable/Callable<V>, long initialDelay, long delay, TimeUnit unit)`：定时执行周期任务，考虑执行的耗时，参数为初始延迟时间、间隔时间、单位
 
 基本使用：
 
@@ -6983,7 +6980,7 @@ public ScheduledThreadPoolExecutor(int corePoolSize) {
 
 ##### 成员变量
 
-* shutdown 后是否继续执行定时任务：
+* shutdown 后是否继续执行周期任务：
 
   ```java
   private volatile boolean continueExistingPeriodicTasksAfterShutdown;
@@ -6998,10 +6995,11 @@ public ScheduledThreadPoolExecutor(int corePoolSize) {
 * 取消方法是否将该任务从队列中移除：
 
   ```java
+  // 默认 false，不移除，等到线程拿到任务之后抛弃
   private volatile boolean removeOnCancel = false;
   ```
 
-* 任务的序列号：
+* 任务的序列号，可以用来比较优先级：
 
   ```java
   private static final AtomicLong sequencer = new AtomicLong();
@@ -7015,7 +7013,7 @@ public ScheduledThreadPoolExecutor(int corePoolSize) {
 
 ##### 延迟任务
 
-ScheduledFutureTask 继承 FutureTask，实现 RunnableScheduledFuture 接口，具有延迟执行的特点，覆盖 FutureTask 的 run 方法来实现对**延时执行、周期执行**的支持。对于延时任务调用 FutureTask#run，而对于周期性任务则调用 FutureTask#runAndReset 并且在成功之后根据 fixed-delay/fixed-rate 模式来设置下次执行时间并重新将任务塞到工作队列。
+ScheduledFutureTask 继承 FutureTask，实现 RunnableScheduledFuture 接口，具有延迟执行的特点，覆盖 FutureTask 的 run 方法来实现对**延时执行、周期执行**的支持。对于延时任务调用 FutureTask#run，而对于周期性任务则调用 FutureTask#runAndReset 并且在成功之后根据 fixed-delay/fixed-rate 模式来设置下次执行时间并重新将任务塞到工作队列
 
 在调度线程池中无论是 runnable 还是 callable，无论是否需要延迟和定时，所有的任务都会被封装成 ScheduledFutureTask
 
@@ -7030,7 +7028,7 @@ ScheduledFutureTask 继承 FutureTask，实现 RunnableScheduledFuture 接口，
 * 执行时间：
 
   ```java
-  private long time;			// 任务可以被执行的时间，以纳秒表示
+  private long time;			// 任务可以被执行的时间，交付时间，以纳秒表示
   private final long period;	// 0 表示非周期任务，正数表示 fixed-rate 模式的周期，负数表示 fixed-delay 模式
   ```
 
@@ -7045,7 +7043,8 @@ ScheduledFutureTask 继承 FutureTask，实现 RunnableScheduledFuture 接口，
 * 任务在队列数组中的索引下标：
 
   ```java
-  int heapIndex;				// -1 代表删除
+  // DelayedWorkQueue 底层使用的数据结构是最小堆，记录当前任务在堆中的索引，-1 代表删除
+  int heapIndex;
   ```
 
 成员方法：
@@ -7066,13 +7065,40 @@ ScheduledFutureTask 继承 FutureTask，实现 RunnableScheduledFuture 接口，
 
 * compareTo()：ScheduledFutureTask 根据执行时间 time 正序排列，如果执行时间相同，在按照序列号 sequenceNumber 正序排列，任务需要放入 DelayedWorkQueue，延迟队列中使用该方法按照从小到大进行排序
 
+  ```java
+  public int compareTo(Delayed other) {
+      if (other == this) // compare zero if same object
+          return 0;
+      if (other instanceof ScheduledFutureTask) {
+          // 类型强转
+          ScheduledFutureTask<?> x = (ScheduledFutureTask<?>)other;
+          // 比较者 - 被比较者的执行时间
+          long diff = time - x.time;
+          // 比较者先执行
+          if (diff < 0)
+              return -1;
+          // 被比较者先执行
+          else if (diff > 0)
+              return 1;
+          // 比较者的序列号小
+          else if (sequenceNumber < x.sequenceNumber)
+              return -1;
+          else
+              return 1;
+      }
+      // 不是 ScheduledFutureTask 类型时，根据延迟时间排序
+      long diff = getDelay(NANOSECONDS) - other.getDelay(NANOSECONDS);
+      return (diff < 0) ? -1 : (diff > 0) ? 1 : 0;
+  }
+  ```
+
 * run()：执行任务，非周期任务直接完成直接结束，**周期任务执行完后会设置下一次的执行时间，重新放入线程池的阻塞队列**，如果线程池中的线程数量少于核心线程，就会添加 Worker 开启新线程
 
   ```java
   public void run() {
       // 是否周期性，就是判断 period 是否为 0
       boolean periodic = isPeriodic();
-      // 检查当前状态能否执行任务，不能执行就取消任务
+      // 根据是否是周期任务检查当前状态能否执行任务，不能执行就取消任务
       if (!canRunInCurrentRunState(periodic))
           cancel(false);
       // 非周期任务，直接调用 FutureTask#run 执行
@@ -7088,7 +7114,7 @@ ScheduledFutureTask 继承 FutureTask，实现 RunnableScheduledFuture 接口，
   }
   ```
 
-  周期任务正常完成后任务的状态不会变化，依旧是 NEW，不会设置 outcome 属性。但是如果本次任务执行出现异常，会进入 setException 方法将任务状态置为异常，把异常保存在 outcome 中，方法返回 false，后续的该任务将不会再周期的执行
+  周期任务正常完成后**任务的状态不会变化**，依旧是 NEW，不会设置 outcome 属性。但是如果本次任务执行出现异常，会进入 setException 方法将任务状态置为异常，把异常保存在 outcome 中，方法返回 false，后续的该任务将不会再周期的执行
 
   ```java
   protected boolean runAndReset() {
@@ -7128,10 +7154,10 @@ ScheduledFutureTask 继承 FutureTask，实现 RunnableScheduledFuture 接口，
   private void setNextRunTime() {
       long p = period;
       if (p > 0)
-          // fixed-rate 模式，【时间设置为上一次执行任务的时间 +p】，两次任务执行的时间差
+          // fixed-rate 模式，【时间设置为上一次执行任务的时间 + p】，两次任务执行的时间差
           time += p;
       else
-          // fixed-delay 模式，下一次执行时间是当【前这次任务结束的时间（就是现在） +delay 值】
+          // fixed-delay 模式，下一次执行时间是【当前这次任务结束的时间（就是现在） + delay 值】
           time = triggerTime(-p);
   }
   ```
@@ -7144,7 +7170,8 @@ ScheduledFutureTask 继承 FutureTask，实现 RunnableScheduledFuture 接口，
       if (canRunInCurrentRunState(true)) {
           // 【放入任务队列】
           super.getQueue().add(task);
-          // 再次检查是否可以执行，如果不能执行且任务还在队列中未被取走，则取消任务
+          // 如果提交完任务之后，线程池状态变为了 shutdown 状态，需要再次检查是否可以执行，
+          // 如果不能执行且任务还在队列中未被取走，则取消任务
           if (!canRunInCurrentRunState(true) && remove(task))
               task.cancel(false);
           else
@@ -7178,9 +7205,9 @@ ScheduledFutureTask 继承 FutureTask，实现 RunnableScheduledFuture 接口，
 
 ##### 延迟队列
 
-DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先队列 PriorityQueue（小根堆）存储元素
+DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先队列 PriorityQueue（小根堆、满二叉树）存储元素
 
-其他阻塞队列存储节点的数据结构大都是链表，**延迟队列是数组**，所以延迟队列出队头元素后需要让其他元素（尾）替换到头节点，防止空指针异常
+其他阻塞队列存储节点的数据结构大都是链表，**延迟队列是数组**，所以延迟队列出队头元素后需要**让其他元素（尾）替换到头节点**，防止空指针异常
 
 成员变量：
 
@@ -7203,9 +7230,10 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
 * 阻塞等待头节点的线程：
 
   ```java
-  // 通过阻塞方式去获取头结点，那么 leader 线程的等待时间为头结点的延迟时间，其它线程则会陷入阻塞状态
-  // leader 线程获取到头结点后需要发送信号唤醒其它线程 available.asignAll()
-  // 使用了 Leader/Follower 来避免不必要的等待，只让leader来等待需要等待的时间，其余线程无限等待直至被唤醒即可
+  // 线程池内的某个线程去 take() 获取任务时，如果延迟队列顶层节点不为null（队列内有任务），但是节点任务还不到触发时间，线程就去检查【队列的 leader】字段是否被占用
+  // * 如果未被占用，则当前线程占用该字段，然后当前线程到 available 条件队列指定超时时间（堆顶任务.time - now()）挂起
+  // * 如果被占用，当前线程直接到 available 条件队列“不指定”超时时间的挂起
+  // leader 在 available 条件队列内是首元素，它超时之后会醒过来，然后再次将堆顶元素获取走，获取走之后，take()结束之前，会调用是 available.signal() 唤醒下一个条件队列内的等待者，然后释放 lock，下一个等待者被唤醒后去到 AQS 队列，做 acquireQueue(node) 逻辑
   private Thread leader = null;
   ```
 
@@ -7219,7 +7247,7 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
       if (x == null)
           throw new NullPointerException();
       RunnableScheduledFuture<?> e = (RunnableScheduledFuture<?>)x;
-      // 队列锁
+      // 队列锁，增加删除数据时都要加锁
       final ReentrantLock lock = this.lock;
       lock.lock();
       try {
@@ -7238,7 +7266,11 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
               // 向上调整元素的位置，并更新 heapIndex 
               siftUp(i, e);
           }
-          // 【插入的元素是头节点，原先的 leader 等待的是原先的头节点，所以 leader 已经无效】
+          // 情况1：当前任务是第一个加入到 queue 内的任务，所以在当前任务加入到 queue 之前，take() 线程会直接
+          //		到 available 队列不设置超时的挂起，并不会去占用 leader 字段，这时需会唤醒一个线程 让它去消费
+         	// 情况2：当前任务优先级最高，原堆顶任务可能还未到触发时间，leader 线程设置超时的在 available 挂起
+          //		原先的 leader 等待的是原先的头节点，所以 leader 已经无效，需要将 leader 线程唤醒，
+          //		唤醒之后它会检查堆顶，如果堆顶任务可以被消费，则直接获取走，否则继续成为 leader 等待新堆顶任务
           if (queue[0] == e) {
               // 将 leader 设置为 null
               leader = null;
@@ -7295,11 +7327,13 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
 
   ```java
   private RunnableScheduledFuture<?> finishPoll(RunnableScheduledFuture<?> f) {
+      // 获取尾索引
       int s = --size;
       // 获取尾节点
       RunnableScheduledFuture<?> x = queue[s];
-      // 置空
+      // 将堆结构最后一个节点占用的 slot 设置为 null，因为该节点要尝试升级成堆顶，会根据特性下调
       queue[s] = null;
+      // s == 0 说明 当前堆结构只有堆顶一个节点，此时不需要做任何的事情
       if (s != 0)
           // 从索引处 0 开始向下调整
           siftDown(0, x);
@@ -7309,11 +7343,12 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
   }
   ```
 
-* take()：阻塞获取头节点，读取当前堆中最小的也就是执行开始时间最近的任务
+* take()：阻塞获取头节点，读取当前堆中最小的也就是触发时间最近的任务
 
   ```java
   public RunnableScheduledFuture<?> take() throws InterruptedException {
       final ReentrantLock lock = this.lock;
+      // 保证线程安全
       lock.lockInterruptibly();
       try {
           for (;;) {
@@ -7323,15 +7358,15 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
                   // 等待队列不空，直至有任务通过 offer 入队并唤醒
                   available.await();
               else {
-                  // 获取头节点的剩延迟时间是否到时
+                  // 获取头节点的延迟时间是否到时
                   long delay = first.getDelay(NANOSECONDS);
                   if (delay <= 0)
-                      // 到时了，获取头节点并调整堆，重新选择延迟时间最小的节点放入头部
+                      // 到达触发时间，获取头节点并调整堆，重新选择延迟时间最小的节点放入头部
                       return finishPoll(first);
                   
                   // 逻辑到这说明头节点的延迟时间还没到
                   first = null;
-                  // 说明有 leader 线程在等待获取头节点，需要阻塞等待
+                  // 说明有 leader 线程在等待获取头节点，当前线程直接去阻塞等待
                   if (leader != null)
                       available.await();
                   else {
@@ -7339,12 +7374,12 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
                       Thread thisThread = Thread.currentThread();
                       leader = thisThread;
                       try {
+                          // 在条件队列 available 使用带超时的挂起（堆顶任务.time - now() 纳秒值..）
                           available.awaitNanos(delay);
+                          // 到达阻塞时间时，当前线程会从来
                       } finally {
-                          // 条件成立的情况：
-                          // 1. 原先 thisThread == leader, 然后堆顶更新了，leader 被置为 null
-                          // 2. 堆顶更新，offer 方法释放锁后,有其它线程通过 take/poll 拿到锁,
-                          //    读到 leader == null，然后将自身更新为leader。
+                          // t堆顶更新，leader 置为 null，offer 方法释放锁后，
+                          //   有其它线程通过 take/poll 拿到锁,读到 leader == null，然后将自身更新为leader。
                           if (leader == thisThread)
                               // leader 置为 null 用以接下来判断是否需要唤醒后继线程
                               leader = null;
