@@ -4415,11 +4415,11 @@ TreeSet 集合自排序的方式：
    * 直接为**对象的类**实现比较器规则接口 Comparable，重写比较方法：
      
          方法：`public int compareTo(Employee o): this 是比较者, o 是被比较者`
-         
+        
            * 比较者大于被比较者，返回正数（升序）
            * 比较者小于被比较者，返回负数
            * 比较者等于被比较者，返回 0
-         
+        
    * 直接为**集合**设置比较器 Comparator 对象，重写比较方法：
      
      方法：`public int compare(Employee o1, Employee o2): o1 比较者, o2 被比较者`
@@ -4489,7 +4489,7 @@ PriorityQueue 是优先级队列，底层存储结构为 Object[]，默认实现
 
 常用 API：
 
-* `public boolean offer(E e)`：将指定的元素插入到此优先级队列中**尾部**
+* `public boolean offer(E e)`：将指定的元素插入到此优先级队列的**尾部**
 * `public E poll() `：检索并删除此队列的**头元素**，如果此队列为空，则返回 null 
 * `public E peek()`：检索但不删除此队列的头，如果此队列为空，则返回 null
 * `public boolean remove(Object o)`：从该队列中删除指定元素（如果存在），删除元素 e 使用 o.equals(e) 比较，如果队列包含多个这样的元素，删除第一个
@@ -6671,7 +6671,7 @@ public class MethodDemo{
     public static void main(String[] args) {
         String[] strs = new String[]{"James", "AA", "John",
                 "Patricia","Dlei" , "Robert","Boom", "Cao" ,"black" ,
-                "Michael", "Linda","cao","after","sBBB"};
+                "Michael", "Linda","cao","after","sa"};
 
         // public static <T> void sort(T[] a, Comparator<? super T> c)
         // 需求：按照元素的首字符(忽略大小写)升序排序！！！

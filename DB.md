@@ -2432,7 +2432,7 @@ CREATE TABLE us_pro(
   工作原理：
 
   * 自动提交模式下，如果没有 start transaction 显式地开始一个事务，那么**每个 SQL 语句都会被当做一个事务执行提交操作**
-  * 手动提交模式下，所有的 SQL 语句都在一个事务中，直到执行了 commit 或 rollback，该事务结束的同时开启另外一个事务
+  * 手动提交模式下，所有的 SQL 语句都在一个事务中，直到执行了 commit 或 rollback
 
   * 存在一些特殊的命令，在事务中执行了这些命令会马上强制执行 COMMIT 提交事务，如 DDL 语句 (create/drop/alter/table)、lock tables 语句等
 

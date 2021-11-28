@@ -6755,8 +6755,13 @@ MySQL InnoDB 存储引擎的默认支持的隔离级别是 **REPEATABLE-READ（�
 **支持当前事务**的情况：
 
 * TransactionDefinition.PROPAGATION_REQUIRED： 如果当前存在事务，则**加入该事务**；如果当前没有事务，则创建一个新的事务
-  * 内外层是相同的事务
-  * 在 aMethod 或者在 bMethod 内的任何地方出现异常，事务都会被回滚
+  * 内外层是相同的事务，在 aMethod 或者在 bMethod 内的任何地方出现异常，事务都会被回滚
+  * 工作流程：
+    * 线程执行到 serviceA.aMethod() 时，其实是执行的代理 serviceA 对象的 aMethod
+    * 首先执行事务增强器逻辑（环绕增强），提取事务标签属性，检查当前线程是否绑定 connection 数据库连接资源，没有就调用 datasource.getConnection()，设置事务提交为手动提交 autocommit(false)
+    * 执行其他增强器的逻辑，然后调用 target 的目标方法 aMethod() 方法，进入 serviceB 的逻辑
+    * serviceB 也是先执行事务增强器的逻辑，提取事务标签属性，但此时会检查到线程绑定了 connection，检查注解的传播属性，所以调用 DataSourceUtils.getConnection(datasource) 共享该连接资源，执行完相关的增强和 SQL 后，发现事务并不是当前方法开启的，可以直接返回上层
+    * serviceA.aMethod() 继续执行，执行完增强后进行提交事务或回滚事务
 * TransactionDefinition.PROPAGATION_SUPPORTS： 如果当前存在事务，则**加入该事务**；如果当前没有事务，则以非事务的方式继续运行
 * TransactionDefinition.PROPAGATION_MANDATORY： 如果当前存在事务，则**加入该事务**；如果当前没有事务，则抛出异常
 
@@ -9148,6 +9153,18 @@ retVal = invocation.proceed()：**拦截器链驱动方法**
 
 
 
+### 事务
+
+
+
+
+
+
+
+***
+
+
+
 ### 注解
 
 #### Component
@@ -9239,62 +9256,7 @@ AutowiredAnnotationBeanPostProcessor 间接实现 InstantiationAwareBeanPostProc
 
 
 
-***
 
-
-
-#### Transaction
-
-@EnableTransactionManagement 导入 TransactionManagementConfigurationSelector，该类给 Spring 容器中两个组件：
-
-* AdviceMode 为 PROXY：导入 AutoProxyRegistrar 和 ProxyTransactionManagementConfiguration（默认）
-* AdviceMode  为 ASPECTJ：导入 AspectJTransactionManagementConfiguration（与声明式事务无关）
-
-AutoProxyRegistrar：给容器中注册 InfrastructureAdvisorAutoProxyCreator，**利用后置处理器机制拦截 bean 以后包装并返回一个代理对象**，代理对象中保存所有的拦截器，利用拦截器的链式机制依次进入每一个拦截器中进行拦截执行（就是 AOP 原理）
-
-ProxyTransactionManagementConfiguration：是一个 Spring 的事务配置类，注册了三个 Bean：
-
-* BeanFactoryTransactionAttributeSourceAdvisor：事务增强器，利用注解 @Bean 把该类注入到容器中，该增强器有两个字段：
-
-* TransactionAttributeSource：解析事务注解的相关信息，比如 @Transactional 注解，该类的真实类型是 AnnotationTransactionAttributeSource，构造方法中注册了三个**注解解析器**，解析三种类型的事务注解 Spring、JTA、Ejb3
-
-* TransactionInterceptor：**事务拦截器**，代理对象执行拦截器方法时，会调用 TransactionInterceptor 的 invoke 方法，底层调用TransactionAspectSupport.invokeWithinTransaction()，通过 PlatformTransactionManager 控制着事务的提交和回滚，所以事务的底层原理就是通过 AOP 动态织入，进行事务开启和提交
-
-  ```java
-  // 创建平台事务管理器对象
-  final PlatformTransactionManager tm = determineTransactionManager(txAttr);
-  // 开启事务
-  TransactionInfo txInfo = createTransactionIfNecessary(tm, txAttr, joinpointIdentification);
-  // 执行目标方法（方法引用方式，invocation::proceed，还是调用 proceed）
-  retVal = invocation.proceedWithInvocation();
-  // 提交或者回滚事务
-  commitTransactionAfterReturning(txInfo);
-  ```
-
-  `createTransactionIfNecessary(tm, txAttr, joinpointIdentification)`：
-
-  * `status = tm.getTransaction(txAttr)`：获取事务状态，开启事务
-
-    * `doBegin`： **调用 Connection 的 setAutoCommit(false) 开启事务**，就是 JDBC 原生的方式
-
-  * `prepareTransactionInfo(tm, txAttr, joinpointIdentification, status)`：准备事务信息
-  
-    * `bindToThread() `：利用 ThreadLocal **把当前事务绑定到当前线程**（一个线程对应一个事务）
-    
-    策略模式（Strategy Pattern）：使用不同策略的对象实现不同的行为方式，策略对象的变化导致行为的变化，事务也是这种模式，每个事务对应一个新的 connection 对象
-  
-  `commitTransactionAfterReturning(txInfo)`：
-  
-  * `txInfo.getTransactionManager().commit(txInfo.getTransactionStatus())`：通过平台事务管理器操作事务
-  
-    * `processRollback(defStatus, false)`：回滚事务，和提交逻辑一样
-  
-    * `processCommit(defStatus)`：提交事务，调用 doCommit(status)
-  
-      * `Connection con = txObject.getConnectionHolder().getConnection()`：获取当前线程的连接对象
-      * `con.commit()`：事务提交，JDBC 原生的方式
-  
-      
 
 
 

@@ -3812,8 +3812,8 @@ JDK8 以前：每个 ThreadLocal 都创建一个 Map，然后用线程作为 Map
 
 JDK8 以后：每个 Thread 维护一个 ThreadLocalMap，这个 Map 的 key 是 ThreadLocal 实例本身，value 是真正要存储的值
 
-* 每个 Thread 线程内部都有一个 Map (ThreadLocalMap)
-* Map 里面存储 ThreadLocal 对象（key）和线程的变量副本（value）
+* **每个 Thread 线程内部都有一个 Map (ThreadLocalMap)**
+* Map 里面存储 ThreadLocal 对象（key）和线程的私有变量（value）
 * Thread 内部的 Map 是由 ThreadLocal 维护的，由 ThreadLocal 负责向 map 获取和设置线程的变量值
 * 对于不同的线程，每次获取副本值时，别的线程并不能获取到当前线程的副本值，形成副本的隔离，互不干扰
 
@@ -4589,8 +4589,8 @@ java.util.concurrent.BlockingQueue 接口有以下阻塞队列的实现：**FIFO
 
 | 方法类型         | 抛出异常  | 特殊值   | 阻塞   | 超时               |
 | ---------------- | --------- | -------- | ------ | ------------------ |
-| 插入             | add(e)    | offer(e) | put(e) | offer(e,time,unit) |
-| 移除             | remove()  | poll()   | take() | poll(time,unit)    |
+| 插入（尾）       | add(e)    | offer(e) | put(e) | offer(e,time,unit) |
+| 移除（头）       | remove()  | poll()   | take() | poll(time,unit)    |
 | 检查（队首元素） | element() | peek()   | 不可用 | 不可用             |
 
 * 抛出异常组：
