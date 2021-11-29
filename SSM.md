@@ -6778,6 +6778,7 @@ MySQL InnoDB 存储引擎的默认支持的隔离级别是 **REPEATABLE-READ（�
 * TransactionDefinition.PROPAGATION_NESTED： 如果当前存在事务，则创建一个事务作为当前事务的嵌套事务来运行；如果当前没有事务，则该取值等价于 PROPAGATION_REQUIRED 
   * 如果 ServiceB 异常回滚，可以通过 try-catch 机制执行 ServiceC
   * 如果 ServiceB 提交， ServiceA 可以根据具体的配置决定是 commit 还是 rollback
+  * **应用场景**：在查询数据的时候要向数据库中存储一些日志，系统不希望存日志的行为影响到主逻辑，可以使用该传播
 
 requied：必须的、supports：支持的、mandatory：强制的、nested：嵌套的
 
@@ -9155,7 +9156,712 @@ retVal = invocation.proceed()：**拦截器链驱动方法**
 
 ### 事务
 
+#### 解析方法
 
+##### 标签解析
+
+```xml
+<tx:annotation-driven transaction-manager="txManager"/>
+```
+
+容器启动时会根据注解注册对应的解析器：
+
+```java
+public class TxNamespaceHandler extends NamespaceHandlerSupport {
+    public void init() {
+		registerBeanDefinitionParser("advice", new TxAdviceBeanDefinitionParser());
+        // 注册解析器
+		registerBeanDefinitionParser("annotation-driven", new AnnotationDrivenBeanDefinitionParser());
+		registerBeanDefinitionParser("jta-transaction-manager", new JtaTransactionManagerBeanDefinitionParser());
+	}
+}
+protected final void registerBeanDefinitionParser(String elementName, BeanDefinitionParser parser) {
+    this.parsers.put(elementName, parser);
+}
+```
+
+获取对应的解析器 NamespaceHandlerSupport#findParserForElement：
+
+```java
+private BeanDefinitionParser findParserForElement(Element element, ParserContext parserContext) {
+    String localName = parserContext.getDelegate().getLocalName(element);
+    // 获取对应的解析器
+    BeanDefinitionParser parser = this.parsers.get(localName);
+	// ...
+    return parser;
+}
+```
+
+调用解析器的方法对 XML 文件进行解析：
+
+```java
+public BeanDefinition parse(Element element, ParserContext parserContext) {
+	// 向Spring容器注册了一个 BD -> TransactionalEventListenerFactory.class
+    registerTransactionalEventListenerFactory(parserContext);
+    String mode = element.getAttribute("mode");
+    if ("aspectj".equals(mode)) {
+        // mode="aspectj"
+        registerTransactionAspect(element, parserContext);
+        if (ClassUtils.isPresent("javax.transaction.Transactional", getClass().getClassLoader())) {
+            registerJtaTransactionAspect(element, parserContext);
+        }
+    }
+    else {
+        // mode="proxy"，默认逻辑，不配置 mode 时
+        // 用来向容器中注入一些 BeanDefinition，包括事务增强器、事务拦截器、注解解析器
+        AopAutoProxyConfigurer.configureAutoProxyCreator(element, parserContext);
+    }
+    return null;
+}
+```
+
+
+
+
+
+****
+
+
+
+##### 注解解析
+
+@EnableTransactionManagement 导入 TransactionManagementConfigurationSelector，该类给 Spring 容器中两个组件：
+
+```java
+protected String[] selectImports(AdviceMode adviceMode) {
+    switch (adviceMode) {
+        // 导入 AutoProxyRegistrar 和 ProxyTransactionManagementConfiguration（默认）
+        case PROXY:
+            return new String[] {AutoProxyRegistrar.class.getName(),
+                                 ProxyTransactionManagementConfiguration.class.getName()};
+        // 导入 AspectJTransactionManagementConfiguration（与声明式事务无关）
+        case ASPECTJ:
+            return new String[] {determineTransactionAspectClass()};
+        default:
+            return null;
+    }
+}
+```
+
+AutoProxyRegistrar：给容器中注册 InfrastructureAdvisorAutoProxyCreator，**利用后置处理器机制拦截 bean 以后包装并返回一个代理对象**，代理对象中保存所有的拦截器，利用拦截器的链式机制依次进入每一个拦截器中进行拦截执行（就是 AOP 原理）
+
+ProxyTransactionManagementConfiguration：是一个 Spring 的事务配置类，注册了三个 Bean：
+
+* BeanFactoryTransactionAttributeSourceAdvisor：事务驱动，利用注解 @Bean 把该类注入到容器中，该增强器有两个字段：
+* TransactionAttributeSource：解析事务注解的相关信息，真实类型是 AnnotationTransactionAttributeSource，构造方法中注册了三个**注解解析器**，解析 Spring、JTA、Ejb3 三种类型的事务注解
+* TransactionInterceptor：**事务拦截器**，代理对象执行拦截器方法时，调用 TransactionInterceptor 的 invoke 方法，底层调用TransactionAspectSupport.invokeWithinTransaction()，通过 PlatformTransactionManager 控制着事务的提交和回滚，所以事务的底层原理就是通过 AOP 动态织入，进行事务开启和提交
+
+注解解析器 SpringTransactionAnnotationParser **解析 @Transactional 注解**：
+
+```java
+protected TransactionAttribute parseTransactionAnnotation(AnnotationAttributes attributes) {
+    RuleBasedTransactionAttribute rbta = new RuleBasedTransactionAttribute();
+	// 从注解信息中获取传播行为
+    Propagation propagation = attributes.getEnum("propagation");
+    rbta.setPropagationBehavior(propagation.value());
+    // 获取隔离界别
+    Isolation isolation = attributes.getEnum("isolation");
+    rbta.setIsolationLevel(isolation.value());
+    rbta.setTimeout(attributes.getNumber("timeout").intValue());
+    // 从注解信息中获取 readOnly 参数
+    rbta.setReadOnly(attributes.getBoolean("readOnly"));
+    // 从注解信息中获取 value 信息并且设置 qualifier，表示当前事务指定使用的【事务管理器】
+    rbta.setQualifier(attributes.getString("value"));
+	// 【存放的是 rollback 条件】，回滚规则放在这个集合
+    List<RollbackRuleAttribute> rollbackRules = new ArrayList<>();
+    // 表示事务碰到哪些指定的异常才进行回滚，不指定的话默认是 RuntimeException/Error 非检查型异常菜回滚
+    for (Class<?> rbRule : attributes.getClassArray("rollbackFor")) {
+        rollbackRules.add(new RollbackRuleAttribute(rbRule));
+    }
+    // 与 rollbackFor 功能相同
+    for (String rbRule : attributes.getStringArray("rollbackForClassName")) {
+        rollbackRules.add(new RollbackRuleAttribute(rbRule));
+    }
+    // 表示事务碰到指定的 exception 实现对象不进行回滚，否则碰到其他的class就进行回滚
+    for (Class<?> rbRule : attributes.getClassArray("noRollbackFor")) {
+        rollbackRules.add(new NoRollbackRuleAttribute(rbRule));
+    }
+    for (String rbRule : attributes.getStringArray("noRollbackForClassName")) {
+        rollbackRules.add(new NoRollbackRuleAttribute(rbRule));
+    }
+    // 设置回滚规则
+    rbta.setRollbackRules(rollbackRules);
+
+    return rbta;
+}
+```
+
+
+
+
+
+****
+
+
+
+
+
+#### 驱动方法
+
+TransactionInterceptor 事务拦截器的核心驱动方法：
+
+```java
+public Object invoke(MethodInvocation invocation) throws Throwable {
+    // targetClass 是需要被事务增强器增强的目标类，invocation.getThis() → 目标对象 → 目标类
+    Class<?> targetClass = (invocation.getThis() != null ? AopUtils.getTargetClass(invocation.getThis()) : null);
+	// 参数一是目标方法，参数二是目标类，参数三是方法引用，用来触发驱动方法
+    return invokeWithinTransaction(invocation.getMethod(), targetClass, invocation::proceed);
+}
+
+protected Object invokeWithinTransaction(Method method, @Nullable Class<?> targetClass,
+                                         final InvocationCallback invocation) throws Throwable {
+
+    // 事务属性源信息
+    TransactionAttributeSource tas = getTransactionAttributeSource();
+    //  提取 @Transactional 注解信息，txAttr 是注解信息的承载对象
+    final TransactionAttribute txAttr = (tas != null ? tas.getTransactionAttribute(method, targetClass) : null);
+    // 获取 Spring 配置的事务管理器
+    // 首先会检查是否通过XML或注解配置 qualifier，没有就尝试去容器获取，一般情况下为 DatasourceTransactionManager
+    final PlatformTransactionManager tm = determineTransactionManager(txAttr);
+    // 权限定类名.方法名，该值用来当做事务名称使用
+    final String joinpointIdentification = methodIdentification(method, targetClass, txAttr);
+    
+	// 条件成立说明是【声明式事务】
+    if (txAttr == null || !(tm instanceof CallbackPreferringPlatformTransactionManager)) {
+    	// 用来【开启事务】
+        TransactionInfo txInfo = createTransactionIfNecessary(tm, txAttr, joinpointIdentification);
+
+        Object retVal;
+        try {
+            // This is an 【around advice】: Invoke the next interceptor in the chain.
+            // 环绕通知，执行目标方法（方法引用方式，invocation::proceed，还是调用 proceed）
+            retVal = invocation.proceedWithInvocation();
+        }
+        catch (Throwable ex) {
+            //  执行业务代码时抛出异常，执行回滚逻辑
+            completeTransactionAfterThrowing(txInfo, ex);
+            throw ex;
+        }
+        finally {
+            // 清理事务的信息
+            cleanupTransactionInfo(txInfo);
+        }
+        // 提交事务的入口
+        commitTransactionAfterReturning(txInfo);
+        return retVal;
+    }
+    else {
+       // 编程式事务，省略
+    }
+}
+```
+
+
+
+***
+
+
+
+#### 开启事务
+
+##### 事务绑定
+
+创建事务的方法：
+
+```java
+protected TransactionInfo createTransactionIfNecessary(@Nullable PlatformTransactionManager tm,
+                                                       @Nullable TransactionAttribute txAttr, 
+                                                       final String joinpointIdentification) {
+
+    // If no name specified, apply method identification as transaction name.
+    if (txAttr != null && txAttr.getName() == null) {
+        // 事务的名称： 类的权限定名.方法名
+        txAttr = new DelegatingTransactionAttribute(txAttr) {
+            @Override
+            public String getName() {
+                return joinpointIdentification;
+            }
+        };
+    }
+    TransactionStatus status = null;
+    if (txAttr != null) {
+        if (tm != null) {
+            // 通过事务管理器根据事务属性创建事务状态对象，事务状态对象一般情况下包装着 事务对象，当然也有可能是null
+            // 方法上的注解为 @Transactional(propagation = NOT_SUPPORTED || propagation = NEVER) 时
+            // 【下一小节详解】
+            status = tm.getTransaction(txAttr);
+        }
+        else {
+            if (logger.isDebugEnabled()) {
+                logger.debug("Skipping transactional joinpoint [" + joinpointIdentification +
+                             "] because no transaction manager has been configured");
+            }
+        }
+    }
+    // 包装成一个上层的事务上下文对象
+    return prepareTransactionInfo(tm, txAttr, joinpointIdentification, status);
+}
+```
+
+TransactionAspectSupport#prepareTransactionInfo：为事务的属性和状态准备一个事务信息对象
+
+* `TransactionInfo txInfo = new TransactionInfo(tm, txAttr, joinpointIdentification)`：创建事务信息对象
+* `txInfo.newTransactionStatus(status)`：填充事务的状态信息
+* `txInfo.bindToThread()`：利用 ThreadLocal **把当前事务信息绑定到当前线程**，不同的事务信息会形成一个栈的结构
+  * `this.oldTransactionInfo = transactionInfoHolder.get()`：获取其他事务的信息存入 oldTransactionInfo 
+  * `transactionInfoHolder.set(this)`：将当前的事务信息设置到 ThreadLocalMap 中
+
+
+
+***
+
+
+
+##### 事务创建
+
+```java
+public final TransactionStatus getTransaction(@Nullable TransactionDefinition definition) throws TransactionException {
+    // 获取事务的对象
+    Object transaction = doGetTransaction();
+    boolean debugEnabled = logger.isDebugEnabled();
+
+    if (definition == null) {
+        // Use defaults if no transaction definition given.
+        definition = new DefaultTransactionDefinition();
+    }
+	// 条件成立说明当前是事务重入的情况，事务中有 ConnectionHolder 对象
+    if (isExistingTransaction(transaction)) {
+        // a方法开启事务，a方法内调用b方法，b方法仍然加了 @Transactional 注解，需要检查传播行为
+        return handleExistingTransaction(definition, transaction, debugEnabled);
+    }
+    
+	// 逻辑到这说明当前线程没有连接资源，一个连接对应一个事务，没有连接就相当于没有开启事务
+    // 检查事务的延迟属性
+    if (definition.getTimeout() < TransactionDefinition.TIMEOUT_DEFAULT) {
+        throw new InvalidTimeoutException("Invalid transaction timeout", definition.getTimeout());
+    }
+
+    // 传播行为是 MANDATORY，没有事务就抛出异常
+    if (definition.getPropagationBehavior() == TransactionDefinition.PROPAGATION_MANDATORY) {
+        throw new IllegalTransactionStateException();
+    }
+    // 需要开启事务的传播行为
+    else if (definition.getPropagationBehavior() == TransactionDefinition.PROPAGATION_REQUIRED ||
+             definition.getPropagationBehavior() == TransactionDefinition.PROPAGATION_REQUIRES_NEW ||
+             definition.getPropagationBehavior() == TransactionDefinition.PROPAGATION_NESTED) {
+        // 什么也没挂起，因为线程并没有绑定事务
+        SuspendedResourcesHolder suspendedResources = suspend(null);
+        try {
+            // 是否支持同步线程事务，一般是 true
+            boolean newSynchronization = (getTransactionSynchronization() != SYNCHRONIZATION_NEVER);
+            // 新建一个事务状态信息
+            DefaultTransactionStatus status = newTransactionStatus(
+                definition, transaction, true, newSynchronization, debugEnabled, suspendedResources);
+            // 【启动事务】
+            doBegin(transaction, definition);
+            // 设置线程上下文变量，方便程序运行期间获取当前事务的一些核心的属性，initSynchronization() 启动同步
+            prepareSynchronization(status, definition);
+            return status;
+        }
+        catch (RuntimeException | Error ex) {
+            // 恢复现场
+            resume(null, suspendedResources);
+            throw ex;
+        }
+    }
+    // 不支持事务的传播行为
+    else {
+        // Create "empty" transaction: no actual transaction, but potentially synchronization.
+        boolean newSynchronization = (getTransactionSynchronization() == SYNCHRONIZATION_ALWAYS);
+        // 创建事务状态对象
+        // 参数2 transaction 是 null 说明当前事务状态是未手动开启事，线程上未绑定任何的连接资源，业务程序执行时需要先去 datasource 获取的 conn，是自动提交事务的，不需要 Spring 再提交事务
+        // 参数6 suspendedResources 是 null 说明当前事务状态未挂起任何事，当前这个事务执行到后置处理时不需要恢复现场
+        return prepareTransactionStatus(definition, null, true, newSynchronization, debugEnabled, null);
+    }
+}
+```
+
+DataSourceTransactionManager#doGetTransaction：真正获取事务的方法
+
+* `DataSourceTransactionObject txObject = new DataSourceTransactionObject()`：**创建事务对象**
+
+* `txObject.setSavepointAllowed(isNestedAllowed())`：设置事务对象是否支持保存点，由事务管理器控制（默认不支持）
+
+* `ConnectionHolder conHolder = TransactionSynchronizationManager.getResource(obtainDataSource())`：
+
+  * 从 ThreadLocal 中获取 conHolder 资源，可能拿到 null 或者不是 null
+
+  * 是 null：举例
+
+    ```java
+    @Transaction
+    public void a() {...b.b()....}
+    ```
+
+  * 不是 null：执行 b 方法事务增强的前置逻辑时，可以拿到 a 放进去的 conHolder 资源
+
+    ```java
+    @Transaction
+    public void b() {....}
+    ```
+
+* `txObject.setConnectionHolder(conHolder, false)`：将 ConnectionHolder 保存到事务对象内，参数二是 false 代表连接资源是上层事务共享的，不是新建的连接资源
+
+* `return txObject`：返回事务的对象
+
+DataSourceTransactionManager#doBegin：事务开启的逻辑
+
+* `txObject = (DataSourceTransactionObject) transaction`：强转为事务对象
+
+* 事务中没有数据库连接资源就要分配：
+
+  `Connection newCon = obtainDataSource().getConnection()`：**获取 JDBC 原生的数据库连接对象**
+
+  `txObject.setConnectionHolder(new ConnectionHolder(newCon), true)`：代表是新开启的事务，新建的连接对象
+
+* `previousIsolationLevel = DataSourceUtils.prepareConnectionForTransaction(con, definition)`：修改连接属性
+
+  * `if (definition != null && definition.isReadOnly())`：注解（或 XML）配置了只读属性，需要设置
+
+  * `if (..definition.getIsolationLevel() != TransactionDefinition.ISOLATION_DEFAULT)`：注解配置了隔离级别
+
+    `int currentIsolation = con.getTransactionIsolation()`：获取连接的隔离界别
+
+    `previousIsolationLevel = currentIsolation`：保存之前的隔离界别，返回该值
+
+    ` con.setTransactionIsolation(definition.getIsolationLevel())`：**将当前连接设置为配置的隔离界别**
+
+* `txObject.setPreviousIsolationLevel(previousIsolationLevel)`：将 Conn 原来的隔离级别保存到事务对象，为了释放 Conn 时重置回原状态
+
+* `if (con.getAutoCommit())`：默认会成立，说明还没开启事务
+
+  `txObject.setMustRestoreAutoCommit(true)`：保存 Conn 原来的事务状态
+
+  `con.setAutoCommit(false)`：**开启事务，JDBC 原生的方式**
+
+* `txObject.getConnectionHolder().setTransactionActive(true)`：表示 Holder 持有的 Conn 已经手动开启事务了
+
+* `TransactionSynchronizationManager.bindResource(obtainDataSource(), txObject.getConnectionHolder())`：将 ConnectionHolder 对象绑定到 ThreadLocal 内，数据源为 key，为了方便获取手动开启事务的连接对象去执行 SQL
+
+
+
+***
+
+
+
+##### 事务重入
+
+事务重入的核心处理逻辑：
+
+```java
+private TransactionStatus handleExistingTransaction( TransactionDefinition definition, 
+                                                    Object transaction, boolean debugEnabled){
+	// 传播行为是 PROPAGATION_NEVER，需要以非事务方式执行操作，如果当前事务存在则【抛出异常】
+    if (definition.getPropagationBehavior() == TransactionDefinition.PROPAGATION_NEVER) {
+        throw new IllegalTransactionStateException();
+    }
+	// 传播行为是 PROPAGATION_NOT_SUPPORTED，以非事务方式运行，如果当前存在事务，则【把当前事务挂起】
+    if (definition.getPropagationBehavior() == TransactionDefinition.PROPAGATION_NOT_SUPPORTED) {
+        // 挂起事务
+        Object suspendedResources = suspend(transaction);
+        boolean newSynchronization = (getTransactionSynchronization() == SYNCHRONIZATION_ALWAYS);
+        // 创建一个非事务的事务状态对象返回
+        return prepareTransactionStatus(definition, null, false, newSynchronization, debugEnabled, suspendedResources);
+    }
+	// 开启新事物的逻辑
+    if (definition.getPropagationBehavior() == TransactionDefinition.PROPAGATION_REQUIRES_NEW) {
+        // 【挂起当前事务】
+        SuspendedResourcesHolder suspendedResources = suspend(transaction);
+       	// 【开启新事物】
+    }
+	// 传播行为是 PROPAGATION_NESTED，嵌套事务
+    if (definition.getPropagationBehavior() == TransactionDefinition.PROPAGATION_NESTED) {
+        // Spring 默认不支持内嵌事务
+        // 【开启方式】：<property name="nestedTransactionAllowed" value="true">
+        if (!isNestedTransactionAllowed()) {
+            throw new NestedTransactionNotSupportedException();
+        }
+        
+        if (useSavepointForNestedTransaction()) {
+            //  为当前方法创建一个 TransactionStatus 对象，
+            DefaultTransactionStatus status =
+                prepareTransactionStatus(definition, transaction, false, false, debugEnabled, null);
+            // 创建一个 JDBC 的保存点
+            status.createAndHoldSavepoint();
+            // 不需要使用同步，直接返回
+            return status;
+        }
+        else {
+            // Usually only for JTA transaction，开启一个新事务
+        }
+    }
+
+    // Assumably PROPAGATION_SUPPORTS or PROPAGATION_REQUIRED，【使用当前的事务】
+    boolean newSynchronization = (getTransactionSynchronization() != SYNCHRONIZATION_NEVER);
+    return prepareTransactionStatus(definition, transaction, false, newSynchronization, debugEnabled, null);
+}
+```
+
+
+
+***
+
+
+
+##### 挂起恢复
+
+AbstractPlatformTransactionManager#suspend：**挂起事务**，并获得一个上下文信息对象
+
+```java
+protected final SuspendedResourcesHolder suspend(@Nullable Object transaction) {
+    // 事务是同步状态的
+    if (TransactionSynchronizationManager.isSynchronizationActive()) {
+        List<TransactionSynchronization> suspendedSynchronizations = doSuspendSynchronization();
+        try {
+            Object suspendedResources = null;
+            if (transaction != null) {
+                // do it
+                suspendedResources = doSuspend(transaction);
+            }
+            //将上层事务绑定在线程上下文的变量全部取出来
+            //...
+            // 通过被挂起的资源和上层事务的上下文变量，创建一个【SuspendedResourcesHolder】返回
+            return new SuspendedResourcesHolder(suspendedResources, suspendedSynchronizations, 
+                                                name, readOnly, isolationLevel, wasActive);
+        } //...
+}
+protected Object doSuspend(Object transaction) {
+    DataSourceTransactionObject txObject = (DataSourceTransactionObject) transaction;
+    // 将当前方法的事务对象 connectionHolder 属性置为 null，不和上层共享资源
+    // 当前方法有可能是不开启事务或者要开启一个独立的事务
+    txObject.setConnectionHolder(null);
+    // 解绑在线程上的事务
+    return TransactionSynchronizationManager.unbindResource(obtainDataSource());
+}
+```
+
+AbstractPlatformTransactionManager#resume：**恢复现场**，根据挂起资源去恢复线程上下文信息
+
+```java
+protected final void resume(Object transaction, SuspendedResourcesHolder resourcesHolder) {
+    if (resourcesHolder != null) {
+        // 获取被挂起的事务资源
+        Object suspendedResources = resourcesHolder.suspendedResources;
+        if (suspendedResources != null) {
+            //绑定上一个事务的 ConnectionHolder 到线程上下文
+            doResume(transaction, suspendedResources);
+        }
+        List<TransactionSynchronization> suspendedSynchronizations = resourcesHolder.suspendedSynchronizations;
+        if (suspendedSynchronizations != null) {
+            //....
+            // 将线程上下文变量恢复为上一个事务的挂起现场
+            doResumeSynchronization(suspendedSynchronizations);
+        }
+    }
+}
+protected void doResume(@Nullable Object transaction, Object suspendedResources) {
+    // doSuspend 的逆动作
+    TransactionSynchronizationManager.bindResource(obtainDataSource(), suspendedResources);
+}
+```
+
+
+
+
+
+***
+
+
+
+#### 提交回滚
+
+##### 回滚方式
+
+```java
+protected void completeTransactionAfterThrowing(@Nullable TransactionInfo txInfo, Throwable ex) {
+    // 事务状态信息不为空进入逻辑
+    if (txInfo != null && txInfo.getTransactionStatus() != null) {
+        // 条件二成立 说明目标方法抛出的异常需要回滚事务
+        if (txInfo.transactionAttribute != null && txInfo.transactionAttribute.rollbackOn(ex)) {
+            try {
+                // 事务管理器的回滚方法
+                txInfo.getTransactionManager().rollback(txInfo.getTransactionStatus());
+            }
+            catch (TransactionSystemException ex2) {}
+        }
+        else {
+            // 执行到这里，说明当前事务虽然抛出了异常，但是该异常并不会导致整个事务回滚
+            try {
+                // 提交事务
+                txInfo.getTransactionManager().commit(txInfo.getTransactionStatus());
+            }
+            catch (TransactionSystemException ex2) {}
+        }
+    }
+}
+public boolean rollbackOn(Throwable ex) {
+    // 继承自 RuntimeException 或 error 的是【非检查型异常】，才会归滚事务
+    // 如果配置了其他回滚错误，会获取到回滚规则 rollbackRules 进行判断
+    return (ex instanceof RuntimeException || ex instanceof Error);
+}
+```
+
+```java
+public final void rollback(TransactionStatus status) throws TransactionException {
+    // 事务已经完成不需要回滚
+    if (status.isCompleted()) {
+        throw new IllegalTransactionStateException();
+    }
+    DefaultTransactionStatus defStatus = (DefaultTransactionStatus) status;
+    // 开始回滚事务
+    processRollback(defStatus, false);
+}
+```
+
+AbstractPlatformTransactionManager#processRollback：事务回滚
+
+* `triggerBeforeCompletion(status)`：用来做扩展逻辑，回滚前的前置处理
+
+* `if (status.hasSavepoint())`：条件成立说明当前事务是一个**内嵌事务**，当前方法只是复用了上层事务的一个内嵌事务
+
+  `status.rollbackToHeldSavepoint()`：内嵌事务加入事务时会创建一个保存点，此时恢复至保存点
+
+* `if (status.isNewTransaction())`：说明事务是当前连接开启的，需要去回滚事务
+
+  `doRollback(status)`：真正的的回滚函数
+
+  * `DataSourceTransactionObject txObject = status.getTransaction()`：获取事务对象
+  * `Connection con = txObject.getConnectionHolder().getConnection()`：获取连接对象
+  * `con.rollback()`：**JDBC 的方式回滚事务**
+
+* `else`：当前方法是共享的上层的事务，和上层使用同一个 Conn 资源，**共享的事务不能直接回滚，应该交给上层处理**
+
+  `doSetRollbackOnly(status)`：设置 con.rollbackOnly = true，线程回到上层事务 commit 时会检查该字段，然后执行回滚操作
+
+* `triggerAfterCompletion(status, TransactionSynchronization.STATUS_ROLLED_BACK)`：回滚的后置处理
+
+* `cleanupAfterCompletion(status)`：清理和恢复现场
+
+
+
+***
+
+
+
+##### 提交方式
+
+```java
+protected void commitTransactionAfterReturning(@Nullable TransactionInfo txInfo) {
+    if (txInfo != null && txInfo.getTransactionStatus() != null) {
+        // 事务管理器的提交方法
+        txInfo.getTransactionManager().commit(txInfo.getTransactionStatus());
+    }
+}
+```
+
+```java
+public final void commit(TransactionStatus status) throws TransactionException {
+    // 已经完成的事务不需要提交了
+    if (status.isCompleted()) {
+        throw new IllegalTransactionStateException();
+    }
+    DefaultTransactionStatus defStatus = (DefaultTransactionStatus) status;
+    // 条件成立说明是当前的业务强制回滚
+    if (defStatus.isLocalRollbackOnly()) {
+        // 回滚逻辑，
+        processRollback(defStatus, false);
+        return;
+    }
+	// 成立说明共享当前事务的【下层事务逻辑出错，需要回滚】
+    if (!shouldCommitOnGlobalRollbackOnly() && defStatus.isGlobalRollbackOnly()) {
+        // 如果当前事务还是事务重入，会继续抛给上层，最上层事务会进行真实的事务回滚操作
+        processRollback(defStatus, true);
+        return;
+    }
+	// 执行提交
+    processCommit(defStatus);
+}
+```
+
+AbstractPlatformTransactionManager#processCommit：事务提交
+
+* `prepareForCommit(status)`：前置处理
+
+* `if (status.hasSavepoint())`：条件成立说明当前事务是一个**内嵌事务**，只是复用了上层事务
+
+  `status.releaseHeldSavepoint()`：清理保存点，因为没有发生任何异常，所以保存点没有存在的意义了
+
+* `if (status.isNewTransaction())`：说明事务是归属于当前连接的，需要去提交事务
+
+  `doCommit(status)`：真正的提交函数
+
+  * `Connection con = txObject.getConnectionHolder().getConnection()`：获取连接对象
+  * `con.commit()`：**JDBC 的方式提交事务**
+
+* `doRollbackOnCommitException(status, ex)`：**提交事务出错后进行回滚**
+
+* ` cleanupAfterCompletion(status)`：清理和恢复现场
+
+
+
+***
+
+
+
+##### 清理现场
+
+恢复上层事务：
+
+```java
+protected void cleanupTransactionInfo(@Nullable TransactionInfo txInfo) {
+    if (txInfo != null) {
+        // 从当前线程的 ThreadLocal 获取上层的事务信息，将当前事务出栈，继续执行上层事务
+        txInfo.restoreThreadLocalStatus();
+    }
+}
+private void restoreThreadLocalStatus() {
+    // Use stack to restore old transaction TransactionInfo.
+    transactionInfoHolder.set(this.oldTransactionInfo);
+}
+```
+
+当前层级事务结束时的清理：
+
+```java
+private void cleanupAfterCompletion(DefaultTransactionStatus status) {
+    // 设置当前方法的事务状态为完成状态
+    status.setCompleted();
+    if (status.isNewSynchronization()) {
+        // 清理线程上下文变量以及扩展点注册的 sync
+        TransactionSynchronizationManager.clear();
+    }
+    // 事务是当前线程开启的
+    if (status.isNewTransaction()) {
+        // 解绑资源
+        doCleanupAfterCompletion(status.getTransaction());
+    }
+    // 条件成立说明当前事务执行的时候，【挂起了一个上层的事务】
+    if (status.getSuspendedResources() != null) {
+        Object transaction = (status.hasTransaction() ? status.getTransaction() : null);
+        // 恢复上层事务现场
+        resume(transaction, (SuspendedResourcesHolder) status.getSuspendedResources());
+    }
+}
+```
+
+DataSourceTransactionManager#doCleanupAfterCompletion：清理工作
+
+* `TransactionSynchronizationManager.unbindResource(obtainDataSource())`：解绑数据库资源
+
+* `if (txObject.isMustRestoreAutoCommit())`：是否恢复连接，Conn 归还到 DataSource**，归还前需要恢复到申请时的状态**
+
+  `con.setAutoCommit(true)`：恢复链接为自动提交
+
+* `DataSourceUtils.resetConnectionAfterTransaction(con, txObject.getPreviousIsolationLevel())`：恢复隔离级别
+
+* `DataSourceUtils.releaseConnection(con, this.dataSource)`：将连接归还给数据库连接池
+
+* `txObject.getConnectionHolder().clear()`：清理 ConnectionHolder 资源
 
 
 
