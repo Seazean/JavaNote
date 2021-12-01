@@ -958,11 +958,12 @@ DDL 中的临时表 tmp_table 是在 Server 层创建的，Online DDL 中的临�
     | DOUBLE    | 小数类型                                                     |
     | DATE      | 日期，只包含年月日：yyyy-MM-dd                               |
     | DATETIME  | 日期，包含年月日时分秒：yyyy-MM-dd HH:mm:ss                  |
-    | TIMESTAMP | 时间戳类型，包含年月日时分秒：yyyy-MM-dd HH:mm:ss<br />如果不给这个字段赋值或赋值为null，则默认使用当前的系统时间 |
-    | VARCHAR   | 字符串<br />name varchar(20):姓名最大20个字符：zhangsan8个字符,张三2个字符 |
-
+    | TIMESTAMP | 时间戳类型，包含年月日时分秒：yyyy-MM-dd HH:mm:ss<br />如果不给这个字段赋值或赋值为 NULL，则默认使用当前的系统时间 |
+    | CHAR      | 字符串，定长类型                                             |
+    | VARCHAR   | 字符串，**变长类型**<br />name varchar(20) 代表姓名最大 20 个字符：zhangsan 8 个字符，张三 2 个字符 |
+  
     `INT(n)`：n 代表位数
-
+  
     * 3：int（9）显示结果为 000000010
     * 3：int（3）显示结果为 010
   
@@ -1286,8 +1287,8 @@ LIMIT		<limit_params>
   | AND 或 &&           | 并且                                                         |
   | OR 或 \|\|          | 或者                                                         |
   | NOT 或 !            | 非，不是                                                     |
-  | UNION               | 对两个结果集进行并集操作，不包括重复行，同时进行默认规则的排序 |
-  | UNION ALL           | 对两个结果集进行并集操作，包括重复行，不进行排序             |
+  | UNION               | 对两个结果集进行并集操作并进行去重，同时进行默认规则的排序   |
+  | UNION ALL           | 对两个结果集进行并集操作不进行去重，不进行排序               |
 
 * 例如：
 
@@ -2164,7 +2165,11 @@ Join Buffer 可以通过参数 `join_buffer_size` 进行配置，默认大小是
 
 ### 嵌套查询
 
-子查询概念：查询语句中嵌套了查询语句，**将嵌套查询称为子查询**
+#### 查询分类
+
+查询语句中嵌套了查询语句，**将嵌套查询称为子查询**，FROM 子句后面的子查询的结果集称为派生表
+
+根据结果分类：
 
 * 结果是单行单列：可以将查询的结果作为另一条语句的查询条件，使用运算符判断
 
@@ -2172,7 +2177,7 @@ Join Buffer 可以通过参数 `join_buffer_size` 进行配置，默认大小是
   SELECT 列名 FROM 表名 WHERE 列名=(SELECT 列名/聚合函数(列名) FROM 表名 [WHERE 条件]);
   ```
 
-* 结果是多行单列：可以作为条件，使用运算符in或not in进行判断
+* 结果是多行单列：可以作为条件，使用运算符 IN 或 NOT IN 进行判断
 
   ```mysql
   SELECT 列名 FROM 表名 WHERE 列名 [NOT] IN (SELECT 列名 FROM 表名 [WHERE 条件]); 
@@ -2192,6 +2197,26 @@ Join Buffer 可以通过参数 `join_buffer_size` 进行配置，默认大小是
   WHERE 
   	u.id=o.uid;
   ```
+
+相关性分类：
+
+* 不相关子查询：子查询不依赖外层查询的值，可以单独运行出结果
+* 相关子查询：子查询的执行需要依赖外层查询的值
+
+
+
+****
+
+
+
+#### 查询优化
+
+不相关子查询的结果集会被写入一个临时表，并且在写入时去重，该过程称为物化，存储结果集的临时表称为物化表
+
+系统变量 tmp_table_size 或者 max_heap_table_size 为表的最值
+
+* 小于系统变量时，内存中可以保存，会为建立基于内存的 MEMORY 存储引擎的临时表，并建立哈希索引
+* 大于任意一个系统变量时，物化表会使用基于磁盘的存储引擎来保存结果集中的记录，索引类型为 B+ 树，
 
 
 
@@ -4717,7 +4742,7 @@ CREATE INDEX idx_area ON table_name(area(7));
   SELECT * FROM table_test WHERE key1 = 'a' AND key3 = 'b'; # key1 和 key3 列都是单列索引、二级索引
   ```
 
-  从不同索引中扫描到的记录的 id 值取交集（相同 id），然后执行回表操作，要求从每个二级索引获取到的记录都是按照主键值排序
+  从不同索引中扫描到的记录的 id 值取**交集**（相同 id），然后执行回表操作，要求从每个二级索引获取到的记录都是按照主键值排序
 
 * Union 索引合并：
 
@@ -4725,7 +4750,7 @@ CREATE INDEX idx_area ON table_name(area(7));
   SELECT * FROM table_test WHERE key1 = 'a' OR key3 = 'b';
   ```
 
-  从不同索引中扫描到的记录的 id 值取并集，然后执行回表操作，要求从每个二级索引获取到的记录都是按照主键值排序
+  从不同索引中扫描到的记录的 id 值取**并集**，然后执行回表操作，要求从每个二级索引获取到的记录都是按照主键值排序
 
 * Sort-Union 索引合并
 
@@ -4871,16 +4896,16 @@ EXPLAIN SELECT * FROM table_1 WHERE id = 1;
 
 | 字段          | 含义                                                         |
 | ------------- | ------------------------------------------------------------ |
-| id            | select查询的序列号，表示查询中执行select子句或操作表的顺序   |
+| id            | SELECT 的序列号                                              |
 | select_type   | 表示 SELECT 的类型                                           |
-| table         | 输出结果集的表，显示这一步所访问数据库中表名称，有时不是真实的表名字，可能是简称 |
+| table         | 访问数据库中表名称，有时可能是简称或者临时表名称（<table_name>） |
 | type          | 表示表的连接类型                                             |
 | possible_keys | 表示查询时，可能使用的索引                                   |
 | key           | 表示实际使用的索引                                           |
 | key_len       | 索引字段的长度                                               |
-| ref           | 列与索引的比较，表示表的连接匹配条件，即哪些列或常量被用于查找索引列上的值 |
+| ref           | 表示与索引列进行等值匹配的对象，常数、某个列、函数等，type 必须在（range, const] 之间，左闭右开 |
 | rows          | 扫描出的行数，表示 MySQL 根据表统计信息及索引选用情况，**估算**的找到所需的记录扫描的行数 |
-| filtered      | 按表条件过滤的行百分比                                       |
+| filtered      | 条件过滤的行百分比，单表查询没意义，用于连接查询中对驱动表的扇出进行过滤，查询优化器预测所有扇出值满足剩余查询条件的百分比，相乘以后表示多表查询中还要对被驱动执行查询的次数 |
 | extra         | 执行情况的说明和描述                                         |
 
 MySQL 执行计划的局限：
@@ -4907,9 +4932,9 @@ MySQL 执行计划的局限：
 
 ##### id
 
-SQL 执行的顺序的标识，SQL 从大到小的执行
+id 代表 SQL 执行的顺序的标识，每个 SELECT 关键字对应一个唯一 id，所以在同一个 SELECT 关键字中的表的 id 都是相同的。SELECT 后的 FROM 可以跟随多个表，每个表都会对应一条记录，这些记录的 id 都是相同的，
 
-* id 相同时，执行顺序由上至下
+* id 相同时，执行顺序由上至下。连接查询的执行计划，记录的 id 值都是相同的，出现在前面的表为驱动表，后面为被驱动表
 
   ```mysql
   EXPLAIN SELECT * FROM t_role r, t_user u, user_role ur WHERE r.id = ur.role_id AND u.id = ur.user_id ;
@@ -4933,6 +4958,8 @@ SQL 执行的顺序的标识，SQL 从大到小的执行
 
   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-explain之id相同和不同.png)
 
+* id 为 NULL 时代表的是临时表
+
 
 
 ***
@@ -4946,13 +4973,18 @@ SQL 执行的顺序的标识，SQL 从大到小的执行
 | select_type        | 含义                                                         |
 | ------------------ | ------------------------------------------------------------ |
 | SIMPLE             | 简单的 SELECT 查询，查询中不包含子查询或者 UNION             |
-| PRIMARY            | 查询中若包含任何复杂的子查询，最外层查询标记为该标识         |
-| SUBQUERY           | 在 SELECT 或 WHERE 中包含子查询，该子查询被标记为：SUBQUERY  |
-| DEPENDENT SUBQUERY | 在 SUBQUERY 基础上，子查询中的第一个SELECT，取决于外部的查询 |
-| DERIVED            | 在 FROM 列表中包含的子查询，被标记为 DERIVED（衍生），MYSQL会递归执行这些子查询，把结果放在临时表中 |
-| UNION              | UNION 中的第二个或后面的 SELECT 语句，则标记为UNION ； 若 UNION 包含在 FROM 子句的子查询中，外层 SELECT 将被标记为：DERIVED |
-| DEPENDENT UNION    | UNION 中的第二个或后面的SELECT语句，取决于外面的查询         |
-| UNION RESULT       | UNION 的结果，UNION 语句中第二个 SELECT 开始后面所有 SELECT  |
+| PRIMARY            | 查询中若包含任何复杂的子查询，最外层（也就是最左侧）查询标记为该标识 |
+| UNION              | 对于 UNION 或者 UNION ALL 的复杂查询，除了最左侧的查询，其余的小查询都是 UNION |
+| UNION RESULT       | UNION 需要使用临时表进行去重，临时表的是 UNION RESULT        |
+| DEPENDENT UNION    | 对于 UNION 或者 UNION ALL 的复杂查询，如果各个小查询都依赖外层查询，是相关子查询，除了最左侧的小查询为 DEPENDENT SUBQUERY，其余都是 DEPENDENT UNION |
+| SUBQUERY           | 子查询不是相关子查询，该子查询第一个 SELECT 代表的查询就是这种类型，会进行物化（该子查询只需要执行一次） |
+| DEPENDENT SUBQUERY | 子查询是相关子查询，该子查询第一个 SELECT 代表的查询就是这种类型，不会物化（该子查询需要执行多次） |
+| DERIVED            | 在 FROM 列表中包含的子查询，被标记为 DERIVED（衍生），也就是生成物化派生表的这个子查询 |
+| MATERIALIZED       | 将子查询物化后与与外层进行连接查询，生成物化表的子查询       |
+
+子查询为 DERIVED：`SELECT * FROM (SELECT key1 FROM t1) AS derived_1 WHERE key1 > 10`
+
+子查询为 MATERIALIZED：`SELECT * FROM t1 WHERE key1 IN (SELECT key1 FROM t2)`
 
 
 
@@ -4964,16 +4996,20 @@ SQL 执行的顺序的标识，SQL 从大到小的执行
 
 对表的访问方式，表示 MySQL 在表中找到所需行的方式，又称访问类型
 
-| type   | 含义                                                         |
-| ------ | ------------------------------------------------------------ |
-| ALL    | Full Table Scan，MySQL 将遍历全表以找到匹配的行，全表扫描，如果是 InnoDB 引擎是扫描聚簇索引 |
-| index  | Full Index Scan，index 与 ALL 区别为 index 类型只遍历索引树  |
-| range  | 索引范围扫描，常见于 between、<、> 等的查询                  |
-| ref    | 非唯一性索引扫描，返回匹配某个单独值的所有记录，本质上也是一种索引访问 |
-| eq_ref | 唯一性索引扫描，对于每个索引键，表中只有一条记录与之匹配，常见于主键或唯一索引扫描 |
-| const  | 通过主键或者唯一索引来定位一条记录                           |
-| system | system 是 const 类型的特例，当查询的表只有一行的情况下，使用 system |
-| NULL   | MySQL 在优化过程中分解语句，执行时甚至不用访问表或索引       |
+| type            | 含义                                                         |
+| --------------- | ------------------------------------------------------------ |
+| ALL             | 全表扫描，如果是 InnoDB 引擎是扫描聚簇索引                   |
+| index           | 可以使用覆盖索引，但需要扫描全部索引                         |
+| range           | 索引范围扫描，常见于 between、<、> 等的查询                  |
+| index_subquery  | 子查询可以普通索引，则子查询的 type 为 index_subquery        |
+| unique_subquery | 子查询可以使用主键或唯一二级索引，则子查询的 type 为 index_subquery |
+| index_merge     | 索引合并                                                     |
+| ref_or_null     | 非唯一性索引（普通二级索引）并且可以存储 NULL，进行等值匹配  |
+| ref             | 非唯一性索引与常量等值匹配                                   |
+| eq_ref          | 唯一性索引（主键或不存储 NULL 的唯一二级索引）进行等值匹配，如果二级索引是联合索引，那么所有联合的列都要进行等值匹配 |
+| const           | 通过主键或者唯一二级索引与常量进行等值匹配                   |
+| system          | system 是 const 类型的特例，当查询的表只有一条记录的情况下，使用 system |
+| NULL            | MySQL 在优化过程中分解语句，执行时甚至不用访问表或索引       |
 
 从上到下，性能从差到好，一般来说需要保证查询至少达到 range 级别， 最好达到 ref 
 
@@ -4992,7 +5028,7 @@ possible_keys：
 
 key：
 
-* 显示MySQL在查询中实际使用的索引，若没有使用索引，显示为 NULL
+* 显示 MySQL 在查询中实际使用的索引，若没有使用索引，显示为 NULL
 * 查询中若使用了**覆盖索引**，则该索引可能出现在 key 列表，不出现在 possible_keys
 
 key_len：
