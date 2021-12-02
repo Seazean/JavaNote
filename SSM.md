@@ -3946,9 +3946,16 @@ Mybatis 核心配置文件消失
 
 - 类型别名交由 spring 处理
 
-业务发起使用spring上下文对象获取对应的bean
+DAO 接口不需要创建实现类，MyBatis-Spring 提供了一个动态代理的实现 **MapperFactoryBean**，这个类可以让直接注入数据映射器接口到 service 层 bean 中，底层将会动态代理创建类
 
-**原理**：DAO 接口不需要创建实现类，MyBatis-Spring 提供了一个动态代理的实现 **MapperFactoryBean**，这个类可以让直接注入数据映射器接口到 service 层 bean 中，底层将会动态代理创建类
+整合原理：利用 Spring 框架的 SPI 机制，在 META-INF 目录的 spring.handlers 中给 Spring 容器中导入 NamespaceHandler 类
+
+* NamespaceHandler 的 init 方法注册 bean 信息的解析器 MapperScannerBeanDefinitionParser
+* 解析器在 Spring 容器创建过程中去解析 mapperScanner 标签，解析出的属性填充到 MapperScannerConfigurer 中
+
+* MapperScannerConfigurer 实现了 BeanDefinitionRegistryPostProcessor 接口，重写 postProcessBeanDefinitionRegistry() 方法，可以扫描到 MyBatis 的 Mapper
+
+整合代码：
 
 * pom.xml，导入坐标
 
@@ -4911,7 +4918,7 @@ FactoryBean与 BeanFactory 区别：
   }
   ```
 
-* MapperScannerConfigurer 实现了 BeanDefinitionRegistryPostProcessor 接口，重写 postProcessBeanDefinitionRegistry() 方法，可以扫描到 MyBatis 的 Mapper
+
 
 
 
