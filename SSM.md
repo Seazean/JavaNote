@@ -2930,8 +2930,8 @@ Spring 优点：
 
 ### 基本概述
 
-- IoC（Inversion Of Control）控制反转，Spring反向控制应用程序所需要使用的外部资源
-- **Spring 控制的资源全部放置在 Spring 容器中，该容器称为 IoC 容器**
+- IoC（Inversion Of Control）控制反转，Spring 反向控制应用程序所需要使用的外部资源
+- **Spring 控制的资源全部放置在 Spring 容器中，该容器称为 IoC 容器**（存放实例对象）
 - 官方网站：https://spring.io/ → Projects → spring-framework → LEARN → Reference Doc
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/Spring-IOC介绍.png)
@@ -3311,7 +3311,7 @@ IoC 和 DI 的关系：IoC 与 DI 是同一件事站在不同角度看待问题
 
 代码实现：
 
-* DAO层：要注入的资源
+* DAO 层：要注入的资源
 
   ```java
   public interface UserDao {
@@ -3327,7 +3327,7 @@ IoC 和 DI 的关系：IoC 与 DI 是同一件事站在不同角度看待问题
   }
   ```
 
-* Service业务层
+* Service 业务层
 
   ```java
   public interface UserService {
@@ -3357,7 +3357,7 @@ IoC 和 DI 的关系：IoC 与 DI 是同一件事站在不同角度看待问题
   }
   ```
 
-* 配置applicationContext.xml
+* 配置 applicationContext.xml
 
   ```xml
   <!--2.将要注入的资源声明为bean-->
@@ -3418,7 +3418,7 @@ IoC 和 DI 的关系：IoC 与 DI 是同一件事站在不同角度看待问题
 
 代码实现：
 
-* DAO层：要注入的资源
+* DAO 层：要注入的资源
 
   ```java
   public class UserDaoImpl implements UserDao{
@@ -4315,6 +4315,8 @@ public class UserServiceImpl implements UserService {
 }
 ```
 
+一个对象的执行顺序：Constructor >> @Autowired（注入属性） >> @PostConstruct（初始化逻辑）
+
 
 
 ***
@@ -4394,7 +4396,9 @@ private String username;
 
 
 
-##### 属性填充
+##### 自动装配
+
+###### 属性注入
 
 名称：@Autowired、@Qualifier
 
@@ -4426,7 +4430,7 @@ private UserDao userDao;
 
 
 
-##### 属性设置
+###### 优先注入
 
 名称：@Primary
 
@@ -4451,7 +4455,7 @@ public class ClassName{}
 
 
 
-##### 注解对比
+###### 注解对比
 
 名称：@Inject、@Named、@Resource
 
@@ -4464,11 +4468,77 @@ public class ClassName{}
 
 - type：设置注入的 bean 的类型，接收的参数为 Class 类型
 
-**@Autowired 和 @Resource之间的区别**：
+@Autowired 和 @Resource之间的区别：
 
-*  @Autowired 默认是按照类型装配注入的，默认情况下它要求依赖对象必须存在（可以设置它required属性为false）
+*  @Autowired 默认是**按照类型装配**注入，默认情况下它要求依赖对象必须存在（可以设置它 required 属性为 false）
 
-*  @Resource 默认按照名称来装配注入，只有当找不到与名称匹配的bean才会按照类型来装配注入
+*  @Resource 默认**按照名称装配**注入，只有当找不到与名称匹配的 bean 才会按照类型来装配注入
+
+
+
+****
+
+
+
+##### 静态注入
+
+Spring 容器管理的都是实例对象，**@Autowired 依赖注入的都是容器内的对象实例**，在 Java 中 static 修饰的静态属性（变量和方法）是属于类的，而非属于实例对象
+
+当类加载器加载静态变量时，Spring 上下文尚未加载，所以类加载器不会在 Bean 中正确注入静态类
+
+```java
+@Component
+public class TestClass {
+    @Autowired
+    private static Component component;
+
+    // 调用静态组件的方法
+    public static void testMethod() {
+        component.callTestMethod()；
+    }  
+}
+// 编译正常，但运行时报java.lang.NullPointerException，所以在调用testMethod()方法时，component变量还没被初始化
+```
+
+解决方法：
+
+* @Autowired 注解到类的构造函数上，Spring 扫描到 Component 的 Bean，然后赋给静态变量 component
+
+  ```java
+  @Component
+  public class TestClass {
+      private static Component component;
+  
+      @Autowired
+      public TestClass(Component component) {
+          TestClass.component = component;
+      }
+  
+      public static void testMethod() {
+          component.callTestMethod()；
+      }
+  }
+  ```
+
+* @Autowired 注解到静态属性的 setter 方法上
+
+* 使用 @PostConstruct 注解一个方法，在方法内为 static 静态成员赋值
+
+* 使用 Spring 框架工具类获取 bean，定义成局部变量使用
+
+  ```java
+  public class TestClass {
+      // 调用静态组件的方法
+     public static void testMethod() {
+        Component component = SpringApplicationContextUtil.getBean("component");
+        component.callTestMethod();
+     }
+  }
+  ```
+
+
+
+参考文章：http://jessehzx.top/2018/03/18/spring-autowired-static-field/
 
 
 
@@ -4482,7 +4552,7 @@ public class ClassName{}
 
 类型：类注解
 
-作用：加载properties文件中的属性值
+作用：加载 properties 文件中的属性值
 
 格式：
 
@@ -4586,9 +4656,9 @@ public class ClassName {
 
 @DependsOn
 
-- 微信订阅号，发布消息和订阅消息的bean的加载顺序控制（先开订阅，再发布）
+- 微信订阅号，发布消息和订阅消息的 bean 的加载顺序控制（先开订阅，再发布）
 
-- 双11活动期间，零点前是结算策略A，零点后是结算策略B，策略B操作的数据为促销数据。策略B加载顺序与促销数据的加载顺序
+- 双 11 活动，零点前是结算策略 A，零点后是结算策略 B，策略 B 操作的数据为促销数据，策略 B 加载顺序与促销数据的加载顺序
 
 @Lazy
 
