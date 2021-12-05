@@ -44,7 +44,7 @@ SqlSessionFactory：获取 SqlSession 构建者对象的工厂接口
 
 SqlSession：构建者对象接口，用于执行 SQL、管理事务、接口代理
 
-* SqlSession 代表和数据库的一次会话，用完必须关闭
+* SqlSession **代表和数据库的一次会话**，用完必须关闭
 * SqlSession 和 Connection 一样都是非线程安全，每次使用都应该去获取新的对象
 
 注：**update 数据需要提交事务，或开启默认提交**
@@ -1529,6 +1529,11 @@ public class Blog {
 * SqlSession 相同，手动清除了一级缓存，调用 `sqlSession.clearCache()`
 * SqlSession 相同，执行 commit 操作或者执行插入、更新、删除，清空 SqlSession 中的一级缓存，这样做的目的为了让缓存中存储的是最新的信息，**避免脏读**
 
+Spring 整合 MyBatis 后，一级缓存作用：
+
+* 未开启事务的情况，每次查询 Spring 都会创建新的 SqlSession，因此一级缓存失效
+* 开启事务的情况，Spring 使用 ThreadLocal 获取当前资源绑定同一个 SqlSession，因此此时一级缓存是有效的
+
 测试一级缓存存在
 
 ```java
@@ -2644,7 +2649,7 @@ Executor#query()：
       * `interceptorChain.pluginAll(statementHandler)`：拦截器链
       
     * `prepareStatement()`：通过 StatementHandler 创建 JDBC 原生的 Statement 对象
-      * `getConnection()`：获取 JDBC 的 Connection 对象
+      * `getConnection()`：**获取 JDBC 的 Connection 对象**
       * `handler.prepare()`：初始化 Statement 对象
         * `instantiateStatement(Connection connection)`：Connection  中的方法实例化对象
           * 获取普通执行者对象：`Connection.createStatement()`

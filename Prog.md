@@ -595,7 +595,7 @@ t.start();
 
 用户线程：平常创建的普通线程
 
-守护线程：服务于用户线程，只要其它非守护线程运行结束了，即使守护线程代码没有执行完，也会强制结束。守护进程是脱离于终端并且在后台运行的进程，脱离终端是为了避免在执行的过程中的信息在终端上显示
+守护线程：服务于用户线程，只要其它非守护线程运行结束了，即使守护线程代码没有执行完，也会强制结束。守护进程是**脱离于终端并且在后台运行的进程**，脱离终端是为了避免在执行的过程中的信息在终端上显示
 
 说明：当运行的线程都是守护线程，Java 虚拟机将退出，因为普通线程执行完后，JVM 是守护线程，不会继续运行下去
 
@@ -4842,7 +4842,7 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
 
 ##### 成员属性
 
-与其他 BlockingQueue 不同，SynchronousQueue 是一个不存储元素的 BlockingQueue，每一个生产者必须阻塞匹配到一个消费者
+SynchronousQueue 是一个不存储元素的 BlockingQueue，**每一个生产者必须阻塞匹配到一个消费者**
 
 成员变量：
 
@@ -13644,7 +13644,7 @@ epoll 的特点：
 * epoll 的时间复杂度 O(1)，epoll 理解为 event poll，不同于忙轮询和无差别轮询，调用 epoll_wait **只是轮询就绪链表**。当监听列表有设备就绪时调用回调函数，把就绪 fd 放入就绪链表中，并唤醒在 epoll_wait 中阻塞的进程，所以 epoll 实际上是**事件驱动**（每个事件关联上fd）的，降低了 system call 的时间复杂度
 * epoll 内核中根据每个 fd 上的 callback 函数来实现，只有活跃的 socket 才会主动调用 callback，所以使用 epoll 没有前面两者的线性下降的性能问题，效率提高
 
-* epoll 注册新的事件都是注册到到内核中 epoll 句柄中，不需要每次调用 epoll_wait 时重复拷贝，对比前面两种，epoll 只需要将描述符从进程缓冲区向内核缓冲区拷贝一次。 epoll 也可以利用 **mmap() 文件映射内存**加速与内核空间的消息传递，减少复制开销
+* epoll 注册新的事件都是注册到到内核中 epoll 句柄中，不需要每次调用 epoll_wait 时重复拷贝，对比前面两种，epoll 只需要将描述符从进程缓冲区向内核缓冲区**拷贝一次**，epoll 也可以利用 **mmap() 文件映射内存**加速与内核空间的消息传递（只是可以用）
 * 前面两者要把 current 往设备等待队列中挂一次，epoll 也只把 current 往等待队列上挂一次，但是这里的等待队列并不是设备等待队列，只是一个 epoll 内部定义的等待队列，这样可以节省开销
 * epoll 对多线程编程更有友好，一个线程调用了 epoll_wait() 另一个线程关闭了同一个描述符，也不会产生像 select 和 poll 的不确定情况
 
@@ -14069,7 +14069,7 @@ ServerSocket 类：
 * 构造方法：`public ServerSocket(int port)`
 * 常用API：`public Socket accept()`，**阻塞等待**接收一个客户端的 Socket 管道连接请求，连接成功返回一个 Socket 对象
 
-  三次握手后 TCP 连接建立成功，服务器内核会把连接从 SYN 半连接队列中移出，移入 accept 全连接队列，等待进程调用 accept 函数时把连接取出。如果进程不能及时调用 accept 函数，就会造成 accept 队列溢出，最终导致建立好的 TCP 连接被丢弃
+  三次握手后 TCP 连接建立成功，服务器内核会把连接从 SYN 半连接队列（一次握手时在服务端建立的队列）中移出，移入 accept 全连接队列，等待进程调用 accept 函数时把连接取出。如果进程不能及时调用 accept 函数，就会造成 accept 队列溢出，最终导致建立好的 TCP 连接被丢弃
   
   <img src="https://gitee.com/seazean/images/raw/master/Frame/Netty-TCP三次握手.png" style="zoom:67%;" />
 
@@ -14122,7 +14122,7 @@ public class ClientDemo {
         // 1.客户端要请求于服务端的socket管道连接。
         Socket socket = new Socket("127.0.0.1", 8080);
         // 2.从socket通信管道中得到一个字节输出流
-        OutputStream os = new socket.getOutputStream();
+        OutputStream os = socket.getOutputStream();
         // 3.把低级的字节输出流包装成高级的打印流。
         PrintStream ps = new PrintStream(os);
         // 4.开始发消息出去
@@ -14980,10 +14980,16 @@ Channel 实现类：
   * 通过 FileInputStream 获取的 Channel 只能读
   * 通过 FileOutputStream 获取的 Channel 只能写
   * 通过 RandomAccessFile 是否能读写根据构造 RandomAccessFile 时的读写模式决定
+  
 * DatagramChannel：通过 UDP 读写网络中的数据通道
+
 * SocketChannel：通过 TCP 读写网络中的数据
-* ServerSocketChannel：可以监听新进来的 TCP 连接，对每一个新进来的连接都会创建一个SocketChannel。
-  提示：ServerSocketChanne 类似 ServerSocket , SocketChannel 类似 Socket
+
+* ServerSocketChannel：可以监听新进来的 TCP 连接，对每一个新进来的连接都会创建一个 SocketChannel
+  
+  提示：ServerSocketChanne 类似 ServerSocket、SocketChannel 类似 Socket
+  
+  
 
 
 
@@ -14999,7 +15005,7 @@ Channel 实现类：
 * 通过通道的静态方法 `open()` 打开并返回指定通道
 * 使用 Files 类的静态方法 `newByteChannel()` 获取字节通道
 
-Channel 基本操作：
+Channel 基本操作：**读写都是相对于内存来看，也就是缓冲区**
 
 | 方法                                       | 说明                                                     |
 | ------------------------------------------ | -------------------------------------------------------- |
@@ -15011,7 +15017,13 @@ Channel 基本操作：
 | FileChannel position(long newPosition)     | 设置此通道的文件位置                                     |
 | public abstract long size()                | 返回此通道的文件的当前大小                               |
 
-**读写都是相对于内存来看，也就是缓冲区**
+**SelectableChannel 的操作 API**：
+
+| 方法                                                     | 说明                                                         |
+| -------------------------------------------------------- | ------------------------------------------------------------ |
+| SocketChannel accept()                                   | 如果通道处于非阻塞模式，没有请求连接时此方法将立即返回 NULL，否则将阻塞直到有新的连接或发生 I/O 错误，**通过该方法返回的套接字通道将处于阻塞模式** |
+| SelectionKey register(Selector sel, int ops)             | 将通道注册到选择器上，并指定监听事件                         |
+| SelectionKey register(Selector sel, int ops, Object att) | 将通道注册到选择器上，并在当前通道绑定一个附件对象，Object 代表可以是任何类型 |
 
 
 
@@ -15225,7 +15237,7 @@ public class ChannelTest {
   * 连接 : SelectionKey.OP_CONNECT （8）
   * 接收 : SelectionKey.OP_ACCEPT （16）
   * 若不止监听一个事件，使用位或操作符连接：`int interest = SelectionKey.OP_READ | SelectionKey.OP_WRITE`
-* 参数三：**关联一个附件**，可以是任何对象
+* 参数三：可以关联一个附件，可以是任何对象
 
 **Selector API**：
 

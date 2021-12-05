@@ -4,7 +4,7 @@
 
 ### 概述
 
-HTML（超文本标记语言—HyperText Markup Language）是构成 Web 世界的一砖一瓦。它是一种用来告知浏览器如何组织页面的标记语言。
+HTML（超文本标记语言—HyperText Markup Language）是构成 Web 世界的基础，是一种用来告知浏览器如何组织页面的标记语言
 
 * 超文本 Hypertext，是指连接单个或者多个网站间的网页的链接。通过链接，就能访问互联网中的内容
 
@@ -2479,10 +2479,10 @@ Web，在计算机领域指网络。像我们接触的`WWW`，它是由3个单�
 
 | 服务器名称  | 说明                                                  |
 | ----------- | ----------------------------------------------------- |
-| weblogic    | 实现了javaEE规范，重量级服务器，又称为javaEE容器      |
-| websphereAS | 实现了javaEE规范，重量级服务器。                      |
-| JBOSSAS     | 实现了JavaEE规范，重量级服务器。免费的。              |
-| Tomcat      | 实现了jsp/servlet规范，是一个轻量级服务器，开源免费。 |
+| weblogic    | 实现了 JavaEE 规范，重量级服务器，又称为 JavaEE 容器  |
+| websphereAS | 实现了 JavaEE 规范，重量级服务器。                    |
+| JBOSSAS     | 实现了 JavaEE 规范，重量级服务器，免费                |
+| Tomcat      | 实现了 jsp/servlet 规范，是一个轻量级服务器，开源免费 |
 
 
 
@@ -2646,6 +2646,160 @@ Run -> Edit Configurations -> Templates -> Tomcat Server -> Local
 
 
 
+****
+
+
+
+### 执行原理
+
+#### 整体架构
+
+Tomcat 核心组件架构图如下所示：
+
+![](https://gitee.com/seazean/images/raw/master/Web/Tomcat-核心组件架构图.png)
+
+组件介绍：
+
+- GlobalNamingResources：实现 JNDI，指定一些资源的配置信息
+- Server：Tomcat 是一个 Servlet 容器，一个 Tomcat 对应一个 Server，一个 Server 可以包含多个 Service
+- Service：核心服务是 Catalina，用来对请求进行处理，一个 Service 包含多个 Connector 和一个 Container
+- Connector：连接器，负责处理客户端请求，解析不同协议及 I/O 方式
+- Executor：线程池
+- Container：容易包含 Engine，Host，Context，Wrapper 等组件
+- Engine：服务交给引擎处理请求，Container 容器中顶层的容器对象，一个 Engine 可以包含多个 Host 主机
+- Host：Engine 容器的子容器，一个 Host 对应一个网络域名，一个 Host 包含多个 Context
+- Context：Host 容器的子容器，表示一个 Web 应用
+- Wrapper：Tomcat 中的最小容器单元，表示 Web 应用中的 Servlet
+
+核心类库：
+
+* Coyote：Tomcat 连接器的名称，封装了底层的网络通信，为 Catalina 容器提供了统一的接口，使容器与具体的协议以及 I/O 解耦
+* EndPoint：Coyote 通信端点，即通信监听的接口，是 Socket 接收和发送处理器，是对传输层的抽象，用来实现 TCP/IP 协议
+* Processor ： Coyote 协议处理接口，用来实现 HTTP 协议，Processor 接收来自 EndPoint 的 Socket，读取字节流解析成 Tomcat 的 Request 和 Response 对象，并通过 Adapter 将其提交到容器处理，Processor 是对应用层协议的抽象
+* CoyoteAdapter：适配器，连接器调用 CoyoteAdapter 的 sevice 方法，传入的是 TomcatRequest 对象，CoyoteAdapter 负责将TomcatRequest 转成 ServletRequest，再调用容器的 service 方法
+
+
+
+参考文章：https://www.jianshu.com/p/7c9401b85704
+
+参考文章：https://www.yuque.com/yinhuidong/yu877c/ktq82e
+
+
+
+***
+
+
+
+#### 启动过程
+
+Tomcat 的启动入口是 Bootstrap#main 函数，首先通过调用 `bootstrap.init()` 初始化相关组件：
+
+* `initClassLoaders()`：初始化三个类加载器，commonLoader 的父类加载器是启动类加载器
+* `Thread.currentThread().setContextClassLoader(catalinaLoader)`：自定义类加载器加载 Catalina 类，**打破双亲委派**
+* `Object startupInstance = startupClass.getConstructor().newInstance()`：反射创建 Catalina 对象
+* `method.invoke(startupInstance, paramValues)`：反射调用方法，设置父类加载器是 sharedLoader
+* `catalinaDaemon = startupInstance`：引用 Catalina 对象
+
+`daemon.load(args)` 方法反射调用 Catalina 对象的 load 方法，对**服务器的组件进行初始化**，并绑定了 ServerSocket 的端口：
+
+* `parseServerXml(true)`：解析 XML 配置文件
+
+* `getServer().init()`：服务器执行初始化，采用责任链的执行方式
+
+  * `LifecycleBase.init()`：生命周期接口的初始化方法，开始链式调用
+
+  * `StandardServer.initInternal()`：Server 的初始化，遍历所有的 Service 进行初始化
+
+  * `StandardService.initInternal()`：Service 的初始化，对 Engine、Executor、listener、Connector 进行初始化
+
+  * `StandardEngine.initInternal()`：Engine 的初始化
+
+    * `getRealm()`：创建一个 Realm 对象
+    * `ContainerBase.initInternal()`：容器的初始化，设置处理容器内组件的启动和停止事件的线程池
+
+  * `Connector.initInternal()`：Connector 的初始化
+
+    ```java
+    public Connector() {
+        this("HTTP/1.1"); //默认无参构造方法，会创建出 Http11NioProtocol 的协议处理器
+    }
+    ```
+
+    * `adapter = new CoyoteAdapter(this)`：实例化 CoyoteAdapter 对象
+
+    * `protocolHandler.setAdapter(adapter)`：设置到 ProtocolHandler 协议处理器中
+
+    * `ProtocolHandler.init()`：协议处理器的初始化，底层调用 `AbstractProtocol#init` 方法
+
+      `endpoint.init()`：端口的初始化，底层调用 `AbstractEndpoint#init` 方法
+
+      `NioEndpoint.bind()`：绑定方法
+
+      * `initServerSocket()`：初始化 ServerSocket，以 NIO 的方式监听端口
+        * `serverSock = ServerSocketChannel.open()`：**NIO 的方式打开通道**
+        * `serverSock.bind(addr, getAcceptCount())`：通道绑定连接端口
+        * `serverSock.configureBlocking(true)`：切换为阻塞模式（没懂，为什么阻塞）
+      * `initialiseSsl()`：初始化 SSL 连接
+      * `selectorPool.open(getName())`：打开选择器，类似 NIO 的多路复用器
+
+初始化完所有的组件，调用 `daemon.start()` 进行**组件的启动**，底层反射调用 Catalina 对象的 start 方法：
+
+* `getServer().start()`：启动组件，也是责任链的模式
+
+  * `LifecycleBase.start()`：生命周期接口的初始化方法，开始链式调用
+
+  * `StandardServer.startInternal()`：Server 服务的启动
+
+    * `globalNamingResources.start()`：启动 JNDI 服务
+    * `for (Service service : services)`：遍历所有的 Service 进行启动
+
+  * `StandardService.startInternal()`：Service 的启动，对所有 Executor、listener、Connector 进行启
+
+  * `StandardEngine.startInternal()`：启动引擎，部署项目
+
+    * `ContainerBase.startInternal()`：容器的启动
+      * 启动集群、Realm 组件，并且创建子容器，提交给线程池
+      * `((Lifecycle) pipeline).start()`：遍历所有的管道进行启动
+        * `Valve current = first`：获取第一个阀门
+        * `((Lifecycle) current).start()`：启动阀门，底层 `ValveBase#startInternal` 中设置启动的状态
+        * `current = current.getNext()`：获取下一个阀门
+
+  * `Connector.startInternal()`：Connector 的初始化
+
+    * `protocolHandler.start()`：协议处理器的启动
+
+      `endpoint.start()`：端点启动
+
+      `NioEndpoint.startInternal()`：启动 NIO 的端点
+
+      * `createExecutor()`：创建 Worker 线程组，10 个线程，用来进行任务处理
+      * `initializeConnectionLatch()`：用来进行连接限流，**最大 8*1024 条连接**
+      * `poller = new Poller()`：**创建 Poller 对象**，开启了一个多路复用器 Selector
+      * `Thread pollerThread = new Thread(poller, getName() + "-ClientPoller")`：创建并启动 Poller 线程，Poller 实现了 Runnable 接口，是一个任务对象，**线程 start 后进入 Poller#run 方法**
+      * `pollerThread.setDaemon(true)`：设置为守护线程
+      * `startAcceptorThread()`：启动接收者线程
+        * `acceptor = new Acceptor<>(this)`：**创建 Acceptor 对象**
+        * `Thread t = new Thread(acceptor, threadName)`：创建并启动 Acceptor 接受者线程
+
+
+
+***
+
+
+
+#### 处理过程
+
+1) Acceptor 监听客户端套接字，每 50ms 调用一次 `serverSocket.accept`，获取 Socket 后把封装成 NioSocketWrapper（是 SocketWrapperBase 的子类），并设置为非阻塞模式，把 NioSocketWrapper 封装成 PollerEvent 放入同步队列中
+2) Poller 循环判断同步队列中是否有就绪的事件，如果有则通过 `selector.selectedKeys()` 获取就绪事件，获取 SocketChannel 中携带的 attachment（NioSocketWrapper），在 processKey 方法中根据事件类型进行 processSocket，将 Wrapper 对象封装成 SocketProcessor 对象，该对象是一个任务对象，提交到 Worker 线程池进行执行
+3) `SocketProcessorBase.run()` 加锁调用 `SocketProcessor#doRun`，保证线程安全，从协议处理器 ProtocolHandler 中获取 AbstractProtocol，然后**创建 Http11Processor 对象处理请求**
+4) `Http11Processor#service` 中调用 `CoyoteAdapter#service` ，把生成的 Tomcat 下的 Request 和 Response 对象通过方法 postParseRequest 匹配到对应的 Servlet 的请求响应，将请求传递到对应的 Engine 容器中调用 Pipeline，管道中包含若干个 Valve，执行完所有的 Valve 最后执行 StandardEngineValve，继续调用 Host 容器的 Pipeline，执行 Host 的 Valve，再传递给 Context 的 Pipeline，最后传递到 Wrapper 容器
+5) `StandardWrapperValve#invoke` 中创建了 Servlet 对象并执行初始化，并为当前请求准备一个 FilterChain 过滤器链执行 doFilter 方法，`ApplicationFilterChain#doFilter` 是一个**责任链的驱动方法**，通过调用 internalDoFilter 来获取过滤器链的下一个过滤器执行 doFilter，执行完所有的过滤器后执行 `servlet.service` 的方法
+6) 最后调用 HttpServlet#service()，根据请求的方法来调用 doGet、doPost 等，执行到自定义的业务方法
+
+
+
+
+
 ***
 
 
@@ -2659,9 +2813,7 @@ Socket 是使用 TCP/IP 或者 UDP 协议在服务器与客户端之间进行传
 - **Servlet 是使用 HTTP 协议在服务器与客户端之间通信的技术，是 Socket 的一种应用**
 - **HTTP 协议：是在 TCP/IP 协议之上进一步封装的一层协议，关注数据传输的格式是否规范，底层的数据传输还是运用了 Socket 和 TCP/IP**
 
-Tomcat 和 Servlet 的关系：
-
-Servlet 的运行环境叫做 Web 容器或 Servlet 服务器，**Tomcat 是 Web 应用服务器，是一个 Servlet/JSP 容器**。Tomcat 作为 Servlet 容器，负责处理客户请求，把请求传送给 Servlet，并将 Servlet 的响应传送回给客户。而 Servlet 是一种运行在支持Java语言的服务器上的组件，Servlet 最常见的用途是扩展 Java Web 服务器功能，提供非常安全的、可移植的、易于使用的 CGI 替代品
+Tomcat 和 Servlet 的关系：Servlet 的运行环境叫做 Web 容器或 Servlet 服务器，**Tomcat 是 Web 应用服务器，是一个 Servlet/JSP 容器**。Tomcat 作为 Servlet 容器，负责处理客户请求，把请求传送给 Servlet，并将 Servlet 的响应传送回给客户。而 Servlet 是一种运行在支持 Java 语言的服务器上的组件，Servlet 用来扩展 Java Web 服务器功能，提供非常安全的、可移植的、易于使用的 CGI 替代品
 ![](https://gitee.com/seazean/images/raw/master/Web/Tomcat与Servlet的关系.png)
 
 
@@ -5337,11 +5489,11 @@ JSTL：Java Server Pages Standarded Tag Library，JSP中标准标签库。
 
 ### 过滤器
 
-Filter：过滤器，是JavaWeb三大组件之一，另外两个是Servlet和Listener。
+Filter：过滤器，是 JavaWeb 三大组件之一，另外两个是 Servlet 和 Listener
 
-工作流程：在程序访问服务器资源时，当一个请求到来，服务器首先判断是否有过滤器与去请求资源相关联，如果有，过滤器可以将请求拦截下来，完成一些特定的功能，再由过滤器决定是否交给请求资源。如果没有就直接请求资源，响应同理。
+工作流程：在程序访问服务器资源时，当一个请求到来，服务器首先判断是否有过滤器与去请求资源相关联，如果有过滤器可以将请求拦截下来，完成一些特定的功能，再由过滤器决定是否交给请求资源，如果没有就直接请求资源，响应同理
 
-作用：过滤器一般用于完成通用的操作，例如：登录验证、统一编码处理、敏感字符过滤等。
+作用：过滤器一般用于完成通用的操作，例如：登录验证、统一编码处理、敏感字符过滤等
 
 
 
@@ -5353,7 +5505,7 @@ Filter：过滤器，是JavaWeb三大组件之一，另外两个是Servlet和Lis
 
 #### Filter
 
-**Filter是一个接口，如果想实现过滤器的功能，必须实现该接口**
+Filter是一个接口，如果想实现过滤器的功能，必须实现该接口
 
 * 核心方法
 
@@ -5365,27 +5517,31 @@ Filter：过滤器，是JavaWeb三大组件之一，另外两个是Servlet和Lis
 
 * 配置方式
 
-  * 注解方式
+  注解方式
 
-    ```java
-    @WebFilter("/*")
-    ()内填拦截路径，/*代表全部路径
-    ```
+  ```java
+  @WebFilter("/*")
+  ()内填拦截路径，/*代表全部路径
+  ```
 
-  * 配置文件
+  配置文件
 
-    ```xml
-    <filter>
-        <filter-name>filterDemo01</filter-name>
-        <filter-class>filter.FilterDemo01</filter-class>
-    </filter>
-    <filter-mapping>
-        <filter-name>filterDemo01</filter-name>
-        <url-pattern>/*</url-pattern>
-    </filter-mapping>
-    ```
+  ```xml
+  <filter>
+      <filter-name>filterDemo01</filter-name>
+      <filter-class>filter.FilterDemo01</filter-class>
+  </filter>
+  <filter-mapping>
+      <filter-name>filterDemo01</filter-name>
+      <url-pattern>/*</url-pattern>
+  </filter-mapping>
+  ```
 
-    
+
+
+***
+
+
 
 #### FilterChain
 
@@ -5404,16 +5560,14 @@ Filter：过滤器，是JavaWeb三大组件之一，另外两个是Servlet和Lis
 
 FilterConfig 是一个接口，代表过滤器的配置对象，可以加载一些初始化参数
 
-* 核心方法：
+| 方法                                        | 作用                                         |
+| ------------------------------------------- | -------------------------------------------- |
+| String getFilterName()                      | 获取过滤器对象名称                           |
+| String getInitParameter(String name)        | 获取指定名称的初始化参数的值，不存在返回null |
+| Enumeration<String> getInitParameterNames() | 获取所有参数的名称                           |
+| ServletContext getServletContext()          | 获取应用上下文对象                           |
 
-  | 方法                                        | 作用                                         |
-  | ------------------------------------------- | -------------------------------------------- |
-  | String getFilterName()                      | 获取过滤器对象名称                           |
-  | String getInitParameter(String name)        | 获取指定名称的初始化参数的值，不存在返回null |
-  | Enumeration<String> getInitParameterNames() | 获取所有参数的名称                           |
-  | ServletContext getServletContext()          | 获取应用上下文对象                           |
 
-  
 
 
 
@@ -5429,7 +5583,7 @@ FilterConfig 是一个接口，代表过滤器的配置对象，可以加载一�
 
 过滤器放行之后执行完目标资源，仍会回到过滤器中
 
-* Filter代码：
+* Filter 代码：
 
   ```java
   @WebFilter("/*")
@@ -5446,7 +5600,7 @@ FilterConfig 是一个接口，代表过滤器的配置对象，可以加载一�
   }
   ```
 
-* Servlet代码：
+* Servlet 代码：
 
   ```java
   @WebServlet("/servletDemo01")
@@ -5584,7 +5738,7 @@ FilterConfig 是一个接口，代表过滤器的配置对象，可以加载一�
   
   ```
 
-* Servlet代码：`System.out.println("servletDemo03执行了...");`
+* Servlet 代码：`System.out.println("servletDemo03执行了...");`
 
 * 控制台输出：
 
