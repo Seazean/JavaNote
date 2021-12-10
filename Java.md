@@ -3867,11 +3867,12 @@ Collection 集合的遍历方式有三种:
 集合可以直接输出内容，因为底层重写了 toString() 方法
 
 1. 迭代器
-   `public Iterator iterator()`：获取集合对应的迭代器，用来遍历集合中的元素的
-   `E next()`：获取下一个元素值
-   `boolean hasNext()`：判断是否有下一个元素，有返回true ,反之
-   `default void remove()`：从底层集合中删除此迭代器返回的最后一个元素，这种方法只能在每次调用next() 时调用一次
-
+   
+   * `public Iterator iterator()`：获取集合对应的迭代器，用来遍历集合中的元素的
+   * `E next()`：获取下一个元素值
+   * `boolean hasNext()`：判断是否有下一个元素，有返回 true ，反之返回 false
+   * `default void remove()`：从底层集合中删除此迭代器返回的最后一个元素，这种方法只能在每次调用 next() 时调用一次
+   
 2. 增强 for 循环：可以遍历集合或者数组，遍历集合实际上是迭代器遍历的简化写法
 
    ```java
@@ -3925,11 +3926,11 @@ Collection 集合的遍历方式有三种:
 
 ##### 概述
 
-List集合继承了Collection集合全部的功能。
+List 集合继承了 Collection 集合全部的功能。
 
-List系列集合有索引，所以多了很多按照索引操作元素的功能：for循环遍历（4种遍历）
+List 系列集合有索引，所以多了很多按照索引操作元素的功能：for 循环遍历（4 种遍历）
 
-List系列集合：添加的元素是有序，可重复，有索引。
+List 系列集合：添加的元素是有序，可重复，有索引。
 
 * ArrayList：添加的元素是有序，可重复，有索引。
 
@@ -4141,7 +4142,7 @@ public class ArrayList<E> extends AbstractList<E>
           if (modCount != expectedModCount)
               throw new ConcurrentModificationException();
       }
-  	// 允许删除操作
+  	// 【允许删除操作】
       public void remove() {
           // ...
           checkForComodification();
@@ -4162,7 +4163,7 @@ public class ArrayList<E> extends AbstractList<E>
 
 ##### Vector
 
-同步：Vector的实现与 ArrayList 类似，但是方法上使用了 synchronized 进行同步
+同步：Vector 的实现与 ArrayList 类似，但是方法上使用了 synchronized 进行同步
 
 构造：默认长度为 10 的数组
 
@@ -4284,8 +4285,8 @@ LinkedList 是一个实现了 List 接口的**双端链表**，支持高效的�
 
 * 获取元素：`get(int index)` 根据指定索引返回数据
 
-  * 获取头节点 (index=0)：getFirst()、element()、peek()、peekFirst() 这四个获取头结点方法的区别在于对链表为空时的处理，是抛出异常还是返回null，其中**getFirst() 和element()** 方法将会在链表为空时，抛出异常
-  * 获取尾节点 (index=-1)：getLast() 方法在链表为空时，会抛出NoSuchElementException，而peekLast() 则不会，只会返回 null
+  * 获取头节点 (index=0)：getFirst()、element()、peek()、peekFirst() 这四个获取头结点方法的区别在于对链表为空时的处理，是抛出异常还是返回null，其中 **getFirst() 和 element()** 方法将会在链表为空时，抛出异常
+  * 获取尾节点 (index=-1)：getLast() 方法在链表为空时，抛出 NoSuchElementException，而 peekLast() 不会，只会返回 null
 
 * 删除元素：
 
@@ -4303,7 +4304,7 @@ LinkedList 是一个实现了 List 接口的**双端链表**，支持高效的�
    * LinkedList采 用链表存储，所以对于`add(E e)`方法的插入，删除元素不受元素位置的影响
 4. 是否支持快速随机访问：
    * LinkedList 不支持高效的随机元素访问，ArrayList 支持
-   * 快速随机访问就是通过元素的序号快速获取元素对象(对应于`get(int index)`方法)。
+   * 快速随机访问就是通过元素的序号快速获取元素对象(对应于 `get(int index)` 方法)
 5. 内存空间占用：
    * ArrayList 的空间浪费主要体现在在 list 列表的结尾会预留一定的容量空间
    * LinkedList 的空间花费则体现在它的每一个元素都需要消耗比 ArrayList更多的空间（因为要存放直接后继和直接前驱以及数据）
@@ -4347,7 +4348,7 @@ Set 系列集合：添加的元素是无序，不重复，无索引的
 
 **HashSet 底层就是基于 HashMap 实现，值是  PRESENT = new Object()**
 
-Set集合添加的元素是无序，不重复的。
+Set 集合添加的元素是无序，不重复的。
 
 * 是如何去重复的？
 

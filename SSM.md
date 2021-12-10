@@ -16,6 +16,8 @@ ORM（Object Relational Mapping）： 对象关系映射，指的是持久化数
 
 MyBatis 官网地址：http://www.mybatis.org/mybatis-3/
 
+参考视频：https://space.bilibili.com/37974444/
+
 
 
 ***
@@ -10091,7 +10093,7 @@ MVC（Model View Controller），一种用于设计创建Web应用程序表现�
 
   ![](https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-MVC功能图示.png)
 
-
+参考视频：https://space.bilibili.com/37974444/
 
 
 

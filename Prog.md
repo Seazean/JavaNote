@@ -8279,7 +8279,9 @@ public void lock() {
           } else {
               // 自旋到这，普通入队方式，【尾插法】
               node.prev = t;
+              // 【在设置完尾节点后，才更新的原始尾节点的后继节点，所以此时从前往后遍历会丢失尾节点】
               if (compareAndSetTail(t, node)) {
+                  //【此时 t.next  = null，并且这里已经 CAS 结束，线程并不是安全的】
                   t.next = node;
                   return t;	// 返回当前 node 的前驱节点
               }
@@ -8460,6 +8462,8 @@ Thread-0 释放锁，进入 release 流程
           LockSupport.unpark(s.thread);
   }
   ```
+
+  从后向前的原因：enq 方法中，节点是尾插法，首先赋值的是尾节点的前驱节点，此时前驱节点的 next 并没有指向尾节点，从前遍历会丢失节点
 
 * 唤醒的线程会从 park 位置开始执行，如果加锁成功（没有竞争），会设置
 
