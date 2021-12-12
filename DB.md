@@ -730,9 +730,9 @@ DDL 中的临时表 tmp_table 是在 Server 层创建的，Online DDL 中的临�
 
 
 
-
-
 参考文章：https://time.geekbang.org/column/article/72388
+
+
 
 
 
@@ -3858,7 +3858,7 @@ InnoDB 存储引擎中有页（Page）的概念，页是 MySQL 磁盘管理的�
 
 数据页物理结构，从上到下：
 
-* File Header：上一页和下一页的指针、该页的类型（索引页、数据页、日志页等）、**校验和**等信息
+* File Header：上一页和下一页的指针、该页的类型（索引页、数据页、日志页等）、**校验和**、LSN（最近一次修改当前页面时的系统 lsn 值，事务持久性部分详解）等信息
 * Page Header：记录状态信息
 * Infimum + Supremum：当前页的最小记录和最大记录（头尾指针），Infimum 所在分组只有一条记录，Supremum 所在分组可以有 1 ~ 8 条记录，剩余的分组可以有 4 ~ 8 条记录
 * User Records：存储数据的记录
@@ -4274,7 +4274,7 @@ Innodb_xxxx：这几个参数只是针对InnoDB 存储引擎的，累加的算�
 
 SQL 执行慢有两种情况：
 
-* 偶尔慢：DB 在刷新脏页
+* 偶尔慢：DB 在刷新脏页（学完事务就懂了）
   * redo log 写满了
   * 内存不够用，要从 LRU 链表中淘汰
   * MySQL 认为系统空闲的时候
@@ -4309,7 +4309,7 @@ SQL 执行慢有两种情况：
 
 * SHOW PROCESSLIST：**实时查看**当前 MySQL 在进行的连接线程，包括线程的状态、是否锁表、SQL 的执行情况，同时对一些锁表操作进行优化
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-SHOW PROCESSLIST命令.png)
+  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-SHOW_PROCESSLIST命令.png)
 
 
 
@@ -5272,10 +5272,13 @@ MyISAM 存储引擎使用 key_buffer 缓存索引块，加速 MyISAM 索引的�
 
 Buffer Pool 本质上是 InnoDB 向操作系统申请的一段连续的内存空间。InnoDB 的数据是按数据页为单位来读写，每个数据页的大小默认是 16KB。数据是存放在磁盘中，每次读写数据都需要进行磁盘 IO 将数据读入内存进行操作，效率会很低，所以提供了 Buffer Pool 来暂存这些数据页，缓存中的这些页又叫缓冲页
 
-工作流程：
+工作原理：
 
 * 从数据库读取数据时，会首先从缓存中读取，如果缓存中没有，则从磁盘读取后放入 Buffer Pool
+
 * 向数据库写入数据时，会首先写入缓存，缓存中修改的数据会**定期刷新**到磁盘，这一过程称为刷脏
+
+  **唯一索引的更新不能使用 Buffer**，一般只有普通索引可以使用，直接写入 Buffer 就结束
 
 Buffer Pool 中每个缓冲页都有对应的控制信息，包括表空间编号、页号、偏移量、链表信息等，控制信息存放在占用的内存称为控制块，控制块与缓冲页是一一对应的，但并不是物理上相连的，都在缓冲池中
 
@@ -5283,6 +5286,8 @@ MySQL 提供了缓冲页的快速查找方式：**哈希表**，使用表空间�
 
 * 如果不存在对应的缓存页，就从 free 链表中选一个空闲缓冲页，把磁盘中的对应页加载到该位置
 * 如果存在对应的缓存页，直接获取使用
+
+
 
 
 
@@ -5298,7 +5303,7 @@ MySQL 启动时完成对 Buffer Pool 的初始化，先向操作系统申请连�
 
 <img src="https://gitee.com/seazean/images/raw/master/DB/MySQL-空闲链表.png" style="zoom: 50%;" />
 
-基节点：是一块单独申请的内存空间（占 40 字节），并不在Buffer Pool的那一大片连续内存空间里
+基节点：是一块单独申请的内存空间（占 40 字节），并不在 Buffer Pool的那一大片连续内存空间里
 
 磁盘加载页的流程：
 
@@ -5318,7 +5323,7 @@ MySQL 启动时完成对 Buffer Pool 的初始化，先向操作系统申请连�
 
 ##### Flush 链表
 
-Flush 链表是一个用来**存储脏页**的链表，对于已经修改过的缓冲脏页，出于性能考虑并不是直接更新到磁盘，而是在未来的某个时间进行刷脏，所以需要暂时存储所有的脏页
+Flush 链表是一个用来**存储脏页**的链表，对于已经修改过的缓冲脏页，第一次修改后加入到**链表头部**，以后每次修改都不会重新加入，只修改部分控制信息，出于性能考虑并不是直接更新到磁盘，而是在未来的某个时间进行刷脏
 
 <img src="https://gitee.com/seazean/images/raw/master/DB/MySQL-脏页链表.png" style="zoom:50%;" />
 
@@ -5348,9 +5353,7 @@ Flush 链表是一个用来**存储脏页**的链表，对于已经修改过的�
 当 Buffer Pool 中没有空闲缓冲页时就需要淘汰掉最近最少使用的部分缓冲页，为了实现这个功能，MySQL 创建了一个 LRU 链表，当访问某个页时：
 
 * 如果该页不在 Buffer Pool 中，把该页从磁盘加载进来后会将该缓冲页对应的控制块作为节点放入 **LRU 链表的头部**
-* 如果该页在 Buffer Pool 中，则直接把该页对应的控制块移动到 LRU 链表的头部
-
-这样操作后 LRU 链表的尾部就是最近最少使用的缓冲页
+* 如果该页在 Buffer Pool 中，则直接把该页对应的控制块移动到 LRU 链表的头部，所以 LRU 链表尾部就是最近最少使用的缓冲页
 
 MySQL 基于局部性原理提供了预读功能：
 
@@ -5366,8 +5369,6 @@ MySQL 基于局部性原理提供了预读功能：
 
 * 当对 old 区的数据进行访问时，会在控制块记录下访问时间，等待后续的访问时间与第一次访问的时间是否在某个时间间隔内，通过系统变量 `innodb_old_blocks_time` 指定时间间隔，默认 1000ms，成立就移动到 young 区的链表头部
 * `innodb_old_blocks_time` 为 0 时，每次访问一个页面都会放入 young 区的头部
-
-
 
 
 
@@ -5405,11 +5406,13 @@ SHOW ENGINE INNODB STATUS\G
   innodb_log_buffer_size=10M
   ```
 
+Buffer Pool 中有一块内存叫 Change Buffer 用来对增删改操作提供缓存，可以通过参数 innodb_change_buffer_max_size 来动态设置，设置为 50 时表示 Change Buffer 的大小最多只能占用 Buffer Pool 的 50%
+
 在多线程下，访问 Buffer Pool 中的各种链表都需要加锁，所以将 Buffer Pool 拆成若干个小实例，每个实例独立管理内存空间和各种链表（类似 ThreadLocal），多线程访问各实例互不影响，提高了并发能力
 
 * 在系统启动时设置系统变量 `innodb_buffer_pool_instance` 可以指定 Buffer Pool 实例的个数，但是当 Buffer Pool 小于 1GB 时，设置多个实例时无效的
 
-MySQL 5.7.5 之前 `innodb_buffer_pool_size` 只支持在系统启动时修改，现在已经支持运行时修改 Buffer Pool 的大小，但是每次调整参数都会重新向操作系统申请一块连续的内存空间，将旧的缓冲池的内容拷贝到新空间非常耗时，所以 MySQL 开始以一个 chunk 为单位向操作系统申请内存，所以一个 Buffer Pool 实例由多个 chunk 组成
+MySQL 5.7.5 之前 `innodb_buffer_pool_size` 只支持在系统启动时修改，现在已经支持运行时修改 Buffer Pool 的大小，但是每次调整参数都会重新向操作系统申请一块连续的内存空间，**将旧的缓冲池的内容拷贝到新空间**非常耗时，所以 MySQL 开始以一个 chunk 为单位向操作系统申请内存，所以一个 Buffer Pool 实例由多个 chunk 组成
 
 * 指定系统变量 `innodb_buffer_pool_chunk_size` 来改变 chunk 的大小，只能在启动时修改，运行中不能修改，而且该变量并不包含缓冲页的控制块的内存大小
 * `innodb_buffer_pool_size` 必须是 `innodb_buffer_pool_chunk_size × innodb_buffer_pool_instance` 的倍数，默认值是 `128M × 16 = 2G`，Buffer Pool 必须是 2G 的整数倍，如果指定 5G，会自动调整成 6G
@@ -5466,9 +5469,15 @@ MySQL Server 是多线程结构，包括后台线程和客户服务线程。多�
 
 ## 事务机制
 
-### 管理事务
+### 基本介绍
 
-事务（Transaction）是访问和更新数据库的程序执行单元；事务中可能包含一个或多个 sql 语句，这些语句要么都执行，要么都不执行。作为一个关系型数据库，MySQL 支持事务。
+事务（Transaction）是访问和更新数据库的程序执行单元；事务中可能包含一个或多个 SQL 语句，这些语句要么都执行，要么都不执行，作为一个关系型数据库，MySQL 支持事务。
+
+单元中的每条 SQL 语句都相互依赖，形成一个整体
+
+* 如果某条 SQL 语句执行失败或者出现错误，那么整个单元就会回滚，撤回到事务最初的状态
+
+* 如果单元中所有的 SQL 语句都执行成功，则事务就顺利执行
 
 事务的四大特征：ACID
 
@@ -5477,13 +5486,27 @@ MySQL Server 是多线程结构，包括后台线程和客户服务线程。多�
 - 隔离性 (isolaction)
 - 持久性 (durability)
 
-单元中的每条 SQL 语句都相互依赖，形成一个整体
+事务的几种状态：
 
-* 如果某条 SQL 语句执行失败或者出现错误，那么整个单元就会回滚，撤回到事务最初的状态
+* 活动的（active）：事务对应的数据库操作正在执行中
+* 部分提交的（partially committed）：事务的最后一个操作执行完，但是内存还没刷新至磁盘
+* 失败的（failed）：当事务处于活动状态或部分提交状态时，如果数据库遇到了错误或刷脏失败，或者用户主动停止当前的事务
+* 中止的（aborted）：失败状态的事务回滚完成后的状态
+* 提交的（committed）：当处于部分提交状态的事务刷脏成功，就处于提交状态
 
-* 如果单元中所有的 SQL 语句都执行成功，则事务就顺利执行
 
-管理事务的三个步骤
+
+
+
+***
+
+
+
+### 事务管理
+
+#### 基本操作
+
+事务管理的三个步骤
 
 1. 开启事务：记录回滚点，并通知服务器，将要执行一组操作，要么同时成功、要么同时失败
 
@@ -5497,13 +5520,14 @@ MySQL Server 是多线程结构，包括后台线程和客户服务线程。多�
 
 事务操作：
 
-* 开启事务
+* 显式开启事务
 
   ```mysql
-  START TRANSACTION;
+  START TRANSACTION [READ ONLY|READ WRITE|WITH CONSISTENT SNAPSHOT]; #可以跟一个或多个状态，最后的是一致性读
+  BEGIN [WORK];
   ```
 
-* 回滚事务
+* 回滚事务，用来手动中止事务
 
   ```mysql
   ROLLBACK;
@@ -5515,38 +5539,13 @@ MySQL Server 是多线程结构，包括后台线程和客户服务线程。多�
   COMMIT;
   ```
 
-  工作原理：
+* 保存点：在事务的执行过程中设置的还原点，调用 ROLLBACK 时可以指定回滚到哪个点
 
-  * 自动提交模式下，如果没有 start transaction 显式地开始一个事务，那么**每个 SQL 语句都会被当做一个事务执行提交操作**
-  * 手动提交模式下，所有的 SQL 语句都在一个事务中，直到执行了 commit 或 rollback
-
-  * 存在一些特殊的命令，在事务中执行了这些命令会马上强制执行 COMMIT 提交事务，如 DDL 语句 (create/drop/alter/table)、lock tables 语句等
-
-  提交方式语法：
-
-  - 查看事务提交方式
-
-    ```mysql
-    SELECT @@AUTOCOMMIT;  -- 1 代表自动提交    0 代表手动提交
-    ```
-
-  - 修改事务提交方式
-
-    ```mysql
-    SET @@AUTOCOMMIT=数字;	-- 系统
-    SET AUTOCOMMIT=数字;		-- 会话
-    ```
-
-  - **系统变量的操作**：
-
-    ```sql
-    SET [GLOBAL|SESSION] 变量名 = 值;					-- 默认是会话
-    SET @@[(GLOBAL|SESSION).]变量名 = 值;				-- 默认是系统
-    ```
-
-    ```sql
-    SHOW [GLOBAL|SESSION] VARIABLES [LIKE '变量%'];	  -- 默认查看会话内系统变量值
-    ```
+  ```mysql
+  SAVEPOINT point_name;						#设置保存点
+  RELEASE point_name							#删除保存点
+  ROLLBACK [WORK] TO [SAVEPOINT] point_name	#回滚至某个保存点，不填默认回滚到事务执行之前的状态
+  ```
 
 * 操作演示
 
@@ -5566,6 +5565,48 @@ MySQL Server 是多线程结构，包括后台线程和客户服务线程。多�
   -- 提交事务(没出现问题)
   COMMIT;
   ```
+
+
+
+***
+
+
+
+#### 提交方式
+
+提交方式的相关语法：
+
+- 查看事务提交方式
+
+  ```mysql
+  SELECT @@AUTOCOMMIT;  -- 1 代表自动提交    0 代表手动提交
+  ```
+
+- 修改事务提交方式
+
+  ```mysql
+  SET @@AUTOCOMMIT=数字;	-- 系统
+  SET AUTOCOMMIT=数字;		-- 会话
+  ```
+
+- **系统变量的操作**：
+
+  ```sql
+  SET [GLOBAL|SESSION] 变量名 = 值;					-- 默认是会话
+  SET @@[(GLOBAL|SESSION).]变量名 = 值;				-- 默认是系统
+  ```
+
+  ```sql
+  SHOW [GLOBAL|SESSION] VARIABLES [LIKE '变量%'];	  -- 默认查看会话内系统变量值
+  ```
+
+工作原理：
+
+* 自动提交：如果没有 START TRANSACTION 显式地开始一个事务，那么**每条 SQL 语句都会被当做一个事务执行提交操作**；显式开启事务后，会在本次事务结束（提交或回滚）前暂时关闭自动提交
+* 手动提交：不需要显式的开启事务，所有的 SQL 语句都在一个事务中，直到执行了提交或回滚，然后进入下一个事务
+* 隐式提交：存在一些特殊的命令，在事务中执行了这些命令会马上强制执行 COMMIT 提交事务
+  * DDL 语句 (CREATE/DROP/ALTER)、LOCK TABLES 语句、LOAD DATA 导入数据语句、主从复制语句等
+  * 当一个事务还没提交或回滚，显式的开启一个事务会隐式的提交上一个事务
 
 
 
@@ -5898,58 +5939,59 @@ RC、RR 级别下的 InnoDB 快照读区别
 
 ### 持久特性
 
-#### 重做日志
-
-
-
-
-
-
-
-***
-
-
-
-#### 实现原理
-
-##### 数据恢复
+#### 持久方式
 
 持久性是指一个事务一旦被提交了，那么对数据库中数据的改变就是永久性的，接下来的其他操作或故障不应该对其有任何影响。
 
-Buffer Pool 是一片内存空间，可以通过 innodb_buffer_pool_size 来控制 Buffer Pool 的大小（内存优化部分会详解参数）
+Buffer Pool 的使用提高了读写数据的效率，但是如果 MySQL 宕机，此时 Buffer Pool 中修改的数据还没有刷新到磁盘，就会导致数据的丢失，事务的持久性无法保证，所以引入了 redo log 日志：
 
-* Change Buffer 是 Buffer Pool 里的内存，不能无限增大，用来对增删改操作提供缓存
-* Change Buffer 的大小可以通过参数 innodb_change_buffer_max_size 来动态设置，设置为 50 时表示 Change Buffer 的大小最多只能占用 Buffer Pool 的 50%
-* 补充知识：**唯一索引的更新不能使用 Buffer**，一般只有普通索引可以使用，直接写入 Buffer 就结束
+* redo log **记录数据页的物理修改**，而不是某一行或某几行的修改，用来恢复**提交后**的数据页，只能恢复到最后一次提交的位置
 
-Buffer Pool 的使用提高了读写数据的效率，但是也带了新的问题：如果 MySQL 宕机，此时 Buffer Pool 中修改的数据还没有刷新到磁盘，就会导致数据的丢失，事务的持久性无法保证，所以引入 redo log
+* redo log 采用的是 WAL（Write-ahead logging，**预写式日志**），所有修改要先写入日志，再更新到磁盘，保证了数据不会因 MySQL 宕机而丢失，从而满足了持久性要求
 
-* 当数据修改时，先修改 Change Buffer 中的数据，然后在 redo log buffer 记录这次操作
-* 如果 MySQL 宕机，InnoDB 判断一个数据页在崩溃恢复时丢失了更新，就会将它读到内存，然后根据 redo log 内容更新内存，更新完成后，内存页变成脏页，然后进行刷脏（buffer pool 的任务）
+工作过程：MySQL 发生了宕机，InnoDB 会判断一个数据页在崩溃恢复时丢失了更新，就会将它读到内存，然后根据 redo log 内容更新内存，更新完成后，内存页变成脏页，然后进行刷脏
 
-redo log **记录数据页的物理修改**，而不是某一行或某几行的修改，用来恢复提交后的物理数据页，且只能恢复到最后一次提交的位置
+缓冲池的**刷脏策略**：
 
-redo log 采用的是 WAL（Write-ahead logging，**预写式日志**），所有修改要先写入日志，再更新到磁盘，保证了数据不会因 MySQL 宕机而丢失，从而满足了持久性要求
+* redo log 文件是固定大小的，如果写满了就要擦除以前的记录，在擦除之前需要把旧记录更新到磁盘中的数据文件中
+* Buffer Pool 内存不足，需要淘汰部分数据页，如果淘汰的是脏页，就要先将脏页写到磁盘（要避免大事务）
+* 系统空闲时，后台线程会自动进行刷脏（Flush 链表部分已经详解）
+* MySQL 正常关闭时，会把内存的脏页都刷新到磁盘上
+
+
+
+****
+
+
+
+#### 重做日志
+
+##### 缓冲区
+
+服务器启动时会向操作系统申请一片连续内存空间作为 redo log buffer（重做日志缓冲区），可以通过 `innodb_log_buffer_size` 系统变量指定 log buffer 的大小，默认是 16MB
+
+log buffer 被划分为若干 redo log block（块，类似数据页的概念），每个默认大小 512 字节，每个 block 由 12 字节的 log block head、496 字节的 log block body、4 字节的 log block trailer 组成
+
+补充知识：MySQL 规定对底层页面的一次原子访问称为一个 Mini-Transaction（MTR），比如在 B+ 树上插入一条数据就算一个 MTR
+
+* 当数据修改时，先修改 Change Buffer 中的数据，然后在 redo log buffer 记录这次操作，写入 log buffer 的过程是顺序写入的（先写入前面的 block，写满后继续写下一个）
+* log buffer 中有一个指针 buf_free，来标识该位置之前都是填满的 block，该位置之后都是空闲区域（碰撞指针）
+* 一个事务包含若干个 MTR，一个 MTR 对应一组若干条 redo log，一组 redo log 是不可分割的，所以并不是每生成一条 redo 日志就将其插入到 log buffer 中，而是一个 MTR 结束后**将一组 redo 日志写入 log buffer**，在进行数据恢复时把这一组 redo log 当作一个不可分割的整体处理
 
 redo log 也需要在事务提交时将日志写入磁盘，但是比将内存中的 Buffer Pool 修改的数据写入磁盘的速度快：
 
 * 刷脏是随机 IO，因为每次修改的数据位置随机，但写 redo log 是尾部追加操作，属于顺序 IO
 * 刷脏是以数据页（Page）为单位的，一个页上的一个小修改都要整页写入，而 redo log 中只包含真正需要写入的部分，减少无效 IO
 
-InnoDB 引擎会在适当的时候，把内存中 redo log buffer 持久化到磁盘，具体的刷盘策略：
+InnoDB 引擎会在适当的时候，把内存中 redo log buffer 持久化到磁盘，具体的**刷盘策略**：
 
 * 通过修改参数 `innodb_flush_log_at_trx_commit` 设置：
-  * 0：表示当提交事务时，并不将缓冲区的 redo 日志写入磁盘，而是等待主线程每秒刷新一次
-  * 1：在事务提交时将缓冲区的 redo 日志**同步写入**到磁盘，保证一定会写入成功
-  * 2：在事务提交时将缓冲区的 redo 日志异步写入到磁盘，不能保证提交时肯定会写入，只是有这个动作
-* 如果写入 redo log buffer 的日志已经占据了 redo log buffer 总容量的一半了，此时就会刷入到磁盘文件，这时会影响执行效率，所以开发中应该**避免大事务**
-
-刷脏策略：
-
-* redo log 文件是固定大小的，如果写满了就要擦除以前的记录，在擦除之前需要把旧记录更新到磁盘中的数据文件中
-* Buffer Pool 内存不足，需要淘汰部分数据页，如果淘汰的是脏页，就要先将脏页写到磁盘（大事务）
-* 系统空闲时，后台线程会自动进行刷脏
-* MySQL 正常关闭时，会把内存的脏页都 flush 到磁盘上
+  * 0：表示当提交事务时，并不将缓冲区的 redo 日志写入磁盘，而是等待后台线程每秒刷新一次
+  * 1：在事务提交时将缓冲区的 redo 日志**同步写入**到磁盘，保证一定会写入成功（默认值）
+  * 2：在事务提交时将缓冲区的 redo 日志异步写入到磁盘，不能保证提交时肯定会写入，只是有这个动作。已经写入到操作系统的缓存，如果操作系统没有宕机而 MySQL 宕机，也是可以恢复数据的
+* 写入 redo log buffer 的日志超过了总容量的一半，就会将日志刷入到磁盘文件，这会影响执行效率，所以开发中应**避免大事务**
+* 服务器关闭时
+* checkpoint 时（下小节详解）
 
 
 
@@ -5957,7 +5999,60 @@ InnoDB 引擎会在适当的时候，把内存中 redo log buffer 持久化到�
 
 
 
-##### 工作流程
+##### 磁盘文件
+
+redo 存储在磁盘中的日志文件是被**循环使用**的，redo 日志文件组中每个文件大小一样格式一样，组成结构：前 2048 个字节（前 4 个 block）用来存储一些管理信息，以后的存储 log buffer 中的 block 镜像
+
+注意：block 并不代表一组 redo log，一组日志可能占用不到一个 block 或者几个 block，依赖 MTR 的大小
+
+磁盘存储 redo log 的文件目录通过 `innodb_log_group_home_dir` 指定，默认是当前数据目录，文件大小：
+
+* 通过两个参数调节：`innodb_log_file_size` 文件大小默认 48M，`innodb_log_files_in_group` 文件个数默认 2 最大 100
+* 服务器启动后磁盘空间不变，所以采用循环写数据的方式，写完尾部重新写头部，所以要确保头部 log 对应的修改已经持久化到磁盘
+
+lsn (log sequence number) 代表已经写入的 redo 日志量、flushed_to_disk_lsn 指刷新到磁盘中的 redo 日志量，两者都是**全局变量**，如果两者的值相同，说明 log buffer 中所有的 redo 日志都已经持久化到磁盘
+
+MTR 的执行过程中修改过的页对应的控制块会加到 Buffer Pool 的 flush 链表中，链表中脏页是按照第一次修改的时间进行排序的（头插），控制块中有两个指针用来记录脏页被修改的时间：
+
+* oldest_modification：第一次修改 Buffer Pool 中某个缓冲页时，将修改该页的 MTR **开始时**对应的 lsn 值写入这个属性，所以链表页是以该值进行排序的
+* newest_modification：每次修改页面，都将 MTR **结束时**对应的 lsn 值写入这个属性，所以是该页面最后一次修改后对应的 lsn 值
+
+全局变量 checkpoint_lsn 表示当前系统中可以被覆盖的 redo 日志量，当 redo 日志对应的脏页已经被刷新到磁盘后就可以被覆盖重用，此时执行一次 checkpoint 来更新 checkpoint_lsn 的值存入管理信息，刷脏和执行一次 checkpoint并不是同一个线程
+
+使用命令可以查看当前 InnoDB 存储引擎各种 lsn 的值：
+
+```mysql
+SHOW ENGINE INNODB STATUS\G
+```
+
+
+
+****
+
+
+
+##### 崩溃恢复
+
+恢复的起点：在从 redo 日志文件组的管理信息中获取最近发生 checkpoint 的信息，从 checkpoint_lsn 对应的日志文件开始恢复
+
+恢复的终点：扫描日志文件的 block，block 的头部记录着当前 block 使用了多少字节，填满的 block 总是 512 字节， 如果某个 block 不是 512 字节，说明该 block 就是需要恢复的最后一个 block
+
+恢复的过程：按照 redo log 依次执行恢复数据，优化方式
+
+* 使用哈希表：根据 redo log 的 space ID 和 page number 属性计算出哈希值，将对同一页面的修改放入同一个槽里，可以一次性完成对某页的恢复，**避免了随机 IO**
+* 跳过已经刷新到磁盘中的页面：数据页的 File Header 中的 FILE_PAGE_LSN 属性（类似 newest_modification）表示最近一次修改页面时的 lsn 值，如果在 checkpoint 后，数据页被刷新到磁盘中，那么该页 lsn 属性肯定大于 checkpoint_lsn 
+
+
+
+参考书籍：https://book.douban.com/subject/35231266/
+
+
+
+***
+
+
+
+#### 工作流程
 
 MySQL 中还存在 binlog（二进制日志）也可以记录写操作并用于数据的恢复，**保证数据不丢失**，二者的区别是：
 
