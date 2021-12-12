@@ -650,6 +650,8 @@ EXPLAIN 执行计划在优化器阶段生成，如果 explain 的结果预估的
 
 ### 数据空间
 
+==TODO：本节知识是抄录自《MySQL 实战 45 讲》不作为重点学习目标，暂时记录方便后续有了新的理解后更新知识==
+
 #### 数据存储
 
 系统表空间是用来放系统信息的，比如数据字典什么的，对应的磁盘文件是 ibdata，数据表空间是一个个的表数据文件，对应的磁盘文件就是表名.ibd
@@ -5527,6 +5529,8 @@ MySQL Server 是多线程结构，包括后台线程和客户服务线程。多�
   BEGIN [WORK];
   ```
 
+  说明：只读事务不能对普通的表进行增删改操作，但是可以对临时表增删改
+
 * 回滚事务，用来手动中止事务
 
   ```mysql
@@ -5946,8 +5950,8 @@ RC、RR 级别下的 InnoDB 快照读区别
 Buffer Pool 的使用提高了读写数据的效率，但是如果 MySQL 宕机，此时 Buffer Pool 中修改的数据还没有刷新到磁盘，就会导致数据的丢失，事务的持久性无法保证，所以引入了 redo log 日志：
 
 * redo log **记录数据页的物理修改**，而不是某一行或某几行的修改，用来恢复**提交后**的数据页，只能恢复到最后一次提交的位置
-
 * redo log 采用的是 WAL（Write-ahead logging，**预写式日志**），所有修改要先写入日志，再更新到磁盘，保证了数据不会因 MySQL 宕机而丢失，从而满足了持久性要求
+* 简单的 redo log 是纯粹的物理日志，负责的 redo log 会存在物理日志和逻辑日志
 
 工作过程：MySQL 发生了宕机，InnoDB 会判断一个数据页在崩溃恢复时丢失了更新，就会将它读到内存，然后根据 redo log 内容更新内存，更新完成后，内存页变成脏页，然后进行刷脏
 
@@ -5966,17 +5970,17 @@ Buffer Pool 的使用提高了读写数据的效率，但是如果 MySQL 宕机�
 
 #### 重做日志
 
-##### 缓冲区
+##### 日志缓冲
 
 服务器启动时会向操作系统申请一片连续内存空间作为 redo log buffer（重做日志缓冲区），可以通过 `innodb_log_buffer_size` 系统变量指定 log buffer 的大小，默认是 16MB
 
-log buffer 被划分为若干 redo log block（块，类似数据页的概念），每个默认大小 512 字节，每个 block 由 12 字节的 log block head、496 字节的 log block body、4 字节的 log block trailer 组成
-
 补充知识：MySQL 规定对底层页面的一次原子访问称为一个 Mini-Transaction（MTR），比如在 B+ 树上插入一条数据就算一个 MTR
+
+log buffer 被划分为若干 redo log block（块，类似数据页的概念），每个默认大小 512 字节，每个 block 由 12 字节的 log block head、496 字节的 log block body、4 字节的 log block trailer 组成
 
 * 当数据修改时，先修改 Change Buffer 中的数据，然后在 redo log buffer 记录这次操作，写入 log buffer 的过程是顺序写入的（先写入前面的 block，写满后继续写下一个）
 * log buffer 中有一个指针 buf_free，来标识该位置之前都是填满的 block，该位置之后都是空闲区域（碰撞指针）
-* 一个事务包含若干个 MTR，一个 MTR 对应一组若干条 redo log，一组 redo log 是不可分割的，所以并不是每生成一条 redo 日志就将其插入到 log buffer 中，而是一个 MTR 结束后**将一组 redo 日志写入 log buffer**，在进行数据恢复时把这一组 redo log 当作一个不可分割的整体处理
+* 一个事务包含若干个 MTR，一个 MTR 对应一组若干条 redo log，一组 redo log 是不可分割的，所以并不是每生成一条 redo 日志就将其插入到 log buffer 中，而是一个 MTR 结束后**将一组 redo 日志写入 log buffer**，在进行数据恢复时也把这一组 redo log 当作一个不可分割的整体处理
 
 redo log 也需要在事务提交时将日志写入磁盘，但是比将内存中的 Buffer Pool 修改的数据写入磁盘的速度快：
 
@@ -5985,7 +5989,7 @@ redo log 也需要在事务提交时将日志写入磁盘，但是比将内存�
 
 InnoDB 引擎会在适当的时候，把内存中 redo log buffer 持久化到磁盘，具体的**刷盘策略**：
 
-* 通过修改参数 `innodb_flush_log_at_trx_commit` 设置：
+* 在事务提交时需要进行刷盘，通过修改参数 `innodb_flush_log_at_trx_commit` 设置：
   * 0：表示当提交事务时，并不将缓冲区的 redo 日志写入磁盘，而是等待后台线程每秒刷新一次
   * 1：在事务提交时将缓冲区的 redo 日志**同步写入**到磁盘，保证一定会写入成功（默认值）
   * 2：在事务提交时将缓冲区的 redo 日志异步写入到磁盘，不能保证提交时肯定会写入，只是有这个动作。已经写入到操作系统的缓存，如果操作系统没有宕机而 MySQL 宕机，也是可以恢复数据的
