@@ -19,7 +19,7 @@
 
 
 
-初学时笔记内容参考视频：https://www.bilibili.com/video/BV1TE41177mP，后随着学习的深入逐渐增加了很多知识
+初学时笔记内容参考视频：https://www.bilibili.com/video/BV1TE41177mP，随着学习的深入又增加了很多知识
 
 给初学者的一些个人建议：
 
