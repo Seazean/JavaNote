@@ -2324,7 +2324,7 @@ hashCode 的作用：
 
 * 浅拷贝 (shallowCopy)：**对基本数据类型进行值传递，对引用数据类型只是复制了引用**，被复制对象属性的所有的引用仍然指向原来的对象，简而言之就是增加了一个指针指向原来对象的内存地址
 
-  Java 中的复制方法基本都是浅克隆：Object.clone()、System.arraycopy()、Arrays.copyOf()
+  **Java 中的复制方法基本都是浅克隆**：Object.clone()、System.arraycopy()、Arrays.copyOf()
 
 * 深拷贝 (deepCopy)：对基本数据类型进行值传递，对引用数据类型是一个整个独立的对象拷贝，会拷贝所有的属性并指向的动态分配的内存，简而言之就是把所有属性复制到一个新的内存，增加一个指针指向新内存。所以使用深拷贝的情况下，释放内存的时候不会出现使用浅拷贝时释放同一块内存的错误
 
@@ -2334,9 +2334,9 @@ Cloneable 接口是一个标识性接口，即该接口不包含任何方法（�
 
 * Clone & Copy：`Student s = new Student`
 
-  `Student s1 = s`：只是 copy 了一下 reference，s 和 s1 指向内存中同一个 object，对对象的修改会影响对方
+  `Student s1 = s`：只是 copy 了一下 reference，s 和 s1 指向内存中同一个 Object，对对象的修改会影响对方
 
-  `Student s2 = s.clone()`：会生成一个新的Student对象，并且和s具有相同的属性值和方法
+  `Student s2 = s.clone()`：会生成一个新的 Student 对象，并且和s具有相同的属性值和方法
 
 * Shallow Clone & Deep Clone：
   
@@ -18365,7 +18365,7 @@ Java中 的 Object 类中提供了 `clone()` 方法来实现浅克隆，实现 C
   }
   ```
 
-  stu1 对象和 stu2 对象是同一个对象，将 stu2 对象中 name 属性改为李四，两个Citation对象中都是李四，这就是浅克隆的效果
+  stu1 对象和 stu2 对象是同一个对象，将 stu2 对象中 name 属性改为李四，两个 Citation 对象中都是李四，这就是浅克隆的效果
 
 * 序列化实现深克隆，或者重写克隆方法：
 
