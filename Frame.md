@@ -2505,7 +2505,7 @@ Pipeline 的存在，需要将 ByteBuf 传递给下一个 ChannelHandler，如�
   +--------+-------------------------------------------------+----------------+
   ```
 
-解决方法：通过调整系统的接受缓冲区的滑动窗口和 Netty 的接受缓冲区保证每条包只含有一条数据，滑动窗口大小，仅决定了 Netty 读取的**最小单位**，实际每次读取的一般是它的整数倍
+解决方法：通过调整系统的接受缓冲区的滑动窗口和 Netty 的接受缓冲区保证每条包只含有一条数据，滑动窗口的大小仅决定了 Netty 读取的**最小单位**，实际每次读取的一般是它的整数倍
 
 
 
@@ -2540,13 +2540,13 @@ public class HelloWorldClient {
 
 #### 固定长度
 
-服务器端加入定长解码器，每一条消息采用固定长度，缺点浪费空间
+服务器端加入定长解码器，每一条消息采用固定长度。如果是半包消息，会缓存半包消息并等待下个包到达之后进行拼包合并，直到读取一个完整的消息包；如果是粘包消息，空余的位置会进行补 0，会浪费空间
 
 ```java
 serverBootstrap.childHandler(new ChannelInitializer<SocketChannel>() {
     @Override
     protected void initChannel(SocketChannel ch) throws Exception {
-        ch.pipeline().addLast(new FixedLengthFrameDecoder(8));
+        ch.pipeline().addLast(new FixedLengthFrameDecoder(10));
         // LoggingHandler 用来打印消息
         ch.pipeline().addLast(new LoggingHandler(LogLevel.DEBUG));
     }
@@ -2692,7 +2692,7 @@ public class LengthFieldDecoderDemo {
 
 #### HTTP协议
 
-访问URL：http://localhost:8080/
+访问 URL：http://localhost:8080/
 
 ```java
 public class HttpDemo {
@@ -4537,9 +4537,9 @@ RocketMQ 的工作流程：
 - 启动 NameServer 监听端口，等待 Broker、Producer、Consumer 连上来，相当于一个路由控制中心
 - Broker 启动，跟所有的 NameServer 保持长连接，每隔 30s 时间向 NameServer 上报 Topic 路由信息（心跳包）。心跳包中包含当前 Broker 信息（IP、端口等）以及存储所有 Topic 信息。注册成功后，NameServer 集群中就有 Topic 跟 Broker 的映射关系
 - 收发消息前，先创建 Topic，创建 Topic 时需要指定该 Topic 要存储在哪些 Broker 上，也可以在发送消息时自动创建 Topic
-- Producer 启动时先跟 NameServer 集群中的**其中一台**建立长连接，并从 NameServer 中获取当前发送的 Topic 存在哪些 Broker 上，同时 Producer 会默认每隔 30s 向 NameServer 拉取一次路由信息
+- Producer 启动时先跟 NameServer 集群中的**其中一台**建立长连接，并从 NameServer 中获取当前发送的 Topic 存在哪些 Broker 上，同时 Producer 会默认每隔 30s 向 NameServer **定时拉取**一次路由信息
 - Producer 发送消息时，根据消息的 Topic 从本地缓存的 TopicPublishInfoTable 获取路由信息，如果没有则会从 NameServer 上重新拉取并更新，轮询队列列表并选择一个队列 MessageQueue，然后与队列所在的 Broker 建立长连接，向 Broker 发消息
-- Consumer 跟 Producer 类似，跟其中一台 NameServer 建立长连接获取路由信息，根据当前订阅 Topic 存在哪些 Broker 上，直接跟 Broker 建立连接通道，在完成客户端的负载均衡后，选择其中的某一个或者某几个 MessageQueue 来拉取消息并进行消费
+- Consumer 跟 Producer 类似，跟其中一台 NameServer 建立长连接，定时获取路由信息，根据当前订阅 Topic 存在哪些 Broker 上，直接跟 Broker 建立连接通道，在完成客户端的负载均衡后，选择其中的某一个或者某几个 MessageQueue 来拉取消息并进行消费
 
 
 
@@ -4581,7 +4581,7 @@ RocketMQ 的工作流程：
 
 #### 通信原理
 
-==todo：后期学习了源码会进行扩充，现在暂时 copy 官方文档==
+==todo：后期对 Netty 有了更深的认知后会进行扩充，现在暂时 copy 官方文档==
 
 在 RocketMQ 消息队列中支持通信的方式主要有同步（sync）、异步（async）、单向（oneway）三种，其中单向通信模式相对简单，一般用在发送心跳包场景下，无需关注其 Response
 

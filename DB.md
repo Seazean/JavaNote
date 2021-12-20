@@ -5822,9 +5822,9 @@ roll_pointer 是一个指针，**指向记录对应的 undo log 日志**，一�
 
 #### 回滚日志
 
-undo log 是采用段（segment）的方式来记录，每个 undo 操作在记录的时候占用一个 undo log segment
+undo log 是采用段的方式来记录，Rollback Segement 称为回滚段，本质上就是一个类型是 Rollback Segement Header 的页面
 
-Rollback Segement 称为回滚段，每个回滚段中有 1024 个 undo slot
+每个回滚段中有 1024 个 undo slot，每个 slot 存放 undo 链表页面的头节点页号，每个链表对应一个叫 undo log segment 的段
 
 * 在以前老版本，只支持 1 个 Rollback Segement，只能记录 1024 个 undo log segment
 * MySQL5.5 开始支持 128 个 Rollback Segement，支持 128*1024 个 undo 操作
@@ -5832,9 +5832,11 @@ Rollback Segement 称为回滚段，每个回滚段中有 1024 个 undo slot
 工作流程：
 
 * 事务执行前需要到系统表空间第 5 号页面中分配一个回滚段（页），获取一个 Rollback Segement Header 页面的地址
-* 回滚段页面有 1024 个 undo slot，每个 slot 存放 undo 链表页面的头节点页号。首先去回滚段的两个 cached 链表看是否有缓存的 slot，缓存中没有就在回滚段中找一个可用的 slot
-* 缓存中获取的 slot 对应的 Undo Log Segment 已经分配了，需要重新分配，然后从 Undo Log Segment 中申请一个页面作为日志链表的头节点，并填入对应的 slot 中
-* 开始记录
+* 回滚段页面有 1024 个 undo slot，首先去回滚段的两个 cached 链表获取缓存的 slot，缓存中没有就在回滚段页面中找一个可用的 undo slot 分配给当前事务
+* 如果是缓存中获取的 slot，则该 slot 对应的 undo log segment 已经分配了，需要重新分配，然后从 undo log segment 中申请一个页面作为日志链表的头节点，并填入对应的 slot 中
+* 每个事务 undo 日志在记录的时候占用两个 undo 页面的组成链表，分别为 insert undo 链表和 update undo 链表，链表的头节点页面为 first undo page 会包含一些管理信息，其他页面为 normal undo page
+
+  说明：事务执行过程的临时表也需要两个 undo 链表，不和普通表共用，这些链表并不是事务开始就分配，而是按需分配
 
 
 
@@ -6114,17 +6116,28 @@ Buffer Pool 的使用提高了读写数据的效率，但是如果 MySQL 宕机�
 
 ##### 日志缓冲
 
-服务器启动时会向操作系统申请一片连续内存空间作为 redo log buffer（重做日志缓冲区），可以通过 `innodb_log_buffer_size` 系统变量指定 log buffer 的大小，默认是 16MB
-
-补充知识：MySQL 规定对底层页面的一次原子访问称为一个 Mini-Transaction（MTR），比如在 B+ 树上插入一条数据就算一个 MTR
+服务器启动时会向操作系统申请一片连续内存空间作为 redo log buffer（重做日志缓冲区），可以通过 `innodb_log_buffer_size` 系统变量指定 redo log buffer 的大小，默认是 16MB
 
 log buffer 被划分为若干 redo log block（块，类似数据页的概念），每个默认大小 512 字节，每个 block 由 12 字节的 log block head、496 字节的 log block body、4 字节的 log block trailer 组成
 
 * 当数据修改时，先修改 Change Buffer 中的数据，然后在 redo log buffer 记录这次操作，写入 log buffer 的过程是顺序写入的（先写入前面的 block，写满后继续写下一个）
-* log buffer 中有一个指针 buf_free，来标识该位置之前都是填满的 block，该位置之后都是空闲区域（碰撞指针）
-* 一个事务包含若干个 MTR，一个 MTR 对应一组若干条 redo log，一组 redo log 是不可分割的，所以并不是每生成一条 redo 日志就将其插入到 log buffer 中，而是一个 MTR 结束后**将一组 redo 日志写入 log buffer**，在进行数据恢复时也把这一组 redo log 当作一个不可分割的整体处理
+* log buffer 中有一个指针 buf_free，来标识该位置之前都是填满的 block，该位置之后都是空闲区域（**碰撞指针**）
 
-redo log 也需要在事务提交时将日志写入磁盘，但是比将内存中的 Buffer Pool 修改的数据写入磁盘的速度快：
+MySQL 规定对底层页面的一次原子访问称为一个 Mini-Transaction（MTR），比如在 B+ 树上插入一条数据就算一个 MTR
+
+* 一个事务包含若干个 MTR，一个 MTR 对应一组若干条 redo log，一组 redo log 是不可分割的，在进行数据恢复时也把一组 redo log 当作一个不可分割的整体处理
+
+* 所以不是每生成一条 redo 日志就将其插入到 log buffer 中，而是一个 MTR 结束后**将一组 redo 日志写入 log buffer**
+
+
+
+***
+
+
+
+##### 日志刷盘
+
+redo log 需要在事务提交时将日志写入磁盘，但是比将内存中的 Buffer Pool 修改的数据写入磁盘的速度快，原因：
 
 * 刷脏是随机 IO，因为每次修改的数据位置随机，但写 redo log 是尾部追加操作，属于顺序 IO
 * 刷脏是以数据页（Page）为单位的，一个页上的一个小修改都要整页写入，而 redo log 中只包含真正需要写入的部分，减少无效 IO
@@ -6139,31 +6152,39 @@ InnoDB 引擎会在适当的时候，把内存中 redo log buffer 持久化到�
 * 服务器关闭时
 * checkpoint 时（下小节详解）
 
+redo 日志在磁盘中以文件组的形式存储，同一组中的每个文件大小一样格式一样，
+
+* `innodb_log_group_home_dir` 代表磁盘存储 redo log 的文件目录，默认是当前数据目录
+* `innodb_log_file_size` 代表文件大小，默认 48M，`innodb_log_files_in_group` 代表文件个数，默认 2 最大 100，所以日志的文件大小为 `innodb_log_file_size * innodb_log_files_in_group`
+
+redo 日志文件也是由若干个 512 字节的 block 组成，日志文件的前 2048 个字节（前 4 个 block）用来存储一些管理信息，以后的用来存储 log buffer 中的 block 镜像
+
+注意：block 并不代表一组 redo log，一组日志可能占用不到一个 block 或者几个 block，依赖于 MTR 的大小
+
+服务器启动后 redo 磁盘空间不变，所以 redo 磁盘中的日志文件是被**循环使用**的，采用循环写数据的方式，写完尾部重新写头部，所以要确保头部 log 对应的修改已经持久化到磁盘
+
 
 
 ***
 
 
 
-##### 磁盘文件
-
-redo 存储在磁盘中的日志文件是被**循环使用**的，redo 日志文件组中每个文件大小一样格式一样，组成结构：前 2048 个字节（前 4 个 block）用来存储一些管理信息，以后的存储 log buffer 中的 block 镜像
-
-注意：block 并不代表一组 redo log，一组日志可能占用不到一个 block 或者几个 block，依赖 MTR 的大小
-
-磁盘存储 redo log 的文件目录通过 `innodb_log_group_home_dir` 指定，默认是当前数据目录，文件大小：
-
-* 通过两个参数调节：`innodb_log_file_size` 文件大小默认 48M，`innodb_log_files_in_group` 文件个数默认 2 最大 100
-* 服务器启动后磁盘空间不变，所以采用循环写数据的方式，写完尾部重新写头部，所以要确保头部 log 对应的修改已经持久化到磁盘
+##### 日志序号
 
 lsn (log sequence number) 代表已经写入的 redo 日志量、flushed_to_disk_lsn 指刷新到磁盘中的 redo 日志量，两者都是**全局变量**，如果两者的值相同，说明 log buffer 中所有的 redo 日志都已经持久化到磁盘
+
+工作过程：写入 log buffer 数据时，buf_free 会进行偏移，偏移量就会加到 lsn 上
 
 MTR 的执行过程中修改过的页对应的控制块会加到 Buffer Pool 的 flush 链表中，链表中脏页是按照第一次修改的时间进行排序的（头插），控制块中有两个指针用来记录脏页被修改的时间：
 
 * oldest_modification：第一次修改 Buffer Pool 中某个缓冲页时，将修改该页的 MTR **开始时**对应的 lsn 值写入这个属性，所以链表页是以该值进行排序的
 * newest_modification：每次修改页面，都将 MTR **结束时**对应的 lsn 值写入这个属性，所以是该页面最后一次修改后对应的 lsn 值
 
-全局变量 checkpoint_lsn 表示当前系统中可以被覆盖的 redo 日志量，当 redo 日志对应的脏页已经被刷新到磁盘后就可以被覆盖重用，此时执行一次 checkpoint 来更新 checkpoint_lsn 的值存入管理信息，刷脏和执行一次 checkpoint 并不是同一个线程
+全局变量 checkpoint_lsn 表示当前系统可以被覆盖的 redo 日志总量，当 redo 日志对应的脏页已经被刷新到磁盘后，该文件空间就可以被覆盖重用，此时执行一次 checkpoint 来更新 checkpoint_lsn 的值存入管理信息，刷脏和执行一次 checkpoint 并不是同一个线程
+
+**checkpoint**：从 flush 链表尾部中找出还未刷脏的页面，该页面是当前系统中最早被修改的脏页，该页面之前产生的脏页都已经刷脏，然后将该页 oldest_modification 值赋值给 checkpoint_lsn，因为 lsn 小于该值时产生的 redo 日志都可以被覆盖了
+
+checkpoint_lsn 是一个总量，随着 lsn 写入的增加，刷脏的继续进行，所以 checkpoint_lsn 值就会一直变大，该值的增量就代表磁盘文件中当前位置向后可以被覆盖的文件的量
 
 在系统忙碌时，后台线程的刷脏操作不能将脏页快速刷出，导致系统无法及时执行 checkpoint，这时需要用户线程从 flush 链表中把最早修改的脏页刷新到磁盘中，然后执行 checkpoint
 
@@ -6192,7 +6213,7 @@ SHOW ENGINE INNODB STATUS\G
 
 问题：系统崩溃前没有提交的事务的 redo log 可能已经刷盘，这些数据可能在重启后也会恢复
 
-解决：通过 undo log 在服务器重启时将未提交的事务回滚掉，定位到 128 个回滚段，遍历 slot，获取 undo 链表首节点页面的 Undo Segement Header 中的 TRX_UNDO_STATE 属性，表示当前链表的事务属性，如果是活跃的就全部回滚
+解决：通过 undo log 在服务器重启时将未提交的事务回滚掉，定位到 128 个回滚段，遍历 slot，获取 undo 链表首节点页面的 undo segement header 中的 TRX_UNDO_STATE 属性，表示当前链表的事务属性，如果是活跃的就全部回滚
 
 
 
@@ -10454,7 +10475,7 @@ RDB三种启动方式对比：
 
 #### 总结
 
-* RDB特殊启动形式的指令（客户端输入）
+* RDB 特殊启动形式的指令（客户端输入）
 
   * 服务器运行过程中重启
 
@@ -10472,17 +10493,17 @@ RDB三种启动方式对比：
 
   * 全量复制：主从复制部分详解
 
-* RDB优点：
+* RDB 优点：
   - RDB 是一个紧凑压缩的二进制文件，存储效率较高，但存储数据量较大时，存储效率较低
   - RDB 内部存储的是 redis 在某个时间点的数据快照，非常**适合用于数据备份，全量复制**等场景
   - RDB 恢复数据的速度要比 AOF 快很多，因为是快照，直接恢复
-  - 应用：服务器中每 X 小时执行 bgsave 备份，并将 RDB 文件拷贝到远程机器中，用于灾难恢复
 
-* RDB缺点：
+* RDB 缺点：
 
   - bgsave 指令每次运行要执行 fork 操作创建子进程，会牺牲一些性能
   - RDB 方式无论是执行指令还是利用配置，无法做到实时持久化，具有丢失数据的可能性，最后一次持久化后的数据可能丢失
   - Redis 的众多版本中未进行 RDB 文件格式的版本统一，可能出现各版本之间数据格式无法兼容
+* 应用：服务器中每 X 小时执行 bgsave 备份，并将 RDB 文件拷贝到远程机器中，用于灾难恢复
 
 
 
@@ -10539,7 +10560,7 @@ AOF 持久化数据的三种策略（appendfsync）：
 * 同步硬盘操作依赖于系统调度机制，比如缓冲区页空间写满或达到特定时间周期。同步文件之前，如果此时系统故障宕机，缓冲区内数据将丢失
 * fsync 针对单个文件操作（比如 AOF 文件）做强制硬盘同步，fsync 将阻塞到写入硬盘完成后返回，保证了数据持久化
 
-异常恢复：AOF 文件损坏，通过 redis-check-aof--fix appendonly.aof 进行恢复，重启 redis，然后重新加载
+异常恢复：AOF 文件损坏，通过 redis-check-aof--fix appendonly.aof 进行恢复，重启 Redis，然后重新加载
 
 
 
@@ -10678,7 +10699,7 @@ AOF 和 RDB 同时开启，系统默认取 AOF 的数据（数据不会存在丢
 - 如不能承受数分钟以内的数据丢失，对业务数据非常敏感，选用 AOF
 - 如能承受数分钟以内的数据丢失，且追求大数据集的恢复速度，选用 RDB
 - 灾难恢复选用 RDB
-- 双保险策略，同时开启 RDB和 AOF，重启后 Redis 优先使用 AOF 来恢复数据，降低丢失数据的量
+- 双保险策略，同时开启 RDB 和 AOF，重启后 Redis 优先使用 AOF 来恢复数据，降低丢失数据的量
 - 不建议单独用 AOF，因为可能会出现 Bug，如果只是做纯内存缓存，可以都不用
 
 
@@ -10731,8 +10752,8 @@ fpid 的值在父子进程中不同：进程形成了链表，父进程的 fpid 
 int main ()   
 {   
     pid_t fpid; // fpid表示fork函数返回的值  
-    int count=0;  
-    fpid=fork();   
+    int count = 0;  
+    fpid = fork();   
     if (fpid < 0)   
         printf("error in fork!");   
     else if (fpid == 0) {  
@@ -10761,16 +10782,16 @@ int main ()
 #include <stdio.h>  
 int main(void)  
 {  
-   int i=0;  
+   int i = 0;  
    // ppid 指当前进程的父进程pid  
    // pid 指当前进程的pid,  
    // fpid 指fork返回给当前进程的值，在这可以表示子进程
-   for(i=0; i<2; i++){  
+   for(i = 0; i < 2; i++){  
        pid_t fpid = fork();  
        if(fpid == 0)  
-           printf("%d child  %4d %4d %4d/n",i,getppid(),getpid(),fpid);  
+           printf("%d child  %4d %4d %4d/n",i, getppid(), getpid(), fpid);  
        else  
-           printf("%d parent %4d %4d %4d/n",i,getppid(),getpid(),fpid);  
+           printf("%d parent %4d %4d %4d/n",i, getppid(), getpid(),fpid);  
    }  
    return 0;  
 } 
