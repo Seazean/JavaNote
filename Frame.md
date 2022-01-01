@@ -4502,7 +4502,7 @@ NameServer 是一个简单的 Topic 路由注册中心，支持 Broker 的动态
 
 NameServer 主要包括两个功能：
 
-* Broker 路由管理，NameServer 接受 Broker 集群的注册信息，并保存下来作为路由信息的基本数据，提供**心跳检测机制**检查 Broker 活性（每 10 秒）
+* Broker 路由管理，NameServer 接受 Broker 集群的注册信息，并保存下来作为路由信息的基本数据，提供**心跳检测机制**检查 Broker 活性，每 10 秒清除一次两小时没有活跃的 Broker
 * 路由信息管理，每个 NameServer 将保存关于 Broker 集群的整个路由信息和用于客户端查询的队列信息，然后 Producer 和 Conumser 通过 NameServer 就可以知道整个 Broker 集群的路由信息，从而进行消息的投递和消费
 
 NameServer 特点：
@@ -4581,7 +4581,7 @@ At least Once：至少一次，指每个消息必须投递一次，Consumer 先 
 
 #### 存储结构
 
-Broker 负责存储消息转发消息，所以以下的结构是存储在 Broker Server 上的
+RocketMQ 中 Broker 负责存储消息转发消息，所以以下的结构是存储在 Broker Server 上的，生产者和消费者与 Broker 进行消息的收发是通过主题对应的 Message Queue 完成，类似于通道
 
 RocketMQ 消息的存储是由 ConsumeQueue 和 CommitLog 配合完成 的，消息真正的物理存储文件是 CommitLog，ConsumeQueue 是消息的逻辑队列，类似数据库的索引节点，存储的是指向物理存储的地址。**每个 Topic 下的每个 Message Queue 都有一个对应的 ConsumeQueue 文件**
 
@@ -5030,15 +5030,19 @@ public class MessageListenerImpl implements MessageListener {
 
 #### 重投机制
 
-生产者在发送消息时，同步消息失败会重投，异步消息有重试，oneway 没有任何保证。消息重投保证消息尽可能发送成功、不丢失，但当出现消息量大、网络抖动时，可能会造成消息重复；生产者主动重发、Consumer 负载变化也会导致重复消息。
+生产者在发送消息时，同步消息和异步消息失败会重投，oneway 没有任何保证。消息重投保证消息尽可能发送成功、不丢失，但当出现消息量大、网络抖动时，可能会造成消息重复；生产者主动重发、Consumer 负载变化也会导致重复消息。
 
-消息重复在 RocketMQ 中是无法避免的问题，如下方法可以设置消息重试策略：
+消息重复在 RocketMQ 中是无法避免的问题，如下方法可以设置消息重投策略：
 
 - retryTimesWhenSendFailed：同步发送失败重投次数，默认为 2，因此生产者会最多尝试发送 retryTimesWhenSendFailed + 1 次。不会选择上次失败的 Broker，尝试向其他 Broker 发送，最大程度保证消息不丢。超过重投次数抛出异常，由客户端保证消息不丢。当出现 RemotingException、MQClientException 和部分 MQBrokerException 时会重投
 - retryTimesWhenSendAsyncFailed：异步发送失败重试次数，异步重试不会选择其他 Broker，仅在同一个 Broker 上做重试，不保证消息不丢
 - retryAnotherBrokerWhenNotStoreOK：消息刷盘（主或备）超时或 slave 不可用（返回状态非 SEND_OK），是否尝试发送到其他  Broker，默认 false，十分重要消息可以开启
 
+注意点：
 
+* 如果同步模式发送失败，则选择到下一个 Broker，如果异步模式发送失败，则**只会在当前 Broker 进行重试**
+
+* 发送消息超时时间默认3000毫秒，就不会再尝试重试
 
 
 
@@ -5148,7 +5152,7 @@ public class MessageListenerImpl implements MessageListener {
 
 ## 源码分析
 
-### 服务启动
+### 服务端
 
 #### 启动方法
 
@@ -5185,34 +5189,6 @@ NamesrvStartup#createNamesrvController：读取配置信息，初始化 Namesrv 
   * `private boolean orderMessageEnable = false`：顺序消息功能是否开启
 
 * `nettyServerConfig = new NettyServerConfig()`：Netty 的服务器配置对象
-
-  ```java
-  public class NettyServerConfig implements Cloneable {
-      // 服务端启动时监听的端口号
-      private int listenPort = 8888;
-      // 【业务线程池】 线程数量
-      private int serverWorkerThreads = 8;
-      // 根据该值创建 remotingServer 内部的一个 publicExecutor
-      private int serverCallbackExecutorThreads = 0;
-      // netty 【worker】线程数
-      private int serverSelectorThreads = 3;
-      // 【单向访问】时的并发限制
-      private int serverOnewaySemaphoreValue = 256;
-      // 【异步访问】时的并发限制
-      private int serverAsyncSemaphoreValue = 64;
-      // channel 最大的空闲存活时间 默认是 2min
-      private int serverChannelMaxIdleTimeSeconds = 120;
-      // 发送缓冲区大小 65535
-      private int serverSocketSndBufSize = NettySystemConfig.socketSndbufSize;
-      // 接收缓冲区大小 65535
-      private int serverSocketRcvBufSize = NettySystemConfig.socketRcvbufSize;
-      // 是否启用 netty 内存池 默认开启
-      private boolean serverPooledByteBufAllocatorEnable = true;
-  
-      // 默认 linux 会启用 【epoll】
-      private boolean useEpollNativeSelector = false;
-  }
-  ```
 
 * `nettyServerConfig.setListenPort(9876)`：Namesrv 服务器的监听端口设置为 9876
 
@@ -5276,12 +5252,12 @@ NamesrvController 用来初始化和启动 Namesrv 服务器
       // 注册协议处理器（缺省协议处理器），处理器是 DefaultRequestProcessor，线程使用的是刚创建的业务的线程池
       this.registerProcessor();
   
-      // 定时任务1：每 10 秒钟检查 broker 存活状态，将 IDLE 状态的 broker 移除。【心跳机制】
+      // 定时任务1：每 10 秒钟检查 broker 存活状态，将 IDLE 状态的 broker 移除【扫描机制】
       this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
           @Override
           public void run() {
-              // 将两小时没有活动的 broker 关闭，通过 next.getKey() 获取 broker 的地址
-              // 然后【关闭服务器与broker物理节点的 channel】
+              // 扫描 brokerLiveTable 表，将两小时没有活动的 broker 关闭，
+              //通过 next.getKey() 获取 broker 的地址，然后【关闭服务器与broker物理节点的 channel】
               NamesrvController.this.routeInfoManager.scanNotActiveBroker();
           }
       }, 5, 10, TimeUnit.SECONDS);
@@ -5319,7 +5295,7 @@ NamesrvController 用来初始化和启动 Namesrv 服务器
 
 
 
-#### 网络服务
+#### 网络通信
 
 ##### 通信原理
 
@@ -5360,7 +5336,7 @@ RocketMQ 的异步通信流程：
 
 ##### 成员属性
 
-成员变量：
+NettyRemotingServer 类成员变量：
 
 * 服务器相关属性：
 
@@ -5397,6 +5373,36 @@ RocketMQ 的异步通信流程：
   ```
 
 * 处理器：多个 Channel 共享的处理器 Handler，多个通道使用同一个对象
+
+* Netty 配置对象：
+
+  ```java
+  public class NettyServerConfig implements Cloneable {
+      // 服务端启动时监听的端口号
+      private int listenPort = 8888;
+      // 【业务线程池】 线程数量
+      private int serverWorkerThreads = 8;
+      // 根据该值创建 remotingServer 内部的一个 publicExecutor
+      private int serverCallbackExecutorThreads = 0;
+      // netty 【worker】线程数
+      private int serverSelectorThreads = 3;
+      // 【单向访问】时的并发限制
+      private int serverOnewaySemaphoreValue = 256;
+      // 【异步访问】时的并发限制
+      private int serverAsyncSemaphoreValue = 64;
+      // channel 最大的空闲存活时间 默认是 2min
+      private int serverChannelMaxIdleTimeSeconds = 120;
+      // 发送缓冲区大小 65535
+      private int serverSocketSndBufSize = NettySystemConfig.socketSndbufSize;
+      // 接收缓冲区大小 65535
+      private int serverSocketRcvBufSize = NettySystemConfig.socketRcvbufSize;
+      // 是否启用 netty 内存池 默认开启
+      private boolean serverPooledByteBufAllocatorEnable = true;
+  
+      // 默认 linux 会启用 【epoll】
+      private boolean useEpollNativeSelector = false;
+  }
+  ```
 
 
 构造方法：
@@ -5453,7 +5459,7 @@ RocketMQ 的异步通信流程：
 
   ```java
   public void start() {
-      // 向 channel pipeline 添加 handler，网络事件传播到当前 handler 时，【线程分配给 handler 处理事件】
+      // Channel Pipeline 内的 handler 使用的线程资源，【线程分配给 handler 处理事件】
       this.defaultEventExecutorGroup = new DefaultEventExecutorGroup(...);
   
       // 创建通用共享的处理器 handler，【非常重要的 NettyServerHandler】
@@ -5493,7 +5499,7 @@ RocketMQ 的异步通信流程：
           this.nettyEventExecutor.start();
       }
   
-      // 提交定时任务，每一秒 执行一次。扫描 responseTable 表，将过期的 请求 移除。
+      // 提交定时任务，每一秒 执行一次。扫描 responseTable 表，将过期的数据移除。
       this.timer.scheduleAtFixedRate(new TimerTask() {
           @Override
           public void run() {
@@ -5653,17 +5659,17 @@ NettyRemotingAbstract#processRequestCommand：处理请求的数据
 
 * `int opaque = cmd.getOpaque()`：获取请求 ID
 
-* `Runnable run = new Runnable()`：创建任务对象
+* `Runnable run = new Runnable()`：创建任务对象，任务在提交到线程池后开始执行
 
   * `doBeforeRpcHooks()`：RPC HOOK 前置处理
 
-  * `callback = new RemotingResponseCallback()`：封装响应客户端逻辑
+  * `callback = new RemotingResponseCallback()`：**封装响应客户端的逻辑**
 
     * `doAfterRpcHooks()`：RPC HOOK 后置处理
     * `if (!cmd.isOnewayRPC())`：条件成立说明不是单向请求，需要结果
     * `response.setOpaque(opaque)`：将请求 ID 设置到 response
     * `response.markResponseType()`：设置当前的处理是响应处理
-    * `ctx.writeAndFlush(response)`： 将数据交给 Netty IO 线程，完成数据写和刷
+    * `ctx.writeAndFlush(response)`： **将响应数据交给 Netty IO 线程，完成数据写和刷**
 
   * `if (pair.getObject1() instanceof AsyncNettyRequestProcessor)`：Nameserver 默认使用 DefaultRequestProcessor 处理器，是一个 AsyncNettyRequestProcessor 子类
 
@@ -5671,7 +5677,9 @@ NettyRemotingAbstract#processRequestCommand：处理请求的数据
 
   * `processor.asyncProcessRequest(ctx, cmd, callback)`：异步调用，首先 processRequest，然后 callback 响应客户端
 
-    DefaultRequestProcessor.processRequest **根据业务码处理请求，执行对应的操作**
+    `DefaultRequestProcessor.processRequest`：**根据业务码处理请求，执行对应的操作**
+    
+    `ClientRemotingProcessor.processRequest`：处理回退消息，需要消费者回执一条消息给生产者
 
 * `requestTask = new RequestTask(run, ctx.channel(), cmd)`：将任务对象、通道、请求封装成 RequestTask 对象
 
@@ -5684,15 +5692,917 @@ NettyRemotingAbstract#processResponseCommand：处理响应的数据
 * `responseFuture.setResponseCommand(cmd)`：设置响应的 Command 对象
 * `responseTable.remove(opaque)`：从映射表中移除对象，代表处理完成
 * `if (responseFuture.getInvokeCallback() != null)`：包含回调对象，异步执行回调对象
-* `responseFuture.putResponse(cmd)`：不好含回调对象，**同步调用时，需要唤醒等待的业务线程**
-
-
+* `responseFuture.putResponse(cmd)`：不包含回调对象，**同步调用时，唤醒等待的业务线程**
 
 流程：客户端 invokeSync → 服务器的 processRequestCommand → 客户端的 processResponseCommand → 结束
 
 
 
+***
 
+
+
+##### 路由注册
+
+DefaultRequestProcessor REGISTER_BROKER 方法解析：
+
+```java
+public RemotingCommand registerBroker(ChannelHandlerContext ctx, RemotingCommand request) {
+    // 创建响应请求的对象，设置为响应类型，【先设置响应的状态码时系统错误码】
+    // 反射创建 RegisterBrokerResponseHeader 对象设置到 response.customHeader 属性中
+    final RemotingCommand response = RemotingCommand.createResponseCommand(RegisterBrokerResponseHeader.class);
+
+    // 获取出反射创建的 RegisterBrokerResponseHeader 用户自定义header对象。
+    final RegisterBrokerResponseHeader responseHeader = (RegisterBrokerResponseHeader) response.readCustomHeader();
+
+    // 反射创建 RegisterBrokerRequestHeader 对象，并且将 request.extFields 中的数据写入到该对象中
+    final RegisterBrokerRequestHeader requestHeader = request.decodeCommandCustomHeader(RegisterBrokerRequestHeader.class);
+
+    // CRC 校验，计算请求中的 CRC 值和请求头中包含的是否一致
+    if (!checksum(ctx, request, requestHeader)) {
+        response.setCode(ResponseCode.SYSTEM_ERROR);
+        response.setRemark("crc32 not match");
+        return response;
+    }
+
+    TopicConfigSerializeWrapper topicConfigWrapper;
+    if (request.getBody() != null) {
+        // 【解析请求体 body】，解码出来的数据就是当前机器的主题信息
+        topicConfigWrapper = TopicConfigSerializeWrapper.decode(request.getBody(), TopicConfigSerializeWrapper.class);
+    } else {
+        topicConfigWrapper = new TopicConfigSerializeWrapper();
+        topicConfigWrapper.getDataVersion().setCounter(new AtomicLong(0));
+        topicConfigWrapper.getDataVersion().setTimestamp(0);
+    }
+
+    // 注册方法
+    // 参数1 集群、参数2：节点ip地址、参数3：brokerName、参数4：brokerId 注意brokerId=0的节点为主节点
+    // 参数5：ha节点ip地址、参数6当前节点主题信息、参数7：过滤服务器列表、参数8：当前服务器和客户端通信的channel
+    RegisterBrokerResult result = this.namesrvController.getRouteInfoManager().registerBroker(..);
+
+    // 将结果信息 写到 responseHeader 中
+    responseHeader.setHaServerAddr(result.getHaServerAddr());
+    responseHeader.setMasterAddr(result.getMasterAddr());
+    // 获取 kv配置，写入 response body 中，【kv 配置是顺序消息相关的】
+    byte[] jsonValue = this.namesrvController.getKvConfigManager().getKVListByNamespace(NamesrvUtil.NAMESPACE_ORDER_TOPIC);
+    response.setBody(jsonValue);
+
+    // code 设置为 SUCCESS
+    response.setCode(ResponseCode.SUCCESS);
+    response.setRemark(null);
+	// 返回 response ，【返回的 response 由 callback 对象处理】
+    return response;
+}
+```
+
+RouteInfoManager#registerBroker：注册 Broker 的信息
+
+* `RegisterBrokerResult result = new RegisterBrokerResult()`：返回结果的封装对象
+
+* `this.lock.writeLock().lockInterruptibly()`：加写锁后**同步执行**
+
+* `brokerNames = this.clusterAddrTable.get(clusterName)`：获取当前集群上的 Broker 名称列表，是空就新建列表
+
+* `brokerNames.add(brokerName)`：将当前 Broker 名字加入到集群列表
+
+* `brokerData = this.brokerAddrTable.get(brokerName)`：获取当前 Broker 的 brokerData，是空就新建放入映射表
+
+* `brokerAddrsMap = brokerData.getBrokerAddrs()`：获取当前 Broker 的物理节点 map 表，进行遍历，如果物理节点角色发生变化（slave → master），先将旧数据从物理节点 map 中移除，然后重写放入，**保证节点的唯一性**
+
+* `if (null != topicConfigWrapper && MixAll.MASTER_ID == brokerId)`：Broker 上的 Topic 不为 null，并且当前物理节点是  Broker 上的 master 节点
+
+  `tcTable = topicConfigWrapper.getTopicConfigTable()`：获取当前 Broker 信息中的主题映射表
+
+  `if (tcTable != null)`：映射表不空就加入或者更新到 Namesrv 内
+
+* ` prevBrokerLiveInfo = this.brokerLiveTable.put(brokerAddr)`：添加**当前节点的 BrokerLiveInfo** ，返回上一次心跳时当前 Broker 节点的存活对象数据。**NamesrvController  中的定时任务会扫描映射表 brokerLiveTable**
+
+  ```java
+  BrokerLiveInfo prevBrokerLiveInfo = this.brokerLiveTable.put(brokerAddr, new BrokerLiveInfo(
+      System.currentTimeMillis(),topicConfigWrapper.getDataVersion(), channel,haServerAddr));
+  ```
+
+* `if (MixAll.MASTER_ID != brokerId)`：当前 Broker 不是 master 节点，**获取主节点的信息**设置到结果对象
+
+* `this.lock.writeLock().unlock()`：释放写锁
+
+
+
+****
+
+
+
+### 生产者
+
+#### 生产者类
+
+DefaultMQProducer 是生产者的默认实现类
+
+成员变量：
+
+* 生产者实现类：
+
+  ```java
+  protected final transient DefaultMQProducerImpl defaultMQProducerImpl
+  ```
+
+* 生产者组：发送事务消息，Broker 端进行事务回查（补偿机制）时，选择当前生产者组的下一个生产者进行事务回查
+
+  ```java
+  private String producerGroup;
+  ```
+
+* 默认主题：isAutoCreateTopicEnable 开启时，当发送消息指定的 Topic 在 Namesrv 未找到路由信息，使用该值创建 Topic 信息
+
+  ```java
+  private String createTopicKey = TopicValidator.AUTO_CREATE_TOPIC_KEY_TOPIC;
+  // 值为【TBW102】，Just for testing or demo program
+  ```
+
+* 消息重投：系统特性消息重试部分详解了三个参数的作用
+
+  ```java
+  private int retryTimesWhenSendFailed = 2;		// 同步发送失败后重试的发送次数，加上第一次发送，一共三次
+  private int retryTimesWhenSendAsyncFailed = 2;	// 异步
+  private boolean retryAnotherBrokerWhenNotStoreOK = false;	// 消息未存储成功，选择其他 Broker 重试
+  ```
+
+* 消息队列：
+
+  ```java
+  private volatile int defaultTopicQueueNums = 4;		// 默认 Broker 创建的队列数
+  ```
+
+* 消息属性：
+
+  ```java
+  private int sendMsgTimeout = 3000;					// 发送消息的超时限制
+  private int compressMsgBodyOverHowmuch = 1024 * 4;	// 压缩阈值，当 msg body 超过 4k 后使用压缩
+  private int maxMessageSize = 1024 * 1024 * 4;		// 消息体的最大限制，默认 4M
+  private TraceDispatcher traceDispatcher = null;		// 消息轨迹
+
+构造方法：
+
+* 构造方法：
+
+  ```java
+  public DefaultMQProducer(final String namespace, final String producerGroup, RPCHook rpcHook) {
+      this.namespace = namespace;
+      this.producerGroup = producerGroup;
+      // 创建生产者实现对象
+      defaultMQProducerImpl = new DefaultMQProducerImpl(this, rpcHook);
+  }
+  ```
+
+成员方法：
+
+* start()：启动方法
+
+  ```java
+  public void start() throws MQClientException {
+      // 重置生产者组名，如果传递了命名空间，则 【namespace%group】
+      this.setProducerGroup(withNamespace(this.producerGroup));
+      // 生产者实现对象启动
+      this.defaultMQProducerImpl.start();
+      if (null != traceDispatcher) {
+        	// 消息轨迹的逻辑
+     		traceDispatcher.start(this.getNamesrvAddr(), this.getAccessChannel());
+      }
+  }
+  ```
+
+* send()：**发送消息**：
+
+  ```java
+  public SendResult send(Message msg){
+      // 校验消息
+      Validators.checkMessage(msg, this);
+      // 设置消息 Topic
+      msg.setTopic(withNamespace(msg.getTopic()));
+      return this.defaultMQProducerImpl.send(msg);
+  }
+  ```
+
+* request()：请求方法，**需要消费者回执消息**，又叫回退消息
+
+  ```java
+  public Message request(final Message msg, final MessageQueue mq, final long timeout) {
+      msg.setTopic(withNamespace(msg.getTopic()));
+      return this.defaultMQProducerImpl.request(msg, mq, timeout);
+  }
+  ```
+
+
+
+
+***
+
+
+
+#### 实现者类
+
+##### 成员属性
+
+DefaultMQProducerImpl 类是默认的生产者实现类
+
+成员变量：
+
+* 实例对象：
+
+  ```java
+  private final DefaultMQProducer defaultMQProducer;	// 持有默认生产者对象，用来获取对象中的配置信息
+  private MQClientInstance mQClientFactory;			// 客户端实例对象，生产者启动后需要注册到该客户端对象内
+  ```
+
+* 主题发布信息映射表：key 是 Topic，value 是发布信息
+
+  ```java
+  private final ConcurrentMap<String, TopicPublishInfo> topicPublishInfoTable = new ConcurrentHashMap<String, TopicPublishInfo>();
+  ```
+
+  ```java
+  public class TopicPublishInfo {
+      private boolean orderTopic = false;
+      private boolean haveTopicRouterInfo = false;
+      // 主题的全部队列
+      private List<MessageQueue> messageQueueList = new ArrayList<MessageQueue>();
+      // 使用 ThreaLocal 保存发送消息使用的队列
+      private volatile ThreadLocalIndex sendWhichQueue = new ThreadLocalIndex();
+      // 主题的路由数据
+      private TopicRouteData topicRouteData;
+  }
+  ```
+
+* 异步发送消息：相关信息
+
+  ```java
+  private final BlockingQueue<Runnable> asyncSenderThreadPoolQueue;// 异步发送消息，异步线程池使用的队列
+  private final ExecutorService defaultAsyncSenderExecutor;	// 异步发送消息默认使用的线程池
+  private ExecutorService asyncSenderExecutor;				// 异步消息发送线程池，指定后就不使用默认线程池了
+  ```
+
+* 定时器：执行定时任务
+
+  ```java
+  private final Timer timer = new Timer("RequestHouseKeepingService", true);	// 守护线程
+  ```
+
+* 状态信息：服务的状态，默认创建状态
+
+  ```java
+  private ServiceState serviceState = ServiceState.CREATE_JUST;
+  ```
+
+* 压缩等级：ZIP 压缩算法的等级，默认是 5，越高压缩效果好，但是压缩的更慢
+
+  ```java
+  private int zipCompressLevel = Integer.parseInt(System.getProperty..., "5"));
+  ```
+
+* 容错策略：选择队列的容错策略
+
+  ```java
+  private MQFaultStrategy mqFaultStrategy = new MQFaultStrategy();
+  ```
+
+* 钩子：用来进行前置或者后置处理
+
+  ```java
+  ArrayList<SendMessageHook> sendMessageHookList;			// 发送消息的钩子，留给用户扩展使用
+  ArrayList<CheckForbiddenHook> checkForbiddenHookList;	// 对比上面的钩子，可以抛异常，控制消息是否可以发送
+  private final RPCHook rpcHook;						 	// 传递给 NettyRemotingClient
+  ```
+
+构造方法：
+
+* 默认构造：
+
+  ```java
+  public DefaultMQProducerImpl(final DefaultMQProducer defaultMQProducer) {
+      // 默认 RPC HOOK 是空
+      this(defaultMQProducer, null);
+  }
+  ```
+
+* 有参构造：
+
+  ```java
+  public DefaultMQProducerImpl(final DefaultMQProducer defaultMQProducer, RPCHook rpcHook) {
+      // 属性赋值
+      this.defaultMQProducer = defaultMQProducer;
+      this.rpcHook = rpcHook;
+  
+      // 创建【异步消息线程池任务队列】，长度是 5w
+      this.asyncSenderThreadPoolQueue = new LinkedBlockingQueue<Runnable>(50000);
+      // 创建默认的异步消息任务线程池
+      this.defaultAsyncSenderExecutor = new ThreadPoolExecutor(
+          // 核心线程数和最大线程数都是 系统可用的计算资源（8核16线程的系统就是 16）...
+  }
+  ```
+
+  
+
+****
+
+
+
+##### 成员方法
+
+* start()：启动方法，参数默认是 true，代表正常的启动路径
+
+  * `this.serviceState = ServiceState.START_FAILED`：先修改为启动失败，成功后再修改，这种思想很常见
+
+  * `this.checkConfig()`：判断生产者组名不能是空，也不能是 default_PRODUCER
+
+  * `if (!getProducerGroup().equals(MixAll.CLIENT_INNER_PRODUCER_GROUP))`：条件成立说明当前生产者不是内部产生者，内部生产者是**处理消息回退**的这种情况使用的生产者
+
+    `this.defaultMQProducer.changeInstanceNameToPID()`：正常的生产者，修改生产者实例名称为当前进程的 PID
+
+  * ` this.mQClientFactory = ...`：获取当前进程的 MQ 客户端实例对象，从 factoryTable 中获取 key 为 客户端 ID，格式是`ip@pid`，**一个 JVM 进程只有一个 PID，也只有一个 MQClientInstance**
+
+  * `boolean registerOK = mQClientFactory.registerProducer(...)`：将生产者注册到 RocketMQ 客户端实例内
+
+  * `this.topicPublishInfoTable.put(...)`：添加一个主题发布信息，key 是 **TBW102** ，value 是一个空对象
+
+  * `if (startFactory) `：正常启动路径
+
+    `mQClientFactory.start()`：启动 RocketMQ 客户端实例对象
+
+  * `this.serviceState = ServiceState.RUNNING`：修改生产者实例的状态
+
+  * `this.mQClientFactory.sendHeartbeatToAllBrokerWithLock()`：RocketMQ 客户端实例向已知的 Broker 节点发送一次心跳（也是定时任务）
+  * `this.timer.scheduleAtFixedRate()`： request 发送的回执信息，启动定时任务每秒一次删除超时请求
+    
+    * 生产者 msg 添加信息关联 ID 发送到 Broker
+    * 消费者从 Broker 拿到消息后会检查 msg 类型是一个需要回执的消息，处理完消息后会根据 msg 关联 ID 和客户端 ID 生成一条响应结果消息发送到 Broker，Broker 判断为回执消息，会根据客户端ID 找到 channel 推送给生产者
+    * 生产者拿到回执消息后，读取出来关联 ID 找到对应的 RequestFuture，将阻塞线程唤醒
+
+* sendDefaultImpl()：发送消息
+
+  ```java
+  //参数1：消息；参数2：发送模式（同步异步单向）；参数3：回调函数，异步发送时需要；参数4：发送超时时间, 默认 3 秒
+  private SendResult sendDefaultImpl(msg, communicationMode, sendCallback,timeout) {}
+  ```
+
+  * `this.makeSureStateOK()`：校验生产者状态是运行中，否则抛出异常
+
+  * `Validators.checkMessage(msg, this.defaultMQProducer)`：校验消息规格
+
+  * `long beginTimestampPrev, endTimestamp`：本轮发送的开始时间和本轮的结束时间
+
+  * `topicPublishInfo = this.tryToFindTopicPublishInfo(msg.getTopic())`：**获取当前消息主题的发布信息**
+
+    * `this.topicPublishInfoTable.get(topic)`：尝试从本地主题发布信息映射表获取信息，不空直接返回
+
+    * `if (null == topicPublishInfo || !topicPublishInfo.ok())`：本地没有需要去 MQ 客户端获取
+
+      `this.topicPublishInfoTable.putIfAbsent(topic, new TopicPublishInfo())`：保存一份空数据
+
+      `this.mQClientFactory.updateTopicRouteInfoFromNameServer(topic)`：从 Namesrv 更新该 Topic 的路由数据
+
+      `topicPublishInfo = this.topicPublishInfoTable.get(topic)`：重新从本地获取发布信息
+
+    * `this.mQClientFactory.updateTopicRouteInfoFromNameServer(..)`：**路由数据是空，获取默认 TBW102 的数据**
+
+    * `return topicPublishInfo`：返回 TBW102 主题的发布信息
+
+  * `int timesTotal, times `：发送的总尝试次数和当前是第几次发送
+
+  * `String[] brokersSent = new String[timesTotal]`：下标索引代表第几次发送，值代表这次发送选择 Broker name
+
+  * `for (; times < timesTotal; times++)`：循环发送，发送成功或者发送尝试次数达到上限，结束循环
+
+  * `String lastBrokerName = null == mq ? null : mq.getBrokerName()`：获取上次发送失败的 BrokerName
+
+  * `mqSelected = this.selectOneMessageQueue(topicPublishInfo, lastBrokerName)`：**从发布信息中选择一个队列**
+
+    * `if (this.sendLatencyFaultEnable)`：默认不开启，可以通过配置开启
+    * `return tpInfo.selectOneMessageQueue(lastBrokerName)`：默认选择队列的方式，就是循环主题全部的队列
+      * `int index = this.sendWhichQueue.getAndIncrement()`：选择队列的索引
+      * `int pos = Math.abs(index) % this.messageQueueList.size()`：获取该索引对应的队列位置
+      * `return this.messageQueueList.get(pos)`：返回消息队列
+
+  * `brokersSent[times] = mq.getBrokerName()`：将本次选择的 BrokerName 存入数组
+  * `msg.setTopic(this.defaultMQProducer.withNamespace(msg.getTopic()))`：**重投的消息需要加上标记**
+  * `sendResult = this.sendKernelImpl`：核心发送方法
+  * `this.updateFaultItem(mq.getBrokerName(), endTimestamp - beginTimestampPrev, false)`：更新一下时间
+
+  * `switch (communicationMode)`：异步或者单向消息直接返回 null，同步发送进入逻辑判断
+
+    `if (sendResult.getSendStatus() != SendStatus.SEND_OK)`：**服务端 Broker 存储失败**，需要重试其他 Broker
+
+  * `throw new MQClientException()`：未找到当前主题的路由数据，无法发送消息，抛出异常
+
+* sendKernelImpl()：**核心发送方法**
+
+  ```java
+  //参数1：消息；参数2：选择的队列；参数3：发送模式（同步异步单向）；参数4：回调函数，异步发送时需要；参数5：主题发布信息；参数6：剩余超时时间限制
+  private SendResult sendKernelImpl(msg, mq, communicationMode, sendCallback, topicPublishInfo, timeout)
+  ```
+
+  * `brokerAddr = this.mQClientFactory(...)`：获取指定 BrokerName 对应的 mater 节点的地址，master 节点的 ID 为 0
+
+  * `brokerAddr = MixAll.brokerVIPChannel()`：Broker 启动时会绑定两个服务器端口，一个是普通端口，一个是 VIP 端口，服务器端根据不同端口创建不同的的 NioSocketChannel
+
+  * `byte[] prevBody = msg.getBody()`：获取消息体
+
+  * `if (!(msg instanceof MessageBatch))`：非批量消息，需要重新设置消息 ID
+
+    `MessageClientIDSetter.setUniqID(msg)`：msg id 由两部分组成，一部分是 ip 地址、进程号、ClassLoader 的 hashcode，另一部分是时间差（当前时间减去当月一号的时间）和计数器的值
+
+  * `if (this.tryToCompressMessage(msg))`：判断消息是否压缩，压缩需要设置压缩标记
+
+  * `hasCheckForbiddenHook、hasSendMessageHook`：执行钩子方法
+
+  * `requestHeader = new SendMessageRequestHeader()`：设置发送消息的消息头
+
+  * `if (requestHeader.getTopic().startsWith(MixAll.RETRY_GROUP_TOPIC_PREFIX))`：重投的发送消息
+
+  * `switch (communicationMode)`：异步发送一种处理方式，单向和同步同样的处理逻辑
+
+    `sendResult = this.mQClientFactory.getMQClientAPIImpl().sendMessage()`：**发送消息**
+
+    * `request = RemotingCommand.createRequestCommand()`：创建一个 RequestCommand 对象
+    * `request.setBody(msg.getBody())`：**将消息放入请求体**
+    * `switch (communicationMode)`：根据不同的模式 invoke 不同的方法
+
+* request()：请求方法，消费者回执消息，这种消息是异步消息
+
+  * `requestResponseFuture = new RequestResponseFuture(correlationId, timeout, null)`：创建请求响应对象
+
+  * `getRequestFutureTable().put(correlationId, requestResponseFuture)`：放入RequestFutureTable 映射表中
+
+  * `this.sendDefaultImpl(msg, CommunicationMode.ASYNC, new SendCallback())`：**发送异步消息**
+
+  * `return waitResponse(msg, timeout, requestResponseFuture, cost)`：用来挂起请求的方法
+
+    ```java
+    public Message waitResponseMessage(final long timeout) throws InterruptedException {
+        // 请求挂起
+        this.countDownLatch.await(timeout, TimeUnit.MILLISECONDS);
+        return this.responseMsg;
+    }
+
+  * 当消息被消费后，会获取消息的关联 ID，从映射表中获取消息的 RequestResponseFuture，执行下面的方法唤醒挂起线程
+
+    ```java
+    public void putResponseMessage(final Message responseMsg) {
+        this.responseMsg = responseMsg;
+        this.countDownLatch.countDown();
+    }
+    ```
+
+    
+
+****
+
+
+
+### 客户端
+
+#### 实例对象
+
+##### 成员属性
+
+MQClientInstance 是 RocketMQ 客户端实例，在一个 JVM 进程中只有一个客户端实例，**既服务于生产者，也服务于消费者**
+
+成员变量：
+
+* 配置信息：
+
+  ```java
+  private final int instanceIndex;			// 索引一般是 0，因为客户端实例一般都是一个进程只有一个
+  private final String clientId;				// 客户端 ID ip@pid
+  private final long bootTimestamp;			// 客户端的启动时间
+  private ServiceState serviceState;			// 客户端状态
+  ```
+
+* 生产者消费者的映射表：key 是组名
+
+  ```java
+  private final ConcurrentMap<String, MQProducerInner> producerTable
+  private final ConcurrentMap<String, MQConsumerInner> consumerTable
+  private final ConcurrentMap<String, MQAdminExtInner> adminExtTable
+  ```
+
+* 网络层配置：
+
+  ```java
+  private final NettyClientConfig nettyClientConfig;
+  ```
+
+* 核心功能的实现：负责将 MQ 业务层的数据转换为网络层的 RemotingCommand 对象，使用内部持有的 NettyRemotingClient 对象的 invoke 系列方法，完成网络 IO（同步、异步、单向）
+
+  ```java
+  private final MQClientAPIImpl mQClientAPIImpl;
+  ```
+
+* 本地路由数据：key 是主题名称，value 路由信息
+
+  ```java
+  private final ConcurrentMap<String, TopicRouteData> topicRouteTable = new ConcurrentHashMap<>();
+
+* 锁信息：两把锁，锁不同的数据
+
+  ```java
+  private final Lock lockNamesrv = new ReentrantLock();
+  private final Lock lockHeartbeat = new ReentrantLock();
+  ```
+
+* 调度线程池：单线程，执行定时任务
+
+  ```java
+  private final ScheduledExecutorService scheduledExecutorService;
+  ```
+
+* Broker 映射表：key 是 BrokerName
+
+  ```java
+  // 物理节点映射表，value：Long 是 brokerID，【ID=0 的是主节点，其他是从节点】，String 是地址 ip:port
+  private final ConcurrentMap<String, HashMap<Long, String>> brokerAddrTable;
+  // 物理节点版本映射表，String 是地址 ip:port，Integer 是版本
+  ConcurrentMap<String, HashMap<String, Integer>> brokerVersionTable;
+  ```
+
+* **客户端的协议处理器**：用于处理 IO 事件
+
+  ```java
+  private final ClientRemotingProcessor clientRemotingProcessor;
+  ```
+
+* 消息服务：
+
+  ```java
+  private final PullMessageService pullMessageService;		// 拉消息服务
+  private final RebalanceService rebalanceService;			// 消费者负载均衡服务
+   private final ConsumerStatsManager consumerStatsManager;	// 消费者状态管理
+  ```
+
+* 内部生产者实例：处理消费端**消息回退**，用该生产者发送回执消息
+
+  ```java
+  private final DefaultMQProducer defaultMQProducer;
+  ```
+
+* 心跳次数统计：
+
+  ```java
+  private final AtomicLong sendHeartbeatTimesTotal = new AtomicLong(0)
+  ```
+
+* 公共配置类：
+
+  ```java
+  public class ClientConfig {
+      // Namesrv 地址配置
+      private String namesrvAddr = NameServerAddressUtils.getNameServerAddresses();
+      // 客户端的 IP 地址
+      private String clientIP = RemotingUtil.getLocalAddress();
+      // 客户端实例名称
+      private String instanceName = System.getProperty("rocketmq.client.name", "DEFAULT");
+      // 客户端回调线程池的数量，平台核心数，8核16线程的电脑返回16
+      private int clientCallbackExecutorThreads = Runtime.getRuntime().availableProcessors();
+      // 命名空间
+      protected String namespace;
+      protected AccessChannel accessChannel = AccessChannel.LOCAL;
+  
+      // 获取路由信息的间隔时间 30s
+      private int pollNameServerInterval = 1000 * 30;
+      // 客户端与 broker 之间的心跳周期 30s
+      private int heartbeatBrokerInterval = 1000 * 30;
+      // 消费者持久化消费的周期 5s
+      private int persistConsumerOffsetInterval = 1000 * 5;
+      private long pullTimeDelayMillsWhenException = 1000;
+      private boolean unitMode = false;
+      private String unitName;
+      // vip 通道，broker 启动时绑定两个端口，其中一个是 vip 通道
+      private boolean vipChannelEnabled = Boolean.parseBoolean();
+      // 语言，默认是 Java
+      private LanguageCode language = LanguageCode.JAVA;
+  }
+  ```
+
+构造方法：
+
+* MQClientInstance 有参构造：
+
+  ```java
+  public MQClientInstance(ClientConfig clientConfig, int instanceIndex, String clientId, RPCHook rpcHook) {
+      this.clientConfig = clientConfig;
+      this.instanceIndex = instanceIndex;
+      // Netty 相关的配置信息
+      this.nettyClientConfig = new NettyClientConfig();
+      // 平台核心数
+      this.nettyClientConfig.setClientCallbackExecutorThreads(...);
+      this.nettyClientConfig.setUseTLS(clientConfig.isUseTLS());
+      // 【创建客户端协议处理器】
+      this.clientRemotingProcessor = new ClientRemotingProcessor(this);
+      // 创建 API 实现对象
+      // 参数一：客户端网络配置
+      // 参数二：客户端协议处理器，注册到客户端网络层
+      // 参数三：rpcHook，注册到客户端网络层
+      // 参数四：客户端配置
+      this.mQClientAPIImpl = new MQClientAPIImpl(this.nettyClientConfig, this.clientRemotingProcessor, rpcHook, clientConfig);
+  
+      //...
+      // 内部生产者，指定内部生产者的组
+      this.defaultMQProducer = new DefaultMQProducer(MixAll.CLIENT_INNER_PRODUCER_GROUP);
+  }
+  ```
+
+* MQClientAPIImpl 有参构造：
+
+  ```java
+  public MQClientAPIImpl(nettyClientConfig, clientRemotingProcessor, rpcHook, clientConfig) {
+      this.clientConfig = clientConfig;
+      topAddressing = new TopAddressing(MixAll.getWSAddr(), clientConfig.getUnitName());
+      // 创建网络层对象，参数二为 null 说明客户端并不关心 channel event
+      this.remotingClient = new NettyRemotingClient(nettyClientConfig, null);
+      // 业务处理器
+      this.clientRemotingProcessor = clientRemotingProcessor;
+      // 注册 RpcHook
+      this.remotingClient.registerRPCHook(rpcHook);
+  	// ...
+      // 注册回退消息的请求码
+      this.remotingClient.registerProcessor(RequestCode.PUSH_REPLY_MESSAGE_TO_CLIENT, this.clientRemotingProcessor, null);
+  }
+  ```
+
+
+
+***
+
+
+
+##### 成员方法
+
+* start()：启动方法
+
+  * `synchronized (this)`：加锁保证线程安全，保证只有一个实例对象启动
+  * `this.mQClientAPIImpl.start()`：启动客户端网络层，底层调用 RemotingClient 类 
+  * `this.startScheduledTask()`：启动定时任务
+  * `this.pullMessageService.start()`：启动拉取消息服务
+  * `this.rebalanceService.start()`：启动负载均衡服务
+  * `this.defaultMQProducer.getDefaultMQProducerImpl().start(false)`：启动内部生产者，参数为 false 代表不启动实例
+
+* startScheduledTask()：**启动定时任务**，调度线程池是单线程
+
+  * `if (null == this.clientConfig.getNamesrvAddr())`：Namesrv 地址是空，需要两分钟拉取一次 Namesrv 地址
+
+  * 定时任务 1：从 Namesrv 更新客户端本地的路由数据，周期 30 秒一次
+
+    ```java
+    // 获取生产者和消费者订阅的主题集合，遍历集合，对比从 namesrv 拉取最新的主题路由数据和本地数据，是否需要更新
+    MQClientInstance.this.updateTopicRouteInfoFromNameServer();
+    ```
+
+  * 定时任务 2：周期 30 秒一次，两个任务
+
+    * 清理下线的 Broker 节点，遍历客户端的 Broker 物理节点映射表，将所有主题数据都不包含的 Broker 物理节点清理掉，如果被清理的 Broker 下所有的物理节点都没有了，就将该 Broker 的映射数据删除掉
+    * 向在线的所有的 Broker 发送心跳数据，**同步发送的方式**，返回值是 Broker 物理节点的版本号，更新版本映射表
+
+    ```java
+    MQClientInstance.this.cleanOfflineBroker();
+    MQClientInstance.this.sendHeartbeatToAllBrokerWithLock();
+    ```
+
+    ```java
+    // 心跳数据
+    public class HeartbeatData extends RemotingSerializable {
+        // 客户端 ID  ip@pid
+        private String clientID;
+        // 存储客户端所有生产者数据
+        private Set<ProducerData> producerDataSet = new HashSet<ProducerData>();
+        // 存储客户端所有消费者数据
+        private Set<ConsumerData> consumerDataSet = new HashSet<ConsumerData>();
+    }
+    ```
+
+  * 定时任务 3：消费者持久化消费数据，周期 5 秒一次
+
+    ```java
+    MQClientInstance.this.persistAllConsumerOffset();
+    ```
+
+  * 定时任务 4：动态调整消费者线程池，周期 1 分钟一次
+
+    ```java
+    MQClientInstance.this.adjustThreadPool();
+    ```
+
+* updateTopicRouteInfoFromNameServer()：**更新路由数据**
+
+  * `if (isDefault && defaultMQProducer != null)`：需要默认数据
+
+    `topicRouteData = ...getDefaultTopicRouteInfoFromNameServer()`：从 Namesrv 获取默认的 TBW102 的路由数据
+
+    `int queueNums`：遍历所有队列，为每个读写队列设置较小的队列数
+
+  * `topicRouteData = ...getTopicRouteInfoFromNameServer(topic)`：需要**从 Namesrv 获取**路由数据（同步）
+
+  * `old = this.topicRouteTable.get(topic)`：获取客户端实例本地的该主题的路由数据
+
+  * `boolean changed = topicRouteDataIsChange(old, topicRouteData)`：对比本地和最新下拉的数据是否一致
+
+  * `if (changed)`：不一致进入更新逻辑
+
+    `cloneTopicRouteData = topicRouteData.cloneTopicRouteData()`：克隆一份最新数据
+
+    `Update Pub info`：更新生产者信息
+
+    * `publishInfo = topicRouteData2TopicPublishInfo(topic, topicRouteData)`：**将主题路由数据转化为发布数据**
+    * `impl.updateTopicPublishInfo(topic, publishInfo)`：生产者将主题的发布数据保存到它本地，方便发送消息使用
+
+    `Update sub info`：更新消费者信息
+
+    `this.topicRouteTable.put(topic, cloneTopicRouteData)`：将数据放入本地路由表
+
+
+
+****
+
+
+
+#### 网络通信
+
+##### 成员属性
+
+NettyRemotingClient 类负责客户端的网络通信
+
+成员变量：
+
+* Netty 服务相关属性：
+
+  ```java
+  private final NettyClientConfig nettyClientConfig;			// 客户端的网络层配置
+  private final Bootstrap bootstrap = new Bootstrap();		// 客户端网络层启动对象
+  private final EventLoopGroup eventLoopGroupWorker;			// 客户端网络层 Netty IO 线程组
+  ```
+
+* Channel 映射表：
+
+  ```java
+  private final ConcurrentMap<String, ChannelWrapper> channelTables;// key 是服务器的地址，value 是通道对象
+  private final Lock lockChannelTables = new ReentrantLock();		  // 锁，控制并发安全
+  ```
+
+* 定时器：启动定时任务
+
+  ```java
+  private final Timer timer = new Timer("ClientHouseKeepingService", true)
+  ```
+
+* 线程池：
+
+  ```java
+  private ExecutorService publicExecutor;		// 公共线程池
+  private ExecutorService callbackExecutor; 	// 回调线程池，客户端发起异步请求，服务器的响应数据由回调线程池处理
+  ```
+
+* 事件监听器：客户端这里是 null
+
+  ```java
+  private final ChannelEventListener channelEventListener;
+  ```
+
+* Netty 配置对象：
+
+  ```java
+  public class NettyClientConfig {
+      // 客户端工作线程数
+      private int clientWorkerThreads = 4;
+      // 回调处理线程池 线程数：平台核心数
+      private int clientCallbackExecutorThreads = Runtime.getRuntime().availableProcessors();
+      // 单向请求并发数，默认 65535
+      private int clientOnewaySemaphoreValue = NettySystemConfig.CLIENT_ONEWAY_SEMAPHORE_VALUE;
+      // 异步请求并发数，默认 65535
+      private int clientAsyncSemaphoreValue = NettySystemConfig.CLIENT_ASYNC_SEMAPHORE_VALUE;
+      // 客户端连接服务器的超时时间限制 3秒
+      private int connectTimeoutMillis = 3000;
+      // 客户端未激活周期，60s（指定时间内 ch 未激活，需要关闭）
+      private long channelNotActiveInterval = 1000 * 60;
+      // 客户端与服务器 ch 最大空闲时间 2分钟
+      private int clientChannelMaxIdleTimeSeconds = 120;
+  
+      // 底层 Socket 写和收 缓冲区的大小 65535  64k
+      private int clientSocketSndBufSize = NettySystemConfig.socketSndbufSize;
+      private int clientSocketRcvBufSize = NettySystemConfig.socketRcvbufSize;
+      // 客户端 netty 是否启动内存池
+      private boolean clientPooledByteBufAllocatorEnable = false;
+      // 客户端是否超时关闭 Socket 连接
+      private boolean clientCloseSocketIfTimeout = false;
+  }
+  ```
+
+构造方法
+
+* 无参构造：
+
+  ```java
+  public NettyRemotingClient(final NettyClientConfig nettyClientConfig) {
+      this(nettyClientConfig, null);
+  }
+  ```
+
+* 有参构造：
+
+  ```java
+  public NettyRemotingClient(nettyClientConfig, channelEventListener) {
+      // 父类创建了2个信号量，1、控制单向请求的并发度，2、控制异步请求的并发度
+      super(nettyClientConfig.getClientOnewaySemaphoreValue(), nettyClientConfig.getClientAsyncSemaphoreValue());
+      this.nettyClientConfig = nettyClientConfig;
+      this.channelEventListener = channelEventListener;
+  
+      // 创建公共线程池
+      int publicThreadNums = nettyClientConfig.getClientCallbackExecutorThreads();
+      if (publicThreadNums <= 0) {
+          publicThreadNums = 4;
+      }
+      this.publicExecutor = Executors.newFixedThreadPool(publicThreadNums,);
+  
+      // 创建 Netty IO 线程，1个线程
+      this.eventLoopGroupWorker = new NioEventLoopGroup(1, );
+  
+      if (nettyClientConfig.isUseTLS()) {
+    		sslContext = TlsHelper.buildSslContext(true);
+      }
+  }
+  ```
+
+
+
+****
+
+
+
+##### 成员方法
+
+* start()：启动方法
+
+  ```java
+  public void start() {
+      // channel pipeline 内的 handler 使用的线程资源，默认 4 个
+      this.defaultEventExecutorGroup = new DefaultEventExecutorGroup();
+      // 配置 netty 客户端启动类对象
+      Bootstrap handler = this.bootstrap.group(this.eventLoopGroupWorker).channel(NioSocketChannel.class)
+          //...
+          .handler(new ChannelInitializer<SocketChannel>() {
+              @Override
+              public void initChannel(SocketChannel ch) throws Exception {
+                  ChannelPipeline pipeline = ch.pipeline();
+                  // 加几个handler
+                  pipeline.addLast(
+                      // 服务端的数据，都会来到这个
+                      new NettyClientHandler());
+              }
+          });
+      // 注意 Bootstrap 只是配置好客户端的元数据了，【在这里并没有创建任何 channel 对象】
+      // 定时任务 扫描 responseTable 中超时的 ResponseFuture，避免客户端线程长时间阻塞
+      this.timer.scheduleAtFixedRate(() -> {
+       	NettyRemotingClient.this.scanResponseTable();
+      }, 1000 * 3, 1000);
+      // 这里是 null，不启动
+      if (this.channelEventListener != null) {
+          this.nettyEventExecutor.start();
+      }
+  }
+  ```
+
+* 单向通信：
+
+  ```java
+  public RemotingCommand invokeSync(String addr, final RemotingCommand request, long timeoutMillis) {
+      // 开始时间
+      long beginStartTime = System.currentTimeMillis();
+      // 获取或者创建客户端与服务端（addr）的通道 channel
+      final Channel channel = this.getAndCreateChannel(addr);
+      // 条件成立说明客户端与服务端 channel 通道正常，可以通信
+      if (channel != null && channel.isActive()) {
+          try {
+              // 执行 rpcHook 拓展点
+              doBeforeRpcHooks(addr, request);
+              // 计算耗时，如果当前耗时已经超过 timeoutMillis 限制，则直接抛出异常，不再进行系统通信
+              long costTime = System.currentTimeMillis() - beginStartTime;
+              if (timeoutMillis < costTime) {
+                  throw new RemotingTimeoutException("invokeSync call timeout");
+              }
+              // 参数1：客户端-服务端通道channel
+              // 参数二：网络层传输对象，封装着请求数据
+              // 参数三：剩余的超时限制
+              RemotingCommand response = this.invokeSyncImpl(channel, request, ...);
+              // 后置处理
+              doAfterRpcHooks(RemotingHelper.parseChannelRemoteAddr(channel), request, response);
+              // 返回响应数据
+              return response;
+          } catch (RemotingSendRequestException e) {}
+      } else {
+          this.closeChannel(addr, channel);
+          throw new RemotingConnectException(addr);
+      }
+  }
+  ```
+
+  
 
 
 
