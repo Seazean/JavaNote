@@ -5,7 +5,7 @@
 内容说明：
 
 * DB：MySQL、Redis
-* Frame：Maven、Netty
+* Frame：Maven、Netty、RocketMQ
 * Java：JavaSE、JVM、Algorithm、Design Pattern
 * Prog：Concurrent、Network Programming
 * SSM：MyBatis、Spring、SpringMVC、SpringBoot
@@ -17,5 +17,4 @@
 * 推荐使用 Typora 阅读笔记，打开目录栏效果更佳。
 * 所有的知识不保证权威性，如果各位朋友发现错误，欢迎与我讨论。
 * 笔记的编写基于 Windows 平台，可能会因为平台的不同而造成空格、制表符的显示效果不同。
-
 
