@@ -5320,7 +5320,7 @@ Buffer Pool 中每个缓冲页都有对应的控制信息，包括表空间编�
 MySQL 提供了缓冲页的快速查找方式：**哈希表**，使用表空间号和页号作为 Key，缓冲页控制块的地址作为 Value 创建一个哈希表，获取数据页时根据 Key 进行哈希寻址：
 
 * 如果不存在对应的缓存页，就从 free 链表中选一个空闲缓冲页，把磁盘中的对应页加载到该位置
-* 如果存在对应的缓存页，直接获取使用
+* 如果存在对应的缓存页，直接获取使用，提高查询数据的效率
 
 
 
@@ -5419,6 +5419,8 @@ Innodb 用一块内存区做 IO 缓存池，该缓存池不仅用来缓存 Innod
 SHOW ENGINE INNODB STATUS\G
 ```
 
+`Buffer pool hit rate` 字段代表**内存命中率**，表示 Buffer Pool 对查询的加速效果
+
 核心参数：
 
 * `innodb_buffer_pool_size`：该变量决定了 Innodb 存储引擎表数据和索引数据的最大缓存区大小，默认 128M
@@ -5441,8 +5443,6 @@ SHOW ENGINE INNODB STATUS\G
   innodb_log_buffer_size=10M
   ```
 
-Buffer Pool 中有一块内存叫 Change Buffer 用来对增删改操作提供缓存，可以通过参数 innodb_change_buffer_max_size 来动态设置，设置为 50 时表示 Change Buffer 的大小最多只能占用 Buffer Pool 的 50%
-
 在多线程下，访问 Buffer Pool 中的各种链表都需要加锁，所以将 Buffer Pool 拆成若干个小实例，每个实例独立管理内存空间和各种链表（类似 ThreadLocal），多线程访问各实例互不影响，提高了并发能力
 
 * 在系统启动时设置系统变量 `innodb_buffer_pool_instance` 可以指定 Buffer Pool 实例的个数，但是当 Buffer Pool 小于 1GB 时，设置多个实例时无效的
@@ -5453,6 +5453,30 @@ MySQL 5.7.5 之前 `innodb_buffer_pool_size` 只支持在系统启动时修改�
 * `innodb_buffer_pool_size` 必须是 `innodb_buffer_pool_chunk_size × innodb_buffer_pool_instance` 的倍数，默认值是 `128M × 16 = 2G`，Buffer Pool 必须是 2G 的整数倍，如果指定 5G，会自动调整成 6G
 
 * 如果启动时 `chunk × instances` > `pool_size`，那么 chunk 的值会自动设置为 `pool_size ÷ instances`
+
+
+
+***
+
+
+
+#### 其他内存
+
+InnoDB 管理的 Buffer Pool 中有一块内存叫 Change Buffer 用来对**增删改**操作提供缓存，参数 `innodb_change_buffer_max_size ` 来动态设置，设置为 50 时表示 Change Buffer 的大小最多只能占用 Buffer Pool 的 50%
+
+Server 层针对优化**查询**的内存为 Net Buffer，内存的大小是由参数 `net_buffer_length`定义，默认 16k，实现流程：
+
+* 获取一行数据写入 Net Buffer，重复获取直到 Net Buffer 写满，调用网络接口发出去
+* 若发送成功就清空 Net Buffer，然后继续取下一行；若发送函数返回 `EAGAIN` 或 `WSAEWOULDBLOCK`，表示本地网络栈 `socket send buffer` 写满了，进入等待，直到网络栈重新可写再继续发送
+
+![](https://gitee.com/seazean/images/raw/master/DB/MySQL-查询内存优化.png)
+
+MySQL 采用的是边算边发的逻辑，因此对于数据量很大的查询来说，不会在 Server 端保存完整的结果集，如果客户端读结果不及时，会堵住 MySQL 的查询过程，但是不会把内存打爆导致 OOM
+
+
+
+
+参考文章：https://blog.csdn.net/qq_33589510/article/details/117673449
 
 
 

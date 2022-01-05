@@ -3816,7 +3816,7 @@ public class Consumer {
 - 全局顺序：对于指定的一个 Topic，所有消息按照严格的先入先出（FIFO）的顺序进行发布和消费。 适用于性能要求不高，所有的消息严格按照 FIFO 原则进行消息发布和消费的场景
 - 分区顺序：对于指定的一个 Topic，所有消息根据 sharding key 进行分区，同一个分组内的消息按照严格的 FIFO 顺序进行发布和消费。Sharding key 是顺序消息中用来区分不同分区的关键字段，和普通消息的 Key 是完全不同的概念。 适用于性能要求高，以 sharding key 作为分区字段，在同一个区中严格的按照 FIFO 原则进行消息发布和消费的场景
 
-在默认的情况下消息发送会采取 Round Robin 轮询方式把消息发送到不同的 queue（分区队列），而消费消息是从多个 queue 上拉取消息，这种情况发送和消费是不能保证顺序。但是如果控制发送的顺序消息只依次发送到同一个 queue 中，消费的时候只从这个 queue 上依次拉取，则就保证了顺序。当发送和消费参与的 queue 只有一个，则是全局有序；如果多个queue参与，则为分区有序，即相对每个 queue，消息都是有序的
+在默认的情况下消息发送会采取 Round Robin 轮询方式把消息发送到不同的 queue（分区队列），而消费消息是从多个 queue 上拉取消息，这种情况发送和消费是不能保证顺序。但是如果控制发送的顺序消息只依次发送到同一个 queue 中，消费的时候只从这个 queue 上依次拉取，则就保证了顺序。当发送和消费参与的 queue 只有一个，则是全局有序；如果多个queue 参与，则为分区有序，即相对每个 queue，消息都是有序的
 
 
 
@@ -4552,8 +4552,6 @@ RocketMQ 的工作流程：
 
 
 
-### 消息存储
-
 #### 生产消费
 
 At least Once：至少一次，指每个消息必须投递一次，Consumer 先 Pull 消息到本地，消费完成后才向服务器返回 ACK，如果没有消费一定不会 ACK 消息
@@ -4570,101 +4568,6 @@ At least Once：至少一次，指每个消息必须投递一次，Consumer 先 
 6. MQ 删除消息
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-消息存取.png)
-
-
-
-
-
-***
-
-
-
-#### 存储结构
-
-RocketMQ 中 Broker 负责存储消息转发消息，所以以下的结构是存储在 Broker Server 上的，生产者和消费者与 Broker 进行消息的收发是通过主题对应的 Message Queue 完成，类似于通道
-
-RocketMQ 消息的存储是由 ConsumeQueue 和 CommitLog 配合完成 的，消息真正的物理存储文件是 CommitLog，ConsumeQueue 是消息的逻辑队列，类似数据库的索引节点，存储的是指向物理存储的地址。**每个 Topic 下的每个 Message Queue 都有一个对应的 ConsumeQueue 文件**
-
-每条消息都会有对应的索引信息，Consumer 通过 ConsumeQueue 这个结构来读取消息实体内容
-
-![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-消息存储结构.png)
-
-* CommitLog：消息主体以及元数据的存储主体，存储 Producer 端写入的消息内容，消息内容不是定长的。消息主要是顺序写入日志文件，单个文件大小默认1G，偏移量代表下一次写入的位置，当文件写满了就继续写入下一个文件
-* ConsumerQueue：消息消费队列，存储消息在 CommitLog 的索引。RocketMQ 消息消费时要遍历 CommitLog 文件，并根据主题 Topic 检索消息，这是非常低效的。引入 ConsumeQueue 作为消费消息的索引，保存了指定 Topic 下的队列消息在 CommitLog 中的起始物理偏移量 offset，消息大小 size 和消息 Tag 的 HashCode 值，每个 ConsumeQueue 文件大小约 5.72M
-* IndexFile：为了消息查询提供了一种通过 Key 或时间区间来查询消息的方法，通过 IndexFile 来查找消息的方法不影响发送与消费消息的主流程。IndexFile 的底层存储为在文件系统中实现的 HashMap 结构，故 RocketMQ 的索引文件其底层实现为 hash 索引
-
-RocketMQ 采用的是混合型的存储结构，即为 Broker 单个实例下所有的队列共用一个日志数据文件（CommitLog）来存储。混合型存储结构（多个 Topic 的消息实体内容都存储于一个 CommitLog 中）**针对 Producer 和 Consumer 分别采用了数据和索引部分相分离的存储结构**，Producer 发送消息至 Broker 端，然后 Broker 端使用同步或者异步的方式对消息刷盘持久化，保存至 CommitLog 中。只要消息被持久化至磁盘文件 CommitLog 中，Producer 发送的消息就不会丢失，Consumer 也就肯定有机会去消费这条消息
-
-服务端支持长轮询模式，当消费者无法拉取到消息后，可以等下一次消息拉取，Broker 允许等待 30s 的时间，只要这段时间内有新消息到达，将直接返回给消费端。RocketMQ 的具体做法是，使用 Broker 端的后台服务线程 ReputMessageService 不停地分发请求并异步构建 ConsumeQueue（逻辑消费队列）和 IndexFile（索引文件）数据
-
-
-
-****
-
-
-
-#### 存储优化
-
-##### 存储媒介
-
-两种持久化的方案：
-
-* 关系型数据库 DB：IO 读写性能比较差，如果 DB 出现故障，则 MQ 的消息就无法落盘存储导致线上故障，可靠性不高
-
-* 文件系统：消息刷盘至所部署虚拟机/物理机的文件系统来做持久化，分为异步刷盘和同步刷盘两种模式。消息刷盘为消息存储提供了一种高效率、高可靠性和高性能的数据持久化方式，除非部署 MQ 机器本身或是本地磁盘挂了，一般不会出现无法持久化的问题
-
-  注意：磁盘的顺序读写要比随机读写快很多，可以匹配上网络的速度，RocketMQ 的消息采用的顺序写
-
-页缓存（PageCache）是 OS 对文件的缓存，用于加速对文件的读写。程序对文件进行顺序读写的速度几乎接近于内存的读写速度，就是因为 OS 将一部分的内存用作 PageCache，对读写访问操作进行了性能优化
-
-* 对于数据的写入，OS 会先写入至 Cache 内，随后通过异步的方式由 pdflush 内核线程将 Cache 内的数据刷盘至物理磁盘上
-* 对于数据的读取，如果一次读取文件时出现未命中 PageCache 的情况，OS 从物理磁盘上访问读取文件的同时，会顺序对其他相邻块的数据文件进行预读取（局部性原理）
-
-在 RocketMQ 中，ConsumeQueue 逻辑消费队列存储的数据较少，并且是顺序读取，在 PageCache 机制的预读取作用下，Consume Queue 文件的读性能几乎接近读内存，即使在有消息堆积情况下也不会影响性能。CommitLog 消息存储的日志数据文件读取内容时会产生较多的随机访问读取，严重影响性能。选择合适的系统 IO 调度算法和固态硬盘，比如设置调度算法为 Deadline，随机读的性能也会有所提升
-
-
-
-***
-
-
-
-##### 内存映射
-
-操作系统分为用户态和内核态，文件操作、网络操作需要涉及这两种形态的切换，需要进行数据复制。一台服务器把本机磁盘文件的内容发送到客户端，分为两个步骤：
-
-* read：读取本地文件内容
-
-* write：将读取的内容通过网络发送出去
-
-![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-文件与网络操作.png)
-
-补充：Prog → NET → I/O → 零拷贝部分的笔记详解相关内容
-
-通过使用 mmap 的方式，可以省去向用户态的内存复制，RocketMQ 充分利用零拷贝技术，提高消息存盘和网络发送的速度。
-
-RocketMQ 主要通过 MappedByteBuffer 对文件进行读写操作，利用了 NIO 中的 FileChannel 模型将磁盘上的物理文件直接映射到用户态的内存地址中，将对文件的操作转化为直接对内存地址进行操作，从而极大地提高了文件的读写效率
-
-MappedByteBuffer 内存映射的方式限制一次只能映射 1.5~2G 的文件至用户态的虚拟内存，所以 RocketMQ 默认设置单个 CommitLog 日志数据文件为 1G。RocketMQ 的文件存储使用定长结构来存储，方便一次将整个文件映射至内存
-
-
-
-***
-
-
-
-#### 刷盘机制
-
-同步刷盘：只有在消息真正持久化至磁盘后 RocketMQ 的 Broker 端才会真正返回给 Producer 端一个成功的 ACK 响应，保障 MQ消息的可靠性，但是性能上会有较大影响，一般适用于金融业务应用该模式较多
-
-异步刷盘：利用 OS 的 PageCache 的优势，只要消息写入内存 PageCache 即可将成功的 ACK 返回给 Producer 端，降低了读写延迟，提高了 MQ 的性能和吞吐量。消息刷盘采用**后台异步线程**提交的方式进行，当内存里的消息量积累到一定程度时，触发写磁盘动作
-
-通过 Broker 配置文件里的 flushDiskType 参数设置采用什么方式，可以配置成 SYNC_FLUSH、ASYNC_FLUSH 中的一个
-
-![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-刷盘机制.png)
-
-
-
-官方文档：https://github.com/apache/rocketmq/blob/master/docs/cn/design.md
 
 
 
@@ -4912,6 +4815,27 @@ Consumer 端实现负载均衡的核心类 **RebalanceImpl**
 
 ### 消息重试
 
+#### 重投机制
+
+生产者在发送消息时，同步消息和异步消息失败会重投，oneway 没有任何保证。消息重投保证消息尽可能发送成功、不丢失，但当出现消息量大、网络抖动时，可能会造成消息重复；生产者主动重发、Consumer 负载变化也会导致重复消息。
+
+如下方法可以设置消息重投策略：
+
+- retryTimesWhenSendFailed：同步发送失败重投次数，默认为 2，因此生产者会最多尝试发送 retryTimesWhenSendFailed + 1 次。不会选择上次失败的 Broker，尝试向其他 Broker 发送，最大程度保证消息不丢。超过重投次数抛出异常，由客户端保证消息不丢。当出现 RemotingException、MQClientException 和部分 MQBrokerException 时会重投
+- retryTimesWhenSendAsyncFailed：异步发送失败重试次数，异步重试不会选择其他 Broker，仅在同一个 Broker 上做重试，不保证消息不丢
+- retryAnotherBrokerWhenNotStoreOK：消息刷盘（主或备）超时或 slave 不可用（返回状态非 SEND_OK），是否尝试发送到其他  Broker，默认 false，十分重要消息可以开启
+
+注意点：
+
+* 如果同步模式发送失败，则选择到下一个 Broker，如果异步模式发送失败，则**只会在当前 Broker 进行重试**
+* 发送消息超时时间默认3000毫秒，就不会再尝试重试
+
+
+
+***
+
+
+
 #### 重试机制
 
 Consumer 消费消息失败后，提供了一种重试机制，令消息再消费一次。Consumer 消费消息失败可以认为有以下几种情况：
@@ -4927,7 +4851,7 @@ RocketMQ 会为每个消费组都设置一个 Topic 名称为 `%RETRY%+consumerG
 
 **无序消息情况下**，因为异常恢复需要一些时间，会为重试队列设置多个重试级别，每个重试级别都有对应的重新投递延时，重试次数越多投递延时就越大。RocketMQ 对于重试消息的处理是先保存至 Topic 名称为 `SCHEDULE_TOPIC_XXXX` 的延迟队列中，后台定时任务按照对应的时间进行 Delay 后重新保存至 `%RETRY%+consumerGroup` 的重试队列中
 
-消息队列 RocketMQ 默认允许每条消息最多重试 16 次，每次重试的间隔时间如下：
+消息队列 RocketMQ 默认允许每条消息最多重试 16 次，每次重试的间隔时间如下表示：
 
 | 第几次重试 | 与上次重试的间隔时间 | 第几次重试 | 与上次重试的间隔时间 |
 | :--------: | :------------------: | :--------: | :------------------: |
@@ -4942,7 +4866,9 @@ RocketMQ 会为每个消费组都设置一个 Topic 名称为 `%RETRY%+consumerG
 
 如果消息重试 16 次后仍然失败，消息将**不再投递**，如果严格按照上述重试时间间隔计算，某条消息在一直消费失败的前提下，将会在接下来的 4 小时 46 分钟之内进行 16 次重试，超过这个时间范围消息将不再重试投递
 
-说明：一条消息无论重试多少次，消息的 Message ID 是不会改变的
+时间间隔不支持自定义配置，最大重试次数可通过自定义参数 `MaxReconsumeTimes` 取值进行配置，若配置超过 16 次，则超过的间隔时间均为 2 小时
+
+说明：一条消息无论重试多少次，**消息的 Message ID 是不会改变的**
 
 
 
@@ -5024,26 +4950,6 @@ public class MessageListenerImpl implements MessageListener {
 
 
 
-***
-
-
-
-#### 重投机制
-
-生产者在发送消息时，同步消息和异步消息失败会重投，oneway 没有任何保证。消息重投保证消息尽可能发送成功、不丢失，但当出现消息量大、网络抖动时，可能会造成消息重复；生产者主动重发、Consumer 负载变化也会导致重复消息。
-
-消息重复在 RocketMQ 中是无法避免的问题，如下方法可以设置消息重投策略：
-
-- retryTimesWhenSendFailed：同步发送失败重投次数，默认为 2，因此生产者会最多尝试发送 retryTimesWhenSendFailed + 1 次。不会选择上次失败的 Broker，尝试向其他 Broker 发送，最大程度保证消息不丢。超过重投次数抛出异常，由客户端保证消息不丢。当出现 RemotingException、MQClientException 和部分 MQBrokerException 时会重投
-- retryTimesWhenSendAsyncFailed：异步发送失败重试次数，异步重试不会选择其他 Broker，仅在同一个 Broker 上做重试，不保证消息不丢
-- retryAnotherBrokerWhenNotStoreOK：消息刷盘（主或备）超时或 slave 不可用（返回状态非 SEND_OK），是否尝试发送到其他  Broker，默认 false，十分重要消息可以开启
-
-注意点：
-
-* 如果同步模式发送失败，则选择到下一个 Broker，如果异步模式发送失败，则**只会在当前 Broker 进行重试**
-
-* 发送消息超时时间默认3000毫秒，就不会再尝试重试
-
 
 
 ***
@@ -5081,7 +4987,7 @@ public class MessageListenerImpl implements MessageListener {
 
 消息队列 RocketMQ 消费者在接收到消息以后，需要根据业务上的唯一 Key 对消息做幂等处理
 
-在互联网应用中，尤其在网络不稳定的情况下，消息队列 RocketMQ 的消息有可能会出现重复，几种情况：
+At least Once 机制保证消息不丢失，但是可能会造成消息重复，RocketMQ 中无法避免消息重复（Exactly-Once），在互联网应用中，尤其在网络不稳定的情况下，几种情况：
 
 - 发送时消息重复：当一条消息已被成功发送到服务端并完成持久化，此时出现了网络闪断或客户端宕机，导致服务端对客户端应答失败。此时生产者意识到消息发送失败并尝试再次发送消息，消费者后续会收到两条内容相同并且 Message ID 也相同的消息
 
@@ -5150,11 +5056,13 @@ public class MessageListenerImpl implements MessageListener {
 
 
 
-## 源码分析
+## 原理解析
 
 ### 服务端
 
-#### 启动方法
+#### 服务启动
+
+##### 启动方法
 
 NamesrvStartup 类中有 Namesrv 服务的启动方法：
 
@@ -5221,7 +5129,7 @@ NamesrvStartup#start：启动 Namesrv 控制器
 
 
 
-#### 控制器类
+##### 控制器类
 
 NamesrvController 用来初始化和启动 Namesrv 服务器
 
@@ -5899,7 +5807,7 @@ DefaultMQProducer 是生产者的默认实现类
 
 
 
-#### 实现者类
+#### 默认实现
 
 ##### 成员属性
 
@@ -5918,19 +5826,6 @@ DefaultMQProducerImpl 类是默认的生产者实现类
 
   ```java
   private final ConcurrentMap<String, TopicPublishInfo> topicPublishInfoTable = new ConcurrentHashMap<String, TopicPublishInfo>();
-  ```
-
-  ```java
-  public class TopicPublishInfo {
-      private boolean orderTopic = false;
-      private boolean haveTopicRouterInfo = false;
-      // 主题的全部队列
-      private List<MessageQueue> messageQueueList = new ArrayList<MessageQueue>();
-      // 使用 ThreaLocal 保存发送消息使用的队列
-      private volatile ThreadLocalIndex sendWhichQueue = new ThreadLocalIndex();
-      // 主题的路由数据
-      private TopicRouteData topicRouteData;
-  }
   ```
 
 * 异步发送消息：相关信息
@@ -6078,13 +5973,13 @@ DefaultMQProducerImpl 类是默认的生产者实现类
 
     * `if (this.sendLatencyFaultEnable)`：默认不开启，可以通过配置开启
     * `return tpInfo.selectOneMessageQueue(lastBrokerName)`：默认选择队列的方式，就是循环主题全部的队列
-      * `int index = this.sendWhichQueue.getAndIncrement()`：选择队列的索引
-      * `int pos = Math.abs(index) % this.messageQueueList.size()`：获取该索引对应的队列位置
-      * `return this.messageQueueList.get(pos)`：返回消息队列
-
+    
   * `brokersSent[times] = mq.getBrokerName()`：将本次选择的 BrokerName 存入数组
+
   * `msg.setTopic(this.defaultMQProducer.withNamespace(msg.getTopic()))`：**重投的消息需要加上标记**
+
   * `sendResult = this.sendKernelImpl`：核心发送方法
+
   * `this.updateFaultItem(mq.getBrokerName(), endTimestamp - beginTimestampPrev, false)`：更新一下时间
 
   * `switch (communicationMode)`：异步或者单向消息直接返回 null，同步发送进入逻辑判断
@@ -6152,7 +6047,107 @@ DefaultMQProducerImpl 类是默认的生产者实现类
     }
     ```
 
-    
+
+
+
+***
+
+
+
+#### 路由信息
+
+TopicPublishInfo 类用来存储路由信息
+
+成员变量：
+
+* 顺序消息：
+
+  ```java
+  private boolean orderTopic = false;
+  ```
+
+* 消息队列：
+
+  ```java
+  private List<MessageQueue> messageQueueList = new ArrayList<>();			// 主题全部的消息队列
+  private volatile ThreadLocalIndex sendWhichQueue = new ThreadLocalIndex();	// 消息队列索引
+  ```
+
+  ```java
+  // 【消息队列类】
+  public class MessageQueue implements Comparable<MessageQueue>, Serializable {
+      private String topic;
+      private String brokerName;
+      private int queueId;// 队列 ID
+  }
+  ```
+
+* 路由数据：主题对应的路由数据
+
+  ```java
+  private TopicRouteData topicRouteData;
+  ```
+
+  ```java
+  public class TopicRouteData extends RemotingSerializable {
+      private String orderTopicConf;
+      private List<QueueData> queueDatas;		// 队列数据
+      private List<BrokerData> brokerDatas;	// Broker 数据
+      private HashMap<String/* brokerAddr */, List<String>/* Filter Server */> filterServerTable;
+  }
+  ```
+
+  ```java
+  public class QueueData implements Comparable<QueueData> {
+      private String brokerName;	// 节点名称
+      private int readQueueNums;	// 读队列数
+      private int writeQueueNums;	// 写队列数
+      private int perm;			// 权限
+      private int topicSynFlag;
+  }
+  ```
+
+  ```java
+  public class BrokerData implements Comparable<BrokerData> {
+      private String cluster;		// 集群名
+      private String brokerName;	// Broker节点名称
+      private HashMap<Long/* brokerId */, String/* broker address */> brokerAddrs;
+  }
+  ```
+
+核心方法：
+
+* selectOneMessageQueue()：**选择消息队列**使用
+
+  ```java
+  // 参数是上次失败时的 brokerName，可以为 null
+  public MessageQueue selectOneMessageQueue(final String lastBrokerName) {
+      if (lastBrokerName == null) {
+          return selectOneMessageQueue();
+      } else {
+          // 遍历消息队列
+          for (int i = 0; i < this.messageQueueList.size(); i++) {
+              // 获取队列的索引
+              int index = this.sendWhichQueue.getAndIncrement();
+              // 获取队列的下标位置
+              int pos = Math.abs(index) % this.messageQueueList.size();
+              if (pos < 0)
+                  pos = 0;
+              // 获取消息队列
+              MessageQueue mq = this.messageQueueList.get(pos);
+              // 与上次选择的不同就可以返回
+              if (!mq.getBrokerName().equals(lastBrokerName)) {
+                  return mq;
+              }
+          }
+          return selectOneMessageQueue();
+      }
+  }
+  ```
+
+  
+
+
 
 ****
 
@@ -6604,9 +6599,379 @@ NettyRemotingClient 类负责客户端的网络通信
 
   
 
+***
 
 
 
+### 存储端
+
+#### 存储机制
+
+##### 存储结构
+
+RocketMQ 中 Broker 负责存储消息转发消息，所以以下的结构是存储在 Broker Server 上的，生产者和消费者与 Broker 进行消息的收发是通过主题对应的 Message Queue 完成，类似于通道
+
+RocketMQ 消息的存储是由 ConsumeQueue 和 CommitLog 配合完成 的，CommitLog 是消息真正的**物理存储**文件，ConsumeQueue 是消息的逻辑队列，类似数据库的**索引节点**，存储的是指向物理存储的地址。**每个 Topic 下的每个 Message Queue 都有一个对应的 ConsumeQueue 文件**
+
+每条消息都会有对应的索引信息，Consumer 通过 ConsumeQueue 这个结构来读取消息实体内容
+
+![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-消息存储结构.png)
+
+* CommitLog：消息主体以及元数据的存储主体，存储 Producer 端写入的消息内容，消息内容不是定长的。消息主要是顺序写入日志文件，单个文件大小默认 1G，偏移量代表下一次写入的位置，当文件写满了就继续写入下一个文件
+* ConsumerQueue：消息消费队列，存储消息在 CommitLog 的索引。RocketMQ 消息消费时要遍历 CommitLog 文件，并根据主题 Topic 检索消息，这是非常低效的。引入 ConsumeQueue 作为消费消息的索引，保存了指定 Topic 下的队列消息在 CommitLog 中的起始物理偏移量 offset，消息大小 size 和消息 Tag 的 HashCode 值，每个 ConsumeQueue 文件大小约 5.72M
+* IndexFile：为了消息查询提供了一种通过 Key 或时间区间来查询消息的方法，通过 IndexFile 来查找消息的方法不影响发送与消费消息的主流程。IndexFile 的底层存储为在文件系统中实现的 HashMap 结构，故 RocketMQ 的索引文件其底层实现为 hash 索引
+
+RocketMQ 采用的是混合型的存储结构，即为 Broker 单个实例下所有的队列共用一个日志数据文件（CommitLog）来存储。混合型存储结构（多个 Topic 的消息实体内容都存储于一个 CommitLog 中）**针对 Producer 和 Consumer 分别采用了数据和索引部分相分离的存储结构**，Producer 发送消息至 Broker 端，然后 Broker 端使用同步或者异步的方式对消息刷盘持久化，保存至 CommitLog 中。只要消息被持久化至磁盘文件 CommitLog 中，Producer 发送的消息就不会丢失，Consumer 也就肯定有机会去消费这条消息
+
+服务端支持长轮询模式，当消费者无法拉取到消息后，可以等下一次消息拉取，Broker 允许等待 30s 的时间，只要这段时间内有新消息到达，将直接返回给消费端。RocketMQ 的具体做法是，使用 Broker 端的后台服务线程 ReputMessageService 不停地分发请求并异步构建 ConsumeQueue（逻辑消费队列）和 IndexFile（索引文件）数据
+
+
+
+****
+
+
+
+##### 存储优化
+
+###### 内存映射
+
+操作系统分为用户态和内核态，文件操作、网络操作需要涉及这两种形态的切换，需要进行数据复制。一台服务器把本机磁盘文件的内容发送到客户端，分为两个步骤：
+
+* read：读取本地文件内容
+
+* write：将读取的内容通过网络发送出去
+
+![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-文件与网络操作.png)
+
+补充：Prog → NET → I/O → 零拷贝部分的笔记详解相关内容
+
+通过使用 mmap 的方式，可以省去向用户态的内存复制，RocketMQ 充分利用**零拷贝技术**，提高消息存盘和网络发送的速度。
+
+RocketMQ 通过 MappedByteBuffer 对文件进行读写操作，利用了 NIO 中的 FileChannel 模型将磁盘上的物理文件直接映射到用户态的内存地址中，将对文件的操作转化为直接对内存地址进行操作，从而极大地提高了文件的读写效率
+
+MappedByteBuffer 内存映射的方式**限制**一次只能映射 1.5~2G 的文件至用户态的虚拟内存，所以 RocketMQ 默认设置单个 CommitLog 日志数据文件为 1G。RocketMQ 的文件存储使用定长结构来存储，方便一次将整个文件映射至内存
+
+
+
+***
+
+
+
+###### 页缓存
+
+页缓存（PageCache）是 OS 对文件的缓存，每一页的大小通常是 4K，用于加速对文件的读写。程序对文件进行顺序读写的速度几乎接近于内存的读写速度，就是因为 OS 将一部分的内存用作 PageCache，**对读写访问操作进行了性能优化**
+
+* 对于数据的写入，OS 会先写入至 Cache 内，随后通过异步的方式由 pdflush 内核线程将 Cache 内的数据刷盘至物理磁盘上
+* 对于数据的读取，如果一次读取文件时出现未命中 PageCache 的情况，OS 从物理磁盘上访问读取文件的同时，会顺序对其他相邻块的数据文件进行预读取（局部性原理，最大 128K）
+
+在 RocketMQ 中，ConsumeQueue 逻辑消费队列存储的数据较少，并且是顺序读取，在 PageCache 机制的预读取作用下，Consume Queue 文件的读性能几乎接近读内存，即使在有消息堆积情况下也不会影响性能。但是 CommitLog 消息存储的日志数据文件读取内容时会产生较多的随机访问读取，严重影响性能。选择合适的系统 IO 调度算法和固态硬盘，比如设置调度算法为 Deadline，随机读的性能也会有所提升
+
+
+
+***
+
+
+
+##### 刷盘机制
+
+两种持久化的方案：
+
+* 关系型数据库 DB：IO 读写性能比较差，如果 DB 出现故障，则 MQ 的消息就无法落盘存储导致线上故障，可靠性不高
+* 文件系统：消息刷盘至所部署虚拟机/物理机的文件系统来做持久化，分为异步刷盘和同步刷盘两种模式。消息刷盘为消息存储提供了一种高效率、高可靠性和高性能的数据持久化方式，除非部署 MQ 机器本身或是本地磁盘挂了，一般不会出现无法持久化的问题
+
+RocketMQ 采用文件系统的方式，无论同步还是异步刷盘，都使用**顺序 IO**，因为磁盘的顺序读写要比随机读写快很多
+
+* 同步刷盘：只有在消息真正持久化至磁盘后 RocketMQ 的 Broker 端才会真正返回给 Producer 端一个成功的 ACK 响应，保障 MQ消息的可靠性，但是性能上会有较大影响，一般适用于金融业务应用该模式较多
+
+* 异步刷盘：利用 OS 的 PageCache，只要消息写入内存 PageCache 即可将成功的 ACK 返回给 Producer 端，降低了读写延迟，提高了 MQ 的性能和吞吐量。消息刷盘采用**后台异步线程**提交的方式进行，当内存里的消息量积累到一定程度时，触发写磁盘动作
+
+通过 Broker 配置文件里的 flushDiskType 参数设置采用什么方式，可以配置成 SYNC_FLUSH、ASYNC_FLUSH 中的一个
+
+![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-刷盘机制.png)
+
+
+
+官方文档：https://github.com/apache/rocketmq/blob/master/docs/cn/design.md
+
+
+
+***
+
+
+
+#### MappedFile
+
+##### 成员属性
+
+MappedFile 类是最基础的存储类，继承自 ReferenceResource 类，用来**保证线程安全**
+
+MappedFile 类成员变量：
+
+* 内存相关：
+
+  ```java
+  public static final int OS_PAGE_SIZE = 1024 * 4;// 内存页大小：默认是 4k
+  private AtomicLong TOTAL_MAPPED_VIRTUAL_MEMORY;	// 当前进程下所有的 mappedFile 占用的总虚拟内存大小
+  private AtomicInteger TOTAL_MAPPED_FILES;		// 当前进程下所有的 mappedFile 个数
+  ```
+
+* 数据位点：
+
+  ```java
+  protected final AtomicInteger wrotePosition;	// 当前 mappedFile 的数据写入点
+  protected final AtomicInteger committedPosition;// 当前 mappedFile 的数据提交点
+  private final AtomicInteger flushedPosition;	// 数据落盘位点，在这之前的数据是持久化的安全数据
+  												// flushedPosition-wrotePosition 之间的数据属于脏页
+  ```
+
+* 文件相关：CL 是 CommitLog，CQ 是 ConsumeQueue
+
+  ```java
+  private String fileName;	// 文件名称，CL和CQ文件名是第一条消息的物理偏移量，索引文件是年月日时分秒
+  private long fileFromOffset;// 文件名转long，代表该对象的【起始偏移量】	
+  private File file;			// 文件对象
+  ```
+
+* 内存映射：
+
+  ```java
+  protected FileChannel fileChannel;			// 文件通道
+  private MappedByteBuffer mappedByteBuffer;	// 内存映射缓冲区，访问虚拟内存
+  ```
+
+ReferenceResource 类成员变量：
+
+* 引用数量：当 `refCount <= 0` 时，表示该资源可以释放了，没有任何其他程序依赖它了，用原子类保证线程安全
+
+  ```java
+  protected final AtomicLong refCount = new AtomicLong(1);	// 初始值为 1
+  ```
+
+* 存活状态：表示资源的存活状态
+
+  ```java
+  protected volatile boolean available = true;
+  ```
+
+* 是否清理：默认值 false，当执行完子类对象的 cleanup() 清理方法后，该值置为 true ，表示资源已经全部释放
+
+  ```java
+  protected volatile boolean cleanupOver = false;
+  ```
+
+* 第一次关闭资源的时间：用来记录超时时间
+
+  ```java
+  private volatile long firstShutdownTimestamp = 0;
+  ```
+
+  
+
+***
+
+
+
+##### 成员方法
+
+MappedFile 类核心方法：
+
+* appendMessage()：提供上层向内存映射中追加消息的方法，消息如何追加由 AppendMessageCallback 控制
+
+  ```java
+  // 参数一：消息     参数二：追加消息回调
+  public AppendMessageResult appendMessage(MessageExtBrokerInner msg, AppendMessageCallback cb)
+  ```
+
+  ```java
+  // 将字节数组写入到文件通道
+  public boolean appendMessage(final byte[] data)
+  ```
+
+* flush()：刷盘接口，参数 flushLeastPages  代表刷盘的最小页数 ，等于 0 时属于强制刷盘；> 0 时需要脏页（计算方法在数据位点）达到该值才进行物理刷盘；文件写满时强制刷盘
+
+  ```java
+  public int flush(final int flushLeastPages)
+  ```
+
+* selectMappedBuffer()：该方法以 pos 为开始位点 ，到有效数据为止，创建一个切片 ByteBuffer 作为数据副本，供业务访问数据
+
+  ```java
+  public SelectMappedBufferResult selectMappedBuffer(int pos)
+  ```
+
+* destroy()：销毁映射文件对象，并删除关联的系统文件，参数是强制关闭资源的时间
+
+  ```java
+  public boolean destroy(final long intervalForcibly)
+  ```
+
+* cleanup()：释放堆外内存，更新总虚拟内存和总内存映射文件数
+
+  ```java
+  public boolean cleanup(final long currentRef)
+  ```
+  
+* warmMappedFile()：内存预热，当要新建的 MappedFile 对象大于 1g 时，执行该方法对该 MappedFile 的每个 Page Cache 进行写入一个字节进行分配内存，**将映射文件都加载到内存**
+
+  ```java
+  public void warmMappedFile(FlushDiskType type, int pages)
+  ```
+
+ReferenceResource 类核心方法：
+
+* hold()：增加引用记数 refCount，方法加锁
+
+  ```java
+  public synchronized boolean hold()
+  ```
+
+* shutdown()：关闭资源，参数代表强制关闭资源的时间间隔
+
+  ```java
+  // 系统当前时间 - firstShutdownTimestamp 时间  > intervalForcibly 进行【强制关闭】
+  public void shutdown(final long intervalForcibly)
+  ```
+
+* release()：引用计数减 1，当 refCount  为 0 时，调用子类的 cleanup 方法
+
+  ```java
+  public void release()
+  ```
+
+  
+
+
+
+
+
+***
+
+
+
+#### MapQueue
+
+MappedFileQueue 用来管理 MappedFile 文件
+
+成员变量：
+
+* 管理目录：CommitLog 是 `../store/commitlog`， ConsumeQueue 是 `../store/xxx_topic/0`
+
+  ```java
+  private final String storePath;
+  ```
+
+* 文件属性：
+
+  ```java
+  private final int mappedFileSize;	// 目录下每个文件大小，CL文件默认 1g，CQ文件 默认 600w字节
+  private final CopyOnWriteArrayList<MappedFile> mappedFiles;	//目录下的每个 mappedFile 都加入该集合
+  ```
+
+* 数据位点：
+
+  ```java
+  private long flushedWhere = 0;		// 目录的刷盘位点，值为 mf.fileName + mf.wrotePosition
+  private long committedWhere = 0;	// 目录的提交位点
+  ```
+
+* 消息存储：
+
+  ```java
+  private volatile long storeTimestamp = 0;	// 当前目录下最后一条 msg 的存储时间
+  ```
+
+* 创建服务：新建 MappedFile 实例，继承自 ServiceThread 是一个任务对象，run 方法用来创建实例
+
+  ```java
+  private final AllocateMappedFileService allocateMappedFileService;
+  ```
+
+核心方法：
+
+* load()：Broker 启动时，加载本地磁盘数据，该方法读取 storePath 目录下的文件，创建 MappedFile 对象放入集合内
+
+  ```java
+  public boolean load()
+  ```
+
+* getLastMappedFile()：获取当前正在顺序写入的 MappedFile 对象，如果最后一个 MappedFile 写满了，或者不存在 MappedFile 对象，则创建新的 MappedFile
+
+  ```java
+  // 参数一：文件起始偏移量；参数二：当list为空时，是否新建 MappedFile
+  public MappedFile getLastMappedFile(final long startOffset, boolean needCreate)
+  ```
+
+* flush()：根据 flushedWhere 属性查找合适的 MappedFile，调用该 MappedFile 的落盘方法，并更新全局的 flushedWhere
+
+  ```java
+  //参数：0 表示强制刷新， > 0 脏页数据必须达到 flushLeastPages 才刷新
+  public boolean flush(final int flushLeastPages)
+  ```
+
+* findMappedFileByOffset()：根据偏移量查询对象
+
+  ```java
+  public MappedFile findMappedFileByOffset(final long offset, final boolean returnFirstOnNotFound)
+  ```
+
+* deleteExpiredFileByTime()：CL 删除过期文件，根据文件的保留时长决定是否删除
+
+  ```java
+  // 参数一：过期时间； 参数二：删除两个文件之间的时间间隔； 参数三：mf.destory传递的参数； 参数四：true 强制删除
+  public int deleteExpiredFileByTime(final long expiredTime,final int deleteFilesInterval, final long intervalForcibly, final boolean cleanImmediately)
+  ```
+
+* deleteExpiredFileByOffset()：CQ 删除过期文件，遍历每个 MF 文件，获取当前文件最后一个数据单元的物理偏移量，小于 offset 说明当前 MF 文件内都是过期数据
+
+  ```java
+  // 参数一：consumeLog 目录下最小物理偏移量，就是第一条消息的 offset； 
+  // 参数二：ConsumerQueue 文件内每个数据单元固定大小
+  public int deleteExpiredFileByOffset(long offset, int unitSize)
+  ```
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+***
+
+
+
+## TEST
 
 
 

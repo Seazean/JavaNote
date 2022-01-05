@@ -2292,7 +2292,7 @@ Java 内存模型定义了 8 个操作来完成主内存和工作内存的交互
 
 可见性：是指当多个线程访问同一个变量时，一个线程修改了这个变量的值，其他线程能够立即看得到修改的值
 
-存在不可见问题的根本原因是由于缓存的存在，线程持有的是共享变量的副本，无法感知其他线程对于共享变量的更改，导致读取的值不是最新的
+存在不可见问题的根本原因是由于缓存的存在，线程持有的是共享变量的副本，无法感知其他线程对于共享变量的更改，导致读取的值不是最新的。但是 final 修饰的变量是**不可变**的，就算有缓存，也不会存在不可见的问题
 
 main 线程对 run 变量的修改对于 t 线程不可见，导致了 t 线程无法停止：
 
@@ -3613,7 +3613,7 @@ final 变量的赋值通过 putfield 指令来完成，在这条指令之后也�
 
 不可变：如果一个对象不能够修改其内部状态（属性），那么就是不可变对象
 
-不可变对象线程安全的，因为不存在并发修改，是另一种避免竞争的方式
+不可变对象线程安全的，不存在并发修改和可见性问题，是另一种避免竞争的方式
 
 String 类也是不可变的，该类和类中所有属性都是 final 的
 
@@ -13752,7 +13752,7 @@ DMA (Direct Memory Access) ：直接存储器访问，让外部设备不通过 C
 把内存数据传输到网卡然后发送：
 
 * 没有 DMA：CPU 读内存数据到 CPU 高速缓存，再写到网卡，这样就把 CPU 的速度拉低到和网卡一个速度
-* 使用 DMA：把数据读到 Socket 内核缓存区（CPU 复制），CPU 分配给 DMA 开始**异步**操作，DMA 读取 Socket 缓冲区到 DMA 缓冲区，然后写到网卡。DMA 执行完后中断（就是通知） CPU，这时 Socket 内核缓冲区为空，CPU 从用户态切换到内核态，执行中断处理程序，将需要使用 Socket 缓冲区的阻塞进程移到就绪队列
+* 使用 DMA：把数据读到 Socket 内核缓存区（CPU 复制），CPU 分配给 DMA 开始**异步**操作，DMA 读取 Socket 缓冲区到 DMA 缓冲区，然后写到网卡。DMA 执行完后**中断**（就是通知） CPU，这时 Socket 内核缓冲区为空，CPU 从用户态切换到内核态，执行中断处理程序，将需要使用 Socket 缓冲区的阻塞进程移到就绪队列
 
 一个完整的 DMA 传输过程必须经历 DMA 请求、DMA 响应、DMA 传输、DMA 结束四个步骤：
 
@@ -13797,7 +13797,7 @@ read 调用图示：read、write 都是系统调用指令
 
 #### mmap
 
-mmap（Memory Mapped Files）加 write 实现零拷贝，**零拷贝就是没有数据从内核空间复制到用户空间**
+mmap（Memory Mapped Files）内存映射加 write 实现零拷贝，**零拷贝就是没有数据从内核空间复制到用户空间**
 
 用户空间和内核空间都使用内存，所以可以共享同一块物理内存地址，省去用户态和内核态之间的拷贝。写网卡时，共享空间的内容拷贝到 Socket 缓冲区，然后交给 DMA 发送到网卡，只需要 3 次复制
 
@@ -14902,8 +14902,8 @@ FileChannel 提供 map 方法返回 MappedByteBuffer 对象，把文件映射到
 FileChannel 中的成员属性：
 
 * MapMode.mode：内存映像文件访问的方式，共三种：
-  * `MapMode.READ_ONLY`：只读，试图修改得到的缓冲区将导致抛出异常。
-  * `MapMode.READ_WRITE`：读/写，对得到的缓冲区的更改最终将写入文件；但该更改对映射到同一文件的其他程序不一定是可见的
+  * `MapMode.READ_ONLY`：只读，修改得到的缓冲区将导致抛出异常
+  * `MapMode.READ_WRITE`：读/写，对缓冲区的更改最终将写入文件，但此次修改对映射到同一文件的其他程序不一定是可见的
   * `MapMode.PRIVATE`：私用，可读可写，但是修改的内容不会写入文件，只是 buffer 自身的改变，称之为写时复制
 
 * `public final FileLock lock()`：获取此文件通道的排他锁
@@ -14915,7 +14915,7 @@ MappedByteBuffer，可以让文件在直接内存（堆外内存）中进行修�
 
 MappedByteBuffer 较之 ByteBuffer 新增的三个方法：
 
-- `final MappedByteBuffer force()`：缓冲区是 READ_WRITE 模式下，对缓冲区内容的修改强行写入文件
+- `final MappedByteBuffer force()`：缓冲区是 READ_WRITE 模式下，对缓冲区内容的修改**强制写入文件**
 - `final MappedByteBuffer load()`：将缓冲区的内容载入物理内存，并返回该缓冲区的引用
 - `final boolean isLoaded()`：如果缓冲区的内容在物理内存中，则返回真，否则返回假
 
@@ -14924,7 +14924,7 @@ public class MappedByteBufferTest {
     public static void main(String[] args) throws Exception {
         // 读写模式
         RandomAccessFile ra = new RandomAccessFile("1.txt", "rw");
-        //获取对应的通道
+        // 获取对应的通道
         FileChannel channel = ra.getChannel();
 
         /**
