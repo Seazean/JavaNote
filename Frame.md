@@ -3485,6 +3485,8 @@ RCVBUF_ALLOCATOR：属于 SocketChannal 参数
 
 
 
+参考视频：https://www.bilibili.com/video/BV1L4411y7mn
+
 
 
 ****
@@ -4494,7 +4496,7 @@ public class Producer {
 
 ## 系统特性
 
-### 工作机制
+### 工作流程
 
 #### 模块介绍
 
@@ -4533,7 +4535,7 @@ Broker 包含了以下几个重要子模块：
 
 
 
-#### 工作流程
+#### 总体流程
 
 RocketMQ 的工作流程：
 
@@ -4568,47 +4570,6 @@ At least Once：至少一次，指每个消息必须投递一次，Consumer 先 
 6. MQ 删除消息
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-消息存取.png)
-
-
-
-
-
-****
-
-
-
-### 消息查询
-
-#### Message ID
-
-RocketMQ 支持按照两种维度进行消息查询：按照 Message ID 查询消息、按照 Message Key 查询消息
-
-RocketMQ 中的 MessageId 的长度总共有 16 字节，其中包含了消息存储主机地址（IP 地址和端口），消息 Commit Log offset
-
-实现方式：Client 端从 MessageId 中解析出 Broker 的地址（IP 地址和端口）和 Commit Log 的偏移地址，封装成一个 RPC 请求后通过 Remoting 通信层发送（业务请求码 VIEW_MESSAGE_BY_ID）。Broker 端走的是 QueryMessageProcessor，读取消息的过程用其中的 CommitLog 的 offset 和 size 去 CommitLog 中找到真正的记录并解析成一个完整的消息返回
-
-
-
-***
-
-
-
-#### Message Key 
-
-按照 Message Key 查询消息，主要是基于 RocketMQ 的 IndexFile 索引文件来实现的，RocketMQ 的索引文件逻辑结构，类似 JDK 中 HashMap 的实现，具体结构如下：
-
-![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-IndexFile索引文件.png)
-
-IndexFile 索引文件为提供了通过 Message Key 查询消息的服务，IndexFile 文件的存储在 `$HOME\store\index${fileName}`，文件名 fileName 是以创建时的时间戳命名，文件大小是固定的，等于 `40+500W*4+2000W*20= 420000040` 个字节大小。如果消息的 properties 中设置了 UNIQ_KEY 这个属性，就用 `topic + “#” + UNIQ_KEY` 作为 key 来做写入操作；如果消息设置了 KEYS 属性（多个 KEY 以空格分隔），也会用 `topic + “#” + KEY` 来做索引
-
-整个 Index File 的结构如图，40 Byte 的 Header 用于保存一些总的统计信息，`4*500W` 的 Slot Table 并不保存真正的索引数据，而是保存每个槽位对应的单向链表的头，即一个 Index File 可以保存 2000W 个索引，`20*2000W` 是真正的索引数据
-
-索引数据包含了 Key Hash/CommitLog Offset/Timestamp/NextIndex offset 这四个字段，一共 20 Byte
-
-* NextIndex offset 即前面读出来的 slotValue，如果有 hash 冲突，就可以用这个字段将所有冲突的索引用链表的方式串起来
-* Timestamp 记录的是消息 storeTimestamp 之间的差，并不是一个绝对的时间
-
-实现方式：通过 Broker 端的 QueryMessageProcessor 业务处理器来查询，读取消息的过程用 Topic 和 Key 找到 IndexFile 索引文件中的一条记录，根据其中的 CommitLog Offset 从 CommitLog 文件中读取消息的实体内容
 
 
 
@@ -4813,9 +4774,27 @@ Consumer 端实现负载均衡的核心类 **RebalanceImpl**
 
 
 
-### 消息重试
+### 消息机制
 
-#### 重投机制
+#### 消息查询
+
+RocketMQ 支持按照两种维度进行消息查询：按照 Message ID 查询消息、按照 Message Key 查询消息
+
+* RocketMQ 中的 MessageID 的长度总共有 16 字节，其中包含了消息存储主机地址（IP 地址和端口），消息 Commit Log offset
+
+  实现方式：Client 端从 MessageID 中解析出 Broker 的地址（IP 地址和端口）和 Commit Log 的偏移地址，封装成一个 RPC 请求后通过 Remoting 通信层发送（业务请求码 VIEW_MESSAGE_BY_ID）。Broker 端走的是 QueryMessageProcessor，读取消息的过程用其中的 CommitLog 的 offset 和 size 去 CommitLog 中找到真正的记录并解析成一个完整的消息返回
+
+* 按照 Message Key 查询消息，IndexFile 索引文件为提供了通过 Message Key 查询消息的服务
+
+  实现方式：通过 Broker 端的 QueryMessageProcessor 业务处理器来查询，读取消息的过程用 Topic 和 Key 找到 IndexFile 索引文件中的一条记录，根据其中的 CommitLog Offset 从 CommitLog 文件中读取消息的实体内容
+
+
+
+***
+
+
+
+#### 消息重投
 
 生产者在发送消息时，同步消息和异步消息失败会重投，oneway 没有任何保证。消息重投保证消息尽可能发送成功、不丢失，但当出现消息量大、网络抖动时，可能会造成消息重复；生产者主动重发、Consumer 负载变化也会导致重复消息。
 
@@ -4836,7 +4815,7 @@ Consumer 端实现负载均衡的核心类 **RebalanceImpl**
 
 
 
-#### 重试机制
+#### 消息重试
 
 Consumer 消费消息失败后，提供了一种重试机制，令消息再消费一次。Consumer 消费消息失败可以认为有以下几种情况：
 
@@ -5165,7 +5144,7 @@ NamesrvController 用来初始化和启动 Namesrv 服务器
           @Override
           public void run() {
               // 扫描 brokerLiveTable 表，将两小时没有活动的 broker 关闭，
-              //通过 next.getKey() 获取 broker 的地址，然后【关闭服务器与broker物理节点的 channel】
+              // 通过 next.getKey() 获取 broker 的地址，然后【关闭服务器与broker物理节点的 channel】
               NamesrvController.this.routeInfoManager.scanNotActiveBroker();
           }
       }, 5, 10, TimeUnit.SECONDS);
@@ -5696,6 +5675,1196 @@ RouteInfoManager#registerBroker：注册 Broker 的信息
 
 
 
+
+
+****
+
+
+
+### 存储端
+
+#### 存储机制
+
+##### 存储结构
+
+RocketMQ 中 Broker 负责存储消息转发消息，所以以下的结构是存储在 Broker Server 上的，生产者和消费者与 Broker 进行消息的收发是通过主题对应的 Message Queue 完成，类似于通道
+
+RocketMQ 消息的存储是由 ConsumeQueue 和 CommitLog 配合完成 的，CommitLog 是消息真正的**物理存储**文件，ConsumeQueue 是消息的逻辑队列，类似数据库的**索引节点**，存储的是指向物理存储的地址。**每个 Topic 下的每个 Message Queue 都有一个对应的 ConsumeQueue 文件**
+
+每条消息都会有对应的索引信息，Consumer 通过 ConsumeQueue 这个结构来读取消息实体内容
+
+![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-消息存储结构.png)
+
+* CommitLog：消息主体以及元数据的存储主体，存储 Producer 端写入的消息内容，消息内容不是定长的。消息主要是顺序写入日志文件，单个文件大小默认 1G，偏移量代表下一次写入的位置，当文件写满了就继续写入下一个文件
+* ConsumerQueue：消息消费队列，存储消息在 CommitLog 的索引。RocketMQ 消息消费时要遍历 CommitLog 文件，并根据主题 Topic 检索消息，这是非常低效的。引入 ConsumeQueue 作为消费消息的索引，保存了指定 Topic 下的队列消息在 CommitLog 中的起始物理偏移量 offset，消息大小 size 和消息 Tag 的 HashCode 值，每个 ConsumeQueue 文件大小约 5.72M
+* IndexFile：为了消息查询提供了一种通过 Key 或时间区间来查询消息的方法，通过 IndexFile 来查找消息的方法不影响发送与消费消息的主流程。IndexFile 的底层存储为在文件系统中实现的 HashMap 结构，故 RocketMQ 的索引文件其底层实现为 **hash 索引**
+
+RocketMQ 采用的是混合型的存储结构，即为 Broker 单个实例下所有的队列共用一个日志数据文件（CommitLog）来存储。混合型存储结构（多个 Topic 的消息实体内容都存储于一个 CommitLog 中）**针对 Producer 和 Consumer 分别采用了数据和索引部分相分离的存储结构**，Producer 发送消息至 Broker 端，然后 Broker 端使用同步或者异步的方式对消息刷盘持久化，保存至 CommitLog 中。只要消息被持久化至磁盘文件 CommitLog 中，Producer 发送的消息就不会丢失，Consumer 也就肯定有机会去消费这条消息
+
+服务端支持长轮询模式，当消费者无法拉取到消息后，可以等下一次消息拉取，Broker 允许等待 30s 的时间，只要这段时间内有新消息到达，将直接返回给消费端。RocketMQ 的具体做法是，使用 Broker 端的后台服务线程 ReputMessageService 不停地分发请求并异步构建 ConsumeQueue（逻辑消费队列）和 IndexFile（索引文件）数据
+
+
+
+****
+
+
+
+##### 存储优化
+
+###### 内存映射
+
+操作系统分为用户态和内核态，文件操作、网络操作需要涉及这两种形态的切换，需要进行数据复制。一台服务器把本机磁盘文件的内容发送到客户端，分为两个步骤：
+
+* read：读取本地文件内容
+
+* write：将读取的内容通过网络发送出去
+
+![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-文件与网络操作.png)
+
+补充：Prog → NET → I/O → 零拷贝部分的笔记详解相关内容
+
+通过使用 mmap 的方式，可以省去向用户态的内存复制，RocketMQ 充分利用**零拷贝技术**，提高消息存盘和网络发送的速度。
+
+RocketMQ 通过 MappedByteBuffer 对文件进行读写操作，利用了 NIO 中的 FileChannel 模型将磁盘上的物理文件直接映射到用户态的内存地址中，将对文件的操作转化为直接对内存地址进行操作，从而极大地提高了文件的读写效率
+
+MappedByteBuffer 内存映射的方式**限制**一次只能映射 1.5~2G 的文件至用户态的虚拟内存，所以 RocketMQ 默认设置单个 CommitLog 日志数据文件为 1G。RocketMQ 的文件存储使用定长结构来存储，方便一次将整个文件映射至内存
+
+
+
+***
+
+
+
+###### 页缓存
+
+页缓存（PageCache）是 OS 对文件的缓存，每一页的大小通常是 4K，用于加速对文件的读写。程序对文件进行顺序读写的速度几乎接近于内存的读写速度，就是因为 OS 将一部分的内存用作 PageCache，**对读写访问操作进行了性能优化**
+
+* 对于数据的写入，OS 会先写入至 Cache 内，随后通过异步的方式由 pdflush 内核线程将 Cache 内的数据刷盘至物理磁盘上
+* 对于数据的读取，如果一次读取文件时出现未命中 PageCache 的情况，OS 从物理磁盘上访问读取文件的同时，会顺序对其他相邻块的数据文件进行预读取（局部性原理，最大 128K）
+
+在 RocketMQ 中，ConsumeQueue 逻辑消费队列存储的数据较少，并且是顺序读取，在 PageCache 机制的预读取作用下，Consume Queue 文件的读性能几乎接近读内存，即使在有消息堆积情况下也不会影响性能。但是 CommitLog 消息存储的日志数据文件读取内容时会产生较多的随机访问读取，严重影响性能。选择合适的系统 IO 调度算法和固态硬盘，比如设置调度算法为 Deadline，随机读的性能也会有所提升
+
+
+
+***
+
+
+
+##### 刷盘机制
+
+两种持久化的方案：
+
+* 关系型数据库 DB：IO 读写性能比较差，如果 DB 出现故障，则 MQ 的消息就无法落盘存储导致线上故障，可靠性不高
+* 文件系统：消息刷盘至所部署虚拟机/物理机的文件系统来做持久化，分为异步刷盘和同步刷盘两种模式。消息刷盘为消息存储提供了一种高效率、高可靠性和高性能的数据持久化方式，除非部署 MQ 机器本身或是本地磁盘挂了，一般不会出现无法持久化的问题
+
+RocketMQ 采用文件系统的方式，无论同步还是异步刷盘，都使用**顺序 IO**，因为磁盘的顺序读写要比随机读写快很多
+
+* 同步刷盘：只有在消息真正持久化至磁盘后 RocketMQ 的 Broker 端才会真正返回给 Producer 端一个成功的 ACK 响应，保障 MQ消息的可靠性，但是性能上会有较大影响，一般适用于金融业务应用该模式较多
+
+* 异步刷盘：利用 OS 的 PageCache，只要消息写入内存 PageCache 即可将成功的 ACK 返回给 Producer 端，降低了读写延迟，提高了 MQ 的性能和吞吐量。消息刷盘采用**后台异步线程**提交的方式进行，当内存里的消息量积累到一定程度时，触发写磁盘动作
+
+通过 Broker 配置文件里的 flushDiskType 参数设置采用什么方式，可以配置成 SYNC_FLUSH、ASYNC_FLUSH 中的一个
+
+![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-刷盘机制.png)
+
+
+
+官方文档：https://github.com/apache/rocketmq/blob/master/docs/cn/design.md
+
+
+
+***
+
+
+
+#### MappedFile
+
+##### 成员属性
+
+MappedFile 类是最基础的存储类，继承自 ReferenceResource 类，用来**保证线程安全**
+
+MappedFile 类成员变量：
+
+* 内存相关：
+
+  ```java
+  public static final int OS_PAGE_SIZE = 1024 * 4;// 内存页大小：默认是 4k
+  private AtomicLong TOTAL_MAPPED_VIRTUAL_MEMORY;	// 当前进程下所有的 mappedFile 占用的总虚拟内存大小
+  private AtomicInteger TOTAL_MAPPED_FILES;		// 当前进程下所有的 mappedFile 个数
+  ```
+
+* 数据位点：
+
+  ```java
+  protected final AtomicInteger wrotePosition;	// 当前 mappedFile 的数据写入点
+  protected final AtomicInteger committedPosition;// 当前 mappedFile 的数据提交点
+  private final AtomicInteger flushedPosition;	// 数据落盘位点，在这之前的数据是持久化的安全数据
+  												// flushedPosition-wrotePosition 之间的数据属于脏页
+  ```
+
+* 文件相关：CL 是 CommitLog，CQ 是 ConsumeQueue
+
+  ```java
+  private String fileName;	// 文件名称，CL和CQ文件名是第一条消息的物理偏移量，索引文件是年月日时分秒
+  private long fileFromOffset;// 文件名转long，代表该对象的【起始偏移量】	
+  private File file;			// 文件对象
+  ```
+
+  **MF 中以物理偏移量作为文件名，可以更好的寻址和进行判断**
+
+* 内存映射：
+
+  ```java
+  protected FileChannel fileChannel;			// 文件通道
+  private MappedByteBuffer mappedByteBuffer;	// 内存映射缓冲区，访问虚拟内存
+  ```
+
+ReferenceResource 类成员变量：
+
+* 引用数量：当 `refCount <= 0` 时，表示该资源可以释放了，没有任何其他程序依赖它了，用原子类保证线程安全
+
+  ```java
+  protected final AtomicLong refCount = new AtomicLong(1);	// 初始值为 1
+  ```
+
+* 存活状态：表示资源的存活状态
+
+  ```java
+  protected volatile boolean available = true;
+  ```
+
+* 是否清理：默认值 false，当执行完子类对象的 cleanup() 清理方法后，该值置为 true ，表示资源已经全部释放
+
+  ```java
+  protected volatile boolean cleanupOver = false;
+  ```
+
+* 第一次关闭资源的时间：用来记录超时时间
+
+  ```java
+  private volatile long firstShutdownTimestamp = 0;
+  ```
+
+  
+
+***
+
+
+
+##### 成员方法
+
+MappedFile 类核心方法：
+
+* appendMessage()：提供上层向内存映射中追加消息的方法，消息如何追加由 AppendMessageCallback 控制
+
+  ```java
+  // 参数一：消息     参数二：追加消息回调
+  public AppendMessageResult appendMessage(MessageExtBrokerInner msg, AppendMessageCallback cb)
+  ```
+
+  ```java
+  // 将字节数组写入到文件通道
+  public boolean appendMessage(final byte[] data)
+  ```
+
+* flush()：刷盘接口，参数 flushLeastPages  代表刷盘的最小页数 ，等于 0 时属于强制刷盘；> 0 时需要脏页（计算方法在数据位点）达到该值才进行物理刷盘；文件写满时强制刷盘
+
+  ```java
+  public int flush(final int flushLeastPages)
+  ```
+
+* selectMappedBuffer()：该方法以 pos 为开始位点 ，到有效数据为止，创建一个切片 ByteBuffer 作为数据副本，供业务访问数据
+
+  ```java
+  public SelectMappedBufferResult selectMappedBuffer(int pos)
+  ```
+
+* destroy()：销毁映射文件对象，并删除关联的系统文件，参数是强制关闭资源的时间
+
+  ```java
+  public boolean destroy(final long intervalForcibly)
+  ```
+
+* cleanup()：释放堆外内存，更新总虚拟内存和总内存映射文件数
+
+  ```java
+  public boolean cleanup(final long currentRef)
+  ```
+
+* warmMappedFile()：内存预热，当要新建的 MappedFile 对象大于 1g 时，执行该方法对该 MappedFile 的每个 Page Cache 进行写入一个字节进行分配内存，**将映射文件全部加载到内存**
+
+  ```java
+  public void warmMappedFile(FlushDiskType type, int pages)
+  ```
+
+* mlock()：锁住指定的内存区域避免被操作系统调到 **swap 空间**，一次性将一段数据读入到映射内存区域，减少了缺页异常的产生
+
+  ```java
+  public void mlock()
+  ```
+
+  swap space 是磁盘上的一块区域，可以是一个分区或者一个文件或者是组合。当系统物理内存不足时，Linux 会将内存中不常访问的数据保存到 swap 区域上，这样系统就可以有更多的物理内存为各个进程服务，而当系统需要访问 swap 上存储的内容时，需要通过**缺页中断**将 swap 上的数据加载到内存中
+
+ReferenceResource 类核心方法：
+
+* hold()：增加引用记数 refCount，方法加锁
+
+  ```java
+  public synchronized boolean hold()
+  ```
+
+* shutdown()：关闭资源，参数代表强制关闭资源的时间间隔
+
+  ```java
+  // 系统当前时间 - firstShutdownTimestamp 时间  > intervalForcibly 进行【强制关闭】
+  public void shutdown(final long intervalForcibly)
+  ```
+
+* release()：引用计数减 1，当 refCount  为 0 时，调用子类的 cleanup 方法
+
+  ```java
+  public void release()
+  ```
+
+  
+
+
+
+
+
+***
+
+
+
+#### MapQueue
+
+##### 成员属性
+
+MappedFileQueue 用来管理 MappedFile 文件
+
+成员变量：
+
+* 管理目录：CommitLog 是 `../store/commitlog`， ConsumeQueue 是 `../store/xxx_topic/0`
+
+  ```java
+  private final String storePath;
+  ```
+
+* 文件属性：
+
+  ```java
+  private final int mappedFileSize;	// 目录下每个文件大小，CL文件默认 1g，CQ文件 默认 600w字节
+  private final CopyOnWriteArrayList<MappedFile> mappedFiles;	//目录下的每个 mappedFile 都加入该集合
+  ```
+
+* 数据位点：
+
+  ```java
+  private long flushedWhere = 0;		// 目录的刷盘位点，值为 mf.fileName + mf.wrotePosition
+  private long committedWhere = 0;	// 目录的提交位点
+  ```
+
+* 消息存储：
+
+  ```java
+  private volatile long storeTimestamp = 0;	// 当前目录下最后一条 msg 的存储时间
+  ```
+
+* 创建服务：新建 MappedFile 实例，继承自 ServiceThread 是一个任务对象，run 方法用来创建实例
+
+  ```java
+  private final AllocateMappedFileService allocateMappedFileService;
+  ```
+
+
+
+***
+
+
+
+##### 成员方法
+
+核心方法：
+
+* load()：Broker 启动时，加载本地磁盘数据，该方法读取 storePath 目录下的文件，创建 MappedFile 对象放入集合内
+
+  ```java
+  public boolean load()
+  ```
+
+* getLastMappedFile()：获取当前正在顺序写入的 MappedFile 对象，如果最后一个 MappedFile 写满了，或者不存在 MappedFile 对象，则创建新的 MappedFile
+
+  ```java
+  // 参数一：文件起始偏移量；参数二：当list为空时，是否新建 MappedFile
+  public MappedFile getLastMappedFile(final long startOffset, boolean needCreate)
+  ```
+
+* flush()：根据 flushedWhere 属性查找合适的 MappedFile，调用该 MappedFile 的落盘方法，并更新全局的 flushedWhere
+
+  ```java
+  //参数：0 表示强制刷新， > 0 脏页数据必须达到 flushLeastPages 才刷新
+  public boolean flush(final int flushLeastPages)
+  ```
+
+* findMappedFileByOffset()：根据偏移量查询对象
+
+  ```java
+  public MappedFile findMappedFileByOffset(final long offset, final boolean returnFirstOnNotFound)
+  ```
+
+* deleteExpiredFileByTime()：CL 删除过期文件，根据文件的保留时长决定是否删除
+
+  ```java
+  // 参数一：过期时间； 参数二：删除两个文件之间的时间间隔； 参数三：mf.destory传递的参数； 参数四：true 强制删除
+  public int deleteExpiredFileByTime(final long expiredTime,final int deleteFilesInterval, final long intervalForcibly, final boolean cleanImmediately)
+  ```
+
+* deleteExpiredFileByOffset()：CQ 删除过期文件，遍历每个 MF 文件，获取当前文件最后一个数据单元的物理偏移量，小于 offset 说明当前 MF 文件内都是过期数据
+
+  ```java
+  // 参数一：consumeLog 目录下最小物理偏移量，就是第一条消息的 offset； 
+  // 参数二：ConsumerQueue 文件内每个数据单元固定大小
+  public int deleteExpiredFileByOffset(long offset, int unitSize)
+  ```
+
+
+
+
+
+
+***
+
+
+
+#### CommitLog
+
+##### 成员属性
+
+成员变量：
+
+* 魔数：
+
+  ```java
+  public final static int MESSAGE_MAGIC_CODE = -626843481;	// 消息的第一个字段是大小，第二个字段就是魔数	
+  protected final static int BLANK_MAGIC_CODE = -875286124;	// 文件尾消息的魔法值
+  ```
+
+* MappedFileQueue：用于管理 `../store/commitlog` 目录下的文件
+
+  ```java
+  protected final MappedFileQueue mappedFileQueue;
+  ```
+
+* 存储服务：
+
+  ```java
+  protected final DefaultMessageStore defaultMessageStore;	// 存储模块对象，上层服务
+  private final FlushCommitLogService flushCommitLogService;	// 刷盘服务，默认实现是异步刷盘
+  ```
+
+* 回调器：控制消息的哪些字段添加到 MappedFile
+
+  ```java
+  private final AppendMessageCallback appendMessageCallback;
+  ```
+
+* 队列偏移量字典表：key 是主题队列 id，value 是偏移量
+
+  ```java
+  protected HashMap<String, Long> topicQueueTable = new HashMap<String, Long>(1024);
+  ```
+
+* 锁相关：
+
+  ```java
+  private volatile long beginTimeInLock = 0;		 	// 写数据时加锁的开始时间
+  protected final PutMessageLock putMessageLock;		// 写锁，两个实现类：自旋锁和重入锁
+  ```
+
+构造方法：
+
+* 有参构造：
+
+  ```java
+  public CommitLog(final DefaultMessageStore defaultMessageStore) {
+      // 创建 MappedFileQueue 对象
+      // 参数1：../store/commitlog； 参数2：【1g】； 参数3：allocateMappedFileService
+      this.mappedFileQueue = new MappedFileQueue(...);
+      // 默认 异步刷盘，创建这个对象
+     	this.flushCommitLogService = new FlushRealTimeService();
+      // 控制消息哪些字段追加到 mappedFile，【消息最大是 4M】
+     	this.appendMessageCallback = new DefaultAppendMessageCallback(...);
+      // 默认使用自旋锁
+      this.putMessageLock = ...;
+  }
+  ```
+
+  
+
+***
+
+
+
+##### 成员方法
+
+CommitLog 类核心方法：
+
+* start()：会启动刷盘服务
+
+  ```java
+  public void start()
+  ```
+
+* shutdown()：关闭刷盘服务
+
+  ```java
+  public void shutdown()
+  ```
+
+* load()：加载 CommitLog 目录下的文件
+
+  ```java
+  public boolean load()
+  ```
+
+* getMessage()：根据 offset 查询单条信息，返回的结果对象内部封装了一个 ByteBuffer，该 Buffer 表示 `[offset, offset + size]` 区间的 MappedFile 的数据
+
+  ```java
+  public SelectMappedBufferResult getMessage(final long offset, final int size)
+  ```
+
+* deleteExpiredFile()：删除过期文件，方法由 DefaultMessageStore 的定时任务调用
+
+  ```java
+  public int deleteExpiredFile()
+  ```
+
+* asyncPutMessage()：**存储消息**
+
+  ```java
+  public CompletableFuture<PutMessageResult> asyncPutMessage(final MessageExtBrokerInner msg)
+  ```
+
+  * `msg.setStoreTimestamp(System.currentTimeMillis())`：设置存储时间，后面获取到写锁后这个事件会重写
+  * `String topic = msg.getTopic()`：获取主题和队列 ID
+  * `mappedFile = this.mappedFileQueue.getLastMappedFile()`：获取当前顺序写的 MappedFile 对象
+
+  * `putMessageLock.lock()`：获取**写锁**
+  * `msg.setStoreTimestamp(beginLockTimestamp)`：设置消息的存储时间为获取锁的时间
+  * `if (null == mappedFile || mappedFile.isFull())`：文件写满了创建新的 MF 对象
+  * `result = mappedFile.appendMessage(msg, this.appendMessageCallback)`：**消息追加**，核心逻辑在回调器类
+  * `putMessageLock.unlock()`：释放写锁
+  * `this.defaultMessageStore.unlockMappedFile(..)`：将 MappedByteBuffer 从 lock 切换为 unlock 状态
+  * `putMessageResult = new PutMessageResult(PutMessageStatus.PUT_OK, result)`：结果封装
+  * `flushResultFuture = submitFlushRequest(result, msg)`：**唤醒刷盘线程**
+  * `replicaResultFuture = submitReplicaRequest(result, msg)`：HA 消息同步
+
+* recoverNormally()：正常关机时的恢复方法，存储模块启动时**先恢复所有的 ConsumeQueue 数据，再恢复 CommitLog 数据**
+
+  ```java
+  // 参数表示恢复阶段 ConsumeQueue 中已知的最大的消息 offset
+  public void recoverNormally(long maxPhyOffsetOfConsumeQueue)
+  ```
+
+  * `int index = mappedFiles.size() - 3`：从倒数第三个 file 开始向后恢复
+
+  * `dispatchRequest = this.checkMessageAndReturnSize()`：每次从切片内解析出一条 msg 封装成 DispatchRequest 对象
+
+  * `size = dispatchRequest.getMsgSize()`：获取消息的大小，检查 DispatchRequest 对象的状态
+
+    情况 1：正常数据，则 `mappedFileOffset += size`
+
+    情况 2：文件尾数据，处理下一个文件，mappedFileOffset 置为 0，magic_code 表示文件尾
+
+  * `processOffset += mappedFileOffset`：计算出正确的数据存储位点，并设置 MappedFileQueue 的目录刷盘位点
+
+  * `this.mappedFileQueue.truncateDirtyFiles(processOffset)`：调整 MFQ 中文件的刷盘位点
+
+  * `if (maxPhyOffsetOfConsumeQueue >= processOffset)`：删除冗余数据，将超过全局位点的 CQ 下的文件删除，将包含全局位点的 CQ 下的文件重新定位
+
+* recoverAbnormally()：异常关机时的恢复方法
+
+  ```java
+  public void recoverAbnormally(long maxPhyOffsetOfConsumeQueue)
+  ```
+
+  * `int index = mappedFiles.size() - 1`：从尾部开始遍历 MFQ，验证 MF 的第一条消息，找到第一个验证通过的文件对象
+  * `dispatchRequest = this.checkMessageAndReturnSize()`：每次解析出一条 msg 封装成 DispatchRequest 对象
+  * `this.defaultMessageStore.doDispatch(dispatchRequest)`：重建 ConsumerQueue 和 Index，避免上次异常停机导致 CQ 和 Index 与 CommitLog 不对齐
+  * 剩余逻辑与正常关机的恢复方法相似
+
+消息追加服务 DefaultAppendMessageCallback
+
+* doAppend()
+  * `long wroteOffset = fileFromOffset + byteBuffer.position()`：消息写入的位置，物理偏移量 phyOffset
+  * `String msgId`：消息 ID，规则是客户端 IP + 消息偏移量 phyOffset
+  * `byte[] topicData`：序列化消息，将消息的字段压入到  msgStoreItemMemory 这个 Buffer 中
+  * `byteBuffer.put(this.msgStoreItemMemory.array(), 0, msgLen)`：将 msgStoreItemMemory 中的数据写入 MF 对象的内存映射的 Buffer 中，数据还没落盘
+  * `AppendMessageResult result`：构造结果对象，包括存储位点、是否成功、队列偏移量等信息
+  * `CommitLog.this.topicQueueTable.put(key, ++queueOffset)`：更新队列偏移量
+
+
+
+****
+
+
+
+#### ConsQueue
+
+##### 成员属性
+
+ConsumerQueue 是消息消费队列，存储消息在 CommitLog 的索引，便于快速定位消息
+
+成员变量：
+
+* 数据单元：ConsumerQueueData 数据单元的固定大小是 20 字节，默认申请 20 字节的缓冲区
+
+  ```java
+  public static final int CQ_STORE_UNIT_SIZE = 20;
+  ```
+
+* 文件管理：
+
+  ```java
+  private final MappedFileQueue mappedFileQueue;	// 文件管理器，管理 CQ 目录下的文件
+  private final String storePath;					// 目录，比如../store/consumequeue/xxx_topic/0
+  private final int mappedFileSize;				// 每一个 CCQ 存储文件大小，默认 20 * 30w = 600w byte
+  ```
+
+* 存储主模块：上层的对象
+
+  ```java
+  private final DefaultMessageStore defaultMessageStore;
+  ```
+
+* 消息属性：
+
+  ```java
+  private final String topic;					// CQ 主题
+  private final int queueId;					// CQ 队列，每一个队列都有一个 ConsumeQueue 对象进行管理
+  private final ByteBuffer byteBufferIndex;	// 临时缓冲区，插新的 CQData 时使用
+  private long maxPhysicOffset = -1;			// 当前ConsumeQueue内存储的最大消息物理偏移量
+  private volatile long minLogicOffset = 0;	// 当前ConsumeQueue内存储的最小消息物理偏移量
+  ```
+
+构造方法：
+
+* 有参构造：
+
+  ```java
+  public ConsumeQueue() {
+      // 申请了一个 20 字节大小的 临时缓冲区
+      this.byteBufferIndex = ByteBuffer.allocate(CQ_STORE_UNIT_SIZE);
+  }
+  ```
+
+  
+
+***
+
+
+
+##### 成员方法
+
+ConsumeQueue 启动阶段方法：
+
+* load()：第一步，加载 storePath 目录下的文件，初始化 MappedFileQueue
+* recover()：第二步，恢复 ConsumeQueue 数据
+  * 从倒数第三个 MF 文件开始向后遍历，依次读取 MF 中 20 个字节的 CQData 数据，检查 offset 和 size 是否是有效数据
+  * 找到无效的 CQData 的位点，该位点就是 CQ 的刷盘点和数据顺序写入点
+  * 删除无效的 MF 文件，调整当前顺序写的 MF 文件的数据位点
+
+其他方法：
+
+* truncateDirtyLogicFiles()：CommitLog 恢复阶段调用，将 ConsumeQueue 有效数据文件与 CommitLog 对齐，将超出部分的数据文删除掉，并调整当前文件的数据位点。Broker 启动阶段先恢复 CQ 的数据，再恢复 CL 数据，但是**数据要以 CL 为基准**
+
+  ```java
+  // 参数是最大消息物理偏移量
+  public void truncateDirtyLogicFiles(long phyOffet)
+  ```
+
+* flush()：刷盘，调用 MFQ 的刷盘方法
+
+  ```java
+  public boolean flush(final int flushLeastPages)
+  ```
+
+* deleteExpiredFile()：删除过期文件，将小于 offset 的所有 MF 文件删除，offset 是 CommitLog 目录下最小的物理偏移量，小于该值的 CL 文件已经没有了，所以 CQ 也没有存在的必要
+
+  ```java
+  public int deleteExpiredFile(long offset)
+  ```
+
+* putMessagePositionInfoWrapper()：**向 CQ 中追加 CQData 数据**，由存储主模块 DefaultMessageStore 内部的异步线程调用，负责构建 ConsumeQueue 文件和 Index 文件的，该线程会持续关注 CommitLog 文件，当 CommitLog 文件内有新数据写入，就读出来封装成 DispatchRequest 对象，转发给 ConsumeQueue 或者 IndexService
+
+  ```java
+  public void putMessagePositionInfoWrapper(DispatchRequest request)
+  ```
+
+* getIndexBuffer()：转换 startIndex 为 offset，获取包含该 offset 的 MappedFile 文件，读取 `[offset%maxSize, mfPos]` 范围的数据，包装成结果对象返回
+
+  ```java
+   public SelectMappedBufferResult getIndexBuffer(final long startIndex)
+  ```
+
+
+
+****
+
+
+
+#### IndexFile
+
+##### 索引机制
+
+RocketMQ 的索引文件逻辑结构，类似 JDK 中 HashMap 的实现，具体结构如下：
+
+![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-IndexFile索引文件.png)
+
+IndexFile 文件的存储在 `$HOME\store\index${fileName}`，文件名 fileName 是以创建时的时间戳命名，文件大小是固定的，等于 `40+500W*4+2000W*20= 420000040` 个字节大小。如果消息的 properties 中设置了 UNIQ_KEY 这个属性，就用 `topic + “#” + UNIQ_KEY` 作为 key 来做写入操作；如果消息设置了 KEYS 属性（多个 KEY 以空格分隔），也会用 `topic + “#” + KEY` 来做索引
+
+整个 Index File 的结构如图，40 Byte 的 Header 用于保存一些总的统计信息，`4*500W` 的 Slot Table 并不保存真正的索引数据，而是保存每个槽位对应的单向链表的**头指针**，即一个 Index File 可以保存 2000W 个索引，`20*2000W` 是**真正的索引数据**
+
+索引数据包含了 Key Hash/CommitLog Offset/Timestamp/NextIndex offset 这四个字段，一共 20 Byte
+
+* NextIndex offset 即前面读出来的 slotValue，如果有 hash 冲突，就可以用这个字段将所有冲突的索引用链表的方式串起来
+* Timestamp 记录的是消息 storeTimestamp 之间的差，并不是一个绝对的时间
+
+
+
+参考文档：https://github.com/apache/rocketmq/blob/master/docs/cn/design.md
+
+
+
+***
+
+
+
+##### 成员属性
+
+IndexFile 类成员属性
+
+* 哈希：
+
+  ```java
+  private static int hashSlotSize = 4;	// 每个 hash 桶的大小是 4 字节，【用来存放索引的编号】
+  private final int hashSlotNum;			// hash 桶的个数，默认 500 万
+  ```
+
+* 索引：
+
+  ```java
+  private static int indexSize = 20;		// 每个 index 条目的大小是 20 字节
+  private static int invalidIndex = 0;	// 无效索引编号：0 特殊值
+  private final int indexNum;				// 默认值：2000w
+  private final IndexHeader indexHeader;	// 索引头
+  ```
+
+* 映射：
+
+  ```java
+  private final MappedFile mappedFile;			// 【索引文件使用的 MF 文件】
+  private final FileChannel fileChannel;			// 文件通道
+  private final MappedByteBuffer mappedByteBuffer;// 从 MF 中获取的内存映射缓冲区
+  ```
+
+构造方法：
+
+* 有参构造
+
+  ```java
+  // endPhyOffset 上个索引文件 最后一条消息的 物理偏移量
+  // endTimestamp 上个索引文件 最后一条消息的 存储时间
+  public IndexFile(final String fileName, final int hashSlotNum, final int indexNum,
+                   final long endPhyOffset, final long endTimestamp) throws IOException {
+      // 文件大小 40 + 500w * 4 + 2000w * 20
+      int fileTotalSize =
+          IndexHeader.INDEX_HEADER_SIZE + (hashSlotNum * hashSlotSize) + (indexNum * indexSize);
+      // 创建 mf 对象，会在disk上创建文件
+      this.mappedFile = new MappedFile(fileName, fileTotalSize);
+      // 创建 索引头对象，传递 索引文件mf 的切片数据
+      this.indexHeader = new IndexHeader(byteBuffer);
+  	//...
+  }
+  ```
+
+
+
+****
+
+
+
+##### 成员方法
+
+IndexFile 类方法
+
+* load()：加载 IndexHeader
+
+  ```java
+  public void load()
+  ```
+
+* flush()：MappedByteBuffer 内的数据强制落盘
+
+  ```java
+  public void flush()
+  ```
+
+* isWriteFull()：检查当前的 IndexFile 已写索引数是否 >= indexNum，达到该值则当前 IndexFile 不能继续追加 IndexData 了
+
+  ```java
+  public boolean isWriteFull()
+  ```
+
+* destroy()：删除文件时使用的方法
+
+  ```java
+  public boolean destroy(final long intervalForcibly)
+  ```
+
+* putKey()：添加索引数据，解决哈希冲突使用**头插法**
+
+  ```java
+  // 参数一：消息的 key，uniq_key 或者 keys="aaa bbb ccc" 会分别为 aaa bbb ccc 创建索引
+  // 参数二：消息的物理偏移量；  参数三：消息存储时间
+  public boolean putKey(final String key, final long phyOffset, final long storeTimestamp)
+  ```
+
+  * `int slotPos = keyHash % this.hashSlotNum`：对 key 计算哈希后，取模得到对应的哈希槽 slot 下标，然后计算出哈希槽的存储位置 absSlotPos
+  * `int slotValue = this.mappedByteBuffer.getInt(absSlotPos)`：获取槽中的值，如果是无效值说明没有哈希冲突
+  * `timeDiff = timeDiff / 1000`：计算当前 msg 存储时间减去索引文件内第一条消息存储时间的差值，转化为秒进行存储
+  * `int absIndexPos`：计算当前索引数据存储的位置，开始填充索引数据到对应的位置
+  * `this.mappedByteBuffer.putInt(absSlotPos, this.indexHeader.getIndexCount())`：在 slot 放入当前索引的索引编号
+  * `if (this.indexHeader.getIndexCount() <= 1)`：索引文件插入的第一条数据，需要设置起始偏移量和存储时间
+  * `if (invalidIndex == slotValue)`：没有哈希冲突，说明占用了一个新的 hash slot
+  * `this.indexHeader`：设置索引头的相关属性
+
+* selectPhyOffset()：从索引文件查询消息的物理偏移量
+
+  ```java
+  // 参数一：查询结果全部放到该list内； 参数二：查询key； 参数三：结果最大数限制； 参数四五：时间范围
+  public void selectPhyOffset(final List<Long> phyOffsets, final String key, final int maxNum,final long begin, final long end, boolean lock)
+  ```
+
+  * `if (this.mappedFile.hold())`： MF 的引用记数 +1，查询期间 MF 资源**不能被释放**
+  * `int slotValue = this.mappedByteBuffer.getInt(absSlotPos)`：获取槽中的值，可能是无效值或者索引编号，如果是无效值说明查询未命中
+  * `int absIndexPos`：计算出索引编号对应索引数据的开始位点
+  * `this.mappedByteBuffer`：读取索引数据
+  * `long timeRead = this.indexHeader.getBeginTimestamp() + timeDiff`：计算出准确的存储时间
+  * `boolean timeMatched = (timeRead >= begin) && (timeRead <= end)`：时间范围的匹配
+  * `phyOffsets.add(phyOffsetRead)`：将命中的消息索引的消息偏移量加入到 list 集合中
+  * `nextIndexToRead = prevIndexRead`：遍历前驱节点
+
+
+
+****
+
+
+
+#### IndexServ
+
+##### 成员属性
+
+IndexService 类用来管理 IndexFile 文件
+
+成员变量：
+
+* 存储主模块：
+
+  ```java
+  private final DefaultMessageStore defaultMessageStore;
+  ```
+
+* 索引文件存储目录：`../store/index`
+
+  ```java
+  private final String storePath;
+  ```
+
+* 索引对象集合：目录下的每个文件都有一个 IndexFile 对象
+
+  ```java
+  private final ArrayList<IndexFile> indexFileList = new ArrayList<IndexFile>();
+  ```
+
+* 索引文件：
+
+  ```java
+  private final int hashSlotNum;		// 每个索引文件包含的 哈希桶数量 ：500w
+  private final int indexNum;			// 每个索引文件包含的 索引条目数量 ：2000w
+  ```
+
+
+
+***
+
+
+
+##### 成员方法
+
+* load()：加载 storePath 目录下的文件，为每个文件创建一个 IndexFile 实例对象，并加载 IndexHeader 信息
+
+  ```java
+  public boolean load(final boolean lastExitOK)
+  ```
+
+* deleteExpiredFile()：删除过期索引文件
+
+  ```java
+  // 参数 offset 表示 CommitLog 内最早的消息的 phyOffset
+  public void deleteExpiredFile(long offset)
+  ```
+
+  * `this.readWriteLock.readLock().lock()`：加锁判断
+  * `long endPhyOffset = this.indexFileList.get(0).getEndPhyOffset()`：获取目录中第一个文件的结束偏移量
+  * `if (endPhyOffset < offset)`：索引目录内存在过期的索引文件，并且当前的 IndexFile 都是过期的数据
+  * `for (int i = 0; i < (files.length - 1); i++)`：遍历文件列表，删除过期的文件
+
+* buildIndex()：存储主模块 DefaultMessageStore 内部的异步线程调用，构建 Index 数据
+
+  ```java
+  public void buildIndex(DispatchRequest req)
+  ```
+
+  * `indexFile = retryGetAndCreateIndexFile()`：获取或者创建顺序写的索引文件对象
+
+  * `buildKey(topic, req.getUniqKey())`：**构建索引 key**，`topic + # + uniqKey`
+
+  * `indexFile = putKey()`：插入索引文件
+
+  * `if (keys != null && keys.length() > 0)`：消息存在自定义索引
+
+    `for (int i = 0; i < keyset.length; i++)`：遍历每个索引，为每个 key 调用一次 putKey
+
+* getAndCreateLastIndexFile()：获取当前顺序写的 IndexFile，没有就创建
+
+  ```java
+  public IndexFile getAndCreateLastIndexFile()
+  ```
+
+
+
+***
+
+
+
+#### MesStore
+
+##### 生命周期
+
+DefaultMessageStore 类核心是整个存储服务的调度类
+
+* 构造方法：
+
+  ```java
+  public DefaultMessageStore()
+  ```
+
+  * `this.allocateMappedFileService.start()`：启动**创建 MappedFile 文件服务**
+  * `this.indexService.start()`：启动索引服务
+
+* load()：加载资源
+
+  ```java
+  public boolean load()
+  ```
+
+  * `this.commitLog.load()`：先加载 CommitLog
+  * `this.loadConsumeQueue()`：再加载 ConsumeQueue
+  * `this.storeCheckpoint`：检查位点对象
+  * `this.indexService.load(lastExitOK)`：加载 IndexFile
+  * `this.recover(lastExitOK)`：恢复阶段，先恢复 CQ，在恢复 CL
+
+* start()：核心启动方法
+
+  ```java
+  public void start()
+  ```
+
+  * `lock = lockFile.getChannel().tryLock(0, 1, false)`：获取文件锁，获取失败说明当前目录已经启动过 Broker
+
+  * `long maxPhysicalPosInLogicQueue = commitLog.getMinOffset()`：遍历全部的 CQ 对象，获取 CQ 中消息的最大偏移量
+
+  * `this.reputMessageService.start()`：设置分发服务的分发位点，启动**分发服务**，构建 ConsumerQueue 和 IndexFile
+
+  * `if (dispatchBehindBytes() <= 0)`：线程等待分发服务将分发数据全部处理完毕
+
+  * `this.recoverTopicQueueTable()`：因为修改了 CQ 数据，所以再次构建队列偏移量字段表
+
+  * `this.haService.start()`：启动 **HA 服务**
+
+  * `this.handleScheduleMessageService()`：启动**消息调度服务**
+
+  * `this.flushConsumeQueueService.start()`：启动 CQ **消费队列刷盘服务**
+
+  * `this.commitLog.start()`：启动 **CL 刷盘服务**
+
+  * `this.storeStatsService.start()`：启动状态存储服务
+
+  * `this.createTempFile()`：创建 AbortFile，正常关机时 JVM HOOK 会删除该文件，异常宕机时该文件不会删除，开机数据恢复阶段根据是否存在该文件，执行不同的**恢复策略**
+
+  * `this.addScheduleTask()`：添加定时任务
+
+    * `DefaultMessageStore.this.cleanFilesPeriodically()`：定时**清理过期文件**，周期是 10 秒
+
+      * `this.cleanCommitLogService.run()`：启动清理过期的 CL 文件服务
+      * `this.cleanConsumeQueueService.run()`：启动清理过期的 CQ 文件服务
+
+    * `DefaultMessageStore.this.checkSelf()`：每 10 分种进行健康检查
+
+    * `DefaultMessageStore.this.cleanCommitLogService.isSpaceFull()`：**磁盘预警**定时任务，每 10 秒一次
+
+      * `if (physicRatio > this.diskSpaceWarningLevelRatio)`：检查磁盘是否到达 waring 阈值，默认 90%
+
+        `boolean diskok = ...runningFlags.getAndMakeDiskFull()`：设置磁盘写满标记
+
+      * `boolean diskok = ...this.runningFlags.getAndMakeDiskOK()`：设置磁盘可写标记
+
+  * `this.shutdown = false`：刚启动，设置为 false
+
+* shutdown()：关闭各种服务和线程资源，设置存储模块状态为关闭状态
+
+  ```java
+  public void shutdown()
+  ```
+
+* destroy()：销毁 Broker 的工作目录
+
+  ```java
+  public void destroy()
+  ```
+
+
+
+
+
+***
+
+
+
+##### 服务线程
+
+ServiceThread 类被很多服务继承，本身是一个 Runnable 任务对象，继承者通过重写 run 方法来实现服务的逻辑
+
+* run()：一般实现方式
+
+  ```java
+  public void run() {
+      while (!this.isStopped()) {
+          // 业务逻辑
+      }
+  }
+  ```
+
+  通过参数 stopped 控制服务的停止，使用 volatile 修饰保证可见性
+
+  ```java
+  protected volatile boolean stopped = false
+  ```
+
+* shutdown()：停止线程，首先设置 stopped 为 true，然后进行唤醒，默认不直接打断线程
+
+  ```java
+  public void shutdown()
+  ```
+
+* waitForRunning()：挂起线程，设置唤醒标记 hasNotified 为 false
+
+  ```java
+  protected void waitForRunning(long interval)
+  ```
+
+* wakeup()：唤醒线程，设置 hasNotified 为 true
+
+  ```java
+  public void wakeup()
+  ```
+
+
+
+***
+
+
+
+##### 构建服务
+
+AllocateMappedFileService 创建 MappedFile 服务
+
+* mmapOperation()：核心服务
+
+  ```java
+  private boolean mmapOperation()
+  ```
+
+  * `req = this.requestQueue.take()`： 从 requestQueue 阻塞队列（优先级）中获取 AllocateRequest 任务
+  * `if (...isTransientStorePoolEnable())`：条件成立使用直接内存写入数据， 从直接内存中 commit 到 FileChannel 中
+  * `mappedFile = new MappedFile(req.getFilePath(), req.getFileSize())`：根据请求的路径和大小创建对象
+  * `mappedFile.warmMappedFile()`：判断 mappedFile 大小，只有 CommitLog 才进行文件预热
+  * `req.setMappedFile(mappedFile)`：将创建好的 MF 对象的赋值给请求对象的成员属性
+  * `req.getCountDownLatch().countDown()`：**唤醒请求的阻塞线程**
+
+* putRequestAndReturnMappedFile()：MappedFileQueue 中用来创建 MF 对象的方法
+
+  ```java
+  public MappedFile putRequestAndReturnMappedFile(String nextFilePath, String nextNextFilePath, int fileSize)
+  ```
+
+  * `AllocateRequest nextReq = new AllocateRequest(...)`：创建 nextFilePath 的 AllocateRequest 对象，放入请求列表和阻塞队列，然后创建 nextNextFilePath 的 AllocateRequest 对象，放入请求列表和阻塞队列
+  * `AllocateRequest result = this.requestTable.get(nextFilePath)`：从请求列表获取 nextFilePath 的请求对象
+  * `result.getCountDownLatch().await(...)`：**线程挂起**，直到超时或者 nextFilePath 对应的 MF 文件创建完成
+  * `return result.getMappedFile()`：返回创建好的 MF 文件对象
+
+ReputMessageService 消息分发服务，用于构建 ConsumerQueue 和 IndexFile 文件
+
+* run()：循环执行 doReput 方法，每执行一次线程休眠 1 毫秒
+
+  ```java
+  public void run()
+  ```
+
+* doReput()：实现分发的核心逻辑
+
+  ```java
+  private void doReput()
+  ```
+
+  * `for (boolean doNext = true; this.isCommitLogAvailable() && doNext; )`：循环遍历
+  * `SelectMappedBufferResult result`： 从 CommitLog 拉取数据，数据范围 `[reputFromOffset, 包含该偏移量的 MF 的最大 Pos]`，封装成结果对象
+  * `DispatchRequest dispatchRequest`：从结果对象读取出一条 DispatchRequest 数据
+  * `DefaultMessageStore.this.doDispatch(dispatchRequest)`：将数据交给分发器进行分发，用于**构建 CQ 和索引文件**
+  * `this.reputFromOffset += size`：更新数据范围
+
+
+
+***
+
+
+
+##### 刷盘服务
+
+FlushConsumeQueueService 刷盘 CQ 数据
+
+* run()：每隔 1 秒执行一次刷盘服务，跳出循环后还会执行一次强制刷盘
+
+  ```java
+  public void run()
+  ```
+
+* doFlush()：刷盘
+
+  ```java
+  private void doFlush(int retryTimes)
+  ```
+
+  * `int flushConsumeQueueLeastPages`：脏页阈值，默认是 2
+
+  * `if (retryTimes == RETRY_TIMES_OVER)`：**重试次数是 3** 时设置强制刷盘，设置脏页阈值为 0
+  * `int flushConsumeQueueThoroughInterval`：两次刷新的**时间间隔超过 60 秒**会强制刷盘
+  * `for (ConsumeQueue cq : maps.values())`：遍历所有的 CQ，进行刷盘
+  * `DefaultMessageStore.this.getStoreCheckpoint().flush()`：强制刷盘时将 StoreCheckpoint 瞬时数据刷盘
+
+FlushCommitLogService 刷盘 CL 数据，默认是异步刷盘
+
+* run()：运行方法
+
+  ```java
+  public void run()
+  ```
+
+  * `while (!this.isStopped())`：stopped为 true 才跳出循环
+  * `boolean flushCommitLogTimed`：控制线程的休眠方式，默认是 false，使用 `CountDownLatch.await()` 休眠，设置为 true 时使用 `Thread.sleep()` 休眠
+  * `int interval`：获取配置中的刷盘时间间隔
+  * `int flushPhysicQueueLeastPages`：获取最小刷盘页数，默认是 4 页，脏页达到指定页数才刷盘
+  * `int flushPhysicQueueThoroughInterval`：获取强制刷盘周期，默认是 10 秒，达到周期后强制刷盘，不考虑脏页
+  * `if (flushCommitLogTimed)`：休眠逻辑，避免 CPU 占用太长时间，导致无法执行其他更紧急的任务
+  * `CommitLog.this.mappedFileQueue.flush(flushPhysicQueueLeastPages)`：**刷盘**
+
+
+
+***
+
+
+
+##### 清理服务
+
+CleanCommitLogService 清理过期的 CL 数据，定时任务 10 秒调用一次，先清理 CL，再清理 CQ，因为 CQ 依赖于 CL 的数据
+
+* run()：运行方法
+
+  ```java
+  public void run()
+  ```
+
+* deleteExpiredFiles()：删除过期 CL 文件
+
+  ```java
+  private void deleteExpiredFiles()
+  ```
+
+  * `long fileReservedTime`：默认 72，代表文件的保留时间
+  * `boolean timeup = this.isTimeToDelete()`：当前时间是否是凌晨 4 点
+  * `boolean spacefull = this.isSpaceToDelete()`：CL 或者 CQ 的目录磁盘使用率达到阈值标准 85%
+  * `boolean manualDelete = this.manualDeleteFileSeveralTimes > 0`：手动删除文件
+  * `fileReservedTime *= 60 * 60 * 1000`：默认保留 72 小时
+  * `deleteCount = DefaultMessageStore.this.commitLog.deleteExpiredFile()`：**调用 MFQ 对象的删除方法**
+
+CleanConsumeQueueService 清理过期的 CQ 数据
+
+* run()：运行方法
+
+  ```java
+  public void run()
+  ```
+
+* deleteExpiredFiles()：删除过期 CQ 文件
+
+  ```java
+  private void deleteExpiredFiles()
+  ```
+
+  * `int deleteLogicsFilesInterval`：清理 CQ 的时间间隔，默认 100 毫秒
+  * `long minOffset = DefaultMessageStore.this.commitLog.getMinOffset()`：获取 CL 文件中最小的物理偏移量
+  * `if (minOffset > this.lastPhysicalMinOffset)`：CL 最小的偏移量大于 CQ 最小的，说明有过期数据
+  * `this.lastPhysicalMinOffset = minOffset`：更新 CQ 的最小偏移量
+  * `for (ConsumeQueue logic : maps.values())`：遍历所有的 CQ 文件
+  * `logic.deleteExpiredFile(minOffset)`：调用 MFQ 对象的删除方法
+  * `DefaultMessageStore.this.indexService.deleteExpiredFile(minOffset)`：**删除过期的索引文件**
+
+
+
+***
+
+
+
+#### Broker
+
+BrokerStartup 启动方法
+
+```java
+public static void main(String[] args) {
+    start(createBrokerController(args));
+}
+public static BrokerController start(BrokerController controller) {
+    controller.start();	// 启动
+}
+```
+
+BrokerController#start：核心启动方法
+
+* `this.messageStore.start()`：**启动存储服务**
+
+* `this.remotingServer.start()`：启动 Netty 通信服务
+
+* `this.fileWatchService.start()`：启动文件监听服务
+
+* `this.scheduledExecutorService.scheduleAtFixedRate()`：每隔 30s 向 NameServer 上报 Topic 路由信息，**心跳机制**
+
+  `BrokerController.this.registerBrokerAll(true, false, brokerConfig.isForceRegister())`
+
+
+
+
+
 ****
 
 
@@ -6153,6 +7322,18 @@ TopicPublishInfo 类用来存储路由信息
 
 
 
+### 消费者
+
+
+
+
+
+
+
+***
+
+
+
 ### 客户端
 
 #### 实例对象
@@ -6597,371 +7778,12 @@ NettyRemotingClient 类负责客户端的网络通信
   }
   ```
 
-  
-
-***
 
 
-
-### 存储端
-
-#### 存储机制
-
-##### 存储结构
-
-RocketMQ 中 Broker 负责存储消息转发消息，所以以下的结构是存储在 Broker Server 上的，生产者和消费者与 Broker 进行消息的收发是通过主题对应的 Message Queue 完成，类似于通道
-
-RocketMQ 消息的存储是由 ConsumeQueue 和 CommitLog 配合完成 的，CommitLog 是消息真正的**物理存储**文件，ConsumeQueue 是消息的逻辑队列，类似数据库的**索引节点**，存储的是指向物理存储的地址。**每个 Topic 下的每个 Message Queue 都有一个对应的 ConsumeQueue 文件**
-
-每条消息都会有对应的索引信息，Consumer 通过 ConsumeQueue 这个结构来读取消息实体内容
-
-![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-消息存储结构.png)
-
-* CommitLog：消息主体以及元数据的存储主体，存储 Producer 端写入的消息内容，消息内容不是定长的。消息主要是顺序写入日志文件，单个文件大小默认 1G，偏移量代表下一次写入的位置，当文件写满了就继续写入下一个文件
-* ConsumerQueue：消息消费队列，存储消息在 CommitLog 的索引。RocketMQ 消息消费时要遍历 CommitLog 文件，并根据主题 Topic 检索消息，这是非常低效的。引入 ConsumeQueue 作为消费消息的索引，保存了指定 Topic 下的队列消息在 CommitLog 中的起始物理偏移量 offset，消息大小 size 和消息 Tag 的 HashCode 值，每个 ConsumeQueue 文件大小约 5.72M
-* IndexFile：为了消息查询提供了一种通过 Key 或时间区间来查询消息的方法，通过 IndexFile 来查找消息的方法不影响发送与消费消息的主流程。IndexFile 的底层存储为在文件系统中实现的 HashMap 结构，故 RocketMQ 的索引文件其底层实现为 hash 索引
-
-RocketMQ 采用的是混合型的存储结构，即为 Broker 单个实例下所有的队列共用一个日志数据文件（CommitLog）来存储。混合型存储结构（多个 Topic 的消息实体内容都存储于一个 CommitLog 中）**针对 Producer 和 Consumer 分别采用了数据和索引部分相分离的存储结构**，Producer 发送消息至 Broker 端，然后 Broker 端使用同步或者异步的方式对消息刷盘持久化，保存至 CommitLog 中。只要消息被持久化至磁盘文件 CommitLog 中，Producer 发送的消息就不会丢失，Consumer 也就肯定有机会去消费这条消息
-
-服务端支持长轮询模式，当消费者无法拉取到消息后，可以等下一次消息拉取，Broker 允许等待 30s 的时间，只要这段时间内有新消息到达，将直接返回给消费端。RocketMQ 的具体做法是，使用 Broker 端的后台服务线程 ReputMessageService 不停地分发请求并异步构建 ConsumeQueue（逻辑消费队列）和 IndexFile（索引文件）数据
-
-
-
-****
-
-
-
-##### 存储优化
-
-###### 内存映射
-
-操作系统分为用户态和内核态，文件操作、网络操作需要涉及这两种形态的切换，需要进行数据复制。一台服务器把本机磁盘文件的内容发送到客户端，分为两个步骤：
-
-* read：读取本地文件内容
-
-* write：将读取的内容通过网络发送出去
-
-![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-文件与网络操作.png)
-
-补充：Prog → NET → I/O → 零拷贝部分的笔记详解相关内容
-
-通过使用 mmap 的方式，可以省去向用户态的内存复制，RocketMQ 充分利用**零拷贝技术**，提高消息存盘和网络发送的速度。
-
-RocketMQ 通过 MappedByteBuffer 对文件进行读写操作，利用了 NIO 中的 FileChannel 模型将磁盘上的物理文件直接映射到用户态的内存地址中，将对文件的操作转化为直接对内存地址进行操作，从而极大地提高了文件的读写效率
-
-MappedByteBuffer 内存映射的方式**限制**一次只能映射 1.5~2G 的文件至用户态的虚拟内存，所以 RocketMQ 默认设置单个 CommitLog 日志数据文件为 1G。RocketMQ 的文件存储使用定长结构来存储，方便一次将整个文件映射至内存
 
 
 
 ***
-
-
-
-###### 页缓存
-
-页缓存（PageCache）是 OS 对文件的缓存，每一页的大小通常是 4K，用于加速对文件的读写。程序对文件进行顺序读写的速度几乎接近于内存的读写速度，就是因为 OS 将一部分的内存用作 PageCache，**对读写访问操作进行了性能优化**
-
-* 对于数据的写入，OS 会先写入至 Cache 内，随后通过异步的方式由 pdflush 内核线程将 Cache 内的数据刷盘至物理磁盘上
-* 对于数据的读取，如果一次读取文件时出现未命中 PageCache 的情况，OS 从物理磁盘上访问读取文件的同时，会顺序对其他相邻块的数据文件进行预读取（局部性原理，最大 128K）
-
-在 RocketMQ 中，ConsumeQueue 逻辑消费队列存储的数据较少，并且是顺序读取，在 PageCache 机制的预读取作用下，Consume Queue 文件的读性能几乎接近读内存，即使在有消息堆积情况下也不会影响性能。但是 CommitLog 消息存储的日志数据文件读取内容时会产生较多的随机访问读取，严重影响性能。选择合适的系统 IO 调度算法和固态硬盘，比如设置调度算法为 Deadline，随机读的性能也会有所提升
-
-
-
-***
-
-
-
-##### 刷盘机制
-
-两种持久化的方案：
-
-* 关系型数据库 DB：IO 读写性能比较差，如果 DB 出现故障，则 MQ 的消息就无法落盘存储导致线上故障，可靠性不高
-* 文件系统：消息刷盘至所部署虚拟机/物理机的文件系统来做持久化，分为异步刷盘和同步刷盘两种模式。消息刷盘为消息存储提供了一种高效率、高可靠性和高性能的数据持久化方式，除非部署 MQ 机器本身或是本地磁盘挂了，一般不会出现无法持久化的问题
-
-RocketMQ 采用文件系统的方式，无论同步还是异步刷盘，都使用**顺序 IO**，因为磁盘的顺序读写要比随机读写快很多
-
-* 同步刷盘：只有在消息真正持久化至磁盘后 RocketMQ 的 Broker 端才会真正返回给 Producer 端一个成功的 ACK 响应，保障 MQ消息的可靠性，但是性能上会有较大影响，一般适用于金融业务应用该模式较多
-
-* 异步刷盘：利用 OS 的 PageCache，只要消息写入内存 PageCache 即可将成功的 ACK 返回给 Producer 端，降低了读写延迟，提高了 MQ 的性能和吞吐量。消息刷盘采用**后台异步线程**提交的方式进行，当内存里的消息量积累到一定程度时，触发写磁盘动作
-
-通过 Broker 配置文件里的 flushDiskType 参数设置采用什么方式，可以配置成 SYNC_FLUSH、ASYNC_FLUSH 中的一个
-
-![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-刷盘机制.png)
-
-
-
-官方文档：https://github.com/apache/rocketmq/blob/master/docs/cn/design.md
-
-
-
-***
-
-
-
-#### MappedFile
-
-##### 成员属性
-
-MappedFile 类是最基础的存储类，继承自 ReferenceResource 类，用来**保证线程安全**
-
-MappedFile 类成员变量：
-
-* 内存相关：
-
-  ```java
-  public static final int OS_PAGE_SIZE = 1024 * 4;// 内存页大小：默认是 4k
-  private AtomicLong TOTAL_MAPPED_VIRTUAL_MEMORY;	// 当前进程下所有的 mappedFile 占用的总虚拟内存大小
-  private AtomicInteger TOTAL_MAPPED_FILES;		// 当前进程下所有的 mappedFile 个数
-  ```
-
-* 数据位点：
-
-  ```java
-  protected final AtomicInteger wrotePosition;	// 当前 mappedFile 的数据写入点
-  protected final AtomicInteger committedPosition;// 当前 mappedFile 的数据提交点
-  private final AtomicInteger flushedPosition;	// 数据落盘位点，在这之前的数据是持久化的安全数据
-  												// flushedPosition-wrotePosition 之间的数据属于脏页
-  ```
-
-* 文件相关：CL 是 CommitLog，CQ 是 ConsumeQueue
-
-  ```java
-  private String fileName;	// 文件名称，CL和CQ文件名是第一条消息的物理偏移量，索引文件是年月日时分秒
-  private long fileFromOffset;// 文件名转long，代表该对象的【起始偏移量】	
-  private File file;			// 文件对象
-  ```
-
-* 内存映射：
-
-  ```java
-  protected FileChannel fileChannel;			// 文件通道
-  private MappedByteBuffer mappedByteBuffer;	// 内存映射缓冲区，访问虚拟内存
-  ```
-
-ReferenceResource 类成员变量：
-
-* 引用数量：当 `refCount <= 0` 时，表示该资源可以释放了，没有任何其他程序依赖它了，用原子类保证线程安全
-
-  ```java
-  protected final AtomicLong refCount = new AtomicLong(1);	// 初始值为 1
-  ```
-
-* 存活状态：表示资源的存活状态
-
-  ```java
-  protected volatile boolean available = true;
-  ```
-
-* 是否清理：默认值 false，当执行完子类对象的 cleanup() 清理方法后，该值置为 true ，表示资源已经全部释放
-
-  ```java
-  protected volatile boolean cleanupOver = false;
-  ```
-
-* 第一次关闭资源的时间：用来记录超时时间
-
-  ```java
-  private volatile long firstShutdownTimestamp = 0;
-  ```
-
-  
-
-***
-
-
-
-##### 成员方法
-
-MappedFile 类核心方法：
-
-* appendMessage()：提供上层向内存映射中追加消息的方法，消息如何追加由 AppendMessageCallback 控制
-
-  ```java
-  // 参数一：消息     参数二：追加消息回调
-  public AppendMessageResult appendMessage(MessageExtBrokerInner msg, AppendMessageCallback cb)
-  ```
-
-  ```java
-  // 将字节数组写入到文件通道
-  public boolean appendMessage(final byte[] data)
-  ```
-
-* flush()：刷盘接口，参数 flushLeastPages  代表刷盘的最小页数 ，等于 0 时属于强制刷盘；> 0 时需要脏页（计算方法在数据位点）达到该值才进行物理刷盘；文件写满时强制刷盘
-
-  ```java
-  public int flush(final int flushLeastPages)
-  ```
-
-* selectMappedBuffer()：该方法以 pos 为开始位点 ，到有效数据为止，创建一个切片 ByteBuffer 作为数据副本，供业务访问数据
-
-  ```java
-  public SelectMappedBufferResult selectMappedBuffer(int pos)
-  ```
-
-* destroy()：销毁映射文件对象，并删除关联的系统文件，参数是强制关闭资源的时间
-
-  ```java
-  public boolean destroy(final long intervalForcibly)
-  ```
-
-* cleanup()：释放堆外内存，更新总虚拟内存和总内存映射文件数
-
-  ```java
-  public boolean cleanup(final long currentRef)
-  ```
-  
-* warmMappedFile()：内存预热，当要新建的 MappedFile 对象大于 1g 时，执行该方法对该 MappedFile 的每个 Page Cache 进行写入一个字节进行分配内存，**将映射文件都加载到内存**
-
-  ```java
-  public void warmMappedFile(FlushDiskType type, int pages)
-  ```
-
-ReferenceResource 类核心方法：
-
-* hold()：增加引用记数 refCount，方法加锁
-
-  ```java
-  public synchronized boolean hold()
-  ```
-
-* shutdown()：关闭资源，参数代表强制关闭资源的时间间隔
-
-  ```java
-  // 系统当前时间 - firstShutdownTimestamp 时间  > intervalForcibly 进行【强制关闭】
-  public void shutdown(final long intervalForcibly)
-  ```
-
-* release()：引用计数减 1，当 refCount  为 0 时，调用子类的 cleanup 方法
-
-  ```java
-  public void release()
-  ```
-
-  
-
-
-
-
-
-***
-
-
-
-#### MapQueue
-
-MappedFileQueue 用来管理 MappedFile 文件
-
-成员变量：
-
-* 管理目录：CommitLog 是 `../store/commitlog`， ConsumeQueue 是 `../store/xxx_topic/0`
-
-  ```java
-  private final String storePath;
-  ```
-
-* 文件属性：
-
-  ```java
-  private final int mappedFileSize;	// 目录下每个文件大小，CL文件默认 1g，CQ文件 默认 600w字节
-  private final CopyOnWriteArrayList<MappedFile> mappedFiles;	//目录下的每个 mappedFile 都加入该集合
-  ```
-
-* 数据位点：
-
-  ```java
-  private long flushedWhere = 0;		// 目录的刷盘位点，值为 mf.fileName + mf.wrotePosition
-  private long committedWhere = 0;	// 目录的提交位点
-  ```
-
-* 消息存储：
-
-  ```java
-  private volatile long storeTimestamp = 0;	// 当前目录下最后一条 msg 的存储时间
-  ```
-
-* 创建服务：新建 MappedFile 实例，继承自 ServiceThread 是一个任务对象，run 方法用来创建实例
-
-  ```java
-  private final AllocateMappedFileService allocateMappedFileService;
-  ```
-
-核心方法：
-
-* load()：Broker 启动时，加载本地磁盘数据，该方法读取 storePath 目录下的文件，创建 MappedFile 对象放入集合内
-
-  ```java
-  public boolean load()
-  ```
-
-* getLastMappedFile()：获取当前正在顺序写入的 MappedFile 对象，如果最后一个 MappedFile 写满了，或者不存在 MappedFile 对象，则创建新的 MappedFile
-
-  ```java
-  // 参数一：文件起始偏移量；参数二：当list为空时，是否新建 MappedFile
-  public MappedFile getLastMappedFile(final long startOffset, boolean needCreate)
-  ```
-
-* flush()：根据 flushedWhere 属性查找合适的 MappedFile，调用该 MappedFile 的落盘方法，并更新全局的 flushedWhere
-
-  ```java
-  //参数：0 表示强制刷新， > 0 脏页数据必须达到 flushLeastPages 才刷新
-  public boolean flush(final int flushLeastPages)
-  ```
-
-* findMappedFileByOffset()：根据偏移量查询对象
-
-  ```java
-  public MappedFile findMappedFileByOffset(final long offset, final boolean returnFirstOnNotFound)
-  ```
-
-* deleteExpiredFileByTime()：CL 删除过期文件，根据文件的保留时长决定是否删除
-
-  ```java
-  // 参数一：过期时间； 参数二：删除两个文件之间的时间间隔； 参数三：mf.destory传递的参数； 参数四：true 强制删除
-  public int deleteExpiredFileByTime(final long expiredTime,final int deleteFilesInterval, final long intervalForcibly, final boolean cleanImmediately)
-  ```
-
-* deleteExpiredFileByOffset()：CQ 删除过期文件，遍历每个 MF 文件，获取当前文件最后一个数据单元的物理偏移量，小于 offset 说明当前 MF 文件内都是过期数据
-
-  ```java
-  // 参数一：consumeLog 目录下最小物理偏移量，就是第一条消息的 offset； 
-  // 参数二：ConsumerQueue 文件内每个数据单元固定大小
-  public int deleteExpiredFileByOffset(long offset, int unitSize)
-  ```
-
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
