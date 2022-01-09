@@ -4504,7 +4504,7 @@ NameServer 是一个简单的 Topic 路由注册中心，支持 Broker 的动态
 
 NameServer 主要包括两个功能：
 
-* Broker 路由管理，NameServer 接受 Broker 集群的注册信息，并保存下来作为路由信息的基本数据，提供**心跳检测机制**检查 Broker 活性，每 10 秒清除一次两小时没有活跃的 Broker
+* Broker 路由管理，NameServer 接受 Broker 集群的注册信息，保存下来作为路由信息的基本数据，提供**心跳检测机制**检查 Broker 是否还存活，每 10 秒清除一次两小时没有活跃的 Broker
 * 路由信息管理，每个 NameServer 将保存关于 Broker 集群的整个路由信息和用于客户端查询的队列信息，然后 Producer 和 Conumser 通过 NameServer 就可以知道整个 Broker 集群的路由信息，从而进行消息的投递和消费
 
 NameServer 特点：
@@ -5582,6 +5582,37 @@ NettyRemotingAbstract#processResponseCommand：处理响应的数据
 * `responseFuture.putResponse(cmd)`：不包含回调对象，**同步调用时，唤醒等待的业务线程**
 
 流程：客户端 invokeSync → 服务器的 processRequestCommand → 客户端的 processResponseCommand → 结束
+
+
+
+***
+
+
+
+#### 路由信息
+
+##### 信息管理
+
+RouteInfoManager 类负责管理路由信息，NamesrvController 的构造方法中创建该类的实例对象，管理服务端的路由数据
+
+```java
+public class RouteInfoManager {
+    // Broker 两个小时不活跃，视为离线，被定时任务删除
+    private final static long BROKER_CHANNEL_EXPIRED_TIME = 1000 * 60 * 2;
+    // 读写锁，保证线程安全
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
+    // 主题队列数据，一个主题对应多个队列
+    private final HashMap<String/* topic */, List<QueueData>> topicQueueTable;
+    // Broker 数据列表
+    private final HashMap<String/* brokerName */, BrokerData> brokerAddrTable;
+    // 集群
+    private final HashMap<String/* clusterName */, Set<String/* brokerName */>> clusterAddrTable;
+    // Broker 存活信息
+    private final HashMap<String/* brokerAddr */, BrokerLiveInfo> brokerLiveTable;
+    // 服务过滤
+    private final HashMap<String/* brokerAddr */, List<String>/* Filter Server */> filterServerTable;
+}
+```
 
 
 
