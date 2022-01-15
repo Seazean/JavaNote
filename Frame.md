@@ -3617,12 +3617,12 @@ RocketMQ 主要由 Producer、Broker、Consumer 三部分组成，其中 Produce
 
 消息发送者步骤分析：
 
-1. 创建消息生产者 producer，并制定生产者组名
+1. 创建消息生产者 Producer，并制定生产者组名
 2. 指定 Nameserver 地址
-3. 启动 producer
+3. 启动 Producer
 4. 创建消息对象，指定主题 Topic、Tag 和消息体
 5. 发送消息
-6. 关闭生产者 producer
+6. 关闭生产者 Producer
 
 消息消费者步骤分析：
 
@@ -3630,7 +3630,7 @@ RocketMQ 主要由 Producer、Broker、Consumer 三部分组成，其中 Produce
 2. 指定 Nameserver 地址
 3. 订阅主题 Topic 和 Tag
 4. 设置回调函数，处理消息
-5. 启动消费者 consumer
+5. 启动消费者 Consumer
 
 
 

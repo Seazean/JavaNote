@@ -4827,6 +4827,10 @@ CREATE INDEX idx_seller_name_sta_addr ON tb_seller(name, status, address);
 
 
 
+参考文章：https://mp.weixin.qq.com/s/B_M09dzLe9w7cT46rdGIeQ
+
+
+
 ***
 
 
