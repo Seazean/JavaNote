@@ -3818,7 +3818,7 @@ public class Consumer {
 - 全局顺序：对于指定的一个 Topic，所有消息按照严格的先入先出（FIFO）的顺序进行发布和消费。 适用于性能要求不高，所有的消息严格按照 FIFO 原则进行消息发布和消费的场景
 - 分区顺序：对于指定的一个 Topic，所有消息根据 sharding key 进行分区，同一个分组内的消息按照严格的 FIFO 顺序进行发布和消费。Sharding key 是顺序消息中用来区分不同分区的关键字段，和普通消息的 Key 是完全不同的概念。 适用于性能要求高，以 sharding key 作为分区字段，在同一个区中严格的按照 FIFO 原则进行消息发布和消费的场景
 
-在默认的情况下消息发送会采取 Round Robin 轮询方式把消息发送到不同的 queue（分区队列），而消费消息是从多个 queue 上拉取消息，这种情况发送和消费是不能保证顺序。但是如果控制发送的顺序消息只依次发送到同一个 queue 中，消费的时候只从这个 queue 上依次拉取，则就保证了顺序。当发送和消费参与的 queue 只有一个，则是全局有序；如果多个queue 参与，则为分区有序，即相对每个 queue，消息都是有序的
+在默认的情况下消息发送会采取 Round Robin 轮询方式把消息发送到不同的 queue（分区队列），而消费消息是从多个 queue 上拉取消息，这种情况发送和消费是不能保证顺序。但是如果控制发送的顺序消息只依次发送到同一个 queue 中，消费的时候只从这个 queue 上依次拉取，则就保证了顺序。当**发送和消费参与的 queue 只有一个**，则是全局有序；如果多个queue 参与，则为分区有序，即相对每个 queue，消息都是有序的
 
 
 
@@ -4346,7 +4346,7 @@ RocketMQ 的具体实现策略：如果写入的是事务消息，对消息的 T
 
 
 
-##### OP消息
+##### OP 消息
 
 一阶段写入不可见的消息后，二阶段操作：
 
@@ -4579,6 +4579,106 @@ At least Once：至少一次，指每个消息必须投递一次，Consumer 先 
 
 
 
+
+
+### 存储机制
+
+#### 存储结构
+
+RocketMQ 中 Broker 负责存储消息转发消息，所以以下的结构是存储在 Broker Server 上的，生产者和消费者与 Broker 进行消息的收发是通过主题对应的 Message Queue 完成，类似于通道
+
+RocketMQ 消息的存储是由 ConsumeQueue 和 CommitLog 配合完成 的，CommitLog 是消息真正的**物理存储**文件，ConsumeQueue 是消息的逻辑队列，类似数据库的**索引节点**，存储的是指向物理存储的地址。**每个 Topic 下的每个 Message Queue 都有一个对应的 ConsumeQueue 文件**
+
+每条消息都会有对应的索引信息，Consumer 通过 ConsumeQueue 这个结构来读取消息实体内容
+
+![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-消息存储结构.png)
+
+* CommitLog：消息主体以及元数据的存储主体，存储 Producer 端写入的消息内容，消息内容不是定长的。消息主要是顺序写入日志文件，单个文件大小默认 1G，偏移量代表下一次写入的位置，当文件写满了就继续写入下一个文件
+* ConsumerQueue：消息消费队列，存储消息在 CommitLog 的索引。RocketMQ 消息消费时要遍历 CommitLog 文件，并根据主题 Topic 检索消息，这是非常低效的。引入 ConsumeQueue 作为消费消息的索引，保存了指定 Topic 下的队列消息在 CommitLog 中的起始物理偏移量 offset，消息大小 size 和消息 Tag 的 HashCode 值，每个 ConsumeQueue 文件大小约 5.72M
+* IndexFile：为了消息查询提供了一种通过 Key 或时间区间来查询消息的方法，通过 IndexFile 来查找消息的方法不影响发送与消费消息的主流程。IndexFile 的底层存储为在文件系统中实现的 HashMap 结构，故 RocketMQ 的索引文件其底层实现为 **hash 索引**
+
+RocketMQ 采用的是混合型的存储结构，即为 Broker 单个实例下所有的队列共用一个日志数据文件（CommitLog）来存储。混合型存储结构（多个 Topic 的消息实体内容都存储于一个 CommitLog 中）**针对 Producer 和 Consumer 分别采用了数据和索引部分相分离的存储结构**，Producer 发送消息至 Broker 端，然后 Broker 端使用同步或者异步的方式对消息刷盘持久化，保存至 CommitLog 中。只要消息被持久化至磁盘文件 CommitLog 中，Producer 发送的消息就不会丢失，Consumer 也就肯定有机会去消费这条消息
+
+服务端支持长轮询模式，当消费者无法拉取到消息后，可以等下一次消息拉取，Broker 允许等待 30s 的时间，只要这段时间内有新消息到达，将直接返回给消费端。RocketMQ 的具体做法是，使用 Broker 端的后台服务线程 ReputMessageService 不停地分发请求并异步构建 ConsumeQueue（逻辑消费队列）和 IndexFile（索引文件）数据
+
+
+
+****
+
+
+
+#### 存储优化
+
+##### 内存映射
+
+操作系统分为用户态和内核态，文件操作、网络操作需要涉及这两种形态的切换，需要进行数据复制。一台服务器把本机磁盘文件的内容发送到客户端，分为两个步骤：
+
+* read：读取本地文件内容
+
+* write：将读取的内容通过网络发送出去
+
+![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-文件与网络操作.png)
+
+补充：Prog → NET → I/O → 零拷贝部分的笔记详解相关内容
+
+通过使用 mmap 的方式，可以省去向用户态的内存复制，RocketMQ 充分利用**零拷贝技术**，提高消息存盘和网络发送的速度。
+
+RocketMQ 通过 MappedByteBuffer 对文件进行读写操作，利用了 NIO 中的 FileChannel 模型将磁盘上的物理文件直接映射到用户态的内存地址中，将对文件的操作转化为直接对内存地址进行操作，从而极大地提高了文件的读写效率
+
+MappedByteBuffer 内存映射的方式**限制**一次只能映射 1.5~2G 的文件至用户态的虚拟内存，所以 RocketMQ 默认设置单个 CommitLog 日志数据文件为 1G。RocketMQ 的文件存储使用定长结构来存储，方便一次将整个文件映射至内存
+
+
+
+***
+
+
+
+##### 页缓存
+
+页缓存（PageCache）是 OS 对文件的缓存，每一页的大小通常是 4K，用于加速对文件的读写。程序对文件进行顺序读写的速度几乎接近于内存的读写速度，就是因为 OS 将一部分的内存用作 PageCache，**对读写访问操作进行了性能优化**
+
+* 对于数据的写入，OS 会先写入至 Cache 内，随后通过异步的方式由 pdflush 内核线程将 Cache 内的数据刷盘至物理磁盘上
+* 对于数据的读取，如果一次读取文件时出现未命中 PageCache 的情况，OS 从物理磁盘上访问读取文件的同时，会顺序对其他相邻块的数据文件进行预读取（局部性原理，最大 128K）
+
+在 RocketMQ 中，ConsumeQueue 逻辑消费队列存储的数据较少，并且是顺序读取，在 PageCache 机制的预读取作用下，Consume Queue 文件的读性能几乎接近读内存，即使在有消息堆积情况下也不会影响性能。但是 CommitLog 消息存储的日志数据文件读取内容时会产生较多的随机访问读取，严重影响性能。选择合适的系统 IO 调度算法和固态硬盘，比如设置调度算法为 Deadline，随机读的性能也会有所提升
+
+
+
+***
+
+
+
+#### 刷盘机制
+
+两种持久化的方案：
+
+* 关系型数据库 DB：IO 读写性能比较差，如果 DB 出现故障，则 MQ 的消息就无法落盘存储导致线上故障，可靠性不高
+* 文件系统：消息刷盘至所部署虚拟机/物理机的文件系统来做持久化，分为异步刷盘和同步刷盘两种模式。消息刷盘为消息存储提供了一种高效率、高可靠性和高性能的数据持久化方式，除非部署 MQ 机器本身或是本地磁盘挂了，一般不会出现无法持久化的问题
+
+RocketMQ 采用文件系统的方式，无论同步还是异步刷盘，都使用**顺序 IO**，因为磁盘的顺序读写要比随机读写快很多
+
+* 同步刷盘：只有在消息真正持久化至磁盘后 RocketMQ 的 Broker 端才会真正返回给 Producer 端一个成功的 ACK 响应，保障 MQ消息的可靠性，但是性能上会有较大影响，一般适用于金融业务应用该模式较多
+
+* 异步刷盘：利用 OS 的 PageCache，只要消息写入内存 PageCache 即可将成功的 ACK 返回给 Producer 端，降低了读写延迟，提高了 MQ 的性能和吞吐量。消息刷盘采用**后台异步线程**提交的方式进行，当内存里的消息量积累到一定程度时，触发写磁盘动作
+
+通过 Broker 配置文件里的 flushDiskType 参数设置采用什么方式，可以配置成 SYNC_FLUSH、ASYNC_FLUSH 中的一个
+
+![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-刷盘机制.png)
+
+
+
+官方文档：https://github.com/apache/rocketmq/blob/master/docs/cn/design.md
+
+
+
+
+
+****
+
+
+
+
+
 ### 集群设计
 
 #### 集群模式
@@ -4738,8 +4838,6 @@ latencyFaultTolerance 机制是实现消息发送高可用的核心关键所在�
 
 #### 原理解析
 
-==todo：暂时 copy 官方文档，学习源码后更新，真想搞懂过程还需要研究一下源码==
-
 在 Consumer 启动后，会通过定时任务不断地向 RocketMQ 集群中的所有 Broker 实例发送心跳包。Broke r端在收到 Consumer 的心跳消息后，会将它维护 在ConsumerManager 的本地缓存变量 consumerTable，同时并将封装后的客户端网络通道信息保存在本地缓存变量 channelInfoTable 中，为 Consumer 端的负载均衡提供可以依据的元数据信息
 
 Consumer 端实现负载均衡的核心类 **RebalanceImpl**
@@ -4770,13 +4868,15 @@ Consumer 端实现负载均衡的核心类 **RebalanceImpl**
 
 
 
+
+
 ****
 
 
 
-### 消息机制
+### 消息查询
 
-#### 消息查询
+#### 查询方式
 
 RocketMQ 支持按照两种维度进行消息查询：按照 Message ID 查询消息、按照 Message Key 查询消息
 
@@ -4793,6 +4893,35 @@ RocketMQ 支持按照两种维度进行消息查询：按照 Message ID 查询�
 ***
 
 
+
+#### 索引机制
+
+RocketMQ 的索引文件逻辑结构，类似 JDK 中 HashMap 的实现，具体结构如下：
+
+![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-IndexFile索引文件.png)
+
+IndexFile 文件的存储在 `$HOME\store\index${fileName}`，文件名 fileName 是以创建时的时间戳命名，文件大小是固定的，等于 `40+500W*4+2000W*20= 420000040` 个字节大小。如果消息的 properties 中设置了 UNIQ_KEY 这个属性，就用 `topic + “#” + UNIQ_KEY` 作为 key 来做写入操作；如果消息设置了 KEYS 属性（多个 KEY 以空格分隔），也会用 `topic + “#” + KEY` 来做索引
+
+整个 Index File 的结构如图，40 Byte 的 Header 用于保存一些总的统计信息，`4*500W` 的 Slot Table 并不保存真正的索引数据，而是保存每个槽位对应的单向链表的**头指针**，即一个 Index File 可以保存 2000W 个索引，`20*2000W` 是**真正的索引数据**
+
+索引数据包含了 Key Hash/CommitLog Offset/Timestamp/NextIndex offset 这四个字段，一共 20 Byte
+
+* NextIndex offset 即前面读出来的 slotValue，如果有 hash 冲突，就可以用这个字段将所有冲突的索引用链表的方式串起来
+* Timestamp 记录的是消息 storeTimestamp 之间的差，并不是一个绝对的时间
+
+
+
+参考文档：https://github.com/apache/rocketmq/blob/master/docs/cn/design.md
+
+
+
+
+
+***
+
+
+
+### 消息重试
 
 #### 消息重投
 
@@ -4822,7 +4951,7 @@ Consumer 消费消息失败后，提供了一种重试机制，令消息再消�
 - 由于消息本身的原因，例如反序列化失败，消息数据本身无法处理等。这种错误通常需要跳过这条消息，再消费其它消息，而这条失败的消息即使立刻重试消费，99% 也不成功，所以需要提供一种定时重试机制，即过 10秒 后再重试
 - 由于依赖的下游应用服务不可用，例如 DB 连接不可用，外系统网络不可达等。这种情况即使跳过当前失败的消息，消费其他消息同样也会报错，这种情况建议应用 sleep 30s，再消费下一条消息，这样可以减轻 Broker 重试消息的压力
 
-RocketMQ 会为每个消费组都设置一个 Topic 名称为 `%RETRY%+consumerGroup` 的重试队列（这个 Topic 的重试队列是针对消费组，而不是针对每个 Topic 设置的），用于暂时保存因为各种异常而导致 Consumer 端无法消费的消息
+RocketMQ 会为每个消费组都设置一个 Topic 名称为 `%RETRY%+consumerGroup` 的重试队列（这个 Topic 的重试队列是**针对消费组**，而不是针对每个 Topic 设置的），用于暂时保存因为各种异常而导致 Consumer 端无法消费的消息
 
 * 顺序消息的重试，当消费者消费消息失败后，消息队列 RocketMQ 会自动不断进行消息重试（每次间隔时间为 1 秒），这时应用会出现消息消费被阻塞的情况。所以在使用顺序消息时，必须保证应用能够及时监控并处理消费失败的情况，避免阻塞现象的发生
 
@@ -5714,100 +5843,6 @@ RouteInfoManager#registerBroker：注册 Broker 的信息
 
 ### 存储端
 
-#### 存储机制
-
-##### 存储结构
-
-RocketMQ 中 Broker 负责存储消息转发消息，所以以下的结构是存储在 Broker Server 上的，生产者和消费者与 Broker 进行消息的收发是通过主题对应的 Message Queue 完成，类似于通道
-
-RocketMQ 消息的存储是由 ConsumeQueue 和 CommitLog 配合完成 的，CommitLog 是消息真正的**物理存储**文件，ConsumeQueue 是消息的逻辑队列，类似数据库的**索引节点**，存储的是指向物理存储的地址。**每个 Topic 下的每个 Message Queue 都有一个对应的 ConsumeQueue 文件**
-
-每条消息都会有对应的索引信息，Consumer 通过 ConsumeQueue 这个结构来读取消息实体内容
-
-![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-消息存储结构.png)
-
-* CommitLog：消息主体以及元数据的存储主体，存储 Producer 端写入的消息内容，消息内容不是定长的。消息主要是顺序写入日志文件，单个文件大小默认 1G，偏移量代表下一次写入的位置，当文件写满了就继续写入下一个文件
-* ConsumerQueue：消息消费队列，存储消息在 CommitLog 的索引。RocketMQ 消息消费时要遍历 CommitLog 文件，并根据主题 Topic 检索消息，这是非常低效的。引入 ConsumeQueue 作为消费消息的索引，保存了指定 Topic 下的队列消息在 CommitLog 中的起始物理偏移量 offset，消息大小 size 和消息 Tag 的 HashCode 值，每个 ConsumeQueue 文件大小约 5.72M
-* IndexFile：为了消息查询提供了一种通过 Key 或时间区间来查询消息的方法，通过 IndexFile 来查找消息的方法不影响发送与消费消息的主流程。IndexFile 的底层存储为在文件系统中实现的 HashMap 结构，故 RocketMQ 的索引文件其底层实现为 **hash 索引**
-
-RocketMQ 采用的是混合型的存储结构，即为 Broker 单个实例下所有的队列共用一个日志数据文件（CommitLog）来存储。混合型存储结构（多个 Topic 的消息实体内容都存储于一个 CommitLog 中）**针对 Producer 和 Consumer 分别采用了数据和索引部分相分离的存储结构**，Producer 发送消息至 Broker 端，然后 Broker 端使用同步或者异步的方式对消息刷盘持久化，保存至 CommitLog 中。只要消息被持久化至磁盘文件 CommitLog 中，Producer 发送的消息就不会丢失，Consumer 也就肯定有机会去消费这条消息
-
-服务端支持长轮询模式，当消费者无法拉取到消息后，可以等下一次消息拉取，Broker 允许等待 30s 的时间，只要这段时间内有新消息到达，将直接返回给消费端。RocketMQ 的具体做法是，使用 Broker 端的后台服务线程 ReputMessageService 不停地分发请求并异步构建 ConsumeQueue（逻辑消费队列）和 IndexFile（索引文件）数据
-
-
-
-****
-
-
-
-##### 存储优化
-
-###### 内存映射
-
-操作系统分为用户态和内核态，文件操作、网络操作需要涉及这两种形态的切换，需要进行数据复制。一台服务器把本机磁盘文件的内容发送到客户端，分为两个步骤：
-
-* read：读取本地文件内容
-
-* write：将读取的内容通过网络发送出去
-
-![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-文件与网络操作.png)
-
-补充：Prog → NET → I/O → 零拷贝部分的笔记详解相关内容
-
-通过使用 mmap 的方式，可以省去向用户态的内存复制，RocketMQ 充分利用**零拷贝技术**，提高消息存盘和网络发送的速度。
-
-RocketMQ 通过 MappedByteBuffer 对文件进行读写操作，利用了 NIO 中的 FileChannel 模型将磁盘上的物理文件直接映射到用户态的内存地址中，将对文件的操作转化为直接对内存地址进行操作，从而极大地提高了文件的读写效率
-
-MappedByteBuffer 内存映射的方式**限制**一次只能映射 1.5~2G 的文件至用户态的虚拟内存，所以 RocketMQ 默认设置单个 CommitLog 日志数据文件为 1G。RocketMQ 的文件存储使用定长结构来存储，方便一次将整个文件映射至内存
-
-
-
-***
-
-
-
-###### 页缓存
-
-页缓存（PageCache）是 OS 对文件的缓存，每一页的大小通常是 4K，用于加速对文件的读写。程序对文件进行顺序读写的速度几乎接近于内存的读写速度，就是因为 OS 将一部分的内存用作 PageCache，**对读写访问操作进行了性能优化**
-
-* 对于数据的写入，OS 会先写入至 Cache 内，随后通过异步的方式由 pdflush 内核线程将 Cache 内的数据刷盘至物理磁盘上
-* 对于数据的读取，如果一次读取文件时出现未命中 PageCache 的情况，OS 从物理磁盘上访问读取文件的同时，会顺序对其他相邻块的数据文件进行预读取（局部性原理，最大 128K）
-
-在 RocketMQ 中，ConsumeQueue 逻辑消费队列存储的数据较少，并且是顺序读取，在 PageCache 机制的预读取作用下，Consume Queue 文件的读性能几乎接近读内存，即使在有消息堆积情况下也不会影响性能。但是 CommitLog 消息存储的日志数据文件读取内容时会产生较多的随机访问读取，严重影响性能。选择合适的系统 IO 调度算法和固态硬盘，比如设置调度算法为 Deadline，随机读的性能也会有所提升
-
-
-
-***
-
-
-
-##### 刷盘机制
-
-两种持久化的方案：
-
-* 关系型数据库 DB：IO 读写性能比较差，如果 DB 出现故障，则 MQ 的消息就无法落盘存储导致线上故障，可靠性不高
-* 文件系统：消息刷盘至所部署虚拟机/物理机的文件系统来做持久化，分为异步刷盘和同步刷盘两种模式。消息刷盘为消息存储提供了一种高效率、高可靠性和高性能的数据持久化方式，除非部署 MQ 机器本身或是本地磁盘挂了，一般不会出现无法持久化的问题
-
-RocketMQ 采用文件系统的方式，无论同步还是异步刷盘，都使用**顺序 IO**，因为磁盘的顺序读写要比随机读写快很多
-
-* 同步刷盘：只有在消息真正持久化至磁盘后 RocketMQ 的 Broker 端才会真正返回给 Producer 端一个成功的 ACK 响应，保障 MQ消息的可靠性，但是性能上会有较大影响，一般适用于金融业务应用该模式较多
-
-* 异步刷盘：利用 OS 的 PageCache，只要消息写入内存 PageCache 即可将成功的 ACK 返回给 Producer 端，降低了读写延迟，提高了 MQ 的性能和吞吐量。消息刷盘采用**后台异步线程**提交的方式进行，当内存里的消息量积累到一定程度时，触发写磁盘动作
-
-通过 Broker 配置文件里的 flushDiskType 参数设置采用什么方式，可以配置成 SYNC_FLUSH、ASYNC_FLUSH 中的一个
-
-![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-刷盘机制.png)
-
-
-
-官方文档：https://github.com/apache/rocketmq/blob/master/docs/cn/design.md
-
-
-
-***
-
-
-
 #### MappedFile
 
 ##### 成员属性
@@ -6345,31 +6380,6 @@ ConsumeQueue 启动阶段方法：
 
 
 #### IndexFile
-
-##### 索引机制
-
-RocketMQ 的索引文件逻辑结构，类似 JDK 中 HashMap 的实现，具体结构如下：
-
-![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-IndexFile索引文件.png)
-
-IndexFile 文件的存储在 `$HOME\store\index${fileName}`，文件名 fileName 是以创建时的时间戳命名，文件大小是固定的，等于 `40+500W*4+2000W*20= 420000040` 个字节大小。如果消息的 properties 中设置了 UNIQ_KEY 这个属性，就用 `topic + “#” + UNIQ_KEY` 作为 key 来做写入操作；如果消息设置了 KEYS 属性（多个 KEY 以空格分隔），也会用 `topic + “#” + KEY` 来做索引
-
-整个 Index File 的结构如图，40 Byte 的 Header 用于保存一些总的统计信息，`4*500W` 的 Slot Table 并不保存真正的索引数据，而是保存每个槽位对应的单向链表的**头指针**，即一个 Index File 可以保存 2000W 个索引，`20*2000W` 是**真正的索引数据**
-
-索引数据包含了 Key Hash/CommitLog Offset/Timestamp/NextIndex offset 这四个字段，一共 20 Byte
-
-* NextIndex offset 即前面读出来的 slotValue，如果有 hash 冲突，就可以用这个字段将所有冲突的索引用链表的方式串起来
-* Timestamp 记录的是消息 storeTimestamp 之间的差，并不是一个绝对的时间
-
-
-
-参考文档：https://github.com/apache/rocketmq/blob/master/docs/cn/design.md
-
-
-
-***
-
-
 
 ##### 成员属性
 
@@ -7355,6 +7365,223 @@ TopicPublishInfo 类用来存储路由信息
 
 ### 消费者
 
+#### 消费者类
+
+##### 默认消费
+
+DefaultMQPushConsumer 类是默认的消费者类
+
+成员变量：
+
+* 消费者实现类：
+
+  ```java
+  protected final transient DefaultMQPushConsumerImpl defaultMQPushConsumerImpl;
+  ```
+
+* 消费属性：
+
+  ```java
+  private String consumerGroup;									// 消费者组
+  private MessageModel messageModel = MessageModel.CLUSTERING;	// 消费模式，默认集群模式
+  ```
+
+* 订阅信息：key 是主题，value 是过滤表达式，一般是 tag
+
+  ```java
+  private Map<String, String > subscription = new HashMap<String, String>()
+  ```
+
+* 消息监听器：**消息处理逻辑**，并发消费 MessageListenerConcurrently，顺序（分区）消费 MessageListenerOrderly
+
+  ```java
+  private MessageListener messageListener;
+  ```
+
+* 消费位点：当从 Broker 获取当前组内该 queue 的 offset 不存在时，consumeFromWhere 才有效，默认值代表从队列的最后 offset 开始消费，当队列内再有一条新的 msg 加入时，消费者才会去消费
+
+  ```java
+  private ConsumeFromWhere consumeFromWhere = ConsumeFromWhere.CONSUME_FROM_LAST_OFFSET;
+  ```
+
+* 消费时间戳：当消费位点配置的是 CONSUME_FROM_TIMESTAMP 时，并且服务器 Group 内不存在该 queue 的 offset 时，会使用该时间戳进行消费
+
+  ```java
+  private String consumeTimestamp = UtilAll.timeMillisToHumanString3(System.currentTimeMillis() - (1000 * 60 * 30));// 消费者创建时间 - 30秒，转换成 格式： 年月日小时分钟秒，比如 20220203171201
+  ```
+
+* 队列分配策略：主题下的队列分配策略，RebalanceImpl 对象依赖该算法
+
+  ```java
+  private AllocateMessageQueueStrategy allocateMessageQueueStrategy;
+  ```
+
+* 消费进度存储器：
+
+  ```java
+  private OffsetStore offsetStore;
+  ```
+
+核心方法：
+
+* start()：启动消费者
+
+  ```java
+  public void start()
+  ```
+
+* shutdown()：关闭消费者
+
+  ```java
+  public void shutdown()
+  ```
+
+* registerMessageListener()：注册消息监听器
+
+  ```java
+  public void registerMessageListener(MessageListener messageListener) 
+  ```
+
+* subscribe()：添加订阅信息
+
+  ```java
+  public void subscribe(String topic, String subExpression)
+  ```
+
+* unsubscribe()：删除订阅指定主题的信息
+
+  ```java
+  public void unsubscribe(String topic)
+  ```
+
+* suspend()：停止消费
+
+  ```java
+  public void suspend()
+  ```
+
+* resume()：恢复消费
+
+  ```java
+  public void resume()
+  ```
+
+
+
+***
+
+
+
+##### 默认实现
+
+DefaultMQPushConsumerImpl 是默认消费者的实现类
+
+成员变量：
+
+* 客户端实例：整个进程内只有一个客户端实例对象
+
+  ```java
+  private MQClientInstance mQClientFactory;
+  ```
+
+* 消费者实例：门面对象
+
+  ```java
+   private final DefaultMQPushConsumer defaultMQPushConsumer;
+  ```
+
+* **负载均衡**：分配订阅主题的队列给当前消费者，20秒钟一个周期执行 Rebalance 算法（客户端实例触发）
+
+  ```java
+  private final RebalanceImpl rebalanceImpl = new RebalancePushImpl(this);
+  ```
+
+* 消费者信息：
+
+  ```java
+  private final long consumerStartTimestamp;	// 消费者启动时间
+  private volatile ServiceState serviceState;	// 消费者状态
+  private volatile boolean pause = false;		// 是否暂停
+  private boolean consumeOrderly = false;		// 是否顺序消费
+  ```
+
+* **拉取消息**：封装拉消息的 API，服务器 Broker 返回结果中包含下次 Pull 时推荐的 BrokerId，根据本次请求数据的冷热程度进行推荐
+
+  ```java
+  private PullAPIWrapper pullAPIWrapper;
+  ```
+
+* **消息消费**服务：并发消费和顺序消费
+
+  ```java
+  private ConsumeMessageService consumeMessageService;
+  ```
+
+* 流控：
+
+  ```java
+  private long queueFlowControlTimes = 0;			// 队列流控次数，默认每1000次流控，进行一次日志打印
+  private long queueMaxSpanFlowControlTimes = 0;	// 流控使用，控制打印日志
+  ```
+
+* HOOK：钩子方法
+
+  ```java
+  // 过滤消息 hook
+  private final ArrayList<FilterMessageHook> filterMessageHookList;
+  // 消息执行hook，在消息处理前和处理后分别执行 hook.before  hook.after 系列方法
+  private final ArrayList<ConsumeMessageHook> consumeMessageHookList;
+  ```
+
+核心方法：
+
+* start()：加锁保证线程安全
+
+  ```java
+  public synchronized void start() 
+  ```
+
+  * `this.checkConfig()`：检查配置，包括组名、消费模式、订阅信息、消息监听器等
+  * `this.copySubscription()`：拷贝订阅信息到 RebalanceImpl 对象
+    * `this.rebalanceImpl.getSubscriptionInner().put(topic, subscriptionData)`：将订阅信息加入 rbl 的 map 中
+    * `this.messageListenerInner = ...getMessageListener()`：将消息监听器保存到实例对象
+    * `switch (this.defaultMQPushConsumer.getMessageModel())`：判断消费模式，广播模式下直接返回
+    * `final String retryTopic`：当前**消费者组重试的主题名**，规则 `%RETRY%ConsumerGroup`
+    * `SubscriptionData subscriptionData = FilterAPI.buildSubscriptionData()`：创建重试主题的订阅数据对象
+    * `this.rebalanceImpl.getSubscriptionInner().put(retryTopic, subscriptionData)`：将创建的重试主题加入到 rbl 对象的 map 中，消息重试时会再次加入到该主题，消费者订阅这个主题之后，就有机会再次拿到该消息进行消费处理
+  * `this.mQClientFactory = ...getOrCreateMQClientInstance()`：获取客户端实例对象
+  * `this.rebalanceImpl.`：初始化负载均衡对象，设置**队列分配策略对象**到属性中
+  * `this.pullAPIWrapper = new PullAPIWrapper()`：创建拉消息 API 对象，内部封装了查询推荐主机算法
+  * `this.pullAPIWrapper.registerFilterMessageHook(filterMessageHookList)`：将 过滤 Hook 列表注册到该对象内，消息拉取下来之后会执行该 Hook，再**进行一次自定义的过滤**
+  * `this.offsetStore = new RemoteBrokerOffsetStore()`：默认集群模式下创建消息进度存储器
+  * `this.consumeMessageService = ...`：根据消息监听器的类型创建消费服务
+  * `this.consumeMessageService.start()`：启动消费服务
+  * `boolean registerOK = mQClientFactory.registerConsumer()`：**将消费者注册到客户端实例中**，客户端提供的服务：
+    * 心跳服务：把订阅数据同步到订阅主题的 Broker
+    * 拉消息服务：内部 PullMessageService 启动线程，基于 PullRequestQueue 工作，消费者负载均衡分配到队列后会向该队列提交 PullRequest
+    * 队列负载服务：每 20 秒调用一次 `consumer.doRebalance()` 接口
+    * 消息进度持久化
+    * 动态调整消费者、消费服务线程池
+  * `mQClientFactory.start()`：启动客户端实例
+  * ` this.updateTopic`：从 nameserver 获取主题路由数据，生成主题集合放入 rbl 对象的 table
+  * `this.mQClientFactory.checkClientInBroker()`：检查服务器是否支持消息过滤模式，一般使用 tag 过滤，服务器默认支持
+  * `this.mQClientFactory.sendHeartbeatToAllBrokerWithLock()`：向所有已知的 Broker 节点，发送心跳数据
+  * `this.mQClientFactory.rebalanceImmediately()`：唤醒 rbl 线程，触发负载均衡执行
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -7366,6 +7593,77 @@ TopicPublishInfo 类用来存储路由信息
 
 
 ### 客户端
+
+#### 公共配置
+
+公共的配置信息类
+
+* ClientConfig 类
+
+  ```java
+  public class ClientConfig {
+      // Namesrv 地址配置
+      private String namesrvAddr = NameServerAddressUtils.getNameServerAddresses();
+      // 客户端的 IP 地址
+      private String clientIP = RemotingUtil.getLocalAddress();
+      // 客户端实例名称
+      private String instanceName = System.getProperty("rocketmq.client.name", "DEFAULT");
+      // 客户端回调线程池的数量，平台核心数，8核16线程的电脑返回16
+      private int clientCallbackExecutorThreads = Runtime.getRuntime().availableProcessors();
+      // 命名空间
+      protected String namespace;
+      protected AccessChannel accessChannel = AccessChannel.LOCAL;
+  
+      // 获取路由信息的间隔时间 30s
+      private int pollNameServerInterval = 1000 * 30;
+      // 客户端与 broker 之间的心跳周期 30s
+      private int heartbeatBrokerInterval = 1000 * 30;
+      // 消费者持久化消费的周期 5s
+      private int persistConsumerOffsetInterval = 1000 * 5;
+      private long pullTimeDelayMillsWhenException = 1000;
+      private boolean unitMode = false;
+      private String unitName;
+      // vip 通道，broker 启动时绑定两个端口，其中一个是 vip 通道
+      private boolean vipChannelEnabled = Boolean.parseBoolean();
+      // 语言，默认是 Java
+      private LanguageCode language = LanguageCode.JAVA;
+  }
+  ```
+
+* NettyClientConfig
+
+  ```java
+  public class NettyClientConfig {
+      // 客户端工作线程数
+      private int clientWorkerThreads = 4;
+      // 回调处理线程池 线程数：平台核心数
+      private int clientCallbackExecutorThreads = Runtime.getRuntime().availableProcessors();
+      // 单向请求并发数，默认 65535
+      private int clientOnewaySemaphoreValue = NettySystemConfig.CLIENT_ONEWAY_SEMAPHORE_VALUE;
+      // 异步请求并发数，默认 65535
+      private int clientAsyncSemaphoreValue = NettySystemConfig.CLIENT_ASYNC_SEMAPHORE_VALUE;
+      // 客户端连接服务器的超时时间限制 3秒
+      private int connectTimeoutMillis = 3000;
+      // 客户端未激活周期，60s（指定时间内 ch 未激活，需要关闭）
+      private long channelNotActiveInterval = 1000 * 60;
+      // 客户端与服务器 ch 最大空闲时间 2分钟
+      private int clientChannelMaxIdleTimeSeconds = 120;
+  
+      // 底层 Socket 写和收 缓冲区的大小 65535  64k
+      private int clientSocketSndBufSize = NettySystemConfig.socketSndbufSize;
+      private int clientSocketRcvBufSize = NettySystemConfig.socketRcvbufSize;
+      // 客户端 netty 是否启动内存池
+      private boolean clientPooledByteBufAllocatorEnable = false;
+      // 客户端是否超时关闭 Socket 连接
+      private boolean clientCloseSocketIfTimeout = false;
+  }
+  ```
+
+  
+
+***
+
+
 
 #### 实例对象
 
@@ -7442,7 +7740,7 @@ MQClientInstance 是 RocketMQ 客户端实例，在一个 JVM 进程中只有一
   ```java
   private final PullMessageService pullMessageService;		// 拉消息服务
   private final RebalanceService rebalanceService;			// 消费者负载均衡服务
-   private final ConsumerStatsManager consumerStatsManager;	// 消费者状态管理
+  private final ConsumerStatsManager consumerStatsManager;	// 消费者状态管理
   ```
 
 * 内部生产者实例：处理消费端**消息回退**，用该生产者发送回执消息
@@ -7455,38 +7753,6 @@ MQClientInstance 是 RocketMQ 客户端实例，在一个 JVM 进程中只有一
 
   ```java
   private final AtomicLong sendHeartbeatTimesTotal = new AtomicLong(0)
-  ```
-
-* 公共配置类：
-
-  ```java
-  public class ClientConfig {
-      // Namesrv 地址配置
-      private String namesrvAddr = NameServerAddressUtils.getNameServerAddresses();
-      // 客户端的 IP 地址
-      private String clientIP = RemotingUtil.getLocalAddress();
-      // 客户端实例名称
-      private String instanceName = System.getProperty("rocketmq.client.name", "DEFAULT");
-      // 客户端回调线程池的数量，平台核心数，8核16线程的电脑返回16
-      private int clientCallbackExecutorThreads = Runtime.getRuntime().availableProcessors();
-      // 命名空间
-      protected String namespace;
-      protected AccessChannel accessChannel = AccessChannel.LOCAL;
-  
-      // 获取路由信息的间隔时间 30s
-      private int pollNameServerInterval = 1000 * 30;
-      // 客户端与 broker 之间的心跳周期 30s
-      private int heartbeatBrokerInterval = 1000 * 30;
-      // 消费者持久化消费的周期 5s
-      private int persistConsumerOffsetInterval = 1000 * 5;
-      private long pullTimeDelayMillsWhenException = 1000;
-      private boolean unitMode = false;
-      private String unitName;
-      // vip 通道，broker 启动时绑定两个端口，其中一个是 vip 通道
-      private boolean vipChannelEnabled = Boolean.parseBoolean();
-      // 语言，默认是 Java
-      private LanguageCode language = LanguageCode.JAVA;
-  }
   ```
 
 构造方法：
@@ -7550,7 +7816,7 @@ MQClientInstance 是 RocketMQ 客户端实例，在一个 JVM 进程中只有一
   * `this.startScheduledTask()`：启动定时任务
   * `this.pullMessageService.start()`：启动拉取消息服务
   * `this.rebalanceService.start()`：启动负载均衡服务
-  * `this.defaultMQProducer.getDefaultMQProducerImpl().start(false)`：启动内部生产者，参数为 false 代表不启动实例
+  * `this.defaultMQProducer...start(false)`：启动内部生产者，参数为 false 代表不启动实例
 
 * startScheduledTask()：**启动定时任务**，调度线程池是单线程
 
@@ -7670,35 +7936,6 @@ NettyRemotingClient 类负责客户端的网络通信
 
   ```java
   private final ChannelEventListener channelEventListener;
-  ```
-
-* Netty 配置对象：
-
-  ```java
-  public class NettyClientConfig {
-      // 客户端工作线程数
-      private int clientWorkerThreads = 4;
-      // 回调处理线程池 线程数：平台核心数
-      private int clientCallbackExecutorThreads = Runtime.getRuntime().availableProcessors();
-      // 单向请求并发数，默认 65535
-      private int clientOnewaySemaphoreValue = NettySystemConfig.CLIENT_ONEWAY_SEMAPHORE_VALUE;
-      // 异步请求并发数，默认 65535
-      private int clientAsyncSemaphoreValue = NettySystemConfig.CLIENT_ASYNC_SEMAPHORE_VALUE;
-      // 客户端连接服务器的超时时间限制 3秒
-      private int connectTimeoutMillis = 3000;
-      // 客户端未激活周期，60s（指定时间内 ch 未激活，需要关闭）
-      private long channelNotActiveInterval = 1000 * 60;
-      // 客户端与服务器 ch 最大空闲时间 2分钟
-      private int clientChannelMaxIdleTimeSeconds = 120;
-  
-      // 底层 Socket 写和收 缓冲区的大小 65535  64k
-      private int clientSocketSndBufSize = NettySystemConfig.socketSndbufSize;
-      private int clientSocketRcvBufSize = NettySystemConfig.socketRcvbufSize;
-      // 客户端 netty 是否启动内存池
-      private boolean clientPooledByteBufAllocatorEnable = false;
-      // 客户端是否超时关闭 Socket 连接
-      private boolean clientCloseSocketIfTimeout = false;
-  }
   ```
 
 构造方法
