@@ -4594,10 +4594,10 @@ RocketMQ 消息的存储是由 ConsumeQueue 和 CommitLog 配合完成 的，Com
 ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-消息存储结构.png)
 
 * CommitLog：消息主体以及元数据的存储主体，存储 Producer 端写入的消息内容，消息内容不是定长的。消息主要是顺序写入日志文件，单个文件大小默认 1G，偏移量代表下一次写入的位置，当文件写满了就继续写入下一个文件
-* ConsumerQueue：消息消费队列，存储消息在 CommitLog 的索引。RocketMQ 消息消费时要遍历 CommitLog 文件，并根据主题 Topic 检索消息，这是非常低效的。引入 ConsumeQueue 作为消费消息的索引，保存了指定 Topic 下的队列消息在 CommitLog 中的起始物理偏移量 offset，消息大小 size 和消息 Tag 的 HashCode 值，每个 ConsumeQueue 文件大小约 5.72M
+* ConsumerQueue：消息消费队列，存储消息在 CommitLog 的索引。RocketMQ 消息消费时要遍历 CommitLog 文件，并根据主题 Topic 检索消息，这是非常低效的。引入 ConsumeQueue 作为消费消息的索引，**保存了指定 Topic 下的队列消息在 CommitLog 中的起始物理偏移量 offset**，消息大小 size 和消息 Tag 的 HashCode 值，每个 ConsumeQueue 文件大小约 5.72M
 * IndexFile：为了消息查询提供了一种通过 Key 或时间区间来查询消息的方法，通过 IndexFile 来查找消息的方法不影响发送与消费消息的主流程。IndexFile 的底层存储为在文件系统中实现的 HashMap 结构，故 RocketMQ 的索引文件其底层实现为 **hash 索引**
 
-RocketMQ 采用的是混合型的存储结构，即为 Broker 单个实例下所有的队列共用一个日志数据文件（CommitLog）来存储。混合型存储结构（多个 Topic 的消息实体内容都存储于一个 CommitLog 中）**针对 Producer 和 Consumer 分别采用了数据和索引部分相分离的存储结构**，Producer 发送消息至 Broker 端，然后 Broker 端使用同步或者异步的方式对消息刷盘持久化，保存至 CommitLog 中。只要消息被持久化至磁盘文件 CommitLog 中，Producer 发送的消息就不会丢失，Consumer 也就肯定有机会去消费这条消息
+RocketMQ 采用的是混合型的存储结构，即为 Broker 单个实例下所有的队列共用一个日志数据文件（CommitLog）来存储。混合型存储结构（多个 Topic 的消息实体内容都存储于一个 CommitLog 中）针对 Producer 和 Consumer 分别采用了**数据和索引部分相分离**的存储结构，Producer 发送消息至 Broker 端，然后 Broker 端使用同步或者异步的方式对消息刷盘持久化，保存至 CommitLog 中。只要消息被持久化至磁盘文件 CommitLog 中，Producer 发送的消息就不会丢失，Consumer 也就肯定有机会去消费这条消息
 
 服务端支持长轮询模式，当消费者无法拉取到消息后，可以等下一次消息拉取，Broker 允许等待 30s 的时间，只要这段时间内有新消息到达，将直接返回给消费端。RocketMQ 的具体做法是，使用 Broker 端的后台服务线程 ReputMessageService 不停地分发请求并异步构建 ConsumeQueue（逻辑消费队列）和 IndexFile（索引文件）数据
 
@@ -4607,9 +4607,7 @@ RocketMQ 采用的是混合型的存储结构，即为 Broker 单个实例下所
 
 
 
-#### 存储优化
-
-##### 内存映射
+#### 内存映射
 
 操作系统分为用户态和内核态，文件操作、网络操作需要涉及这两种形态的切换，需要进行数据复制。一台服务器把本机磁盘文件的内容发送到客户端，分为两个步骤：
 
@@ -4633,7 +4631,7 @@ MappedByteBuffer 内存映射的方式**限制**一次只能映射 1.5~2G 的文
 
 
 
-##### 页缓存
+#### 页面缓存
 
 页缓存（PageCache）是 OS 对文件的缓存，每一页的大小通常是 4K，用于加速对文件的读写。程序对文件进行顺序读写的速度几乎接近于内存的读写速度，就是因为 OS 将一部分的内存用作 PageCache，**对读写访问操作进行了性能优化**
 
@@ -4812,23 +4810,23 @@ latencyFaultTolerance 机制是实现消息发送高可用的核心关键所在�
 
 在 RocketMQ 中，Consumer 端的两种消费模式（Push/Pull）都是基于拉模式来获取消息的，而在 Push 模式只是对 Pull 模式的一种封装，其本质实现为消息拉取线程在从服务器拉取到一批消息，提交到消息消费线程池后，又继续向服务器再次尝试拉取消息，如果未拉取到消息，则延迟一下又继续拉取
 
-在两种基于拉模式的消费方式（Push/Pull）中，均需要 Consumer 端在知道从 Broker 端的哪一个消息队列—队列中去获取消息，所以在 Consumer 端来做负载均衡，即 Broker 端中多个 MessageQueue 分配给同一个 ConsumerGroup 中的哪些 Consumer 消费
+在两种基于拉模式的消费方式（Push/Pull）中，均需要 Consumer 端在知道从 Broker 端的哪一个消息队列—队列中去获取消息，所以在 Consumer 端来做负载均衡，即 Broker 端中多个 MessageQueue 分配给同一个 Consumer Group 中的哪些 Consumer 消费
 
-* 广播模式下要求一条消息需要投递到一个消费组下面所有的消费者实例，所以不存在负载均衡，在实现上，Consumer 分配 queue 时，所有 Consumer 都分到所有的queue。
+* 广播模式下要求一条消息需要投递到一个消费组下面所有的消费者实例，所以不存在负载均衡，在实现上，Consumer 分配 queue 时，所有 Consumer 都分到所有的 queue。
 
 * 在集群消费模式下，每条消息只需要投递到订阅这个 Topic 的 Consumer Group 下的一个实例即可，RocketMQ 采用主动拉取的方式拉取并消费消息，在拉取的时候需要明确指定拉取哪一条 Message Queue
 
 集群模式下，每当实例的数量有变更，都会触发一次所有实例的负载均衡，这时候会按照 queue 的数量和实例的数量平均分配 queue 给每个实例。默认的分配算法是 AllocateMessageQueueAveragely：
 
-![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-consumer负载均衡1.png)
+![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-平均队列分配.png)
 
   还有一种平均的算法是 AllocateMessageQueueAveragelyByCircle，以环状轮流均分 queue 的形式：
 
-![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-consumer负载均衡2.png)
+![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-平均队列轮流分配.png)
 
 集群模式下，queue 都是只允许分配只一个实例，如果多个实例同时消费一个 queue 的消息，由于拉取哪些消息是 Consumer 主动控制的，会导致同一个消息在不同的实例下被消费多次
 
-通过增加 Consumer 实例去分摊 queue 的消费，可以起到水平扩展的消费能力的作用。而当有实例下线时，会重新触发负载均衡，这时候原来分配到的 queue 将分配到其他实例上继续消费。但是如果 Consumer 实例的数量比 Message Queue 的总数量还多的话，多出来的 Consumer 实例将无法分到 queue，也就无法消费到消息，也就无法起到分摊负载的作用了，所以需要控制让 queue 的总数量大于等于 Consumer 的数量
+通过增加 Consumer 实例去分摊 queue 的消费，可以起到水平扩展的消费能力的作用。而当有实例下线时，会重新触发负载均衡，这时候原来分配到的 queue 将分配到其他实例上继续消费。但是如果 Consumer 实例的数量比 Message Queue 的总数量还多的话，多出来的 Consumer 实例将无法分到 queue，也就无法消费到消息，也就无法起到分摊负载的作用了，所以需要**控制让 queue 的总数量大于等于 Consumer 的数量**
 
 
 
@@ -4850,8 +4848,6 @@ Consumer 端实现负载均衡的核心类 **RebalanceImpl**
 
 * 先对 Topic 下的消息消费队列、消费者 ID 排序，然后用消息队列分配策略算法（默认是消息队列的平均分配算法），计算出待拉取的消息队列。平均分配算法类似于分页的算法，将所有 MessageQueue 排好序类似于记录，将所有消费端 Consumer 排好序类似页数，并求出每一页需要包含的平均 size 和每个页面记录的范围 range，最后遍历整个 range 而计算出当前 Consumer 端应该分配到的记录（这里即为 MessageQueue）
 
-  ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-负载均衡平均分配算法.png)
-
 * 调用 updateProcessQueueTableInRebalance() 方法，先将分配到的消息队列集合 mqSet 与 processQueueTable 做一个过滤比对
 
   ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-负载均衡重新平衡算法.png)
@@ -4864,7 +4860,7 @@ Consumer 端实现负载均衡的核心类 **RebalanceImpl**
 
   对比下 RebalancePushImpl 和 RebalancePullImpl 两个实现类的 dispatchPullRequest() 方法，RebalancePullImpl 类里面的该方法为空
 
-消息消费队列在同一消费组不同消费者之间的负载均衡，其核心设计理念是在一个消息消费队列在同一时间只允许被同一消费组内的一个消费者消费，一个消息消费者能同时消费多个消息队列
+消息消费队列在同一消费组不同消费者之间的负载均衡，其核心设计理念是在**一个消息消费队列在同一时间只允许被同一消费组内的一个消费者消费，一个消息消费者能同时消费多个消息队列**
 
 
 
@@ -5231,6 +5227,10 @@ NamesrvStartup#start：启动 Namesrv 控制器
 
 
 
+源码解析参考视频：https://space.bilibili.com/457326371
+
+
+
 ****
 
 
@@ -5471,7 +5471,7 @@ NettyRemotingServer 类成员变量：
 
 核心方法的解析：
 
-* start()：启动方法
+* start()：启动方法，**创建 BootStrap，并添加 NettyServerHandler 处理器**
 
   ```java
   public void start() {
@@ -5492,7 +5492,7 @@ NettyRemotingServer 类成员变量：
           .childOption(ChannelOption.TCP_NODELAY, true)
           // 设置服务器端口
           .localAddress(new InetSocketAddress(this.nettyServerConfig.getListenPort()))
-          // 向 channel pipeline 添加了很多 handler，包括 NettyServerHandler
+          // 向 channel pipeline 添加了很多 handler，【包括 NettyServerHandler】
           .childHandler(new ChannelInitializer<SocketChannel>() {});
               
   	// 客户端开启 内存池，使用的内存池是  PooledByteBufAllocator.DEFAULT
@@ -5639,7 +5639,7 @@ NettyRemotingServer 类成员变量：
 
 ##### 处理方法
 
-NettyServerHandler 类用来处理 RemotingCommand 相关的数据，针对某一种类型的**请求处理**
+NettyServerHandler 类用来处理 Channel 上的事件，在 NettyRemotingServer 启动时注册到 Netty 中，可以处理 RemotingCommand 相关的数据，针对某一种类型的**请求处理**
 
 ```java
 class NettyServerHandler extends SimpleChannelInboundHandler<RemotingCommand> {
@@ -5667,7 +5667,7 @@ public void processMessageReceived(ChannelHandlerContext ctx, RemotingCommand ms
 }
 ```
 
-NettyRemotingAbstract#processRequestCommand：处理请求的数据
+NettyRemotingAbstract#processRequestCommand：**处理请求的数据**
 
 * `matched = this.processorTable.get(cmd.getCode())`：根据业务请求码获取 Pair 对象，包含**处理器和线程池资源**
 
@@ -5701,7 +5701,7 @@ NettyRemotingAbstract#processRequestCommand：处理请求的数据
 
 * `pair.getObject2().submit(requestTask)`：获取处理器对应的线程池，将 task 提交，**从 IO 线程切换到业务线程**
 
-NettyRemotingAbstract#processResponseCommand：处理响应的数据
+NettyRemotingAbstract#processResponseCommand：**处理响应的数据**
 
 * `int opaque = cmd.getOpaque()`：获取请求 ID
 * `responseFuture = responseTable.get(opaque)`：**从响应映射表中获取对应的对象**
@@ -6828,7 +6828,7 @@ FlushCommitLogService 刷盘 CL 数据，默认是异步刷盘
 
 ##### 清理服务
 
-CleanCommitLogService 清理过期的 CL 数据，定时任务 10 秒调用一次，先清理 CL，再清理 CQ，因为 CQ 依赖于 CL 的数据
+CleanCommitLogService 清理过期的 CL 数据，定时任务 10 秒调用一次，**先清理 CL，再清理 CQ**，因为 CQ 依赖于 CL 的数据
 
 * run()：运行方法
 
@@ -6877,6 +6877,105 @@ CleanConsumeQueueService 清理过期的 CQ 数据
 
 
 
+##### 获取消息
+
+PullMessageProcessor#processRequest 方法中调用 getMessage 用于获取消息（提示：建议学习消费者源码时再阅读）
+
+```java
+// offset: 客户端拉消息使用位点；   maxMsgNums: 32；  messageFilter: 一般这里是 tagCode 过滤 
+public GetMessageResult getMessage(final String group, final String topic, final int queueId, final long offset, final int maxMsgNums, final MessageFilter messageFilter)
+```
+
+* `if (this.shutdown)`：检查运行状态
+
+* `GetMessageResult getResult`：创建查询结果对象
+
+* `final long maxOffsetPy = this.commitLog.getMaxOffset()`：**获取 CommitLog 最大物理偏移量**
+
+* `ConsumeQueue consumeQueue = findConsumeQueue(topic, queueId)`：根据主题和队列 ID 获取 ConsumeQueue对象
+
+* `minOffset, maxOffset`：获取当前 ConsumeQueue 的最小 offset 和 最大 offset，**判断是否满足本次 Pull 的 offset**
+
+  `if (maxOffset == 0)`：说明队列内无数据，设置状态为 NO_MESSAGE_IN_QUEUE，外层进行长轮询
+
+  `else if (offset < minOffset)`：说明 offset 太小了，设置状态为 OFFSET_TOO_SMALL
+
+  `else if (offset == maxOffset)`：消费进度持平，设置状态为 OFFSET_OVERFLOW_ONE，外层进行长轮询
+
+  `else if (offset > maxOffset)`：说明 offset 越界了，设置状态为 OFFSET_OVERFLOW_BADLY
+
+* `SelectMappedBufferResult bufferConsumeQueue`：查询 CQData **获取包含该 offset 的 MappedFile 文件**，如果该文件不是顺序写的文件，就读取 `[offset%maxSize, 文件尾]` 范围的数据，反之读取 `[offset%maxSize, 文件名+wrotePosition尾]` 
+
+  先查 CQ 的原因：因为 CQ 时 CL 的索引，通过 CQ 查询 CL 更加快捷
+
+* `if (bufferConsumeQueue != null)`：只有再 CQ 删除过期数据的逻辑执行时，条件才不成立，一般都是成立的
+
+* `long nextPhyFileStartOffset = Long.MIN_VALUE`：下一个 commitLog 物理文件名，初始值为最小值
+
+* `long maxPhyOffsetPulling = 0`：本次拉消息最后一条消息的物理偏移量
+
+* `for ()`：**处理数据**，每次处理 20 字节处理字节数大于 16000 时跳出循环
+
+* `offsetPy, sizePy, tagsCode`：读取 20 个字节后，获取消息物理偏移量、消息大小、消息 tagCode
+
+* `boolean isInDisk = checkInDiskByCommitOffset(...)`：**检查消息是热数据还是冷数据**，false 为热数据
+
+  * `long memory`：Broker 系统 40% 内存的字节数，写数据时内存不够会使用 LRU 算法淘汰数据，将淘汰数据持久化到磁盘
+  * `return (maxOffsetPy - offsetPy) > memory`：返回 true 说明数据已经持久化到磁盘，为冷数据
+
+* `if (this.isTheBatchFull())`：**控制是否跳出循环**
+
+  * `if (0 == bufferTotal || 0 == messageTotal)`：本次 pull 消息未拉取到任何东西，需要外层 for 循环继续，返回 false
+
+  * `if (maxMsgNums <= messageTotal)`：结果对象内消息数已经超过了最大消息数量，可以结束循环了
+
+  * `if (isInDisk)`：冷数据
+
+    `if ((bufferTotal + sizePy) > ...)`：冷数据一次 pull 请求最大允许获取 64kb 的消息
+
+    `if (messageTotal > ...)`：冷数据一次 pull 请求最大允许获取8 条消息
+
+  * `else`：热数据
+
+    `if ((bufferTotal + sizePy) > ...)`：热数据一次 pull 请求最大允许获取 256kb 的消息
+
+    `if (messageTotal > ...)`：冷数据一次 pull 请求最大允许获取32 条消息
+
+* `if (messageFilter != null)`：按照消息 tagCode 进行过滤
+
+* `selectResult = this.commitLog.getMessage(offsetPy, sizePy)`：根据 CQ 消息物理偏移量和消息大小**到 commitLog 中查询这条 msg**
+
+* `if (null == selectResult)`：条件成立说明 commitLog 执行了删除过期文件的定时任务，因为是先清理的 CL，所以 CQ 还有该索引数据
+
+* `nextPhyFileStartOffset = this.commitLog.rollNextFile(offsetPy)`：获取包含该 offsetPy 的下一个数据文件的文件名
+
+* `getResult.addMessage(selectResult)`：**将本次循环查询出来的 msg 加入到 getResult 内**
+
+* `status = GetMessageStatus.FOUND`：查询状态设置为 FOUND
+
+* `nextPhyFileStartOffset = Long.MIN_VALUE`：设置为最小值，跳过期 CQData 数据的逻辑
+
+* `nextBeginOffset = offset + (i / ConsumeQueue.CQ_STORE_UNIT_SIZE)`：计算客户端下一次 pull 时使用的位点信息
+
+* `getResult.setSuggestPullingFromSlave(diff > memory)`：**选择主从节点的建议**
+
+  * `diff > memory => true`：表示本轮查询最后一条消息为冷数据，Broker 建议客户端下一次 pull 时到 slave 节点
+  * `diff > memory => false`：表示本轮查询最后一条消息为热数据，Broker 建议客户端下一次 pull 时到 master 节点
+
+* `getResult.setStatus(status)`：设置结果状态
+
+* `getResult.setNextBeginOffset(nextBeginOffset)`：设置客户端下一次 pull 时的 offset
+
+* `getResult.setMaxOffset(maxOffset)`：设置 queue 的最大 offset 和最小 offset
+
+* `return getResult`：返回结果对象
+
+
+
+***
+
+
+
 #### Broker
 
 BrokerStartup 启动方法
@@ -6913,6 +7012,8 @@ BrokerController#start：核心启动方法
 ### 生产者
 
 #### 生产者类
+
+##### 生产者类
 
 DefaultMQProducer 是生产者的默认实现类
 
@@ -7017,9 +7118,7 @@ DefaultMQProducer 是生产者的默认实现类
 
 
 
-#### 默认实现
-
-##### 成员属性
+##### 实现者类
 
 DefaultMQProducerImpl 类是默认的生产者实现类
 
@@ -7111,7 +7210,7 @@ DefaultMQProducerImpl 类是默认的生产者实现类
 
 
 
-##### 成员方法
+##### 实现方法
 
 * start()：启动方法，参数默认是 true，代表正常的启动路径
 
@@ -7337,7 +7436,7 @@ TopicPublishInfo 类用来存储路由信息
       } else {
           // 遍历消息队列
           for (int i = 0; i < this.messageQueueList.size(); i++) {
-              // 获取队列的索引
+              // 【获取队列的索引，+1】
               int index = this.sendWhichQueue.getAndIncrement();
               // 获取队列的下标位置
               int pos = Math.abs(index) % this.messageQueueList.size();
@@ -7355,244 +7454,12 @@ TopicPublishInfo 类用来存储路由信息
   }
   ```
 
-  
-
-
-
-****
-
-
-
-### 消费者
-
-#### 消费者类
-
-##### 默认消费
-
-DefaultMQPushConsumer 类是默认的消费者类
-
-成员变量：
-
-* 消费者实现类：
-
-  ```java
-  protected final transient DefaultMQPushConsumerImpl defaultMQPushConsumerImpl;
-  ```
-
-* 消费属性：
-
-  ```java
-  private String consumerGroup;									// 消费者组
-  private MessageModel messageModel = MessageModel.CLUSTERING;	// 消费模式，默认集群模式
-  ```
-
-* 订阅信息：key 是主题，value 是过滤表达式，一般是 tag
-
-  ```java
-  private Map<String, String > subscription = new HashMap<String, String>()
-  ```
-
-* 消息监听器：**消息处理逻辑**，并发消费 MessageListenerConcurrently，顺序（分区）消费 MessageListenerOrderly
-
-  ```java
-  private MessageListener messageListener;
-  ```
-
-* 消费位点：当从 Broker 获取当前组内该 queue 的 offset 不存在时，consumeFromWhere 才有效，默认值代表从队列的最后 offset 开始消费，当队列内再有一条新的 msg 加入时，消费者才会去消费
-
-  ```java
-  private ConsumeFromWhere consumeFromWhere = ConsumeFromWhere.CONSUME_FROM_LAST_OFFSET;
-  ```
-
-* 消费时间戳：当消费位点配置的是 CONSUME_FROM_TIMESTAMP 时，并且服务器 Group 内不存在该 queue 的 offset 时，会使用该时间戳进行消费
-
-  ```java
-  private String consumeTimestamp = UtilAll.timeMillisToHumanString3(System.currentTimeMillis() - (1000 * 60 * 30));// 消费者创建时间 - 30秒，转换成 格式： 年月日小时分钟秒，比如 20220203171201
-  ```
-
-* 队列分配策略：主题下的队列分配策略，RebalanceImpl 对象依赖该算法
-
-  ```java
-  private AllocateMessageQueueStrategy allocateMessageQueueStrategy;
-  ```
-
-* 消费进度存储器：
-
-  ```java
-  private OffsetStore offsetStore;
-  ```
-
-核心方法：
-
-* start()：启动消费者
-
-  ```java
-  public void start()
-  ```
-
-* shutdown()：关闭消费者
-
-  ```java
-  public void shutdown()
-  ```
-
-* registerMessageListener()：注册消息监听器
-
-  ```java
-  public void registerMessageListener(MessageListener messageListener) 
-  ```
-
-* subscribe()：添加订阅信息
-
-  ```java
-  public void subscribe(String topic, String subExpression)
-  ```
-
-* unsubscribe()：删除订阅指定主题的信息
-
-  ```java
-  public void unsubscribe(String topic)
-  ```
-
-* suspend()：停止消费
-
-  ```java
-  public void suspend()
-  ```
-
-* resume()：恢复消费
-
-  ```java
-  public void resume()
-  ```
 
 
 
 ***
 
 
-
-##### 默认实现
-
-DefaultMQPushConsumerImpl 是默认消费者的实现类
-
-成员变量：
-
-* 客户端实例：整个进程内只有一个客户端实例对象
-
-  ```java
-  private MQClientInstance mQClientFactory;
-  ```
-
-* 消费者实例：门面对象
-
-  ```java
-   private final DefaultMQPushConsumer defaultMQPushConsumer;
-  ```
-
-* **负载均衡**：分配订阅主题的队列给当前消费者，20秒钟一个周期执行 Rebalance 算法（客户端实例触发）
-
-  ```java
-  private final RebalanceImpl rebalanceImpl = new RebalancePushImpl(this);
-  ```
-
-* 消费者信息：
-
-  ```java
-  private final long consumerStartTimestamp;	// 消费者启动时间
-  private volatile ServiceState serviceState;	// 消费者状态
-  private volatile boolean pause = false;		// 是否暂停
-  private boolean consumeOrderly = false;		// 是否顺序消费
-  ```
-
-* **拉取消息**：封装拉消息的 API，服务器 Broker 返回结果中包含下次 Pull 时推荐的 BrokerId，根据本次请求数据的冷热程度进行推荐
-
-  ```java
-  private PullAPIWrapper pullAPIWrapper;
-  ```
-
-* **消息消费**服务：并发消费和顺序消费
-
-  ```java
-  private ConsumeMessageService consumeMessageService;
-  ```
-
-* 流控：
-
-  ```java
-  private long queueFlowControlTimes = 0;			// 队列流控次数，默认每1000次流控，进行一次日志打印
-  private long queueMaxSpanFlowControlTimes = 0;	// 流控使用，控制打印日志
-  ```
-
-* HOOK：钩子方法
-
-  ```java
-  // 过滤消息 hook
-  private final ArrayList<FilterMessageHook> filterMessageHookList;
-  // 消息执行hook，在消息处理前和处理后分别执行 hook.before  hook.after 系列方法
-  private final ArrayList<ConsumeMessageHook> consumeMessageHookList;
-  ```
-
-核心方法：
-
-* start()：加锁保证线程安全
-
-  ```java
-  public synchronized void start() 
-  ```
-
-  * `this.checkConfig()`：检查配置，包括组名、消费模式、订阅信息、消息监听器等
-  * `this.copySubscription()`：拷贝订阅信息到 RebalanceImpl 对象
-    * `this.rebalanceImpl.getSubscriptionInner().put(topic, subscriptionData)`：将订阅信息加入 rbl 的 map 中
-    * `this.messageListenerInner = ...getMessageListener()`：将消息监听器保存到实例对象
-    * `switch (this.defaultMQPushConsumer.getMessageModel())`：判断消费模式，广播模式下直接返回
-    * `final String retryTopic`：当前**消费者组重试的主题名**，规则 `%RETRY%ConsumerGroup`
-    * `SubscriptionData subscriptionData = FilterAPI.buildSubscriptionData()`：创建重试主题的订阅数据对象
-    * `this.rebalanceImpl.getSubscriptionInner().put(retryTopic, subscriptionData)`：将创建的重试主题加入到 rbl 对象的 map 中，消息重试时会再次加入到该主题，消费者订阅这个主题之后，就有机会再次拿到该消息进行消费处理
-  * `this.mQClientFactory = ...getOrCreateMQClientInstance()`：获取客户端实例对象
-  * `this.rebalanceImpl.`：初始化负载均衡对象，设置**队列分配策略对象**到属性中
-  * `this.pullAPIWrapper = new PullAPIWrapper()`：创建拉消息 API 对象，内部封装了查询推荐主机算法
-  * `this.pullAPIWrapper.registerFilterMessageHook(filterMessageHookList)`：将 过滤 Hook 列表注册到该对象内，消息拉取下来之后会执行该 Hook，再**进行一次自定义的过滤**
-  * `this.offsetStore = new RemoteBrokerOffsetStore()`：默认集群模式下创建消息进度存储器
-  * `this.consumeMessageService = ...`：根据消息监听器的类型创建消费服务
-  * `this.consumeMessageService.start()`：启动消费服务
-  * `boolean registerOK = mQClientFactory.registerConsumer()`：**将消费者注册到客户端实例中**，客户端提供的服务：
-    * 心跳服务：把订阅数据同步到订阅主题的 Broker
-    * 拉消息服务：内部 PullMessageService 启动线程，基于 PullRequestQueue 工作，消费者负载均衡分配到队列后会向该队列提交 PullRequest
-    * 队列负载服务：每 20 秒调用一次 `consumer.doRebalance()` 接口
-    * 消息进度持久化
-    * 动态调整消费者、消费服务线程池
-  * `mQClientFactory.start()`：启动客户端实例
-  * ` this.updateTopic`：从 nameserver 获取主题路由数据，生成主题集合放入 rbl 对象的 table
-  * `this.mQClientFactory.checkClientInBroker()`：检查服务器是否支持消息过滤模式，一般使用 tag 过滤，服务器默认支持
-  * `this.mQClientFactory.sendHeartbeatToAllBrokerWithLock()`：向所有已知的 Broker 节点，发送心跳数据
-  * `this.mQClientFactory.rebalanceImmediately()`：唤醒 rbl 线程，触发负载均衡执行
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-***
-
-
-
-### 客户端
 
 #### 公共配置
 
@@ -7665,7 +7532,7 @@ DefaultMQPushConsumerImpl 是默认消费者的实现类
 
 
 
-#### 实例对象
+#### 客户端类
 
 ##### 成员属性
 
@@ -7706,6 +7573,7 @@ MQClientInstance 是 RocketMQ 客户端实例，在一个 JVM 进程中只有一
 
   ```java
   private final ConcurrentMap<String, TopicRouteData> topicRouteTable = new ConcurrentHashMap<>();
+  ```
 
 * 锁信息：两把锁，锁不同的数据
 
@@ -8050,14 +7918,837 @@ NettyRemotingClient 类负责客户端的网络通信
 
 
 
+****
+
+
+
+### 消费者
+
+#### 消费者类
+
+##### 默认消费
+
+DefaultMQPushConsumer 类是默认的消费者类
+
+成员变量：
+
+* 消费者实现类：
+
+  ```java
+  protected final transient DefaultMQPushConsumerImpl defaultMQPushConsumerImpl;
+  ```
+
+* 消费属性：
+
+  ```java
+  private String consumerGroup;									// 消费者组
+  private MessageModel messageModel = MessageModel.CLUSTERING;	// 消费模式，默认集群模式
+  ```
+
+* 订阅信息：key 是主题，value 是过滤表达式，一般是 tag
+
+  ```java
+  private Map<String, String > subscription = new HashMap<String, String>()
+  ```
+
+* 消息监听器：**消息处理逻辑**，并发消费 MessageListenerConcurrently，顺序（分区）消费 MessageListenerOrderly
+
+  ```java
+  private MessageListener messageListener;
+  ```
+
+* 消费位点：当从 Broker 获取当前组内该 queue 的 offset 不存在时，consumeFromWhere 才有效，默认值代表从队列的最后 offset 开始消费，当队列内再有一条新的 msg 加入时，消费者才会去消费
+
+  ```java
+  private ConsumeFromWhere consumeFromWhere = ConsumeFromWhere.CONSUME_FROM_LAST_OFFSET;
+  ```
+
+* 消费时间戳：当消费位点配置的是 CONSUME_FROM_TIMESTAMP 时，并且服务器 Group 内不存在该 queue 的 offset 时，会使用该时间戳进行消费
+
+  ```java
+  private String consumeTimestamp = UtilAll.timeMillisToHumanString3(System.currentTimeMillis() - (1000 * 60 * 30));// 消费者创建时间 - 30秒，转换成 格式： 年月日小时分钟秒，比如 20220203171201
+  ```
+
+* 队列分配策略：主题下的队列分配策略，RebalanceImpl 对象依赖该算法
+
+  ```java
+  private AllocateMessageQueueStrategy allocateMessageQueueStrategy;
+  ```
+
+* 消费进度存储器：
+
+  ```java
+  private OffsetStore offsetStore;
+  ```
+
+核心方法：
+
+* start()：启动消费者
+
+  ```java
+  public void start()
+  ```
+
+* shutdown()：关闭消费者
+
+  ```java
+  public void shutdown()
+  ```
+
+* registerMessageListener()：注册消息监听器
+
+  ```java
+  public void registerMessageListener(MessageListener messageListener) 
+  ```
+
+* subscribe()：添加订阅信息
+
+  ```java
+  public void subscribe(String topic, String subExpression)
+  ```
+
+* unsubscribe()：删除订阅指定主题的信息
+
+  ```java
+  public void unsubscribe(String topic)
+  ```
+
+* suspend()：停止消费
+
+  ```java
+  public void suspend()
+  ```
+
+* resume()：恢复消费
+
+  ```java
+  public void resume()
+  ```
+
+
 
 ***
 
 
 
+##### 默认实现
+
+DefaultMQPushConsumerImpl 是默认消费者的实现类
+
+成员变量：
+
+* 客户端实例：整个进程内只有一个客户端实例对象
+
+  ```java
+  private MQClientInstance mQClientFactory;
+  ```
+
+* 消费者实例：门面对象
+
+  ```java
+   private final DefaultMQPushConsumer defaultMQPushConsumer;
+  ```
+
+* **负载均衡**：分配订阅主题的队列给当前消费者，20秒钟一个周期执行 Rebalance 算法（客户端实例触发）
+
+  ```java
+  private final RebalanceImpl rebalanceImpl = new RebalancePushImpl(this);
+  ```
+
+* 消费者信息：
+
+  ```java
+  private final long consumerStartTimestamp;	// 消费者启动时间
+  private volatile ServiceState serviceState;	// 消费者状态
+  private volatile boolean pause = false;		// 是否暂停
+  private boolean consumeOrderly = false;		// 是否顺序消费
+  ```
+
+* **拉取消息**：封装拉消息的 API，服务器 Broker 返回结果中包含下次 Pull 时推荐的 BrokerId，根据本次请求数据的冷热程度进行推荐
+
+  ```java
+  private PullAPIWrapper pullAPIWrapper;
+  ```
+
+* **消息消费**服务：并发消费和顺序消费
+
+  ```java
+  private ConsumeMessageService consumeMessageService;
+  ```
+
+* 流控：
+
+  ```java
+  private long queueFlowControlTimes = 0;			// 队列流控次数，默认每1000次流控，进行一次日志打印
+  private long queueMaxSpanFlowControlTimes = 0;	// 流控使用，控制打印日志
+  ```
+
+* HOOK：钩子方法
+
+  ```java
+  // 过滤消息 hook
+  private final ArrayList<FilterMessageHook> filterMessageHookList;
+  // 消息执行hook，在消息处理前和处理后分别执行 hook.before  hook.after 系列方法
+  private final ArrayList<ConsumeMessageHook> consumeMessageHookList;
+  ```
+
+核心方法：
+
+* start()：加锁保证线程安全
+
+  ```java
+  public synchronized void start() 
+  ```
+
+  * `this.checkConfig()`：检查配置，包括组名、消费模式、订阅信息、消息监听器等
+  * `this.copySubscription()`：拷贝订阅信息到 RebalanceImpl 对象
+    * `this.rebalanceImpl.getSubscriptionInner().put(topic, subscriptionData)`：将订阅信息加入 rbl 的 map 中
+    * `this.messageListenerInner = ...getMessageListener()`：将消息监听器保存到实例对象
+    * `switch (this.defaultMQPushConsumer.getMessageModel())`：判断消费模式，广播模式下直接返回
+    * `final String retryTopic`：当前**消费者组重试的主题名**，规则 `%RETRY%ConsumerGroup`
+    * `SubscriptionData subscriptionData = FilterAPI.buildSubscriptionData()`：创建重试主题的订阅数据对象
+    * `this.rebalanceImpl.getSubscriptionInner().put(retryTopic, subscriptionData)`：将创建的重试主题加入到 rbl 对象的 map 中，消息重试时会再次加入到该主题，消费者订阅这个主题之后，就有机会再次拿到该消息进行消费处理
+  * `this.mQClientFactory = ...getOrCreateMQClientInstance()`：获取客户端实例对象
+  * `this.rebalanceImpl.`：初始化负载均衡对象，设置**队列分配策略对象**到属性中
+  * `this.pullAPIWrapper = new PullAPIWrapper()`：创建拉消息 API 对象，内部封装了查询推荐主机算法
+  * `this.pullAPIWrapper.registerFilterMessageHook(filterMessageHookList)`：将 过滤 Hook 列表注册到该对象内，消息拉取下来之后会执行该 Hook，再**进行一次自定义的过滤**
+  * `this.offsetStore = new RemoteBrokerOffsetStore()`：默认集群模式下创建消息进度存储器
+  * `this.consumeMessageService = ...`：根据消息监听器的类型创建消费服务
+  * `this.consumeMessageService.start()`：启动消费服务
+  * `boolean registerOK = mQClientFactory.registerConsumer()`：**将消费者注册到客户端实例中**，客户端提供的服务：
+    * 心跳服务：把订阅数据同步到订阅主题的 Broker
+    * 拉消息服务：内部 PullMessageService 启动线程，基于 PullRequestQueue 工作，消费者负载均衡分配到队列后会向该队列提交 PullRequest
+    * 队列负载服务：每 20 秒调用一次 `consumer.doRebalance()` 接口
+    * 消息进度持久化
+    * 动态调整消费者、消费服务线程池
+  * `mQClientFactory.start()`：启动客户端实例
+  * ` this.updateTopic`：从 nameserver 获取主题路由数据，生成主题集合放入 rbl 对象的 table
+  * `this.mQClientFactory.checkClientInBroker()`：检查服务器是否支持消息过滤模式，一般使用 tag 过滤，服务器默认支持
+  * `this.mQClientFactory.sendHeartbeatToAllBrokerWithLock()`：向所有已知的 Broker 节点，发送心跳数据
+  * `this.mQClientFactory.rebalanceImmediately()`：唤醒 rbl 线程，触发负载均衡执行
+
 
 
 ***
+
+
+
+#### 负载均衡
+
+##### 实现方式
+
+MQClientInstance#start 中会启动负载均衡服务：
+
+```java
+public void run() {
+	// 检查停止标记
+    while (!this.isStopped()) {
+        // 休眠 20 秒，防止其他线程饥饿，所以【每 20 秒负载均衡一次】
+        this.waitForRunning(waitInterval);
+        // 调用客户端实例的负载均衡方法，底层【会遍历所有消费者，调用消费者的负载均衡】
+        this.mqClientFactory.doRebalance();
+    }	
+}
+```
+
+RebalanceImpl 类成员变量：
+
+* 分配给当前消费者的处理队列：处理消息队列集合，ProcessQueue 是 MQ 队列在消费者端的快照
+
+  ```java
+  protected final ConcurrentMap<MessageQueue, ProcessQueue> processQueueTable;
+  ```
+
+* 消费者订阅主题的队列信息：
+
+  ```java
+  protected final ConcurrentMap<String/* topic */, Set<MessageQueue>> topicSubscribeInfoTable;
+  ```
+
+* 订阅数据：
+
+  ```java
+  protected final ConcurrentMap<String /* topic */, SubscriptionData> subscriptionInner;
+  ```
+
+* 队列分配策略：
+
+  ```java
+  protected AllocateMessageQueueStrategy allocateMessageQueueStrategy;
+  ```
+
+成员方法：
+
+* doRebalance()：负载均衡方法
+
+  ```java
+  public void doRebalance(final boolean isOrder) {
+      // 获取当前消费者的订阅数据
+      Map<String, SubscriptionData> subTable = this.getSubscriptionInner();
+      if (subTable != null) {
+          // 遍历所有的订阅主题
+          for (final Entry<String, SubscriptionData> entry : subTable.entrySet()) {
+              // 获取订阅的主题
+              final String topic = entry.getKey();
+              // 按照主题进行负载均衡
+              this.rebalanceByTopic(topic, isOrder);
+          }
+      }
+      // 将分配到当前消费者的队列进行过滤，不属于当前消费者订阅主题的直接移除
+      this.truncateMessageQueueNotMyTopic();
+  }
+  ```
+
+  * `Set<MessageQueue> mqSet = this.topicSubscribeInfoTable.get(topic)`：获取当前主题的全部队列信息
+
+  * `cidAll = this...findConsumerIdList(topic, consumerGroup)`：从服务器获取消费者组下的全部消费者 ID
+
+  * `Collections.sort(mqAll)`：主题 MQ 队列和消费者 ID 都进行排序，保证每个消费者的视图一致性
+
+  * `strategy = this.allocateMessageQueueStrategy`：获取队列分配策略对象
+
+  * `allocateResult = strategy.allocate()`： **调用队列分配策略**，给当前消费者进行分配 MessageQueue
+
+  * `boolean changed = this.updateProcessQueueTableInRebalance(...)`：负载均衡，更新队列处理集合
+
+    * `boolean changed = false`：当前消费者的消费队列是否有变化
+
+    * `while (it.hasNext())`：遍历当前消费者的所有处理队列
+
+    * `if (!mqSet.contains(mq))`：该 MQ 经过 rbl 计算之后，**被分配到其它 consumer 节点**
+
+      `pq.setDropped(true)`：将删除状态设置为 true
+
+      `if (this.removeUnnecessaryMessageQueue(mq, pq))`：在 MQ 归属的 broker 节点持久化消费进度，并删除该 MQ 在本地的消费进度
+
+      `it.remove()`：从 processQueueTable 移除该 MQ
+
+    * `else if (pq.isPullExpired())`：说明当前 MQ 还是被当前 consumer 消费，此时判断一下是否超过 2 分钟未到服务器 拉消息，如果条件成立进行上述相同的逻辑、
+
+    * `for (MessageQueue mq : mqSet)`：开始处理当前主题**新分配**到当前节点的队列
+
+    * `if (isOrder && !this.lock(mq))`：**顺序消息为了保证有序性，需要获取分布式锁**
+
+    * `ProcessQueue pq = new ProcessQueue()`：为每个新分配的消息队列创建快照队列
+
+    * `long nextOffset = this.computePullFromWhere(mq)`：**从服务端获取新分配的 MQ 的消费进度**
+
+    * `ProcessQueue pre = this.processQueueTable.putIfAbsent(mq, pq)`：保存到处理队列集合
+
+    * `PullRequest pullRequest = new PullRequest()`：创建拉取请求对象
+
+    * `this.dispatchPullRequest(pullRequestList)`：放入拉消息服务的本地阻塞队列内，**用于拉取消息工作**
+
+
+
+
+***
+
+
+
+##### 队列分配
+
+AllocateMessageQueueStrategy 类是队列的分配策略
+
+* 平均分配：AllocateMessageQueueAveragely 类
+
+  ```java
+  // 参数一：消费者组       								参数二：当前消费者id   
+  // 参数三：主题的全部队列，包括所有 broker 上该主题的 mq  	参数四：全部消费者id集合
+  public List<MessageQueue> allocate(String consumerGroup, String currentCID, List<MessageQueue> mqAll, List<String> cidAll) {
+      // 获取当前消费者在全部消费者中的位置，【全部消费者是已经排序好的，排在前面的优先分配更多的队列】
+      int index = cidAll.indexOf(currentCID);
+      // 平均分配完以后，还剩余的待分配的 mq 的数量
+      int mod = mqAll.size() % cidAll.size();
+      // 首先判断整体的 mq 的数量是否小于消费者的数量，小于消费者的数量就说明不够分的，先分一个
+      int averageSize = mqAll.size() <= cidAll.size() ? 1 :
+      	// 成立需要多分配一个队列，因为更靠前
+      	(mod > 0 && index < mod ? mqAll.size() / cidAll.size() + 1 : mqAll.size() / cidAll.size());
+      // 获取起始的分配位置
+      int startIndex = (mod > 0 && index < mod) ? index * averageSize : index * averageSize + mod;
+      // 防止索引越界
+      int range = Math.min(averageSize, mqAll.size() - startIndex);
+      // 开始分配，【挨着分配，是直接就把当前的 消费者分配完成】
+      for (int i = 0; i < range; i++) {
+          result.add(mqAll.get((startIndex + i) % mqAll.size()));
+      }
+      return result;
+  }
+  ```
+
+  队列排序后：Q1 → Q2 → Q3，消费者排序后 C1 → C2 → C3
+
+  ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-平均队列分配.png)
+
+* 轮流分配：AllocateMessageQueueAveragelyByCircle
+
+  ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-平均队列轮流分配.png)
+
+* 指定机房平均分配：AllocateMessageQueueByMachineRoom，前提是 Broker 的命名规则为 `机房名@BrokerName`
+
+  
+
+
+
+***
+
+
+
+#### 消息拉取
+
+##### 实现方式
+
+MQClientInstance#start 中会启动消息拉取服务：PullMessageService
+
+```java
+public void run() {
+    // 检查停止标记
+    while (!this.isStopped()) {
+        try {
+            // 从阻塞队列中获取拉消息请求
+            PullRequest pullRequest = this.pullRequestQueue.take();
+            // 拉取消息，获取请求对应的使用当前消费者组中的哪个消费者，调用消费者的 pullMessage 方法
+            this.pullMessage(pullRequest);
+        } catch (Exception e) {
+            log.error("Pull Message Service Run Method exception", e);
+        }
+    }
+}
+```
+
+DefaultMQPushConsumerImpl#pullMessage：
+
+* `ProcessQueue processQueue = pullRequest.getProcessQueue()`：获取请求对应的快照队列，并判断是否是删除状态
+
+* `this.executePullRequestLater()`：如果当前消费者不是运行状态，则拉消息任务延迟 3 秒后执行，如果是暂停状态延迟 1 秒
+
+* **流控的逻辑**：
+
+  `long cachedMessageCount = processQueue.getMsgCount().get()`：获取消费者本地该 queue 快照内缓存的消息数量，如果大于 1000 条，进行流控，延迟 50 毫秒
+
+  `long cachedMessageSizeInMiB`： 消费者本地该 queue 快照内缓存的消息容量 size，超过 100m 消息未被消费进行流控
+
+  `if(processQueue.getMaxSpan() > 2000)`：消费者本地缓存消息第一条消息最后一条消息跨度超过 2000 进行流控
+
+* `SubscriptionData subscriptionData`：本次拉消息请求订阅的主题数据，如果调用了 `unsubscribe(主题)` 将会获取为 null
+
+* `PullCallback pullCallback = new PullCallback()`：**拉消息处理回调对象**，
+
+  * `pullResult = ...processPullResult()`：预处理 PullResult 结果
+
+  * `case FOUND`：正常拉取到消息
+
+    `pullRequest.setNextOffset(pullResult.getNextBeginOffset())`：更新 pullRequest 对象下一次拉取消息的位点
+
+    `if (pullResult.getMsgFoundList() == null...)`：消息过滤导致消息全部被过滤掉，需要立马发起下一次拉消息
+
+    `boolean .. = processQueue.putMessage()`：将服务器拉取的消息集合**加入到消费者本地**的 processQueue 内
+
+    `DefaultMQPushConsumerImpl...submitConsumeRequest()`：**提交消费任务**，分为顺序消费和并发消费
+
+    `Defaul..executePullRequestImmediately(pullRequest)`：将更新过 nextOffset 字段的 PullRequest 对象，再次放到 pullMessageService 的阻塞队列中，**形成闭环**
+
+  * `case NO_NEW_MSG ||NO_MATCHED_MSG`：表示本次 pull 没有新的可消费的信息
+
+    `pullRequest.setNextOffset()`：更新更新 pullRequest 对象下一次拉取消息的位点
+
+    `Defaul..executePullRequestImmediately(pullRequest)`：再次拉取请求
+
+  * `case OFFSET_ILLEGAL`：本次 pull 时使用的 offset 是无效的，即 offset > maxOffset || offset  < minOffset
+
+    `pullRequest.setNextOffset()`：调整pullRequest nextOffset 为 正确的 offset
+
+    `pullRequest.getProcessQueue().setDropped(true)`：设置该 processQueue 为删除状态，如果有该 queue 的消费任务，该消费任务会马上停止任务
+
+    `DefaultMQPushConsumerImpl.this.executeTaskLater()`：提交异步任务，10 秒后去执行
+
+    * `DefaultMQPushConsumerImpl...updateOffset()`：更新 offsetStore 该 MQ 的 offset 为正确值，内部直接替换
+
+    * `DefaultMQPushConsumerImpl...persist()`：持久化该 messageQueue 的 offset 到 Broker 端
+
+    * `DefaultMQPushConsumerImpl...removeProcessQueue()`： 删除该消费者该 messageQueue 对应的 processQueue
+
+    * 这里没有再次提交 pullRequest 到 pullMessageService 的队列，那该队列不再拉消息了吗？
+
+      负载均衡 rbl 程序会重建该队列的 processQueue，重建完之后会为该队列创建新的 PullRequest 对象
+
+* `int sysFlag = PullSysFlag.buildSysFlag()`：构建标志对象，sysFlag 高 4 位未使用，低 4 位使用，从左到右为 0000 0011
+
+  * 第一位：表示是否提交消费者本地该队列的 offset，一般是 1
+  * 第二位：表示是否允许服务器端进行长轮询，一般是 1
+  * 第三位：表示是否提交消费者本地该主题的订阅数据，一般是 0
+  * 第四位：表示是否为类过滤，一般是 0
+
+* `this.pullAPIWrapper.pullKernelImpl()`：拉取消息的核心方法
+
+
+
+***
+
+
+
+##### 封装对象
+
+PullAPIWrapper 类封装了拉取消息的 API
+
+成员变量：
+
+* 推荐拉消息使用的主机 ID：
+
+  ```java
+  private ConcurrentMap<MessageQueue, AtomicLong/* brokerId */> pullFromWhichNodeTable
+  ```
+
+成员方法：
+
+* pullKernelImpl()：拉消息
+
+  * `FindBrokerResult findBrokerResult`：查询指定 BrokerName 的地址信息，主节点或者推荐节点
+
+  * `if (null == findBrokerResult)`：查询不到，就到 Namesrv 获取指定 topic 的路由数据
+
+  * `if (findBrokerResult.isSlave())`：成立说明 findBrokerResult 表示的主机为 slave 节点，**slave 不存储 offset 信息**
+
+    `sysFlagInner = PullSysFlag.clearCommitOffsetFlag(sysFlagInner)`：将 sysFlag 标记位中 CommitOffset 的位置为 0
+
+  * `PullMessageRequestHeader requestHeader`：创建请求头对象，封装所有的参数
+
+  * `PullResult pullResult = this.mQClientFactory.getMQClientAPIImpl().pullMessage()`：调用客户端实例的方法，核心逻辑就是**将业务数据转化为 RemotingCommand  通过 NettyRemotingClient 的 IO 进行通信**
+
+    * `RemotingCommand request`：创建网络层传输对象 RemotingCommand 对象，**请求 ID 为 `PULL_MESSAGE = 11`**
+
+    * `return this.pullMessageSync(...)`：此处是异步调用，**处理结果放入 ResponseFuture 中**，参考服务端小节的处理器类 `NettyServerHandler#processMessageReceived` 方法
+
+      * `RemotingCommand response = responseFuture.getResponseCommand()`：获取服务器端响应数据 response
+      * `PullResult pullResult`：从 response 内提取出来拉消息结果对象，将响应头 PullMessageResponseHeader 对象中信息**填充到 PullResult 中**，列出两个重要的字段：
+        * `private Long suggestWhichBrokerId`：服务端建议客户端下次 Pull 时选择的 BrokerID
+        * `private Long nextBeginOffset`：客户端下次 Pull 时使用的 offset 信息
+
+      * `pullCallback.onSuccess(pullResult)`：将 PullResult 交给拉消息结果处理回调对象，调用 onSuccess 方法
+
+* processPullResult()：预处理拉消息结果，**更新推荐 Broker 和过滤消息**
+
+  * `this.updatePullFromWhichNode()`：更新 pullFromWhichNodeTable 内该 MQ 的下次查询推荐 BrokerID
+  * `if (PullStatus.FOUND == pullResult.getPullStatus())`：条件成立说明拉取成功
+  * `List<MessageExt> msgList`：**将获取的消息进行解码**
+  * `if (!subscriptionData... && !subscriptionData.isClassFilterMode())`：客户端按照 tag 值进行过滤
+  * `pullResultExt.setMsgFoundList(msgListFilterAgain)`：将再次过滤后的消息集合，保存到 pullResult
+  * `pullResultExt.setMessageBinary(null)`：设置为 null，帮助 GC
+
+
+
+***
+
+
+
+#### 通信处理
+
+##### 处理器
+
+BrokerStartup#createBrokerController 方法中创建了 BrokerController 并进行初始化，调用 `registerProcessor()` 方法将处理器 PullMessageProcessor 注册到 NettyRemotingServer 中，对应的请求 ID 为 `PULL_MESSAGE = 11`，NettyServerHandler 在处理请求时通过请求 ID 会获取处理器执行 processRequest 方法
+
+```java
+// 参数一：服务器与客户端 netty 通道； 参数二：客户端请求； 参数三：是否允许服务器端长轮询，默认 true
+private RemotingCommand processRequest(final Channel channel, RemotingCommand request, boolean brokerAllowSuspend)
+```
+
+* `RemotingCommand response`：创建响应对象，设置为响应类型的请求，响应头是 PullMessageResponseHeader
+
+* `final PullMessageResponseHeader responseHeader`：获取响应对象的 header
+
+* `final PullMessageRequestHeader requestHeader`：解析出请求头 PullMessageRequestHeader
+
+* `response.setOpaque(request.getOpaque())`：设置 opaque 属性，客户端需要根据该字段**获取 ResponseFuture**
+
+* 进行一些鉴权的逻辑：是否允许长轮询、提交 offset、topicConfig 是否是空、队列 ID 是否合理
+
+* `ConsumerGroupInfo consumerGroupInfo`：获取消费者组信息，包好全部的消费者和订阅数据
+
+* `subscriptionData = consumerGroupInfo.findSubscriptionData()`：**获取指定主题的订阅数据**
+
+* `if (!ExpressionType.isTagType()`：表达式匹配
+
+* `MessageFilter messageFilter`：创建消息过滤器，一般是通过 tagCode 进行过滤
+
+* `DefaultMessageStore.getMessage()`：**查询消息的核心逻辑**，在 Broker 端查询消息（存储端笔记详解了该源码）
+
+* `response.setRemark()`：设置此次响应的状态
+
+* `responseHeader.set..`：设置响应头对象的一些字段
+
+* `switch (this.brokerController.getMessageStoreConfig().getBrokerRole())`：如果当前主机节点角色为 slave 并且**从节点读**并未开启的话，直接给客户端 一个状态 `PULL_RETRY_IMMEDIATELY`
+
+* `if (this.brokerController.getBrokerConfig().isSlaveReadEnable())`：消费太慢，下次从另一台机器拉取
+
+* `switch (getMessageResult.getStatus())`：根据 getMessageResult 的状态设置 response 的 code
+
+  ```java
+  public enum GetMessageStatus {
+      FOUND,					// 查询成功
+      NO_MATCHED_MESSAGE,		// 未查询到到消息，服务端过滤 tagCode
+      MESSAGE_WAS_REMOVING,	// 查询时赶上 CommitLog 清理过期文件，导致查询失败，立刻尝试
+      OFFSET_FOUND_NULL,		// 查询时赶上 ConsumerQueue 清理过期文件，导致查询失败，【进行长轮询】
+      OFFSET_OVERFLOW_BADLY,	// pullRequest.offset 越界 maxOffset
+      OFFSET_OVERFLOW_ONE,	// pullRequest.offset == CQ.maxOffset，【进行长轮询】
+      OFFSET_TOO_SMALL,		// pullRequest.offset 越界 minOffset
+      NO_MATCHED_LOGIC_QUEUE,	// 没有匹配到逻辑队列
+      NO_MESSAGE_IN_QUEUE,	// 空队列，创建队列也是因为查询导致，【进行长轮询】
+  }
+  ```
+
+* `switch (response.getCode())`：根据 response 状态做对应的业务处理
+
+  `case ResponseCode.SUCCESS`：查询成功
+
+  * `final byte[] r = this.readGetMessageResult()`：本次 pull 出来的全部消息导入 byte 数组
+  * `response.setBody(r)`：将消息的 byte 数组保存到 response body 字段
+
+  `case ResponseCode.PULL_NOT_FOUND`：产生这种情况大部分原因是 `pullRequest.offset  ==  queue.maxOffset`，说明已经没有需要获取的消息，此时如果直接返回给客户端，客户端会立刻重新请求，还是继续返回该状态，频繁拉取服务器导致服务器压力大，所以此处**需要长轮询**
+
+  * `if (brokerAllowSuspend && hasSuspendFlag)`：brokerAllowSuspend = true，当长轮询结束再次执行 processRequest 时该参数为 false，所以**每次 Pull 请求至多在服务器端长轮询控制一次**
+  * `PullRequest pullRequest = new PullRequest()`：创建长轮询 PullRequest 对象
+  * `this.brokerController...suspendPullRequest(topic, queueId, pullRequest)`：将长轮询请求对象交给长轮询服务
+    * `String key = this.buildKey(topic, queueId)`：构建一个 `topic@queueId` 的 key
+    * `ManyPullRequest mpr = this.pullRequestTable.get(key)`：从拉请求表中获取对象
+    * `mpr.addPullRequest(pullRequest)`：将 PullRequest 对象放入到 ManyPullRequest 的请求集合中
+  * `response = null`：响应设置为 null 内部的 callBack 就不会给客户端发送任何数据，**不进行通信**，否则就又开始重新请求
+
+* `boolean storeOffsetEnable`：允许长轮询、sysFlag 表示提交消费者本地该队列的offset、当前 broker 节点角色为 master 节点三个条件成立，才**在 Broker 端存储消费者组内该主题的指定 queue 的消费进度**
+
+* `return response`：返回 response，不为 null 时外层 requestTask 的 callback 会将数据写给客户端
+
+
+
+***
+
+
+
+##### 长轮询
+
+PullRequestHoldService 类负责长轮询，BrokerController#start 方法中调用了 `this.pullRequestHoldService.start()` 启动该服务
+
+核心方法：
+
+* run()：核心运行方法
+
+  ```java
+  public void run() {
+  	// 循环运行
+      while (!this.isStopped()) {
+          if (this.brokerController.getBrokerConfig().isLongPollingEnable()) {
+              // 服务器开启长轮询开关：每次循环休眠5秒
+              this.waitForRunning(5 * 1000);
+          } else {
+              // 服务器关闭长轮询开关：每次循环休眠1秒
+              this.waitForRunning(...);
+          }
+          // 检查持有的请求
+          this.checkHoldRequest();
+          // .....
+      }
+  }
+  ```
+
+* checkHoldRequest()：检查所有的请求
+
+  * `for (String key : this.pullRequestTable.keySet())`：**处理所有的 topic@queueId 的逻辑**
+  * `String[] kArray = key.split(TOPIC_QUEUEID_SEPARATOR)`：key 按照 @ 拆分，得到 topic 和 queueId
+  * `long offset = this...getMaxOffsetInQueue(topic, queueId)`： 到存储模块查询该 ConsumeQueue 的**最大 offset**
+  * `this.notifyMessageArriving(topic, queueId, offset)`：通知消息到达
+
+* notifyMessageArriving()：通知消息到达的逻辑，ReputMessageService 消息分发服务也会调用该方法
+
+  * `ManyPullRequest mpr = this.pullRequestTable.get(key)`：获取对应的的manyPullRequest对象
+  * `List<PullRequest> requestList`：获取该队列下的所有 PullRequest，并进行遍历
+  * `List<PullRequest> replayList`：当某个 pullRequest 不超时，并且对应的 `CQ.maxOffset <= pullRequest.offset`，就将该 PullRequest 再放入该列表
+  * `long newestOffset`：该值为 CQ 的 maxOffset
+  * `if (newestOffset > request.getPullFromThisOffset())`：说明该请求对应的队列内可以 pull 消息了，**结束长轮询**
+  * `boolean match`：进行过滤匹配
+  * `this.brokerController...executeRequestWhenWakeup()`：将满足条件的 pullRequest 再次提交到线程池内执行
+    * `final RemotingCommand response`：执行 processRequest 方法，并且**不会触发长轮询**
+    * `channel.writeAndFlush(response).addListene()`：**将结果数据发送给客户端**
+  * `if (System.currentTimeMillis() >= ...)`：判断该 pullRequest 是否超时，超时后的也是重新提交到线程池，并且不进行长轮询
+  * `mpr.addPullRequest(replayList)`：将未满足条件的 PullRequest 对象再次添加到 ManyPullRequest 属性中
+
+
+
+***
+
+
+
+##### 结果类
+
+GetMessageResult 类成员信息：
+
+```java
+public class GetMessageResult {
+    // 查询消息时，最底层都是 mappedFile 支持的查询，查询时返回给外层一个 SelectMappedBufferResult，
+    // mappedFile 每查询一次都会 refCount++ ，通过SelectMappedBufferResult持有mappedFile，完成资源释放的句柄
+    private final List<SelectMappedBufferResult> messageMapedList =
+        new ArrayList<SelectMappedBufferResult>(100);
+
+    // 该List内存储消息，每一条消息都被转成 ByteBuffer 表示了
+    private final List<ByteBuffer> messageBufferList = new ArrayList<ByteBuffer>(100);
+    // 查询结果状态
+    private GetMessageStatus status;
+    // 客户端下次再向当前Queue拉消息时，使用的 offset
+    private long nextBeginOffset;
+    // 当前queue最小offset
+    private long minOffset;
+    // 当前queue最大offset
+    private long maxOffset;
+    // 消息总byte大小
+    private int bufferTotalSize = 0;
+    // 服务器建议客户端下次到该 queue 拉消息时是否使用 【从节点】
+    private boolean suggestPullingFromSlave = false;
+}
+```
+
+
+
+***
+
+
+
+#### 队列快照
+
+##### 成员属性
+
+ProcessQueue 类是消费队列的快照
+
+成员变量：
+
+* 属性字段：
+
+  ```java
+  private final AtomicLong msgCount = new AtomicLong();	// 队列中消息数量
+  private final AtomicLong msgSize = new AtomicLong();	// 消息总大小
+  private volatile long queueOffsetMax = 0L;				// 快照中最大 offset
+  private volatile boolean dropped = false;				// 快照是否移除
+  private volatile long lastPullTimestamp = current;		// 上一次拉消息的时间
+  private volatile long lastConsumeTimestamp = current;	// 上一次消费消息的时间
+  private volatile long lastLockTimestamp = current;		// 上一次获取锁的时间
+  ```
+
+* **消息容器**：key 是消息偏移量，val 是消息
+
+  ```java
+  private final TreeMap<Long, MessageExt> msgTreeMap = new TreeMap<Long, MessageExt>();
+  ```
+
+* **顺序消费临时容器**：
+
+  ```java
+  private final TreeMap<Long, MessageExt> consumingMsgOrderlyTreeMap = new TreeMap<Long, MessageExt>();
+  ```
+
+* 锁：
+
+  ```java
+  private final ReadWriteLock lockTreeMap;		// 读写锁
+  private final Lock lockConsume;					// 重入锁，【顺序消费使用】
+  ```
+
+* 顺序消费状态：
+
+  ```java
+  private volatile boolean locked = false;		// 是否是锁定状态
+  private volatile boolean consuming = false;		// 是否是消费中
+  ```
+
+  
+
+****
+
+
+
+##### 成员方法
+
+核心成员方法
+
+* putMessage()：将 Broker 拉取下来的 msgs 存储到快照队列内，返回为 true 表示提交顺序消费任务，false 表示不提交
+
+  ```java
+  public boolean putMessage(final List<MessageExt> msgs)
+  ```
+
+  * `this.lockTreeMap.writeLock().lockInterruptibly()`：获取写锁
+
+  * `for (MessageExt msg : msgs)`：遍历 msgs 全部加入 msgTreeMap，key 是消息的 queueOffset
+
+  * `if (!msgTreeMap.isEmpty() && !this.consuming)`：**消息容器中存在未处理的消息，并且不是消费中的状态**
+
+    `dispatchToConsume = true`：代表需要提交顺序消费任务
+
+    `this.consuming = true`：设置为顺序消费执行中的状态
+
+  * `this.lockTreeMap.writeLock().unlock()`：释放写锁
+
+* removeMessage()：移除已经消费的消息，参数是已经消费的消息集合
+
+  ```java
+  public long removeMessage(final List<MessageExt> msgs)
+  ```
+
+  * `long result = -1`：结果初始化为 -1 
+  * `this.lockTreeMap.writeLock().lockInterruptibly()`：获取写锁
+  * `this.lastConsumeTimestamp = now`：更新上一次消费消息的时间为现在
+  * `if (!msgTreeMap.isEmpty())`：判断消息容器是否是空，**是空直接返回 -1**
+  * `result = this.queueOffsetMax + 1`：设置结果，**删除完后消息容器为空时返回**
+  * `for (MessageExt msg : msgs)`：将已经消费的消息全部从 msgTreeMap 移除
+  * `if (!msgTreeMap.isEmpty())`：移除后容器内还有待消费的消息，**获取第一条消息 offset 返回**
+  * `this.lockTreeMap.writeLock().unlock()`：释放写锁
+
+* takeMessages()：获取一批消息
+
+  ```java
+  public List<MessageExt> takeMessages(final int batchSize)
+  ```
+
+  * `this.lockTreeMap.writeLock().lockInterruptibly()`：获取写锁
+  * `this.lastConsumeTimestamp = now`：更新上一次消费消息的时间为现在
+  * `for (int i = 0; i < batchSize; i++)`：从头节点开始获取消息
+  * `result.add(entry.getValue())`：将消息放入结果集合
+  * `consumingMsgOrderlyTreeMap.put()`：将消息加入顺序消费容器中
+  * `if (result.isEmpty())`：条件成立说明顺序消费容器本地快照内的消息全部处理完了，**当前顺序消费任务需要停止**
+  * `consuming = false`：消费状态置为 false
+  * `this.lockTreeMap.writeLock().unlock()`：释放写锁
+
+* commit()：处理完一批消息后调用
+
+  ```java
+  public long commit()
+  ```
+
+  * `this.lockTreeMap.writeLock().lockInterruptibly()`：获取写锁
+  * `Long offset = this.consumingMsgOrderlyTreeMap.lastKey()`：获取顺序消费临时容器最后一条数据的 key
+  * `msgCount, msgSize`：更新顺序消费相关的字段
+  * `this.consumingMsgOrderlyTreeMap.clear()`：清空顺序消费容器的数据
+  * `return offset + 1`：**消费者下一条消费的位点**
+  * `this.lockTreeMap.writeLock().unlock()`：释放写锁
+
+* cleanExpiredMsg()：清除过期消息
+
+  ```java
+  public void cleanExpiredMsg(DefaultMQPushConsumer pushConsumer)
+  ```
+
+  * `if (pushConsumer.getDefaultMQPushConsumerImpl().isConsumeOrderly()) `：顺序消费不执行过期清理逻辑
+  * `int loop = msgTreeMap.size() < 16 ? msgTreeMap.size() : 16`：最多循环 16 次
+  * `if (!msgTreeMap.isEmpty() &&)`：如果容器中第一条消息的消费开始时间与当前系统时间差值 > 15min，则取出该消息
+  * `else`：直接跳出循环，因为**快照队列内的消息是有顺序的**，第一条消息不过期，其他消息都不过期
+  * `pushConsumer.sendMessageBack(msg, 3)`：**消息回退**到服务器，设置该消息的延迟级别为 3
+  * `if (!msgTreeMap.isEmpty() && msg.getQueueOffset() == msgTreeMap.firstKey())`：条件成立说明消息回退期间，该目标消息并没有被消费任务成功消费
+  * `removeMessage(Collections.singletonList(msg))`：从 treeMap 将该回退成功的 msg 删除
+
+
+
+
+
+
+***
+
+
 
 
 
