@@ -3816,7 +3816,7 @@ public class Consumer {
 顺序消息分为全局顺序消息与分区顺序消息，
 
 - 全局顺序：对于指定的一个 Topic，所有消息按照严格的先入先出（FIFO）的顺序进行发布和消费。 适用于性能要求不高，所有的消息严格按照 FIFO 原则进行消息发布和消费的场景
-- 分区顺序：对于指定的一个 Topic，所有消息根据 sharding key 进行分区，同一个分组内的消息按照严格的 FIFO 顺序进行发布和消费。Sharding key 是顺序消息中用来区分不同分区的关键字段，和普通消息的 Key 是完全不同的概念。 适用于性能要求高，以 sharding key 作为分区字段，在同一个区中严格的按照 FIFO 原则进行消息发布和消费的场景
+- 分区顺序：对于指定的一个 Topic，所有消息根据 sharding key 进行分区，同一个分组内的消息按照严格的 FIFO 顺序进行发布和消费。Sharding key 是顺序消息中用来区分不同分区的关键字段，和普通消息的 Key 是完全不同的概念。 适用于性能要求高，以 Sharding key 作为分区字段，在同一个区中严格的按照 FIFO 原则进行消息发布和消费的场景
 
 在默认的情况下消息发送会采取 Round Robin 轮询方式把消息发送到不同的 queue（分区队列），而消费消息是从多个 queue 上拉取消息，这种情况发送和消费是不能保证顺序。但是如果控制发送的顺序消息只依次发送到同一个 queue 中，消费的时候只从这个 queue 上依次拉取，则就保证了顺序。当**发送和消费参与的 queue 只有一个**，则是全局有序；如果多个queue 参与，则为分区有序，即相对每个 queue，消息都是有序的
 
@@ -4000,7 +4000,7 @@ Broker 可以配置 messageDelayLevel，该属性是 Broker 的属性，不属�
 - 1<=level<=maxLevel：消息延迟特定时间，例如 level==1，延迟 1s
 - level > maxLevel：则 level== maxLevel，例如 level==20，延迟 2h
 
-定时消息会暂存在名为 SCHEDULE_TOPIC_XXXX 的 Topic 中，并根据 delayTimeLevel 存入特定的 queue，队列的标识`queueId = delayTimeLevel – 1`，即一个 queue 只存相同延迟的消息，保证具有相同发送延迟的消息能够顺序消费。Broker 会调度地消费 SCHEDULE_TOPIC_XXXX，将消息写入真实的 Topic
+定时消息会暂存在名为 SCHEDULE_TOPIC_XXXX 的 Topic 中，并根据 delayTimeLevel 存入特定的 queue，队列的标识 `queueId = delayTimeLevel – 1`，即一个 queue 只存相同延迟的消息，保证具有相同发送延迟的消息能够顺序消费。Broker 会调度地消费 SCHEDULE_TOPIC_XXXX，将消息写入真实的 Topic
 
 注意：定时消息在第一次写入和调度写入真实 Topic 时都会计数，因此发送数量、tps 都会变高。
 
@@ -6212,9 +6212,14 @@ CommitLog 类核心方法：
   ```
 
   * `msg.setStoreTimestamp(System.currentTimeMillis())`：设置存储时间，后面获取到写锁后这个事件会重写
-  * `String topic = msg.getTopic()`：获取主题和队列 ID
+  * `msg.setBodyCRC(UtilAll.crc32(msg.getBody()))`：获取消息的 CRC 值
+  * `topic、queueId`：获取主题和队列 ID
+  * `if (msg.getDelayTimeLevel() > 0) `：获取消息的延迟级别
+  * `topic = TopicValidator.RMQ_SYS_SCHEDULE_TOPIC`：**修改消息的主题为 `SCHEDULE_TOPIC_XXXX`**
+  * `queueId = ScheduleMessageService.delayLevel2QueueId()`：队列 ID 为延迟级别 -1
+  * `MessageAccessor.putProperty`：将原来的消息主题和 ID 存入消息的属性 `REAL_TOPIC` 中
+  * `msg.setTopic(topic)`：修改主题
   * `mappedFile = this.mappedFileQueue.getLastMappedFile()`：获取当前顺序写的 MappedFile 对象
-
   * `putMessageLock.lock()`：获取**写锁**
   * `msg.setStoreTimestamp(beginLockTimestamp)`：设置消息的存储时间为获取锁的时间
   * `if (null == mappedFile || mappedFile.isFull())`：文件写满了创建新的 MF 对象
@@ -6813,12 +6818,22 @@ FlushCommitLogService 刷盘 CL 数据，默认是异步刷盘
   ```
 
   * `while (!this.isStopped())`：stopped为 true 才跳出循环
+  
   * `boolean flushCommitLogTimed`：控制线程的休眠方式，默认是 false，使用 `CountDownLatch.await()` 休眠，设置为 true 时使用 `Thread.sleep()` 休眠
+  
   * `int interval`：获取配置中的刷盘时间间隔
+  
   * `int flushPhysicQueueLeastPages`：获取最小刷盘页数，默认是 4 页，脏页达到指定页数才刷盘
+  
   * `int flushPhysicQueueThoroughInterval`：获取强制刷盘周期，默认是 10 秒，达到周期后强制刷盘，不考虑脏页
+  
   * `if (flushCommitLogTimed)`：休眠逻辑，避免 CPU 占用太长时间，导致无法执行其他更紧急的任务
+  
   * `CommitLog.this.mappedFileQueue.flush(flushPhysicQueueLeastPages)`：**刷盘**
+  
+  * `for (int i = 0; i < RETRY_TIMES_OVER && !result; i++)`：stopped 停止标记为 true 时，需要确保所有的数据都已经刷盘，所以此处尝试 10 次强制刷盘，
+  
+    `result = CommitLog.this.mappedFileQueue.flush(0)`：**强制刷盘**
 
 
 
@@ -6989,6 +7004,12 @@ public static BrokerController start(BrokerController controller) {
 }
 ```
 
+BrokerStartup#createBrokerController：构造控制器，并初始化
+
+* `final BrokerController controller()`：创建实例对象
+* `boolean initResult = controller.initialize()`：控制器初始化
+  * `this.registerProcessor()`：**注册了处理器，包括发送消息、拉取消息、查询消息等核心处理器**
+
 BrokerController#start：核心启动方法
 
 * `this.messageStore.start()`：**启动存储服务**
@@ -7102,7 +7123,7 @@ DefaultMQProducer 是生产者的默认实现类
   }
   ```
 
-* request()：请求方法，**需要消费者回执消息**，又叫回退消息
+* request()：请求方法，**需要消费者回执消息**
 
   ```java
   public Message request(final Message msg, final MessageQueue mq, final long timeout) {
@@ -7336,7 +7357,7 @@ DefaultMQProducerImpl 类是默认的生产者实现类
 
   * `getRequestFutureTable().put(correlationId, requestResponseFuture)`：放入RequestFutureTable 映射表中
 
-  * `this.sendDefaultImpl(msg, CommunicationMode.ASYNC, new SendCallback())`：**发送异步消息**
+  * `this.sendDefaultImpl(msg, CommunicationMode.ASYNC, new SendCallback())`：**发送异步消息，有回调函数**
 
   * `return waitResponse(msg, timeout, requestResponseFuture, cost)`：用来挂起请求的方法
 
@@ -7611,7 +7632,7 @@ MQClientInstance 是 RocketMQ 客户端实例，在一个 JVM 进程中只有一
   private final ConsumerStatsManager consumerStatsManager;	// 消费者状态管理
   ```
 
-* 内部生产者实例：处理消费端**消息回退**，用该生产者发送回执消息
+* 内部生产者实例：处理消费端**消息回退**，用该生产者发送回退消息
 
   ```java
   private final DefaultMQProducer defaultMQProducer;
@@ -7918,6 +7939,236 @@ NettyRemotingClient 类负责客户端的网络通信
 
 
 
+***
+
+
+
+#### 延迟消息
+
+##### 消息处理
+
+BrokerStartup 初始化 BrokerController 调用 `registerProcessor()` 方法将 SendMessageProcessor 注册到 NettyRemotingServer 中，对应的请求 ID 为 `SEND_MESSAGE = 10`，NettyServerHandler 在处理请求时通过请求 ID 会获取处理器执行 processRequest
+
+```java
+// 参数一：处理通道的事件；   参数二：客户端
+public RemotingCommand processRequest(ChannelHandlerContext ctx, RemotingCommand request)  {
+    RemotingCommand response = null;
+   	response = asyncProcessRequest(ctx, request).get();
+    return response;
+}
+```
+
+SendMessageProcessor#asyncConsumerSendMsgBack：异步发送消费者的回调消息
+
+* `final RemotingCommand response`：创建一个服务器响应对象
+
+* `final ConsumerSendMsgBackRequestHeader requestHeader`：解析出客户端请求头信息，几个**核心字段**：
+
+  * `private Long offset`：回退消息的 CommitLog offset
+  * `private Integer delayLevel`：延迟级别，一般是 0
+  * `private String originMsgId, originTopic`：原始的消息 ID，主题
+  * `private Integer maxReconsumeTimes`：最大重试次数，默认是 16 次
+
+* `if ()`：鉴权，是否找到订阅组配置、Broker 是否支持写请求、订阅组是否支持消息重试
+
+* `String newTopic = MixAll.getRetryTopic(...)`：获取**消费者组的重试主题**，规则是 `%RETRY%GroupName`
+
+* `int queueIdInt = Math.abs()`：充实主题下的队列 ID 是 0
+
+* `TopicConfig topicConfig`：获取重试主题的配置信息
+
+* `MessageExt msgExt`：根据消息的物理 offset 到存储模块查询，内部先查询出这条消息的 size，然后再根据 offset 和 size 查询出整条 msg
+
+* `final String retryTopic`：获取消息的原始主题
+
+* `if (null == retryTopic)`：条件成立说明**当前消息是第一次被回退**， 添加 `RETRY_TOPIC` 属性
+
+* `msgExt.setWaitStoreMsgOK(false)`：异步刷盘
+
+* `if (msgExt...() >= maxReconsumeTimes || delayLevel < 0)`：消息重试次数超过最大次数，不支持重试
+
+  `newTopic = MixAll.getDLQTopic()`：获取消费者的死信队列，规则是 `%DLQ%GroupName`
+
+  `queueIdInt, topicConfig`：死信队列 ID 为 0，创建死信队列的配置
+
+* `if (0 == delayLevel)`：说明延迟级别由 Broker 控制
+
+  `delayLevel = 3 + msgExt.getReconsumeTimes()`：**延迟级别默认从 3 级开始**，每重试一次，延迟级别 +1
+
+* `msgExt.setDelayTimeLevel(delayLevel)`：**将延迟级别设置进消息属性**，存储时会检查该属性，该属性值 > 0 会将消息的主题和队列再次修改，修改为调度主题和调度队列 ID
+
+* `MessageExtBrokerInner msgInner`：创建一条空消息，消息属性从 offset 查询出来的 msg 中拷贝
+
+* `msgInner.setReconsumeTimes)`：重试次数设置为原 msg 的次数 +1
+
+* `UtilAll.isBlank(originMsgId)`：判断消息是否是初次返回到服务器
+
+  *  true：说明 msgExt 消息是第一次被返回到服务器，此时使用该 msg 的 id 作为 originMessageId
+  * false：说明原始消息已经被重试不止 1 次，此时使用 offset 查询出来的 msg 中的 originMessageId
+
+* `CompletableFuture putMessageResult = ..asyncPutMessage(msgInner)`：调用存储模块存储消息
+
+  `DefaultMessageStore#asyncPutMessage`：
+
+  * `PutMessageResult result = this.commitLog.asyncPutMessage(msg)`：**将新消息存储到 CommitLog 中**
+
+
+
+***
+
+
+
+##### 调度服务
+
+DefaultMessageStore 中有成员属性 ScheduleMessageService，在 start 方法中会启动该调度服务
+
+成员变量：
+
+* 延迟级别属性表：
+
+  ```java
+  // 存储延迟级别对应的 延迟时间长度 （单位：毫秒）
+  private final ConcurrentMap<Integer /* level */, Long/* delay timeMillis */> delayLevelTable;
+  // 存储延迟级别 queue 的消费进度 offset，该 table 每 10 秒钟，会持久化一次，持久化到本地磁盘
+  private final ConcurrentMap<Integer /* level */, Long/* offset */> offsetTable;
+  ```
+
+* 最大延迟级别：
+
+  ```java
+  private int maxDelayLevel;
+  ```
+
+* 模块启动状态：
+
+  ```java
+  private final AtomicBoolean started = new AtomicBoolean(false);
+  ```
+
+* 定时器：内部有线程资源，可执行调度任务
+
+  ```java
+  private Timer timer;
+  ```
+
+成员方法：
+
+* load()：加载调度消息，初始化 delayLevelTable 和 offsetTable
+
+  ```java
+  public boolean load()
+  ```
+
+* start()：启动消息调度服务
+
+  ```java
+  public void start()
+  ```
+
+  * `if (started.compareAndSet(false, true))`：将启动状态设为 true
+
+  * `this.timer`：创建定时器对象
+
+  * `for (... : this.delayLevelTable.entrySet())`：为**每个延迟级别创建一个延迟任务**提交到 timer ，延迟 1 秒后执行
+
+  * `this.timer.scheduleAtFixedRate()`：提交周期型任务，延迟 10 秒执行，周期为 10 秒，持久化延迟队列消费进度任务
+
+    `ScheduleMessageService.this.persist()`：持久化消费进度
+
+
+
+***
+
+
+
+##### 调度任务
+
+DeliverDelayedMessageTimerTask 是一个任务类
+
+成员变量：
+
+* 延迟级别：延迟队列任务处理的延迟级别
+
+  ```java
+  private final int delayLevel;
+  ```
+
+* 消费进度：延迟队列任务处理的延迟队列的消费进度
+
+  ```java
+  private final long offset;
+  ```
+
+成员方法：
+
+* run()：执行任务
+
+  ```java
+  public void run() {
+      if (isStarted()) {
+          this.executeOnTimeup();
+  }
+  ```
+
+* executeOnTimeup()：执行任务
+
+  ```java
+  public void executeOnTimeup()
+  ```
+
+  * `ConsumeQueue cq`：获取出该延迟队列任务处理的延迟队列 ConsumeQueue
+
+  * `SelectMappedBufferResult bufferCQ`：根据消费进度查询出 SMBR 对象
+
+  * `for (; i < bufferCQ.getSize(); i += ConsumeQueue.CQ_STORE_UNIT_SIZE)`：每次读取 20 各字节的数据
+
+  * `offsetPy, sizePy`：延迟消息的物理偏移量和消息大小
+
+  * `long tagsCode`：延迟消息的交付时间，在 ReputMessageService 转发时根据消息的 DELAY 属性是否 >0 ，会在 tagsCode 字段存储交付时间
+
+  * `long deliverTimestamp = this.correctDeliverTimestamp(now, tagsCode)`：**延迟交付时间**
+
+    * `long maxTimestamp`：当前时间 + 延迟级别对应的延迟毫秒值的时间戳
+    * `if (deliverTimestamp > maxTimestamp)`：条件成立说明延迟时间过长，调整为当前时间立刻执行
+    * `return result`：一般情况 result 就是 deliverTimestamp
+
+  * `long countdown = deliverTimestamp - now`：计算差值
+
+  * `if (countdown <= 0)`：消息已经到达交付时间了
+
+    `MessageExt msgExt`：根据物理偏移量和消息大小获取这条消息
+
+    `MessageExtBrokerInner msgInner`：**构建一条新消息**，将原消息的属性拷贝过来
+
+    * `long tagsCodeValue`：不再是交付时间了
+    * `MessageAccessor.clearProperty(msgInner, DELAY..)`：清理新消息的 DELAY 属性，避免存储时重定向到延迟队列
+    * `msgInner.setTopic()`：修改主题为原始的主题 `%RETRY%GroupName`
+    * `String queueIdStr`：修改队列 ID 为原始的 ID
+
+    `PutMessageResult putMessageResult`：**将新消息存储到 CommitLog**，消费者订阅的是目标主题，会再次消费该消息
+
+  * `else`：消息还未到达交付时间
+
+    `ScheduleMessageService.this.timer.schedule()`：创建该延迟级别的任务，延迟 countDown 毫秒之后再执行
+
+    `ScheduleMessageService.this.updateOffset()`：更新延迟级别队列的消费进度
+
+  * `PutMessageResult putMessageResult`
+
+  * `bufferCQ == null`：说明通过消费进度没有获取到数据
+
+    `if (offset < cqMinOffset)`：如果消费进度比最小位点都小，说明是过期数据，重置为最小位点 
+
+  * `ScheduleMessageService.this.timer.schedule()`：重新提交该延迟级别对应的延迟队列任务，延迟 100 毫秒后执行
+
+
+
+
+
+
+
+
+
 ****
 
 
@@ -8209,7 +8460,7 @@ RebalanceImpl 类成员变量：
 
   * `allocateResult = strategy.allocate()`： **调用队列分配策略**，给当前消费者进行分配 MessageQueue
 
-  * `boolean changed = this.updateProcessQueueTableInRebalance(...)`：负载均衡，更新队列处理集合
+  * `boolean changed = this.updateProcessQueueTableInRebalance(...)`：**更新队列处理集合**
 
     * `boolean changed = false`：当前消费者的消费队列是否有变化
 
@@ -8219,25 +8470,70 @@ RebalanceImpl 类成员变量：
 
       `pq.setDropped(true)`：将删除状态设置为 true
 
-      `if (this.removeUnnecessaryMessageQueue(mq, pq))`：在 MQ 归属的 broker 节点持久化消费进度，并删除该 MQ 在本地的消费进度
+      `if (this.removeUnnecessaryMessageQueue(mq, pq))`：删除不需要的 MQ 队列
 
+      * `this...getOffsetStore().persist(mq)`：在 MQ 归属的 Broker 节点持久化消费进度
+
+      * `this...getOffsetStore().removeOffset(mq)`：删除该 MQ 在本地的消费进度
+
+      * `if (this.defaultMQPushConsumerImpl.isConsumeOrderly() &&)`：是否是**顺序消费**和集群模式
+
+        `if (pq.getLockConsume().tryLock(1000, ..))`： 获取锁成功，说明顺序消费任务已经停止消费工作
+
+        `return this.unlockDelay(mq, pq)`：**释放锁 Broker 端的队列锁**
+
+        * `if (pq.hasTempMessage())`：队列中有消息，延迟 20 秒释放队列分布式锁，确保全局范围内只有一个消费任务 运行中
+        * `else`：当前消费者本地该消费任务已经退出，直接释放锁
+    
+        `else`：顺序消费任务正在消费一批消息，不可打断，增加尝试获取锁的次数
+    
       `it.remove()`：从 processQueueTable 移除该 MQ
-
-    * `else if (pq.isPullExpired())`：说明当前 MQ 还是被当前 consumer 消费，此时判断一下是否超过 2 分钟未到服务器 拉消息，如果条件成立进行上述相同的逻辑、
-
+    
+    * `else if (pq.isPullExpired())`：说明当前 MQ 还是被当前 consumer 消费，此时判断一下是否超过 2 分钟未到服务器 拉消息，如果条件成立进行上述相同的逻辑
+    
     * `for (MessageQueue mq : mqSet)`：开始处理当前主题**新分配**到当前节点的队列
-
-    * `if (isOrder && !this.lock(mq))`：**顺序消息为了保证有序性，需要获取分布式锁**
-
-    * `ProcessQueue pq = new ProcessQueue()`：为每个新分配的消息队列创建快照队列
-
-    * `long nextOffset = this.computePullFromWhere(mq)`：**从服务端获取新分配的 MQ 的消费进度**
-
-    * `ProcessQueue pre = this.processQueueTable.putIfAbsent(mq, pq)`：保存到处理队列集合
-
-    * `PullRequest pullRequest = new PullRequest()`：创建拉取请求对象
-
+    
+      `if (isOrder && !this.lock(mq))`：**顺序消息为了保证有序性，需要获取分布式锁**
+    
+      `ProcessQueue pq = new ProcessQueue()`：为每个新分配的消息队列创建快照队列
+    
+      `long nextOffset = this.computePullFromWhere(mq)`：**从服务端获取新分配的 MQ 的消费进度**
+    
+      `ProcessQueue pre = this.processQueueTable.putIfAbsent(mq, pq)`：保存到处理队列集合
+    
+      `PullRequest pullRequest = new PullRequest()`：创建拉取请求对象
+    
     * `this.dispatchPullRequest(pullRequestList)`：放入拉消息服务的本地阻塞队列内，**用于拉取消息工作**
+  
+* lockAll()：续约锁，对消费者的所有队列进行续约
+
+  ```java
+  public void lockAll()
+  ```
+
+  * `HashMap<String, Set<MessageQueue>> brokerMqs`：将分配给当前消费者的全部 MQ，按照 BrokerName 分组
+
+  * `while (it.hasNext())`：遍历所有的分组
+
+  * `final Set<MessageQueue> mqs`：获取该 Broker 上分配给当前消费者的 queue 集合
+
+  * `FindBrokerResult findBrokerResult`：查询 Broker 主节点信息
+
+  * `LockBatchRequestBody requestBody`：创建请求对象，填充属性
+
+  * `Set<MessageQueue> lockOKMQSet`：**向 Broker 发起批量续约锁的同步请求**，返回成功的队列集合
+
+  * `for (MessageQueue mq : lockOKMQSet)`：遍历续约锁成功的 MQ
+
+    `processQueue.setLocked(true)`：分布式锁状态设置为 true，**表示允许顺序消费**
+
+    `processQueue.setLastLockTimestamp(System.currentTimeMillis())`：设置上次获取锁的时间为当前时间
+
+  * `for (MessageQueue mq : mqs)`：遍历当前 Broker 上的所有队列集合
+
+    `if (!lockOKMQSet.contains(mq))`：条件成立说明续约锁失败
+
+    `processQueue.setLocked(false)`：分布式锁状态设置为 false，表示不允许顺序消费
 
 
 
@@ -8294,7 +8590,7 @@ AllocateMessageQueueStrategy 类是队列的分配策略
 
 
 
-#### 消息拉取
+#### 拉取服务
 
 ##### 实现方式
 
@@ -8441,7 +8737,7 @@ PullAPIWrapper 类封装了拉取消息的 API
 
 
 
-#### 通信处理
+#### 拉取处理
 
 ##### 处理器
 
@@ -8684,7 +8980,7 @@ ProcessQueue 类是消费队列的快照
 
   * `this.lockTreeMap.writeLock().unlock()`：释放写锁
 
-* removeMessage()：移除已经消费的消息，参数是已经消费的消息集合
+* removeMessage()：移除已经消费的消息，参数是已经消费的消息集合，并发消费使用
 
   ```java
   public long removeMessage(final List<MessageExt> msgs)
@@ -8699,7 +8995,7 @@ ProcessQueue 类是消费队列的快照
   * `if (!msgTreeMap.isEmpty())`：移除后容器内还有待消费的消息，**获取第一条消息 offset 返回**
   * `this.lockTreeMap.writeLock().unlock()`：释放写锁
 
-* takeMessages()：获取一批消息
+* takeMessages()：获取一批消息，顺序消费使用
 
   ```java
   public List<MessageExt> takeMessages(final int batchSize)
@@ -8714,7 +9010,7 @@ ProcessQueue 类是消费队列的快照
   * `consuming = false`：消费状态置为 false
   * `this.lockTreeMap.writeLock().unlock()`：释放写锁
 
-* commit()：处理完一批消息后调用
+* commit()：处理完一批消息后调用，顺序消费使用
 
   ```java
   public long commit()
@@ -8740,6 +9036,379 @@ ProcessQueue 类是消费队列的快照
   * `pushConsumer.sendMessageBack(msg, 3)`：**消息回退**到服务器，设置该消息的延迟级别为 3
   * `if (!msgTreeMap.isEmpty() && msg.getQueueOffset() == msgTreeMap.firstKey())`：条件成立说明消息回退期间，该目标消息并没有被消费任务成功消费
   * `removeMessage(Collections.singletonList(msg))`：从 treeMap 将该回退成功的 msg 删除
+
+
+
+****
+
+
+
+#### 并发消费
+
+##### 成员属性
+
+ConsumeMessageConcurrentlyService 负责并发消费服务
+
+成员变量：
+
+* 消息监听器：封装处理消息的逻辑，该监听器由开发者实现，并注册到 defaultMQPushConsumer
+
+  ```java
+  private final MessageListenerConcurrently messageListener;
+  ```
+
+* 消费属性：
+
+  ```java
+  private final BlockingQueue<Runnable> consumeRequestQueue;	// 消费任务队列
+  private final String consumerGroup;							// 消费者组
+  ```
+
+* 线程池：
+
+  ```java
+  private final ThreadPoolExecutor consumeExecutor;				// 消费任务线程池
+  private final ScheduledExecutorService scheduledExecutorService;// 调度线程池，延迟提交消费任务
+  private final ScheduledExecutorService cleanExpireMsgExecutors;	// 清理过期消息任务线程池，15min 一次
+  ```
+
+
+
+***
+
+
+
+##### 成员方法
+
+ConsumeMessageConcurrentlyService 并发消费核心方法
+
+* start()：启动消费服务，DefaultMQPushConsumerImpl 启动时会调用该方法
+
+  ```java
+  public void start() {
+      // 提交“清理过期消息任务”任务，延迟15min之后执行，之后每15min执行一次
+      this.cleanExpireMsgExecutors.scheduleAtFixedRate(() ->  cleanExpireMsg()}, 
+                                                       15, 15, TimeUnit.MINUTES);
+  }
+  ```
+
+* cleanExpireMsg()：清理过期消息任务
+
+  ```java
+  private void cleanExpireMsg()
+  ```
+
+  * `Iterator<Map.Entry<MessageQueue, ProcessQueue>> it `：获取分配给当前消费者的队列
+  * `while (it.hasNext())`：遍历所有的队列
+  * `pq.cleanExpiredMsg(this.defaultMQPushConsumer)`：调用队列快照 ProcessQueue 清理过期消息的方法
+
+* submitConsumeRequest()：提交消费请求
+
+  ```java
+  // 参数一：从服务器 pull 下来的这批消息
+  // 参数二：消息归属 mq 在消费者端的 processQueue，提交消费任务之前，msgs已经加入到该pq内了
+  // 参数三：消息归属队列
+  // 参数四：并发消息此参数无效
+  public void submitConsumeRequest(List<MessageExt> msgs, ProcessQueue processQueue, MessageQueue messageQueue, boolean dispatchToConsume)
+  ```
+
+  * `final int consumeBatchSize`：**一个消费任务**可消费的消息数量，默认为 1
+
+  * `if (msgs.size() <= consumeBatchSize)`：判断一个消费任务是否可以提交
+
+    `ConsumeRequest consumeRequest`：封装为消费请求
+
+    `this.consumeExecutor.submit(consumeRequest)`：提交消费任务，异步执行消息的处理
+
+  * `else`：说明消息较多，需要多个消费任务
+
+    `for (int total = 0; total < msgs.size(); )`：将消息拆分成多个消费任务
+
+* processConsumeResult()：处理消费结果
+
+  ```java
+  // 参数一：消费结果状态；  参数二：消费上下文；  参数三：当前消费任务
+  public void processConsumeResult(status, context, consumeRequest)
+  ```
+
+  * `switch (status)`：根据消费结果状态进行处理
+
+  * `case CONSUME_SUCCESS`：消费成功
+
+    `if (ackIndex >= consumeRequest.getMsgs().size())`：消费成功的话，ackIndex 设置成 `消费消息数 - 1` 的值，比如有 5 条消息，这里就设置为 4
+
+    `ok, failed`：ok 设置为消息数量，failed 设置为 0
+
+  * `case RECONSUME_LATER`：消费失败
+
+    `ackIndex = -1`：设置为 -1
+
+  * `switch (this.defaultMQPushConsumer.getMessageModel())`：判断消费模式，默认是**集群模式**
+
+  * `for (int i = ackIndex + 1; i < msgs.size(); i++)`：当消费失败时 ackIndex 为 -1，i 的起始值为 0，该消费任务内的全部消息都会尝试回退给服务器
+
+  * `MessageExt msg`：提取一条消息
+
+  * `boolean result = this.sendMessageBack(msg, context)`：发送**消息回退**
+
+    * `String brokerAddr`：根据 brokerName 获取 master 节点地址
+    * `his.mQClientFactory...consumerSendMessageBack()`：发送回退消息
+      * `RemotingCommand request`：创建请求对象
+      * `RemotingCommand response = this.remotingClient.invokeSync()`：**同步请求**
+
+  * `if (!result)`：回退失败的消息，将**消息的重试属性加 1**，并加入到回退失败的集合
+
+  * `if (!msgBackFailed.isEmpty())`：回退失败集合不为空
+
+    `consumeRequest.getMsgs().removeAll(msgBackFailed)`：将回退失败的消息从当前消费任务的 msgs 集合内移除
+
+    `this.submitConsumeRequestLater()`：回退失败的消息会再次提交消费任务，延迟 5 秒钟后**再次尝试消费**
+
+  * `long offset = ...removeMessage(msgs)`：从 pq 中删除已经消费成功的消息，返回 offset
+
+  * `this...getOffsetStore().updateOffset()`：更新消费者本地该 mq 的**消费进度**
+
+
+
+***
+
+
+
+##### 消费请求
+
+ConsumeRequest 是 ConsumeMessageConcurrentlyService 的内部类，是一个 Runnable 任务对象
+
+成员变量：
+
+* 分配到该消费任务的消息：
+
+  ```java
+  private final List<MessageExt> msgs;
+  ```
+
+* 消息队列：
+
+  ```java
+  private final ProcessQueue processQueue;	// 消息处理队列
+  private final MessageQueue messageQueue;	// 消息队列
+  ```
+
+核心方法：
+
+* run()：执行任务
+
+  ```java
+  public void run()
+  ```
+
+  * `if (this.processQueue.isDropped())`：条件成立说明该 queue 经过 rbl 算法分配到其他的 consumer
+  * `MessageListenerConcurrently listener`：获取消息监听器
+  * `ConsumeConcurrentlyContext context`：创建消费上下文对象
+  * `defaultMQPushConsumerImpl.resetRetryAndNamespace()`：重置重试标记
+    * `final String groupTopic`：获取当前消费者组的重试主题 `%RETRY%GroupName`
+    * `for (MessageExt msg : msgs)`：遍历所有的消息
+    * `String retryTopic = msg.getProperty(...)`：原主题，一般消息没有该属性，只有被重复消费的消息才有
+    * `if (retryTopic != null && groupTopic.equals(...))`：条件成立说明该消息是被重复消费的消息
+    * `msg.setTopic(retryTopic)`：将被**重复消费的消息主题修改回原主题**
+  * `if (ConsumeMessageConcurrentlyService...hasHook())`：前置处理
+  * `boolean hasException = false`：消费过程中，是否向外抛出异常
+  * `MessageAccessor.setConsumeStartTimeStamp()`：给每条消息设置消费开始时间
+  * `status = listener.consumeMessage(Collections.unmodifiableList(msgs), context)`：**消费消息**
+  * `if (ConsumeMessageConcurrentlyService...hasHook())`：后置处理
+  * `...processConsumeResult(status, context, this)`：**处理消费结果**
+
+
+
+****
+
+
+
+#### 顺序消费
+
+##### 成员属性
+
+ConsumeMessageOrderlyService 负责顺序消费服务
+
+成员变量：
+
+* 消息监听器：封装处理消息的逻辑，该监听器由开发者实现，并注册到 defaultMQPushConsumer
+
+  ```java
+  private final MessageListenerOrderly messageListener;
+  ```
+
+* 消费属性：
+
+  ```java
+  private final BlockingQueue<Runnable> consumeRequestQueue;	// 消费任务队列
+  private final String consumerGroup;							// 消费者组
+  private volatile boolean stopped = false;					// 消费停止状态
+  ```
+
+* 线程池：
+
+  ```java
+  private final ThreadPoolExecutor consumeExecutor;				// 消费任务线程池
+  private final ScheduledExecutorService scheduledExecutorService;// 调度线程池，延迟提交消费任务
+  ```
+
+* 队列锁：消费者本地 MQ 锁，确保本地对于需要顺序消费的 MQ 同一时间只有一个任务在执行
+
+  ```java
+  private final MessageQueueLock messageQueueLock = new MessageQueueLock();
+  ```
+
+  ```java
+  public class MessageQueueLock {
+      private ConcurrentMap<MessageQueue, Object> mqLockTable = new ConcurrentHashMap<MessageQueue, Object>();
+      // 获取本地队列锁对象
+      public Object fetchLockObject(final MessageQueue mq) {
+          Object objLock = this.mqLockTable.get(mq);
+          if (null == objLock) {
+              objLock = new Object();
+              Object prevLock = this.mqLockTable.putIfAbsent(mq, objLock);
+              if (prevLock != null) {
+                  objLock = prevLock;
+              }
+          }
+          return objLock;
+      }
+  }
+  ```
+
+  已经获取了 Broker 端该 Queue 的独占锁，为什么还要获取本地队列锁对象？（这里我也没太懂，先记录下来）
+
+  * Broker queue 占用锁的角度是 Client 占用，Client 从 Broker 的某个占用了锁的 queue 拉取下来消息以后，将消息存储到消费者本地的 ProcessQueue 中，快照对象的 consuming 属性置为 true，表示本地的队列正在消费处理中。
+  * ProcessQueue  调用 takeMessages 方法时会获取下一批待处理的消息，获取不到会修改 `consuming = false`，本消费任务马上停止。
+  * 如果此时 Pull 再次拉取一批当前 ProcessQueue  的 msg，会再次向顺序消费服务提交消费任务，此时需要本地队列锁对象同步本地线程
+
+
+
+***
+
+
+
+##### 成员方法
+
+* start()：启动消费服务，DefaultMQPushConsumerImpl 启动时会调用该方法
+
+  ```java
+  public void start()
+  ```
+
+  * `this.scheduledExecutorService.scheduleAtFixedRate()`：提交锁续约任务，延迟 1 秒执行，周期为 20 秒钟
+  * `ConsumeMessageOrderlyService.this.lockMQPeriodically()`：**锁续约任务**
+    * `this.defaultMQPushConsumerImpl.getRebalanceImpl().lockAll()`：对消费者的所有队列进行续约
+
+* submitConsumeRequest()：**提交消费任务请求**
+
+  ```java
+  // 参数：true 表示创建消费任务并提交，false不创建消费任务，说明消费者本地已经有消费任务在执行了
+  public void submitConsumeRequest(...., final boolean dispathToConsume) {
+      if (dispathToConsume) {
+          // 当前进程内不存在 顺序消费任务，创建新的消费任务，【提交到消费任务线程池】
+          ConsumeRequest consumeRequest = new ConsumeRequest(processQueue, messageQueue);
+          this.consumeExecutor.submit(consumeRequest);
+      }
+  }
+  ```
+
+* processConsumeResult()：消费结果处理
+
+  ```java
+  // 参数1：msgs 本轮循环消费的消息集合    					参数2：status  消费状态
+  // 参数3：context 消费上下文 							参数4：消费任务
+  // 返回值：boolean 决定是否继续循环处理pq内的消息
+  public boolean processConsumeResult(final List<MessageExt> msgs, final ConsumeOrderlyStatus status, final ConsumeOrderlyContext context, final ConsumeRequest consumeRequest)
+  ```
+
+  * `if (context.isAutoCommit()) `：默认自动提交
+
+  * `switch (status)`：根据消费状态进行不同的处理
+
+  * `case SUCCESS`：消费成功
+
+    `commitOffset = ...commit()`：调用 pq 提交方法，会将本次循环处理的消息从顺序消费 map 删除，并且返回消息进度
+
+  * `case SUSPEND_CURRENT_QUEUE_A_MOMENT`：挂起当前队列
+
+    `consumeRequest.getProcessQueue().makeMessageToConsumeAgain(msgs)`：回滚消息
+
+    * `for (MessageExt msg : msgs)`：遍历所有的消息
+    * `this.consumingMsgOrderlyTreeMap.remove(msg.getQueueOffset())`：从顺序消费临时容器中移除
+    * `this.msgTreeMap.put(msg.getQueueOffset(), msg)`：添加到消息容器
+
+  * `this.submitConsumeRequestLater()`：再次提交消费任务，1 秒后执行
+
+  * `continueConsume = false`：设置为 false，**外层会退出本次的消费任务**
+
+  * `this.defaultMQPushConsumerImpl.getOffsetStore().updateOffset(...)`：更新本地消费进度
+
+
+
+****
+
+
+
+##### 消费请求
+
+ConsumeRequest 是 ConsumeMessageOrderlyService 的内部类，是一个 Runnable 任务对象
+
+核心方法：
+
+* run()：执行任务
+
+  ```java
+  public void run()
+  ```
+
+  * `final Object objLock`：获取本地锁对象
+
+  * `synchronized (objLock)`：本地队列锁，确保每个 MQ 的消费任务只有一个在执行，**确保顺序消费**
+
+  * `if(.. || (this.processQueue.isLocked() && !this.processQueue.isLockExpired())))`：当前队列持有分布式锁，并且锁未过期，持锁时间超过 30 秒算过期
+
+  * `final long beginTime`：消费开始时间
+
+  * `for (boolean continueConsume = true; continueConsume; )`：根据是否继续消费的标记判断是否继续
+
+  * `final int consumeBatchSize`：获取每次循环处理的消息数量，一般是 1
+
+  * `List<MessageExt> msgs = this...takeMessages(consumeBatchSize)`：到**处理队列获取一批消息**
+
+  * `if (!msgs.isEmpty())`：获取到了待消费的消息
+
+    `final ConsumeOrderlyContext context`：创建消费上下文对象
+
+    `this.processQueue.getLockConsume().lock()`：**获取 lockConsume 锁**，与 RBL 线程同步使用
+
+    `status = messageListener.consumeMessage(...)`：监听器处理消息 
+
+    `this.processQueue.getLockConsume().unlock()`：**释放 lockConsume 锁**
+
+    `if (null == status)`：处理消息状态返回 null，设置状态为挂起当前队列
+
+    `continueConsume = ...processConsumeResult()`：消费结果处理
+
+  * `else`：获取到的消息是空
+
+    `continueConsume = false`：结束任务循环
+
+  * `else`：当前队列未持有分布式锁，或者锁过期
+
+    `ConsumeMessageOrderlyService.this.tryLockLaterAndReconsume()`：重新提交任务，根据是否获取到队列锁，选择延迟 10 毫秒或者 300 毫秒
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
