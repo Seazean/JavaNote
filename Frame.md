@@ -4227,7 +4227,7 @@ ConsumeQueue 的存储结构如下，有 8 个字节存储的 Message Tag 的哈
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-消费队列结构.png)
 
-* Tag 过滤：Consumer 端订阅消息时指定 Topic 和 TAG，然后将订阅请求构建成一个 SubscriptionData，发送一个 Pull 消息的请求给 Broker 端。Broker 端用这些数据先构建一个 MessageFilter，然后传给文件存储层 Store。Store 从 ConsumeQueue 读取到一条记录后，会用它记录的消息 tag hash 值去做过滤。因为在服务端只是根据  hashcode 进行判断，无法精确对 tag 原始字符串进行过滤，所以消费端拉取到消息后，还需要对消息的原始 tag 字符串进行比对，如果不同，则丢弃该消息，不进行消息消费
+* Tag 过滤：Consumer 端订阅消息时指定 Topic 和 TAG，然后将订阅请求构建成一个 SubscriptionData，发送一个 Pull 消息的请求给 Broker 端。Broker 端用这些数据先构建一个 MessageFilter，然后传给文件存储层 Store。Store 从 ConsumeQueue 读取到一条记录后，会用它记录的消息 tag hash 值去做过滤。因为在服务端只是根据 hashcode 进行判断，无法精确对 tag 原始字符串进行过滤，所以消费端拉取到消息后，还需要对消息的原始 tag 字符串进行比对，如果不同，则丢弃该消息，不进行消息消费
 
 * SQL92 过滤：工作流程和 Tag 过滤大致一样，只是在 Store 层的具体过滤方式不一样。真正的 SQL expression 的构建和执行由 rocketmq-filter 模块负责，每次过滤都去执行 SQL 表达式会影响效率，所以 RocketMQ 使用了 BloomFilter 来避免了每次都去执行
 
@@ -4309,16 +4309,16 @@ RocketMQ 支持分布式事务消息，采用了 2PC 的思想来实现了提交
 1. 事务消息发送及提交：
 
    * 发送消息（Half 消息）
-
-   * 服务端响应消息写入结果
-
+* 服务端响应消息写入结果
    * 根据发送结果执行本地事务（如果写入失败，此时 Half 消息对业务不可见，本地逻辑不执行）
-   * 根据本地事务状态执行 Commit 或者 Rollback（Commit 操作生成消息索引，消息对消费者可见）
+* 根据本地事务状态执行 Commit 或者 Rollback（Commit 操作生成消息索引，消息对消费者可见）
+  
+   ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-事务工作流程.png)
 
 2. 补偿流程：
 
-   * 对没有 Commit/Rollback 的事务消息（pending 状态的消息），从服务端发起一次回查
-   * Producer 收到回查消息，检查回查消息对应的本地事务的状态
+   * 对没有 Commit/Rollback 的事务消息（pending 状态的消息），服务端根据根据半消息的生产者组，到 ProducerManager 中获取生产者的会话通道，发起一次回查（**单向请求**）
+   * Producer 收到回查消息，检查事务消息状态表内对应的本地事务的状态
 
    * 根据本地事务状态，重新 Commit 或者 Rollback
 
@@ -4370,7 +4370,7 @@ RocketMQ 将 Op 消息写入到全局一个特定的 Topic 中，通过源码中
 
 如果在 RocketMQ 事务消息的二阶段过程中失败了，例如在做 Commit 操作时，出现网络问题导致 Commit 失败，那么需要通过一定的策略使这条消息最终被 Commit，RocketMQ 采用了一种补偿机制，称为回查
 
-Broker 端通过对比 Half 消息和 Op 消息，对未确定状态的消息发起回查并且推进 CheckPoint（记录哪些事务消息的状态是确定的），将消息发送到对应的 Producer 端（同一个 Group 的 Producer），由 Producer 根据消息来检查本地事务的状态，然后执行提交或回滚
+Broker 服务端通过对比 Half 消息和 Op 消息，对未确定状态的消息发起回查并且推进 CheckPoint（记录哪些事务消息的状态是确定的），将消息发送到对应的 Producer 端（同一个 Group 的 Producer），由 Producer 根据消息来检查本地事务的状态，然后执行提交或回滚
 
 注意：RocketMQ 并不会无休止的进行事务状态回查，默认回查 15 次，如果 15 次回查还是无法得知事务状态，则默认回滚该消息
 
@@ -4447,7 +4447,7 @@ public class TransactionListenerImpl implements TransactionListener {
 }
 ```
 
-使用 **TransactionMQProducer** 类创建事务性生产者，并指定唯一的 `ProducerGroup`，就可以设置自定义线程池来处理这些检查请求，执行本地事务后、需要根据执行结果对消息队列进行回复
+使用 **TransactionMQProducer** 类创建事务性生产者，并指定唯一的 `ProducerGroup`，就可以设置自定义线程池来处理这些检查请求，执行本地事务后，需要根据执行结果对消息队列进行回复
 
 ```java
 public class Producer {
@@ -4787,7 +4787,7 @@ RocketMQ 支持消息的高可靠，影响消息可靠性的几种情况：
 
 RocketMQ 中的负载均衡可以分为 Producer 端发送消息时候的负载均衡和 Consumer 端订阅消息的负载均衡
 
-Producer 端在发送消息时，会先根据 Topic 找到指定的 TopicPublishInfo，在获取了 TopicPublishInfo 路由信息后，RocketMQ 的客户端在默认方式调用 selectOneMessageQueue() 方法从 TopicPublishInfo 中的 messageQueueList 中选择一个队列 MessageQueue 进行发送消息
+Producer 端在发送消息时，会先根据 Topic 找到指定的 TopicPublishInfo，在获取了 TopicPublishInfo 路由信息后，RocketMQ 的客户端在默认方式调用 `selectOneMessageQueue()` 方法从 TopicPublishInfo 中的 messageQueueList 中选择一个队列 MessageQueue 进行发送消息
 
 默认会轮询所有的 Message Queue 发送，以让消息平均落在不同的 queue 上，而由于 queue可以散落在不同的 Broker，所以消息就发送到不同的 Broker 下，图中箭头线条上的标号代表顺序，发布方会把第一条消息发送至 Queue 0，然后第二条消息发送至 Queue 1，以此类推：
 
@@ -4798,7 +4798,7 @@ Producer 端在发送消息时，会先根据 Topic 找到指定的 TopicPublish
 * 如果开启，会在随机递增取模的基础上，再过滤掉 not available 的 Broker 代理
 * 如果关闭，采用随机递增取模的方式选择一个队列（MessageQueue）来发送消息
 
-latencyFaultTolerance 机制是实现消息发送高可用的核心关键所在，对之前失败的，按一定的时间做退避。例如上次请求的 latency 超过 550Lms，就退避 3000Lms；超过 1000L，就退避 60000L
+LatencyFaultTolerance 机制是实现消息发送高可用的核心关键所在，对之前失败的，按一定的时间做退避。例如上次请求的 latency 超过 550Lms，就退避 3000Lms；超过 1000L，就退避 60000L
 
 
 
@@ -5695,7 +5695,7 @@ NettyRemotingAbstract#processRequestCommand：**处理请求的数据**
 
     `DefaultRequestProcessor.processRequest`：**根据业务码处理请求，执行对应的操作**
     
-    `ClientRemotingProcessor.processRequest`：处理回退消息，需要消费者回执一条消息给生产者
+    `ClientRemotingProcessor.processRequest`：处理事务回查消息，或者回执消息，需要消费者回执一条消息给生产者
 
 * `requestTask = new RequestTask(run, ctx.channel(), cmd)`：将任务对象、通道、请求封装成 RequestTask 对象
 
@@ -6264,15 +6264,93 @@ CommitLog 类核心方法：
   * `this.defaultMessageStore.doDispatch(dispatchRequest)`：重建 ConsumerQueue 和 Index，避免上次异常停机导致 CQ 和 Index 与 CommitLog 不对齐
   * 剩余逻辑与正常关机的恢复方法相似
 
-消息追加服务 DefaultAppendMessageCallback
+
+
+***
+
+
+
+##### 服务线程
+
+AppendMessageCallback 消息追加服务实现类为 DefaultAppendMessageCallback
 
 * doAppend()
+  
+  ```java
+  public AppendMessageResult doAppend()
+  ```
+  
   * `long wroteOffset = fileFromOffset + byteBuffer.position()`：消息写入的位置，物理偏移量 phyOffset
   * `String msgId`：消息 ID，规则是客户端 IP + 消息偏移量 phyOffset
   * `byte[] topicData`：序列化消息，将消息的字段压入到  msgStoreItemMemory 这个 Buffer 中
   * `byteBuffer.put(this.msgStoreItemMemory.array(), 0, msgLen)`：将 msgStoreItemMemory 中的数据写入 MF 对象的内存映射的 Buffer 中，数据还没落盘
   * `AppendMessageResult result`：构造结果对象，包括存储位点、是否成功、队列偏移量等信息
   * `CommitLog.this.topicQueueTable.put(key, ++queueOffset)`：更新队列偏移量
+
+FlushRealTimeService 刷盘 CL 数据，默认是异步刷盘类 FlushRealTimeService
+
+* run()：运行方法
+
+  ```java
+  public void run()
+  ```
+
+  * `while (!this.isStopped())`：stopped为 true 才跳出循环
+
+  * `boolean flushCommitLogTimed`：控制线程的休眠方式，默认是 false，使用 `CountDownLatch.await()` 休眠，设置为 true 时使用 `Thread.sleep()` 休眠
+
+  * `int interval`：获取配置中的刷盘时间间隔
+
+  * `int flushPhysicQueueLeastPages`：获取最小刷盘页数，默认是 4 页，脏页达到指定页数才刷盘
+
+  * `int flushPhysicQueueThoroughInterval`：获取强制刷盘周期，默认是 10 秒，达到周期后强制刷盘，不考虑脏页
+
+  * `if (flushCommitLogTimed)`：休眠逻辑，避免 CPU 占用太长时间，导致无法执行其他更紧急的任务
+
+  * `CommitLog.this.mappedFileQueue.flush(flushPhysicQueueLeastPages)`：**刷盘**
+
+  * `for (int i = 0; i < RETRY_TIMES_OVER && !result; i++)`：stopped 停止标记为 true 时，需要确保所有的数据都已经刷盘，所以此处尝试 10 次强制刷盘，
+
+    `result = CommitLog.this.mappedFileQueue.flush(0)`：**强制刷盘**
+
+同步刷盘类 GroupCommitService
+
+* run()：运行方法
+
+  ```java
+  public void run()
+  ```
+
+  * `while (!this.isStopped())`：stopped为 true 才跳出循环
+
+    `this.waitForRunning(10)`：线程休眠 10 毫秒，最后调用 `onWaitEnd()` 进行请求的交换 `swapRequests()`
+
+    `this.doCommit()`：做提交逻辑
+
+    * `if (!this.requestsRead.isEmpty()) `：读请求集合不为空
+
+      `for (GroupCommitRequest req : this.requestsRead)`：遍历所有的读请求，请求中的属性：
+
+      * `private final long nextOffset`：本条消息存储之后，下一条消息开始的 offset
+      * `private CompletableFuture<PutMessageStatus> flushOKFuture`：Future 对象
+
+      `boolean flushOK = ...`：当前请求关注的数据是否全部落盘，**落盘成功唤醒消费者线程**
+
+      `for (int i = 0; i < 2 && !flushOK; i++)`：尝试进行两次强制刷盘，保证刷盘成功
+
+      `CommitLog.this.mappedFileQueue.flush(0)`：强制刷盘
+
+      `req.wakeupCustomer(flushOK ? ...)`：设置 Future 结果，在 Future 阻塞的线程在这里会被唤醒
+
+      `this.requestsRead.clear()`：清理 reqeustsRead 列表，方便交换时 成为 requestsWrite 使用
+
+    * `else`：读请求集合为空
+
+      `CommitLog.this.mappedFileQueue.flush(0)`：强制刷盘
+
+  * `this.swapRequests()`：交换读写请求
+
+  * `this.doCommit()`：交换后做一次提交
 
 
 
@@ -6594,6 +6672,618 @@ IndexService 类用来管理 IndexFile 文件
 
 
 
+#### HAService
+
+##### HAService
+
+###### Service
+
+HAService 类成员变量：
+
+* 主节点属性：
+
+  ```java
+  // master 节点当前有多少个 slave 节点与其进行数据同步
+  private final AtomicInteger connectionCount = new AtomicInteger(0);
+  // master 节点会给每个发起连接的 slave 节点的通道创建一个 HAConnection，控制 master 端向 slave 端传输数据
+  private final List<HAConnection> connectionList = new LinkedList<>();
+  // master 向 slave 节点推送的最大的 offset，表示数据同步的进度
+  private final AtomicLong push2SlaveMaxOffset = new AtomicLong(0)
+  ```
+
+* 内部类属性：
+
+  ```java
+  // 封装了绑定服务器指定端口，监听 slave 的连接的逻辑，没有使用 Netty，使用了原生态的 NIO 去做
+  private final AcceptSocketService acceptSocketService;
+  // 控制生产者线程阻塞等待的逻辑
+  private final GroupTransferService groupTransferService;
+  // slave 节点的客户端对象，【slave 端才会正常运行该实例】
+  private final HAClient haClient;
+  ```
+
+* 线程通信对象：
+
+  ```java
+  private final WaitNotifyObject waitNotifyObject = new WaitNotifyObject()
+  ```
+
+成员方法：
+
+* start()：启动高可用服务
+
+  ```java
+  public void  start() throws Exception {
+      // 监听从节点
+      this.acceptSocketService.beginAccept();
+      // 启动监听服务
+      this.acceptSocketService.start();
+      // 启动转移服务
+      this.groupTransferService.start();
+      // 启动从节点客户端实例
+      this.haClient.start();
+  }
+  ```
+
+
+
+****
+
+
+
+###### Accept
+
+AcceptSocketService 类用于监听从节点的连接，创建 HAConnection 连接对象
+
+成员变量：
+
+* 端口信息：Master 绑定监听的端口信息
+
+  ```java
+  private final SocketAddress socketAddressListen;
+  ```
+
+* 服务端通道：
+
+  ```java
+  private ServerSocketChannel serverSocketChannel;
+  ```
+
+* 多路复用器：
+
+  ```java
+  private Selector selector;
+  ```
+
+成员方法：
+
+* beginAccept()：开始监听连接，**NIO** 标准模板
+
+  ```java
+  public void beginAccept()
+  ```
+
+  * `this.serverSocketChannel = ServerSocketChannel.open()`：获取服务端 SocketChannel
+  * `this.selector = RemotingUtil.openSelector()`：获取多路复用器
+  * `this.serverSocketChannel.socket().setReuseAddress(true)`：开启通道可重用
+  * `this.serverSocketChannel.socket().bind(this.socketAddressListen)`：绑定连接端口
+  * `this.serverSocketChannel.configureBlocking(false)`：设置非阻塞
+  * `this.serverSocketChannel.register(this.selector, SelectionKey.OP_ACCEPT)`：将通道注册到多路复用器上，关注 `OP_ACCEPT` 事件
+
+* run()：服务启动
+
+  ```java
+  public void run()
+  ```
+
+  * `this.selector.select(1000)`：多路复用器阻塞获取就绪的通道，最多等待 1 秒钟
+  * `Set<SelectionKey> selected = this.selector.selectedKeys()`：获取选择器中所有注册的通道中已经就绪好的事件
+  * `for (SelectionKey k : selected)`：遍历所有就绪的事件
+  * `if ((k.readyOps() & SelectionKey.OP_ACCEPT) != 0)`：说明 `OP_ACCEPT` 事件就绪
+  * `SocketChannel sc = ((ServerSocketChannel) k.channel()).accept()`：**获取到客户端连接的通道**
+  * `HAConnection conn = new HAConnection(HAService.this, sc)`：**为每个连接 master 服务器的 slave 创建连接对象**
+  * `conn.start()`：**启动 HAConnection 对象**，内部启动两个服务为读数据服务、写数据服务
+  * `HAService.this.addConnection(conn)`：加入到 HAConnection 集合内
+
+
+
+****
+
+
+
+###### Group
+
+GroupTransferService 用来控制数据同步
+
+成员方法：
+
+* doWaitTransfer()：等待主从数据同步
+
+  ```java
+  private void doWaitTransfer()
+  ```
+
+  * `if (!this.requestsRead.isEmpty())`：读请求不为空
+  * `boolean transferOK = HAService.this.push2SlaveMaxOffset.get() >= req.getNextOffset()`：主从同步是否完成
+  * `req.wakeupCustomer(transferOK ? ...)`：唤醒消费者
+  * `this.requestsRead.clear()`：清空读请求
+
+
+
+****
+
+
+
+##### HAClient
+
+###### 成员属性
+
+HAClient 是 slave 端运行的代码，用于和 master 服务器建立长连接，上报本地同步进度，消费服务器发来的 msg 数据
+
+成员变量：
+
+* 缓冲区：
+
+  ```java
+  private static final int READ_MAX_BUFFER_SIZE = 1024 * 1024 * 4;	// 默认大小：4 MB
+  private ByteBuffer byteBufferRead = ByteBuffer.allocate(READ_MAX_BUFFER_SIZE);
+  private ByteBuffer byteBufferBackup = ByteBuffer.allocate(READ_MAX_BUFFER_SIZE);
+  ```
+
+* 主节点地址：格式为 `ip:port`
+
+  ```java
+  private final AtomicReference<String> masterAddress = new AtomicReference<>()
+  ```
+
+* NIO 属性：
+
+  ```java
+  private final ByteBuffer reportOffset;	// 通信使用NIO，所以消息使用块传输，上报 slave offset 使用
+  private SocketChannel socketChannel;	// 客户端与 master 的会话通道				
+  private Selector selector;				// 多路复用器
+  ```
+
+* 通信时间：上次会话通信时间，用于控制 socketChannel 是否关闭的
+
+  ````java
+  private long lastWriteTimestamp = System.currentTimeMillis();
+  ````
+
+* 进度信息：
+
+  ```java
+  private long currentReportedOffset = 0;	// slave 当前的进度信息
+  private int dispatchPosition = 0;		// 控制 byteBufferRead position 指针
+  ```
+
+
+
+***
+
+
+
+###### 成员方法
+
+* run()：启动方法
+
+  ```java
+  public void run()
+  ```
+
+  * `if (this.connectMaster())`：连接主节点，连接失败会休眠 5 秒
+
+    * `String addr = this.masterAddress.get()`：获取 master 暴露的 HA 地址端口信息
+    * `this.socketChannel = RemotingUtil.connect(socketAddress)`：建立连接
+    * `this.socketChannel.register(this.selector, SelectionKey.OP_READ)`：注册到多路复用器，**关注读事件**
+    * `this.currentReportedOffset`： 初始化上报进度字段为 slave 的 maxPhyOffset
+
+  * `if (this.isTimeToReportOffset())`：slave 每 5 秒会上报一次 slave 端的同步进度信息给 master
+
+    `boolean result = this.reportSlaveMaxOffset()`：上报同步信息，上报失败关闭连接
+
+  * `this.selector.select(1000)`：多路复用器阻塞获取就绪的通道，最多等待 1 秒钟，**获取到就绪事件或者超时后结束**
+
+  * `boolean ok = this.processReadEvent()`：处理读事件
+
+  * `if (!reportSlaveMaxOffsetPlus())`：检查是否重新上报同步进度
+
+* reportSlaveMaxOffset()：上报 slave 同步进度
+
+  ```java
+  private boolean reportSlaveMaxOffset(final long maxOffset)
+  ```
+
+  * 首先向缓冲区写入 slave 端最大偏移量，写完以后切换为指定置为初始状态
+
+  * `for (int i = 0; i < 3 && this.reportOffset.hasRemaining(); i++)`：尝试三次写数据
+
+    `this.socketChannel.write(this.reportOffset)`：**写数据**
+
+  * `return !this.reportOffset.hasRemaining()`：写成功之后 pos = limit
+
+* processReadEvent()：处理 master 发送给 slave 数据，返回 true 表示处理成功   false 表示 Socket 处于半关闭状态，需要上层重建 haClient
+
+  ```java
+  private boolean processReadEvent()
+  ```
+
+  * `int readSizeZeroTimes = 0`：控制 while 循环的一个条件变量，当值为 3 时跳出循环
+
+  * `while (this.byteBufferRead.hasRemaining())`：byteBufferRead 有空间可以去 Socket 读缓冲区加载数据
+
+  * `int readSize = this.socketChannel.read(this.byteBufferRead)`：**从通道读数据**
+
+  * `if (readSize > 0)`：加载成功，有新数据
+
+    `readSizeZeroTimes = 0`：置为 0
+
+    `boolean result = this.dispatchReadRequest()`：处理数据的核心逻辑
+
+  * `else if (readSize == 0) `：无新数据
+
+    `if (++readSizeZeroTimes >= 3)`：大于 3 时跳出循环
+
+  * `else`：readSize = -1 就表示 Socket 处于半关闭状态，对端已经关闭了
+
+* dispatchReadRequest()：**处理数据的核心逻辑**，master 与 slave 传输的数据格式 `{[phyOffset][size][data...]}`，phyOffset 表示数据区间的开始偏移量，data 代表数据块，最大 32kb，可能包含多条消息的数据
+
+  ```java
+  private boolean dispatchReadRequest()
+  ```
+
+  * `final int msgHeaderSize = 8 + 4`：协议头大小 12
+
+  * `int readSocketPos = this.byteBufferRead.position()`：记录缓冲区处理数据前的 pos 位点，用于恢复指针
+
+  * `int diff = ...`：当前 byteBufferRead 还剩多少 byte 未处理，每处理一条帧数据都会更新 dispatchPosition
+
+  * `if (diff >= msgHeaderSize)`：缓冲区还有完整的协议头 header 数据
+
+  * `long masterPhyOffset, int bodySize`：读取 header 信息
+
+  * `long slavePhyOffset`：获取 slave 端最大的物理偏移量
+
+  * `if (slavePhyOffset != masterPhyOffset)`：正常情况两者是相等的，因为是一帧一帧同步的
+
+  * `if (diff >= (msgHeaderSize + bodySize))`：说明**缓冲区内是包含当前帧的全部数据的**，开始处理帧数据
+
+    `byte[] bodyData = new byte[bodySize]`：提取帧内的 body 数据
+
+    `this.byteBufferRead.position(this.dispatchPosition + msgHeaderSize)`：**设置 pos 为当前帧的 body 起始位置**
+
+    `this.byteBufferRead.get(bodyData)`：读取数据到 bodyData 
+
+    `HAService...appendToCommitLog(masterPhyOffset, bodyData)`：存储数据到 CommitLog
+
+    `this.byteBufferRead.position(readSocketPos)`：恢复 byteBufferRead 的 pos 指针
+
+    `this.dispatchPosition += msgHeaderSize + bodySize`：**加一帧数据长度**
+
+    `if (!reportSlaveMaxOffsetPlus())`：上报 slave 同步信息
+
+  * `if (!this.byteBufferRead.hasRemaining())`：缓冲区写满了
+
+    `this.reallocateByteBuffer()`：重新分配缓冲区
+
+* reallocateByteBuffer()：重新分配缓冲区
+
+  ```java
+  private void reallocateByteBuffer()
+  ```
+
+  * `int remain = READ_MAX_BUFFER_SIZE - this.dispatchPosition`：表示缓冲区尚未处理过的字节数量
+
+  * `if (remain > 0)`：条件成立，说明缓冲区**最后一帧数据是半包数据**，但是不能丢失数据
+
+    `this.byteBufferBackup.put(this.byteBufferRead)`：**将半包数据拷贝到 backup 缓冲区**
+
+  * `this.swapByteBuffer()`：交换 backup 成为 read
+
+  * `this.byteBufferRead.position(remain)`：设置 pos 为 remain ，后续加载数据 pos 从remain 开始向后移动
+
+  * `this.dispatchPosition = 0`：当前缓冲区交换之后，相当于是一个全新的 byteBuffer，所以分配指针归零
+
+
+
+***
+
+
+
+##### HAConn
+
+###### Connection
+
+HAConnection 类成员变量：
+
+* 会话通道：master 和 slave 之间通信的 SocketChannel 
+
+  ```java
+  private final SocketChannel socketChannel;
+  ```
+
+* 客户端地址：
+
+  ```java
+  private final String clientAddr;
+  ```
+
+* 服务类：
+
+  ```java
+  private WriteSocketService writeSocketService;	// 写数据服务
+  private ReadSocketService readSocketService;	// 读数据服务
+  ```
+
+* 请求位点：在 slave上报本地的进度之后被赋值，该值大于 0 后同步逻辑才会运行，master 如果不知道 slave 节点当前消息的存储进度，就无法给 slave 推送数据
+
+  ```java
+  private volatile long slaveRequestOffset = -1;
+  ```
+
+* 应答位点： 保存最新的 slave 上报的 offset 信息，slaveAckOffset 之前的数据都可以认为 slave 已经同步完成
+
+  ```java
+  private volatile long slaveAckOffset = -1;
+  ```
+
+核心方法：
+
+* 构造方法：
+
+  ```java
+  public HAConnection(final HAService haService, final SocketChannel socketChannel) {
+      // 初始化一些东西
+      // 设置 socket 读写缓冲区为 64kb 大小
+      this.socketChannel.socket().setReceiveBufferSize(1024 * 64);
+      this.socketChannel.socket().setSendBufferSize(1024 * 64);
+      // 创建读写服务
+      this.writeSocketService = new WriteSocketService(this.socketChannel);
+      this.readSocketService = new ReadSocketService(this.socketChannel);
+      // 自增
+      this.haService.getConnectionCount().incrementAndGet();
+  }
+  ```
+
+* 启动方法：
+
+  ```java
+  public void start() {
+      this.readSocketService.start();
+      this.writeSocketService.start();
+  }
+  ```
+
+
+
+***
+
+
+
+###### ReadSocket
+
+ReadSocketService 类是一个任务对象，slave 向 master 传输的帧格式为 `[long][long][long]`，上报的是 slave 本地的同步进度，同步进度是一个 long 值
+
+成员变量：
+
+* 读缓冲：
+
+  ```java
+  private static final int READ_MAX_BUFFER_SIZE = 1024 * 1024;	// 默认大小 1MB
+  private final ByteBuffer byteBufferRead = ByteBuffer.allocate(READ_MAX_BUFFER_SIZE);
+  ```
+
+* NIO 属性：
+
+  ```java
+  private final Selector selector;			// 多路复用器
+  private final SocketChannel socketChannel;	// master 与 slave 之间的会话 SocketChannel
+  ```
+
+* 处理位点：缓冲区处理位点
+
+  ```java
+  private int processPosition = 0;
+  ```
+
+* 上次读操作的时间：
+
+  ```java
+  private volatile long lastReadTimestamp = System.currentTimeMillis();
+  ```
+
+核心方法：
+
+* 构造方法：
+
+  ```java
+  public ReadSocketService(final SocketChannel socketChannel)
+  ```
+
+  * `this.socketChannel.register(this.selector, SelectionKey.OP_READ)`：通道注册到多路复用器，关注读事件
+  * `this.setDaemon(true)`：设置为守护线程
+
+* 运行方法：
+
+  ```java
+  public void run()
+  ```
+
+  * `this.selector.select(1000)`：多路复用器阻塞获取就绪的通道，最多等待 1 秒钟，获取到就绪事件或者超时后结束
+
+  * `boolean ok = this.processReadEvent()`：**读数据的核心方法**，返回 true 表示处理成功   false 表示 Socket 处于半关闭状态，需要上层重建 HAConnection 对象
+
+    * `int readSizeZeroTimes = 0`：控制 while 循环，当连续从 Socket 读取失败 3 次（未加载到数据）跳出循环
+
+    * `if (!this.byteBufferRead.hasRemaining())`：byteBufferRead 已经全部使用完，需要清理数据并更新位点
+
+    * `while (this.byteBufferRead.hasRemaining())`：byteBufferRead 有空间可以去 Socket 读缓冲区加载数据
+
+    * `int readSize = this.socketChannel.read(this.byteBufferRead)`：**从通道读数据**
+
+    * `if (readSize > 0)`：加载成功，有新数据
+
+      `readSizeZeroTimes = 0`：置为 0
+
+      `if ((byteBufferRead.position() - processPosition) >= 8)`：缓冲区的可读数据最少包含一个数据帧
+
+      * `int pos = ...`：**获取可读帧数据中最后一个完整的帧数据的位点**，后面的数据丢弃
+      * `long readOffset = ...byteBufferRead.getLong(pos - 8)`：读取最后一帧数据，slave 端当前的同步进度信息
+      * `this.processPosition = pos`：更新处理位点
+      * `HAConnection.this.slaveAckOffset = readOffset`：更新应答位点
+      * `if (HAConnection.this.slaveRequestOffset < 0)`：条件成立**给 slaveRequestOffset 赋值**
+      * `HAConnection...notifyTransferSome(slaveAckOffset)`：**唤醒阻塞的生产者线程**
+
+    * `else if (readSize == 0) `：无新数据
+
+      `if (++readSizeZeroTimes >= 3)`：大于 3 时跳出循环
+
+    * `else`：readSize = -1 就表示 Socket 处于半关闭状态，对端已经关闭了
+
+  * `if (interval > 20)`：超过 20 秒未发生通信，直接结束循环
+
+
+
+***
+
+
+
+###### WriteSocket
+
+WriteSocketService 类是一个任务对象，master向 slave 传输的数据帧格式为 `{[phyOffset][size][data...]}{[phyOffset][size][data...]}`，上报的是 slave 本地的同步进度，同步进度是一个 long 值
+
+* phyOffset：数据区间的开始偏移量，并不表示某一条具体的消息，表示的数据块开始的偏移量位置
+* size：同步的数据块的大小
+* data：数据块，最大 32kb，可能包含多条消息的数据
+
+成员变量：
+
+* 协议头：
+
+  ```java
+  private final int headerSize = 8 + 4;		// 协议头大小：12
+  private final ByteBuffer byteBufferHeader;	// 帧头缓冲区
+  ```
+
+* NIO 属性：
+
+  ```java
+  private final Selector selector;			// 多路复用器
+  private final SocketChannel socketChannel;	// master 与 slave 之间的会话 SocketChannel
+  ```
+
+* 处理位点：下一次传输同步数据的位置信息，master 给当前 slave 同步的位点
+
+  ```java
+  private long nextTransferFromWhere = -1;
+  ```
+
+* 上次写操作：
+
+  ```java
+  private boolean lastWriteOver = true;							// 上一轮数据是否传输完毕
+  private long lastWriteTimestamp = System.currentTimeMillis();	// 上次写操作的时间
+  ```
+
+核心方法：
+
+* 构造方法：
+
+  ```java
+  public WriteSocketService(final SocketChannel socketChannel)
+  ```
+
+  * `this.socketChannel.register(this.selector, SelectionKey.OP_WRITE)`：通道注册到多路复用器，关注写事件
+  * `this.setDaemon(true)`：设置为守护线程
+
+* 运行方法：
+
+  ```java
+  public void run()
+  ```
+
+  * `this.selector.select(1000)`：多路复用器阻塞获取就绪的通道，最多等待 1 秒钟，获取到就绪事件或者超时后结束
+
+  * `if (-1 == HAConnection.this.slaveRequestOffset)`：**等待 slave 同步完数据**
+
+  * `if (-1 == this.nextTransferFromWhere)`：条件成立，需要初始化该变量
+  
+    `if (0 == HAConnection.this.slaveRequestOffset)`：slave 是一个全新节点，从正在顺序写的 MF 开始同步数据
+  
+    `long masterOffset = ...`：获取 master 最大的 offset，并计算归属的 mappedFile 文件的开始 offset
+  
+    `this.nextTransferFromWhere = masterOffset`：**赋值给下一次传输同步数据的位置信息**
+  
+    `this.nextTransferFromWhere = HAConnection.this.slaveRequestOffset`：大部分情况走这个赋值逻辑
+  
+  * `if (this.lastWriteOver)`：上一次待发送数据全部发送完成
+  
+    `if (interval > 5)`：超过 5 秒未同步数据，发送一个 header 数据包，维持长连接
+  
+  * `else`：上一轮的待发送数据未全部发送，需要同步数据到 slave 节点
+  
+  * `SelectMappedBufferResult selectResult`：到 CommitLog 中查询 nextTransferFromWhere 开始位置的数据
+  
+  * `if (size > 32k)`：**一次最多同步 32k 数据**
+  
+  * `this.nextTransferFromWhere += size`：增加 size，下一轮传输跳过本帧数据
+  
+  * `selectResult.getByteBuffer().limit(size)`：设置 byteBuffer 可访问数据区间为 [pos, size]
+  
+  * `this.selectMappedBufferResult = selectResult`：**待发送的数据**
+  
+  * `this.byteBufferHeader.put`：**构建帧头数据**
+  
+  * `this.lastWriteOver = this.transferData()`：处理数据，返回是否处理完成
+
+* 同步方法：**同步数据到 slave 节点**，返回 true 表示本轮数据全部同步完成，false 表示本轮同步未完成（Header 和 Body 其中一个未同步完成都会返回 false）
+
+  ```java
+  private boolean transferData()
+  ```
+
+  * `int writeSizeZeroTimes= 0`：控制 while 循环，当写失败连续 3 次时，跳出循环）跳出循环
+
+  * `while (this.byteBufferHeader.hasRemaining())`：**帧头数据缓冲区有待发送的数据**
+
+  * `int writeSize = this.socketChannel.write(this.byteBufferHeader)`：向通道写帧头数据
+
+  * `if (writeSize > 0)`：写数据成功
+
+    `writeSizeZeroTimes = 0`：控制变量置为 0
+
+  * `else if (readSize == 0)`：写失败
+
+    `if (++readSizeZeroTimes >= 3)`：大于 3 时跳出循环
+
+  * `if (null == this.selectMappedBufferResult)`：说明是心跳数据，返回心跳数据是否发送完成
+
+  * `writeSizeZeroTimes = 0`：控制变量置为 0
+
+  * `if (!this.byteBufferHeader.hasRemaining())`：**Header写成功之后，才进行写 Body**
+
+  * `while (this.selectMappedBufferResult.getByteBuffer().hasRemaining())`：**数据缓冲区有待发送的数据**
+
+  * `int writeSize = this.socketChannel.write(this.selectMappedBufferResult...)`：向通道写帧头数据
+
+  * `if (writeSize > 0)`：写数据成功，但是不代表 SMBR 中的数据全部写完成
+
+    `writeSizeZeroTimes = 0`：控制变量置为 0
+
+  * `else if (readSize == 0)`：写失败，因为 Socket 写缓冲区写满了
+
+    `if (++readSizeZeroTimes >= 3)`：大于 3 时跳出循环
+
+  * `boolean result`：判断是否发送完成，返回该值
+
+
+
+
+
+****
+
+
+
 #### MesStore
 
 ##### 生命周期
@@ -6894,7 +7584,7 @@ CleanConsumeQueueService 清理过期的 CQ 数据
 
 ##### 获取消息
 
-PullMessageProcessor#processRequest 方法中调用 getMessage 用于获取消息（提示：建议学习消费者源码时再阅读）
+DefaultMessageStore#getMessage 用于获取消息，在 PullMessageProcessor#processRequest 方法中被调用 （提示：建议学习消费者源码时再阅读）
 
 ```java
 // offset: 客户端拉消息使用位点；   maxMsgNums: 32；  messageFilter: 一般这里是 tagCode 过滤 
@@ -7021,8 +7711,6 @@ BrokerController#start：核心启动方法
 * `this.scheduledExecutorService.scheduleAtFixedRate()`：每隔 30s 向 NameServer 上报 Topic 路由信息，**心跳机制**
 
   `BrokerController.this.registerBrokerAll(true, false, brokerConfig.isForceRegister())`
-
-
 
 
 
@@ -8163,9 +8851,223 @@ DeliverDelayedMessageTimerTask 是一个任务类
 
 
 
+****
 
 
 
+#### 事务消息
+
+##### 生产者类
+
+TransactionMQProducer 类发送事务消息时使用
+
+成员变量：
+
+* 事务回查线程池资源：
+
+  ```java
+  private ExecutorService executorService;
+
+* 事务监听器：
+
+  ```java
+  private TransactionListener transactionListener;
+  ```
+
+核心方法：
+
+* start()：启动方法
+
+  ```java
+  public void start()
+  ```
+
+  * `this.defaultMQProducerImpl.initTransactionEnv()`：初始化生产者实例和回查线程池资源
+  * `super.start()`：启动生产者实例
+
+* sendMessageInTransaction()：发送事务消息
+
+  ```java
+  public TransactionSendResult sendMessageInTransaction(final Message msg, final Object arg) {
+      msg.setTopic(NamespaceUtil.wrapNamespace(this.getNamespace(), msg.getTopic()));
+      // 调用实现类的发送方法
+      return this.defaultMQProducerImpl.sendMessageInTransaction(msg, null, arg);
+  }
+  ```
+
+  * `TransactionListener transactionListener = getCheckListener()`：获取监听器
+
+  * `if (null == localTransactionExecuter && null == transactionListener)`：两者都为 null 抛出异常
+
+  * `Validators.checkMessage(msg, this.defaultMQProducer)`：检查消息
+
+  * `MessageAccessor.putProperty(msg, MessageConst.PROPERTY_TRANSACTION_PREPARED, "true")`：**设置事务标志**
+
+  * `sendResult = this.send(msg)`：发送消息
+
+  * `switch (sendResult.getSendStatus())`：**判断发送消息的结果状态**
+
+  * `case SEND_OK`：消息发送成功
+
+    `msg.setTransactionId(transactionId)`：设置事务 ID 为消息的 UNIQ_KEY 属性
+
+    `localTransactionState = ...executeLocalTransactionBranch(msg, arg)`：**执行本地事务**
+
+  * `case SLAVE_NOT_AVAILABLE`：其他情况都需要回滚事务
+
+    `localTransactionState = LocalTransactionState.ROLLBACK_MESSAGE`：**事务状态设置为回滚**
+
+  * `this.endTransaction(sendResult, ...)`：结束事务
+
+    * `EndTransactionRequestHeader requestHeader`：构建事务结束头对象
+    * `this.mQClientFactory.getMQClientAPIImpl().endTransactionOneway()`：向 Broker 发起事务结束的单向请求
+
+  
+
+***
+
+
+
+##### 回查处理
+
+ClientRemotingProcessor 用于处理到客户端的请求，创建 MQClientAPIImpl 时将该处理器注册到 Netty 中，`processRequest()` 方法根据请求的命令码，进行不同的处理，事务回查的处理命令码为 `CHECK_TRANSACTION_STATE`
+
+成员方法：
+
+* checkTransactionState()：检查事务状态
+
+  ```java
+  public RemotingCommand checkTransactionState(ChannelHandlerContext ctx, RemotingCommand request)
+  ```
+
+  * `final CheckTransactionStateRequestHeader requestHeader`：解析出请求头对象
+  * `final MessageExt messageExt`：从请求 body 中解析出服务器回查的事务消息
+  * `String transactionId`：提取 UNIQ_KEY 字段属性值赋值给事务 ID
+  * `final String group`：提取生产者组名
+  * `MQProducerInner producer = this...selectProducer(group)`：根据生产者组获取生产者对象
+  * `String addr = RemotingHelper.parseChannelRemoteAddr()`：解析出要回查的 Broker 服务器的地址
+  * `producer.checkTransactionState(addr, messageExt, requestHeader)`：生产者的事务回查
+    * `Runnable request = new Runnable()`：**创建回查事务状态任务对象**
+      * 获取生产者的 TransactionCheckListener 和 TransactionListener，选择一个不为 null 的监听器进行事务状态回查
+      * `this.processTransactionState()`：处理回查状态
+        * `EndTransactionRequestHeader thisHeader`：构建 EndTransactionRequestHeader 对象
+        * `DefaultMQProducerImpl...endTransactionOneway()`：向 Broker 发起结束事务单向请求，**二阶段提交**
+    * `this.checkExecutor.submit(request)`：提交到线程池运行
+
+
+
+参考图：https://www.processon.com/view/link/61c8257e0e3e7474fb9dcbc0
+
+参考视频：https://space.bilibili.com/457326371
+
+
+
+***
+
+
+
+##### 接受消息
+
+SendMessageProcessor 是服务端处理客户端发送来的消息的处理器，`processRequest()` 方法处理请求
+
+核心方法：
+
+* `asyncProcessRequest()`：处理请求
+
+  ```java
+  public CompletableFuture<RemotingCommand> asyncProcessRequest(ChannelHandlerContext ctx,
+                                                                RemotingCommand request) {
+      final SendMessageContext mqtraceContext;
+      switch (request.getCode()) {
+              // 回调消息回退
+          case RequestCode.CONSUMER_SEND_MSG_BACK:
+              return this.asyncConsumerSendMsgBack(ctx, request);
+          default:
+              // 解析出请求头对象
+              SendMessageRequestHeader requestHeader = parseRequestHeader(request);
+              if (requestHeader == null) {
+                  return CompletableFuture.completedFuture(null);
+              }
+              // 创建上下文对象
+              mqtraceContext = buildMsgContext(ctx, requestHeader);
+              // 前置处理器
+              this.executeSendMessageHookBefore(ctx, request, mqtraceContext);
+              // 判断是否是批量消息
+              if (requestHeader.isBatch()) {
+                  return this.asyncSendBatchMessage(ctx, request, mqtraceContext, requestHeader);
+              } else {
+                  return this.asyncSendMessage(ctx, request, mqtraceContext, requestHeader);
+              }
+      }
+  }
+  ```
+
+* asyncSendMessage()：异步处理发送消息
+
+  ```java
+  private CompletableFuture<RemotingCommand> asyncSendMessage(ChannelHandlerContext ctx, RemotingCommand request, SendMessageContext mqtraceContext, SendMessageRequestHeader requestHeader)
+  ```
+
+  * `RemotingCommand response`：创建响应对象
+
+  * `SendMessageResponseHeader responseHeader`：获取响应头，此时为 null
+
+  * `byte[] body = request.getBody()`：获取请求体
+
+  * `MessageExtBrokerInner msgInner = new MessageExtBrokerInner()`：创建 msgInner 对象，并赋值相关的属性，主题和队列 ID 都是请求头中的
+
+  * `String transFlag`：获取**事务属性**
+
+  * `if (transFlag != null && Boolean.parseBoolean(transFlag))`：判断事务属性是否是 true，走事务消息的存储流程
+
+    * `putMessageResult = ...asyncPrepareMessage(msgInner)`：事务消息处理流程
+
+      ```java
+      public CompletableFuture<PutMessageResult> asyncPutHalfMessage(MessageExtBrokerInner messageInner) {
+          // 调用存储模块，将修改后的 msg 存储进 Broker
+          return store.asyncPutMessage(parseHalfMessageInner(messageInner));
+      }
+      ```
+
+      TransactionalMessageBridge#parseHalfMessageInner：
+
+      * `MessageAccessor.putProperty(...)`：将消息的原主题和队列 ID 放入消息的属性中
+      * `msgInner.setSysFlag(...)`：消息设置为非事务状态
+      * `msgInner.setTopic(TransactionalMessageUtil.buildHalfTopic())`：**消息主题设置为半消息主题**
+      * `msgInner.setQueueId(0)`：**队列 ID 设置为 0**
+
+  * `else`：普通消息存储
+
+
+
+***
+
+
+
+##### 事务提交
+
+EndTransactionProcessor 类用来处理客户端发来的提交或者回滚请求
+
+* processRequest()：处理请求
+
+  ```java
+  public RemotingCommand processRequest(ChannelHandlerContext ctx, RemotingCommand request)
+  ```
+
+  * `EndTransactionRequestHeader requestHeader`：从请求中解析出 EndTransactionRequestHeader
+  * `result = this.brokerController...commitMessage(requestHeader)`：根据 commitLogOffset 提取出 halfMsg 消息
+  * `MessageExtBrokerInner msgInner`：根据 result 克隆出一条新消息
+    * `msgInner.setTopic(msgExt.getUserProperty(...))`：**设置回原主题**
+    * `msgInner.setQueueId(Integer.parseInt(msgExt.getUserProperty(..)))`：**设置回原队列 ID**
+    * `MessageAccessor.clearProperty()`：清理上面的两个属性
+  * `MessageAccessor.clearProperty(msgInner, MessageConst.PROPERTY_TRANSACTION_PREPARED)`：清理事务属性
+  * `RemotingCommand sendResult = sendFinalMessage(msgInner)`：调用存储模块存储至 Broker
+  * `this.brokerController...deletePrepareMessage(result.getPrepareMessage())`：向删除（OP）队列添加消息，消息体的数据是 halfMsg 的 queueOffset，表示半消息队列指定的 offset 的消息已被删除
+    * `if (this...putOpMessage(msgExt, TransactionalMessageUtil.REMOVETAG))`：**添加一条 OP 数据**
+      * `MessageQueue messageQueue`：新建一个消息队列，OP 队列
+      * `return addRemoveTagInTransactionOp(messageExt, messageQueue)`：添加数据
+        * `Message message`：创建消息
+        * `writeOp(message, messageQueue)`：写入消息
 
 
 
