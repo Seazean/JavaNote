@@ -1614,19 +1614,14 @@ grep [-abcEFGhHilLnqrsvVwxy][-A<显示列数>][-B<显示列数>][-C<显示列数
 * -v：显示不包含匹配文本的所有行
 * --color=auto ：可以将找到的关键词部分加上颜色的显示
 
-**管道符 |**：表示将前一个命令处理的结果传递给后面的命令处理。
+**管道符 |**：表示将前一个命令处理的结果传递给后面的命令处理
 
-`grep aaaa Filename `：显示存在关键字 aaaa 的行
-
-`grep -n aaaa Filename`：显示存在关键字 aaaa 的行，且显示行号
-
-`grep -i aaaa Filename`：忽略大小写，显示存在关键字 aaaa 的行
-
-`grep -v aaaa Filename`：显示存在关键字aaaa的所有行
-
-`ps -ef | grep  sshd`：查找包含 sshd 进程的进程信息
-
-` ps -ef | grep -c sshd`：查找 sshd 相关的进程个数
+* `grep aaaa Filename `：显示存在关键字 aaaa 的行
+* `grep -n aaaa Filename`：显示存在关键字 aaaa 的行，且显示行号
+* `grep -i aaaa Filename`：忽略大小写，显示存在关键字 aaaa 的行
+* `grep -v aaaa Filename`：显示存在关键字aaaa的所有行
+* `ps -ef | grep  sshd`：查找包含 sshd 进程的进程信息
+* ` ps -ef | grep -c sshd`：查找 sshd 相关的进程个数
 
 
 
@@ -2225,7 +2220,7 @@ pstree -A	#查看所有进程树
 * BIOS：基于 I/O 处理系统
 * Bootloader：加载 OS，将 OS 放入内存
 
-自举程序存储在内存中 ROM（BIOS 芯片），用来加载操作系统。CPU 的程序计数器指向 ROM 中自举程序第一条指令，当计算机**通电**，CPU 开始读取并执行自举程序，将操作系统（不是全部，只是启动计算机的那部分程序）装入 RAM 中，这个过程是自举过程。装入完成后 CPU 的程序计数器就被设置为 RAM 中操作系统的**第一条指令**所对应的位置，接下来 CPU 将开始执行操作系统的指令
+自举程序存储在内存中 ROM（BIOS 芯片），**用来加载操作系统**。CPU 的程序计数器指向 ROM 中自举程序第一条指令，当计算机**通电**，CPU 开始读取并执行自举程序，将操作系统（不是全部，只是启动计算机的那部分程序）装入 RAM 中，这个过程是自举过程。装入完成后 CPU 的程序计数器就被设置为 RAM 中操作系统的**第一条指令**所对应的位置，接下来 CPU 将开始执行操作系统的指令
 
 存储在 ROM 中保留很小的自举装入程序，完整功能的自举程序保存在磁盘的启动块上，启动块位于磁盘的固定位，拥有启动分区的磁盘称为启动磁盘或系统磁盘（C盘）
 

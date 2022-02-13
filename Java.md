@@ -12677,7 +12677,7 @@ Java 语言：跨平台的语言（write once ，run anywhere）
 
 字节码是一种二进制的类文件，是编译之后供虚拟机解释执行的二进制字节码文件，**一个 class 文件对应一个 public 类型的类或接口**
 
-字节码内容是 **JVM 的字节码指令**，不是机器码，C、C++ 经由编译器直接生成机器码，所以 C 执行效率比 Java 高
+字节码内容是 **JVM 的字节码指令**，不是机器码，C、C++ 经由编译器直接生成机器码，所以执行效率比 Java 高
 
 JVM 官方文档：https://docs.oracle.com/javase/specs/jvms/se8/html/index.html
 
@@ -13860,7 +13860,7 @@ public static int invoke(Object... args) {
 
 - 静态语言是判断变量自身的类型信息；动态类型语言是判断变量值的类型信息，变量没有类型信息
 
-- **Java 是静态类型语言**（尽管 lambda 表达式为其增加了动态特性），js，python是动态类型语言
+- **Java 是静态类型语言**（尽管 Lambda 表达式为其增加了动态特性），JS，Python 是动态类型语言
 
   ```java
   String s = "abc";   //Java
