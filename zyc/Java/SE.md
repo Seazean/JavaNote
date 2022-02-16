@@ -17,7 +17,7 @@
 
 **静态变量只有一个，成员变量是类中的变量，局部变量是方法中的变量**
 
-
+![img](img/Center.jpeg)
 
 参考视频：https://www.bilibili.com/video/BV1TE41177mP
 
@@ -108,6 +108,8 @@ Java 语言提供了八种基本类型。六种数字类型（四个整数型，
 
 
 
+![12323](img/12323.png)
+
 自动类型转换
 
 ![image-20210906144134403](img/image-20210906144134403.png)
@@ -147,7 +149,7 @@ Java 语言提供了八种基本类型。六种数字类型（四个整数型，
 
   强制类型转换
 
-  字面量 1 是 int 类型，它比 short 类型精度要高，因此不能隐式地将 int 类型向下转型为 short 类型
+  ==字面量 1 是 int 类型==，它比 short 类型精度要高，因此不能隐式地将 int 类型向下转型为 short 类型
 
   使用 += 或者 ++ 运算符会执行隐式类型转换：
 
@@ -168,6 +170,8 @@ Java 语言提供了八种基本类型。六种数字类型（四个整数型，
 ##### 引用类型
 
 引用数据类型：类，接口，数组都是引用数据类型，又叫包装类
+
+包装类数据，如Integer, String, Double等将相应的基本数据类型包装起来的类。这些类数据全部存在于堆中，Java用new()语句来显示地告诉编译器，在运行时才根据需要动态创建，因此比较灵活，但缺点是要占用更多的时间。 
 
 包装类的作用：
 
@@ -273,6 +277,8 @@ public static Integer valueOf(int i) {
 }
 ```
 
+
+
 自动拆箱调用 `java.lang.Integer#intValue`，源码：
 
 ```java
@@ -305,6 +311,22 @@ new Integer(123) 与 Integer.valueOf(123) 的区别在于：
   ```
 
 valueOf() 方法的实现比较简单，就是先判断值是否在缓存池中，如果在的话就直接返回缓存池的内容。编译器会在自动装箱过程调用 valueOf() 方法，因此多个值相同且值在缓存池范围内的 Integer 实例使用自动装箱来创建，那么就会引用相同的对象。
+
+
+
+Integer 提供缓存机制，能够缓存-128，127之间的int类型，在装箱的时候避免多次创建对象，
+
+```java
+Integer z = Integer.valueOf(123);
+Integer k = Integer.valueOf(123);
+System.out.println(z == k);   // true
+// 123 < 127 < 150
+Integer z = Integer.valueOf(150);
+Integer k = Integer.valueOf(150);
+System.out.println(z == k);   // false
+```
+
+
 
 **基本类型对应的缓存池如下：**
 
