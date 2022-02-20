@@ -14077,7 +14077,7 @@ ServerSocket 类：
   
   <img src="https://gitee.com/seazean/images/raw/master/Frame/Netty-TCP三次握手.png" style="zoom:67%;" />
 
-相当于客户端和服务器建立一个数据管道，管道一般不用 close
+**相当于**客户端和服务器建立一个数据管道（虚连接，不是真正的物理连接），管道一般不用 close
 
 
 
