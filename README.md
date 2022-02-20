@@ -6,7 +6,7 @@
 
 * DB：MySQL、Redis
 * Frame：Maven、Netty、RocketMQ
-* Java：JavaSE、JVM、Algorithm、Design Pattern
+* Java：JavaSE、JVM、Algorithm
 * Prog：Concurrent、Network Programming
 * SSM：MyBatis、Spring、SpringMVC、SpringBoot
 * Tool：Git、Linux、Docker
