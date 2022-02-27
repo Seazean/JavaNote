@@ -2095,19 +2095,19 @@ HTTP 作用：用于定义 WEB 浏览器与 WEB 服务器之间交换数据的�
 URL 和 URI
 
 * URL：统一资源定位符
-  格式：http://127.0.0.1:8080/request/servletDemo01
-  详解：http：协议；127.0.0.1：域名；8080：端口；request/servletDemo01：请求资源路径
+  * 格式：http://127.0.0.1:8080/request/servletDemo01
+  * 详解：http：协议；127.0.0.1：域名；8080：端口；request/servletDemo01：请求资源路径
 
 * URI：统一资源标志符
-  格式：/request/servletDemo01
+  * 格式：/request/servletDemo01
 
-* 区别：`URL-HOST=URI`，URI是抽象的定义，URL用地址定位，URI 用名称定位。**只要能唯一标识资源的是 URI，在 URI 的基础上给出其资源的访问方式的是 URL**
+* 区别：`URL - HOST = URI`，URI 是抽象的定义，URL 用地址定位，URI 用名称定位。**只要能唯一标识资源的是 URI，在 URI 的基础上给出其资源的访问方式的是 URL**
 
 短连接和长连接：
 
-* 短连接：客户端和服务器每进行一次 HTTP 操作，就建立一次连接，任务结束就中断连接。
+* 短连接：客户端和服务器每进行一次 HTTP 操作，就建立一次连接，任务结束就中断连接
 
-  使用短连接的情况下，当浏览器访问的某个 HTML 或其他类型的 Web 页中包含有其他的 Web 资源（图像文件、CSS文件等），每遇到这样一个 Web 资源，浏览器就会经过三次握手重新建立一个 HTTP 会话
+  使用短连接的情况下，当浏览器访问的某个 HTML 或其他类型的 Web 页中包含有其他的 Web 资源（图像文件、CSS 文件等），每遇到这样一个 Web 资源，浏览器就会经过三次握手重新建立一个 HTTP 会话
 
 * 长连接：使用长连接的 HTTP 协议，会在响应头加入这行代码 `Connection:keep-alive`
 
@@ -2152,7 +2152,7 @@ HTTP 1.0 和 HTTP 1.1 的主要区别：
 
 * 缓存处理：在 HTTP1.0 中主要使用 header 里的 If-Modified-Since，Expires 来做为缓存判断的标准，HTTP1.1 则引入了更多的缓存控制策略例如 Entity tag，If-Unmodified-Since，If-Match，If-None-Match等更多可供选择的缓存头来控制缓存策略
 
-* 带宽优化及网络连接的使用：HTTP1.0 中，存在一些浪费带宽的现象，例如客户端只需要某个对象的一部分，而服务器却将整个对象送过来了，并且不支持断点续传功能，HTTP1.1 则在请求头引入了 range 头域，允许只请求资源的某个部分，即返回码是 206（Partial Content），这样就方便了开发者自由的选择以便于充分利用带宽和连接
+* 带宽优化及网络连接的使用：HTTP1.0 中，存在一些浪费带宽的现象，例如客户端只需要某个对象的一部分，而服务器却将整个对象送过来了，并且不支持断点续传功能，HTTP1.1 则在请求头引入了 range 头域，允许**只请求资源的某个部**分，即返回码是 206（Partial Content），这样就方便了开发者自由的选择以便于充分利用带宽和连接
 
 HTTP 和 HTTPS 的区别：
 
@@ -2162,7 +2162,7 @@ HTTP 和 HTTPS 的区别：
 
 **对称加密和非对称加密**
 
-* 对称加密：加密和解密使用同一个秘钥，把密钥转发给需要发送数据的客户机，中途会被拦截（类似于把带锁的箱子和钥匙给别人，对方打开箱子放入数据，上锁后发送），典型的对称加密算法有 DES、AES 等
+* 对称加密：加密和解密使用同一个秘钥，把密钥转发给需要发送数据的客户机，中途会被拦截（类似于把带锁的箱子和钥匙给别人，对方打开箱子放入数据，上锁后发送），私钥用来解密数据，典型的对称加密算法有 DES、AES 等
   * 优点：运算速度快
   * 缺点：无法安全的将密钥传输给通信方
 
@@ -2212,7 +2212,7 @@ HTTPS 工作流程：服务器端的公钥和私钥，用来进行非对称加�
 
 请求头： 从第二行开始，到第一个空行结束
 
-请求体： 从第一个空行后开始，到正文的结束（GET没有）
+请求体： 从第一个空行后开始，到正文的结束（GET 没有）
 
 * 请求方式
 
@@ -2220,7 +2220,7 @@ HTTPS 工作流程：服务器端的公钥和私钥，用来进行非对称加�
 
   ![](https://gitee.com/seazean/images/raw/master/Web/HTTP请求部分.png)
 
-  * Get
+  * GET
 
     ```html
     【请求行】
@@ -2237,7 +2237,7 @@ HTTPS 工作流程：服务器端的公钥和私钥，用来进行非对称加�
     Cookie: Idea-b77ddca6=4bc282fe-febf-4fd1-b6c9-72e9e0f381e8
     ```
 
-  * **Get 和 POST 比较**
+  * **GET 和 POST 比较**
 
     作用：GET 用于获取资源，而 POST 用于传输实体主体
 
@@ -2248,7 +2248,7 @@ HTTPS 工作流程：服务器端的公钥和私钥，用来进行非对称加�
     * 安全的方法除了 GET 之外还有：HEAD、OPTIONS
     * 不安全的方法除了 POST 之外还有 PUT、DELETE
 
-    幂等性：同样的请求**被执行一次与连续执行多次的效果是一样的**，服务器的状态也是一样的。所有的安全方法也都是幂等的。在正确实现条件下，GET，HEAD，PUT 和 DELETE 等方法都是幂等的，POST 方法不是
+    幂等性：同样的请求**被执行一次与连续执行多次的效果是一样的**，服务器的状态也是一样的，所有的安全方法也都是幂等的。在正确实现条件下，GET，HEAD，PUT 和 DELETE 等方法都是幂等的，POST 方法不是
 
     可缓存：如果要对响应进行缓存，需要满足以下条件
 
@@ -2274,32 +2274,33 @@ HTTPS 工作流程：服务器端的公钥和私钥，用来进行非对称加�
 
 
 * 请求头详解
-  从第2行到空行处，都叫请求头,以键值对的形式存在,但存在一个key对应多个值的请求头
-
+  
+  从第 2 行到空行处，都叫请求头，以键值对的形式存在，但存在一个 key 对应多个值的请求头
+  
   | 内容              | 说明                                                         |
   | ----------------- | ------------------------------------------------------------ |
-  | Accept            | 告知服务器，客户浏览器支持的MIME类型                         |
+  | Accept            | 告知服务器，客户浏览器支持的 MIME 类型                       |
   | User-Agent        | 浏览器相关信息                                               |
   | Accept-Charset    | 告诉服务器，客户浏览器支持哪种字符集                         |
-  | Accept-Encoding   | 告知服务器，客户浏览器支持的压缩编码格式。常用gzip压缩       |
-  | Accept-Language   | 告知服务器，客户浏览器支持的语言。zh_CN或en_US等             |
-  | Host              | 初始URL中的主机和端口                                        |
+  | Accept-Encoding   | 告知服务器，客户浏览器支持的压缩编码格式，常用 gzip 压缩     |
+  | Accept-Language   | 告知服务器，客户浏览器支持的语言，zh_CN 或 en_US 等          |
+  | Host              | 初始 URL 中的主机和端口                                      |
   | Referer           | 告知服务器，当前请求的来源。只有当前请求有来源，才有这个消息头。<br/>作用：1 投放广告  2 防盗链 |
-  | Content-Type      | 告知服务器，请求正文的MIME类型，文件传输的类型,<br/>application/x-www-form-urlencoded |
+  | Content-Type      | 告知服务器，请求正文的 MIME 类型，文件传输的类型，<br/>application/x-www-form-urlencoded |
   | Content-Length    | 告知服务器，请求正文的长度。                                 |
-  | Connection        | 表示是否需要持久连接。一般是“Keep -Alive”（HTTP 1.1默认进行持久连接 ) |
+  | Connection        | 表示是否需要持久连接，一般是 `Keep -Alive`（HTTP 1.1 默认进行持久连接 ) |
   | If-Modified-Since | 告知服务器，客户浏览器缓存文件的最后修改时间                 |
-  | Cookie            | 会话管理相关(非常的重要)                                     |
+  | Cookie            | 会话管理相关（非常的重要）                                   |
 
 
 
 * 请求体详解
 
-  * 只有post请求方式，才有请求的正文，get方式的正文是在地址栏中的。
+  * 只有 POST 请求方式，才有请求的正文，GET 方式的正文是在地址栏中的
 
-  * 表单的输入域有name属性的才会被提交。不分get和post的请求方式。
+  * 表单的输入域有 name 属性的才会被提交，不分 GET 和 POST 的请求方式
 
-  * 表单的enctype属性取值决定了请求正文的体现形式。
+  * 表单的 enctype 属性取值决定了请求正文的体现形式
 
     | enctype取值                       | 请求正文体现形式                                   | 示例                                                         |
     | --------------------------------- | -------------------------------------------------- | ------------------------------------------------------------ |
@@ -2323,7 +2324,9 @@ HTTPS 工作流程：服务器端的公钥和私钥，用来进行非对称加�
 * 响应行
 
   HTTP/1.1：使用协议的版本
+
   200：响应状态码
+
   OK：状态码描述
 
   * 响应状态码：
@@ -2335,29 +2338,29 @@ HTTPS 工作流程：服务器端的公钥和私钥，用来进行非对称加�
     | 302/307 | 请求重定向（客户端行为，两次请求，地址栏发生改变） |
     | 304     | 请求资源未改变，使用缓存                           |
     | 400     | 客户端错误，请求错误，最常见的就是请求参数有问题   |
-    | 403     | 客户端错误，但 forbidden权 限不够，拒绝处理        |
+    | 403     | 客户端错误，但 forbidden 权限不够，拒绝处理        |
     | 404     | 客户端错误，请求资源未找到                         |
     | 500     | 服务器错误，服务器运行内部错误                     |
 
   面试题：
 
-  * 301 redirect: 301 代表永久性转移 (Permanently Moved)
-  * 302 redirect: 302 代表暂时性转移 (Temporarily Moved )
+  * 301 redirect：301 代表永久性转移 (Permanently Moved)
+  * 302 redirect：302 代表暂时性转移 (Temporarily Moved )
 
 * 响应头：以 key:vaue 存在，可能多个 value 情况。
   
   | 消息头                  | 说明                                                         |
   | ----------------------- | ------------------------------------------------------------ |
-  | Location                | 请求重定向的地址，常与302,307配合使用。                      |
-  | Server                  | 服务器相关信息。                                             |
-  | Content-Type            | 告知客户浏览器，响应正文的MIME类型。                         |
-  | Content-Length          | 告知客户浏览器，响应正文的长度。                             |
-  | Content-Encoding        | 告知客户浏览器，响应正文使用的压缩编码格式。常用的gzip压缩。 |
-  | Content-Language        | 告知客户浏览器，响应正文的语言。zh_CN或en_US等。             |
-  | Content-Disposition     | 告知客户浏览器，以下载的方式打开响应正文。                   |
-  | Refresh                 | 客户端的刷新频率。单位是秒                                   |
-  | Last-Modified           | 服务器资源的最后修改时间。                                   |
-  | Set-Cookie              | 服务器端发送的Cookie，会话管理相关                           |
+  | Location                | 请求重定向的地址，常与 302，307 配合使用。                   |
+  | Server                  | 服务器相关信息                                               |
+  | Content-Type            | 告知客户浏览器，响应正文的MIME类型                           |
+  | Content-Length          | 告知客户浏览器，响应正文的长度                               |
+  | Content-Encoding        | 告知客户浏览器，响应正文使用的压缩编码格式，常用的 gzip 压缩 |
+  | Content-Language        | 告知客户浏览器，响应正文的语言，zh_CN 或 en_US 等            |
+  | Content-Disposition     | 告知客户浏览器，以下载的方式打开响应正文                     |
+  | Refresh                 | 客户端的刷新频率，单位是秒                                   |
+  | Last-Modified           | 服务器资源的最后修改时间                                     |
+  | Set-Cookie              | 服务器端发送的 Cookie，会话管理相关                          |
   | Expires:-1              | 服务器资源到客户浏览器后的缓存时间                           |
   | Catch-Control: no-catch | 不要缓存，//针对http协议1.1版本                              |
   | Pragma:no-catch         | 不要缓存，//针对http协议1.0版本                              |
@@ -2394,13 +2397,13 @@ HTTPS 工作流程：服务器端的公钥和私钥，用来进行非对称加�
 
 ### JavaEE规范
 
-`JavaEE`规范是`J2EE`规范的新名称，早期被称为`J2EE`规范，其全称是`Java 2 Platform Enterprise Edition`，它是由SUN公司领导、各厂家共同制定并得到广泛认可的工业标准（`JCP`组织成员）。之所以改名为`JavaEE`，目的还是让大家清楚`J2EE`只是`Java`企业应用。在2004年底中国软件技术大会`Ioc`微容器(也就是`Jdon`框架的实现原理)演讲中指出：我们需要一个跨`J2SE/WEB/EJB`的微容器，保护我们的业务核心组件，以延续它的生命力，而不是依赖`J2SE/J2EE`版本。此次`J2EE`改名为`Java EE`，实际也反映出业界这种共同心声。
+`JavaEE` 规范是 `J2EE` 规范的新名称，早期被称为 `J2EE` 规范，其全称是 `Java 2 Platform Enterprise Edition`，它是由 SUN 公司领导、各厂家共同制定并得到广泛认可的工业标准（`JCP`组织成员）。之所以改名为`JavaEE`，目的还是让大家清楚 `J2EE` 只是 `Java` 企业应用。在 2004 年底中国软件技术大会 `Ioc` 微容器（也就是 `Jdon` 框架的实现原理）演讲中指出：我们需要一个跨 `J2SE/WEB/EJB` 的微容器，保护我们的业务核心组件，以延续它的生命力，而不是依赖 `J2SE/J2EE` 版本。此次 `J2EE` 改名为 `Java EE`，实际也反映出业界这种共同心声
 
-`JavaEE`规范是很多Java开发技术的总称。这些技术规范都是沿用自`J2EE`的。一共包括了13个技术规范。例如：`jsp/servlet`，`jndi`，`jaxp`，`jdbc`，`jni`，`jaxb`，`jmf`，`jta`，`jpa`，`EJB`等。
+`JavaEE` 规范是很多 Java 开发技术的总称。这些技术规范都是沿用自 `J2EE` 的。一共包括了 13 个技术规范，例如：`jsp/servlet`，`jndi`，`jaxp`，`jdbc`，`jni`，`jaxb`，`jmf`，`jta`，`jpa`，`EJB`等。
 
-其中，`JCP`组织的全称是Java Community Process。它是一个开放的国际组织，主要由Java开发者以及被授权者组成，职能是发展和更新。成立于1998年。官网是：[JCP](https://jcp.org/en/home/index)
+其中，`JCP` 组织的全称是 Java Community Process，是一个开放的国际组织，主要由 Java 开发者以及被授权者组成，职能是发展和更新。成立于 1998 年。官网是：[JCP](https://jcp.org/en/home/index)
 
-`JavaEE`的版本是延续了`J2EE`的版本，但是没有继续采用其命名规则。`J2EE`的版本从1.0开始到1.4结束，而`JavaEE`版本是从`JavaEE 5`版本开始，目前最新的的版本是`JavaEE 8`。
+`JavaEE` 的版本是延续了 `J2EE` 的版本，但是没有继续采用其命名规则。`J2EE` 的版本从 1.0 开始到 1.4 结束，而 `JavaEE` 版本是从 `JavaEE 5` 版本开始，目前最新的的版本是 `JavaEE 8`
 
 详情请参考：[JavaEE8 规范概览](https://www.oracle.com/technetwork/cn/java/javaee/overview/index.html)
 
@@ -2410,15 +2413,15 @@ HTTPS 工作流程：服务器端的公钥和私钥，用来进行非对称加�
 
 
 
-### Web概述
+### Web 概述
 
-Web，在计算机领域指网络。像我们接触的`WWW`，它是由3个单词组成的，即：`World Wide Web `，中文含义是<b>万维网</b>。而我们前面学的HTML的参考文档《W3School全套教程》中的`W3C`就是万维网联盟。他们的出现都是为了让我们在网络的世界中获取资源，这些资源的存放之处，我们称之为网站。我们通过输入网站的地址（网址），就可以访问网站中提供的资源。在网上我们能访问到的内容全是资源（不区分局域网还是广域网）。只不过，不同类型的资源展示的效果不一样。
+Web，在计算机领域指网络。像我们接触的 `WWW`，它是由 3 个单词组成的，即：`World Wide Web `，中文含义是<b>万维网</b>。而我们前面学的 HTML 的参考文档《W3School 全套教程》中的 `W3C` 就是万维网联盟，他们的出现都是为了让我们在网络的世界中获取资源，这些资源的存放之处，我们称之为网站。我们通过输入网站的地址（网址），就可以访问网站中提供的资源。在网上我们能访问到的内容全是资源（不区分局域网还是广域网），只不过不同类型的资源展示的效果不一样
 
-资源分为静态资源和动态资源。
+资源分为静态资源和动态资源
 
-* 静态资源指的是，网站中提供给人们展示的资源是一成不变的，也就是说不同人或者在不同时间，看到的内容都是一样的。例如：我们看到的新闻，网站的使用手册，网站功能说明文档等等。而作为开发者，我们编写的`html`,`css`,`js`,图片，多媒体等等都可以称为静态资源。
+* 静态资源指的是，网站中提供给人们展示的资源是一成不变的，也就是说不同人或者在不同时间，看到的内容都是一样的。例如：我们看到的新闻，网站的使用手册，网站功能说明文档等等。而作为开发者，我们编写的 `html`、`css`、`js` 图片，多媒体等等都可以称为静态资源
 
-* 动态资源它指的是，网站中提供给人们展示的资源是由程序产生的，在不同的时间或者用不同的人员由于身份的不同，所看到的内容是不一样的。例如：我们在CSDN上下载资料，只有登录成功后，且积分足够时才能下载。否则就不能下载，这就是访客身份和会员身份的区别。作为开发人员，我们编写的`JSP`，`servlet`，`php`，`ASP`等都是动态资源。
+* 动态资源它指的是，网站中提供给人们展示的资源是由程序产生的，在不同的时间或者用不同的人员由于身份的不同，所看到的内容是不一样的。例如：我们在CSDN上下载资料，只有登录成功后，且积分足够时才能下载。否则就不能下载，这就是访客身份和会员身份的区别。作为开发人员，我们编写的 `JSP`，`servlet`，`php`，`ASP` 等都是动态资源。
 
 关于广域网和局域网的划分
 
@@ -2737,7 +2740,7 @@ Tomcat 的启动入口是 Bootstrap#main 函数，首先通过调用 `bootstrap.
 
       `NioEndpoint.bind()`：绑定方法
 
-      * `initServerSocket()`：初始化 ServerSocket，以 NIO 的方式监听端口
+      * `initServerSocket()`：**初始化 ServerSocket**，以 NIO 的方式监听端口
         * `serverSock = ServerSocketChannel.open()`：**NIO 的方式打开通道**
         * `serverSock.bind(addr, getAcceptCount())`：通道绑定连接端口
         * `serverSock.configureBlocking(true)`：切换为阻塞模式（没懂，为什么阻塞）
@@ -2791,7 +2794,7 @@ Tomcat 的启动入口是 Bootstrap#main 函数，首先通过调用 `bootstrap.
 
 #### 处理过程
 
-1) Acceptor 监听客户端套接字，每 50ms 调用一次 `serverSocket.accept`，获取 Socket 后把封装成 NioSocketWrapper（是 SocketWrapperBase 的子类），并设置为非阻塞模式，把 NioSocketWrapper 封装成 PollerEvent 放入同步队列中
+1) Acceptor 监听客户端套接字，每 50ms 调用一次 **`serverSocket.accept`**，获取 Socket 后把封装成 NioSocketWrapper（是 SocketWrapperBase 的子类），并设置为非阻塞模式，把 NioSocketWrapper 封装成 PollerEvent 放入同步队列中
 2) Poller 循环判断同步队列中是否有就绪的事件，如果有则通过 `selector.selectedKeys()` 获取就绪事件，获取 SocketChannel 中携带的 attachment（NioSocketWrapper），在 processKey 方法中根据事件类型进行 processSocket，将 Wrapper 对象封装成 SocketProcessor 对象，该对象是一个任务对象，提交到 Worker 线程池进行执行
 3) `SocketProcessorBase.run()` 加锁调用 `SocketProcessor#doRun`，保证线程安全，从协议处理器 ProtocolHandler 中获取 AbstractProtocol，然后**创建 Http11Processor 对象处理请求**
 4) `Http11Processor#service` 中调用 `CoyoteAdapter#service` ，把生成的 Tomcat 下的 Request 和 Response 对象通过方法 postParseRequest 匹配到对应的 Servlet 的请求响应，将请求传递到对应的 Engine 容器中调用 Pipeline，管道中包含若干个 Valve，执行完所有的 Valve 最后执行 StandardEngineValve，继续调用 Host 容器的 Pipeline，执行 Host 的 Valve，再传递给 Context 的 Pipeline，最后传递到 Wrapper 容器

@@ -346,7 +346,7 @@ System.out.println(x == y);   	// false，因为缓存池最大127
 
 int x = 1000;
 Integer y = 1000;
-System.out.println(x == y);		// true，因为 y 会调用 intValue 自动拆箱返回 int 原始值进行比较
+System.out.println(x == y);		// true，因为 y 会调用 intValue 【自动拆箱】返回 int 原始值进行比较
 ```
 
 
@@ -14829,7 +14829,7 @@ class Girl extends Person {
 
 #### 语法糖
 
-语法糖：指 java 编译器把 *.java 源码编译为 *.class 字节码的过程中，自动生成和转换的一些代码，主要是为了减轻程序员的负担
+语法糖：指 Java 编译器把 *.java 源码编译为 *.class 字节码的过程中，自动生成和转换的一些代码，主要是为了减轻程序员的负担
 
 
 
@@ -14880,8 +14880,7 @@ JDK5 以后编译阶段自动转换成上述片段
 
 #### 泛型擦除
 
-泛型也是在 JDK 5 开始加入的特性，但 java 在编译泛型代码后会执行**泛型擦除**的动作，即泛型信息
-在编译为字节码之后就丢失了，实际的类型都**当做了 Object 类型**来处理：
+泛型也是在 JDK 5 开始加入的特性，但 Java 在编译泛型代码后会执行**泛型擦除**的动作，即泛型信息。在编译为字节码之后就丢失了，实际的类型都**当做了 Object 类型**来处理：
 
 ```java
 List<Integer> list = new ArrayList<>();
@@ -14923,7 +14922,7 @@ public class Candy4 {
 }
 ```
 
-可变参数 `String... args` 其实是 `String[] args` ， java 编译器会在编译期间将上述代码变换为：
+可变参数 `String... args` 其实是 `String[] args` ， Java 编译器会在编译期间将上述代码变换为：
 
 ```java
 public static void main(String[] args) {
@@ -14991,7 +14990,7 @@ while(iter.hasNext()) {
 
 ##### 字符串
 
-从 JDK  开始，switch 可以作用于字符串和枚举类：
+switch 可以作用于字符串和枚举类：
 
 ```java
 switch (str) {
@@ -15006,7 +15005,7 @@ switch (str) {
 }
 ```
 
-注意：**switch 配合 String 和枚举使用时，变量不能为null**
+注意：**switch 配合 String 和枚举使用时，变量不能为 null**
 
 会被编译器转换为：
 
@@ -15228,7 +15227,7 @@ class B extends A {
 }
 ```
 
-对于子类，java 编译器会做如下处理：
+对于子类，Java 编译器会做如下处理：
 
 ```java
 class B extends A {
@@ -15243,7 +15242,7 @@ class B extends A {
 }
 ```
 
-其中桥接方法比较特殊，仅对 java 虚拟机可见，并且与原来的 public Integer m() 没有命名冲突
+其中桥接方法比较特殊，仅对 Java 虚拟机可见，并且与原来的 public Integer m() 没有命名冲突
 
 
 
@@ -15332,7 +15331,7 @@ public class Candy11 {
 
 局部变量在底层创建为内部类的成员变量，必须是 final 的原因：
 
-* 在 Java 中方法调用是值传递的，在匿名内部类中对变量的操作都是基于原变量的副本，不会影响到原变量的值，所以原变量的值的改变也无法同步到副本中
+* 在 Java 中方法调用是值传递的，在匿名内部类中对变量的操作都是基于原变量的副本，不会影响到原变量的值，所以**原变量的值的改变也无法同步到副本中**
 
 * 外部变量为 final 是在编译期以强制手段确保用户不会在内部类中做修改原变量值的操作，也是**防止外部操作修改了变量而内部类无法随之变化**出现的影响
 
@@ -15362,7 +15361,7 @@ public class Reflect1 {
 }
 ```
 
-foo.invoke 0 ~ 15次调用的是 MethodAccessor 的实现类 `NativeMethodAccessorImpl.invoke0()`，本地方法执行速度慢；当调用到第 16 次时，会采用运行时生成的类 `sun.reflect.GeneratedMethodAccessor1` 代替
+foo.invoke 0 ~ 15 次调用的是 MethodAccessor 的实现类 `NativeMethodAccessorImpl.invoke0()`，本地方法执行速度慢；当调用到第 16 次时，会采用运行时生成的类 `sun.reflect.GeneratedMethodAccessor1` 代替
 
 ```java
 public Object invoke(Object obj, Object[] args)throws Exception {
