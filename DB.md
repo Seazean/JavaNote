@@ -5293,25 +5293,6 @@ count 函数的按照效率排序：`count(字段) < count(主键id) < count(1) 
 * MyISAM 存储引擎的数据文件读取依赖于操作系统自身的 IO 缓存，如果有 MyISAM 表，就要预留更多的内存给操作系统做 IO 缓存
 * 排序区、连接区等缓存是分配给每个数据库会话（Session）专用的，值的设置要根据最大连接数合理分配，如果设置太大，不但浪费资源，而且在并发数较高时会导致物理内存耗尽
 
-MyISAM 存储引擎使用 key_buffer 缓存索引块，加速 MyISAM 索引的读写速度。对于 MyISAM 表的数据块没有特别的缓存机制，完全依赖于操作系统的 IO 缓存
-
-* key_buffer_size：该变量决定 MyISAM 索引块缓存区的大小，直接影响到 MyISAM 表的存取效率
-
-  ```mysql
-  SHOW VARIABLES LIKE 'key_buffer_size';	-- 单位是字节
-  ```
-
-  在 MySQL 配置文件中设置该值，建议至少将1/4可用内存分配给 key_buffer_size：
-
-  ```sh
-  vim /etc/mysql/my.cnf
-  key_buffer_size=1024M
-  ```
-
-* read_buffer_size：如果需要经常顺序扫描 MyISAM 表，可以通过增大 read_buffer_size 的值来改善性能。但 read_buffer_size 是每个 Session 独占的，如果默认值设置太大，并发环境就会造成内存浪费
-
-* read_rnd_buffer_size：对于需要做排序的 MyISAM 表的查询，如带有 ORDER BY 子句的语句，适当增加该的值，可以改善此类的 SQL 的性能，但是 read_rnd_buffer_size 是每个 Session 独占的，如果默认值设置太大，就会造成内存浪费
-
 
 
 ***
@@ -5477,11 +5458,32 @@ InnoDB 管理的 Buffer Pool 中有一块内存叫 Change Buffer 用来对**增�
 Server 层针对优化**查询**的内存为 Net Buffer，内存的大小是由参数 `net_buffer_length`定义，默认 16k，实现流程：
 
 * 获取一行数据写入 Net Buffer，重复获取直到 Net Buffer 写满，调用网络接口发出去
-* 若发送成功就清空 Net Buffer，然后继续取下一行；若发送函数返回 `EAGAIN` 或 `WSAEWOULDBLOCK`，表示本地网络栈 `socket send buffer` 写满了，进入等待，直到网络栈重新可写再继续发送
+* 若发送成功就清空 Net Buffer，然后继续取下一行；若发送函数返回 `EAGAIN` 或 `WSAEWOULDBLOCK`，表示本地网络栈 `socket send buffer` 写满了，**进入等待**，直到网络栈重新可写再继续发送
+
+MySQL 采用的是边算边发的逻辑，因此对于数据量很大的查询来说，不会在 Server 端保存完整的结果集，如果客户端读结果不及时，会堵住 MySQL 的查询过程，但是**不会把内存打爆导致 OOM**
 
 ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-查询内存优化.png)
 
-MySQL 采用的是边算边发的逻辑，因此对于数据量很大的查询来说，不会在 Server 端保存完整的结果集，如果客户端读结果不及时，会堵住 MySQL 的查询过程，但是不会把内存打爆导致 OOM
+MyISAM 存储引擎使用 key_buffer 缓存索引块，加速 MyISAM 索引的读写速度。对于 MyISAM 表的数据块没有特别的缓存机制，完全依赖于操作系统的 IO 缓存
+
+* key_buffer_size：该变量决定 MyISAM 索引块缓存区的大小，直接影响到 MyISAM 表的存取效率
+
+  ```mysql
+  SHOW VARIABLES LIKE 'key_buffer_size';	-- 单位是字节
+  ```
+
+  在 MySQL 配置文件中设置该值，建议至少将1/4可用内存分配给 key_buffer_size：
+
+  ```sh
+  vim /etc/mysql/my.cnf
+  key_buffer_size=1024M
+  ```
+
+* read_buffer_size：如果需要经常顺序扫描 MyISAM 表，可以通过增大 read_buffer_size 的值来改善性能。但 read_buffer_size 是每个 Session 独占的，如果默认值设置太大，并发环境就会造成内存浪费
+
+* read_rnd_buffer_size：对于需要做排序的 MyISAM 表的查询，如带有 ORDER BY 子句的语句，适当增加该的值，可以改善此类的 SQL 的性能，但是 read_rnd_buffer_size 是每个 Session 独占的，如果默认值设置太大，就会造成内存浪费
+
+
 
 
 
@@ -5877,7 +5879,7 @@ roll_pointer 是一个指针，**指向记录对应的 undo log 日志**，一�
 * 将旧纪录进行 delete mark，在更新语句提交后由 purge 线程移入垃圾链表
 * 根据更新的各列的值创建一条新纪录，插入到聚簇索引中
 
-在对一条记录修改前会**将记录的隐藏列 trx_id 和 roll_pointer 的旧值记录到 undo log 对应的属性中**，这样就记录的 roll_pointer 指向当前 undo log 记录，当前 undo log 记录的 roll_pointer 指向旧的 undo log 记录，**形成一个版本链**
+在对一条记录修改前会**将记录的隐藏列 trx_id 和 roll_pointer 的旧值记录到 undo log 对应的属性中**，这样当前记录的 roll_pointer 指向当前 undo log 记录，当前 undo log 记录的 roll_pointer 指向旧的 undo log 记录，**形成一个版本链**
 
 UPDATE、DELETE 操作产生的 undo 日志可能会用于其他事务的 MVCC 操作，所以不能立即删除
 
@@ -6344,7 +6346,7 @@ update T set c=c+1 where ID=2;
 
 <img src="https://gitee.com/seazean/images/raw/master/DB/MySQL-update的执行流程.png" style="zoom: 33%;" />
 
-流程说明：执行引擎将这行新数据更新到内存中（Buffer Pool）后，将这个更新操作记录到 redo log buffer 里，redo log 刷盘后事务处于 prepare 状态，然后执行器生成这个操作的 binlog，并**把 binlog 写入磁盘**，完成提交
+流程说明：执行引擎将这行新数据更新到内存中（Buffer Pool）后，将这个更新操作记录到 redo log buffer 里，然后更新记录。redo log 刷盘后事务处于 prepare 状态，执行器会生成这个操作的 binlog，并**把 binlog 写入磁盘**，完成提交
 
 两阶段：
 
@@ -6357,7 +6359,7 @@ redo log 和 binlog 都可以用于表示事务的提交状态，而**两阶段�
 
 解决：通过 undo log 在服务器重启时将未提交的事务回滚掉，首先定位到 128 个回滚段遍历 slot，获取 undo 链表首节点页面的 undo segement header 中的 TRX_UNDO_STATE 属性，表示当前链表的事务属性，事务状态是活跃的就全部回滚，如果是 PREPARE 状态，就需要根据 binlog 的状态进行判断：
 
-* 如果在时刻 A 发生了崩溃（crash），由于此时 binlog 还没完成，所以此时需要进行回滚
+* 如果在时刻 A 发生了崩溃（crash），由于此时 binlog 还没完成，所以需要进行回滚
 * 如果在时刻 B 发生了崩溃，redo log 和 binlog 有一个共同的数据字段叫 XID，崩溃恢复的时候，会按顺序扫描 redo log：
   * 如果 redo log 里面的事务是完整的，也就是已经有了 commit 标识，说明 binlog 也已经记录完整，直接从 redo log 恢复数据
   * 如果 redo log 里面的事务只有 prepare，就根据 XID 去 binlog 中判断对应的事务是否存在并完整，如果完整可以恢复数据，提交事务

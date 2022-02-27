@@ -2118,11 +2118,19 @@ URL 和 URI
 **从浏览器地址栏输入 URL 到请求返回发生了什么？**
 
 * 进行 URL 解析，进行编码
-* DNS 解析，顺序是先查 hosts 文件是否有记录，有的话就会把相对应映射的 IP 返回，然后去本地 DNS 缓存中寻找，然后去找计算机上配置的 DNS 服务器上有或者有缓存，最后去找全球的根 DNS 服务器，直到查到为止
+
+* DNS 解析，顺序是先查 hosts 文件是否有记录，有的话就会把相对应映射的 IP 返回，然后去本地 DNS 缓存中寻找，然后依次向本地域名服务器、根域名服务器、顶级域名服务器、权限域名服务器发起查询请求，最终返回 IP 地址给本地域名服务器
+
+  本地域名服务器将得到的 IP 地址返回给操作系统，同时将 IP 地址缓存起来；操作系统将 IP 地址返回给浏览器，同时自己也将 IP 地址缓存起来
+
 * 查找到 IP 之后，进行 TCP 协议的三次握手建立连接
+
 * 发出 HTTP 请求，取文件指令
+
 * 服务器处理请求，返回响应
+
 * 释放 TCP 连接
+
 * 浏览器解析渲染页面
 
 
@@ -2137,7 +2145,7 @@ URL 和 URI
 
 * HTTP/0.9 仅支持 GET 请求，不支持请求头
 * HTTP/1.0 默认短连接（一次请求建议一次 TCP 连接，请求完就断开），支持 GET、POST、 HEAD 请求
-* HTTP/1.1 默认长连接（一次 TCP 连接可以多次请求）；支持 PUT、DELETE、PATCH 等六种请求；增加 host 头，支持虚拟主机；支持**断点续传**功能
+* HTTP/1.1 默认长连接（一次 TCP 连接可以多次请求）；支持 PUT、DELETE、PATCH 等六种请求；增加 HOST 头，支持虚拟主机；支持**断点续传**功能
 * HTTP/2.0 多路复用，降低开销（一次 TCP 连接可以处理多个请求）；服务器主动推送（相关资源一个请求全部推送）；解析基于二进制，解析错误少，更高效（HTTP/1.X 解析基于文本）；报头压缩，降低开销。
 
 HTTP 1.0 和 HTTP 1.1 的主要区别：
@@ -2150,9 +2158,18 @@ HTTP 1.0 和 HTTP 1.1 的主要区别：
 
 * 错误状态响应码：在 HTTP1.1 中新增了 24 个错误状态响应码，如 409（Conflict）表示请求的资源与资源的当前状态发生冲突，410（Gone）表示服务器上的某个资源被永久性的删除
 
-* 缓存处理：在 HTTP1.0 中主要使用 header 里的 If-Modified-Since，Expires 来做为缓存判断的标准，HTTP1.1 则引入了更多的缓存控制策略例如 Entity tag，If-Unmodified-Since，If-Match，If-None-Match等更多可供选择的缓存头来控制缓存策略
+* 缓存处理：在 HTTP1.0 中主要使用 header 里的 If-Modified-Since，Expires 来做为缓存判断的标准，HTTP1.1 则引入了更多的**缓存控制策略**例如 Entity tag，If-Unmodified-Since，If-Match，If-None-Match等
 
-* 带宽优化及网络连接的使用：HTTP1.0 中，存在一些浪费带宽的现象，例如客户端只需要某个对象的一部分，而服务器却将整个对象送过来了，并且不支持断点续传功能，HTTP1.1 则在请求头引入了 range 头域，允许**只请求资源的某个部**分，即返回码是 206（Partial Content），这样就方便了开发者自由的选择以便于充分利用带宽和连接
+* 带宽优化及网络连接的使用：HTTP1.0 存在一些浪费带宽的现象，例如客户端只需要某个对象的一部分，而服务器却将整个对象送过来了，并且不支持断点续传功能，HTTP1.1 则在请求头引入了 range 头域，允许只**请求资源的某个部分**，即返回码是 206（Partial Content），这样就方便了开发者自由的选择以便于充分利用带宽和连接
+
+* HOST 头处理：在 HTTP1.0 中认为每台服务器都绑定一个唯一的 IP 地址，因此请求消息中的 URL 并没有传递主机名。HTTP1.1 时代虚拟主机技术发展迅速，在一台物理服务器上可以存在多个虚拟主机，并且共享一个 IP 地址，故 HTTP1.1 增加了 HOST 信息
+
+HTTP 1.1 和 HTTP 2.0 的主要区别：
+
+* 新的二进制格式：HTTP1.1 基于文本格式传输数据，HTTP2.0 采用二进制格式传输数据，解析更高效
+* **多路复用**：在一个连接里，允许同时发送多个请求或响应，**并且这些请求或响应能够并行的传输而不被阻塞**，避免 HTTP1.1 出现的队头堵塞问题
+* 头部压缩，HTTP1.1 的 header 带有大量信息，而且每次都要重复发送；HTTP2.0 把 header 从数据中分离，并封装成头帧和数据帧，**使用特定算法压缩头帧**。并且 HTTP2.0 在客户端和服务器端记录了之前发送的键值对，对于相同的数据不会重复发送。比如请求 A 发送了所有的头信息字段，请求 B 则只需要发送差异数据，这样可以减少冗余数据，降低开销
+* **服务端推送**：HTTP2.0 允许服务器向客户端推送资源，无需客户端发送请求到服务器获取
 
 HTTP 和 HTTPS 的区别：
 
@@ -2185,7 +2202,7 @@ HTTPS 工作流程：服务器端的公钥和私钥，用来进行非对称加�
 
 ![](https://gitee.com/seazean/images/raw/master/Web/HTTP-HTTPS加密过程.png)
 
-1. 客户端向服务器发起 HTTPS 请求，连接到服务器的 443 端口，请求携带了浏览器支持的加密算法和哈希算法
+1. 客户端向服务器发起 HTTPS 请求，连接到服务器的 443 端口，请求携带了浏览器支持的加密算法和哈希算法，协商加密算法
 2. 服务器端会向数字证书认证机构提出公开密钥的申请，认证机构对公开密钥做数字签名后进行分配，会将公钥绑定在数字证书（又叫公钥证书，内容有公钥，网站地址，证书颁发机构，失效日期等）
 3. 服务器将数字证书发送给客户端，私钥由服务器持有
 4. 客户端收到服务器端的数字证书后对证书进行检查，验证其合法性，如果发现发现证书有问题，那么 HTTPS 传输就无法继续。如果公钥合格，那么客户端会生成一个随机值，**这个随机值就是用于进行对称加密的密钥**，将该密钥称之为 client key（客户端密钥、会话密钥）。用服务器的公钥对客户端密钥进行非对称加密，这样客户端密钥就变成密文，HTTPS 中的第一次 HTTP 请求结束
@@ -3755,9 +3772,9 @@ HttpServletRequest 类方法：
 
 RequestDispatcher 类方法：
 
-* `void forward(ServletRequest request, ServletResponse response)` : 实现转发，将请求从 servlet 转发到服务器上的另一个资源（servlet，JSP文件或HTML文件）
+* `void forward(ServletRequest request, ServletResponse response)` : 实现转发，将请求从 Servlet 转发到服务器上的另一个资源（Servlet，JSP 文件或 HTML 文件）
 
-过程：浏览器访问http://localhost:8080/request/servletDemo09，/servletDemo10也会执行
+过程：浏览器访问 http://localhost:8080/request/servletDemo09，/servletDemo10也会执行
 
 ```java
 @WebServlet("/servletDemo09")
@@ -3806,21 +3823,23 @@ public class ServletDemo10 extends HttpServlet {
 
 #### 请求包含
 
-请求包含：合并其他的Servlet中的功能一起响应给客户端。特点：
+请求包含：合并其他的 Servlet 中的功能一起响应给客户端。特点：
 
 * 浏览器地址栏不变
 * 域对象中的数据不丢失
-* 被包含的Servlet响应头会丢失
+* 被包含的 Servlet 响应头会丢失
 
-请求转发的注意事项：负责转发的Servlet，转发前后的响应正文丢失，由转发目的地来响应浏览器。
+请求转发的注意事项：负责转发的 Servlet，转发前后的响应正文丢失，由转发目的地来响应浏览器
 
-请求包含的注意事项：被包含者的响应消息头丢失，因为它被包含者包含起来了。
+请求包含的注意事项：被包含者的响应消息头丢失，因为它被包含者包含起来了
 
-HttpServletRequest类方法：
-	`RequestDispatcher getRequestDispatcher(String path) ` : 获取任务调度对象
+HttpServletRequest 类方法：
 
-RequestDispatcher类方法：
-	`void include(ServletRequest request, ServletResponse response) ` : 实现包含。包括响应中资源的内容（servlet，JSP页面，HTML文件）。
+* `RequestDispatcher getRequestDispatcher(String path) ` : 获取任务调度对象
+
+RequestDispatcher 类方法：
+
+* `void include(ServletRequest request, ServletResponse response) ` : 实现包含。包括响应中资源的内容（servlet，JSP页面，HTML文件）。
 
 ```java
 @WebServlet("/servletDemo11")
@@ -3863,9 +3882,8 @@ public class ServletDemo12 extends HttpServlet {
 
 请求体
 
-* POST
-  `void setCharacterEncoding(String env)` : 设置请求体的编码
-
+* POST：`void setCharacterEncoding(String env)`：设置请求体的编码
+  
   ```java
   @WebServlet("/servletDemo08")
   public class ServletDemo08 extends HttpServlet {
@@ -3885,9 +3903,8 @@ public class ServletDemo12 extends HttpServlet {
   }
   
   ```
-
-* GET
-  Tomcat8.5版本及以后，Tomcat服务器已经帮我们解决
+  
+* GET：Tomcat8.5 版本及以后，Tomcat 服务器已经帮我们解决
 
 
 
@@ -3903,11 +3920,12 @@ public class ServletDemo12 extends HttpServlet {
 
 响应，服务器把请求的处理结果告知客户端
 
-响应对象：在JavaEE工程中，用于发送响应的对象
-					协议无关的对象标准是：ServletResponse接口
-					协议相关的对象标准是：HttpServletResponse接口
+响应对象：在 JavaEE 工程中，用于发送响应的对象
 
-Response的作用：
+* 协议无关的对象标准是：ServletResponse 接口
+* 协议相关的对象标准是：HttpServletResponse 接口
+
+Response 的作用：
 
 + 操作响应的三部分(行, 头, 体)
 
@@ -4210,14 +4228,14 @@ public class ServletDemo06 extends HttpServlet {
 
 ##### 实现重定向
 
-请求重定向：客户端的一次请求到达后，需要借助其他Servlet来实现功能。特点：
+请求重定向：客户端的一次请求到达后，需要借助其他 Servlet 来实现功能。特点：
 
 1. 重定向两次请求
 2. 重定向的地址栏路径改变
-3. **重定向的路径写绝对路径**（带域名/ip地址，如果是同一个项目，可以省略域名/ip地址）
+3. **重定向的路径写绝对路径**（带域名 /ip 地址，如果是同一个项目，可以省略域名 /ip 地址）
 4. 重定向的路径可以是项目内部的,也可以是项目以外的（百度）
-5. 重定向不能重定向到WEB-INF下的资源
-6. 把数据存到request域里面, 重定向不可用
+5. 重定向不能重定向到 WEB-INF 下的资源
+6. 把数据存到 request 域里面，重定向不可用
 
 实现方式：
 
@@ -4355,7 +4373,7 @@ public class ServletDemo08 extends HttpServlet {
 **常用的会话管理技术**：
 
 * Cookie：客户端会话管理技术，用户浏览的信息以键值对（key=value）的形式保存在浏览器上。如果没有关闭浏览器，再次访问服务器，会把 cookie 带到服务端，服务端就可以做相应的处理
-* Session：服务端会话管理技术。当客户端第一次请求 session 对象时候，服务器为每一个浏览器开辟一块内存空间，并将通过特殊算法算出一个 session 的 ID，用来标识该 session 对象。由于内存空间是每一个浏览器独享的，所有用户在访问的时候，可以把信息保存在 session 对象中。同时服务器把 sessionId 写到 cookie 中，再次访问的时候，浏览器会把 cookie(sessionId) 带过来，找到对应的 session 对象。
+* Session：服务端会话管理技术。当客户端第一次请求 session 对象时，服务器为每一个浏览器开辟一块内存空间，并将通过特殊算法算出一个 session 的 ID，用来标识该 session 对象。由于内存空间是每一个浏览器独享的，所有用户在访问的时候，可以把信息保存在 session 对象中，同时服务器会把 sessionId 写到 cookie 中，再次访问的时候，浏览器会把 cookie(sessionId) 带过来，找到对应的 session 对象即可
 
   tomcat 生成的 sessionID 叫做 jsessionID
 
@@ -4363,9 +4381,7 @@ public class ServletDemo08 extends HttpServlet {
 
 * Cookie 存储在客户端中，而 Session 存储在服务器上，相对来说 Session 安全性更高。如果要在 Cookie 中存储一些敏感信息，不要直接写入 Cookie，应该将 Cookie 信息加密然后使用到的时候再去服务器端解密
 
-* Cookie 一般用来保存用户信息
-
-  在 Cookie 中保存已经登录过得用户信息，下次访问网站的时候就不需要重新登录，因为用户登录的时候可以存放一个 Token 在 Cookie 中，下次登录的时候只需要根据 Token 值来查找用户即可（为了安全考虑，重新登录一般要将 Token 重写），所以登录一次网站后访问网站其他页面不需要重新登录
+* Cookie 一般用来保存用户信息，在 Cookie 中保存已经登录过得用户信息，下次访问网站的时候就不需要重新登录，因为用户登录的时候可以存放一个 Token 在 Cookie 中，下次登录的时候只需要根据 Token 值来查找用户即可（为了安全考虑，重新登录一般要将 Token 重写），所以登录一次网站后访问网站其他页面不需要重新登录
 
 * Session 通过服务端记录用户的状态，服务端给特定的用户创建特定的 Session 之后就可以标识这个用户并且跟踪这个用户
 
