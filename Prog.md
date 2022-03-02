@@ -26,7 +26,7 @@
 
 
 
-参考视频：https://www.bilibili.com/video/BV16J411h7Rd（推荐观看）
+参考视频：https://www.bilibili.com/video/BV16J411h7Rd
 
 笔记的整体结构依据视频编写，并随着学习的深入补充了很多知识
 
@@ -50,8 +50,8 @@
 
   * 信号量：信号量是一个计数器，用于多进程对共享数据的访问，解决同步相关的问题并避免竞争条件
   * 共享存储：多个进程可以访问同一块内存空间，需要使用信号量用来同步对共享存储的访问
-  * 管道通信：管道是用于连接一个读进程和一个写进程以实现它们之间通信的一个共享文件，pipe 文件
-    * 匿名管道（Pipes）：用于具有亲缘关系的父子进程间或者兄弟进程之间的通信，只支持**半双工通信**
+  * 管道通信：管道是用于连接一个读进程和一个写进程以实现它们之间通信的一个共享文件 pipe 文件，该文件同一时间只允许一个进程访问，所以只支持**半双工通信**
+    * 匿名管道（Pipes）：用于具有亲缘关系的父子进程间或者兄弟进程之间的通信
     * 命名管道（Names Pipes）：以磁盘文件的方式存在，可以实现本机任意两个进程通信，遵循 FIFO
   * 消息队列：内核中存储消息的链表，由消息队列标识符标识，能在不同进程之间提供**全双工通信**，对比管道：
     * 匿名管道存在于内存中的文件；命名管道存在于实际的磁盘介质或者文件系统；消息队列存放在内核中，只有在内核重启（操作系统重启）或者显示地删除一个消息队列时，该消息队列才被真正删除
@@ -59,9 +59,9 @@
 
   不同计算机之间的**进程通信**，需要通过网络，并遵守共同的协议，例如 HTTP
 
-  * 套接字：与其它通信机制不同的是，它可用于不同机器间的互相通信
+  * 套接字：与其它通信机制不同的是，可用于不同机器间的互相通信
 
-* 线程通信相对简单，因为它们共享进程内的内存，一个例子是多个线程可以访问同一个共享变量
+* 线程通信相对简单，因为线程之间共享进程内的内存，一个例子是多个线程可以访问同一个共享变量
 
   **Java 中的通信机制**：volatile、等待/通知机制、join 方式、InheritableThreadLocal、MappedByteBuffer
 
@@ -285,20 +285,20 @@ Thread 类 API：
 
 | 方法                                        | 说明                                                         |
 | ------------------------------------------- | ------------------------------------------------------------ |
-| public void start()                         | 启动一个新线程；Java虚拟机调用此线程的run方法                |
+| public void start()                         | 启动一个新线程，Java虚拟机调用此线程的 run 方法              |
 | public void run()                           | 线程启动后调用该方法                                         |
 | public void setName(String name)            | 给当前线程取名字                                             |
-| public void getName()                       | 获取当前线程的名字<br />线程存在默认名称：子线程是Thread-索引，主线程是main |
+| public void getName()                       | 获取当前线程的名字<br />线程存在默认名称：子线程是 Thread-索引，主线程是 main |
 | public static Thread currentThread()        | 获取当前线程对象，代码在哪个线程中执行                       |
-| public static void sleep(long time)         | 让当前线程休眠多少毫秒再继续执行<br />**Thread.sleep(0)** : 让操作系统立刻重新进行一次cpu竞争 |
-| public static native void yield()           | 提示线程调度器让出当前线程对CPU的使用                        |
+| public static void sleep(long time)         | 让当前线程休眠多少毫秒再继续执行<br />**Thread.sleep(0)** : 让操作系统立刻重新进行一次 CPU 竞争 |
+| public static native void yield()           | 提示线程调度器让出当前线程对 CPU 的使用                      |
 | public final int getPriority()              | 返回此线程的优先级                                           |
-| public final void setPriority(int priority) | 更改此线程的优先级，常用1 5 10                               |
+| public final void setPriority(int priority) | 更改此线程的优先级，常用 1 5 10                              |
 | public void interrupt()                     | 中断这个线程，异常处理机制                                   |
 | public static boolean interrupted()         | 判断当前线程是否被打断，清除打断标记                         |
 | public boolean isInterrupted()              | 判断当前线程是否被打断，不清除打断标记                       |
 | public final void join()                    | 等待这个线程结束                                             |
-| public final void join(long millis)         | 等待这个线程死亡millis毫秒，0意味着永远等待                  |
+| public final void join(long millis)         | 等待这个线程死亡 millis 毫秒，0 意味着永远等待               |
 | public final native boolean isAlive()       | 线程是否存活（还没有运行完毕）                               |
 | public final void setDaemon(boolean on)     | 将此线程标记为守护线程或用户线程                             |
 
@@ -316,7 +316,7 @@ start：使用 start 是启动新的线程，此线程处于就绪（可运行�
 
 说明：**线程控制资源类**
 
-**面试问题**：run() 方法中的异常不能抛出，只能 try/catch
+run() 方法中的异常不能抛出，只能 try/catch
 
 * 因为父类中没有抛出任何异常，子类不能比父类抛出更多的异常
 * **异常不能跨线程传播回 main() 中**，因此必须在本地进行处理
@@ -332,7 +332,7 @@ start：使用 start 是启动新的线程，此线程处于就绪（可运行�
 sleep：
 
 * 调用 sleep 会让当前线程从 `Running` 进入 `Timed Waiting` 状态（阻塞）
-* sleep() 方法的过程中，线程不会释放对象锁
+* sleep() 方法的过程中，**线程不会释放对象锁**
 * 其它线程可以使用 interrupt 方法打断正在睡眠的线程，这时 sleep 方法会抛出 InterruptedException
 * 睡眠结束后的线程未必会立刻得到执行，需要抢占 CPU
 * 建议用 TimeUnit 的 sleep 代替 Thread 的 sleep 来获得更好的可读性
@@ -423,7 +423,7 @@ public class Test {
 
 `public void interrupt()`：打断这个线程，异常处理机制
 
-`public static boolean interrupted()`：判断当前线程是否被打断，打断返回 true，清除打断标记，连续调用两次一定返回 false
+`public static boolean interrupted()`：判断当前线程是否被打断，打断返回 true，**清除打断标记**，连续调用两次一定返回 false
 
 `public boolean isInterrupted()`：判断当前线程是否被打断，不清除打断标记
 
@@ -473,7 +473,7 @@ public class Test {
 
 
 
-##### 打断park
+##### 打断 park
 
 park 作用类似 sleep，打断 park 线程，不会清空打断状态（true）
 
@@ -595,7 +595,7 @@ t.start();
 
 用户线程：平常创建的普通线程
 
-守护线程：服务于用户线程，只要其它非守护线程运行结束了，即使守护线程代码没有执行完，也会强制结束。守护进程是脱离于终端并且在后台运行的进程，脱离终端是为了避免在执行的过程中的信息在终端上显示
+守护线程：服务于用户线程，只要其它非守护线程运行结束了，即使守护线程代码没有执行完，也会强制结束。守护进程是**脱离于终端并且在后台运行的进程**，脱离终端是为了避免在执行的过程中的信息在终端上显示
 
 说明：当运行的线程都是守护线程，Java 虚拟机将退出，因为普通线程执行完后，JVM 是守护线程，不会继续运行下去
 
@@ -622,7 +622,7 @@ t.start();
 | public final void suspend() | **挂起（暂停）线程运行** |
 | public final void resume()  | 恢复线程运行             |
 
-所以 Java 中线程的状态是阻塞，很少使用挂起
+
 
 
 
@@ -846,44 +846,6 @@ synchronized 修饰的方法的不具备继承性，所以子类是线程不安�
   }
   ```
 
-面向对象实例：
-
-```java
-public class Demo {
-    public static void main(String[] args) throws InterruptedException {
-        Room room = new Room();
-        Thread t1 = new Thread(() -> {
-            for (int j = 0; j < 5000; j++) {
-                room.increment();
-            }
-        }, "t1");
-        Thread t2 = new Thread(() -> {
-            for (int j = 0; j < 5000; j++) {
-                room.decrement();
-            }
-        }, "t2");
-        t1.start();
-        t2.start();
-        t1.join();
-        t2.join();
-        System.out.println(room.get());
-    }
-}
-
-class Room {
-    int value = 0;
-    public synchronized void increment() {
-        value++;
-    }
-    public synchronized void decrement() {
-        value--;
-    }
-    public synchronized int get() {
-        return value;
-    }
-}
-```
-
 
 
 ***
@@ -959,14 +921,14 @@ Monitor 被翻译为监视器或管程
 
   ![](https://gitee.com/seazean/images/raw/master/Java/JUC-Monitor-MarkWord结构32位.png)
 
-* 64位虚拟机 Mark Word：
+* 64 位虚拟机 Mark Word：
 
   ![](https://gitee.com/seazean/images/raw/master/Java/JUC-Monitor-MarkWord结构64位.png)
 
 工作流程：
 
 * 开始时 Monitor 中 Owner 为 null
-* 当 Thread-2 执行 synchronized(obj) 就会将 Monitor 的所有者 Owner 置为 Thread-2，Monitor 中只能有一个 Owner，**obj 对象的 Mark Word 指向 Monitor**，把对象原有的 MarkWord 存入线程栈中的锁记录中（轻量级锁部分详解）
+* 当 Thread-2 执行 synchronized(obj) 就会将 Monitor 的所有者 Owner 置为 Thread-2，Monitor 中只能有一个 Owner，**obj 对象的 Mark Word 指向 Monitor**，把**对象原有的 MarkWord 存入线程栈中的锁记录**中（轻量级锁部分详解）
   <img src="https://gitee.com/seazean/images/raw/master/Java/JUC-Monitor工作原理1.png" style="zoom:67%;" />
 * 在 Thread-2 上锁的过程，Thread-3、Thread-4、Thread-5 也执行 synchronized(obj)，就会进入 EntryList BLOCKED（双向链表）
 * Thread-2 执行完同步代码块的内容，根据 obj 对象头中 Monitor 地址寻找，设置 Owner 为空，把线程栈的锁记录中的对象头的值设置到 MarkWord
@@ -1083,8 +1045,6 @@ LocalVariableTable:
 撤销偏向锁的状态：
 
 * 调用对象的 hashCode：偏向锁的对象 MarkWord 中存储的是线程 id，调用 hashCode 导致偏向锁被撤销
-  * 轻量级锁会在锁记录中记录 hashCode
-  * 重量级锁会在 Monitor 中记录 hashCode
 * 当有其它线程使用偏向锁对象时，会将偏向锁升级为轻量级锁
 * 调用 wait/notify，需要申请 Monitor，进入 WaitSet
 
@@ -1144,7 +1104,7 @@ public static void method2() {
 * 当退出 synchronized 代码块（解锁时）
 
   * 如果有取值为 null 的锁记录，表示有重入，这时重置锁记录，表示重入计数减 1
-  * 如果锁记录的值不为 null，这时使用 CAS 将 Mark Word 的值恢复给对象头
+  * 如果锁记录的值不为 null，这时使用 CAS **将 Mark Word 的值恢复给对象头**
     * 成功，则解锁成功
     * 失败，说明轻量级锁进行了锁膨胀或已经升级为重量级锁，进入重量级锁解锁流程
 
@@ -1162,7 +1122,7 @@ public static void method2() {
 
   ![](https://gitee.com/seazean/images/raw/master/Java/JUC-重量级锁原理1.png)
 
-* Thread-1 加轻量级锁失败，进入锁膨胀流程：为 Object 对象申请 Monitor 锁，让Object 对象头指向重量级锁地址，Monitor 的 Owner 置为 Thread-0，然后自己进入 Monitor 的 EntryList BLOCKED
+* Thread-1 加轻量级锁失败，进入锁膨胀流程：为 Object 对象申请 Monitor 锁，通过 Object 对象头获取到持锁线程，将 Monitor 的 Owner 置为 Thread-0，将 Object 的对象头指向重量级锁地址，然后自己进入 Monitor 的 EntryList BLOCKED
 
   ![](https://gitee.com/seazean/images/raw/master/Java/JUC-重量级锁原理2.png)
 
@@ -1265,7 +1225,7 @@ public class SpinLock {
 
 锁消除是指对于被检测出不可能存在竞争的共享数据的锁进行消除，这是 JVM **即时编译器的优化**
 
-锁消除主要是通过**逃逸分析**来支持，如果堆上的共享数据不可能逃逸出去被其它线程访问到，那么就可以把它们当成私有数据对待，也就可以将它们的锁进行消除（同步消除：JVM 内存分配）
+锁消除主要是通过**逃逸分析**来支持，如果堆上的共享数据不可能逃逸出去被其它线程访问到，那么就可以把它们当成私有数据对待，也就可以将它们的锁进行消除（同步消除：JVM 逃逸分析）
 
 
 
@@ -1287,7 +1247,7 @@ public class SpinLock {
   }
   ```
 
-* String 是一个不可变的类，编译器会对 String 的拼接自动优化。在 JDK 1.5 之前，转化为StringBuffer对象的连续 append() 操作，每个append() 方法中都有一个同步块
+* String 是一个不可变的类，编译器会对 String 的拼接自动优化。在 JDK 1.5 之前，转化为 StringBuffer 对象的连续 append() 操作，每个 append() 方法中都有一个同步块
 
   ```java
   public static String concatString(String s1, String s2, String s3) {
@@ -1358,7 +1318,7 @@ class BigRoom {
 
 死锁：多个线程同时被阻塞，它们中的一个或者全部都在等待某个资源被释放，由于线程被无限期地阻塞，因此程序不可能正常终止
 
-java 死锁产生的四个必要条件：
+Java 死锁产生的四个必要条件：
 
 1. 互斥条件，即当资源被一个线程使用（占有）时，别的线程不能使用
 2. 不可剥夺条件，资源请求者不能强制从资源占有者手中夺取资源，资源只能由资源占有者主动释放
@@ -1556,7 +1516,7 @@ public final native void wait(long timeout):有时限的等待, 到n毫秒后结
 对比 sleep()：
 
 * 原理不同：sleep() 方法是属于 Thread 类，是线程用来控制自身流程的，使此线程暂停执行一段时间而把执行机会让给其他线程；wait() 方法属于 Object 类，用于线程间通信
-* 对锁的处理机制不同：调用 sleep() 方法的过程中，线程不会释放对象锁，当调用 wait() 方法的时候，线程会放弃对象锁，进入等待此对象的等待锁定池（不释放锁其他线程怎么抢占到锁执行唤醒操作），但是都会释放 CPU
+* 对**锁的处理机制**不同：调用 sleep() 方法的过程中，线程不会释放对象锁，当调用 wait() 方法的时候，线程会放弃对象锁，进入等待此对象的等待锁定池（不释放锁其他线程怎么抢占到锁执行唤醒操作），但是都会释放 CPU
 * 使用区域不同：wait() 方法必须放在**同步控制方法和同步代码块（先获取锁）**中使用，sleep() 方法则可以放在任何地方使用
 
 底层原理：
@@ -2292,7 +2252,7 @@ Java 内存模型定义了 8 个操作来完成主内存和工作内存的交互
 
 可见性：是指当多个线程访问同一个变量时，一个线程修改了这个变量的值，其他线程能够立即看得到修改的值
 
-存在不可见问题的根本原因是由于缓存的存在，线程持有的是共享变量的副本，无法感知其他线程对于共享变量的更改，导致读取的值不是最新的
+存在不可见问题的根本原因是由于缓存的存在，线程持有的是共享变量的副本，无法感知其他线程对于共享变量的更改，导致读取的值不是最新的。但是 final 修饰的变量是**不可变**的，就算有缓存，也不会存在不可见的问题
 
 main 线程对 run 变量的修改对于 t 线程不可见，导致了 t 线程无法停止：
 
@@ -2333,9 +2293,9 @@ public static void main(String[] args) throws InterruptedException {
 1. 不允许一个线程无原因地（没有发生过任何 assign 操作）把数据从工作内存同步会主内存中
 2. 一个新的变量只能在主内存中诞生，不允许在工作内存中直接使用一个未被初始化（assign 或者 load）的变量，即对一个变量实施 use 和 store 操作之前，必须先自行 assign 和 load 操作
 3. 一个变量在同一时刻只允许一条线程对其进行 lock 操作，但 lock 操作可以被同一线程重复执行多次，多次执行 lock 后，只有**执行相同次数的 unlock** 操作，变量才会被解锁，**lock 和 unlock 必须成对出现**
-4. 如果对一个变量执行 lock 操作，将会清空工作内存中此变量的值，在执行引擎使用这个变量之前需要重新执行 load 或 assign 操作初始化变量的值
+4. 如果对一个变量执行 lock 操作，将会**清空工作内存中此变量的值**，在执行引擎使用这个变量之前需要重新执行 load 或 assign 操作初始化变量的值
 5. 如果一个变量事先没有被 lock 操作锁定，则不允许对它执行 unlock 操作，也不允许去 unlock 一个被其他线程锁定的变量
-6. 对一个变量执行 unlock 操作之前，必须先把此变量同步到主内存中（执行 store 和 write 操作）
+6. 对一个变量执行 unlock 操作之前，必须**先把此变量同步到主内存**中（执行 store 和 write 操作）
 
 
 
@@ -2376,11 +2336,11 @@ CPU 的基本工作是执行存储的指令序列，即程序，程序的执行�
 
 在计算机系统中，CPU 高速缓存（CPU Cache，简称缓存）是用于减少处理器访问内存所需平均时间的部件；在存储体系中位于自顶向下的第二层，仅次于 CPU 寄存器；其容量远小于内存，但速度却可以接近处理器的频率
 
-CPU 处理器速度远远大于在主内存中的，为了解决速度差异，在它们之间架设了多级缓存，如 L1、L2、L3 级别的缓存，这些缓存离CPU越近就越快，将频繁操作的数据缓存到这里，加快访问速度
+CPU 处理器速度远远大于在主内存中的，为了解决速度差异，在它们之间架设了多级缓存，如 L1、L2、L3 级别的缓存，这些缓存离 CPU 越近就越快，将频繁操作的数据缓存到这里，加快访问速度
 
 <img src="https://gitee.com/seazean/images/raw/master/Java/JMM-CPU缓存结构.png" style="zoom: 50%;" />
 
-| 从 cpu 到 | 大约需要的时钟周期                |
+| 从 CPU 到 | 大约需要的时钟周期                |
 | --------- | --------------------------------- |
 | 寄存器    | 1 cycle (4GHz 的 CPU 约为 0.25ns) |
 | L1        | 3~4 cycle                         |
@@ -2394,7 +2354,7 @@ CPU 处理器速度远远大于在主内存中的，为了解决速度差异，�
 
 当处理器发出内存访问请求时，会先查看缓存内是否有请求数据，如果存在（命中），则不用访问内存直接返回该数据；如果不存在（失效），则要先把内存中的相应数据载入缓存，再将其返回处理器
 
-缓存之所以有效，主要因为程序运行时对内存的访问呈现局部性（Locality）特征。既包括空间局部性（Spatial Locality），也包括时间局部性（Temporal Locality），有效利用这种局部性，缓存可以达到极高的命中率。
+缓存之所以有效，主要因为程序运行时对内存的访问呈现局部性（Locality）特征。既包括空间局部性（Spatial Locality），也包括时间局部性（Temporal Locality），有效利用这种局部性，缓存可以达到极高的命中率
 
 
 
@@ -2468,7 +2428,7 @@ MESI（Modified Exclusive Shared Or Invalid）是一种广泛使用的**支持�
 多核 CPU 处理器，每个 CPU 处理器内维护了一块内存，每个内核内部维护着一块缓存，当多线程并发读写时，就会出现缓存数据不一致的情况。处理器提供：
 
 * 总线锁定：当处理器要操作共享变量时，在 BUS 总线上发出一个 LOCK 信号，其他处理器就无法操作这个共享变量，该操作会导致大量阻塞，从而增加系统的性能开销（**平台级别的加锁**）
-* 缓存锁定：当处理器对缓存中的共享变量进行了操作，其他处理器有嗅探机制，将该共享变量的缓存失效，其他线程读取时会重新从主内存中读取最新的数据，基于 MESI 缓存一致性协议来实现
+* 缓存锁定：当处理器对缓存中的共享变量进行了操作，其他处理器有嗅探机制，将各自缓存中的该共享变量的失效，读取时会重新从主内存中读取最新的数据，基于 MESI 缓存一致性协议来实现
 
 有如下两种情况处理器不会使用缓存锁定：
 
@@ -2514,7 +2474,7 @@ volatile 是 Java 虚拟机提供的**轻量级**的同步机制（三大特性�
 **synchronized 无法禁止指令重排和处理器优化**，为什么可以保证有序性可见性
 
 * 加了锁之后，只能有一个线程获得到了锁，获得不到锁的线程就要阻塞，所以同一时间只有一个线程执行，相当于单线程，由于数据依赖性的存在，单线程的指令重排是没有问题的
-* 线程解锁前，必须把共享变量的最新值刷新到主内存中。线程加锁前，将清空工作内存中共享变量的值，使用共享变量时需要从主内存中重新读取最新的值
+* 线程加锁前，将**清空工作内存**中共享变量的值，使用共享变量时需要从主内存中重新读取最新的值；线程解锁前，必须把共享变量的最新值**刷新到主内存**中（JMM 内存交互章节有讲）
 
 指令重排实例：
 
@@ -2553,13 +2513,13 @@ volatile 是 Java 虚拟机提供的**轻量级**的同步机制（三大特性�
   }
   ```
 
-  情况一：线程1 先执行，ready = false，结果为 r.r1 = 1
+  情况一：线程 1 先执行，ready = false，结果为 r.r1 = 1
   
-  情况二：线程2 先执行 num = 2，但还没执行 ready = true，线程1 执行，结果为 r.r1 = 1
+  情况二：线程 2 先执行 num = 2，但还没执行 ready = true，线程 1 执行，结果为 r.r1 = 1
   
-  情况三：线程2 先执行 ready = true，线程1 执行，进入 if 分支结果为 r.r1 = 4
+  情况三：线程 2 先执行 ready = true，线程 1 执行，进入 if 分支结果为 r.r1 = 4
   
-  情况四：线程2 执行 ready = true，切换到线程1，进入 if 分支为 r.r1 = 0，再切回线程2 执行 num = 2，发生指令重排
+  情况四：线程 2 执行 ready = true，切换到线程 1，进入 if 分支为 r.r1 = 0，再切回线程 2 执行 num = 2，发生指令重排
 
 
 
@@ -2726,10 +2686,10 @@ getInstance 方法对应的字节码为：
 * 21 表示利用一个对象引用，调用构造方法初始化对象
 * 24 表示利用一个对象引用，赋值给 static INSTANCE
 
-步骤 21 和 24 之间不存在数据依赖关系，而且无论重排前后，程序的执行结果在单线程中并没有改变，因此这种重排优化是允许的
+**步骤 21 和 24 之间不存在数据依赖关系**，而且无论重排前后，程序的执行结果在单线程中并没有改变，因此这种重排优化是允许的
 
 * 关键在于 0:getstatic 这行代码在 monitor 控制之外，可以越过 monitor 读取 INSTANCE 变量的值
-* 当其他线程访问 instance 不为 null 时，由于 instance 实例未必已初始化，那么 t2 拿到的是将是一个未初始化完毕的单例返回，这就造成了线程安全的问题
+* 当其他线程访问 INSTANCE 不为 null 时，由于 INSTANCE 实例未必已初始化，那么 t2 拿到的是将是一个未初始化完毕的单例返回，这就造成了线程安全的问题
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JMM-DCL出现的问题.png)
 
@@ -2918,7 +2878,7 @@ CAS 的全称是 Compare-And-Swap，是 **CPU 并发原语**
 
 * 程序是在多核处理器上运行，会为 cmpxchg 指令加上 lock 前缀。当某个核执行到带 lock 的指令时，CPU 会执行**总线锁定或缓存锁定**，将修改的变量写入到主存，这个过程不会被线程的调度机制所打断，保证了多个线程对内存操作的原子性
 
-作用：比较当前工作内存中的值和主物理内存中的值，如果相同则执行规定操作，否者继续比较直到主内存和工作内存的值一致为止
+作用：比较当前工作内存中的值和主物理内存中的值，如果相同则执行规定操作，否则继续比较直到主内存和工作内存的值一致为止
 
 CAS 特点：
 
@@ -2927,7 +2887,7 @@ CAS 特点：
 
 CAS 缺点：
 
-- 循环时间长，开销大，因为执行的是循环操作，如果比较不成功一直在循环，最差的情况某个线程一直取到的值和预期值都不一样，就会无限循环导致饥饿，**使用 CAS 线程数不要超过 CPU的 核心数**
+- 循环时间长，开销大，因为执行的是循环操作，如果比较不成功一直在循环，最差的情况某个线程一直取到的值和预期值都不一样，就会无限循环导致饥饿，**使用 CAS 线程数不要超过 CPU 的核心数**
 - 只能保证一个共享变量的原子操作
   - 对于一个共享变量执行操作时，可以通过循环 CAS 的方式来保证原子操作
   - 对于多个共享变量操作时，循环 CAS 就无法保证操作的原子性，这个时候**只能用锁来保证原子性**
@@ -3015,7 +2975,7 @@ CAS 算法：有 3 个操作数（内存值 V， 旧的预期值 A，要修改�
   public native long objectFieldOffset(Field var1);
   ```
 
-* unsafe类：
+* unsafe 类：
 
   ```java
   // val1: AtomicInteger对象本身，var2: 该对象值得引用地址，var4: 需要变动的数
@@ -3038,7 +2998,7 @@ CAS 算法：有 3 个操作数（内存值 V， 旧的预期值 A，要修改�
   private volatile int value
   ```
 
-  CAS 必须借助 volatile 才能读取到共享变量的最新值来实现**比较并交换**的效果
+  **CAS 必须借助 volatile 才能读取到共享变量的最新值来实现比较并交换的效果**
 
 分析 getAndUpdate 方法：
 
@@ -3257,7 +3217,7 @@ Cell 是数组形式，**在内存中是连续存储的**，64 位系统中，�
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JUC-伪共享1.png)
 
-@sun.misc.Contended：防止缓存行伪共享，在使用此注解的对象或字段的前后各增加 128 字节大小的 padding，使用 2 倍于大多数硬件缓存行让 CPU 将对象预读至缓存时占用不同的缓存行，这样就不会造成对方缓存行的失效
+@sun.misc.Contended：防止缓存行伪共享，在使用此注解的对象或字段的前后各增加 128 字节大小的 padding，使用 2 倍于大多数硬件缓存行让 CPU 将对象预读至缓存时**占用不同的缓存行**，这样就不会造成对方缓存行的失效
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JUC-伪共享2.png)
 
@@ -3613,7 +3573,7 @@ final 变量的赋值通过 putfield 指令来完成，在这条指令之后也�
 
 不可变：如果一个对象不能够修改其内部状态（属性），那么就是不可变对象
 
-不可变对象线程安全的，因为不存在并发修改，是另一种避免竞争的方式
+不可变对象线程安全的，不存在并发修改和可见性问题，是另一种避免竞争的方式
 
 String 类也是不可变的，该类和类中所有属性都是 final 的
 
@@ -3658,7 +3618,7 @@ Servlet 为了保证其线程安全，一般不为 Servlet 设置成员变量，
 
 #### 基本介绍
 
-ThreadLocal 类用来提供线程内部的局部变量，这种变量在多线程环境下访问（通过 get 和 set 方法访问）时能保证各个线程的变量相对独立于其他线程内的变量，分配在堆内的 TLAB 中
+ThreadLocal 类用来提供线程内部的局部变量，这种变量在多线程环境下访问（通过 get 和 set 方法访问）时能保证各个线程的变量相对独立于其他线程内的变量，分配在堆内的 **TLAB** 中
 
 ThreadLocal 实例通常来说都是 `private static` 类型的，属于一个线程的本地变量，用于关联线程和线程上下文。每个线程都会在 ThreadLocal 中保存一份该线程独有的数据，所以是线程安全的
 
@@ -3812,8 +3772,8 @@ JDK8 以前：每个 ThreadLocal 都创建一个 Map，然后用线程作为 Map
 
 JDK8 以后：每个 Thread 维护一个 ThreadLocalMap，这个 Map 的 key 是 ThreadLocal 实例本身，value 是真正要存储的值
 
-* 每个 Thread 线程内部都有一个 Map (ThreadLocalMap)
-* Map 里面存储 ThreadLocal 对象（key）和线程的变量副本（value）
+* **每个 Thread 线程内部都有一个 Map (ThreadLocalMap)**
+* Map 里面存储 ThreadLocal 对象（key）和线程的私有变量（value）
 * Thread 内部的 Map 是由 ThreadLocal 维护的，由 ThreadLocal 负责向 map 获取和设置线程的变量值
 * 对于不同的线程，每次获取副本值时，别的线程并不能获取到当前线程的副本值，形成副本的隔离，互不干扰
 
@@ -4329,7 +4289,7 @@ ThreadLocalMap(ThreadLocal<?> firstKey, Object firstValue) {
               tab[i] = null;
               size--;
           } else {
-              // 当前 entry 不是过期数据的逻辑
+              // 当前 entry 不是过期数据的逻辑，【rehash】
               // 重新计算当前 entry 对应的 index
               int h = k.threadLocalHashCode & (len - 1);
               // 条件成立说明当前 entry 存储时发生过 hash 冲突，向后偏移过了
@@ -4414,7 +4374,7 @@ Memory leak：内存泄漏是指程序中动态分配的堆内存由于某种原
   * 没有手动删除这个 Entry
   * CurrentThread 依然运行
 
-根本原因：ThreadLocalMap 是 Thread的一个属性，生命周期跟 Thread 一样长，如果没有手动删除对应 Entry 就会导致内存泄漏
+根本原因：ThreadLocalMap 是 Thread的一个属性，**生命周期跟 Thread 一样长**，如果没有手动删除对应 Entry 就会导致内存泄漏
 
 解决方法：使用完 ThreadLocal 中存储的内容后将它 remove 掉就可以
 
@@ -4577,7 +4537,7 @@ java.util.concurrent.BlockingQueue 接口有以下阻塞队列的实现：**FIFO
 与普通队列（LinkedList、ArrayList等）的不同点在于阻塞队列中阻塞添加和阻塞删除方法，以及线程安全：
 
 * 阻塞添加 take()：当阻塞队列元素已满时，添加队列元素的线程会被阻塞，直到队列元素不满时才重新唤醒线程执行
-* 阻塞删除 put()：在队列元素为空时，删除队列元素的线程将被阻塞，直到队列不为空再执行删除操作(一般都会返回被删除的元素)
+* 阻塞删除 put()：在队列元素为空时，删除队列元素的线程将被阻塞，直到队列不为空再执行删除操作（一般会返回被删除的元素)
 
 
 
@@ -4589,8 +4549,8 @@ java.util.concurrent.BlockingQueue 接口有以下阻塞队列的实现：**FIFO
 
 | 方法类型         | 抛出异常  | 特殊值   | 阻塞   | 超时               |
 | ---------------- | --------- | -------- | ------ | ------------------ |
-| 插入             | add(e)    | offer(e) | put(e) | offer(e,time,unit) |
-| 移除             | remove()  | poll()   | take() | poll(time,unit)    |
+| 插入（尾）       | add(e)    | offer(e) | put(e) | offer(e,time,unit) |
+| 移除（头）       | remove()  | poll()   | take() | poll(time,unit)    |
 | 检查（队首元素） | element() | peek()   | 不可用 | 不可用             |
 
 * 抛出异常组：
@@ -4600,7 +4560,7 @@ java.util.concurrent.BlockingQueue 接口有以下阻塞队列的实现：**FIFO
   * 插入方法：成功 true，失败 false
   * 移除方法：成功返回出队列元素，队列没有就返回 null
 * 阻塞组：
-  * 当阻塞队列满时，生产者继续往队列里 put 元素，队列会一直阻塞生产线程直到 put 数据或响应中断退出
+  * 当阻塞队列满时，生产者继续往队列里 put 元素，队列会一直阻塞生产线程直到队列有空间 put 数据或响应中断退出
   * 当阻塞队列空时，消费者线程试图从队列里 take 元素，队列会一直阻塞消费者线程直到队列中有可用元素
 * 超时退出：当阻塞队列满时，队里会阻塞生产者线程一定时间，超过限时后生产者线程会退出
 
@@ -4688,7 +4648,7 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
 
   ![](https://gitee.com/seazean/images/raw/master/Java/JUC-LinkedBlockingQueue出队流程2.png)
 
-  
+  * `first.item = null`：当前节点置为 Dummy 节点
 
   
 
@@ -4842,7 +4802,7 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
 
 ##### 成员属性
 
-与其他 BlockingQueue 不同，SynchronousQueue 是一个不存储元素的 BlockingQueue，每一个生产者必须阻塞匹配到一个消费者
+SynchronousQueue 是一个不存储元素的 BlockingQueue，**每一个生产者必须阻塞匹配到一个消费者**
 
 成员变量：
 
@@ -4873,7 +4833,7 @@ public class LinkedBlockingQueue<E> extends AbstractQueue<E>
   static final long spinForTimeoutThreshold = 1000L;	// 纳秒
   ```
 
-  超时时间设置的小于该值，就会被禁止挂起，阻塞在唤醒的成本太高，不如选择自旋空转
+  超时时间设置的小于该值，就会被禁止挂起，阻塞再唤醒的成本太高，不如选择自旋空转
 
 * 转换器：
 
@@ -5360,7 +5320,7 @@ TransferQueue 类成员方法：
               return (x != null) ? (E)x : e;
   		// 队尾节点与当前请求节点【互补匹配】
           } else {
-              // h.next 节点，请求节点与队尾模式不同，需要与队头发生匹配，TransferQueue 是一个【公平模式】
+              // h.next 节点，【请求节点与队尾模式不同，需要与队头发生匹配】，TransferQueue 是一个【公平模式】
               QNode m = h.next;
               // 并发导致其他线程修改了队尾节点，或者已经把 head.next 匹配走了
               if (t != tail || m == null || h != head)
@@ -5503,7 +5463,7 @@ public ThreadPoolExecutor(int corePoolSize,
 2. 当调用 execute() 方法添加一个请求任务时，线程池会做如下判断：
    * 如果正在运行的线程数量小于 corePoolSize，那么马上创建线程运行这个任务
    * 如果正在运行的线程数量大于或等于 corePoolSize，那么将这个任务放入队列
-   * 如果这时队列满了且正在运行的线程数量还小于 maximumPoolSize，那么会创建非核心线程**立刻运行这个任务**，对于阻塞队列中的任务不公平。这是因为创建每个 Worker （线程）对象会绑定一个初始任务，启动 Worker 时会优先执行
+   * 如果这时队列满了且正在运行的线程数量还小于 maximumPoolSize，那么会创建非核心线程**立刻运行这个任务**，对于阻塞队列中的任务不公平。这是因为创建每个 Worker（线程）对象会绑定一个初始任务，启动 Worker 时会优先执行
    * 如果队列满了且正在运行的线程数量大于或等于 maximumPoolSize，那么线程池会启动饱和**拒绝策略**来执行
 3. 当一个线程完成任务时，会从队列中取下一个任务来执行
 
@@ -5562,16 +5522,16 @@ Executors 提供了四种线程池的创建：newCachedThreadPool、newFixedThre
 
   * 保证所有任务按照**指定顺序执行**，线程数固定为 1，任务数多于 1 时会放入无界队列排队，任务执行完毕，这唯一的线程也不会被释放
 
-  对比：
 
-  * 创建一个单线程串行执行任务，如果任务执行失败而终止那么没有任何补救措施，线程池会新建一个线程，保证池的正常工作
-  
-* Executors.newSingleThreadExecutor() 线程个数始终为1，不能修改。FinalizableDelegatedExecutorService 应用的是装饰器模式，只对外暴露了 ExecutorService 接口，因此不能调用 ThreadPoolExecutor 中特有的方法
-  
+对比：
+
+* 创建一个单线程串行执行任务，如果任务执行失败而终止那么没有任何补救措施，线程池会新建一个线程，保证池的正常工作
+
+* Executors.newSingleThreadExecutor() 线程个数始终为 1，不能修改。FinalizableDelegatedExecutorService 应用的是装饰器模式，只对外暴露了 ExecutorService 接口，因此不能调用 ThreadPoolExecutor 中特有的方法
+
   原因：父类不能直接调用子类中的方法，需要反射或者创建对象的方式，可以调用子类静态方法
-  
+
 * Executors.newFixedThreadPool(1) 初始时为1，可以修改。对外暴露的是 ThreadPoolExecutor 对象，可以强转后调用 setCorePoolSize 等方法进行修改
-  
 
 ![](https://gitee.com/seazean/images/raw/master/Java/JUC-newSingleThreadExecutor.png)
 
@@ -5640,7 +5600,7 @@ ExecutorService 类 API：
 
 execute 和 submit 都属于线程池的方法，对比：
 
-* execute 只能执行 Runnable 类型的任务，没有返回值； submit 既能提交 Runnable 类型任务也能提交 Callable 类型任务，底层是封装成 FutureTask，然后调用 execute 执行
+* execute 只能执行 Runnable 类型的任务，没有返回值； submit 既能提交 Runnable 类型任务也能提交 Callable 类型任务，底层是**封装成 FutureTask，然后调用 execute 执行**
 
 * execute 会直接抛出任务执行时的异常，submit 会吞掉异常，可通过 Future 的 get 方法将任务执行时的异常重新抛出
 
@@ -5912,7 +5872,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
 
 ##### 提交方法
 
-* AbstractExecutorService#submit()：提交任务，**把 Runnable 或 Callable 任务封装成 FutureTask 执行**，可以通过方法返回的任务对象调用 get 阻塞获取任务执行的结果或者异常，源码分析在笔记的 Future 部分
+* AbstractExecutorService#submit()：提交任务，**把 Runnable 或 Callable 任务封装成 FutureTask 执行**，可以通过方法返回的任务对象，调用 get 阻塞获取任务执行的结果或者异常，源码分析在笔记的 Future 部分
 
   ```java
   public Future<?> submit(Runnable task) {
@@ -5946,7 +5906,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
   }
   ```
 
-* execute()：执行任务，但是没有返回值，没办法获取任务执行结果，出现异常会直接抛出任务执行时的异常。根据线程池中的线程数，选择添加任务时的处理方式
+* execute()：执行任务，**但是没有返回值，没办法获取任务执行结果**，出现异常会直接抛出任务执行时的异常。根据线程池中的线程数，选择添加任务时的处理方式
 
   ```java
   // command 可以是普通的 Runnable 实现类，也可以是 FutureTask，不能是 Callable
@@ -6000,7 +5960,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
 
 * addWorker()：**添加线程到线程池**，返回 true 表示创建 Worker 成功，且线程启动。首先判断线程池是否允许添加线程，允许就让线程数量 + 1，然后去创建 Worker 加入线程池
 
-  注意：SHUTDOWN 状态也能添加线程，但是要求新加的 Woker 没有 firstTask
+  注意：SHUTDOWN 状态也能添加线程，但是要求新加的 Woker 没有 firstTask，而且当前 queue 不为空，所以创建一个线程来帮助执行队列中的任务
 
   ```java
   // core == true 表示采用核心线程数量限制，false 表示采用 maximumPoolSize
@@ -6135,7 +6095,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
   }
   ```
 
-* runWorker()：**执行任务**，线程会一直 while 循环获取任务执行任务
+* runWorker()：线程启动就要**执行任务**，会一直 while 循环获取任务并执行
 
   ```java
   final void runWorker(Worker w) {
@@ -6352,7 +6312,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
               // 获取当前 worker 的线程
               Thread t = w.thread;
               // 条件一成立：说明当前迭代的这个线程尚未中断
-              // 条件二成立：说明当前worker处于空闲状态，阻塞在poll或者take，因为worker执行task时是要加锁的
+              // 条件二成立：说明【当前worker处于空闲状态】，阻塞在poll或者take，因为worker执行task时是要加锁的
               //           每个worker有一个独占锁，w.tryLock()尝试加锁，加锁成功返回 true
               if (!t.isInterrupted() && w.tryLock()) {
                   try {
@@ -6497,7 +6457,7 @@ public FutureTask(Runnable runnable, V result) {
 public static <T> Callable<T> callable(Runnable task, T result) {
     if (task == null) throw new NullPointerException();
     // 使用装饰者模式将 runnable 转换成 callable 接口，外部线程通过 get 获取
-    // 当前任务执行结果时，结果可能为 null 也可能为【传进来】的值，传进来什么返回什么
+    // 当前任务执行结果时，结果可能为 null 也可能为传进来的值，【传进来什么返回什么】
     return new RunnableAdapter<T>(task, result);
 }
 static final class RunnableAdapter<T> implements Callable<T> {
@@ -6845,9 +6805,6 @@ FutureTask 类的成员方法：
 
 
 
-参考视频：https://www.bilibili.com/video/BV13E411N7pp
-
-
 
 ****
 
@@ -6912,8 +6869,8 @@ public ScheduledThreadPoolExecutor(int corePoolSize) {
 常用 API：
 
 * `ScheduledFuture<?> schedule(Runnable/Callable<V>, long delay, TimeUnit u)`：延迟执行任务
-* `ScheduledFuture<?> scheduleAtFixedRate(Runnable/Callable<V>, long initialDelay, long period, TimeUnit unit)`：定时执行任务，参数为初始延迟时间、间隔时间、单位
-* `ScheduledFuture<?> scheduleWithFixedDelay(Runnable/Callable<V>, long initialDelay, long delay, TimeUnit unit)`：定时执行任务，参数为初始延迟时间、间隔时间、单位
+* `ScheduledFuture<?> scheduleAtFixedRate(Runnable/Callable<V>, long initialDelay, long period, TimeUnit unit)`：定时执行周期任务，不考虑执行的耗时，参数为初始延迟时间、间隔时间、单位
+* `ScheduledFuture<?> scheduleWithFixedDelay(Runnable/Callable<V>, long initialDelay, long delay, TimeUnit unit)`：定时执行周期任务，考虑执行的耗时，参数为初始延迟时间、间隔时间、单位
 
 基本使用：
 
@@ -6983,7 +6940,7 @@ public ScheduledThreadPoolExecutor(int corePoolSize) {
 
 ##### 成员变量
 
-* shutdown 后是否继续执行定时任务：
+* shutdown 后是否继续执行周期任务：
 
   ```java
   private volatile boolean continueExistingPeriodicTasksAfterShutdown;
@@ -6998,10 +6955,11 @@ public ScheduledThreadPoolExecutor(int corePoolSize) {
 * 取消方法是否将该任务从队列中移除：
 
   ```java
+  // 默认 false，不移除，等到线程拿到任务之后抛弃
   private volatile boolean removeOnCancel = false;
   ```
 
-* 任务的序列号：
+* 任务的序列号，可以用来比较优先级：
 
   ```java
   private static final AtomicLong sequencer = new AtomicLong();
@@ -7015,7 +6973,7 @@ public ScheduledThreadPoolExecutor(int corePoolSize) {
 
 ##### 延迟任务
 
-ScheduledFutureTask 继承 FutureTask，实现 RunnableScheduledFuture 接口，具有延迟执行的特点，覆盖 FutureTask 的 run 方法来实现对**延时执行、周期执行**的支持。对于延时任务调用 FutureTask#run，而对于周期性任务则调用 FutureTask#runAndReset 并且在成功之后根据 fixed-delay/fixed-rate 模式来设置下次执行时间并重新将任务塞到工作队列。
+ScheduledFutureTask 继承 FutureTask，实现 RunnableScheduledFuture 接口，具有延迟执行的特点，覆盖 FutureTask 的 run 方法来实现对**延时执行、周期执行**的支持。对于延时任务调用 FutureTask#run，而对于周期性任务则调用 FutureTask#runAndReset 并且在成功之后根据 fixed-delay/fixed-rate 模式来设置下次执行时间并重新将任务塞到工作队列
 
 在调度线程池中无论是 runnable 还是 callable，无论是否需要延迟和定时，所有的任务都会被封装成 ScheduledFutureTask
 
@@ -7030,7 +6988,7 @@ ScheduledFutureTask 继承 FutureTask，实现 RunnableScheduledFuture 接口，
 * 执行时间：
 
   ```java
-  private long time;			// 任务可以被执行的时间，以纳秒表示
+  private long time;			// 任务可以被执行的时间，交付时间，以纳秒表示
   private final long period;	// 0 表示非周期任务，正数表示 fixed-rate 模式的周期，负数表示 fixed-delay 模式
   ```
 
@@ -7045,7 +7003,8 @@ ScheduledFutureTask 继承 FutureTask，实现 RunnableScheduledFuture 接口，
 * 任务在队列数组中的索引下标：
 
   ```java
-  int heapIndex;				// -1 代表删除
+  // DelayedWorkQueue 底层使用的数据结构是最小堆，记录当前任务在堆中的索引，-1 代表删除
+  int heapIndex;
   ```
 
 成员方法：
@@ -7066,13 +7025,40 @@ ScheduledFutureTask 继承 FutureTask，实现 RunnableScheduledFuture 接口，
 
 * compareTo()：ScheduledFutureTask 根据执行时间 time 正序排列，如果执行时间相同，在按照序列号 sequenceNumber 正序排列，任务需要放入 DelayedWorkQueue，延迟队列中使用该方法按照从小到大进行排序
 
+  ```java
+  public int compareTo(Delayed other) {
+      if (other == this) // compare zero if same object
+          return 0;
+      if (other instanceof ScheduledFutureTask) {
+          // 类型强转
+          ScheduledFutureTask<?> x = (ScheduledFutureTask<?>)other;
+          // 比较者 - 被比较者的执行时间
+          long diff = time - x.time;
+          // 比较者先执行
+          if (diff < 0)
+              return -1;
+          // 被比较者先执行
+          else if (diff > 0)
+              return 1;
+          // 比较者的序列号小
+          else if (sequenceNumber < x.sequenceNumber)
+              return -1;
+          else
+              return 1;
+      }
+      // 不是 ScheduledFutureTask 类型时，根据延迟时间排序
+      long diff = getDelay(NANOSECONDS) - other.getDelay(NANOSECONDS);
+      return (diff < 0) ? -1 : (diff > 0) ? 1 : 0;
+  }
+  ```
+
 * run()：执行任务，非周期任务直接完成直接结束，**周期任务执行完后会设置下一次的执行时间，重新放入线程池的阻塞队列**，如果线程池中的线程数量少于核心线程，就会添加 Worker 开启新线程
 
   ```java
   public void run() {
       // 是否周期性，就是判断 period 是否为 0
       boolean periodic = isPeriodic();
-      // 检查当前状态能否执行任务，不能执行就取消任务
+      // 根据是否是周期任务检查当前状态能否执行任务，不能执行就取消任务
       if (!canRunInCurrentRunState(periodic))
           cancel(false);
       // 非周期任务，直接调用 FutureTask#run 执行
@@ -7088,7 +7074,7 @@ ScheduledFutureTask 继承 FutureTask，实现 RunnableScheduledFuture 接口，
   }
   ```
 
-  周期任务正常完成后任务的状态不会变化，依旧是 NEW，不会设置 outcome 属性。但是如果本次任务执行出现异常，会进入 setException 方法将任务状态置为异常，把异常保存在 outcome 中，方法返回 false，后续的该任务将不会再周期的执行
+  周期任务正常完成后**任务的状态不会变化**，依旧是 NEW，不会设置 outcome 属性。但是如果本次任务执行出现异常，会进入 setException 方法将任务状态置为异常，把异常保存在 outcome 中，方法返回 false，后续的该任务将不会再周期的执行
 
   ```java
   protected boolean runAndReset() {
@@ -7128,10 +7114,10 @@ ScheduledFutureTask 继承 FutureTask，实现 RunnableScheduledFuture 接口，
   private void setNextRunTime() {
       long p = period;
       if (p > 0)
-          // fixed-rate 模式，【时间设置为上一次执行任务的时间 +p】，两次任务执行的时间差
+          // fixed-rate 模式，【时间设置为上一次执行任务的时间 + p】，两次任务执行的时间差
           time += p;
       else
-          // fixed-delay 模式，下一次执行时间是当【前这次任务结束的时间（就是现在） +delay 值】
+          // fixed-delay 模式，下一次执行时间是【当前这次任务结束的时间（就是现在） + delay 值】
           time = triggerTime(-p);
   }
   ```
@@ -7144,7 +7130,8 @@ ScheduledFutureTask 继承 FutureTask，实现 RunnableScheduledFuture 接口，
       if (canRunInCurrentRunState(true)) {
           // 【放入任务队列】
           super.getQueue().add(task);
-          // 再次检查是否可以执行，如果不能执行且任务还在队列中未被取走，则取消任务
+          // 如果提交完任务之后，线程池状态变为了 shutdown 状态，需要再次检查是否可以执行，
+          // 如果不能执行且任务还在队列中未被取走，则取消任务
           if (!canRunInCurrentRunState(true) && remove(task))
               task.cancel(false);
           else
@@ -7178,9 +7165,9 @@ ScheduledFutureTask 继承 FutureTask，实现 RunnableScheduledFuture 接口，
 
 ##### 延迟队列
 
-DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先队列 PriorityQueue（小根堆）存储元素
+DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先队列 PriorityQueue（小根堆、满二叉树）存储元素
 
-其他阻塞队列存储节点的数据结构大都是链表，**延迟队列是数组**，所以延迟队列出队头元素后需要让其他元素（尾）替换到头节点，防止空指针异常
+其他阻塞队列存储节点的数据结构大都是链表，**延迟队列是数组**，所以延迟队列出队头元素后需要**让其他元素（尾）替换到头节点**，防止空指针异常
 
 成员变量：
 
@@ -7200,12 +7187,13 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
   private final Condition available = lock.newCondition();// 条件队列
   ```
 
-* 阻塞等待头节点的线程：
+* 阻塞等待头节点的线程：线程池内的某个线程去 take() 获取任务时，如果延迟队列顶层节点不为 null（队列内有任务），但是节点任务还不到触发时间，线程就去检查**队列的 leader字段**是否被占用
 
+  * 如果未被占用，则当前线程占用该字段，然后当前线程到 available 条件队列指定超时时间 `堆顶任务.time - now()` 挂起
+  * 如果被占用，当前线程直接到 available 条件队列不指定超时时间的挂起
+  
   ```java
-  // 通过阻塞方式去获取头结点，那么 leader 线程的等待时间为头结点的延迟时间，其它线程则会陷入阻塞状态
-  // leader 线程获取到头结点后需要发送信号唤醒其它线程 available.asignAll()
-  // 使用了 Leader/Follower 来避免不必要的等待，只让leader来等待需要等待的时间，其余线程无限等待直至被唤醒即可
+  // leader 在 available 条件队列内是首元素，它超时之后会醒过来，然后再次将堆顶元素获取走，获取走之后，take()结束之前，会调用是 available.signal() 唤醒下一个条件队列内的等待者，然后释放 lock，下一个等待者被唤醒后去到 AQS 队列，做 acquireQueue(node) 逻辑
   private Thread leader = null;
   ```
 
@@ -7219,7 +7207,7 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
       if (x == null)
           throw new NullPointerException();
       RunnableScheduledFuture<?> e = (RunnableScheduledFuture<?>)x;
-      // 队列锁
+      // 队列锁，增加删除数据时都要加锁
       final ReentrantLock lock = this.lock;
       lock.lock();
       try {
@@ -7238,7 +7226,11 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
               // 向上调整元素的位置，并更新 heapIndex 
               siftUp(i, e);
           }
-          // 【插入的元素是头节点，原先的 leader 等待的是原先的头节点，所以 leader 已经无效】
+          // 情况1：当前任务是第一个加入到 queue 内的任务，所以在当前任务加入到 queue 之前，take() 线程会直接
+          //		到 available 队列不设置超时的挂起，并不会去占用 leader 字段，这时需会唤醒一个线程 让它去消费
+         	// 情况2：当前任务【优先级最高】，原堆顶任务可能还未到触发时间，leader 线程设置超时的在 available 挂起
+          //		原先的 leader 等待的是原先的头节点，所以 leader 已经无效，需要将 leader 线程唤醒，
+          //		唤醒之后它会检查堆顶，如果堆顶任务可以被消费，则直接获取走，否则继续成为 leader 等待新堆顶任务
           if (queue[0] == e) {
               // 将 leader 设置为 null
               leader = null;
@@ -7295,11 +7287,13 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
 
   ```java
   private RunnableScheduledFuture<?> finishPoll(RunnableScheduledFuture<?> f) {
+      // 获取尾索引
       int s = --size;
       // 获取尾节点
       RunnableScheduledFuture<?> x = queue[s];
-      // 置空
+      // 将堆结构最后一个节点占用的 slot 设置为 null，因为该节点要尝试升级成堆顶，会根据特性下调
       queue[s] = null;
+      // s == 0 说明 当前堆结构只有堆顶一个节点，此时不需要做任何的事情
       if (s != 0)
           // 从索引处 0 开始向下调整
           siftDown(0, x);
@@ -7309,11 +7303,12 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
   }
   ```
 
-* take()：阻塞获取头节点，读取当前堆中最小的也就是执行开始时间最近的任务
+* take()：阻塞获取头节点，读取当前堆中最小的也就是触发时间最近的任务
 
   ```java
   public RunnableScheduledFuture<?> take() throws InterruptedException {
       final ReentrantLock lock = this.lock;
+      // 保证线程安全
       lock.lockInterruptibly();
       try {
           for (;;) {
@@ -7323,15 +7318,15 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
                   // 等待队列不空，直至有任务通过 offer 入队并唤醒
                   available.await();
               else {
-                  // 获取头节点的剩延迟时间是否到时
+                  // 获取头节点的延迟时间是否到时
                   long delay = first.getDelay(NANOSECONDS);
                   if (delay <= 0)
-                      // 到时了，获取头节点并调整堆，重新选择延迟时间最小的节点放入头部
+                      // 到达触发时间，获取头节点并调整堆，重新选择延迟时间最小的节点放入头部
                       return finishPoll(first);
                   
                   // 逻辑到这说明头节点的延迟时间还没到
                   first = null;
-                  // 说明有 leader 线程在等待获取头节点，需要阻塞等待
+                  // 说明有 leader 线程在等待获取头节点，当前线程直接去阻塞等待
                   if (leader != null)
                       available.await();
                   else {
@@ -7339,12 +7334,12 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
                       Thread thisThread = Thread.currentThread();
                       leader = thisThread;
                       try {
+                          // 在条件队列 available 使用带超时的挂起（堆顶任务.time - now() 纳秒值..）
                           available.awaitNanos(delay);
+                          // 到达阻塞时间时，当前线程会从来
                       } finally {
-                          // 条件成立的情况：
-                          // 1. 原先 thisThread == leader, 然后堆顶更新了，leader 被置为 null
-                          // 2. 堆顶更新，offer 方法释放锁后,有其它线程通过 take/poll 拿到锁,
-                          //    读到 leader == null，然后将自身更新为leader。
+                          // t堆顶更新，leader 置为 null，offer 方法释放锁后，
+                          // 有其它线程通过 take/poll 拿到锁,读到 leader == null，然后将自身更新为leader。
                           if (leader == thisThread)
                               // leader 置为 null 用以接下来判断是否需要唤醒后继线程
                               leader = null;
@@ -7353,7 +7348,7 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
               }
           }
       } finally {
-          // 没有 leader 线程没有，头结点不为 null，唤醒阻塞获取头节点的线程
+          // 没有 leader 线程，头结点不为 null，唤醒阻塞获取头节点的线程
           if (leader == null && queue[0] != null)
               available.signal();
           lock.unlock();
@@ -7693,7 +7688,7 @@ ForkJoinPool 实现了**工作窃取算法**来提高 CPU 的利用率：
 
 ### 享元模式
 
-享元模式 (Flyweight pattern)： 用于减少创建对象的数量，以减少内存占用和提高性能，这种类型的设计模式属于结构型模式，它提供了减少对象数量从而改善应用所需的对象结构的方式
+享元模式（Flyweight pattern）： 用于减少创建对象的数量，以减少内存占用和提高性能，这种类型的设计模式属于结构型模式，它提供了减少对象数量从而改善应用所需的对象结构的方式
 
 异步模式：让有限的工作线程（Worker Thread）来轮流异步处理无限多的任务，也可将其归类为分工模式，典型实现就是线程池
 
@@ -7905,7 +7900,7 @@ AbstractQueuedSynchronizer 中 state 设计：
       volatile Node next;
       // 当前 node 封装的线程
       volatile Thread thread;
-      // 条件队列是单向链表，只有后继指针
+      // 条件队列是单向链表，只有后继指针，条件队列使用该属性
       Node nextWaiter;
   }
   ```
@@ -8131,7 +8126,6 @@ NonfairSync 继承自 AQS
 public void lock() {
     sync.lock();
 }
-
 ```
 
 * 没有竞争：ExclusiveOwnerThread 属于 Thread-0，state 设置为 1
@@ -8242,9 +8236,11 @@ public void lock() {
               if (compareAndSetHead(new Node()))
                   tail = head;
           } else {
-              // 自旋到这，普通入队方式，【尾插法】
+              // 自旋到这，普通入队方式，首先赋值尾节点的前驱节点【尾插法】
               node.prev = t;
+              // 【在设置完尾节点后，才更新的原始尾节点的后继节点，所以此时从前往后遍历会丢失尾节点】
               if (compareAndSetTail(t, node)) {
+                  //【此时 t.next  = null，并且这里已经 CAS 结束，线程并不是安全的】
                   t.next = node;
                   return t;	// 返回当前 node 的前驱节点
               }
@@ -8284,6 +8280,7 @@ public void lock() {
               // 判断是否应当 park，返回 false 后需要新一轮的循环，返回 true 进入条件二阻塞线程
               if (shouldParkAfterFailedAcquire(p, node) && parkAndCheckInterrupt())
                   // 条件二返回结果是当前线程是否被打断，没有被打断返回 false 不进入这里的逻辑
+                  // 【就算被打断了，也会继续循环，并不会返回】
                   interrupted = true;
           }
       } finally {
@@ -8426,6 +8423,8 @@ Thread-0 释放锁，进入 release 流程
   }
   ```
 
+  **从后向前的唤醒的原因**：enq 方法中，节点是尾插法，首先赋值的是尾节点的前驱节点，此时前驱节点的 next 并没有指向尾节点，从前遍历会丢失尾节点
+
 * 唤醒的线程会从 park 位置开始执行，如果加锁成功（没有竞争），会设置
 
   * exclusiveOwnerThread 为 Thread-1，state = 1
@@ -8483,7 +8482,7 @@ public final boolean hasQueuedPredecessors() {
     // 头尾指向一个节点，链表为空，返回false
     return h != t &&
         // 头尾之间有节点，判断头节点的下一个是不是空
-        // 不是空进入最后的判断，第二个节点的线程是否是本线程，不是返回 true，表示当前节点有前驱节点，洛矶歪
+        // 不是空进入最后的判断，第二个节点的线程是否是本线程，不是返回 true，表示当前节点有前驱节点
         ((s = h.next) == null || s.thread != Thread.currentThread());
 }
 ```
@@ -8524,7 +8523,7 @@ public static void method2() {
 }
 ```
 
-面试题：在 Lock 方法加两把锁会是什么情况呢？
+在 Lock 方法加两把锁会是什么情况呢？
 
 * 加锁两次解锁两次：正常执行
 * 加锁两次解锁一次：程序直接卡死，线程不能出来，也就说明**申请几把锁，最后需要解除几把锁**
@@ -8621,7 +8620,7 @@ public static void main(String[] args) throws InterruptedException {
                   return interrupted;            
               }            
               if (shouldParkAfterFailedAcquire(p, node) && parkAndCheckInterrupt()){
-                  // 条件二中判断当前线程是否被打断，被打断返回true，设置中断标记为 true，获取锁后返回
+                  // 条件二中判断当前线程是否被打断，被打断返回true，设置中断标记为 true，【获取锁后返回】
                   interrupted = true;  
               }                  
           } 
@@ -8904,7 +8903,7 @@ class Chopstick extends ReentrantLock {
 
 ##### 基本使用
 
-synchronized 的条件变量，是当条件不满足时进入 WaitSet 等待；ReentrantLock 的条件变量比 synchronized 强大之处在于，它支持多个条件变量
+synchronized 的条件变量，是当条件不满足时进入 WaitSet 等待；ReentrantLock 的条件变量比 synchronized 强大之处在于支持多个条件变量
 
 ReentrantLock 类获取 Condition 对象：`public Condition newCondition()`
 
@@ -8966,7 +8965,7 @@ public static void main(String[] args) throws InterruptedException {
 
 ###### await
 
-总体流程是将 await 线程包装成 node 节点放入 ConditionObject 的阻条件塞队列，如果被唤醒就将 node 转移到 AQS 的执行阻塞队列，等待获取锁
+总体流程是将 await 线程包装成 node 节点放入 ConditionObject 的条件队列，如果被唤醒就将 node 转移到 AQS 的执行阻塞队列，等待获取锁
 
 * 开始 Thread-0 持有锁，调用 await，线程进入 ConditionObject 等待，直到被唤醒或打断，调用 await 方法的线程都是持锁状态的，所以说逻辑里**不存在并发**
 
@@ -8983,16 +8982,16 @@ public static void main(String[] args) throws InterruptedException {
       // 设置打断模式为没有被打断，状态码为 0
       int interruptMode = 0;
       
-      // 如果该节点还没有转移至 AQS 阻塞队列, park 阻塞
+      // 如果该节点还没有转移至 AQS 阻塞队列, park 阻塞，等待进入阻塞队列
       while (!isOnSyncQueue(node)) {
           LockSupport.park(this);
-          // 如果被打断，退出等待队列，对应的 node 【也会被迁移到阻塞队列】
+          // 如果被打断，退出等待队列，对应的 node 【也会被迁移到阻塞队列】尾部，状态设置为 0
           if ((interruptMode = checkInterruptWhileWaiting(node)) != 0)
               break;
       }
       // 逻辑到这说明当前线程退出等待队列，进入【阻塞队列】
       
-      // 释放了多少锁就【重新获取多少锁】，获取锁成功判断打断模式
+      // 尝试枪锁，释放了多少锁就【重新获取多少锁】，获取锁成功判断打断模式
       if (acquireQueued(node, savedState) && interruptMode != THROW_IE)
           interruptMode = REINTERRUPT;
       
@@ -9051,7 +9050,7 @@ public static void main(String[] args) throws InterruptedException {
       while (t != null) {
           // 获取当前节点的后继节点
           Node next = t.nextWaiter;
-          // 判断 t 节点是不是 CONDITION 节点
+          // 判断 t 节点是不是 CONDITION 节点，条件队列内不是 CONDITION 就不是正常的
           if (t.waitStatus != Node.CONDITION) { 
               // 不是正常节点，需要 t 与下一个节点断开
               t.nextWaiter = null;
@@ -9075,7 +9074,7 @@ public static void main(String[] args) throws InterruptedException {
   }
   ```
 
-* 接下来进入 AQS 的 fullyRelease 流程，释放同步器上的锁
+* 接下来 Thread-0 进入 AQS 的 fullyRelease 流程，释放同步器上的锁
 
   ```java
   // 线程可能重入，需要将 state 全部释放
@@ -9107,7 +9106,7 @@ public static void main(String[] args) throws InterruptedException {
 
   ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ReentrantLock-条件变量2.png)
 
-* 进入 isOnSyncQueue 逻辑判断节点**是否移动到阻塞队列**，没有就 park 阻塞 Thread-0
+* Thread-0 进入 isOnSyncQueue 逻辑判断节点**是否移动到阻塞队列**，没有就 park 阻塞 Thread-0
 
   ```java
   final boolean isOnSyncQueue(Node node) {
@@ -9118,12 +9117,12 @@ public static void main(String[] args) throws InterruptedException {
       if (node.next != null)
           return true;
   	// 说明【可能在阻塞队列，但是是尾节点】
-      // 从阻塞队列的尾节点开始向前遍历查找 node，如果查找到返回 true，查找不到返回 false
+      // 从阻塞队列的尾节点开始向前【遍历查找 node】，如果查找到返回 true，查找不到返回 false
       return findNodeFromTail(node);
   }
   ```
 
-* await 线程 park 后如果被 unpark 或者被打断，都会进入 checkInterruptWhileWaiting 判断线程是否被打断：
+* await 线程 park 后如果被 unpark 或者被打断，都会进入 checkInterruptWhileWaiting 判断线程是否被打断：**在条件队列被打断的线程需要抛出异常**
 
   ```java
   private int checkInterruptWhileWaiting(Node node) {
@@ -9289,7 +9288,7 @@ ReentrantReadWriteLock 其**读锁是共享锁，写锁是独占锁**
 
 * **重入时升级不支持**：持有读锁的情况下去获取写锁会导致获取写锁永久等待，需要先释放读，再去获得写
 
-* **重入时降级支持**：持有写锁的情况下去获取读锁
+* **重入时降级支持**：持有写锁的情况下去获取读锁，造成只有当前线程会持有读锁，因为写锁会互斥其他的锁
 
   ```java
   w.lock();
@@ -9357,7 +9356,7 @@ public static void main(String[] args) {
 
 缓存更新时，是先清缓存还是先更新数据库
 
-* 先清缓存：可能造成刚清理缓存还没有更新数据库，线程直接查询了数据库更新缓存
+* 先清缓存：可能造成刚清理缓存还没有更新数据库，线程直接查询了数据库更新过期数据到缓存
 
 * 先更新据库：可能造成刚更新数据库，还没清空缓存就有线程从缓存拿到了旧数据
 
@@ -9375,14 +9374,110 @@ public static void main(String[] args) {
 
 #### 实现原理
 
-##### 加锁原理
+##### 成员属性
 
 读写锁用的是同一个 Sycn 同步器，因此等待队列、state 等也是同一个，原理与 ReentrantLock 加锁相比没有特殊之处，不同是**写锁状态占了 state 的低 16 位，而读锁使用的是 state 的高 16 位**
 
-* t1 w.lock（写锁），成功上锁 state = 0_1
+* 读写锁：
 
   ```java
-  //lock()  -> sync.acquire(1);
+  private final ReentrantReadWriteLock.ReadLock readerLock;		
+  private final ReentrantReadWriteLock.WriteLock writerLock;
+  ```
+
+* 构造方法：默认是非公平锁，可以指定参数创建公平锁
+
+  ```java
+  public ReentrantReadWriteLock(boolean fair) {
+      // true 为公平锁
+      sync = fair ? new FairSync() : new NonfairSync();
+      // 这两个 lock 共享同一个 sync 实例，都是由 ReentrantReadWriteLock 的 sync 提供同步实现
+      readerLock = new ReadLock(this);
+      writerLock = new WriteLock(this);
+  }
+  ```
+
+Sync 类的属性：
+
+* 统计变量：
+
+  ```java
+  // 用来移位
+  static final int SHARED_SHIFT   = 16;
+  // 高16位的1
+  static final int SHARED_UNIT    = (1 << SHARED_SHIFT);
+  // 65535，16个1，代表写锁的最大重入次数
+  static final int MAX_COUNT      = (1 << SHARED_SHIFT) - 1;
+  // 低16位掩码：0b 1111 1111 1111 1111，用来获取写锁重入的次数
+  static final int EXCLUSIVE_MASK = (1 << SHARED_SHIFT) - 1;
+  ```
+
+* 获取读写锁的次数：
+
+  ```java
+  // 获取读写锁的读锁分配的总次数
+  static int sharedCount(int c)    { return c >>> SHARED_SHIFT; }
+  // 写锁（独占）锁的重入次数
+  static int exclusiveCount(int c) { return c & EXCLUSIVE_MASK; }
+  ```
+
+* 内部类：
+
+  ```java
+  // 记录读锁线程自己的持有读锁的数量（重入次数），因为 state 高16位记录的是全局范围内所有的读线程获取读锁的总量
+  static final class HoldCounter {
+      int count = 0;
+      // Use id, not reference, to avoid garbage retention
+      final long tid = getThreadId(Thread.currentThread());
+  }
+  // 线程安全的存放线程各自的 HoldCounter 对象
+  static final class ThreadLocalHoldCounter extends ThreadLocal<HoldCounter> {
+      public HoldCounter initialValue() {
+          return new HoldCounter();
+      }
+  }
+  ```
+
+* 内部类实例：
+
+  ```java
+  // 当前线程持有的可重入读锁的数量，计数为 0 时删除
+  private transient ThreadLocalHoldCounter readHolds;
+  // 记录最后一个获取【读锁】线程的 HoldCounter 对象
+  private transient HoldCounter cachedHoldCounter;
+  ```
+
+* 首次获取锁：
+
+  ```java
+  // 第一个获取读锁的线程
+  private transient Thread firstReader = null;
+  // 记录该线程持有的读锁次数（读锁重入次数）
+  private transient int firstReaderHoldCount;
+  ```
+
+* Sync 构造方法：
+
+  ```java
+  Sync() {
+      readHolds = new ThreadLocalHoldCounter();
+      // 确保其他线程的数据可见性，state 是 volatile 修饰的变量，重写该值会将线程本地缓存数据【同步至主存】
+      setState(getState()); 
+  }
+  ```
+
+
+
+***
+
+
+
+##### 加锁原理
+
+* t1 线程：w.lock（**写锁**），成功上锁 state = 0_1
+
+  ```java
+  // lock()  -> sync.acquire(1);
   public void lock() {
       sync.acquire(1);
   }
@@ -9399,20 +9494,22 @@ public static void main(String[] args) {
       int c = getState();
       // 获得低 16 位, 代表写锁的 state 计数
       int w = exclusiveCount(c);
+      // 说明有读锁或者写锁
       if (c != 0) {
-          // c != 0 and w == 0 表示 r != 0，有读锁，读锁不能升级，直接返回false
+          // c != 0 and w == 0 表示有读锁，【读锁不能升级】，直接返回 false
           // w != 0 说明有写锁，写锁的拥有者不是自己，获取失败
           if (w == 0 || current != getExclusiveOwnerThread())
               return false;
-          // 锁重入计数超过低 16 位, 报异常
+          
+          // 执行到这里只有一种情况：【写锁重入】，所以下面几行代码不存在并发
           if (w + exclusiveCount(acquires) > MAX_COUNT)
               throw new Error("Maximum lock count exceeded");
-          // 【写锁重入, 获得锁成功】
+          // 写锁重入, 获得锁成功，没有并发，所以不使用 CAS
           setState(c + acquires);
           return true;
       }
       
-      // c == 0，没有任何锁，判断写锁是否该阻塞，是 false 就尝试获取锁，失败返回 false
+      // c == 0，说明没有任何锁，判断写锁是否该阻塞，是 false 就尝试获取锁，失败返回 false
       if (writerShouldBlock() || !compareAndSetState(c, c + acquires))
           return false;
       // 获得锁成功，设置锁的持有线程为当前线程
@@ -9429,11 +9526,11 @@ public static void main(String[] args) {
   }
   ```
   
-* t2 r.lock（读锁），进入 tryAcquireShared 流程，如果有写锁占据，那么 tryAcquireShared 
+* t2 r.lock（**读锁**），进入 tryAcquireShared 流程：
 
   * 返回 -1 表示失败
   * 如果返回 0 表示成功
-  * 返回正数表示还有多少后继节点支持共享模式，读写锁返回1
+  * 返回正数表示还有多少后继节点支持共享模式，读写锁返回 1
 
   ```java
   public void lock() {
@@ -9451,27 +9548,112 @@ public static void main(String[] args) {
   protected final int tryAcquireShared(int unused) {
       Thread current = Thread.currentThread();
       int c = getState();
-      // 低 16 位, 代表写锁的 state
-      // 如果是其它线程持有写锁, 并且写锁的持有者不是当前线程，获取读锁失败，【写锁允许降级】
+      // exclusiveCount(c) 代表低 16 位, 写锁的 state，成立说明有线程持有写锁
+      // 写锁的持有者不是当前线程，则获取读锁失败，【写锁允许降级】
       if (exclusiveCount(c) != 0 && getExclusiveOwnerThread() != current)
           return -1;
       
-      // 高 16 位，代表读锁的 state
+      // 高 16 位，代表读锁的 state，共享锁分配出去的总次数
       int r = sharedCount(c);
-      if (!readerShouldBlock() &&	// 读锁不该阻塞
-          r < MAX_COUNT &&		// 小于读锁计数	
-          compareAndSetState(c, c + SHARED_UNIT)) {// 尝试增加计数成功
-          // ....
+      // 读锁是否应该阻塞
+      if (!readerShouldBlock() &&	r < MAX_COUNT &&
+          compareAndSetState(c, c + SHARED_UNIT)) {	// 尝试增加读锁计数
+          // 加锁成功
+          // 加锁之前读锁为 0，说明当前线程是第一个读锁线程
+          if (r == 0) {
+              firstReader = current;
+              firstReaderHoldCount = 1;
+          // 第一个读锁线程是自己就发生了读锁重入
+          } else if (firstReader == current) {
+              firstReaderHoldCount++;
+          } else {
+              // cachedHoldCounter 设置为当前线程的 holdCounter 对象，即最后一个获取读锁的线程
+              HoldCounter rh = cachedHoldCounter;
+              // 说明还没设置 rh
+              if (rh == null || rh.tid != getThreadId(current))
+                  // 获取当前线程的锁重入的对象，赋值给 cachedHoldCounter
+                  cachedHoldCounter = rh = readHolds.get();
+              // 还没重入
+              else if (rh.count == 0)
+                  readHolds.set(rh);
+              // 重入 + 1
+              rh.count++;
+          }
           // 读锁加锁成功
           return 1;
       }
-      // 与 tryAcquireShared 功能类似, 但会不断尝试 for (;;) 获取读锁, 执行过程中无阻塞
+      // 逻辑到这 应该阻塞，或者 cas 加锁失败
+      // 会不断尝试 for (;;) 获取读锁, 执行过程中无阻塞
       return fullTryAcquireShared(current);
   }
-  // 非公平锁 readerShouldBlock 看 AQS 队列中第一个节点是否是写锁，是则阻塞，反之不阻塞
+  // 非公平锁 readerShouldBlock 偏向写锁一些，看 AQS 阻塞队列中第一个节点是否是写锁，是则阻塞，反之不阻塞
+  // 防止一直有读锁线程，导致写锁线程饥饿
   // true 则该阻塞, false 则不阻塞
   final boolean readerShouldBlock() {
       return apparentlyFirstQueuedIsExclusive();
+  }
+  final boolean readerShouldBlock() {
+      return hasQueuedPredecessors();
+  }
+  ```
+
+  ```java
+  final int fullTryAcquireShared(Thread current) {
+      // 当前读锁线程持有的读锁次数对象
+      HoldCounter rh = null;
+      for (;;) {
+          int c = getState();
+          // 说明有线程持有写锁
+          if (exclusiveCount(c) != 0) {
+              // 写锁不是自己则获取锁失败
+              if (getExclusiveOwnerThread() != current)
+                  return -1;
+          } else if (readerShouldBlock()) {
+              // 条件成立说明当前线程是 firstReader，当前锁是读忙碌状态，而且当前线程也是读锁重入
+              if (firstReader == current) {
+                  // assert firstReaderHoldCount > 0;
+              } else {
+                  if (rh == null) {
+                      // 最后一个读锁的 HoldCounter
+                      rh = cachedHoldCounter;
+                      // 说明当前线程也不是最后一个读锁
+                      if (rh == null || rh.tid != getThreadId(current)) {
+                          // 获取当前线程的 HoldCounter
+                          rh = readHolds.get();
+                          // 条件成立说明 HoldCounter 对象是上一步代码新建的
+                          // 当前线程不是锁重入，在 readerShouldBlock() 返回 true 时需要去排队
+                          if (rh.count == 0)
+                              // 防止内存泄漏
+                              readHolds.remove();
+                      }
+                  }
+                  if (rh.count == 0)
+                      return -1;
+              }
+          }
+          // 越界判断
+          if (sharedCount(c) == MAX_COUNT)
+              throw new Error("Maximum lock count exceeded");
+          // 读锁加锁，条件内的逻辑与 tryAcquireShared 相同
+          if (compareAndSetState(c, c + SHARED_UNIT)) {
+              if (sharedCount(c) == 0) {
+                  firstReader = current;
+                  firstReaderHoldCount = 1;
+              } else if (firstReader == current) {
+                  firstReaderHoldCount++;
+              } else {
+                  if (rh == null)
+                      rh = cachedHoldCounter;
+                  if (rh == null || rh.tid != getThreadId(current))
+                      rh = readHolds.get();
+                  else if (rh.count == 0)
+                      readHolds.set(rh);
+                  rh.count++;
+                  cachedHoldCounter = rh; // cache for release
+              }
+              return 1;
+          }
+      }
   }
   ```
 
@@ -9603,7 +9785,7 @@ public static void main(String[] args) {
               else if (ws == 0 && !compareAndSetWaitStatus(h, 0, Node.PROPAGATE))
                   continue;                
           }
-          // 条件不成立说明被唤醒的节点非常积极，直接将自己设置为了新的head，
+          // 条件不成立说明被唤醒的节点非常积极，直接将自己设置为了新的 head，
           // 此时唤醒它的节点（前驱）执行 h == head 不成立，所以不会跳出循环，会继续唤醒新的 head 节点的后继节点
           if (h == head)                   
               break;
@@ -9632,7 +9814,7 @@ public static void main(String[] args) {
   
   ```java
   protected final boolean tryReleaseShared(int unused) {
-      //  
+  
       for (;;) {
           int c = getState();
           int nextc = c - SHARED_UNIT;
@@ -9663,7 +9845,7 @@ StampedLock：读写锁，该类自 JDK 8 加入，是为了进一步优化读�
 * 在使用读锁、写锁时都必须配合戳使用
 
 * StampedLock 不支持条件变量
-* StampedLock **不支持可重入**
+* StampedLock **不支持重入**
 
 基本用法
 
@@ -9774,7 +9956,7 @@ CountDownLatch：计数器，用来进行线程同步协作，**等待所有线�
 常用API：
 
 * `public void await() `：让当前线程等待，必须 down 完初始化的数字才可以被唤醒，否则进入无限等待
-* `public void countDown()`：计数器进行减1（down 1）
+* `public void countDown()`：计数器进行减 1（down 1）
 
 应用：同步等待多个 Rest 远程调用结束
 
@@ -10603,10 +10785,17 @@ class ThreadB extends Thread{
 工作步骤：
 
 1. 初始化，使用 cas 来保证并发安全，懒惰初始化 table
+
 2. 树化，当 table.length < 64 时，先尝试扩容，超过 64 时，并且 bin.length > 8 时，会将**链表树化**，树化过程会用 synchronized 锁住链表头
+
+   说明：锁住某个槽位的对象头，是一种很好的**细粒度的加锁**方式，类似 MySQL 中的行锁
+
 3. put，如果该 bin 尚未创建，只需要使用 cas 创建 bin；如果已经有了，锁住链表头进行后续 put 操作，元素添加至 bin 的尾部
+
 4. get，无锁操作仅需要保证可见性，扩容过程中 get 操作拿到的是 ForwardingNode 会让 get 操作在新 table 进行搜索
+
 5. 扩容，扩容时以 bin 为单位进行，需要对 bin 进行 synchronized，但这时其它竞争线程也不是无事可做，它们会帮助把其它 bin 进行扩容
+
 6. size，元素个数保存在 baseCount 中，并发时的个数变动保存在 CounterCell[] 当中，最后统计数量时累加
 
 ```java
@@ -10737,7 +10926,7 @@ B站视频解析：https://www.bilibili.com/video/BV1n541177Ea
   static final int HASH_BITS = 0x7fffffff; 	// 正常节点的哈希值的可用的位数
   ```
 
-* 扩容过程：
+* 扩容过程：volatile 修饰保证多线程的可见性
 
   ```java
   // 扩容过程中，会将扩容中的新 table 赋值给 nextTable 保持引用，扩容结束之后，这里会被设置为 null
@@ -10885,7 +11074,7 @@ B站视频解析：https://www.bilibili.com/video/BV1n541177Ea
   // 4 → 100 numberOfLeadingZeros(4) = 29   int 值就是占4个字节
   ASHIFT = 31 - Integer.numberOfLeadingZeros(scale);
   
-  // ASHIFT = 31 - 29 = 2 ，int 的大小就是 2 的 2 次方
+  // ASHIFT = 31 - 29 = 2 ，int 的大小就是 2 的 2 次方，获取次方数
   // ABASE + （5 << ASHIFT） 用位移运算替代了乘法，获取 arr[5] 的值
   ```
 
@@ -11028,7 +11217,7 @@ B站视频解析：https://www.bilibili.com/video/BV1n541177Ea
 
 ##### 数据访存
 
-* tabAt()：获取数组某个槽位的头节点，类似于数组中的直接寻址 arr[i]
+* tabAt()：获取数组某个槽位的**头节点**，类似于数组中的直接寻址 arr[i]
 
   ```java
   // i 是数组索引
@@ -11095,8 +11284,7 @@ public V put(K key, V value) {
           // 【CASE2】：i 表示 key 使用【寻址算法】得到 key 对应数组的下标位置，tabAt 获取指定桶位的头结点f
           else if ((f = tabAt(tab, i = (n - 1) & hash)) == null) {
               // 对应的数组为 null 说明没有哈希冲突，直接新建节点添加到表中
-              if (casTabAt(tab, i, null,
-                           new Node<K,V>(hash, key, value, null)))
+              if (casTabAt(tab, i, null, new Node<K,V>(hash, key, value, null)))
                   break;
           }
           // 【CASE3】：逻辑说明数组已经被初始化，并且当前 key 对应的位置不为 null
@@ -11113,7 +11301,7 @@ public V put(K key, V value) {
               synchronized (f) {
                   // 这里重新获取一下桶的头节点有没有被修改，因为可能被其他线程修改过，这里是线程安全的获取
                   if (tabAt(tab, i) == f) {
-                      // 头节点的哈希值大于 0 说明当前桶位是普通的链表节点
+                      // 【头节点的哈希值大于 0 说明当前桶位是普通的链表节点】
                       if (fh >= 0) {
                           // 当前的插入操作没出现重复的 key，追加到链表的末尾，binCount表示链表长度 -1
                           // 插入的key与链表中的某个元素的 key 一致，变成替换操作，binCount 表示第几个节点冲突
@@ -11312,7 +11500,7 @@ public V put(K key, V value) {
                       break;
                   
                   // 设置当前线程参与到扩容任务中，将 sc 低 16 位值加 1，表示多一个线程参与扩容
-                  // 条设置失败其他线程或者 transfer 内部修改了 sizeCtl 值
+                  // 设置失败其他线程或者 transfer 内部修改了 sizeCtl 值
                   if (U.compareAndSwapInt(this, SIZECTL, sc, sc + 1))
                       //【协助扩容线程】，持有nextTable参数
                       transfer(tab, nt);
@@ -11476,7 +11664,7 @@ public V put(K key, V value) {
                           // 判断对应的 1 的位置上是 0 或 1 分成高低位链表
                           int runBit = fh & n;
                           Node<K,V> lastRun = f;
-                          // 遍历链表，寻找逆序看最长的对应位相同的链表，看下面的图更好的理解
+                          // 遍历链表，寻找【逆序看】最长的对应位相同的链表，看下面的图更好的理解
                           for (Node<K,V> p = f.next; p != null; p = p.next) {
                               // 将当前节点的哈希 与 n
                               int b = p.hash & n;
@@ -11697,7 +11885,7 @@ ConcurrentHashMap 使用 get()  方法获取指定 key 的数据
   }
   ```
 
-* replaceNode()：替代指定的元素，会协助扩容，**增删改（写）都会协助扩容，只有查询（读）操作不会**
+* replaceNode()：替代指定的元素，会协助扩容，**增删改（写）都会协助扩容，只有查询（读）操作不会**，因为读操作不涉及加锁
 
   ```java
   final V replaceNode(Object key, V value, Object cv) {
@@ -11841,7 +12029,7 @@ public CopyOnWriteArraySet() {
 * 存储结构：
 
   ```java
-  private transient volatile Object[] array;	// 保证了读写线程之间的可见性
+  private transient volatile Object[] array;	// volatile 保证了读写线程之间的可见性
   ```
 
 * 全局锁：保证线程的执行安全
@@ -11956,7 +12144,7 @@ Thread-0 读到了脏数据
   * AbstractList 类中的成员变量 modCount，用来记录 List 结构发生变化的次数，**结构发生变化**是指添加或者删除至少一个元素的操作，或者是调整内部数组的大小，仅仅设置元素的值不算结构发生变化
   * 在进行序列化或者迭代等操作时，需要比较操作前后 modCount 是否改变，如果改变了抛出 CME 异常
   
-* 安全失败：采用安全失败机制的集合容器，在**迭代器**遍历时直接在原集合数组内容上访问，但其他线程的增删改都会新建数组进行修改，就算修改了集合底层的数组容器，迭代器依然引用着以前的数组（快照思想），所以不会出现异常
+* 安全失败：采用安全失败机制的集合容器，在**迭代器**遍历时直接在原集合数组内容上访问，但其他线程的增删改都会新建数组进行修改，就算修改了集合底层的数组容器，迭代器依然引用着以前的数组（**快照思想**），所以不会出现异常
 
   ConcurrentHashMap 不会出现并发时的迭代异常，因为在迭代过程中 CHM 的迭代器并没有判断结构的变化，迭代器还可以根据迭代的节点状态去寻找并发扩容时的新表进行迭代
 
@@ -12087,7 +12275,7 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引都指
   static class Index<K, V>{
       final Node<K, V> node; 		// 索引指向的节点，每个都会指向数据节点
       final Index<K, V> down; 	// 下边level层的Index，分层索引
-      volatile Index<K, V> right; // 右边的Index
+      volatile Index<K, V> right; // 右边的Index，单向
   
       // 在 index 本身和 succ 之间插入一个新的节点 newSucc
       final boolean link(Index<K, V> succ, Index<K, V> newSucc){
@@ -12273,7 +12461,7 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引都指
                   }
                   // else c < 0; fall through
               }
-              // 8.此时的情况 n.key > key > b.key，对应流程图1中的7，创建z节点指向n
+              // 8.此时的情况 b.key < key < n.key，对应流程图1中的7，创建z节点指向n
               z = new Node<K,V>(key, value, n);
               // 9.尝试把 b.next 从 n 设置成 z
               if (!b.casNext(n, z))
@@ -12320,7 +12508,7 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引都指
               //   ↓
               //  z-node
           }
-          // 14.若 level > max，则【只增加一层 index 索引层】，3 + 1 = 5
+          // 14.若 level > max，则【只增加一层 index 索引层】，3 + 1 = 4
           else { 
               level = max + 1;
               //创建一个 index 数组，长度是 level+1，假设 level 是 4，创建的数组长度为 5
@@ -12338,7 +12526,7 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引都指
               
               for (;;) {
                   h = head;
-                  // 获取头索引的层数
+                  // 获取头索引的层数，3
                   int oldLevel = h.level;
                   // 如果 level <= oldLevel，说明其他线程进行了 index 层增加操作，退出循环
                   if (level <= oldLevel)
@@ -12349,6 +12537,7 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引都指
                   Node<K,V> oldbase = h.node;
                   // 升级 baseHeader 索引，升高一级，并发下可能升高多级
                   for (int j = oldLevel + 1; j <= level; ++j)
+                      // 参数1：底层node，参数二：down，为以前的头节点，参数三：right，新建
                       newh = new HeadIndex<K,V>(oldbase, newh, idxs[j], j);
                   // 执行完for循环之后，baseHeader 索引长这个样子，这里只升高一级
                   // index-4             →             index-4	← idx
@@ -12361,7 +12550,7 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引都指
                   //   ↓                                  ↓
                   // baseHeader    →    ....      →     z-node
                   
-                  // cas 成功后，map.head 字段指向最新的 headIndex，baseHeader 的 index-4
+                  // cas 成功后，head 字段指向最新的 headIndex，baseHeader 的 index-4
                   if (casHead(h, newh)) {
                       // h 指向最新的 index-4 节点
                       h = newh;
@@ -12573,23 +12762,20 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引都指
 
   ![](https://gitee.com/seazean/images/raw/master/Java/JUC-ConcurrentSkipListMap-remove流程.png)
 
-* appendMarker()
+* appendMarker()：添加删除标记节点
 
   ```java
-  // 添加删除标记节点
   boolean appendMarker(Node<K,V> f) {
       // 通过 CAS 让 n.next 指向一个 key 为 null，value 为 this，next 为 f 的标记节点
       return casNext(f, new Node<K,V>(f));
   }
   ```
-
-* helpDelete()
+  
+* helpDelete()：将添加了删除标记的节点清除，参数是该节点的前驱和后继节点
 
   ```java
-  // 将添加了删除标记的节点清除，参数是该节点的前驱和后继节点
   void helpDelete(Node<K,V> b, Node<K,V> f) {
       // this 节点的后续节点为 f，且本身为 b 的后续节点，一般都是正确的，除非被别的线程删除
-      // b 
       if (f == next && this == b.next) {
           // 如果 n 还还没有被标记
           if (f == null || f.value != f) 
@@ -12600,8 +12786,8 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引都指
       }
   }
   ```
-
-* tryReduceLevel()
+  
+* tryReduceLevel()：删除索引
 
   ```java
   private void tryReduceLevel() {
@@ -12614,7 +12800,7 @@ BaseHeader 存储数据，headIndex 存储索引，纵向上**所有索引都指
           e.right == null &&
           d.right == null &&
           h.right == null &&
-          //设置头索引
+          // 设置头索引
           casHead(h, d) && 
           // 重新检查
           h.right != null) 
@@ -12943,30 +13129,29 @@ final void updateHead(Node<E> h, Node<E> p) {
 
 通信一定是基于软件结构实现的:
 
-* C/S 结构 ：全称为 Client/Server 结构，是指客户端和服务器结构，常见程序有 QQ、IDEA等软件。
-* B/S 结构 ：全称为 Browser/Server 结构，是指浏览器和服务器结构。
+* C/S 结构 ：全称为 Client/Server 结构，是指客户端和服务器结构，常见程序有 QQ、IDEA 等软件
+* B/S 结构 ：全称为 Browser/Server 结构，是指浏览器和服务器结构
 
-两种架构各有优势，但是无论哪种架构，都离不开网络的支持。
+两种架构各有优势，但是无论哪种架构，都离不开网络的支持。、
 
 网络通信的三要素：
 
 1. 协议：计算机网络客户端与服务端通信必须约定和彼此遵守的通信规则，HTTP、FTP、TCP、UDP、SMTP
 
-2. IP地址：互联网协议地址（Internet Protocol Address），用来给一个网络中的计算机设备做唯一的编号
+2. IP 地址：互联网协议地址（Internet Protocol Address），用来给一个网络中的计算机设备做唯一的编号
 
-   * IPv4 ：4个字节，32位组成，192.168.1.1
-   * Pv6：可以实现为所有设备分配 IP  128 位
+   * IPv4：4个字节，32 位组成，192.168.1.1
+   * Pv6：可以实现为所有设备分配 IP，128 位
 
    * ipconfig：查看本机的 IP
-     ​      ping 检查本机与某个 IP 指定的机器是否联通，或者说是检测对方是否在线。
-     ​      ping 空格 IP地址 ：ping 220.181.57.216，ping www.baidu.com
+     * ping 检查本机与某个 IP 指定的机器是否联通，或者说是检测对方是否在线。
+     * ping 空格 IP地址 ：ping 220.181.57.216，ping www.baidu.com
 
    特殊的IP地址： 本机IP地址，**127.0.0.1 == localhost**，回环测试
 
-3. 端口：端口号就可以唯一标识设备中的进程（应用程序）
-   端口号：用两个字节表示的整数，的取值范围是 0-65535，0-1023 之间的端口号用于一些知名的网络服务和应用，普通的应用程序需要使用 1024 以上的端口号。如果端口号被另外一个服务或应用所占用，会导致当前程序启动失败，报出端口被占用异常
+3. 端口：端口号就可以唯一标识设备中的进程（应用程序）。端口号是用两个字节表示的整数，取值范围是 0-65535，0-1023 之间的端口号用于一些知名的网络服务和应用普通的应用程序需要使用 1024 以上的端口号。如果端口号被另外一个服务或应用所占用，会导致当前程序启动失败，报出端口被占用异常
 
-利用**协议+IP 地址+端口号** 三元组合，就可以标识网络中的进程了，那么进程间的通信就可以利用这个标识与其它进程进行交互。
+利用**协议+IP 地址+端口号**三元组合，就可以标识网络中的进程了，那么进程间的通信就可以利用这个标识与其它进程进行交互
 
 
 
@@ -13021,11 +13206,11 @@ TCP/IP协议：传输控制协议 (Transmission Control Protocol)
 
 Java 中的通信模型:
 
-1. BIO 表示同步阻塞式通信，服务器实现模式为一个连接一个线程，即客户端有连接请求时服务器端就需要启动一个线程进行处理，如果这个连接不做任何事情会造成不必要的线程开销，可以通过线程池机制改善。
+1. BIO 表示同步阻塞式通信，服务器实现模式为一个连接一个线程，即客户端有连接请求时服务器端就需要启动一个线程进行处理，如果这个连接不做任何事情会造成不必要的线程开销，可以通过线程池机制改善
    
    同步阻塞式性能极差：大量线程，大量阻塞
    
-2. 伪异步通信：引入线程池，不需要一个客户端一个线程，实现线程复用来处理很多个客户端，线程可控。 
+2. 伪异步通信：引入线程池，不需要一个客户端一个线程，实现线程复用来处理很多个客户端，线程可控。
    
    高并发下性能还是很差：线程数量少，数据依然是阻塞的，数据没有来线程还是要等待
    
@@ -13128,11 +13313,11 @@ recvfrom() 用于**接收 Socket 传来的数据，并复制到应用进程的�
 
 
 
-#### IO复用
+#### IO 复用
 
 IO 复用模型使用 select 或者 poll 函数等待数据，select 会监听所有注册好的 IO，**等待多个套接字中的任何一个变为可读**，等待过程会被阻塞，当某个套接字准备好数据变为可读时 select 调用就返回，然后调用 recvfrom 把数据从内核复制到进程中
 
-IO 复用让单个进程具有处理多个 I/O 事件的能力，又被称为 Event Driven I/O，即事件驱动 I/O
+IO 复用让单个进程具有处理多个 I/O 事件的能力，又被称为 Event Driven I/O，即**事件驱动 I/O**
 
 如果一个 Web 服务器没有 I/O 复用，那么每一个 Socket 连接都要创建一个线程去处理，如果同时有几万个连接，就需要创建相同数量的线程。相比于多进程和多线程技术，I/O 复用不需要进程线程创建和切换的开销，系统开销更小
 
@@ -13144,7 +13329,7 @@ IO 复用让单个进程具有处理多个 I/O 事件的能力，又被称为 Ev
 
 
 
-#### 异步IO
+#### 异步 IO
 
 应用进程执行 aio_read 系统调用会立即返回，给内核传递描述符、缓冲区指针、缓冲区大小等。应用进程可以继续执行不会被阻塞，内核会在所有操作完成之后向应用进程发送信号。
 
@@ -13187,9 +13372,9 @@ int select(int n, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct t
   }
   ```
 
-  timeout == null：等待无限长的时间
-  tv_sec == 0 && tv_usec == 0：获取后直接返回，不阻塞等待
-  tv_sec != 0 || tv_usec != 0：等待指定时间
+  * timeout == null：等待无限长的时间
+  * tv_sec == 0 && tv_usec == 0：获取后直接返回，不阻塞等待
+  * tv_sec != 0 || tv_usec != 0：等待指定时间
 
 - 方法成功调用返回结果为**就绪的文件描述符个数**，出错返回结果为 -1，超时返回结果为 0
 
@@ -13300,7 +13485,7 @@ select 和 poll 对比：
 
 * select 和 poll 速度都比较慢，**每次调用**都需要将全部描述符数组 fd 从应用进程缓冲区复制到内核缓冲区，同时每次都需要在内核遍历传递进来的所有 fd ，这个开销在 fd 很多时会很大
 * 几乎所有的系统都支持 select，但是只有比较新的系统支持 poll
-* select 和 poll 的时间复杂度 O(n)，对 socket 进行扫描时是线性扫描，即采用轮询的方法，效率较低，因为并不知道具体是哪个 socket 具有事件，所以随着 FD 数量的增加会造成遍历速度慢的**线性下降**性能问题
+* select 和 poll 的时间复杂度 O(n)，对 socket 进行扫描时是线性扫描，即采用轮询的方法，效率较低，因为并不知道具体是哪个 socket 具有事件，所以随着 fd 数量的增加会造成遍历速度慢的**线性下降**性能问题
 * poll 还有一个特点是水平触发，如果报告了 fd 后，没有被处理，那么下次 poll 时会再次报告该 fd
 * 如果一个线程对某个描述符调用了 select 或者 poll，另一个线程关闭了该描述符，会导致调用结果不确定
 
@@ -13363,7 +13548,7 @@ int epoll_wait(int epfd, struct epoll_event * events, int maxevents, int timeout
 
 epoll 的描述符事件有两种触发模式：LT（level trigger）和 ET（edge trigger）：
 
-* LT 模式：当 epoll_wait() 检测到描述符事件到达时，将此事件通知进程，进程可以不立即处理该事件，下次调用 epoll_wait() 会再次通知进程。是默认的一种模式，并且同时支持 Blocking 和 No-Blocking
+* LT 模式：当 epoll_wait() 检测到描述符事件到达时，将此事件通知进程，进程可以不立即处理该事件，下次调用 epoll_wait() 会再次通知进程，是默认的一种模式，并且同时支持 Blocking 和 No-Blocking
 * ET 模式：通知之后进程必须立即处理事件，下次再调用 epoll_wait() 时不会再得到事件到达的通知。减少了 epoll 事件被重复触发的次数，因此效率要比 LT 模式高；只支持 No-Blocking，以避免由于一个 fd 的阻塞读/阻塞写操作把处理多个文件描述符的任务饥饿
 
 ```c
@@ -13421,12 +13606,12 @@ else
 epoll 的特点：
 
 * epoll 仅适用于 Linux 系统
-* epoll 使用**一个文件描述符管理多个描述符**，将用户关系的文件描述符的事件存放到内核的一个事件表（个人理解成哑元节点）
-* 没有最大描述符数量（并发连接）的限制，打开 fd 的上限远大于1024（1G 内存能监听约10万个端口）
+* epoll 使用**一个文件描述符管理多个描述符**，将用户关心的文件描述符的事件存放到内核的一个事件表（个人理解成哑元节点）
+* 没有最大描述符数量（并发连接）的限制，打开 fd 的上限远大于1024（1G 内存能监听约 10 万个端口）
 * epoll 的时间复杂度 O(1)，epoll 理解为 event poll，不同于忙轮询和无差别轮询，调用 epoll_wait **只是轮询就绪链表**。当监听列表有设备就绪时调用回调函数，把就绪 fd 放入就绪链表中，并唤醒在 epoll_wait 中阻塞的进程，所以 epoll 实际上是**事件驱动**（每个事件关联上fd）的，降低了 system call 的时间复杂度
 * epoll 内核中根据每个 fd 上的 callback 函数来实现，只有活跃的 socket 才会主动调用 callback，所以使用 epoll 没有前面两者的线性下降的性能问题，效率提高
 
-* epoll 注册新的事件都是注册到到内核中 epoll 句柄中，不需要每次调用 epoll_wait 时重复拷贝，对比前面两种，epoll 只需要将描述符从进程缓冲区向内核缓冲区拷贝一次。 epoll 也可以利用 **mmap() 文件映射内存**加速与内核空间的消息传递，减少复制开销
+* epoll 注册新的事件都是注册到到内核中 epoll 句柄中，不需要每次调用 epoll_wait 时重复拷贝，对比前面两种，epoll 只需要将描述符从进程缓冲区向内核缓冲区**拷贝一次**，epoll 也可以利用 **mmap() 文件映射内存**加速与内核空间的消息传递（只是可以用）
 * 前面两者要把 current 往设备等待队列中挂一次，epoll 也只把 current 往等待队列上挂一次，但是这里的等待队列并不是设备等待队列，只是一个 epoll 内部定义的等待队列，这样可以节省开销
 * epoll 对多线程编程更有友好，一个线程调用了 epoll_wait() 另一个线程关闭了同一个描述符，也不会产生像 select 和 poll 的不确定情况
 
@@ -13530,7 +13715,7 @@ DMA (Direct Memory Access) ：直接存储器访问，让外部设备不通过 C
 把内存数据传输到网卡然后发送：
 
 * 没有 DMA：CPU 读内存数据到 CPU 高速缓存，再写到网卡，这样就把 CPU 的速度拉低到和网卡一个速度
-* 使用 DMA：把数据读到 Socket 内核缓存区（CPU 复制），CPU 分配给 DMA 开始**异步**操作，DMA 读取 Socket 缓冲区到 DMA 缓冲区，然后写到网卡。DMA 执行完后中断（就是通知） CPU，这时 Socket 内核缓冲区为空，CPU 从用户态切换到内核态，执行中断处理程序，将需要使用 Socket 缓冲区的阻塞进程移到就绪队列
+* 使用 DMA：把数据读到 Socket 内核缓存区（CPU 复制），CPU 分配给 DMA 开始**异步**操作，DMA 读取 Socket 缓冲区到 DMA 缓冲区，然后写到网卡。DMA 执行完后**中断**（就是通知） CPU，这时 Socket 内核缓冲区为空，CPU 从用户态切换到内核态，执行中断处理程序，将需要使用 Socket 缓冲区的阻塞进程移到就绪队列
 
 一个完整的 DMA 传输过程必须经历 DMA 请求、DMA 响应、DMA 传输、DMA 结束四个步骤：
 
@@ -13575,7 +13760,7 @@ read 调用图示：read、write 都是系统调用指令
 
 #### mmap
 
-mmap（Memory Mapped Files）加 write 实现零拷贝，**零拷贝就是没有数据从内核空间复制到用户空间**
+mmap（Memory Mapped Files）内存映射加 write 实现零拷贝，**零拷贝就是没有数据从内核空间复制到用户空间**
 
 用户空间和内核空间都使用内存，所以可以共享同一块物理内存地址，省去用户态和内核态之间的拷贝。写网卡时，共享空间的内容拷贝到 Socket 缓冲区，然后交给 DMA 发送到网卡，只需要 3 次复制
 
@@ -13667,11 +13852,10 @@ public class InetAddressDemo {
 
 UDP（User Datagram Protocol）协议的特点：
 
-* 面向无连接的协议
-* 发送端只管发送，不确认对方是否能收到
-* 基于数据包进行数据传输
-* 发送数据的包的大小限制 **64KB** 以内
-* 因为面向无连接，速度快，但是不可靠，会丢失数据
+* 面向无连接的协议，发送端只管发送，不确认对方是否能收到，速度快，但是不可靠，会丢失数据
+* 尽最大努力交付，没有拥塞控制
+* 基于数据包进行数据传输，发送数据的包的大小限制 **64KB** 以内
+* 支持一对一、一对多、多对一、多对多的交互通信
 
 UDP 协议的使用场景：在线视频、网络语音、电话
 
@@ -13683,14 +13867,14 @@ UDP 协议的使用场景：在线视频、网络语音、电话
 
 #### 实现UDP
 
-UDP 协议相关的两个类
+UDP 协议相关的两个类：
 
 * DatagramPacket（数据包对象）：用来封装要发送或要接收的数据，比如：集装箱
 * DatagramSocket（发送对象）：用来发送或接收数据包，比如：码头
 
 **DatagramPacket**：
 
-* DatagramPacket 类
+* DatagramPacket 类：
 
   `public new DatagramPacket(byte[] buf, int length, InetAddress address, int port)`：创建发送端数据包对象 
 
@@ -13704,7 +13888,7 @@ UDP 协议相关的两个类
   * buf：用来存储接收到内容		
   * length：能够接收内容的长度
 
-* DatagramPacket 类常用方法
+* DatagramPacket 类常用方法：
   
   * `public int getLength()`：获得实际接收到的字节个数
   * `public byte[] getData()`：返回数据缓冲区
@@ -13714,7 +13898,7 @@ UDP 协议相关的两个类
 * DatagramSocket 类构造方法：
   * `protected DatagramSocket()`：创建发送端的 Socket 对象，系统会随机分配一个端口号
   * `protected DatagramSocket(int port)`：创建接收端的 Socket 对象并指定端口号
-* DatagramSocket 类成员方法
+* DatagramSocket 类成员方法：
   * `public void send(DatagramPacket dp)`：发送数据包
   * `public void receive(DatagramPacket p)`：接收数据包
   * `public void close()`：关闭数据报套接字
@@ -13725,8 +13909,7 @@ public class UDPClientDemo {
         System.out.println("===启动客户端===");
         // 1.创建一个集装箱对象，用于封装需要发送的数据包!
         byte[] buffer = "我学Java".getBytes();
-        DatagramPacket packet = new DatagramPacket(buffer,bubffer.length
-											,InetAddress.getLoclHost,8000);
+        DatagramPacket packet = new DatagramPacket(buffer,bubffer.length,InetAddress.getLoclHost,8000);
         // 2.创建一个码头对象
         DatagramSocket socket = new DatagramSocket();
         // 3.开始发送数据包对象
@@ -13747,7 +13930,7 @@ public class UDPServerDemo{
         // 4.从集装箱中获取本次读取的数据量
         int len = packet.getLength();
         // 5.输出数据
-        //String rs = new String(socket.getData(), 0, len)
+        // String rs = new String(socket.getData(), 0, len)
         String rs = new String(buffer , 0 , len);
         System.out.println(rs);
         // 6.服务端还可以获取发来信息的客户端的IP和端口。
@@ -13796,12 +13979,11 @@ TCP/IP (Transfer Control Protocol) 协议，传输控制协议
 
 TCP/IP 协议的特点：
 
-* 面向连接的协议
+* 面向连接的协议，提供可靠交互，速度慢
+* 点对点的全双工通信
 * 只能由客户端主动发送数据给服务器端，服务器端接收到数据之后，可以给客户端响应数据
 * 通过**三次握手**建立连接，连接成功形成数据传输通道；通过**四次挥手**断开连接
-* 基于字节流进行数据传输
-* 传输数据大小没有限制
-* 因为面向连接的协议，速度慢，但是是可靠的协议。
+* 基于字节流进行数据传输，传输数据大小没有限制
 
 TCP 协议的使用场景：文件上传和下载、邮件发送和接收、远程登录
 
@@ -13823,12 +14005,14 @@ TCP 协议的使用场景：文件上传和下载、邮件发送和接收、远�
 
 TCP 通信也叫 **Socket 网络编程**，只要代码基于 Socket 开发，底层就是基于了可靠传输的 TCP 通信
 
+双向通信：Java Socket 是全双工的，在任意时刻，线路上存在 `A -> B` 和 `B -> A` 的双向信号传输，即使是阻塞 IO，读和写也是可以同时进行的，只要分别采用读线程和写线程即可，读不会阻塞写、写也不会阻塞读
+
 TCP 协议相关的类：
 
 * Socket：一个该类的对象就代表一个客户端程序。
 * ServerSocket：一个该类的对象就代表一个服务器端程序。
 
-Socket 类
+Socket 类：
 
 * 构造方法：
   
@@ -13848,11 +14032,13 @@ Socket 类
 ServerSocket 类：
 
 * 构造方法：`public ServerSocket(int port)`
-* 常用API：`public Socket accept()`，**阻塞等待**接收一个客户端的 Socket 管道连接请求，连接成功返回一个 Socket 对象
+* 常用 API：`public Socket accept()`，**阻塞等待**接收一个客户端的 Socket 管道连接请求，连接成功返回一个 Socket 对象
 
-  三次握手后 TCP 连接建立成功，服务器内核会把连接从 SYN 半连接队列中移出，移入 accept （全连接）队列，等待进程调用 accept 函数时把连接取出。如果进程不能及时调用 accept 函数，就会造成 accept 队列溢出，最终导致建立好的 TCP 连接被丢弃
+  三次握手后 TCP 连接建立成功，服务器内核会把连接从 SYN 半连接队列（一次握手时在服务端建立的队列）中移出，移入 accept 全连接队列，等待进程调用 accept 函数时把连接取出。如果进程不能及时调用 accept 函数，就会造成 accept 队列溢出，最终导致建立好的 TCP 连接被丢弃
+  
+  <img src="https://gitee.com/seazean/images/raw/master/Frame/Netty-TCP三次握手.png" style="zoom:67%;" />
 
-相当于客户端和服务器建立一个数据管道，管道一般不用 close
+**相当于**客户端和服务器建立一个数据管道（虚连接，不是真正的物理连接），管道一般不用 close
 
 
 
@@ -13899,9 +14085,9 @@ ServerSocket 类：
 public class ClientDemo {
     public static void main(String[] args) throws Exception {
         // 1.客户端要请求于服务端的socket管道连接。
-        Socket socket = new Socket("127.0.0.1",8080);
+        Socket socket = new Socket("127.0.0.1", 8080);
         // 2.从socket通信管道中得到一个字节输出流
-        OutputStream os = new socket.getOutputStream();
+        OutputStream os = socket.getOutputStream();
         // 3.把低级的字节输出流包装成高级的打印流。
         PrintStream ps = new PrintStream(os);
         // 4.开始发消息出去
@@ -13932,7 +14118,7 @@ public class ServerDemo{
 
 
 
-需求二：客户2端可以反复发送数据，服务端可以反复数据2
+需求二：客户端可以反复发送数据，服务端可以反复数据
 
 ```java
 public class ClientDemo {
@@ -13974,7 +14160,7 @@ public class ServerDemo{
 
 
 
-需求三：实现一个服务端可以同时接收多个客户端的消息。
+需求三：实现一个服务端可以同时接收多个客户端的消息
 
 ```java
 public class ClientDemo {
@@ -14029,10 +14215,11 @@ class ServerReaderThread extends Thread{
 
 ##### 伪异步
 
-一个客户端要一个线程，这种模型是不行的，并发越高系统瘫痪的越快，可以在服务端引入线程池，使用线程池来处理与客户端的消息通信
+一个客户端要一个线程，并发越高系统瘫痪的越快，可以在服务端引入线程池，使用线程池来处理与客户端的消息通信
 
-优势：不会引起系统的死机，可以控制并发线程的数量
-劣势：同时可以并发的线程将受到限制
+* 优势：不会引起系统的死机，可以控制并发线程的数量
+
+* 劣势：同时可以并发的线程将受到限制
 
 ```java
 public class BIOServer {
@@ -14256,11 +14443,11 @@ public class Server {
 
 **NIO的介绍**：
 
-Java NIO（New IO、Java non-blocking IO），从 Java 1.4 版本开始引入的一个新的 IO API，可以替代标准的  Java IO API，NIO 支持面向缓冲区的、基于通道的 IO 操作，以更加高效的方式进行文件的读写操作。
+Java NIO（New IO、Java non-blocking IO），从 Java 1.4 版本开始引入的一个新的 IO API，可以替代标准的 Java IO API，NIO 支持面向缓冲区的、基于通道的 IO 操作，以更加高效的方式进行文件的读写操作
 
-* NIO 有三大核心部分：**Channel( 通道) ，Buffer( 缓冲区)，Selector( 选择器)**
-* NIO 是非阻塞IO，传统 IO 的 read 和 write 只能阻塞执行，线程在读写 IO 期间不能干其他事情，比如调用 socket.accept()，如果服务器没有数据传输过来，线程就一直阻塞，而 NIO 中可以配置 Socket 为非阻塞模式
-* NIO 可以做到用一个线程来处理多个操作的。假设有 1000 个请求过来，根据实际情况可以分配20 或者 80个线程来处理，不像之前的阻塞 IO 那样分配 1000 个
+* NIO 有三大核心部分：**Channel（通道），Buffer（缓冲区），Selector（选择器）**
+* NIO 是非阻塞 IO，传统 IO 的 read 和 write 只能阻塞执行，线程在读写 IO 期间不能干其他事情，比如调用 socket.accept()，如果服务器没有数据传输过来，线程就一直阻塞，而 NIO 中可以配置 Socket 为非阻塞模式
+* NIO 可以做到用一个线程来处理多个操作的。假设有 1000 个请求过来，根据实际情况可以分配 20 或者 80 个线程来处理，不像之前的阻塞 IO 那样分配 1000 个
 
 NIO 和 BIO 的比较：
 
@@ -14288,7 +14475,7 @@ NIO 三大核心部分：Channel( 通道) ，Buffer( 缓冲区), Selector( 选�
 
 * Buffer 缓冲区
 
-  缓冲区本质是一块可以写入数据、读取数据的内存，**底层是一个数组**，这块内存被包装成NIO Buffer对象，并且提供了方法用来操作这块内存，相比较直接对数组的操作，Buffer 的 API 更加容易操作和管理
+  缓冲区本质是一块可以写入数据、读取数据的内存，**底层是一个数组**，这块内存被包装成 NIO Buffer 对象，并且提供了方法用来操作这块内存，相比较直接对数组的操作，Buffer 的 API 更加容易操作和管理
 
 * Channel 通道
 
@@ -14296,7 +14483,7 @@ NIO 三大核心部分：Channel( 通道) ，Buffer( 缓冲区), Selector( 选�
 
 * Selector 选择器
 
-  Selector 是一个 Java NIO 组件，能够检查一个或多个 NIO 通道，并确定哪些通道已经准备好进行读取或写入，这样一个单独的线程可以管理多个channel，从而管理多个网络连接，提高效率
+  Selector 是一个 Java NIO 组件，能够检查一个或多个 NIO 通道，并确定哪些通道已经准备好进行读取或写入，这样一个单独的线程可以管理多个 channel，从而管理多个网络连接，提高效率
 
 NIO 的实现框架：
 
@@ -14359,29 +14546,30 @@ Java NIO 系统的核心在于：通道和缓冲区，通道表示打开的 IO �
 
 Buffer 基本操作：
 
-| 方法                                        | 说明                                                    |
-| ------------------------------------------- | ------------------------------------------------------- |
-| public Buffer clear()                       | 清空缓冲区，不清空内容，将位置设置为零，限制设置为容量  |
-| public Buffer flip()                        | 翻转缓冲区，将缓冲区的界限设置为当前位置，position 置 0 |
-| public int capacity()                       | 返回 Buffer的 capacity 大小                             |
-| public final int limit()                    | 返回 Buffer 的界限 limit 的位置                         |
-| public Buffer limit(int n)                  | 设置缓冲区界限为 n                                      |
-| public Buffer mark()                        | 在此位置对缓冲区设置标记                                |
-| public final int position()                 | 返回缓冲区的当前位置 position                           |
-| public Buffer position(int n)               | 设置缓冲区的当前位置为n                                 |
-| public Buffer reset()                       | 将位置 position 重置为先前 mark 标记的位置              |
-| public Buffer rewind()                      | 将位置设为为0，取消设置的 mark                          |
-| public final int remaining()                | 返回当前位置 position 和 limit 之间的元素个数           |
-| public final boolean hasRemaining()         | 判断缓冲区中是否还有元素                                |
-| public static ByteBuffer wrap(byte[] array) | 将一个字节数组包装到缓冲区中                            |
-| abstract ByteBuffer asReadOnlyBuffer()      | 创建一个新的只读字节缓冲区                              |
+| 方法                                        | 说明                                                         |
+| ------------------------------------------- | ------------------------------------------------------------ |
+| public Buffer clear()                       | 清空缓冲区，不清空内容，将位置设置为零，限制设置为容量       |
+| public Buffer flip()                        | 翻转缓冲区，将缓冲区的界限设置为当前位置，position 置 0      |
+| public int capacity()                       | 返回 Buffer的 capacity 大小                                  |
+| public final int limit()                    | 返回 Buffer 的界限 limit 的位置                              |
+| public Buffer limit(int n)                  | 设置缓冲区界限为 n                                           |
+| public Buffer mark()                        | 在此位置对缓冲区设置标记                                     |
+| public final int position()                 | 返回缓冲区的当前位置 position                                |
+| public Buffer position(int n)               | 设置缓冲区的当前位置为n                                      |
+| public Buffer reset()                       | 将位置 position 重置为先前 mark 标记的位置                   |
+| public Buffer rewind()                      | 将位置设为为 0，取消设置的 mark                              |
+| public final int remaining()                | 返回当前位置 position 和 limit 之间的元素个数                |
+| public final boolean hasRemaining()         | 判断缓冲区中是否还有元素                                     |
+| public static ByteBuffer wrap(byte[] array) | 将一个字节数组包装到缓冲区中                                 |
+| abstract ByteBuffer asReadOnlyBuffer()      | 创建一个新的只读字节缓冲区                                   |
+| public abstract ByteBuffer compact()        | 缓冲区当前位置与其限制（如果有）之间的字节被复制到缓冲区的开头 |
 
 Buffer 数据操作：
 
 | 方法                                              | 说明                                            |
 | ------------------------------------------------- | ----------------------------------------------- |
-| public abstract byte get()                        | 读取该缓冲区当前位置的单个字节，然后增加位置    |
-| public ByteBuffer get(byte[] dst)                 | 读取多个字节到字节数组dst中                     |
+| public abstract byte get()                        | 读取该缓冲区当前位置的单个字节，然后位置 + 1    |
+| public ByteBuffer get(byte[] dst)                 | 读取多个字节到字节数组 dst 中                   |
 | public abstract byte get(int index)               | 读取指定索引位置的字节，不移动 position         |
 | public abstract ByteBuffer put(byte b)            | 将给定单个字节写入缓冲区的当前位置，position+1  |
 | public final ByteBuffer put(byte[] src)           | 将 src 字节数组写入缓冲区的当前位置             |
@@ -14456,6 +14644,57 @@ public class TestBuffer {
 
 
 
+#### 粘包拆包
+
+网络上有多条数据发送给服务端，数据之间使用 \n 进行分隔，但这些数据在接收时，被进行了重新组合
+
+```java
+// Hello,world\n
+// I'm zhangsan\n
+// How are you?\n
+------ > 黏包，半包
+// Hello,world\nI'm zhangsan\nHo
+// w are you?\n
+```
+
+```java
+public static void main(String[] args) {
+    ByteBuffer source = ByteBuffer.allocate(32);
+    //                     11            24
+    source.put("Hello,world\nI'm zhangsan\nHo".getBytes());
+    split(source);
+
+    source.put("w are you?\nhaha!\n".getBytes());
+    split(source);
+}
+
+private static void split(ByteBuffer source) {
+    source.flip();
+    int oldLimit = source.limit();
+    for (int i = 0; i < oldLimit; i++) {
+        if (source.get(i) == '\n') {
+            // 根据数据的长度设置缓冲区
+            ByteBuffer target = ByteBuffer.allocate(i + 1 - source.position());
+            // 0 ~ limit
+            source.limit(i + 1);
+            target.put(source); // 从source 读，向 target 写
+            // debugAll(target); 访问 buffer 的方法
+            source.limit(oldLimit);
+        }
+    }
+    // 访问过的数据复制到开头
+    source.compact();
+}
+```
+
+
+
+
+
+****
+
+
+
 ### 直接内存
 
 #### 基本介绍
@@ -14481,8 +14720,8 @@ Direct Memory 优点：
 
 数据流的角度：
 
-* 非直接内存的作用链：本地IO → 内核缓冲区→ 用户（JVM）缓冲区 →内核缓冲区 → 本地IO
-* 直接内存是：本地IO → 直接内存 → 本地IO
+* 非直接内存的作用链：本地 IO → 内核缓冲区→ 用户（JVM）缓冲区 →内核缓冲区 → 本地 IO
+* 直接内存是：本地 IO → 直接内存 → 本地 IO
 
 JVM 直接内存图解：
 
@@ -14576,7 +14815,7 @@ private static class Deallocator implements Runnable {
 **分配和回收原理**：
 
 * 使用了 Unsafe 对象的 allocateMemory 方法完成直接内存的分配，setMemory 方法完成赋值
-* ByteBuffer 的实现类内部，使用了 Cleaner （虚引用）来监测 ByteBuffer 对象，一旦 ByteBuffer 对象被垃圾回收，那么 ReferenceHandler 线程通过 Cleaner 的 clean 方法调用 Deallocator 的 run方法，最后通过 freeMemory 来释放直接内存
+* ByteBuffer 的实现类内部，使用了 Cleaner（虚引用）来监测 ByteBuffer 对象，一旦 ByteBuffer 对象被垃圾回收，那么 ReferenceHandler 线程通过 Cleaner 的 clean 方法调用 Deallocator 的 run方法，最后通过 freeMemory 来释放直接内存
 
 ```java
 /**
@@ -14624,20 +14863,20 @@ FileChannel 提供 map 方法返回 MappedByteBuffer 对象，把文件映射到
 FileChannel 中的成员属性：
 
 * MapMode.mode：内存映像文件访问的方式，共三种：
-  * `MapMode.READ_ONLY`：只读，试图修改得到的缓冲区将导致抛出异常。
-  * `MapMode.READ_WRITE`：读/写，对得到的缓冲区的更改最终将写入文件；但该更改对映射到同一文件的其他程序不一定是可见的
+  * `MapMode.READ_ONLY`：只读，修改得到的缓冲区将导致抛出异常
+  * `MapMode.READ_WRITE`：读/写，对缓冲区的更改最终将写入文件，但此次修改对映射到同一文件的其他程序不一定是可见的
   * `MapMode.PRIVATE`：私用，可读可写，但是修改的内容不会写入文件，只是 buffer 自身的改变，称之为写时复制
 
 * `public final FileLock lock()`：获取此文件通道的排他锁
 
 MappedByteBuffer，可以让文件在直接内存（堆外内存）中进行修改，这种方式叫做**内存映射**，可以直接调用系统底层的缓存，没有 JVM 和 OS 之间的复制操作，提高了传输效率，作用：
 
-* **用在进程间的通信，能达到共享内存页的作用**，但在高并发下要对文件内存进行加锁，防止出现读写内容混乱和不一致性，Java 提供了文件锁 FileLock，但在父/子进程中锁定后另一进程会一直等待，效率不高
-* 读写那些太大而不能放进内存中的文件，分段映射
+* **可以用于进程间的通信，能达到共享内存页的作用**，但在高并发下要对文件内存进行加锁，防止出现读写内容混乱和不一致性，Java 提供了文件锁 FileLock，但在父/子进程中锁定后另一进程会一直等待，效率不高
+* 读写那些太大而不能放进内存中的文件，**分段映射**
 
-MappedByteBuffer 较之 ByteBuffer新增的三个方法
+MappedByteBuffer 较之 ByteBuffer 新增的三个方法：
 
-- `final MappedByteBuffer force()`：缓冲区是 READ_WRITE 模式下，对缓冲区内容的修改强行写入文件
+- `final MappedByteBuffer force()`：缓冲区是 READ_WRITE 模式下，对缓冲区内容的修改**强制写入文件**
 - `final MappedByteBuffer load()`：将缓冲区的内容载入物理内存，并返回该缓冲区的引用
 - `final boolean isLoaded()`：如果缓冲区的内容在物理内存中，则返回真，否则返回假
 
@@ -14646,7 +14885,7 @@ public class MappedByteBufferTest {
     public static void main(String[] args) throws Exception {
         // 读写模式
         RandomAccessFile ra = new RandomAccessFile("1.txt", "rw");
-        //获取对应的通道
+        // 获取对应的通道
         FileChannel channel = ra.getChannel();
 
         /**
@@ -14696,19 +14935,26 @@ public class MappedByteBufferTest {
    * 通道可以实现异步读写数据
    * 通道可以从缓冲读数据，也可以写数据到缓冲
 
-2. BIO 中的 stream 是单向的，NIO中的 Channel 是双向的，可以读操作，也可以写操作
+2. BIO 中的 Stream 是单向的，NIO中的 Channel 是双向的，可以读操作，也可以写操作
 
 3. Channel 在 NIO 中是一个接口：`public interface Channel extends Closeable{}`
 
-
-
 Channel 实现类：
 
-* FileChannel：用于读取、写入、映射和操作文件的通道
+* FileChannel：用于读取、写入、映射和操作文件的通道，**只能工作在阻塞模式下**
+  * 通过 FileInputStream 获取的 Channel 只能读
+  * 通过 FileOutputStream 获取的 Channel 只能写
+  * 通过 RandomAccessFile 是否能读写根据构造 RandomAccessFile 时的读写模式决定
+  
 * DatagramChannel：通过 UDP 读写网络中的数据通道
+
 * SocketChannel：通过 TCP 读写网络中的数据
-* ServerSocketChannel：可以监听新进来的 TCP 连接，对每一个新进来的连接都会创建一个SocketChannel。
-  提示：ServerSocketChanne 类似 ServerSocket , SocketChannel 类似 Socket
+
+* ServerSocketChannel：可以监听新进来的 TCP 连接，对每一个新进来的连接都会创建一个 SocketChannel
+  
+  提示：ServerSocketChanne 类似 ServerSocket、SocketChannel 类似 Socket
+  
+  
 
 
 
@@ -14724,19 +14970,25 @@ Channel 实现类：
 * 通过通道的静态方法 `open()` 打开并返回指定通道
 * 使用 Files 类的静态方法 `newByteChannel()` 获取字节通道
 
-Channel 基本操作：
+Channel 基本操作：**读写都是相对于内存来看，也就是缓冲区**
 
 | 方法                                       | 说明                                                     |
 | ------------------------------------------ | -------------------------------------------------------- |
 | public abstract int read(ByteBuffer dst)   | 从 Channel 中读取数据到 ByteBuffer，从 position 开始储存 |
-| public final long read(ByteBuffer[] dsts)  | 将Channel中的数据“分散”到ByteBuffer[]                    |
+| public final long read(ByteBuffer[] dsts)  | 将 Channel 中的数据分散到 ByteBuffer[]                   |
 | public abstract int write(ByteBuffer src)  | 将 ByteBuffer 中的数据写入 Channel，从 position 开始写出 |
-| public final long write(ByteBuffer[] srcs) | 将ByteBuffer[]到中的数据“聚集”到Channel                  |
+| public final long write(ByteBuffer[] srcs) | 将 ByteBuffer[] 到中的数据聚集到 Channel                 |
 | public abstract long position()            | 返回此通道的文件位置                                     |
 | FileChannel position(long newPosition)     | 设置此通道的文件位置                                     |
 | public abstract long size()                | 返回此通道的文件的当前大小                               |
 
-**读写都是相对于内存来看，也就是缓冲区**
+**SelectableChannel 的操作 API**：
+
+| 方法                                                     | 说明                                                         |
+| -------------------------------------------------------- | ------------------------------------------------------------ |
+| SocketChannel accept()                                   | 如果通道处于非阻塞模式，没有请求连接时此方法将立即返回 NULL，否则将阻塞直到有新的连接或发生 I/O 错误，**通过该方法返回的套接字通道将处于阻塞模式** |
+| SelectionKey register(Selector sel, int ops)             | 将通道注册到选择器上，并指定监听事件                         |
+| SelectionKey register(Selector sel, int ops, Object att) | 将通道注册到选择器上，并在当前通道**绑定一个附件对象**，Object 代表可以是任何类型 |
 
 
 
@@ -14789,7 +15041,7 @@ public class ChannelTest {
 
 #### 文件复制
 
-Channel 的方法：sendfile 实现零拷贝
+Channel 的方法：**sendfile 实现零拷贝**
 
 * `abstract long transferFrom(ReadableByteChannel src, long position, long count)`：从给定的可读字节通道将字节传输到该通道的文件中
   * src：源通道
@@ -14941,27 +15193,28 @@ public class ChannelTest {
 
 创建 Selector：`Selector selector = Selector.open();`
 
-向选择器注册通道：`SelectableChannel.register(Selector sel, int ops)`
+向选择器注册通道：`SelectableChannel.register(Selector sel, int ops, Object att)`
 
-选择器对通道的监听事件，需要通过第二个参数 ops 指定。监听的事件类型用四个常量表示：
-
-* 读 : SelectionKey.OP_READ （1）
-* 写 : SelectionKey.OP_WRITE （4）
-* 连接 : SelectionKey.OP_CONNECT （8）
-* 接收 : SelectionKey.OP_ACCEPT （16）
-* 若不止监听一个事件，可以使用位或操作符连接：`int interest = SelectionKey.OP_READ | SelectionKey.OP_WRITE`
+* 参数一：选择器，指定当前 Channel 注册到的选择器
+* 参数二：选择器对通道的监听事件，监听的事件类型用四个常量表示
+  * 读 : SelectionKey.OP_READ （1）
+  * 写 : SelectionKey.OP_WRITE （4）
+  * 连接 : SelectionKey.OP_CONNECT （8）
+  * 接收 : SelectionKey.OP_ACCEPT （16）
+  * 若不止监听一个事件，使用位或操作符连接：`int interest = SelectionKey.OP_READ | SelectionKey.OP_WRITE`
+* 参数三：可以关联一个附件，可以是任何对象
 
 **Selector API**：
 
-| 方法                                             | 说明                                  |
-| ------------------------------------------------ | ------------------------------------- |
-| public static Selector open()                    | 打开选择器                            |
-| public abstract void close()                     | 关闭此选择器                          |
-| public abstract int select()                     | 阻塞选择一组通道准备好进行I/O操作的键 |
-| public abstract int select(long timeout)         | 阻塞等待 timeout 毫秒                 |
-| public abstract int selectNow()                  | 获取一下，不阻塞，立刻返回            |
-| public abstract Selector wakeup()                | 唤醒正在阻塞的 selector               |
-| public abstract Set<SelectionKey> selectedKeys() | 返回此选择器的选择键集                |
+| 方法                                             | 说明                                        |
+| ------------------------------------------------ | ------------------------------------------- |
+| public static Selector open()                    | 打开选择器                                  |
+| public abstract void close()                     | 关闭此选择器                                |
+| public abstract int select()                     | **阻塞**选择一组通道准备好进行 I/O 操作的键 |
+| public abstract int select(long timeout)         | **阻塞**等待 timeout 毫秒                   |
+| public abstract int selectNow()                  | 获取一下，**不阻塞**，立刻返回              |
+| public abstract Selector wakeup()                | 唤醒正在阻塞的 selector                     |
+| public abstract Set<SelectionKey> selectedKeys() | 返回此选择器的选择键集                      |
 
 SelectionKey API:
 
@@ -14969,6 +15222,7 @@ SelectionKey API:
 | ------------------------------------------- | -------------------------------------------------- |
 | public abstract void cancel()               | 取消该键的通道与其选择器的注册                     |
 | public abstract SelectableChannel channel() | 返回创建此键的通道，该方法在取消键之后仍将返回通道 |
+| public final Object attachment()            | 返回当前 key 关联的附件                            |
 | public final boolean isAcceptable()         | 检测此密钥的通道是否已准备好接受新的套接字连接     |
 | public final boolean isConnectable()        | 检测此密钥的通道是否已完成或未完成其套接字连接操作 |
 | public final boolean isReadable()           | 检测此密钥的频道是否可以阅读                       |
@@ -15057,7 +15311,7 @@ ssChannel.register(selector, SelectionKey.OP_ACCEPT);
 3. 分配指定大小的缓冲区：`ByteBuffer buffer = ByteBuffer.allocate(1024)`
 4. 发送数据给服务端
 
-37 行代码，如果判断条件改为 !=-1，需要客户端 shutdown 一下
+37 行代码，如果判断条件改为 !=-1，需要客户端 close 一下
 
 ```java
 public class Server {
@@ -15072,7 +15326,7 @@ public class Server {
         Selector selector = Selector.open();
         // 5、将通道都注册到选择器上去，并且开始指定监听接收事件
         serverSocketChannel.register(selector, SelectionKey.OP_ACCEPT);
-		// 6、使用Selector选择器轮询已经就绪好的事件
+		// 6、使用Selector选择器阻塞等待轮已经就绪好的事件
         while (selector.select() > 0) {
             System.out.println("----开始新一轮的时间处理----");
             // 7、获取选择器中的所有注册的通道中已经就绪好的事件
@@ -15087,6 +15341,11 @@ public class Server {
                     SocketChannel socketChannel = serverSocketChannel.accept();
                     // 11 、切换成非阻塞模式
                     socketChannel.configureBlocking(false);
+                    /*
+                     ByteBuffer buffer = ByteBuffer.allocate(16);
+                	 // 将一个 byteBuffer 作为附件【关联】到 selectionKey 上
+                	 SelectionKey scKey = sc.register(selector, 0, buffer);
+                    */
                     // 12、将本客户端通道注册到选择器
                     socketChannel.register(selector, SelectionKey.OP_READ);
                 } else if (key.isReadable()) {
@@ -15095,6 +15354,8 @@ public class Server {
                     SocketChannel socketChannel = (SocketChannel) channel;
                     // 14、读取数据
                     ByteBuffer buffer = ByteBuffer.allocate(1024);
+                    // 获取关联的附件
+                    // ByteBuffer buffer = (ByteBuffer) key.attachment();
                     int len;
                     while ((len = socketChannel.read(buffer)) > 0) {
                         buffer.flip();
@@ -15124,7 +15385,7 @@ public class Client {
         while (true){
             System.out.print("请说：");
             String msg = sc.nextLine();
-            buffer.put(("波妞：" + msg).getBytes());
+            buffer.put(("Client：" + msg).getBytes());
             buffer.flip();
             socketChannel.write(buffer);
             buffer.clear();

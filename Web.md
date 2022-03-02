@@ -4,7 +4,7 @@
 
 ### 概述
 
-HTML（超文本标记语言—HyperText Markup Language）是构成 Web 世界的一砖一瓦。它是一种用来告知浏览器如何组织页面的标记语言。
+HTML（超文本标记语言—HyperText Markup Language）是构成 Web 世界的基础，是一种用来告知浏览器如何组织页面的标记语言
 
 * 超文本 Hypertext，是指连接单个或者多个网站间的网页的链接。通过链接，就能访问互联网中的内容
 
@@ -2095,19 +2095,19 @@ HTTP 作用：用于定义 WEB 浏览器与 WEB 服务器之间交换数据的�
 URL 和 URI
 
 * URL：统一资源定位符
-  格式：http://127.0.0.1:8080/request/servletDemo01
-  详解：http：协议；127.0.0.1：域名；8080：端口；request/servletDemo01：请求资源路径
+  * 格式：http://127.0.0.1:8080/request/servletDemo01
+  * 详解：http：协议；127.0.0.1：域名；8080：端口；request/servletDemo01：请求资源路径
 
 * URI：统一资源标志符
-  格式：/request/servletDemo01
+  * 格式：/request/servletDemo01
 
-* 区别：`URL-HOST=URI`，URI是抽象的定义，URL用地址定位，URI 用名称定位。**只要能唯一标识资源的是 URI，在 URI 的基础上给出其资源的访问方式的是 URL**
+* 区别：`URL - HOST = URI`，URI 是抽象的定义，URL 用地址定位，URI 用名称定位。**只要能唯一标识资源的是 URI，在 URI 的基础上给出其资源的访问方式的是 URL**
 
 短连接和长连接：
 
-* 短连接：客户端和服务器每进行一次 HTTP 操作，就建立一次连接，任务结束就中断连接。
+* 短连接：客户端和服务器每进行一次 HTTP 操作，就建立一次连接，任务结束就中断连接
 
-  使用短连接的情况下，当浏览器访问的某个 HTML 或其他类型的 Web 页中包含有其他的 Web 资源（图像文件、CSS文件等），每遇到这样一个 Web 资源，浏览器就会经过三次握手重新建立一个 HTTP 会话
+  使用短连接的情况下，当浏览器访问的某个 HTML 或其他类型的 Web 页中包含有其他的 Web 资源（图像文件、CSS 文件等），每遇到这样一个 Web 资源，浏览器就会经过三次握手重新建立一个 HTTP 会话
 
 * 长连接：使用长连接的 HTTP 协议，会在响应头加入这行代码 `Connection:keep-alive`
 
@@ -2118,9 +2118,19 @@ URL 和 URI
 **从浏览器地址栏输入 URL 到请求返回发生了什么？**
 
 * 进行 URL 解析，进行编码
-* DNS 解析，顺序是先查 hosts 文件是否有记录，有的话就会把相对应映射的 IP 返回，然后去本地 DNS 缓存中寻找，然后去找计算机上配置的 DNS 服务器上有或者有缓存，最后去找全球的根 DNS 服务器，直到查到为止
-* 查找到 IP 之后，进行 TCP 协议的三次握手，发出 HTTP 请求
+
+* DNS 解析，顺序是先查 hosts 文件是否有记录，有的话就会把相对应映射的 IP 返回，然后去本地 DNS 缓存中寻找，然后依次向本地域名服务器、根域名服务器、顶级域名服务器、权限域名服务器发起查询请求，最终返回 IP 地址给本地域名服务器
+
+  本地域名服务器将得到的 IP 地址返回给操作系统，同时将 IP 地址缓存起来；操作系统将 IP 地址返回给浏览器，同时自己也将 IP 地址缓存起来
+
+* 查找到 IP 之后，进行 TCP 协议的三次握手建立连接
+
+* 发出 HTTP 请求，取文件指令
+
 * 服务器处理请求，返回响应
+
+* 释放 TCP 连接
+
 * 浏览器解析渲染页面
 
 
@@ -2135,7 +2145,7 @@ URL 和 URI
 
 * HTTP/0.9 仅支持 GET 请求，不支持请求头
 * HTTP/1.0 默认短连接（一次请求建议一次 TCP 连接，请求完就断开），支持 GET、POST、 HEAD 请求
-* HTTP/1.1 默认长连接（一次 TCP 连接可以多次请求）；支持 PUT、DELETE、PATCH 等六种请求；增加 host 头，支持虚拟主机；支持**断点续传**功能
+* HTTP/1.1 默认长连接（一次 TCP 连接可以多次请求）；支持 PUT、DELETE、PATCH 等六种请求；增加 HOST 头，支持虚拟主机；支持**断点续传**功能
 * HTTP/2.0 多路复用，降低开销（一次 TCP 连接可以处理多个请求）；服务器主动推送（相关资源一个请求全部推送）；解析基于二进制，解析错误少，更高效（HTTP/1.X 解析基于文本）；报头压缩，降低开销。
 
 HTTP 1.0 和 HTTP 1.1 的主要区别：
@@ -2148,9 +2158,18 @@ HTTP 1.0 和 HTTP 1.1 的主要区别：
 
 * 错误状态响应码：在 HTTP1.1 中新增了 24 个错误状态响应码，如 409（Conflict）表示请求的资源与资源的当前状态发生冲突，410（Gone）表示服务器上的某个资源被永久性的删除
 
-* 缓存处理：在 HTTP1.0 中主要使用 header 里的 If-Modified-Since，Expires 来做为缓存判断的标准，HTTP1.1 则引入了更多的缓存控制策略例如 Entity tag，If-Unmodified-Since，If-Match，If-None-Match等更多可供选择的缓存头来控制缓存策略
+* 缓存处理：在 HTTP1.0 中主要使用 header 里的 If-Modified-Since，Expires 来做为缓存判断的标准，HTTP1.1 则引入了更多的**缓存控制策略**例如 Entity tag，If-Unmodified-Since，If-Match，If-None-Match等
 
-* 带宽优化及网络连接的使用：HTTP1.0 中，存在一些浪费带宽的现象，例如客户端只需要某个对象的一部分，而服务器却将整个对象送过来了，并且不支持断点续传功能，HTTP1.1 则在请求头引入了 range 头域，允许只请求资源的某个部分，即返回码是 206（Partial Content），这样就方便了开发者自由的选择以便于充分利用带宽和连接
+* 带宽优化及网络连接的使用：HTTP1.0 存在一些浪费带宽的现象，例如客户端只需要某个对象的一部分，而服务器却将整个对象送过来了，并且不支持断点续传功能，HTTP1.1 则在请求头引入了 range 头域，允许只**请求资源的某个部分**，即返回码是 206（Partial Content），这样就方便了开发者自由的选择以便于充分利用带宽和连接
+
+* HOST 头处理：在 HTTP1.0 中认为每台服务器都绑定一个唯一的 IP 地址，因此请求消息中的 URL 并没有传递主机名。HTTP1.1 时代虚拟主机技术发展迅速，在一台物理服务器上可以存在多个虚拟主机，并且共享一个 IP 地址，故 HTTP1.1 增加了 HOST 信息
+
+HTTP 1.1 和 HTTP 2.0 的主要区别：
+
+* 新的二进制格式：HTTP1.1 基于文本格式传输数据，HTTP2.0 采用二进制格式传输数据，解析更高效
+* **多路复用**：在一个连接里，允许同时发送多个请求或响应，**并且这些请求或响应能够并行的传输而不被阻塞**，避免 HTTP1.1 出现的队头堵塞问题
+* 头部压缩，HTTP1.1 的 header 带有大量信息，而且每次都要重复发送；HTTP2.0 把 header 从数据中分离，并封装成头帧和数据帧，**使用特定算法压缩头帧**。并且 HTTP2.0 在客户端和服务器端记录了之前发送的键值对，对于相同的数据不会重复发送。比如请求 A 发送了所有的头信息字段，请求 B 则只需要发送差异数据，这样可以减少冗余数据，降低开销
+* **服务端推送**：HTTP2.0 允许服务器向客户端推送资源，无需客户端发送请求到服务器获取
 
 HTTP 和 HTTPS 的区别：
 
@@ -2160,11 +2179,11 @@ HTTP 和 HTTPS 的区别：
 
 **对称加密和非对称加密**
 
-* 对称加密：加密和解密使用同一个秘钥，把密钥转发给需要发送数据的客户机，中途会被拦截（类似于把带锁的箱子和钥匙给别人，对方打开箱子放入数据，上锁后发送），典型的对称加密算法有 DES、AES 等
+* 对称加密：加密和解密使用同一个秘钥，把密钥转发给需要发送数据的客户机，中途会被拦截（类似于把带锁的箱子和钥匙给别人，对方打开箱子放入数据，上锁后发送），私钥用来解密数据，典型的对称加密算法有 DES、AES 等
   * 优点：运算速度快
   * 缺点：无法安全的将密钥传输给通信方
 
-* 非对称加密：加密和解密使用不同的秘钥，一把作为公开的公钥，另一把作为私钥，公钥公开给任何人（类似于把锁和箱子给别人，对方打开箱子放入数据，上锁后发送），典型的非对称加密算法有RSA、DSA等
+* 非对称加密：加密和解密使用不同的秘钥，一把作为公开的公钥，另一把作为私钥，**公钥公开给任何人**（类似于把锁和箱子给别人，对方打开箱子放入数据，上锁后发送），典型的非对称加密算法有 RSA、DSA 等
   * 优点：可以更安全地将公开密钥传输给通信发送方
   * 缺点：运算速度慢
 
@@ -2174,8 +2193,29 @@ HTTP 和 HTTPS 的区别：
   * 获取到 Secret Key 后，再使用对称密钥加密方式进行通信，从而保证效率
 
   思想：锁上加锁
+  
+* 数字签名：附加在报文上的特殊加密校验码，可以防止报文被篡改，一般是通过哈希算法
+
+* 数字证书：由权威机构给某网站颁发的一种认可凭证
+
+HTTPS 工作流程：服务器端的公钥和私钥，用来进行非对称加密，客户端生成的随机密钥，用来进行对称加密
+
+![](https://gitee.com/seazean/images/raw/master/Web/HTTP-HTTPS加密过程.png)
+
+1. 客户端向服务器发起 HTTPS 请求，连接到服务器的 443 端口，请求携带了浏览器支持的加密算法和哈希算法，协商加密算法
+2. 服务器端会向数字证书认证机构提出公开密钥的申请，认证机构对公开密钥做数字签名后进行分配，会将公钥绑定在数字证书（又叫公钥证书，内容有公钥，网站地址，证书颁发机构，失效日期等）
+3. 服务器将数字证书发送给客户端，私钥由服务器持有
+4. 客户端收到服务器端的数字证书后对证书进行检查，验证其合法性，如果发现发现证书有问题，那么 HTTPS 传输就无法继续。如果公钥合格，那么客户端会生成一个随机值，**这个随机值就是用于进行对称加密的密钥**，将该密钥称之为 client key（客户端密钥、会话密钥）。用服务器的公钥对客户端密钥进行非对称加密，这样客户端密钥就变成密文，HTTPS 中的第一次 HTTP 请求结束
+5. 客户端会发起 HTTPS 中的第二个 HTTP 请求，将加密之后的客户端密钥发送给服务器
+6. 服务器接收到客户端发来的密文之后，会用自己的私钥对其进行非对称解密，解密之后的明文就是客户端密钥，然后用客户端密钥对数据进行对称加密，这样数据就变成了密文
+7. 服务器将加密后的密文发送给客户端
+8. 客户端收到服务器发送来的密文，用客户端密钥对其进行对称解密，得到服务器发送的数据，这样 HTTPS 中的第二个 HTTP 请求结束，整个 HTTPS 传输完成
 
 
+
+参考文章：https://www.cnblogs.com/linianhui/p/security-https-workflow.html
+
+参考文章：https://www.jianshu.com/p/14cd2c9d2cd2
 
 
 
@@ -2189,7 +2229,7 @@ HTTP 和 HTTPS 的区别：
 
 请求头： 从第二行开始，到第一个空行结束
 
-请求体： 从第一个空行后开始，到正文的结束（GET没有）
+请求体： 从第一个空行后开始，到正文的结束（GET 没有）
 
 * 请求方式
 
@@ -2197,7 +2237,7 @@ HTTP 和 HTTPS 的区别：
 
   ![](https://gitee.com/seazean/images/raw/master/Web/HTTP请求部分.png)
 
-  * Get
+  * GET
 
     ```html
     【请求行】
@@ -2214,18 +2254,18 @@ HTTP 和 HTTPS 的区别：
     Cookie: Idea-b77ddca6=4bc282fe-febf-4fd1-b6c9-72e9e0f381e8
     ```
 
-  * 面试题：**Get 和POST比较**
+  * **GET 和 POST 比较**
 
     作用：GET 用于获取资源，而 POST 用于传输实体主体
 
-    参数：GET 和 POST 的请求都能使用额外的参数，但是 GET 的参数是以查询字符串出现在 URL 中，而 POST 的参数存储在实体主体中。不能因为 POST 参数存储在实体主体中就认为它的安全性更高，因为照样可以通过一些抓包工具（Fiddler）查看
+    参数：GET 和 POST 的请求都能使用额外的参数，但是 GET 的参数是以查询字符串出现在 URL 中，而 POST 的参数存储在实体主体中（GET 也有请求体，POST 也可以通过 URL 传输参数）。不能因为 POST 参数存储在实体主体中就认为它的安全性更高，因为照样可以通过一些抓包工具（Fiddler）查看
 
-    安全：安全的 HTTP 方法不会改变服务器状态，也就是说它只是可读的。GET方法是安全的，而POST不是，因为 POST 的目的是传送实体主体内容
+    安全：安全的 HTTP 方法不会改变服务器状态，也就是说它只是可读的。GET 方法是安全的，而 POST 不是，因为 POST 的目的是传送实体主体内容
 
     * 安全的方法除了 GET 之外还有：HEAD、OPTIONS
     * 不安全的方法除了 POST 之外还有 PUT、DELETE
 
-    幂等性：同样的请求**被执行一次与连续执行多次的效果是一样的**，服务器的状态也是一样的。所有的安全方法也都是幂等的。在正确实现条件下，GET，HEAD，PUT 和 DELETE 等方法都是幂等的，POST 方法不是
+    幂等性：同样的请求**被执行一次与连续执行多次的效果是一样的**，服务器的状态也是一样的，所有的安全方法也都是幂等的。在正确实现条件下，GET，HEAD，PUT 和 DELETE 等方法都是幂等的，POST 方法不是
 
     可缓存：如果要对响应进行缓存，需要满足以下条件
 
@@ -2251,32 +2291,33 @@ HTTP 和 HTTPS 的区别：
 
 
 * 请求头详解
-  从第2行到空行处，都叫请求头,以键值对的形式存在,但存在一个key对应多个值的请求头
-
+  
+  从第 2 行到空行处，都叫请求头，以键值对的形式存在，但存在一个 key 对应多个值的请求头
+  
   | 内容              | 说明                                                         |
   | ----------------- | ------------------------------------------------------------ |
-  | Accept            | 告知服务器，客户浏览器支持的MIME类型                         |
+  | Accept            | 告知服务器，客户浏览器支持的 MIME 类型                       |
   | User-Agent        | 浏览器相关信息                                               |
   | Accept-Charset    | 告诉服务器，客户浏览器支持哪种字符集                         |
-  | Accept-Encoding   | 告知服务器，客户浏览器支持的压缩编码格式。常用gzip压缩       |
-  | Accept-Language   | 告知服务器，客户浏览器支持的语言。zh_CN或en_US等             |
-  | Host              | 初始URL中的主机和端口                                        |
+  | Accept-Encoding   | 告知服务器，客户浏览器支持的压缩编码格式，常用 gzip 压缩     |
+  | Accept-Language   | 告知服务器，客户浏览器支持的语言，zh_CN 或 en_US 等          |
+  | Host              | 初始 URL 中的主机和端口                                      |
   | Referer           | 告知服务器，当前请求的来源。只有当前请求有来源，才有这个消息头。<br/>作用：1 投放广告  2 防盗链 |
-  | Content-Type      | 告知服务器，请求正文的MIME类型，文件传输的类型,<br/>application/x-www-form-urlencoded |
+  | Content-Type      | 告知服务器，请求正文的 MIME 类型，文件传输的类型，<br/>application/x-www-form-urlencoded |
   | Content-Length    | 告知服务器，请求正文的长度。                                 |
-  | Connection        | 表示是否需要持久连接。一般是“Keep -Alive”（HTTP 1.1默认进行持久连接 ) |
+  | Connection        | 表示是否需要持久连接，一般是 `Keep -Alive`（HTTP 1.1 默认进行持久连接 ) |
   | If-Modified-Since | 告知服务器，客户浏览器缓存文件的最后修改时间                 |
-  | Cookie            | 会话管理相关(非常的重要)                                     |
+  | Cookie            | 会话管理相关（非常的重要）                                   |
 
 
 
 * 请求体详解
 
-  * 只有post请求方式，才有请求的正文，get方式的正文是在地址栏中的。
+  * 只有 POST 请求方式，才有请求的正文，GET 方式的正文是在地址栏中的
 
-  * 表单的输入域有name属性的才会被提交。不分get和post的请求方式。
+  * 表单的输入域有 name 属性的才会被提交，不分 GET 和 POST 的请求方式
 
-  * 表单的enctype属性取值决定了请求正文的体现形式。
+  * 表单的 enctype 属性取值决定了请求正文的体现形式
 
     | enctype取值                       | 请求正文体现形式                                   | 示例                                                         |
     | --------------------------------- | -------------------------------------------------- | ------------------------------------------------------------ |
@@ -2300,7 +2341,9 @@ HTTP 和 HTTPS 的区别：
 * 响应行
 
   HTTP/1.1：使用协议的版本
+
   200：响应状态码
+
   OK：状态码描述
 
   * 响应状态码：
@@ -2312,29 +2355,29 @@ HTTP 和 HTTPS 的区别：
     | 302/307 | 请求重定向（客户端行为，两次请求，地址栏发生改变） |
     | 304     | 请求资源未改变，使用缓存                           |
     | 400     | 客户端错误，请求错误，最常见的就是请求参数有问题   |
-    | 403     | 客户端错误，但 forbidden权 限不够，拒绝处理        |
+    | 403     | 客户端错误，但 forbidden 权限不够，拒绝处理        |
     | 404     | 客户端错误，请求资源未找到                         |
     | 500     | 服务器错误，服务器运行内部错误                     |
 
   面试题：
 
-  * 301 redirect: 301 代表永久性转移 (Permanently Moved)
-  * 302 redirect: 302 代表暂时性转移 (Temporarily Moved )
+  * 301 redirect：301 代表永久性转移 (Permanently Moved)
+  * 302 redirect：302 代表暂时性转移 (Temporarily Moved )
 
 * 响应头：以 key:vaue 存在，可能多个 value 情况。
   
   | 消息头                  | 说明                                                         |
   | ----------------------- | ------------------------------------------------------------ |
-  | Location                | 请求重定向的地址，常与302,307配合使用。                      |
-  | Server                  | 服务器相关信息。                                             |
-  | Content-Type            | 告知客户浏览器，响应正文的MIME类型。                         |
-  | Content-Length          | 告知客户浏览器，响应正文的长度。                             |
-  | Content-Encoding        | 告知客户浏览器，响应正文使用的压缩编码格式。常用的gzip压缩。 |
-  | Content-Language        | 告知客户浏览器，响应正文的语言。zh_CN或en_US等。             |
-  | Content-Disposition     | 告知客户浏览器，以下载的方式打开响应正文。                   |
-  | Refresh                 | 客户端的刷新频率。单位是秒                                   |
-  | Last-Modified           | 服务器资源的最后修改时间。                                   |
-  | Set-Cookie              | 服务器端发送的Cookie，会话管理相关                           |
+  | Location                | 请求重定向的地址，常与 302，307 配合使用。                   |
+  | Server                  | 服务器相关信息                                               |
+  | Content-Type            | 告知客户浏览器，响应正文的MIME类型                           |
+  | Content-Length          | 告知客户浏览器，响应正文的长度                               |
+  | Content-Encoding        | 告知客户浏览器，响应正文使用的压缩编码格式，常用的 gzip 压缩 |
+  | Content-Language        | 告知客户浏览器，响应正文的语言，zh_CN 或 en_US 等            |
+  | Content-Disposition     | 告知客户浏览器，以下载的方式打开响应正文                     |
+  | Refresh                 | 客户端的刷新频率，单位是秒                                   |
+  | Last-Modified           | 服务器资源的最后修改时间                                     |
+  | Set-Cookie              | 服务器端发送的 Cookie，会话管理相关                          |
   | Expires:-1              | 服务器资源到客户浏览器后的缓存时间                           |
   | Catch-Control: no-catch | 不要缓存，//针对http协议1.1版本                              |
   | Pragma:no-catch         | 不要缓存，//针对http协议1.0版本                              |
@@ -2371,13 +2414,13 @@ HTTP 和 HTTPS 的区别：
 
 ### JavaEE规范
 
-`JavaEE`规范是`J2EE`规范的新名称，早期被称为`J2EE`规范，其全称是`Java 2 Platform Enterprise Edition`，它是由SUN公司领导、各厂家共同制定并得到广泛认可的工业标准（`JCP`组织成员）。之所以改名为`JavaEE`，目的还是让大家清楚`J2EE`只是`Java`企业应用。在2004年底中国软件技术大会`Ioc`微容器(也就是`Jdon`框架的实现原理)演讲中指出：我们需要一个跨`J2SE/WEB/EJB`的微容器，保护我们的业务核心组件，以延续它的生命力，而不是依赖`J2SE/J2EE`版本。此次`J2EE`改名为`Java EE`，实际也反映出业界这种共同心声。
+`JavaEE` 规范是 `J2EE` 规范的新名称，早期被称为 `J2EE` 规范，其全称是 `Java 2 Platform Enterprise Edition`，它是由 SUN 公司领导、各厂家共同制定并得到广泛认可的工业标准（`JCP`组织成员）。之所以改名为`JavaEE`，目的还是让大家清楚 `J2EE` 只是 `Java` 企业应用。在 2004 年底中国软件技术大会 `Ioc` 微容器（也就是 `Jdon` 框架的实现原理）演讲中指出：我们需要一个跨 `J2SE/WEB/EJB` 的微容器，保护我们的业务核心组件，以延续它的生命力，而不是依赖 `J2SE/J2EE` 版本。此次 `J2EE` 改名为 `Java EE`，实际也反映出业界这种共同心声
 
-`JavaEE`规范是很多Java开发技术的总称。这些技术规范都是沿用自`J2EE`的。一共包括了13个技术规范。例如：`jsp/servlet`，`jndi`，`jaxp`，`jdbc`，`jni`，`jaxb`，`jmf`，`jta`，`jpa`，`EJB`等。
+`JavaEE` 规范是很多 Java 开发技术的总称。这些技术规范都是沿用自 `J2EE` 的。一共包括了 13 个技术规范，例如：`jsp/servlet`，`jndi`，`jaxp`，`jdbc`，`jni`，`jaxb`，`jmf`，`jta`，`jpa`，`EJB`等。
 
-其中，`JCP`组织的全称是Java Community Process。它是一个开放的国际组织，主要由Java开发者以及被授权者组成，职能是发展和更新。成立于1998年。官网是：[JCP](https://jcp.org/en/home/index)
+其中，`JCP` 组织的全称是 Java Community Process，是一个开放的国际组织，主要由 Java 开发者以及被授权者组成，职能是发展和更新。成立于 1998 年。官网是：[JCP](https://jcp.org/en/home/index)
 
-`JavaEE`的版本是延续了`J2EE`的版本，但是没有继续采用其命名规则。`J2EE`的版本从1.0开始到1.4结束，而`JavaEE`版本是从`JavaEE 5`版本开始，目前最新的的版本是`JavaEE 8`。
+`JavaEE` 的版本是延续了 `J2EE` 的版本，但是没有继续采用其命名规则。`J2EE` 的版本从 1.0 开始到 1.4 结束，而 `JavaEE` 版本是从 `JavaEE 5` 版本开始，目前最新的的版本是 `JavaEE 8`
 
 详情请参考：[JavaEE8 规范概览](https://www.oracle.com/technetwork/cn/java/javaee/overview/index.html)
 
@@ -2387,15 +2430,15 @@ HTTP 和 HTTPS 的区别：
 
 
 
-### Web概述
+### Web 概述
 
-Web，在计算机领域指网络。像我们接触的`WWW`，它是由3个单词组成的，即：`World Wide Web `，中文含义是<b>万维网</b>。而我们前面学的HTML的参考文档《W3School全套教程》中的`W3C`就是万维网联盟。他们的出现都是为了让我们在网络的世界中获取资源，这些资源的存放之处，我们称之为网站。我们通过输入网站的地址（网址），就可以访问网站中提供的资源。在网上我们能访问到的内容全是资源（不区分局域网还是广域网）。只不过，不同类型的资源展示的效果不一样。
+Web，在计算机领域指网络。像我们接触的 `WWW`，它是由 3 个单词组成的，即：`World Wide Web `，中文含义是<b>万维网</b>。而我们前面学的 HTML 的参考文档《W3School 全套教程》中的 `W3C` 就是万维网联盟，他们的出现都是为了让我们在网络的世界中获取资源，这些资源的存放之处，我们称之为网站。我们通过输入网站的地址（网址），就可以访问网站中提供的资源。在网上我们能访问到的内容全是资源（不区分局域网还是广域网），只不过不同类型的资源展示的效果不一样
 
-资源分为静态资源和动态资源。
+资源分为静态资源和动态资源
 
-* 静态资源指的是，网站中提供给人们展示的资源是一成不变的，也就是说不同人或者在不同时间，看到的内容都是一样的。例如：我们看到的新闻，网站的使用手册，网站功能说明文档等等。而作为开发者，我们编写的`html`,`css`,`js`,图片，多媒体等等都可以称为静态资源。
+* 静态资源指的是，网站中提供给人们展示的资源是一成不变的，也就是说不同人或者在不同时间，看到的内容都是一样的。例如：我们看到的新闻，网站的使用手册，网站功能说明文档等等。而作为开发者，我们编写的 `html`、`css`、`js` 图片，多媒体等等都可以称为静态资源
 
-* 动态资源它指的是，网站中提供给人们展示的资源是由程序产生的，在不同的时间或者用不同的人员由于身份的不同，所看到的内容是不一样的。例如：我们在CSDN上下载资料，只有登录成功后，且积分足够时才能下载。否则就不能下载，这就是访客身份和会员身份的区别。作为开发人员，我们编写的`JSP`，`servlet`，`php`，`ASP`等都是动态资源。
+* 动态资源它指的是，网站中提供给人们展示的资源是由程序产生的，在不同的时间或者用不同的人员由于身份的不同，所看到的内容是不一样的。例如：我们在CSDN上下载资料，只有登录成功后，且积分足够时才能下载。否则就不能下载，这就是访客身份和会员身份的区别。作为开发人员，我们编写的 `JSP`，`servlet`，`php`，`ASP` 等都是动态资源。
 
 关于广域网和局域网的划分
 
@@ -2458,10 +2501,10 @@ Web，在计算机领域指网络。像我们接触的`WWW`，它是由3个单�
 
 | 服务器名称  | 说明                                                  |
 | ----------- | ----------------------------------------------------- |
-| weblogic    | 实现了javaEE规范，重量级服务器，又称为javaEE容器      |
-| websphereAS | 实现了javaEE规范，重量级服务器。                      |
-| JBOSSAS     | 实现了JavaEE规范，重量级服务器。免费的。              |
-| Tomcat      | 实现了jsp/servlet规范，是一个轻量级服务器，开源免费。 |
+| weblogic    | 实现了 JavaEE 规范，重量级服务器，又称为 JavaEE 容器  |
+| websphereAS | 实现了 JavaEE 规范，重量级服务器。                    |
+| JBOSSAS     | 实现了 JavaEE 规范，重量级服务器，免费                |
+| Tomcat      | 实现了 jsp/servlet 规范，是一个轻量级服务器，开源免费 |
 
 
 
@@ -2625,6 +2668,160 @@ Run -> Edit Configurations -> Templates -> Tomcat Server -> Local
 
 
 
+****
+
+
+
+### 执行原理
+
+#### 整体架构
+
+Tomcat 核心组件架构图如下所示：
+
+![](https://gitee.com/seazean/images/raw/master/Web/Tomcat-核心组件架构图.png)
+
+组件介绍：
+
+- GlobalNamingResources：实现 JNDI，指定一些资源的配置信息
+- Server：Tomcat 是一个 Servlet 容器，一个 Tomcat 对应一个 Server，一个 Server 可以包含多个 Service
+- Service：核心服务是 Catalina，用来对请求进行处理，一个 Service 包含多个 Connector 和一个 Container
+- Connector：连接器，负责处理客户端请求，解析不同协议及 I/O 方式
+- Executor：线程池
+- Container：容易包含 Engine，Host，Context，Wrapper 等组件
+- Engine：服务交给引擎处理请求，Container 容器中顶层的容器对象，一个 Engine 可以包含多个 Host 主机
+- Host：Engine 容器的子容器，一个 Host 对应一个网络域名，一个 Host 包含多个 Context
+- Context：Host 容器的子容器，表示一个 Web 应用
+- Wrapper：Tomcat 中的最小容器单元，表示 Web 应用中的 Servlet
+
+核心类库：
+
+* Coyote：Tomcat 连接器的名称，封装了底层的网络通信，为 Catalina 容器提供了统一的接口，使容器与具体的协议以及 I/O 解耦
+* EndPoint：Coyote 通信端点，即通信监听的接口，是 Socket 接收和发送处理器，是对传输层的抽象，用来实现 TCP/IP 协议
+* Processor ： Coyote 协议处理接口，用来实现 HTTP 协议，Processor 接收来自 EndPoint 的 Socket，读取字节流解析成 Tomcat 的 Request 和 Response 对象，并通过 Adapter 将其提交到容器处理，Processor 是对应用层协议的抽象
+* CoyoteAdapter：适配器，连接器调用 CoyoteAdapter 的 sevice 方法，传入的是 TomcatRequest 对象，CoyoteAdapter 负责将TomcatRequest 转成 ServletRequest，再调用容器的 service 方法
+
+
+
+参考文章：https://www.jianshu.com/p/7c9401b85704
+
+参考文章：https://www.yuque.com/yinhuidong/yu877c/ktq82e
+
+
+
+***
+
+
+
+#### 启动过程
+
+Tomcat 的启动入口是 Bootstrap#main 函数，首先通过调用 `bootstrap.init()` 初始化相关组件：
+
+* `initClassLoaders()`：初始化三个类加载器，commonLoader 的父类加载器是启动类加载器
+* `Thread.currentThread().setContextClassLoader(catalinaLoader)`：自定义类加载器加载 Catalina 类，**打破双亲委派**
+* `Object startupInstance = startupClass.getConstructor().newInstance()`：反射创建 Catalina 对象
+* `method.invoke(startupInstance, paramValues)`：反射调用方法，设置父类加载器是 sharedLoader
+* `catalinaDaemon = startupInstance`：引用 Catalina 对象
+
+`daemon.load(args)` 方法反射调用 Catalina 对象的 load 方法，对**服务器的组件进行初始化**，并绑定了 ServerSocket 的端口：
+
+* `parseServerXml(true)`：解析 XML 配置文件
+
+* `getServer().init()`：服务器执行初始化，采用责任链的执行方式
+
+  * `LifecycleBase.init()`：生命周期接口的初始化方法，开始链式调用
+
+  * `StandardServer.initInternal()`：Server 的初始化，遍历所有的 Service 进行初始化
+
+  * `StandardService.initInternal()`：Service 的初始化，对 Engine、Executor、listener、Connector 进行初始化
+
+  * `StandardEngine.initInternal()`：Engine 的初始化
+
+    * `getRealm()`：创建一个 Realm 对象
+    * `ContainerBase.initInternal()`：容器的初始化，设置处理容器内组件的启动和停止事件的线程池
+
+  * `Connector.initInternal()`：Connector 的初始化
+
+    ```java
+    public Connector() {
+        this("HTTP/1.1"); //默认无参构造方法，会创建出 Http11NioProtocol 的协议处理器
+    }
+    ```
+
+    * `adapter = new CoyoteAdapter(this)`：实例化 CoyoteAdapter 对象
+
+    * `protocolHandler.setAdapter(adapter)`：设置到 ProtocolHandler 协议处理器中
+
+    * `ProtocolHandler.init()`：协议处理器的初始化，底层调用 `AbstractProtocol#init` 方法
+
+      `endpoint.init()`：端口的初始化，底层调用 `AbstractEndpoint#init` 方法
+
+      `NioEndpoint.bind()`：绑定方法
+
+      * `initServerSocket()`：**初始化 ServerSocket**，以 NIO 的方式监听端口
+        * `serverSock = ServerSocketChannel.open()`：**NIO 的方式打开通道**
+        * `serverSock.bind(addr, getAcceptCount())`：通道绑定连接端口
+        * `serverSock.configureBlocking(true)`：切换为阻塞模式（没懂，为什么阻塞）
+      * `initialiseSsl()`：初始化 SSL 连接
+      * `selectorPool.open(getName())`：打开选择器，类似 NIO 的多路复用器
+
+初始化完所有的组件，调用 `daemon.start()` 进行**组件的启动**，底层反射调用 Catalina 对象的 start 方法：
+
+* `getServer().start()`：启动组件，也是责任链的模式
+
+  * `LifecycleBase.start()`：生命周期接口的初始化方法，开始链式调用
+
+  * `StandardServer.startInternal()`：Server 服务的启动
+
+    * `globalNamingResources.start()`：启动 JNDI 服务
+    * `for (Service service : services)`：遍历所有的 Service 进行启动
+
+  * `StandardService.startInternal()`：Service 的启动，对所有 Executor、listener、Connector 进行启
+
+  * `StandardEngine.startInternal()`：启动引擎，部署项目
+
+    * `ContainerBase.startInternal()`：容器的启动
+      * 启动集群、Realm 组件，并且创建子容器，提交给线程池
+      * `((Lifecycle) pipeline).start()`：遍历所有的管道进行启动
+        * `Valve current = first`：获取第一个阀门
+        * `((Lifecycle) current).start()`：启动阀门，底层 `ValveBase#startInternal` 中设置启动的状态
+        * `current = current.getNext()`：获取下一个阀门
+
+  * `Connector.startInternal()`：Connector 的初始化
+
+    * `protocolHandler.start()`：协议处理器的启动
+
+      `endpoint.start()`：端点启动
+
+      `NioEndpoint.startInternal()`：启动 NIO 的端点
+
+      * `createExecutor()`：创建 Worker 线程组，10 个线程，用来进行任务处理
+      * `initializeConnectionLatch()`：用来进行连接限流，**最大 8*1024 条连接**
+      * `poller = new Poller()`：**创建 Poller 对象**，开启了一个多路复用器 Selector
+      * `Thread pollerThread = new Thread(poller, getName() + "-ClientPoller")`：创建并启动 Poller 线程，Poller 实现了 Runnable 接口，是一个任务对象，**线程 start 后进入 Poller#run 方法**
+      * `pollerThread.setDaemon(true)`：设置为守护线程
+      * `startAcceptorThread()`：启动接收者线程
+        * `acceptor = new Acceptor<>(this)`：**创建 Acceptor 对象**
+        * `Thread t = new Thread(acceptor, threadName)`：创建并启动 Acceptor 接受者线程
+
+
+
+***
+
+
+
+#### 处理过程
+
+1) Acceptor 监听客户端套接字，每 50ms 调用一次 **`serverSocket.accept`**，获取 Socket 后把封装成 NioSocketWrapper（是 SocketWrapperBase 的子类），并设置为非阻塞模式，把 NioSocketWrapper 封装成 PollerEvent 放入同步队列中
+2) Poller 循环判断同步队列中是否有就绪的事件，如果有则通过 `selector.selectedKeys()` 获取就绪事件，获取 SocketChannel 中携带的 attachment（NioSocketWrapper），在 processKey 方法中根据事件类型进行 processSocket，将 Wrapper 对象封装成 SocketProcessor 对象，该对象是一个任务对象，提交到 Worker 线程池进行执行
+3) `SocketProcessorBase.run()` 加锁调用 `SocketProcessor#doRun`，保证线程安全，从协议处理器 ProtocolHandler 中获取 AbstractProtocol，然后**创建 Http11Processor 对象处理请求**
+4) `Http11Processor#service` 中调用 `CoyoteAdapter#service` ，把生成的 Tomcat 下的 Request 和 Response 对象通过方法 postParseRequest 匹配到对应的 Servlet 的请求响应，将请求传递到对应的 Engine 容器中调用 Pipeline，管道中包含若干个 Valve，执行完所有的 Valve 最后执行 StandardEngineValve，继续调用 Host 容器的 Pipeline，执行 Host 的 Valve，再传递给 Context 的 Pipeline，最后传递到 Wrapper 容器
+5) `StandardWrapperValve#invoke` 中创建了 Servlet 对象并执行初始化，并为当前请求准备一个 FilterChain 过滤器链执行 doFilter 方法，`ApplicationFilterChain#doFilter` 是一个**责任链的驱动方法**，通过调用 internalDoFilter 来获取过滤器链的下一个过滤器执行 doFilter，执行完所有的过滤器后执行 `servlet.service` 的方法
+6) 最后调用 HttpServlet#service()，根据请求的方法来调用 doGet、doPost 等，执行到自定义的业务方法
+
+
+
+
+
 ***
 
 
@@ -2638,9 +2835,7 @@ Socket 是使用 TCP/IP 或者 UDP 协议在服务器与客户端之间进行传
 - **Servlet 是使用 HTTP 协议在服务器与客户端之间通信的技术，是 Socket 的一种应用**
 - **HTTP 协议：是在 TCP/IP 协议之上进一步封装的一层协议，关注数据传输的格式是否规范，底层的数据传输还是运用了 Socket 和 TCP/IP**
 
-Tomcat 和 Servlet 的关系：
-
-Servlet 的运行环境叫做 Web 容器或 Servlet 服务器，**Tomcat 是 Web 应用服务器，是一个 Servlet/JSP 容器**。Tomcat 作为 Servlet 容器，负责处理客户请求，把请求传送给 Servlet，并将 Servlet 的响应传送回给客户。而 Servlet 是一种运行在支持Java语言的服务器上的组件，Servlet 最常见的用途是扩展 Java Web 服务器功能，提供非常安全的、可移植的、易于使用的 CGI 替代品
+Tomcat 和 Servlet 的关系：Servlet 的运行环境叫做 Web 容器或 Servlet 服务器，**Tomcat 是 Web 应用服务器，是一个 Servlet/JSP 容器**。Tomcat 作为 Servlet 容器，负责处理客户请求，把请求传送给 Servlet，并将 Servlet 的响应传送回给客户。而 Servlet 是一种运行在支持 Java 语言的服务器上的组件，Servlet 用来扩展 Java Web 服务器功能，提供非常安全的、可移植的、易于使用的 CGI 替代品
 ![](https://gitee.com/seazean/images/raw/master/Web/Tomcat与Servlet的关系.png)
 
 
@@ -3577,9 +3772,9 @@ HttpServletRequest 类方法：
 
 RequestDispatcher 类方法：
 
-* `void forward(ServletRequest request, ServletResponse response)` : 实现转发，将请求从 servlet 转发到服务器上的另一个资源（servlet，JSP文件或HTML文件）
+* `void forward(ServletRequest request, ServletResponse response)` : 实现转发，将请求从 Servlet 转发到服务器上的另一个资源（Servlet，JSP 文件或 HTML 文件）
 
-过程：浏览器访问http://localhost:8080/request/servletDemo09，/servletDemo10也会执行
+过程：浏览器访问 http://localhost:8080/request/servletDemo09，/servletDemo10也会执行
 
 ```java
 @WebServlet("/servletDemo09")
@@ -3628,21 +3823,23 @@ public class ServletDemo10 extends HttpServlet {
 
 #### 请求包含
 
-请求包含：合并其他的Servlet中的功能一起响应给客户端。特点：
+请求包含：合并其他的 Servlet 中的功能一起响应给客户端。特点：
 
 * 浏览器地址栏不变
 * 域对象中的数据不丢失
-* 被包含的Servlet响应头会丢失
+* 被包含的 Servlet 响应头会丢失
 
-请求转发的注意事项：负责转发的Servlet，转发前后的响应正文丢失，由转发目的地来响应浏览器。
+请求转发的注意事项：负责转发的 Servlet，转发前后的响应正文丢失，由转发目的地来响应浏览器
 
-请求包含的注意事项：被包含者的响应消息头丢失，因为它被包含者包含起来了。
+请求包含的注意事项：被包含者的响应消息头丢失，因为它被包含者包含起来了
 
-HttpServletRequest类方法：
-	`RequestDispatcher getRequestDispatcher(String path) ` : 获取任务调度对象
+HttpServletRequest 类方法：
 
-RequestDispatcher类方法：
-	`void include(ServletRequest request, ServletResponse response) ` : 实现包含。包括响应中资源的内容（servlet，JSP页面，HTML文件）。
+* `RequestDispatcher getRequestDispatcher(String path) ` : 获取任务调度对象
+
+RequestDispatcher 类方法：
+
+* `void include(ServletRequest request, ServletResponse response) ` : 实现包含。包括响应中资源的内容（servlet，JSP页面，HTML文件）。
 
 ```java
 @WebServlet("/servletDemo11")
@@ -3685,9 +3882,8 @@ public class ServletDemo12 extends HttpServlet {
 
 请求体
 
-* POST
-  `void setCharacterEncoding(String env)` : 设置请求体的编码
-
+* POST：`void setCharacterEncoding(String env)`：设置请求体的编码
+  
   ```java
   @WebServlet("/servletDemo08")
   public class ServletDemo08 extends HttpServlet {
@@ -3707,9 +3903,8 @@ public class ServletDemo12 extends HttpServlet {
   }
   
   ```
-
-* GET
-  Tomcat8.5版本及以后，Tomcat服务器已经帮我们解决
+  
+* GET：Tomcat8.5 版本及以后，Tomcat 服务器已经帮我们解决
 
 
 
@@ -3725,11 +3920,12 @@ public class ServletDemo12 extends HttpServlet {
 
 响应，服务器把请求的处理结果告知客户端
 
-响应对象：在JavaEE工程中，用于发送响应的对象
-					协议无关的对象标准是：ServletResponse接口
-					协议相关的对象标准是：HttpServletResponse接口
+响应对象：在 JavaEE 工程中，用于发送响应的对象
 
-Response的作用：
+* 协议无关的对象标准是：ServletResponse 接口
+* 协议相关的对象标准是：HttpServletResponse 接口
+
+Response 的作用：
 
 + 操作响应的三部分(行, 头, 体)
 
@@ -4032,14 +4228,14 @@ public class ServletDemo06 extends HttpServlet {
 
 ##### 实现重定向
 
-请求重定向：客户端的一次请求到达后，需要借助其他Servlet来实现功能。特点：
+请求重定向：客户端的一次请求到达后，需要借助其他 Servlet 来实现功能。特点：
 
 1. 重定向两次请求
 2. 重定向的地址栏路径改变
-3. **重定向的路径写绝对路径**（带域名/ip地址，如果是同一个项目，可以省略域名/ip地址）
+3. **重定向的路径写绝对路径**（带域名 /ip 地址，如果是同一个项目，可以省略域名 /ip 地址）
 4. 重定向的路径可以是项目内部的,也可以是项目以外的（百度）
-5. 重定向不能重定向到WEB-INF下的资源
-6. 把数据存到request域里面, 重定向不可用
+5. 重定向不能重定向到 WEB-INF 下的资源
+6. 把数据存到 request 域里面，重定向不可用
 
 实现方式：
 
@@ -4177,7 +4373,7 @@ public class ServletDemo08 extends HttpServlet {
 **常用的会话管理技术**：
 
 * Cookie：客户端会话管理技术，用户浏览的信息以键值对（key=value）的形式保存在浏览器上。如果没有关闭浏览器，再次访问服务器，会把 cookie 带到服务端，服务端就可以做相应的处理
-* Session：服务端会话管理技术。当客户端第一次请求 session 对象时候，服务器为每一个浏览器开辟一块内存空间，并将通过特殊算法算出一个 session 的 ID，用来标识该 session 对象。由于内存空间是每一个浏览器独享的，所有用户在访问的时候，可以把信息保存在 session 对象中。同时服务器把 sessionId 写到 cookie 中，再次访问的时候，浏览器会把 cookie(sessionId) 带过来，找到对应的 session 对象。
+* Session：服务端会话管理技术。当客户端第一次请求 session 对象时，服务器为每一个浏览器开辟一块内存空间，并将通过特殊算法算出一个 session 的 ID，用来标识该 session 对象。由于内存空间是每一个浏览器独享的，所有用户在访问的时候，可以把信息保存在 session 对象中，同时服务器会把 sessionId 写到 cookie 中，再次访问的时候，浏览器会把 cookie(sessionId) 带过来，找到对应的 session 对象即可
 
   tomcat 生成的 sessionID 叫做 jsessionID
 
@@ -4185,9 +4381,7 @@ public class ServletDemo08 extends HttpServlet {
 
 * Cookie 存储在客户端中，而 Session 存储在服务器上，相对来说 Session 安全性更高。如果要在 Cookie 中存储一些敏感信息，不要直接写入 Cookie，应该将 Cookie 信息加密然后使用到的时候再去服务器端解密
 
-* Cookie 一般用来保存用户信息
-
-  在 Cookie 中保存已经登录过得用户信息，下次访问网站的时候就不需要重新登录，因为用户登录的时候可以存放一个 Token 在 Cookie 中，下次登录的时候只需要根据 Token 值来查找用户即可（为了安全考虑，重新登录一般要将 Token 重写），所以登录一次网站后访问网站其他页面不需要重新登录
+* Cookie 一般用来保存用户信息，在 Cookie 中保存已经登录过得用户信息，下次访问网站的时候就不需要重新登录，因为用户登录的时候可以存放一个 Token 在 Cookie 中，下次登录的时候只需要根据 Token 值来查找用户即可（为了安全考虑，重新登录一般要将 Token 重写），所以登录一次网站后访问网站其他页面不需要重新登录
 
 * Session 通过服务端记录用户的状态，服务端给特定的用户创建特定的 Session 之后就可以标识这个用户并且跟踪这个用户
 
@@ -5316,11 +5510,11 @@ JSTL：Java Server Pages Standarded Tag Library，JSP中标准标签库。
 
 ### 过滤器
 
-Filter：过滤器，是JavaWeb三大组件之一，另外两个是Servlet和Listener。
+Filter：过滤器，是 JavaWeb 三大组件之一，另外两个是 Servlet 和 Listener
 
-工作流程：在程序访问服务器资源时，当一个请求到来，服务器首先判断是否有过滤器与去请求资源相关联，如果有，过滤器可以将请求拦截下来，完成一些特定的功能，再由过滤器决定是否交给请求资源。如果没有就直接请求资源，响应同理。
+工作流程：在程序访问服务器资源时，当一个请求到来，服务器首先判断是否有过滤器与去请求资源相关联，如果有过滤器可以将请求拦截下来，完成一些特定的功能，再由过滤器决定是否交给请求资源，如果没有就直接请求资源，响应同理
 
-作用：过滤器一般用于完成通用的操作，例如：登录验证、统一编码处理、敏感字符过滤等。
+作用：过滤器一般用于完成通用的操作，例如：登录验证、统一编码处理、敏感字符过滤等
 
 
 
@@ -5332,7 +5526,7 @@ Filter：过滤器，是JavaWeb三大组件之一，另外两个是Servlet和Lis
 
 #### Filter
 
-**Filter是一个接口，如果想实现过滤器的功能，必须实现该接口**
+Filter是一个接口，如果想实现过滤器的功能，必须实现该接口
 
 * 核心方法
 
@@ -5344,27 +5538,31 @@ Filter：过滤器，是JavaWeb三大组件之一，另外两个是Servlet和Lis
 
 * 配置方式
 
-  * 注解方式
+  注解方式
 
-    ```java
-    @WebFilter("/*")
-    ()内填拦截路径，/*代表全部路径
-    ```
+  ```java
+  @WebFilter("/*")
+  ()内填拦截路径，/*代表全部路径
+  ```
 
-  * 配置文件
+  配置文件
 
-    ```xml
-    <filter>
-        <filter-name>filterDemo01</filter-name>
-        <filter-class>filter.FilterDemo01</filter-class>
-    </filter>
-    <filter-mapping>
-        <filter-name>filterDemo01</filter-name>
-        <url-pattern>/*</url-pattern>
-    </filter-mapping>
-    ```
+  ```xml
+  <filter>
+      <filter-name>filterDemo01</filter-name>
+      <filter-class>filter.FilterDemo01</filter-class>
+  </filter>
+  <filter-mapping>
+      <filter-name>filterDemo01</filter-name>
+      <url-pattern>/*</url-pattern>
+  </filter-mapping>
+  ```
 
-    
+
+
+***
+
+
 
 #### FilterChain
 
@@ -5383,16 +5581,14 @@ Filter：过滤器，是JavaWeb三大组件之一，另外两个是Servlet和Lis
 
 FilterConfig 是一个接口，代表过滤器的配置对象，可以加载一些初始化参数
 
-* 核心方法：
+| 方法                                        | 作用                                         |
+| ------------------------------------------- | -------------------------------------------- |
+| String getFilterName()                      | 获取过滤器对象名称                           |
+| String getInitParameter(String name)        | 获取指定名称的初始化参数的值，不存在返回null |
+| Enumeration<String> getInitParameterNames() | 获取所有参数的名称                           |
+| ServletContext getServletContext()          | 获取应用上下文对象                           |
 
-  | 方法                                        | 作用                                         |
-  | ------------------------------------------- | -------------------------------------------- |
-  | String getFilterName()                      | 获取过滤器对象名称                           |
-  | String getInitParameter(String name)        | 获取指定名称的初始化参数的值，不存在返回null |
-  | Enumeration<String> getInitParameterNames() | 获取所有参数的名称                           |
-  | ServletContext getServletContext()          | 获取应用上下文对象                           |
 
-  
 
 
 
@@ -5408,7 +5604,7 @@ FilterConfig 是一个接口，代表过滤器的配置对象，可以加载一�
 
 过滤器放行之后执行完目标资源，仍会回到过滤器中
 
-* Filter代码：
+* Filter 代码：
 
   ```java
   @WebFilter("/*")
@@ -5425,7 +5621,7 @@ FilterConfig 是一个接口，代表过滤器的配置对象，可以加载一�
   }
   ```
 
-* Servlet代码：
+* Servlet 代码：
 
   ```java
   @WebServlet("/servletDemo01")
@@ -5563,7 +5759,7 @@ FilterConfig 是一个接口，代表过滤器的配置对象，可以加载一�
   
   ```
 
-* Servlet代码：`System.out.println("servletDemo03执行了...");`
+* Servlet 代码：`System.out.println("servletDemo03执行了...");`
 
 * 控制台输出：
 
@@ -8851,9 +9047,9 @@ Element：网站快速成型工具，是饿了么公司前端开发团队提供�
 
 ## 安装软件
 
-Nginx(engine x) 是一个高性能的HTTP和[反向代理](https://baike.baidu.com/item/反向代理/7793488)web服务器，同时也提供了IMAP/POP3/SMTP服务。
+Nginx 是一个高性能的 HTTP 和[反向代理 ](https://baike.baidu.com/item/反向代理/7793488)Web 服务器，同时也提供了 IMAP/POP3/SMTP 服务
 
-Nginx两个最核心的功能：高性能的静态web服务器，反向代理
+Nginx 两个最核心的功能：高性能的静态 Web 服务器，反向代理
 
 * 安装指令：sudo apt-get install nginx
 
@@ -8861,6 +9057,7 @@ Nginx两个最核心的功能：高性能的静态web服务器，反向代理
 * 系统指令：systemctl / service  start/restart/stop/status nginx
 
 配置文件安装目录：/etc/nginx
+
 日志文件：/var/log/nginx
 
 
@@ -8871,20 +9068,20 @@ Nginx两个最核心的功能：高性能的静态web服务器，反向代理
 
 ## 配置文件
 
-nginx.conf 文件时nginx的主配置文件
+nginx.conf 文件时 Nginx 的主配置文件
 
 <img src="https://gitee.com/seazean/images/raw/master/Web/Nginx配置文件conf.jpg" style="zoom:80%;" />
 
-* main部分
+* main 部分
   <img src="https://gitee.com/seazean/images/raw/master/Web/Nginx配置文件main部分.jpg" style="zoom: 67%;" />
 
-* events部分
+* events 部分
   <img src="https://gitee.com/seazean/images/raw/master/Web/Nginx配置文件events部分.jpg" style="zoom:67%;" />
 
-* server部分
+* server 部分
   <img src="https://gitee.com/seazean/images/raw/master/Web/Nginx配置文件server部分.jpg" style="zoom:67%;" />
 
-  root设置的路径会拼接上location的路径，然后去最终路径寻找对应的文件
+  root 设置的路径会拼接上 location 的路径，然后去最终路径寻找对应的文件
 
 
 
@@ -8894,15 +9091,18 @@ nginx.conf 文件时nginx的主配置文件
 
 ## 发布项目
 
-1. 创建一个toutiao目录
-   	cd /home
-   	mkdir toutiao
-
-2. 将项目上传到toutiao目录
+1. 创建一个 toutiao 目录
+   
+   ```sh
+   cd /home
+   mkdir toutiao
+   ```
+   
+2. 将项目上传到 toutiao 目录
 
 3. 解压项目 unzip web.zip
 
-4. 编辑Nginx配置文件nginx.conf
+4. 编辑 Nginx 配置文件 nginx.conf
 
    ```shell
    server {
@@ -8915,9 +9115,9 @@ nginx.conf 文件时nginx的主配置文件
    }
    ```
 
-5. 重启nginx服务：systemctl  restart nginx
+5. 重启 Nginx 服务：systemctl  restart nginx
 
-6. 浏览器打开网址 http://127.0.0.1:80
+6. 浏览器打开网址：http://127.0.0.1:80
 
 
 
@@ -8927,15 +9127,15 @@ nginx.conf 文件时nginx的主配置文件
 
 ## 反向代理
 
-> 无法访问Google，可以配置一个代理服务器，发送请求到代理服务器，代理服务器经过转发，再将请求转发给Google，返回结果之后，再次转发给用户。这个叫做正向代理，正向代理对于用户来说，是有感知的
+> 无法访问 Google，可以配置一个代理服务器，发送请求到代理服务器，代理服务器经过转发，再将请求转发给 Google，返回结果之后，再次转发给用户，这个叫做正向代理，正向代理对于用户来说，是有感知的
 
-**正向代理（forward proxy）**：是一个位于客户端和目标服务器之间的服务器(代理服务器)，为了从目标服务器取得内容，客户端向代理服务器发送一个请求并指定目标，然后代理服务器向目标服务器转交请求并将获得的内容返回给客户端，**正向代理，其实是"代理服务器"代理了"客户端"，去和"目标服务器"进行交互**
+**正向代理（forward proxy）**：是一个位于客户端和目标服务器之间的代理服务器，为了从目标服务器取得内容，客户端向代理服务器发送一个请求并指定目标，然后代理服务器向目标服务器转交请求并将获得的内容返回给客户端，**正向代理，其实是"代理服务器"代理了当前"客户端"，去和"目标服务器"进行交互**
 
 作用：
 
-* 突破访问限制：通过代理服务器，可以突破自身IP访问限制，访问国外网站，教育网等
+* 突破访问限制：通过代理服务器，可以突破自身 IP 访问限制，访问国外网站，教育网等
 * 提高访问速度：代理服务器都设置一个较大的硬盘缓冲区，会将部分请求的响应保存到缓冲区中，当其他用户再访问相同的信息时， 则直接由缓冲区中取出信息，传给用户，以提高访问速度
-* 隐藏客户端真实IP：隐藏自己的IP，免受攻击
+* 隐藏客户端真实 IP：隐藏自己的 IP，免受攻击
 
 <img src="https://gitee.com/seazean/images/raw/master/Web/正向代理.png" style="zoom:50%;" />
 
@@ -8943,14 +9143,14 @@ nginx.conf 文件时nginx的主配置文件
 
 
 
-**反向代理（reverse proxy）**：是指以代理服务器来接受internet上的连接请求，然后将请求转发给内部网络上的服务器，并将从服务器上得到的结果返回给internet上请求连接的客户端，此时代理服务器对外就表现为一个反向代理服务器，**反向代理，其实是"代理服务器"代理了"目标服务器"，去和"客户端"进行交互**
+**反向代理（reverse proxy）**：是指以代理服务器来接受 Internet 上的连接请求，然后将请求转发给内部网络上的服务器，并将从服务器上得到的结果返回给 Internet 上请求连接的客户端，此时代理服务器对外就表现为一个反向代理服务器，**反向代理，其实是"代理服务器"代理了"目标服务器"，去和当前"客户端"进行交互**
 
 作用：
 
-* 隐藏服务器真实IP：使用反向代理，可以对客户端隐藏服务器的IP地址
+* 隐藏服务器真实 IP：使用反向代理，可以对客户端隐藏服务器的 IP 地址
 * 负载均衡：根据所有真实服务器的负载情况，将客户端请求分发到不同的真实服务器上
 * 提高访问速度：反向代理服务器可以对于静态内容及短时间内有大量访问请求的动态内容提供缓存服务
-* 提供安全保障：反向代理服务器可以作为应用层防火墙，为网站提供对基于Web的攻击行为（例如DoS/DDoS）的防护，更容易排查恶意软件等
+* 提供安全保障：反向代理服务器可以作为应用层防火墙，为网站提供对基于 Web 的攻击行为（例如 DoS/DDoS）的防护，更容易排查恶意软件等
 
 <img src="https://gitee.com/seazean/images/raw/master/Web/反向代理.png" style="zoom:50%;" />
 
