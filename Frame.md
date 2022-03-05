@@ -1480,7 +1480,7 @@ Reactor 模式，通过一个或多个输入同时传递给服务处理器的**�
 
 Reactor 模式关键组成：
 
-- Reactor：在一个单独的线程中运行，负责监听和分发事件，分发给适当的处理程序来对 I/O 事件做出反应
+- Reactor：在一个单独的线程中运行，负责**监听和分发事件**，分发给适当的处理程序来对 I/O 事件做出反应
 - Handler：处理程序执行 I/O 要完成的实际事件，Reactor 通过调度适当的处理程序来响应 I/O 事件，处理程序执行**非阻塞操作**
 
 Reactor 模式具有如下的优点：
@@ -1510,7 +1510,7 @@ Reactor 对象通过 select 监控客户端请求事件，收到事件后通过 
 
 * 如果不是建立连接事件，则 Reactor 会分发给连接对应的 Handler 来响应，Handler 会完成 read、业务处理、send 的完整流程
 
-  说明：Handler 和 Acceptor 属于同一个线程
+  说明：**Handler 和 Acceptor 属于同一个线程**
 
 <img src="https://gitee.com/seazean/images/raw/master/Frame/Netty-单Reactor单线程.png" style="zoom:50%;" />
 
@@ -1568,7 +1568,7 @@ Reactor 对象通过 select 监控客户端请求事件，收到事件后通过 
 
 模型优点
 
-- 父线程与子线程的数据交互简单职责明确，父线程只需要接收新连接，子线程完成后续的业务处理
+- **父线程与子线程**的数据交互简单职责明确，父线程只需要接收新连接，子线程完成后续的业务处理
 - 父线程与子线程的数据交互简单，Reactor 主线程只需要把新连接传给子线程，子线程无需返回数据
 
 使用场景：Nginx 主从 Reactor 多进程模型，Memcached 主从多线程，Netty 主从多线程模型的支持
@@ -1621,7 +1621,7 @@ Netty 主要基于主从 Reactors 多线程模型做了一定的改进，Netty �
 
 2. BossGroup 和 WorkerGroup 类型都是 NioEventLoopGroup，该 Group 相当于一个事件循环组，含有多个事件循环，每一个事件循环是 NioEventLoop，所以可以有多个线程
 
-3. NioEventLoop 表示一个循环处理任务的线程，每个 NioEventLoop 都有一个 Selector，用于监听绑定在其上的 socket 的网络通讯
+3. NioEventLoop 表示一个**循环处理任务的线程**，每个 NioEventLoop 都有一个 Selector，用于监听绑定在其上的 Socket 的通讯
 
 4. 每个 Boss NioEventLoop 循环执行的步骤：
 
@@ -1761,14 +1761,14 @@ Netty 主要基于主从 Reactors 多线程模型做了一定的改进，Netty �
 
 #### 基本介绍
 
-事件循环对象 EventLoop，本质是一个单线程执行器（同时维护了一个 selector），有 run 方法处理 Channel 上源源不断的 IO 事件
+事件循环对象 EventLoop，**本质是一个单线程执行器同时维护了一个 Selector**，有 run 方法处理 Channel 上源源不断的 IO 事件
 
 事件循环组 EventLoopGroup 是一组 EventLoop，Channel 会调用 Boss EventLoopGroup 的 register 方法来绑定其中一个 Worker 的 EventLoop，后续这个 Channel 上的 IO 事件都由此 EventLoop 来处理，保证了事件处理时的线程安全
 
 EventLoopGroup 类 API：
 
 * `EventLoop next()`：获取集合中下一个 EventLoop，EventLoopGroup 实现了 Iterable 接口提供遍历 EventLoop 的能力
-* `Future<?> shutdownGracefully()`：优雅关闭的方法，会首先切换 `EventLoopGroup` 到关闭状态从而拒绝新的任务的加入，然后在任务队列的任务都处理完成后，停止线程的运行。从而确保整体应用是在正常有序的状态下退出的
+* `Future<?> shutdownGracefully()`：优雅关闭的方法，会首先切换 EventLoopGroup 到关闭状态从而拒绝新的任务的加入，然后在任务队列的任务都处理完成后，停止线程的运行，从而确保整体应用是在正常有序的状态下退出的
 
 * `<T> Future<T> submit(Callable<T> task)`：提交任务
 * `ScheduledFuture<?> scheduleWithFixedDelay`：提交定时任务
@@ -2395,7 +2395,7 @@ Pipeline 的存在，需要将 ByteBuf 传递给下一个 ChannelHandler，如�
 
 ### 现象演示
 
-在 TCP 传输中，客户端发送消息时，实际上是将数据写入TCP的缓存，此时数据的大小和缓存的大小就会造成粘包和半包
+在 TCP 传输中，客户端发送消息时，实际上是将数据写入 TCP 的缓存，此时数据的大小和缓存的大小就会造成粘包和半包
 
 * 当数据超过 TCP 缓存容量时，就会被拆分成多个包，通过 Socket 多次发送到服务端，服务端每次从缓存中取数据，产生半包问题
 
@@ -3605,7 +3605,7 @@ RocketMQ 主要由 Producer、Broker、Consumer 三部分组成，其中 Produce
 
 消息的发布是指某个生产者向某个 Topic 发送消息，消息的订阅是指某个消费者关注了某个 Topic 中带有某些 Tag 的消息，进而从该 Topic 消费数据
 
-导入 MQ 客户端依赖
+导入 MQ 客户端依赖：
 
 ```xml
 <dependency>
@@ -3815,8 +3815,8 @@ public class Consumer {
 
 顺序消息分为全局顺序消息与分区顺序消息，
 
-- 全局顺序：对于指定的一个 Topic，所有消息按照严格的先入先出（FIFO）的顺序进行发布和消费。 适用于性能要求不高，所有的消息严格按照 FIFO 原则进行消息发布和消费的场景
-- 分区顺序：对于指定的一个 Topic，所有消息根据 sharding key 进行分区，同一个分组内的消息按照严格的 FIFO 顺序进行发布和消费。Sharding key 是顺序消息中用来区分不同分区的关键字段，和普通消息的 Key 是完全不同的概念。 适用于性能要求高，以 Sharding key 作为分区字段，在同一个区中严格的按照 FIFO 原则进行消息发布和消费的场景
+- 全局顺序：对于指定的一个 Topic，所有消息按照严格的先入先出（FIFO）的顺序进行发布和消费，适用于性能要求不高，所有的消息严格按照 FIFO 原则进行消息发布和消费的场景
+- 分区顺序：对于指定的一个 Topic，所有消息根据 Sharding key 进行分区，同一个分组内的消息按照严格的 FIFO 顺序进行发布和消费。Sharding key 是顺序消息中用来区分不同分区的关键字段，和普通消息的 Key 是完全不同的概念，适用于性能要求高的场景
 
 在默认的情况下消息发送会采取 Round Robin 轮询方式把消息发送到不同的 queue（分区队列），而消费消息是从多个 queue 上拉取消息，这种情况发送和消费是不能保证顺序。但是如果控制发送的顺序消息只依次发送到同一个 queue 中，消费的时候只从这个 queue 上依次拉取，则就保证了顺序。当**发送和消费参与的 queue 只有一个**，则是全局有序；如果多个queue 参与，则为分区有序，即相对每个 queue，消息都是有序的
 
@@ -4000,7 +4000,7 @@ Broker 可以配置 messageDelayLevel，该属性是 Broker 的属性，不属�
 - 1<=level<=maxLevel：消息延迟特定时间，例如 level==1，延迟 1s
 - level > maxLevel：则 level== maxLevel，例如 level==20，延迟 2h
 
-定时消息会暂存在名为 SCHEDULE_TOPIC_XXXX 的 Topic 中，并根据 delayTimeLevel 存入特定的 queue，队列的标识 `queueId = delayTimeLevel – 1`，即一个 queue 只存相同延迟的消息，保证具有相同发送延迟的消息能够顺序消费。Broker 会调度地消费 SCHEDULE_TOPIC_XXXX，将消息写入真实的 Topic
+定时消息会暂存在名为 SCHEDULE_TOPIC_XXXX 的 Topic 中，并根据 delayTimeLevel 存入特定的 queue，队列的标识 `queueId = delayTimeLevel – 1`，即**一个 queue 只存相同延迟的消息**，保证具有相同发送延迟的消息能够顺序消费。Broker 会调度地消费 SCHEDULE_TOPIC_XXXX，将消息写入真实的 Topic
 
 注意：定时消息在第一次写入和调度写入真实 Topic 时都会计数，因此发送数量、tps 都会变高。
 
@@ -4219,7 +4219,7 @@ consumer.subscribe("TOPIC", "TAGA || TAGB || TAGC");
 
 #### 原理解析
 
-RocketMQ 分布式消息队列的消息过滤方式是在 Consumer 端订阅消息时再做消息过滤的，所以是在 Broker 端实现的，优点是减少了对于 Consumer 无用消息的网络传输，缺点是增加了 Broker 的负担、而且实现相对复杂
+RocketMQ 分布式消息队列的消息过滤方式是在 Consumer 端订阅消息时再做消息过滤的，所以是在 Broker 端实现的，优点是减少了对于 Consumer 无用消息的网络传输，缺点是增加了 Broker 的负担，而且实现相对复杂
 
 RocketMQ 在 Producer 端写入消息和在 Consumer 端订阅消息采用**分离存储**的机制实现，Consumer 端订阅消息是需要通过 ConsumeQueue 这个消息消费的逻辑队列拿到一个索引，然后再从 CommitLog 里面读取真正的消息实体内容
 
@@ -4300,7 +4300,7 @@ public class Consumer {
 
 #### 工作流程
 
-RocketMQ 支持分布式事务消息，采用了 2PC 的思想来实现了提交事务消息，同时增加一个补偿逻辑来处理二阶段超时或者失败的消息，如下图所示：
+RocketMQ 支持分布式事务消息，采用了 2PC 的思想来实现了提交事务消息，同时增加一个**补偿逻辑**来处理二阶段超时或者失败的消息，如下图所示：
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-事务消息.png)
 
@@ -4308,12 +4308,14 @@ RocketMQ 支持分布式事务消息，采用了 2PC 的思想来实现了提交
 
 1. 事务消息发送及提交：
 
-   * 发送消息（Half 消息）
-* 服务端响应消息写入结果
-   * 根据发送结果执行本地事务（如果写入失败，此时 Half 消息对业务不可见，本地逻辑不执行）
-* 根据本地事务状态执行 Commit 或者 Rollback（Commit 操作生成消息索引，消息对消费者可见）
-  
-   ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-事务工作流程.png)
+   * 发送消息（Half 消息），服务器将消息的主题和队列改为半消息状态，并放入半消息队列
+   
+   * 服务端响应消息写入结果（如果写入失败，此时 Half 消息对业务不可见）
+   * 根据发送结果执行本地事务
+   * 根据本地事务状态执行 Commit 或者 Rollback（Commit 操作生成消息索引，消息对消费者可见）
+   
+
+![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-事务工作流程.png)
 
 2. 补偿流程：
 
@@ -4352,7 +4354,7 @@ RocketMQ 的具体实现策略：如果写入的是事务消息，对消息的 T
 
 * 如果执行 Commit 操作，则需要让消息对用户可见，构建出 Half 消息的索引。一阶段的 Half 消息写到一个特殊的 Topic，构建索引时需要读取出 Half 消息，然后通过一次普通消息的写入操作将 Topic 和 Queue 替换成真正的目标 Topic 和 Queue，生成一条对用户可见的消息。其实就是利用了一阶段存储的消息的内容，在二阶段时恢复出一条完整的普通消息，然后走一遍消息写入流程
 
-* 如果是 Rollback 则需要撤销一阶段的消息，因为消息本就不可见，所以并不需要真正撤销消息（实际上 RocketMQ 也无法去删除一条消息，因为是顺序写文件的）。RocketMQ 为了区分这条消息没有确定状态的消息（Pending 状态），采用 Op 消息标识已经确定状态的事务消息（Commit 或者 Rollback）
+* 如果是 Rollback 则需要撤销一阶段的消息，因为消息本就不可见，所以并**不需要真正撤销消息**（实际上 RocketMQ 也无法去删除一条消息，因为是顺序写文件的）。RocketMQ 为了区分这条消息没有确定状态的消息（Pending 状态），采用 Op 消息标识已经确定状态的事务消息（Commit 或者 Rollback）
 
 事务消息无论是 Commit 或者 Rollback 都会记录一个 Op 操作，两者的区别是 Commit 相对于 Rollback 在写入 Op 消息前创建 Half 消息的索引。如果一条事务消息没有对应的 Op 消息，说明这个事务的状态还无法确定（可能是二阶段失败了）
 
@@ -4504,7 +4506,7 @@ NameServer 是一个简单的 Topic 路由注册中心，支持 Broker 的动态
 
 NameServer 主要包括两个功能：
 
-* Broker 路由管理，NameServer 接受 Broker 集群的注册信息，保存下来作为路由信息的基本数据，提供**心跳检测机制**检查 Broker 是否还存活，每 10 秒清除一次两小时没有活跃的 Broker
+* Broker 管理，NameServer 接受 Broker 集群的注册信息，保存下来作为路由信息的基本数据，提供**心跳检测机制**检查 Broker 是否还存活，每 10 秒清除一次两小时没有活跃的 Broker
 * 路由信息管理，每个 NameServer 将保存关于 Broker 集群的整个路由信息和用于客户端查询的队列信息，然后 Producer 和 Conumser 通过 NameServer 就可以知道整个 Broker 集群的路由信息，从而进行消息的投递和消费
 
 NameServer 特点：
@@ -4517,7 +4519,7 @@ BrokerServer 主要负责消息的存储、投递和查询以及服务高可用�
 
 Broker 包含了以下几个重要子模块：
 
-* Remoting Module：整个 Broker 的实体，负责处理来自 clients 端的请求
+* Remoting Module：整个 Broker 的实体，负责处理来自 Clients 端的请求
 
 * Client Manager：负责管理客户端（Producer/Consumer）和维护 Consumer 的 Topic 订阅信息
 
@@ -4544,7 +4546,7 @@ RocketMQ 的工作流程：
 - 收发消息前，先创建 Topic，创建 Topic 时需要指定该 Topic 要存储在哪些 Broker 上，也可以在发送消息时自动创建 Topic
 - Producer 启动时先跟 NameServer 集群中的**其中一台**建立长连接，并从 NameServer 中获取当前发送的 Topic 存在哪些 Broker 上，同时 Producer 会默认每隔 30s 向 NameServer **定时拉取**一次路由信息
 - Producer 发送消息时，根据消息的 Topic 从本地缓存的 TopicPublishInfoTable 获取路由信息，如果没有则会从 NameServer 上重新拉取并更新，轮询队列列表并选择一个队列 MessageQueue，然后与队列所在的 Broker 建立长连接，向 Broker 发消息
-- Consumer 跟 Producer 类似，跟其中一台 NameServer 建立长连接，定时获取路由信息，根据当前订阅 Topic 存在哪些 Broker 上，直接跟 Broker 建立连接通道，在完成客户端的负载均衡后，选择其中的某一个或者某几个 MessageQueue 来拉取消息并进行消费
+- Consumer 跟 Producer 类似，跟其中一台 NameServer 建立长连接，**定时获取路由信息**，根据当前订阅 Topic 存在哪些 Broker 上，直接跟 Broker 建立连接通道，在完成客户端的负载均衡后，选择其中的某一个或者某几个 MessageQueue 来拉取消息并进行消费
 
 
 
@@ -4560,7 +4562,7 @@ At least Once：至少一次，指每个消息必须投递一次，Consumer 先 
 
 回溯消费：指 Consumer 已经消费成功的消息，由于业务上需求需要重新消费，Broker 在向 Consumer 投递成功消息后，消息仍然需要保留。并且重新消费一般是按照时间维度，例如由于 Consumer 系统故障，恢复后需要重新消费 1 小时前的数据，RocketMQ 支持按照时间回溯消费，时间维度精确到毫秒
 
-分布式队列因为有高可靠性的要求，所以数据要进行持久化存储
+分布式队列因为有高可靠性的要求，所以数据要进行**持久化存储**
 
 1. 消息生产者发送消息
 2. MQ 收到消息，将消息进行持久化，在存储中新增一条记录
@@ -4593,9 +4595,9 @@ RocketMQ 消息的存储是由 ConsumeQueue 和 CommitLog 配合完成 的，Com
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-消息存储结构.png)
 
-* CommitLog：消息主体以及元数据的存储主体，存储 Producer 端写入的消息内容，消息内容不是定长的。消息主要是顺序写入日志文件，单个文件大小默认 1G，偏移量代表下一次写入的位置，当文件写满了就继续写入下一个文件
+* CommitLog：消息主体以及元数据的存储主体，存储 Producer 端写入的消息内容，消息内容不是定长的。消息主要是**顺序写入**日志文件，单个文件大小默认 1G，偏移量代表下一次写入的位置，当文件写满了就继续写入下一个文件
 * ConsumerQueue：消息消费队列，存储消息在 CommitLog 的索引。RocketMQ 消息消费时要遍历 CommitLog 文件，并根据主题 Topic 检索消息，这是非常低效的。引入 ConsumeQueue 作为消费消息的索引，**保存了指定 Topic 下的队列消息在 CommitLog 中的起始物理偏移量 offset**，消息大小 size 和消息 Tag 的 HashCode 值，每个 ConsumeQueue 文件大小约 5.72M
-* IndexFile：为了消息查询提供了一种通过 Key 或时间区间来查询消息的方法，通过 IndexFile 来查找消息的方法不影响发送与消费消息的主流程。IndexFile 的底层存储为在文件系统中实现的 HashMap 结构，故 RocketMQ 的索引文件其底层实现为 **hash 索引**
+* IndexFile：为了消息查询提供了一种通过 Key 或时间区间来查询消息的方法，通过 IndexFile 来查找消息的方法**不影响发送与消费消息的主流程**。IndexFile 的底层存储为在文件系统中实现的 HashMap 结构，故 RocketMQ 的索引文件其底层实现为 **hash 索引**
 
 RocketMQ 采用的是混合型的存储结构，即为 Broker 单个实例下所有的队列共用一个日志数据文件（CommitLog）来存储。混合型存储结构（多个 Topic 的消息实体内容都存储于一个 CommitLog 中）针对 Producer 和 Consumer 分别采用了**数据和索引部分相分离**的存储结构，Producer 发送消息至 Broker 端，然后 Broker 端使用同步或者异步的方式对消息刷盘持久化，保存至 CommitLog 中。只要消息被持久化至磁盘文件 CommitLog 中，Producer 发送的消息就不会丢失，Consumer 也就肯定有机会去消费这条消息
 
@@ -4619,7 +4621,7 @@ RocketMQ 采用的是混合型的存储结构，即为 Broker 单个实例下所
 
 补充：Prog → NET → I/O → 零拷贝部分的笔记详解相关内容
 
-通过使用 mmap 的方式，可以省去向用户态的内存复制，RocketMQ 充分利用**零拷贝技术**，提高消息存盘和网络发送的速度。
+通过使用 mmap 的方式，可以省去向用户态的内存复制，RocketMQ 充分利用**零拷贝技术**，提高消息存盘和网络发送的速度
 
 RocketMQ 通过 MappedByteBuffer 对文件进行读写操作，利用了 NIO 中的 FileChannel 模型将磁盘上的物理文件直接映射到用户态的内存地址中，将对文件的操作转化为直接对内存地址进行操作，从而极大地提高了文件的读写效率
 
@@ -4633,10 +4635,10 @@ MappedByteBuffer 内存映射的方式**限制**一次只能映射 1.5~2G 的文
 
 #### 页面缓存
 
-页缓存（PageCache）是 OS 对文件的缓存，每一页的大小通常是 4K，用于加速对文件的读写。程序对文件进行顺序读写的速度几乎接近于内存的读写速度，就是因为 OS 将一部分的内存用作 PageCache，**对读写访问操作进行了性能优化**
+页缓存（PageCache）是 OS 对文件的缓存，每一页的大小通常是 4K，用于加速对文件的读写。因为 OS 将一部分的内存用作 PageCache，所以程序对文件进行顺序读写的速度几乎接近于内存的读写速度
 
 * 对于数据的写入，OS 会先写入至 Cache 内，随后通过异步的方式由 pdflush 内核线程将 Cache 内的数据刷盘至物理磁盘上
-* 对于数据的读取，如果一次读取文件时出现未命中 PageCache 的情况，OS 从物理磁盘上访问读取文件的同时，会顺序对其他相邻块的数据文件进行预读取（局部性原理，最大 128K）
+* 对于数据的读取，如果一次读取文件时出现未命中 PageCache 的情况，OS 从物理磁盘上访问读取文件的同时，会顺序对其他相邻块的数据文件进行**预读取**（局部性原理，最大 128K）
 
 在 RocketMQ 中，ConsumeQueue 逻辑消费队列存储的数据较少，并且是顺序读取，在 PageCache 机制的预读取作用下，Consume Queue 文件的读性能几乎接近读内存，即使在有消息堆积情况下也不会影响性能。但是 CommitLog 消息存储的日志数据文件读取内容时会产生较多的随机访问读取，严重影响性能。选择合适的系统 IO 调度算法和固态硬盘，比如设置调度算法为 Deadline，随机读的性能也会有所提升
 
@@ -4655,7 +4657,7 @@ MappedByteBuffer 内存映射的方式**限制**一次只能映射 1.5~2G 的文
 
 RocketMQ 采用文件系统的方式，无论同步还是异步刷盘，都使用**顺序 IO**，因为磁盘的顺序读写要比随机读写快很多
 
-* 同步刷盘：只有在消息真正持久化至磁盘后 RocketMQ 的 Broker 端才会真正返回给 Producer 端一个成功的 ACK 响应，保障 MQ消息的可靠性，但是性能上会有较大影响，一般适用于金融业务应用该模式较多
+* 同步刷盘：只有在消息真正持久化至磁盘后 RocketMQ 的 Broker 端才会真正返回给 Producer 端一个成功的 ACK 响应，保障 MQ 消息的可靠性，但是性能上会有较大影响，一般适用于金融业务应用该模式较多
 
 * 异步刷盘：利用 OS 的 PageCache，只要消息写入内存 PageCache 即可将成功的 ACK 返回给 Producer 端，降低了读写延迟，提高了 MQ 的性能和吞吐量。消息刷盘采用**后台异步线程**提交的方式进行，当内存里的消息量积累到一定程度时，触发写磁盘动作
 
@@ -4689,7 +4691,7 @@ RocketMQ 采用文件系统的方式，无论同步还是异步刷盘，都使�
   - 优点：配置简单，单个 Master 宕机或重启维护对应用无影响，在磁盘配置为 RAID10 时，即使机器宕机不可恢复情况下，由于 RAID10 磁盘非常可靠，消息也不会丢（异步刷盘丢失少量消息，同步刷盘一条不丢），性能最高
 
   - 缺点：单台机器宕机期间，这台机器上未被消费的消息在机器恢复之前不可订阅，消息实时性会受到影响
-* 多 Master 多 Slave 模式（同步）：每个 Master 配置一个 Slave，有多对 Master-Slave，HA 采用同步双写方式，即只有主备都写成功，才向应用返回成功
+* 多 Master 多 Slave 模式（同步）：每个 Master 配置一个 Slave，有多对 Master-Slave，HA 采用**同步双写**方式，即只有主备都写成功，才向应用返回成功
 
   * 优点：数据与服务都无单点故障，Master 宕机情况下，消息无延迟，服务可用性与数据可用性都非常高
   * 缺点：性能比异步复制略低（大约低 10% 左右），发送单个消息的 RT 略高，目前不能实现主节点宕机，备机自动切换为主机
@@ -4710,7 +4712,7 @@ RocketMQ 网络部署特点：
 
 - NameServer 是一个几乎**无状态节点**，节点之间相互独立，无任何信息同步
 
-- Broker 部署相对复杂，Broker 分为 Master 与 Slave，Master 可以部署多个，一个 Master 可以对应多个 Slave，但是一个 Slave 只能对应一个 Master，Master 与 Slave 的对应关系通过指定相同 BrokerName、不同 BrokerId 来定义，BrokerId 为 0 是 Master，非 0 表示 Slave。**每个 Broker 与 NameServer 集群中的所有节点建立长连接**，定时注册 Topic 信息到所有 NameServer
+- Broker 部署相对复杂，Broker 分为 Master 与 Slave，Master 可以部署多个，一个 Master 可以对应多个 Slave，但是一个 Slave 只能对应一个 Master，Master 与 Slave 的对应关系通过指定相同 BrokerName、不同 BrokerId 来定义，**BrokerId 为 0 是 Master，非 0 表示 Slave。每个 Broker 与 NameServer 集群中的所有节点建立长连接**，定时注册 Topic 信息到所有 NameServer
 
   注意：部署架构上也支持一 Master 多 Slave，但只有 BrokerId=1 的从服务器才会参与消息的读负载（读写分离）
 
@@ -4738,7 +4740,7 @@ RocketMQ 网络部署特点：
 
 在 Consumer 的配置文件中，并不需要设置是从 Master 读还是从 Slave 读，当 Master 不可用或者繁忙的时候，Consumer 会被自动切换到从 Slave 读。有了自动切换的机制，当一个 Master 机器出现故障后，Consumer 仍然可以从 Slave 读取消息，不影响 Consumer 程序，达到了消费端的高可用性
 
-在创建 Topic 的时候，把 Topic 的多个 Message Queue 创建在多个 Broker 组上（相同 Broker 名称，不同 brokerId 的机器组成一个 Broker 组），当一个 Broker 组的 Master 不可用后，其他组的 Master 仍然可用，Producer 仍然可以发送消息。
+在创建 Topic 的时候，把 Topic 的多个 Message Queue 创建在多个 Broker 组上（相同 Broker 名称，不同 brokerId 的机器组成一个 Broker 组），当一个 Broker 组的 Master 不可用后，其他组的 Master 仍然可用，Producer 仍然可以发送消息
 
 RocketMQ 目前还不支持把 Slave 自动转成 Master，需要手动停止 Slave 角色的 Broker，更改配置文件，用新的配置文件启动 Broker
 
@@ -4795,7 +4797,7 @@ Producer 端在发送消息时，会先根据 Topic 找到指定的 TopicPublish
 
 容错策略均在 MQFaultStrategy 这个类中定义，有一个 sendLatencyFaultEnable 开关变量：
 
-* 如果开启，会在随机递增取模的基础上，再过滤掉 not available 的 Broker 代理
+* 如果开启，会在随机（只有初始化索引变量时才随机，正常都是递增）递增取模的基础上，再过滤掉 not available 的 Broker 代理
 * 如果关闭，采用随机递增取模的方式选择一个队列（MessageQueue）来发送消息
 
 LatencyFaultTolerance 机制是实现消息发送高可用的核心关键所在，对之前失败的，按一定的时间做退避。例如上次请求的 latency 超过 550Lms，就退避 3000Lms；超过 1000L，就退避 60000L
@@ -4810,13 +4812,13 @@ LatencyFaultTolerance 机制是实现消息发送高可用的核心关键所在�
 
 在 RocketMQ 中，Consumer 端的两种消费模式（Push/Pull）都是基于拉模式来获取消息的，而在 Push 模式只是对 Pull 模式的一种封装，其本质实现为消息拉取线程在从服务器拉取到一批消息，提交到消息消费线程池后，又继续向服务器再次尝试拉取消息，如果未拉取到消息，则延迟一下又继续拉取
 
-在两种基于拉模式的消费方式（Push/Pull）中，均需要 Consumer 端在知道从 Broker 端的哪一个消息队列—队列中去获取消息，所以在 Consumer 端来做负载均衡，即 Broker 端中多个 MessageQueue 分配给同一个 Consumer Group 中的哪些 Consumer 消费
+在两种基于拉模式的消费方式（Push/Pull）中，均需要 Consumer 端在知道从 Broker 端的哪一个消息队列中去获取消息，所以在 Consumer 端来做负载均衡，即 Broker 端中多个 MessageQueue 分配给同一个 Consumer Group 中的哪些 Consumer 消费
 
 * 广播模式下要求一条消息需要投递到一个消费组下面所有的消费者实例，所以不存在负载均衡，在实现上，Consumer 分配 queue 时，所有 Consumer 都分到所有的 queue。
 
 * 在集群消费模式下，每条消息只需要投递到订阅这个 Topic 的 Consumer Group 下的一个实例即可，RocketMQ 采用主动拉取的方式拉取并消费消息，在拉取的时候需要明确指定拉取哪一条 Message Queue
 
-集群模式下，每当实例的数量有变更，都会触发一次所有实例的负载均衡，这时候会按照 queue 的数量和实例的数量平均分配 queue 给每个实例。默认的分配算法是 AllocateMessageQueueAveragely：
+集群模式下，每当消费者实例的数量有变更，都会触发一次所有实例的负载均衡，这时候会按照 queue 的数量和实例的数量平均分配 queue 给每个实例。默认的分配算法是 AllocateMessageQueueAveragely：
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-平均队列分配.png)
 
@@ -4824,7 +4826,7 @@ LatencyFaultTolerance 机制是实现消息发送高可用的核心关键所在�
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-平均队列轮流分配.png)
 
-集群模式下，queue 都是只允许分配只一个实例，如果多个实例同时消费一个 queue 的消息，由于拉取哪些消息是 Consumer 主动控制的，会导致同一个消息在不同的实例下被消费多次
+集群模式下，**queue 都是只允许分配只一个实例**，如果多个实例同时消费一个 queue 的消息，由于拉取哪些消息是 Consumer 主动控制的，会导致同一个消息在不同的实例下被消费多次
 
 通过增加 Consumer 实例去分摊 queue 的消费，可以起到水平扩展的消费能力的作用。而当有实例下线时，会重新触发负载均衡，这时候原来分配到的 queue 将分配到其他实例上继续消费。但是如果 Consumer 实例的数量比 Message Queue 的总数量还多的话，多出来的 Consumer 实例将无法分到 queue，也就无法消费到消息，也就无法起到分摊负载的作用了，所以需要**控制让 queue 的总数量大于等于 Consumer 的数量**
 
@@ -4836,11 +4838,11 @@ LatencyFaultTolerance 机制是实现消息发送高可用的核心关键所在�
 
 #### 原理解析
 
-在 Consumer 启动后，会通过定时任务不断地向 RocketMQ 集群中的所有 Broker 实例发送心跳包。Broke r端在收到 Consumer 的心跳消息后，会将它维护 在ConsumerManager 的本地缓存变量 consumerTable，同时并将封装后的客户端网络通道信息保存在本地缓存变量 channelInfoTable 中，为 Consumer 端的负载均衡提供可以依据的元数据信息
+在 Consumer 启动后，会通过定时任务不断地向 RocketMQ 集群中的所有 Broker 实例发送心跳包。Broker 端在收到 Consumer 的心跳消息后，会将它维护在 ConsumerManager 的本地缓存变量 consumerTable，同时并将封装后的客户端网络通道信息保存在本地缓存变量 channelInfoTable 中，为 Consumer 端的负载均衡提供可以依据的元数据信息
 
 Consumer 端实现负载均衡的核心类 **RebalanceImpl**
 
-在 Consumer 实例的启动流程中的启动 MQClientInstance 实例部分，会完成负载均衡服务线程 RebalanceService 的启动（每隔 20s 执行一次），RebalanceService 线程的 run() 方法最终调用的是 RebalanceImpl 类的 rebalanceByTopic() 方法，该方法是实现 Consumer 端负载均衡的核心。rebalanceByTopic() 方法会根据消费者通信类型为广播模式还是集群模式做不同的逻辑处理。这里主要看下集群模式下的处理流程：
+在 Consumer 实例的启动流程中的会启动 MQClientInstance 实例，完成负载均衡服务线程 RebalanceService 的启动（每隔 20s 执行一次），RebalanceService 线程的 run() 方法最终调用的是 RebalanceImpl 类的 rebalanceByTopic() 方法，该方法是实现 Consumer 端负载均衡的核心。rebalanceByTopic() 方法会根据消费者通信类型为广播模式还是集群模式做不同的逻辑处理。这里主要看下集群模式下的处理流程：
 
 * 从 rebalanceImpl 实例的本地缓存变量 topicSubscribeInfoTable 中，获取该 Topic 主题下的消息消费队列集合 mqSet
 
@@ -4856,7 +4858,7 @@ Consumer 端实现负载均衡的核心类 **RebalanceImpl**
 
 * processQueueTable 的绿色部分，表示与分配到的消息队列集合 mqSet 的交集，判断该 ProcessQueue 是否已经过期了，在 Pull 模式的不用管，如果是 Push 模式的，设置 Dropped 属性为 true，并且调用 removeUnnecessaryMessageQueue() 方法，像上面一样尝试移除 Entry
 
-* 为过滤后的消息队列集合 mqSet 中每个 MessageQueue 创建 ProcessQueue 对象存入 RebalanceImpl 的 processQueueTable 队列中（其中调用 RebalanceImpl 实例的 `computePullFromWhere(MessageQueue mq)` 方法获取该 MessageQueue 对象的下一个进度消费值 offset，随后填充至接下来要创建的 pullRequest 对象属性中），并创建拉取请求对象 pullRequest 添加到拉取列表 pullRequestList 中，最后执行 dispatchPullRequest() 方法，将 Pull 消息的请求对象 PullRequest 依次放入 PullMessageService 服务线程的阻塞队列 pullRequestQueue 中，待该服务线程取出后向 Broker 端发起 Pull 消息的请求。
+* 为过滤后的消息队列集合 mqSet 中每个 MessageQueue 创建 ProcessQueue 对象存入 RebalanceImpl 的 processQueueTable 队列中（其中调用 RebalanceImpl 实例的 `computePullFromWhere(MessageQueue mq)` 方法获取该 MessageQueue 对象的下一个进度消费值 offset，随后填充至接下来要创建的 pullRequest 对象属性中），并**创建拉取请求对象** pullRequest 添加到拉取列表 pullRequestList 中，最后执行 dispatchPullRequest() 方法，将 Pull 消息的请求对象 PullRequest 放入 PullMessageService 服务线程的**阻塞队列** pullRequestQueue 中，待该服务线程取出后向 Broker 端发起 Pull 消息的请求
 
   对比下 RebalancePushImpl 和 RebalancePullImpl 两个实现类的 dispatchPullRequest() 方法，RebalancePullImpl 类里面的该方法为空
 
@@ -4932,7 +4934,7 @@ IndexFile 文件的存储在 `$HOME\store\index${fileName}`，文件名 fileName
 注意点：
 
 * 如果同步模式发送失败，则选择到下一个 Broker，如果异步模式发送失败，则**只会在当前 Broker 进行重试**
-* 发送消息超时时间默认3000毫秒，就不会再尝试重试
+* 发送消息超时时间默认 3000 毫秒，就不会再尝试重试
 
 
 
@@ -4944,7 +4946,7 @@ IndexFile 文件的存储在 `$HOME\store\index${fileName}`，文件名 fileName
 
 Consumer 消费消息失败后，提供了一种重试机制，令消息再消费一次。Consumer 消费消息失败可以认为有以下几种情况：
 
-- 由于消息本身的原因，例如反序列化失败，消息数据本身无法处理等。这种错误通常需要跳过这条消息，再消费其它消息，而这条失败的消息即使立刻重试消费，99% 也不成功，所以需要提供一种定时重试机制，即过 10秒 后再重试
+- 由于消息本身的原因，例如反序列化失败，消息数据本身无法处理等。这种错误通常需要跳过这条消息，再消费其它消息，而这条失败的消息即使立刻重试消费，99% 也不成功，所以需要提供一种定时重试机制，即过 10 秒后再重试
 - 由于依赖的下游应用服务不可用，例如 DB 连接不可用，外系统网络不可达等。这种情况即使跳过当前失败的消息，消费其他消息同样也会报错，这种情况建议应用 sleep 30s，再消费下一条消息，这样可以减轻 Broker 重试消息的压力
 
 RocketMQ 会为每个消费组都设置一个 Topic 名称为 `%RETRY%+consumerGroup` 的重试队列（这个 Topic 的重试队列是**针对消费组**，而不是针对每个 Topic 设置的），用于暂时保存因为各种异常而导致 Consumer 端无法消费的消息
@@ -5198,11 +5200,11 @@ NamesrvStartup#createNamesrvController：读取配置信息，初始化 Namesrv 
 * `namesrvConfig = new NamesrvConfig()`：创建 Namesrv 配置对象
 
   * `private String rocketmqHome`：获取 ROCKETMQ_HOME 值
-  * `private boolean orderMessageEnable = false`：顺序消息功能是否开启
+  * `private boolean orderMessageEnable = false`：**顺序消息**功能是否开启
 
 * `nettyServerConfig = new NettyServerConfig()`：Netty 的服务器配置对象
 
-* `nettyServerConfig.setListenPort(9876)`：Namesrv 服务器的监听端口设置为 9876
+* `nettyServerConfig.setListenPort(9876)`：Namesrv 服务器的**监听端口设置为 9876**
 
 * `if (commandLine.hasOption('c'))`：读取命令行 -c 的参数值
 
@@ -5247,10 +5249,10 @@ NamesrvController 用来初始化和启动 Namesrv 服务器
   private final ScheduledExecutorService scheduledExecutorService;	// 调度线程池，用来执行定时任务
   private final RouteInfoManager routeInfoManager;					// 管理【路由信息】的对象
   private RemotingServer remotingServer;								// 【网络层】封装对象
-  private ExecutorService remotingExecutor;							// 业务线程池，用来 work
   private BrokerHousekeepingService brokerHousekeepingService;		// 用于监听 channel 状态
-  private ExecutorService remotingExecutor;							// 业务线程池
   ```
+
+  `private ExecutorService remotingExecutor`：业务线程池，**netty 线程解析报文成 RemotingCommand 对象，然后将该对象交给业务线程池再继续处理**
 
 * 初始化：
 
@@ -5262,13 +5264,12 @@ NamesrvController 用来初始化和启动 Namesrv 服务器
       // 监听器监听 channel 状态的改变，会向事件队列发起事件，最后交由 service 处理
       this.remotingServer = new NettyRemotingServer(this.nettyServerConfig, this.brokerHousekeepingService);
       // 【创建业务线程池，默认线程数 8】
-      // netty 线程解析报文成 RemotingCommand 对象，然后将该对象交给业务线程池再继续处理。
       this.remotingExecutor = Executors.newFixedThreadPool(nettyServerConfig.getServerWorkerThreads().);
   
-      // 注册协议处理器（缺省协议处理器），处理器是 DefaultRequestProcessor，线程使用的是刚创建的业务的线程池
+      // 注册协议处理器（缺省协议处理器），【处理器是 DefaultRequestProcessor】，线程使用的是刚创建的业务的线程池
       this.registerProcessor();
   
-      // 定时任务1：每 10 秒钟检查 broker 存活状态，将 IDLE 状态的 broker 移除【扫描机制】
+      // 定时任务1：每 10 秒钟检查 broker 存活状态，将 IDLE 状态的 broker 移除【扫描机制，心跳检测】
       this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
           @Override
           public void run() {
@@ -5289,7 +5290,7 @@ NamesrvController 用来初始化和启动 Namesrv 服务器
       return true;
   }
   ```
-
+  
 * 启动方法：
 
   ```java
@@ -5324,7 +5325,7 @@ RocketMQ 基于 NettyRemotingServer 的 Reactor 多线程模型：
 * 一个 Reactor 主线程（eventLoopGroupBoss）负责监听 TCP 网络连接请求，建立好连接创建 SocketChannel（RocketMQ 会自动根据 OS 的类型选择 NIO 和 Epoll，也可以通过参数配置），并注册到 Selector 上，然后监听真正的网络数据
 
 * 拿到网络数据交给 Worker 线程池（eventLoopGroupSelector，默认设置为 3），在真正执行业务逻辑之前需要进行 SSL 验证、编解码、空闲检查、网络连接管理，这些工作交给 defaultEventExecutorGroup（默认设置为 8）去做
-* 处理业务操作放在业务线程池中执行，根据 RomotingCommand 的业务请求码 code 去 processorTable 这个本地缓存变量中找到对应的 processor，封装成 task 任务提交给对应的业务 processor 处理线程池来执行（sendMessageExecutor，以发送消息为例）
+* 处理业务操作放在业务线程池中执行，根据 RomotingCommand 的**业务请求码 code*** 去 processorTable 这个本地缓存变量中找到对应的 processor，封装成 task 任务提交给对应的 processor 处理线程池来执行（sendMessageExecutor，以发送消息为例）
 * 从入口到业务逻辑的几个步骤中线程池一直再增加，这跟每一步逻辑复杂性相关，越复杂，需要的并发通道越宽
 
 | 线程数 | 线程名                         | 线程具体说明              |
@@ -5510,12 +5511,12 @@ NettyRemotingServer 类成员变量：
   
       // housekeepingService 不为空，则创建【网络异常事件处理器】
       if (this.channelEventListener != null) {
-          // 线程一直轮询 nettyEventExecutor 状态，根据 CONNECT,CLOSE,IDLE,EXCEPTION 四种事件类型
-          // CONNECT 不做操作，其余都是回调 onChannelDestroy 关闭服务器与 Broker 物理节点的 Channel
+          // 线程一直轮询 nettyEvent 状态，根据 CONNECT,CLOSE,IDLE,EXCEPTION 四种事件类型
+          // CONNECT 不做操作，其余都是回调 onChannelDestroy 【关闭服务器与 Broker 物理节点的 Channel】
           this.nettyEventExecutor.start();
       }
   
-      // 提交定时任务，每一秒 执行一次。扫描 responseTable 表，将过期的数据移除。
+      // 提交定时任务，每一秒 执行一次。扫描 responseTable 表，将过期的数据移除
       this.timer.scheduleAtFixedRate(new TimerTask() {
           @Override
           public void run() {
@@ -5562,16 +5563,16 @@ NettyRemotingServer 类成员变量：
 
 服务器主动向客户端发起请求时，使用三种方法
 
-* invokeSync()： 同步调用，服务器需要阻塞等待调用的返回结果
+* invokeSync()： 同步调用，**服务器需要阻塞等待调用的返回结果**
   * `int opaque = request.getOpaque()`：获取请求 ID（与请求码不同）
-  * `responseFuture = new ResponseFuture(...)`：创建响应对象，将请求 ID、通道、超时时间传入，没有回调函数和 Once
+  * `responseFuture = new ResponseFuture(...)`：**创建响应对象**，没有回调函数和 Once
   * `this.responseTable.put(opaque, responseFuture)`：**加入到响应映射表中**，key 为请求 ID
   * `SocketAddress addr = channel.remoteAddress()`：获取客户端的地址信息
   * `channel.writeAndFlush(request).addListener(...)`：将**业务 Command 信息**写入通道，业务线程将数据交给 Netty ，Netty 的 IO 线程接管写刷数据的操作，**监听器由 IO 线程在写刷后回调**
     * `if (f.isSuccess())`：写入成功会将响应对象设置为成功状态直接 return，写入失败设置为失败状态
     * `responseTable.remove(opaque)`：将当前请求的 responseFuture **从映射表移除**
     * `responseFuture.setCause(f.cause())`：设置错误的信息
-    * `responseFuture.putResponse(null)`：请求的业务码设置为 null
+    * `responseFuture.putResponse(null)`：响应 Command 设置为 null
   * `responseCommand = responseFuture.waitResponse(timeoutMillis)`：当前线程设置超时时间挂起，**同步等待响应**
   * `if (null == responseCommand)`：超时或者出现异常，直接报错
   * `return responseCommand`：返回响应 Command 信息
@@ -5580,7 +5581,7 @@ NettyRemotingServer 类成员变量：
   * `if (acquired)`：许可证获取失败说明并发较高，会抛出异常
   * `once = new SemaphoreReleaseOnlyOnce(this.semaphoreAsync)`：Once 对象封装了释放信号量的操作
   * `costTime = System.currentTimeMillis() - beginStartTime`：计算一下耗费的时间，超时不再发起请求
-  * `responseFuture = new ResponseFuture()`：创建响应对象，包装了回调函数和 Once 对象
+  * `responseFuture = new ResponseFuture()`：**创建响应对象，包装了回调函数和 Once 对象**
   * `this.responseTable.put(opaque, responseFuture)`：加入到响应映射表中，key 为请求 ID
   * `channel.writeAndFlush(request).addListener(...)`：写刷数据
     * `if (f.isSuccess())`：写刷成功，设置 responseFuture 发生状态为 true
@@ -5629,7 +5630,7 @@ NettyRemotingServer 类成员变量：
 
 
 
-官方文档：https://github.com/apache/rocketmq/blob/master/docs/cn/design.md#22-%E5%8D%8F%E8%AE%AE%E8%AE%BE%E8%AE%A1%E4%B8%8E%E7%BC%96%E8%A7%A3%E7%A0%81
+官方文档：https://github.com/apache/rocketmq/blob/master/docs/cn/design.md
 
 
 
@@ -5699,7 +5700,7 @@ NettyRemotingAbstract#processRequestCommand：**处理请求的数据**
 
 * `requestTask = new RequestTask(run, ctx.channel(), cmd)`：将任务对象、通道、请求封装成 RequestTask 对象
 
-* `pair.getObject2().submit(requestTask)`：获取处理器对应的线程池，将 task 提交，**从 IO 线程切换到业务线程**
+* `pair.getObject2().submit(requestTask)`：**获取处理器对应的线程池，将 task 提交，从 IO 线程切换到业务线程**
 
 NettyRemotingAbstract#processResponseCommand：**处理响应的数据**
 
@@ -5871,7 +5872,7 @@ MappedFile 类成员变量：
 * 文件相关：CL 是 CommitLog，CQ 是 ConsumeQueue
 
   ```java
-  private String fileName;	// 文件名称，CL和CQ文件名是第一条消息的物理偏移量，索引文件是年月日时分秒
+  private String fileName;	// 文件名称，CL和CQ文件名是【第一条消息的物理偏移量】，索引文件是【年月日时分秒】
   private long fileFromOffset;// 文件名转long，代表该对象的【起始偏移量】	
   private File file;			// 文件对象
   ```
@@ -5951,19 +5952,19 @@ MappedFile 类核心方法：
   public boolean destroy(final long intervalForcibly)
   ```
 
-* cleanup()：释放堆外内存，更新总虚拟内存和总内存映射文件数
+* cleanup()：**释放堆外内存**，更新总虚拟内存和总内存映射文件数
 
   ```java
   public boolean cleanup(final long currentRef)
   ```
 
-* warmMappedFile()：内存预热，当要新建的 MappedFile 对象大于 1g 时，执行该方法对该 MappedFile 的每个 Page Cache 进行写入一个字节进行分配内存，**将映射文件全部加载到内存**
+* warmMappedFile()：内存预热，当要新建的 MappedFile 对象大于 1g 时执行该方法。mappedByteBuffer 已经通过mmap映射，此时操作系统中只是记录了该文件和该 Buffer 的映射关系，而并没有映射到物理内存中，对该 MappedFile 的每个 Page Cache 进行写入一个字节分配内存，**将映射文件全部加载到内存**
 
   ```java
   public void warmMappedFile(FlushDiskType type, int pages)
   ```
 
-* mlock()：锁住指定的内存区域避免被操作系统调到 **swap 空间**，一次性将一段数据读入到映射内存区域，减少了缺页异常的产生
+* mlock()：锁住指定的内存区域避免被操作系统调到 swap 空间，减少了缺页异常的产生
 
   ```java
   public void mlock()
@@ -5992,7 +5993,6 @@ ReferenceResource 类核心方法：
   public void release()
   ```
 
-  
 
 
 
@@ -6217,10 +6217,9 @@ CommitLog 类核心方法：
   * `if (msg.getDelayTimeLevel() > 0) `：获取消息的延迟级别
   * `topic = TopicValidator.RMQ_SYS_SCHEDULE_TOPIC`：**修改消息的主题为 `SCHEDULE_TOPIC_XXXX`**
   * `queueId = ScheduleMessageService.delayLevel2QueueId()`：队列 ID 为延迟级别 -1
-  * `MessageAccessor.putProperty`：将原来的消息主题和 ID 存入消息的属性 `REAL_TOPIC` 中
-  * `msg.setTopic(topic)`：修改主题
+  * `MessageAccessor.putProperty`：**将原来的消息主题和 ID 存入消息的属性 `REAL_TOPIC` 中**
   * `mappedFile = this.mappedFileQueue.getLastMappedFile()`：获取当前顺序写的 MappedFile 对象
-  * `putMessageLock.lock()`：获取**写锁**
+  * `putMessageLock.lock()`：**获取写锁**
   * `msg.setStoreTimestamp(beginLockTimestamp)`：设置消息的存储时间为获取锁的时间
   * `if (null == mappedFile || mappedFile.isFull())`：文件写满了创建新的 MF 对象
   * `result = mappedFile.appendMessage(msg, this.appendMessageCallback)`：**消息追加**，核心逻辑在回调器类
@@ -6261,7 +6260,7 @@ CommitLog 类核心方法：
 
   * `int index = mappedFiles.size() - 1`：从尾部开始遍历 MFQ，验证 MF 的第一条消息，找到第一个验证通过的文件对象
   * `dispatchRequest = this.checkMessageAndReturnSize()`：每次解析出一条 msg 封装成 DispatchRequest 对象
-  * `this.defaultMessageStore.doDispatch(dispatchRequest)`：重建 ConsumerQueue 和 Index，避免上次异常停机导致 CQ 和 Index 与 CommitLog 不对齐
+  * `this.defaultMessageStore.doDispatch(dispatchRequest)`：**重建 ConsumerQueue 和 Index，避免上次异常停机导致 CQ 和 Index 与 CommitLog 不对齐**
   * 剩余逻辑与正常关机的恢复方法相似
 
 
@@ -6274,14 +6273,14 @@ CommitLog 类核心方法：
 
 AppendMessageCallback 消息追加服务实现类为 DefaultAppendMessageCallback
 
-* doAppend()
+* doAppend()：
   
   ```java
   public AppendMessageResult doAppend()
   ```
   
   * `long wroteOffset = fileFromOffset + byteBuffer.position()`：消息写入的位置，物理偏移量 phyOffset
-  * `String msgId`：消息 ID，规则是客户端 IP + 消息偏移量 phyOffset
+  * `String msgId`：**消息 ID，规则是客户端 IP + 消息偏移量 phyOffset**
   * `byte[] topicData`：序列化消息，将消息的字段压入到  msgStoreItemMemory 这个 Buffer 中
   * `byteBuffer.put(this.msgStoreItemMemory.array(), 0, msgLen)`：将 msgStoreItemMemory 中的数据写入 MF 对象的内存映射的 Buffer 中，数据还没落盘
   * `AppendMessageResult result`：构造结果对象，包括存储位点、是否成功、队列偏移量等信息
@@ -6301,11 +6300,11 @@ FlushRealTimeService 刷盘 CL 数据，默认是异步刷盘类 FlushRealTimeSe
 
   * `int interval`：获取配置中的刷盘时间间隔
 
-  * `int flushPhysicQueueLeastPages`：获取最小刷盘页数，默认是 4 页，脏页达到指定页数才刷盘
+  * `int flushPhysicQueueLeastPages`：**获取最小刷盘页数，默认是 4 页**，脏页达到指定页数才刷盘
 
   * `int flushPhysicQueueThoroughInterval`：获取强制刷盘周期，默认是 10 秒，达到周期后强制刷盘，不考虑脏页
 
-  * `if (flushCommitLogTimed)`：休眠逻辑，避免 CPU 占用太长时间，导致无法执行其他更紧急的任务
+  * `if (flushCommitLogTimed)`：**休眠逻辑**，避免 CPU 占用太长时间，导致无法执行其他更紧急的任务
 
   * `CommitLog.this.mappedFileQueue.flush(flushPhysicQueueLeastPages)`：**刷盘**
 
@@ -6323,7 +6322,7 @@ FlushRealTimeService 刷盘 CL 数据，默认是异步刷盘类 FlushRealTimeSe
 
   * `while (!this.isStopped())`：stopped为 true 才跳出循环
 
-    `this.waitForRunning(10)`：线程休眠 10 毫秒，最后调用 `onWaitEnd()` 进行请求的交换 `swapRequests()`
+    `this.waitForRunning(10)`：线程休眠 10 毫秒，最后调用 `onWaitEnd()` 进行**请求的交换** `swapRequests()`
 
     `this.doCommit()`：做提交逻辑
 
@@ -6342,7 +6341,7 @@ FlushRealTimeService 刷盘 CL 数据，默认是异步刷盘类 FlushRealTimeSe
 
       `req.wakeupCustomer(flushOK ? ...)`：设置 Future 结果，在 Future 阻塞的线程在这里会被唤醒
 
-      `this.requestsRead.clear()`：清理 reqeustsRead 列表，方便交换时 成为 requestsWrite 使用
+      `this.requestsRead.clear()`：清理 reqeustsRead 列表，方便交换时成为 requestsWrite 使用
 
     * `else`：读请求集合为空
 
@@ -6377,7 +6376,7 @@ ConsumerQueue 是消息消费队列，存储消息在 CommitLog 的索引，便�
   ```java
   private final MappedFileQueue mappedFileQueue;	// 文件管理器，管理 CQ 目录下的文件
   private final String storePath;					// 目录，比如../store/consumequeue/xxx_topic/0
-  private final int mappedFileSize;				// 每一个 CCQ 存储文件大小，默认 20 * 30w = 600w byte
+  private final int mappedFileSize;				// 每一个 CQ 存储文件大小，默认 20 * 30w = 600w byte
   ```
 
 * 存储主模块：上层的对象
@@ -6558,7 +6557,8 @@ IndexFile 类方法
   * `int slotValue = this.mappedByteBuffer.getInt(absSlotPos)`：获取槽中的值，如果是无效值说明没有哈希冲突
   * `timeDiff = timeDiff / 1000`：计算当前 msg 存储时间减去索引文件内第一条消息存储时间的差值，转化为秒进行存储
   * `int absIndexPos`：计算当前索引数据存储的位置，开始填充索引数据到对应的位置
-  * `this.mappedByteBuffer.putInt(absSlotPos, this.indexHeader.getIndexCount())`：在 slot 放入当前索引的索引编号
+  * `this.mappedByteBuffer.putInt(absIndexPos + 4 + 8 + 4, slotValue)`：**hash 桶的原值，头插法**
+  * `this.mappedByteBuffer.putInt(absSlotPos, this.indexHeader...)`：在 slot 放入当前索引的索引编号
   * `if (this.indexHeader.getIndexCount() <= 1)`：索引文件插入的第一条数据，需要设置起始偏移量和存储时间
   * `if (invalidIndex == slotValue)`：没有哈希冲突，说明占用了一个新的 hash slot
   * `this.indexHeader`：设置索引头的相关属性
@@ -6652,11 +6652,11 @@ IndexService 类用来管理 IndexFile 文件
 
   * `indexFile = retryGetAndCreateIndexFile()`：获取或者创建顺序写的索引文件对象
 
-  * `buildKey(topic, req.getUniqKey())`：**构建索引 key**，`topic + # + uniqKey`
+  * `buildKey(topic, req.getUniqKey())`：**构建索引 key，`topic + # + uniqKey`**
 
   * `indexFile = putKey()`：插入索引文件
 
-  * `if (keys != null && keys.length() > 0)`：消息存在自定义索引
+  * `if (keys != null && keys.length() > 0)`：消息存在自定义索引 keys
 
     `for (int i = 0; i < keyset.length; i++)`：遍历每个索引，为每个 key 调用一次 putKey
 
@@ -6685,7 +6685,7 @@ HAService 类成员变量：
   ```java
   // master 节点当前有多少个 slave 节点与其进行数据同步
   private final AtomicInteger connectionCount = new AtomicInteger(0);
-  // master 节点会给每个发起连接的 slave 节点的通道创建一个 HAConnection，控制 master 端向 slave 端传输数据
+  // master 节点会给每个发起连接的 slave 节点的通道创建一个 HAConnection，【控制 master 端向 slave 端传输数据】
   private final List<HAConnection> connectionList = new LinkedList<>();
   // master 向 slave 节点推送的最大的 offset，表示数据同步的进度
   private final AtomicLong push2SlaveMaxOffset = new AtomicLong(0)
@@ -6733,7 +6733,7 @@ HAService 类成员变量：
 
 ###### Accept
 
-AcceptSocketService 类用于监听从节点的连接，创建 HAConnection 连接对象
+AcceptSocketService 类用于**监听从节点的连接**，创建 HAConnection 连接对象
 
 成员变量：
 
@@ -6762,13 +6762,6 @@ AcceptSocketService 类用于监听从节点的连接，创建 HAConnection 连�
   ```java
   public void beginAccept()
   ```
-
-  * `this.serverSocketChannel = ServerSocketChannel.open()`：获取服务端 SocketChannel
-  * `this.selector = RemotingUtil.openSelector()`：获取多路复用器
-  * `this.serverSocketChannel.socket().setReuseAddress(true)`：开启通道可重用
-  * `this.serverSocketChannel.socket().bind(this.socketAddressListen)`：绑定连接端口
-  * `this.serverSocketChannel.configureBlocking(false)`：设置非阻塞
-  * `this.serverSocketChannel.register(this.selector, SelectionKey.OP_ACCEPT)`：将通道注册到多路复用器上，关注 `OP_ACCEPT` 事件
 
 * run()：服务启动
 
@@ -6804,9 +6797,17 @@ GroupTransferService 用来控制数据同步
   ```
 
   * `if (!this.requestsRead.isEmpty())`：读请求不为空
-  * `boolean transferOK = HAService.this.push2SlaveMaxOffset.get() >= req.getNextOffset()`：主从同步是否完成
+  * `boolean transferOK = HAService.this.push2SlaveMaxOffset... >= req.getNextOffset()`：**主从同步是否完成**
   * `req.wakeupCustomer(transferOK ? ...)`：唤醒消费者
   * `this.requestsRead.clear()`：清空读请求
+  
+* swapRequests()：交换读写请求
+
+  ```java
+  private void swapRequests()
+  ```
+
+  
 
 
 
@@ -6880,7 +6881,7 @@ HAClient 是 slave 端运行的代码，用于和 master 服务器建立长连�
 
   * `if (this.isTimeToReportOffset())`：slave 每 5 秒会上报一次 slave 端的同步进度信息给 master
 
-    `boolean result = this.reportSlaveMaxOffset()`：上报同步信息，上报失败关闭连接
+    `boolean result = this.reportSlaveMaxOffset()`：**上报同步信息**，上报失败关闭连接
 
   * `this.selector.select(1000)`：多路复用器阻塞获取就绪的通道，最多等待 1 秒钟，**获取到就绪事件或者超时后结束**
 
@@ -6920,9 +6921,7 @@ HAClient 是 slave 端运行的代码，用于和 master 服务器建立长连�
 
     `boolean result = this.dispatchReadRequest()`：处理数据的核心逻辑
 
-  * `else if (readSize == 0) `：无新数据
-
-    `if (++readSizeZeroTimes >= 3)`：大于 3 时跳出循环
+  * `else if (readSize == 0) `：连续无新数据 3 次，跳出循环
 
   * `else`：readSize = -1 就表示 Socket 处于半关闭状态，对端已经关闭了
 
@@ -6940,31 +6939,17 @@ HAClient 是 slave 端运行的代码，用于和 master 服务器建立长连�
 
   * `if (diff >= msgHeaderSize)`：缓冲区还有完整的协议头 header 数据
 
-  * `long masterPhyOffset, int bodySize`：读取 header 信息
+  * `if (diff >= (msgHeaderSize + bodySize))`：说明**缓冲区内是包含当前帧的全部数据的**，开始处理帧数据 
 
-  * `long slavePhyOffset`：获取 slave 端最大的物理偏移量
-
-  * `if (slavePhyOffset != masterPhyOffset)`：正常情况两者是相等的，因为是一帧一帧同步的
-
-  * `if (diff >= (msgHeaderSize + bodySize))`：说明**缓冲区内是包含当前帧的全部数据的**，开始处理帧数据
-
-    `byte[] bodyData = new byte[bodySize]`：提取帧内的 body 数据
-
-    `this.byteBufferRead.position(this.dispatchPosition + msgHeaderSize)`：**设置 pos 为当前帧的 body 起始位置**
-
-    `this.byteBufferRead.get(bodyData)`：读取数据到 bodyData 
-
-    `HAService...appendToCommitLog(masterPhyOffset, bodyData)`：存储数据到 CommitLog
+    `HAService...appendToCommitLog(masterPhyOffset, bodyData)`：**存储数据到 CommitLog**
 
     `this.byteBufferRead.position(readSocketPos)`：恢复 byteBufferRead 的 pos 指针
 
-    `this.dispatchPosition += msgHeaderSize + bodySize`：**加一帧数据长度**
+    `this.dispatchPosition += msgHeaderSize + bodySize`：加一帧数据长度，处理下一条数据使用
 
     `if (!reportSlaveMaxOffsetPlus())`：上报 slave 同步信息
 
-  * `if (!this.byteBufferRead.hasRemaining())`：缓冲区写满了
-
-    `this.reallocateByteBuffer()`：重新分配缓冲区
+  * `if (!this.byteBufferRead.hasRemaining())`：缓冲区写满了，重新分配缓冲区
 
 * reallocateByteBuffer()：重新分配缓冲区
 
@@ -7015,7 +7000,7 @@ HAConnection 类成员变量：
   private ReadSocketService readSocketService;	// 读数据服务
   ```
 
-* 请求位点：在 slave上报本地的进度之后被赋值，该值大于 0 后同步逻辑才会运行，master 如果不知道 slave 节点当前消息的存储进度，就无法给 slave 推送数据
+* 请求位点：在 slave 上报本地的进度之后被赋值，该值大于 0 后同步逻辑才会运行，master 如果不知道 slave 节点当前消息的存储进度，就无法给 slave 推送数据
 
   ```java
   private volatile long slaveRequestOffset = -1;
@@ -7123,20 +7108,16 @@ ReadSocketService 类是一个任务对象，slave 向 master 传输的帧格式
 
     * `if (readSize > 0)`：加载成功，有新数据
 
-      `readSizeZeroTimes = 0`：置为 0
-
       `if ((byteBufferRead.position() - processPosition) >= 8)`：缓冲区的可读数据最少包含一个数据帧
 
-      * `int pos = ...`：**获取可读帧数据中最后一个完整的帧数据的位点**，后面的数据丢弃
-      * `long readOffset = ...byteBufferRead.getLong(pos - 8)`：读取最后一帧数据，slave 端当前的同步进度信息
+      * `int pos = ...`：**获取可读帧数据中最后一个完整的帧数据的位点，后面的数据丢弃**
+    * `long readOffset = ...byteBufferRead.getLong(pos - 8)`：读取最后一帧数据，slave 端当前的同步进度信息
       * `this.processPosition = pos`：更新处理位点
       * `HAConnection.this.slaveAckOffset = readOffset`：更新应答位点
       * `if (HAConnection.this.slaveRequestOffset < 0)`：条件成立**给 slaveRequestOffset 赋值**
       * `HAConnection...notifyTransferSome(slaveAckOffset)`：**唤醒阻塞的生产者线程**
-
-    * `else if (readSize == 0) `：无新数据
-
-      `if (++readSizeZeroTimes >= 3)`：大于 3 时跳出循环
+      
+    * `else if (readSize == 0) `：读取 3 次无新数据跳出循环
 
     * `else`：readSize = -1 就表示 Socket 处于半关闭状态，对端已经关闭了
 
@@ -7218,13 +7199,13 @@ WriteSocketService 类是一个任务对象，master向 slave 传输的数据帧
   
   * `if (this.lastWriteOver)`：上一次待发送数据全部发送完成
   
-    `if (interval > 5)`：超过 5 秒未同步数据，发送一个 header 数据包，维持长连接
+    `if (interval > 5)`：**超过 5 秒未同步数据，发送一个 header 心跳数据包，维持长连接**
   
   * `else`：上一轮的待发送数据未全部发送，需要同步数据到 slave 节点
   
-  * `SelectMappedBufferResult selectResult`：到 CommitLog 中查询 nextTransferFromWhere 开始位置的数据
+  * `SelectMappedBufferResult selectResult`：**到 CommitLog 中查询 nextTransferFromWhere 开始位置的数据**
   
-  * `if (size > 32k)`：**一次最多同步 32k 数据**
+  * `if (size > 32k)`：一次最多同步 32k 数据
   
   * `this.nextTransferFromWhere += size`：增加 size，下一轮传输跳过本帧数据
   
@@ -7248,17 +7229,7 @@ WriteSocketService 类是一个任务对象，master向 slave 传输的数据帧
 
   * `int writeSize = this.socketChannel.write(this.byteBufferHeader)`：向通道写帧头数据
 
-  * `if (writeSize > 0)`：写数据成功
-
-    `writeSizeZeroTimes = 0`：控制变量置为 0
-
-  * `else if (readSize == 0)`：写失败
-
-    `if (++readSizeZeroTimes >= 3)`：大于 3 时跳出循环
-
   * `if (null == this.selectMappedBufferResult)`：说明是心跳数据，返回心跳数据是否发送完成
-
-  * `writeSizeZeroTimes = 0`：控制变量置为 0
 
   * `if (!this.byteBufferHeader.hasRemaining())`：**Header写成功之后，才进行写 Body**
 
@@ -7268,11 +7239,7 @@ WriteSocketService 类是一个任务对象，master向 slave 传输的数据帧
 
   * `if (writeSize > 0)`：写数据成功，但是不代表 SMBR 中的数据全部写完成
 
-    `writeSizeZeroTimes = 0`：控制变量置为 0
-
-  * `else if (readSize == 0)`：写失败，因为 Socket 写缓冲区写满了
-
-    `if (++readSizeZeroTimes >= 3)`：大于 3 时跳出循环
+    
 
   * `boolean result`：判断是否发送完成，返回该值
 
@@ -7299,17 +7266,11 @@ DefaultMessageStore 类核心是整个存储服务的调度类
   * `this.allocateMappedFileService.start()`：启动**创建 MappedFile 文件服务**
   * `this.indexService.start()`：启动索引服务
 
-* load()：加载资源
+* load()：先加载 CommitLog，再加载 ConsumeQueue，最后加载 IndexFile，加载完进入恢复阶段，先恢复 CQ，在恢复 CL
 
   ```java
   public boolean load()
   ```
-
-  * `this.commitLog.load()`：先加载 CommitLog
-  * `this.loadConsumeQueue()`：再加载 ConsumeQueue
-  * `this.storeCheckpoint`：检查位点对象
-  * `this.indexService.load(lastExitOK)`：加载 IndexFile
-  * `this.recover(lastExitOK)`：恢复阶段，先恢复 CQ，在恢复 CL
 
 * start()：核心启动方法
 
@@ -7337,18 +7298,18 @@ DefaultMessageStore 类核心是整个存储服务的调度类
 
   * `this.storeStatsService.start()`：启动状态存储服务
 
-  * `this.createTempFile()`：创建 AbortFile，正常关机时 JVM HOOK 会删除该文件，异常宕机时该文件不会删除，开机数据恢复阶段根据是否存在该文件，执行不同的**恢复策略**
+  * `this.createTempFile()`：创建 AbortFile，正常关机时 JVM HOOK 会删除该文件，**异常宕机时该文件不会删除**，开机数据恢复阶段根据是否存在该文件，执行不同的恢复策略
 
   * `this.addScheduleTask()`：添加定时任务
 
-    * `DefaultMessageStore.this.cleanFilesPeriodically()`：定时**清理过期文件**，周期是 10 秒
+    * `DefaultMessageStore.this.cleanFilesPeriodically()`：**定时清理过期文件**，周期是 10 秒
 
       * `this.cleanCommitLogService.run()`：启动清理过期的 CL 文件服务
       * `this.cleanConsumeQueueService.run()`：启动清理过期的 CQ 文件服务
 
     * `DefaultMessageStore.this.checkSelf()`：每 10 分种进行健康检查
 
-    * `DefaultMessageStore.this.cleanCommitLogService.isSpaceFull()`：**磁盘预警**定时任务，每 10 秒一次
+    * `DefaultMessageStore.this.cleanCommitLogService.isSpaceFull()`：**磁盘预警定时任务**，每 10 秒一次
 
       * `if (physicRatio > this.diskSpaceWarningLevelRatio)`：检查磁盘是否到达 waring 阈值，默认 90%
 
@@ -7424,7 +7385,7 @@ ServiceThread 类被很多服务继承，本身是一个 Runnable 任务对象�
 
 ##### 构建服务
 
-AllocateMappedFileService 创建 MappedFile 服务
+AllocateMappedFileService **创建 MappedFile 服务**
 
 * mmapOperation()：核心服务
 
@@ -7432,7 +7393,7 @@ AllocateMappedFileService 创建 MappedFile 服务
   private boolean mmapOperation()
   ```
 
-  * `req = this.requestQueue.take()`： 从 requestQueue 阻塞队列（优先级）中获取 AllocateRequest 任务
+  * `req = this.requestQueue.take()`： **从 requestQueue 阻塞队列（优先级）中获取 AllocateRequest 任务**
   * `if (...isTransientStorePoolEnable())`：条件成立使用直接内存写入数据， 从直接内存中 commit 到 FileChannel 中
   * `mappedFile = new MappedFile(req.getFilePath(), req.getFileSize())`：根据请求的路径和大小创建对象
   * `mappedFile.warmMappedFile()`：判断 mappedFile 大小，只有 CommitLog 才进行文件预热
@@ -7450,7 +7411,7 @@ AllocateMappedFileService 创建 MappedFile 服务
   * `result.getCountDownLatch().await(...)`：**线程挂起**，直到超时或者 nextFilePath 对应的 MF 文件创建完成
   * `return result.getMappedFile()`：返回创建好的 MF 文件对象
 
-ReputMessageService 消息分发服务，用于构建 ConsumerQueue 和 IndexFile 文件
+ReputMessageService 消息分发服务，用于构**建 ConsumerQueue 和 IndexFile 文件**
 
 * run()：循环执行 doReput 方法，每执行一次线程休眠 1 毫秒
 
@@ -7573,7 +7534,7 @@ CleanConsumeQueueService 清理过期的 CQ 数据
   * `if (minOffset > this.lastPhysicalMinOffset)`：CL 最小的偏移量大于 CQ 最小的，说明有过期数据
   * `this.lastPhysicalMinOffset = minOffset`：更新 CQ 的最小偏移量
   * `for (ConsumeQueue logic : maps.values())`：遍历所有的 CQ 文件
-  * `logic.deleteExpiredFile(minOffset)`：调用 MFQ 对象的删除方法
+  * `logic.deleteExpiredFile(minOffset)`：**调用 MFQ 对象的删除方法**
   * `DefaultMessageStore.this.indexService.deleteExpiredFile(minOffset)`：**删除过期的索引文件**
 
 

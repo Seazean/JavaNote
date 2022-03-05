@@ -7336,7 +7336,7 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
                       try {
                           // 在条件队列 available 使用带超时的挂起（堆顶任务.time - now() 纳秒值..）
                           available.awaitNanos(delay);
-                          // 到达阻塞时间时，当前线程会从来
+                          // 到达阻塞时间时，当前线程会从这里醒来来
                       } finally {
                           // t堆顶更新，leader 置为 null，offer 方法释放锁后，
                           // 有其它线程通过 take/poll 拿到锁,读到 leader == null，然后将自身更新为leader。
@@ -7348,7 +7348,8 @@ DelayedWorkQueue 是支持延时获取元素的阻塞队列，内部采用优先
               }
           }
       } finally {
-          // 没有 leader 线程，头结点不为 null，唤醒阻塞获取头节点的线程
+          // 没有 leader 线程，头结点不为 null，唤醒阻塞获取头节点的线程，
+          // 【如果没有这一步，就会出现有了需要执行的任务，但是没有线程去执行】
           if (leader == null && queue[0] != null)
               available.signal();
           lock.unlock();
@@ -13141,7 +13142,7 @@ final void updateHead(Node<E> h, Node<E> p) {
 2. IP 地址：互联网协议地址（Internet Protocol Address），用来给一个网络中的计算机设备做唯一的编号
 
    * IPv4：4个字节，32 位组成，192.168.1.1
-   * Pv6：可以实现为所有设备分配 IP，128 位
+   * IPv6：可以实现为所有设备分配 IP，128 位
 
    * ipconfig：查看本机的 IP
      * ping 检查本机与某个 IP 指定的机器是否联通，或者说是检测对方是否在线。

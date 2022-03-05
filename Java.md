@@ -1520,6 +1520,10 @@ public class FinalDemo {
 
 
 
+***
+
+
+
 ##### 实例变量
 
 final 修饰变量的总规则：有且仅能被赋值一次
