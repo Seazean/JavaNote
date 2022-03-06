@@ -5843,6 +5843,14 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
           // 使用线程工厂创建一个线程，并且【将当前worker指定为Runnable】，所以thread启动时会调用 worker.run()
           this.thread = getThreadFactory().newThread(this);
       }
+      // 【不可重入锁】
+      protected boolean tryAcquire(int unused) {
+          if (compareAndSetState(0, 1)) {
+              setExclusiveOwnerThread(Thread.currentThread());
+              return true;
+          }
+          return false;
+      }
   }
   ```
   

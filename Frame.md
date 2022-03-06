@@ -4312,19 +4312,19 @@ RocketMQ 支持分布式事务消息，采用了 2PC 的思想来实现了提交
    
    * 服务端响应消息写入结果（如果写入失败，此时 Half 消息对业务不可见）
    * 根据发送结果执行本地事务
-   * 根据本地事务状态执行 Commit 或者 Rollback（Commit 操作生成消息索引，消息对消费者可见）
+   * 根据本地事务状态执行 Commit 或者 Rollback
    
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-事务工作流程.png)
 
-2. 补偿流程：
+2. 补偿机制：用于解决消息 Commit 或者 Rollback 发生超时或者失败的情况，比如出现网络问题
 
-   * 对没有 Commit/Rollback 的事务消息（pending 状态的消息），服务端根据根据半消息的生产者组，到 ProducerManager 中获取生产者的会话通道，发起一次回查（**单向请求**）
+   * Broker 服务端通过对比 Half 消息和 Op 消息，对未确定状态的消息推进 CheckPoint（记录哪些事务消息的状态是确定的）
+   * 没有 Commit/Rollback 的事务消息，服务端根据根据半消息的生产者组，到 ProducerManager 中获取生产者（同一个 Group 的 Producer）的会话通道，发起一次回查（**单向请求**）
    * Producer 收到回查消息，检查事务消息状态表内对应的本地事务的状态
-
    * 根据本地事务状态，重新 Commit 或者 Rollback
 
-   补偿阶段用于解决消息 Commit 或者 Rollback 发生超时或者失败的情况
+   注意：RocketMQ 并不会无休止的进行事务状态回查，默认回查 15 次，如果 15 次回查还是无法得知事务状态，则默认回滚该消息
 
 
 
@@ -4332,9 +4332,9 @@ RocketMQ 支持分布式事务消息，采用了 2PC 的思想来实现了提交
 
 
 
-#### 原理解析
+#### 两阶段
 
-##### 不可见性
+##### 一阶段
 
 事务消息相对普通消息最大的特点就是**一阶段发送的消息对用户是不可见的**，因为对于 Half 消息，会备份原消息的主题与消息消费队列，然后改变主题为 RMQ_SYS_TRANS_HALF_TOPIC，由于消费组未订阅该主题，故消费端无法消费 Half 类型的消息
 
@@ -4344,39 +4344,23 @@ RocketMQ 的具体实现策略：如果写入的是事务消息，对消息的 T
 
 
 
-****
+***
 
 
 
-##### OP 消息
+##### 二阶段
 
 一阶段写入不可见的消息后，二阶段操作：
 
 * 如果执行 Commit 操作，则需要让消息对用户可见，构建出 Half 消息的索引。一阶段的 Half 消息写到一个特殊的 Topic，构建索引时需要读取出 Half 消息，然后通过一次普通消息的写入操作将 Topic 和 Queue 替换成真正的目标 Topic 和 Queue，生成一条对用户可见的消息。其实就是利用了一阶段存储的消息的内容，在二阶段时恢复出一条完整的普通消息，然后走一遍消息写入流程
 
-* 如果是 Rollback 则需要撤销一阶段的消息，因为消息本就不可见，所以并**不需要真正撤销消息**（实际上 RocketMQ 也无法去删除一条消息，因为是顺序写文件的）。RocketMQ 为了区分这条消息没有确定状态的消息（Pending 状态），采用 Op 消息标识已经确定状态的事务消息（Commit 或者 Rollback）
+* 如果是 Rollback 则需要撤销一阶段的消息，因为消息本就不可见，所以并**不需要真正撤销消息**（实际上 RocketMQ 也无法去删除一条消息，因为是顺序写文件的）。RocketMQ 为了区分这条消息没有确定状态的消息，采用 Op 消息标识已经确定状态的事务消息（Commit 或者 Rollback）
 
-事务消息无论是 Commit 或者 Rollback 都会记录一个 Op 操作，两者的区别是 Commit 相对于 Rollback 在写入 Op 消息前创建 Half 消息的索引。如果一条事务消息没有对应的 Op 消息，说明这个事务的状态还无法确定（可能是二阶段失败了）
+**事务消息无论是 Commit 或者 Rollback 都会记录一个 Op 操作**，两者的区别是 Commit 相对于 Rollback 在写入 Op 消息前创建 Half 消息的索引。如果一条事务消息没有对应的 Op 消息，说明这个事务的状态还无法确定（可能是二阶段失败了）
 
-RocketMQ 将 Op 消息写入到全局一个特定的 Topic 中，通过源码中的方法 `TransactionalMessageUtil.buildOpTopic()`，这个主题是一个内部的 Topic（像 Half 消息的 Topic 一样），不会被用户消费。Op 消息的内容为对应的 Half 消息的存储的 Offset，这样**通过 Op  消息能索引到 Half 消息**进行后续的回查操作
+RocketMQ 将 Op 消息写入到全局一个特定的 Topic 中，通过源码中的方法 `TransactionalMessageUtil.buildOpTopic()`，这个主题是一个内部的 Topic（像 Half 消息的 Topic 一样），不会被用户消费。Op 消息的内容为对应的 Half 消息的存储的 Offset，这样**通过 Op  消息能索引到 Half 消息**
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-OP消息.png)
-
-
-
-****
-
-
-
-##### 补偿机制
-
-如果在 RocketMQ 事务消息的二阶段过程中失败了，例如在做 Commit 操作时，出现网络问题导致 Commit 失败，那么需要通过一定的策略使这条消息最终被 Commit，RocketMQ 采用了一种补偿机制，称为回查
-
-Broker 服务端通过对比 Half 消息和 Op 消息，对未确定状态的消息发起回查并且推进 CheckPoint（记录哪些事务消息的状态是确定的），将消息发送到对应的 Producer 端（同一个 Group 的 Producer），由 Producer 根据消息来检查本地事务的状态，然后执行提交或回滚
-
-注意：RocketMQ 并不会无休止的进行事务状态回查，默认回查 15 次，如果 15 次回查还是无法得知事务状态，则默认回滚该消息
-
-
 
 
 
@@ -4511,7 +4495,7 @@ NameServer 主要包括两个功能：
 
 NameServer 特点：
 
-* NameServer 通常是集群的方式部署，各实例间相互不进行信息通讯
+* NameServer 通常是集群的方式部署，**各实例间相互不进行信息通讯**
 * Broker 向每一台 NameServer 注册自己的路由信息，所以每个 NameServer 实例上面**都保存一份完整的路由信息**
 * 当某个 NameServer 因某种原因下线了，Broker 仍可以向其它 NameServer 同步其路由信息
 
@@ -4791,13 +4775,13 @@ RocketMQ 中的负载均衡可以分为 Producer 端发送消息时候的负载�
 
 Producer 端在发送消息时，会先根据 Topic 找到指定的 TopicPublishInfo，在获取了 TopicPublishInfo 路由信息后，RocketMQ 的客户端在默认方式调用 `selectOneMessageQueue()` 方法从 TopicPublishInfo 中的 messageQueueList 中选择一个队列 MessageQueue 进行发送消息
 
-默认会轮询所有的 Message Queue 发送，以让消息平均落在不同的 queue 上，而由于 queue可以散落在不同的 Broker，所以消息就发送到不同的 Broker 下，图中箭头线条上的标号代表顺序，发布方会把第一条消息发送至 Queue 0，然后第二条消息发送至 Queue 1，以此类推：
+默认会**轮询所有的 Message Queue 发送**，以让消息平均落在不同的 queue 上，而由于 queue可以散落在不同的 Broker，所以消息就发送到不同的 Broker 下，图中箭头线条上的标号代表顺序，发布方会把第一条消息发送至 Queue 0，然后第二条消息发送至 Queue 1，以此类推：
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-producer负载均衡.png)
 
 容错策略均在 MQFaultStrategy 这个类中定义，有一个 sendLatencyFaultEnable 开关变量：
 
-* 如果开启，会在随机（只有初始化索引变量时才随机，正常都是递增）递增取模的基础上，再过滤掉 not available 的 Broker 代理
+* 如果开启，会在**随机（只有初始化索引变量时才随机，正常都是递增）递增取模**的基础上，再过滤掉 not available 的 Broker
 * 如果关闭，采用随机递增取模的方式选择一个队列（MessageQueue）来发送消息
 
 LatencyFaultTolerance 机制是实现消息发送高可用的核心关键所在，对之前失败的，按一定的时间做退避。例如上次请求的 latency 超过 550Lms，就退避 3000Lms；超过 1000L，就退避 60000L
@@ -4927,8 +4911,8 @@ IndexFile 文件的存储在 `$HOME\store\index${fileName}`，文件名 fileName
 
 如下方法可以设置消息重投策略：
 
-- retryTimesWhenSendFailed：同步发送失败重投次数，默认为 2，因此生产者会最多尝试发送 retryTimesWhenSendFailed + 1 次。不会选择上次失败的 Broker，尝试向其他 Broker 发送，最大程度保证消息不丢。超过重投次数抛出异常，由客户端保证消息不丢。当出现 RemotingException、MQClientException 和部分 MQBrokerException 时会重投
-- retryTimesWhenSendAsyncFailed：异步发送失败重试次数，异步重试不会选择其他 Broker，仅在同一个 Broker 上做重试，不保证消息不丢
+- retryTimesWhenSendFailed：同步发送失败重投次数，默认为 2，因此生产者会最多尝试发送 retryTimesWhenSendFailed + 1 次。不会选择上次失败的 Broker，尝试向其他 Broker 发送，**最大程度保证消息不丢**。超过重投次数抛出异常，由客户端保证消息不丢。当出现 RemotingException、MQClientException 和部分 MQBrokerException 时会重投
+- retryTimesWhenSendAsyncFailed：异步发送失败重试次数，异步重试不会选择其他 Broker，仅在同一个 Broker 上做重试，**不保证消息不丢**
 - retryAnotherBrokerWhenNotStoreOK：消息刷盘（主或备）超时或 slave 不可用（返回状态非 SEND_OK），是否尝试发送到其他  Broker，默认 false，十分重要消息可以开启
 
 注意点：
@@ -5075,7 +5059,7 @@ public class MessageListenerImpl implements MessageListener {
 
 死信队列具有以下特性：
 
-- 一个死信队列对应一个 Group ID， 而不是对应单个消费者实例
+- **一个死信队列对应一个 Group ID， 而不是对应单个消费者实例**
 - 如果一个 Group ID 未产生死信消息，消息队列 RocketMQ 不会为其创建相应的死信队列
 - 一个死信队列包含了对应 Group ID 产生的所有死信消息，不论该消息属于哪个 Topic
 
@@ -5164,7 +5148,7 @@ At least Once 机制保证消息不丢失，但是可能会造成消息重复，
 
 ## 原理解析
 
-### 服务端
+### Namesrv
 
 #### 服务启动
 
@@ -5685,7 +5669,7 @@ NettyRemotingAbstract#processRequestCommand：**处理请求的数据**
     * `doAfterRpcHooks()`：RPC HOOK 后置处理
     * `if (!cmd.isOnewayRPC())`：条件成立说明不是单向请求，需要结果
     * `response.setOpaque(opaque)`：将请求 ID 设置到 response
-    * `response.markResponseType()`：设置当前的处理是响应处理
+    * `response.markResponseType()`：**设置当前请求是响应**
     * `ctx.writeAndFlush(response)`： **将响应数据交给 Netty IO 线程，完成数据写和刷**
 
   * `if (pair.getObject1() instanceof AsyncNettyRequestProcessor)`：Nameserver 默认使用 DefaultRequestProcessor 处理器，是一个 AsyncNettyRequestProcessor 子类
@@ -5842,7 +5826,7 @@ RouteInfoManager#registerBroker：注册 Broker 的信息
 
 
 
-### 存储端
+### Broker
 
 #### MappedFile
 
@@ -6214,9 +6198,9 @@ CommitLog 类核心方法：
   * `msg.setStoreTimestamp(System.currentTimeMillis())`：设置存储时间，后面获取到写锁后这个事件会重写
   * `msg.setBodyCRC(UtilAll.crc32(msg.getBody()))`：获取消息的 CRC 值
   * `topic、queueId`：获取主题和队列 ID
-  * `if (msg.getDelayTimeLevel() > 0) `：获取消息的延迟级别
+  * `if (msg.getDelayTimeLevel() > 0) `：**获取消息的延迟级别，这里是延迟消息实现的关键**
   * `topic = TopicValidator.RMQ_SYS_SCHEDULE_TOPIC`：**修改消息的主题为 `SCHEDULE_TOPIC_XXXX`**
-  * `queueId = ScheduleMessageService.delayLevel2QueueId()`：队列 ID 为延迟级别 -1
+  * `queueId = ScheduleMessageService.delayLevel2QueueId()`：**队列 ID 为延迟级别 -1**
   * `MessageAccessor.putProperty`：**将原来的消息主题和 ID 存入消息的属性 `REAL_TOPIC` 中**
   * `mappedFile = this.mappedFileQueue.getLastMappedFile()`：获取当前顺序写的 MappedFile 对象
   * `putMessageLock.lock()`：**获取写锁**
@@ -7660,6 +7644,7 @@ BrokerStartup#createBrokerController：构造控制器，并初始化
 * `final BrokerController controller()`：创建实例对象
 * `boolean initResult = controller.initialize()`：控制器初始化
   * `this.registerProcessor()`：**注册了处理器，包括发送消息、拉取消息、查询消息等核心处理器**
+  * `initialTransaction()`：初始化了事务服务，用于进行**事务回查**
 
 BrokerController#start：核心启动方法
 
@@ -7668,6 +7653,8 @@ BrokerController#start：核心启动方法
 * `this.remotingServer.start()`：启动 Netty 通信服务
 
 * `this.fileWatchService.start()`：启动文件监听服务
+
+* `startProcessorByHa(messageStoreConfig.getBrokerRole())`：**启动事务回查**
 
 * `this.scheduledExecutorService.scheduleAtFixedRate()`：每隔 30s 向 NameServer 上报 Topic 路由信息，**心跳机制**
 
@@ -7679,7 +7666,7 @@ BrokerController#start：核心启动方法
 
 
 
-### 生产者
+### Producer
 
 #### 生产者类
 
@@ -7884,13 +7871,17 @@ DefaultMQProducerImpl 类是默认的生产者实现类
 
 * start()：启动方法，参数默认是 true，代表正常的启动路径
 
+  ```java
+  public void start(final boolean startFactory)
+  ```
+
   * `this.serviceState = ServiceState.START_FAILED`：先修改为启动失败，成功后再修改，这种思想很常见
 
   * `this.checkConfig()`：判断生产者组名不能是空，也不能是 default_PRODUCER
 
   * `if (!getProducerGroup().equals(MixAll.CLIENT_INNER_PRODUCER_GROUP))`：条件成立说明当前生产者不是内部产生者，内部生产者是**处理消息回退**的这种情况使用的生产者
 
-    `this.defaultMQProducer.changeInstanceNameToPID()`：正常的生产者，修改生产者实例名称为当前进程的 PID
+    `this.defaultMQProducer.changeInstanceNameToPID()`：修改生产者实例名称为当前进程的 PID
 
   * ` this.mQClientFactory = ...`：获取当前进程的 MQ 客户端实例对象，从 factoryTable 中获取 key 为 客户端 ID，格式是`ip@pid`，**一个 JVM 进程只有一个 PID，也只有一个 MQClientInstance**
 
@@ -7898,14 +7889,11 @@ DefaultMQProducerImpl 类是默认的生产者实现类
 
   * `this.topicPublishInfoTable.put(...)`：添加一个主题发布信息，key 是 **TBW102** ，value 是一个空对象
 
-  * `if (startFactory) `：正常启动路径
+  * `mQClientFactory.start()`：启动 RocketMQ 客户端实例对象
 
-    `mQClientFactory.start()`：启动 RocketMQ 客户端实例对象
+  * `this.mQClientFactory.sendHeartbeatToAllBrokerWithLock()`：RocketMQ **客户端实例向已知的 Broker 节点发送一次心跳**（也是定时任务）
 
-  * `this.serviceState = ServiceState.RUNNING`：修改生产者实例的状态
-
-  * `this.mQClientFactory.sendHeartbeatToAllBrokerWithLock()`：RocketMQ 客户端实例向已知的 Broker 节点发送一次心跳（也是定时任务）
-  * `this.timer.scheduleAtFixedRate()`： request 发送的回执信息，启动定时任务每秒一次删除超时请求
+  * `this.timer.scheduleAtFixedRate()`： request 发送的消息需要消费着回执信息，启动定时任务每秒一次删除超时请求
     
     * 生产者 msg 添加信息关联 ID 发送到 Broker
     * 消费者从 Broker 拿到消息后会检查 msg 类型是一个需要回执的消息，处理完消息后会根据 msg 关联 ID 和客户端 ID 生成一条响应结果消息发送到 Broker，Broker 判断为回执消息，会根据客户端ID 找到 channel 推送给生产者
@@ -7920,50 +7908,33 @@ DefaultMQProducerImpl 类是默认的生产者实现类
 
   * `this.makeSureStateOK()`：校验生产者状态是运行中，否则抛出异常
 
-  * `Validators.checkMessage(msg, this.defaultMQProducer)`：校验消息规格
-
-  * `long beginTimestampPrev, endTimestamp`：本轮发送的开始时间和本轮的结束时间
-
   * `topicPublishInfo = this.tryToFindTopicPublishInfo(msg.getTopic())`：**获取当前消息主题的发布信息**
 
-    * `this.topicPublishInfoTable.get(topic)`：尝试从本地主题发布信息映射表获取信息，不空直接返回
+    * `this.topicPublishInfoTable.get(topic)`：先尝试从本地主题发布信息映射表获取信息，获取不到继续执行
 
-    * `if (null == topicPublishInfo || !topicPublishInfo.ok())`：本地没有需要去 MQ 客户端获取
+    * `this.mQClientFactory.update...FromNameServer(topic)`：然后从 Namesrv 更新该 Topic 的路由数据
 
-      `this.topicPublishInfoTable.putIfAbsent(topic, new TopicPublishInfo())`：保存一份空数据
+    * `this.mQClientFactory.update...FromNameServer(...)`：**路由数据是空，获取默认 TBW102 的数据**
 
-      `this.mQClientFactory.updateTopicRouteInfoFromNameServer(topic)`：从 Namesrv 更新该 Topic 的路由数据
-
-      `topicPublishInfo = this.topicPublishInfoTable.get(topic)`：重新从本地获取发布信息
-
-    * `this.mQClientFactory.updateTopicRouteInfoFromNameServer(..)`：**路由数据是空，获取默认 TBW102 的数据**
-
-    * `return topicPublishInfo`：返回 TBW102 主题的发布信息
-
-  * `int timesTotal, times `：发送的总尝试次数和当前是第几次发送
+      `return topicPublishInfo`：返回 TBW102 主题的发布信息
 
   * `String[] brokersSent = new String[timesTotal]`：下标索引代表第几次发送，值代表这次发送选择 Broker name
 
-  * `for (; times < timesTotal; times++)`：循环发送，发送成功或者发送尝试次数达到上限，结束循环
+  * `for (; times < timesTotal; times++)`：循环发送，**发送成功或者发送尝试次数达到上限，结束循环**
 
   * `String lastBrokerName = null == mq ? null : mq.getBrokerName()`：获取上次发送失败的 BrokerName
 
-  * `mqSelected = this.selectOneMessageQueue(topicPublishInfo, lastBrokerName)`：**从发布信息中选择一个队列**
+  * `mqSelected = this.selectOneMessageQueue(topicPublishInfo, lastBrokerName)`：从发布信息中选择一个队列，生产者的**负载均衡策略**，参考系统特性章节
 
-    * `if (this.sendLatencyFaultEnable)`：默认不开启，可以通过配置开启
-    * `return tpInfo.selectOneMessageQueue(lastBrokerName)`：默认选择队列的方式，就是循环主题全部的队列
-    
   * `brokersSent[times] = mq.getBrokerName()`：将本次选择的 BrokerName 存入数组
 
-  * `msg.setTopic(this.defaultMQProducer.withNamespace(msg.getTopic()))`：**重投的消息需要加上标记**
+  * `msg.setTopic(this.defaultMQProducer.withNamespace(msg.getTopic()))`：**产生重投，重投消息需要加上标记**
 
   * `sendResult = this.sendKernelImpl`：核心发送方法
 
-  * `this.updateFaultItem(mq.getBrokerName(), endTimestamp - beginTimestampPrev, false)`：更新一下时间
+  * `switch (communicationMode)`：异步或者单向消息直接返回 null，异步通过回调函数处理，同步发送进入逻辑判断
 
-  * `switch (communicationMode)`：异步或者单向消息直接返回 null，同步发送进入逻辑判断
-
-    `if (sendResult.getSendStatus() != SendStatus.SEND_OK)`：**服务端 Broker 存储失败**，需要重试其他 Broker
+    `if (sendResult.getSendStatus() != SendStatus.SEND_OK)`：**服务端 Broker 存储失败，需要重试其他 Broker**
 
   * `throw new MQClientException()`：未找到当前主题的路由数据，无法发送消息，抛出异常
 
@@ -7982,7 +7953,7 @@ DefaultMQProducerImpl 类是默认的生产者实现类
 
   * `if (!(msg instanceof MessageBatch))`：非批量消息，需要重新设置消息 ID
 
-    `MessageClientIDSetter.setUniqID(msg)`：msg id 由两部分组成，一部分是 ip 地址、进程号、ClassLoader 的 hashcode，另一部分是时间差（当前时间减去当月一号的时间）和计数器的值
+    `MessageClientIDSetter.setUniqID(msg)`：**msg id 由两部分组成**，一部分是 ip 地址、进程号、Classloader 的 hashcode，另一部分是时间差（当前时间减去当月一号的时间）和计数器的值
 
   * `if (this.tryToCompressMessage(msg))`：判断消息是否压缩，压缩需要设置压缩标记
 
@@ -7998,7 +7969,7 @@ DefaultMQProducerImpl 类是默认的生产者实现类
 
     * `request = RemotingCommand.createRequestCommand()`：创建一个 RequestCommand 对象
     * `request.setBody(msg.getBody())`：**将消息放入请求体**
-    * `switch (communicationMode)`：根据不同的模式 invoke 不同的方法
+    * `switch (communicationMode)`：**根据不同的模式 invoke 不同的方法**
 
 * request()：请求方法，消费者回执消息，这种消息是异步消息
 
@@ -8017,7 +7988,7 @@ DefaultMQProducerImpl 类是默认的生产者实现类
         return this.responseMsg;
     }
 
-  * 当消息被消费后，会获取消息的关联 ID，从映射表中获取消息的 RequestResponseFuture，执行下面的方法唤醒挂起线程
+  * 当消息被消费后，客户端处理响应时通过消息的关联 ID，从映射表中获取消息的 RequestResponseFuture，执行下面的方法唤醒挂起线程
 
     ```java
     public void putResponseMessage(final Message responseMsg) {
@@ -8360,7 +8331,7 @@ MQClientInstance 是 RocketMQ 客户端实例，在一个 JVM 进程中只有一
 
   * `if (null == this.clientConfig.getNamesrvAddr())`：Namesrv 地址是空，需要两分钟拉取一次 Namesrv 地址
 
-  * 定时任务 1：从 Namesrv 更新客户端本地的路由数据，周期 30 秒一次
+  * 定时任务 1：**从 Namesrv 更新客户端本地的路由数据**，周期 30 秒一次
 
     ```java
     // 获取生产者和消费者订阅的主题集合，遍历集合，对比从 namesrv 拉取最新的主题路由数据和本地数据，是否需要更新
@@ -8369,8 +8340,8 @@ MQClientInstance 是 RocketMQ 客户端实例，在一个 JVM 进程中只有一
 
   * 定时任务 2：周期 30 秒一次，两个任务
 
-    * 清理下线的 Broker 节点，遍历客户端的 Broker 物理节点映射表，将所有主题数据都不包含的 Broker 物理节点清理掉，如果被清理的 Broker 下所有的物理节点都没有了，就将该 Broker 的映射数据删除掉
-    * 向在线的所有的 Broker 发送心跳数据，**同步发送的方式**，返回值是 Broker 物理节点的版本号，更新版本映射表
+    * **清理下线的 Broker 节点**，遍历客户端的 Broker 物理节点映射表，将所有主题数据都不包含的 Broker 物理节点清理掉，如果被清理的 Broker 下所有的物理节点都没有了，就将该 Broker 的映射数据删除掉
+    * **向在线的所有的 Broker 发送心跳数据**，同步发送的方式，返回值是 Broker 物理节点的版本号，更新版本映射表
 
     ```java
     MQClientInstance.this.cleanOfflineBroker();
@@ -8407,8 +8378,6 @@ MQClientInstance 是 RocketMQ 客户端实例，在一个 JVM 进程中只有一
 
     `topicRouteData = ...getDefaultTopicRouteInfoFromNameServer()`：从 Namesrv 获取默认的 TBW102 的路由数据
 
-    `int queueNums`：遍历所有队列，为每个读写队列设置较小的队列数
-
   * `topicRouteData = ...getTopicRouteInfoFromNameServer(topic)`：需要**从 Namesrv 获取**路由数据（同步）
 
   * `old = this.topicRouteTable.get(topic)`：获取客户端实例本地的该主题的路由数据
@@ -8417,16 +8386,14 @@ MQClientInstance 是 RocketMQ 客户端实例，在一个 JVM 进程中只有一
 
   * `if (changed)`：不一致进入更新逻辑
 
-    `cloneTopicRouteData = topicRouteData.cloneTopicRouteData()`：克隆一份最新数据
-
     `Update Pub info`：更新生产者信息
 
-    * `publishInfo = topicRouteData2TopicPublishInfo(topic, topicRouteData)`：**将主题路由数据转化为发布数据**
+    * `publishInfo = topicRouteData2TopicPublishInfo(topic, topicRouteData)`：将主题路由数据转化为发布数据，会**创建消息队列 MQ**，放入发布数据对象的集合中
     * `impl.updateTopicPublishInfo(topic, publishInfo)`：生产者将主题的发布数据保存到它本地，方便发送消息使用
-
-    `Update sub info`：更新消费者信息
-
-    `this.topicRouteTable.put(topic, cloneTopicRouteData)`：将数据放入本地路由表
+    
+    `Update sub info`：更新消费者信息，创建 MQ 队列，更新订阅信息，用于负载均衡
+  
+    `this.topicRouteTable.put(topic, cloneTopicRouteData)`：**将数据放入本地路由表**
 
 
 
@@ -8596,7 +8563,7 @@ NettyRemotingClient 类负责客户端的网络通信
 
 ##### 消息处理
 
-BrokerStartup 初始化 BrokerController 调用 `registerProcessor()` 方法将 SendMessageProcessor 注册到 NettyRemotingServer 中，对应的请求 ID 为 `SEND_MESSAGE = 10`，NettyServerHandler 在处理请求时通过请求 ID 会获取处理器执行 processRequest
+BrokerStartup 初始化 BrokerController 调用 `registerProcessor()` 方法将 SendMessageProcessor 注册到 NettyRemotingServer 中，对应的请求 ID 为 `SEND_MESSAGE = 10`，NettyServerHandler 在处理请求时通过 CMD 会获取处理器执行 processRequest
 
 ```java
 // 参数一：处理通道的事件；   参数二：客户端
@@ -8620,9 +8587,9 @@ SendMessageProcessor#asyncConsumerSendMsgBack：异步发送消费者的回调�
 
 * `if ()`：鉴权，是否找到订阅组配置、Broker 是否支持写请求、订阅组是否支持消息重试
 
-* `String newTopic = MixAll.getRetryTopic(...)`：获取**消费者组的重试主题**，规则是 `%RETRY%GroupName`
+* `String newTopic = MixAll.getRetryTopic(...)`：**获取消费者组的重试主题**，规则是 `%RETRY%GroupName`
 
-* `int queueIdInt = Math.abs()`：充实主题下的队列 ID 是 0
+* `int queueIdInt = Math.abs()`：**重试主题下的队列 ID 是 0**
 
 * `TopicConfig topicConfig`：获取重试主题的配置信息
 
@@ -8636,7 +8603,7 @@ SendMessageProcessor#asyncConsumerSendMsgBack：异步发送消费者的回调�
 
 * `if (msgExt...() >= maxReconsumeTimes || delayLevel < 0)`：消息重试次数超过最大次数，不支持重试
 
-  `newTopic = MixAll.getDLQTopic()`：获取消费者的死信队列，规则是 `%DLQ%GroupName`
+  `newTopic = MixAll.getDLQTopic()`：**获取消费者的死信队列**，规则是 `%DLQ%GroupName`
 
   `queueIdInt, topicConfig`：死信队列 ID 为 0，创建死信队列的配置
 
@@ -8644,7 +8611,7 @@ SendMessageProcessor#asyncConsumerSendMsgBack：异步发送消费者的回调�
 
   `delayLevel = 3 + msgExt.getReconsumeTimes()`：**延迟级别默认从 3 级开始**，每重试一次，延迟级别 +1
 
-* `msgExt.setDelayTimeLevel(delayLevel)`：**将延迟级别设置进消息属性**，存储时会检查该属性，该属性值 > 0 会将消息的主题和队列再次修改，修改为调度主题和调度队列 ID
+* `msgExt.setDelayTimeLevel(delayLevel)`：**将延迟级别设置进消息属性**，存储时会检查该属性，该属性值 > 0 会**将消息的主题和队列修改为调度主题和调度队列 ID**
 
 * `MessageExtBrokerInner msgInner`：创建一条空消息，消息属性从 offset 查询出来的 msg 中拷贝
 
@@ -8702,7 +8669,7 @@ DefaultMessageStore 中有成员属性 ScheduleMessageService，在 start 方法
 
 成员方法：
 
-* load()：加载调度消息，初始化 delayLevelTable 和 offsetTable
+* load()：加载调度消息，**初始化 delayLevelTable 和 offsetTable**
 
   ```java
   public boolean load()
@@ -8718,7 +8685,7 @@ DefaultMessageStore 中有成员属性 ScheduleMessageService，在 start 方法
 
   * `this.timer`：创建定时器对象
 
-  * `for (... : this.delayLevelTable.entrySet())`：为**每个延迟级别创建一个延迟任务**提交到 timer ，延迟 1 秒后执行
+  * `for (... : this.delayLevelTable.entrySet())`：为**每个延迟级别创建一个延迟任务**提交到 timer ，这样就可以**将延迟消息得到及时的消费**
 
   * `this.timer.scheduleAtFixedRate()`：提交周期型任务，延迟 10 秒执行，周期为 10 秒，持久化延迟队列消费进度任务
 
@@ -8765,7 +8732,7 @@ DeliverDelayedMessageTimerTask 是一个任务类
   public void executeOnTimeup()
   ```
 
-  * `ConsumeQueue cq`：获取出该延迟队列任务处理的延迟队列 ConsumeQueue
+  * `ConsumeQueue cq`：获取出该延迟队列任务处理的**延迟队列 ConsumeQueue**
 
   * `SelectMappedBufferResult bufferCQ`：根据消费进度查询出 SMBR 对象
 
@@ -8775,15 +8742,11 @@ DeliverDelayedMessageTimerTask 是一个任务类
 
   * `long tagsCode`：延迟消息的交付时间，在 ReputMessageService 转发时根据消息的 DELAY 属性是否 >0 ，会在 tagsCode 字段存储交付时间
 
-  * `long deliverTimestamp = this.correctDeliverTimestamp(now, tagsCode)`：**延迟交付时间**
-
-    * `long maxTimestamp`：当前时间 + 延迟级别对应的延迟毫秒值的时间戳
-    * `if (deliverTimestamp > maxTimestamp)`：条件成立说明延迟时间过长，调整为当前时间立刻执行
-    * `return result`：一般情况 result 就是 deliverTimestamp
+  * `long deliver... = this.correctDeliverTimestamp(..)`：**校准交付时间**，延迟时间过长会调整为当前时间立刻执行
 
   * `long countdown = deliverTimestamp - now`：计算差值
-
-  * `if (countdown <= 0)`：消息已经到达交付时间了
+  
+  * `if (countdown <= 0)`：**消息已经到达交付时间了**
 
     `MessageExt msgExt`：根据物理偏移量和消息大小获取这条消息
 
@@ -8791,11 +8754,11 @@ DeliverDelayedMessageTimerTask 是一个任务类
 
     * `long tagsCodeValue`：不再是交付时间了
     * `MessageAccessor.clearProperty(msgInner, DELAY..)`：清理新消息的 DELAY 属性，避免存储时重定向到延迟队列
-    * `msgInner.setTopic()`：修改主题为原始的主题 `%RETRY%GroupName`
+    * `msgInner.setTopic()`：**修改主题为原始的主题 `%RETRY%GroupName`**
     * `String queueIdStr`：修改队列 ID 为原始的 ID
-
+  
     `PutMessageResult putMessageResult`：**将新消息存储到 CommitLog**，消费者订阅的是目标主题，会再次消费该消息
-
+  
   * `else`：消息还未到达交付时间
 
     `ScheduleMessageService.this.timer.schedule()`：创建该延迟级别的任务，延迟 countDown 毫秒之后再执行
@@ -8860,8 +8823,6 @@ TransactionMQProducer 类发送事务消息时使用
 
   * `if (null == localTransactionExecuter && null == transactionListener)`：两者都为 null 抛出异常
 
-  * `Validators.checkMessage(msg, this.defaultMQProducer)`：检查消息
-
   * `MessageAccessor.putProperty(msg, MessageConst.PROPERTY_TRANSACTION_PREPARED, "true")`：**设置事务标志**
 
   * `sendResult = this.send(msg)`：发送消息
@@ -8870,7 +8831,7 @@ TransactionMQProducer 类发送事务消息时使用
 
   * `case SEND_OK`：消息发送成功
 
-    `msg.setTransactionId(transactionId)`：设置事务 ID 为消息的 UNIQ_KEY 属性
+    `msg.setTransactionId(transactionId)`：**设置事务 ID 为消息的 UNIQ_KEY 属性**
 
     `localTransactionState = ...executeLocalTransactionBranch(msg, arg)`：**执行本地事务**
 
@@ -8882,7 +8843,7 @@ TransactionMQProducer 类发送事务消息时使用
 
     * `EndTransactionRequestHeader requestHeader`：构建事务结束头对象
     * `this.mQClientFactory.getMQClientAPIImpl().endTransactionOneway()`：向 Broker 发起事务结束的单向请求
-
+  
   
 
 ***
@@ -8891,7 +8852,7 @@ TransactionMQProducer 类发送事务消息时使用
 
 ##### 回查处理
 
-ClientRemotingProcessor 用于处理到客户端的请求，创建 MQClientAPIImpl 时将该处理器注册到 Netty 中，`processRequest()` 方法根据请求的命令码，进行不同的处理，事务回查的处理命令码为 `CHECK_TRANSACTION_STATE`
+ClientRemotingProcessor 用于处理到服务端的请求，创建 MQClientAPIImpl 时将该处理器注册到 Netty 中，`processRequest()` 方法根据请求的命令码，进行不同的处理，事务回查的处理命令码为 `CHECK_TRANSACTION_STATE`
 
 成员方法：
 
@@ -8971,32 +8932,28 @@ SendMessageProcessor 是服务端处理客户端发送来的消息的处理器�
 
   * `RemotingCommand response`：创建响应对象
 
-  * `SendMessageResponseHeader responseHeader`：获取响应头，此时为 null
-
-  * `byte[] body = request.getBody()`：获取请求体
-
   * `MessageExtBrokerInner msgInner = new MessageExtBrokerInner()`：创建 msgInner 对象，并赋值相关的属性，主题和队列 ID 都是请求头中的
 
-  * `String transFlag`：获取**事务属性**
+  * `String transFlag`：**获取事务属性**
 
   * `if (transFlag != null && Boolean.parseBoolean(transFlag))`：判断事务属性是否是 true，走事务消息的存储流程
 
-    * `putMessageResult = ...asyncPrepareMessage(msgInner)`：事务消息处理流程
+    * `putMessageResult = ...asyncPrepareMessage(msgInner)`：**事务消息处理流程**
 
       ```java
       public CompletableFuture<PutMessageResult> asyncPutHalfMessage(MessageExtBrokerInner messageInner) {
-          // 调用存储模块，将修改后的 msg 存储进 Broker
+          // 调用存储模块，将修改后的 msg 存储进 Broker(CommitLog)
           return store.asyncPutMessage(parseHalfMessageInner(messageInner));
       }
       ```
-
+  
       TransactionalMessageBridge#parseHalfMessageInner：
-
-      * `MessageAccessor.putProperty(...)`：将消息的原主题和队列 ID 放入消息的属性中
+  
+      * `MessageAccessor.putProperty(...)`：**将消息的原主题和队列 ID 放入消息的属性中**
       * `msgInner.setSysFlag(...)`：消息设置为非事务状态
       * `msgInner.setTopic(TransactionalMessageUtil.buildHalfTopic())`：**消息主题设置为半消息主题**
       * `msgInner.setQueueId(0)`：**队列 ID 设置为 0**
-
+  
   * `else`：普通消息存储
 
 
@@ -9016,19 +8973,33 @@ EndTransactionProcessor 类用来处理客户端发来的提交或者回滚请�
   ```
 
   * `EndTransactionRequestHeader requestHeader`：从请求中解析出 EndTransactionRequestHeader
-  * `result = this.brokerController...commitMessage(requestHeader)`：根据 commitLogOffset 提取出 halfMsg 消息
-  * `MessageExtBrokerInner msgInner`：根据 result 克隆出一条新消息
-    * `msgInner.setTopic(msgExt.getUserProperty(...))`：**设置回原主题**
-    * `msgInner.setQueueId(Integer.parseInt(msgExt.getUserProperty(..)))`：**设置回原队列 ID**
-    * `MessageAccessor.clearProperty()`：清理上面的两个属性
-  * `MessageAccessor.clearProperty(msgInner, MessageConst.PROPERTY_TRANSACTION_PREPARED)`：清理事务属性
-  * `RemotingCommand sendResult = sendFinalMessage(msgInner)`：调用存储模块存储至 Broker
-  * `this.brokerController...deletePrepareMessage(result.getPrepareMessage())`：向删除（OP）队列添加消息，消息体的数据是 halfMsg 的 queueOffset，表示半消息队列指定的 offset 的消息已被删除
-    * `if (this...putOpMessage(msgExt, TransactionalMessageUtil.REMOVETAG))`：**添加一条 OP 数据**
+  
+  * `if (MessageSysFlag.TRANSACTION_COMMIT_TYPE)`：**事务提交**
+  
+    `result = this.brokerController...commitMessage(requestHeader)`：根据 commitLogOffset 提取出 halfMsg 消息
+  
+    * `MessageExtBrokerInner msgInner`：根据 result 克隆出一条新消息
+  
+      `msgInner.setTopic(msgExt.getUserProperty(...))`：**设置回原主题**
+  
+      * `msgInner.setQueueId(Integer.parseInt(msgExt.getUserProperty(..)))`：**设置回原队列 ID**
+      * `MessageAccessor.clearProperty()`：清理上面的两个属性
+  
+    `MessageAccessor.clearProperty(msgInner, ...)`：**清理事务属性**
+  
+    `RemotingCommand sendResult = sendFinalMessage(msgInner)`：调用存储模块存储至 Broker
+  
+    `this.brokerController...deletePrepareMessage(result.getPrepareMessage())`：**向删除（OP）队列添加消息**，消息体的数据是 halfMsg 的 queueOffset，**表示半消息队列指定的 offset 的消息已被删除**
+  
+    * `if (this...putOpMessage(msgExt, TransactionalMessageUtil.REMOVETAG))`：添加一条 OP 数据
       * `MessageQueue messageQueue`：新建一个消息队列，OP 队列
       * `return addRemoveTagInTransactionOp(messageExt, messageQueue)`：添加数据
-        * `Message message`：创建消息
-        * `writeOp(message, messageQueue)`：写入消息
+        * `Message message`：创建 OP 消息
+        * `writeOp(message, messageQueue)`：写入 OP 消息
+  
+  * `else if (MessageSysFlag.TRANSACTION_ROLLBACK_TYPE)`：**事务回滚**
+  
+    `this.brokerController...deletePrepareMessage(result.getPrepareMessage())`：**也需要向 OP 队列添加消息**
 
 
 
@@ -9036,7 +9007,7 @@ EndTransactionProcessor 类用来处理客户端发来的提交或者回滚请�
 
 
 
-### 消费者
+### Consumer
 
 #### 消费者类
 
@@ -9115,7 +9086,7 @@ DefaultMQPushConsumer 类是默认的消费者类
   public void registerMessageListener(MessageListener messageListener) 
   ```
 
-* subscribe()：添加订阅信息
+* subscribe()：添加订阅信息，**将订阅信息放入负载均衡对象的 subscriptionInner 中**
 
   ```java
   public void subscribe(String topic, String subExpression)
@@ -9163,7 +9134,7 @@ DefaultMQPushConsumerImpl 是默认消费者的实现类
    private final DefaultMQPushConsumer defaultMQPushConsumer;
   ```
 
-* **负载均衡**：分配订阅主题的队列给当前消费者，20秒钟一个周期执行 Rebalance 算法（客户端实例触发）
+* **负载均衡**：分配订阅主题的队列给当前消费者，20 秒钟一个周期执行 Rebalance 算法（客户端实例触发）
 
   ```java
   private final RebalanceImpl rebalanceImpl = new RebalancePushImpl(this);
@@ -9219,13 +9190,13 @@ DefaultMQPushConsumerImpl 是默认消费者的实现类
     * `this.rebalanceImpl.getSubscriptionInner().put(topic, subscriptionData)`：将订阅信息加入 rbl 的 map 中
     * `this.messageListenerInner = ...getMessageListener()`：将消息监听器保存到实例对象
     * `switch (this.defaultMQPushConsumer.getMessageModel())`：判断消费模式，广播模式下直接返回
-    * `final String retryTopic`：当前**消费者组重试的主题名**，规则 `%RETRY%ConsumerGroup`
+    * `final String retryTopic`：创建当前**消费者组重试的主题名**，规则 `%RETRY%ConsumerGroup`
     * `SubscriptionData subscriptionData = FilterAPI.buildSubscriptionData()`：创建重试主题的订阅数据对象
-    * `this.rebalanceImpl.getSubscriptionInner().put(retryTopic, subscriptionData)`：将创建的重试主题加入到 rbl 对象的 map 中，消息重试时会再次加入到该主题，消费者订阅这个主题之后，就有机会再次拿到该消息进行消费处理
+    * `this.rebalanceImpl.getSubscriptionInner().put(retryTopic, subscriptionData)`：将创建的重试主题加入到 rbl 对象的 map 中，**消息重试时会加入到该主题，消费者订阅这个主题之后，就有机会再次拿到该消息进行消费处理**
   * `this.mQClientFactory = ...getOrCreateMQClientInstance()`：获取客户端实例对象
   * `this.rebalanceImpl.`：初始化负载均衡对象，设置**队列分配策略对象**到属性中
   * `this.pullAPIWrapper = new PullAPIWrapper()`：创建拉消息 API 对象，内部封装了查询推荐主机算法
-  * `this.pullAPIWrapper.registerFilterMessageHook(filterMessageHookList)`：将 过滤 Hook 列表注册到该对象内，消息拉取下来之后会执行该 Hook，再**进行一次自定义的过滤**
+  * `this.pullAPIWrapper.registerFilterMessageHook(filterMessageHookList)`：将过滤 Hook 列表注册到该对象内，消息拉取下来之后会执行该 Hook，**再进行一次自定义的消息过滤**
   * `this.offsetStore = new RemoteBrokerOffsetStore()`：默认集群模式下创建消息进度存储器
   * `this.consumeMessageService = ...`：根据消息监听器的类型创建消费服务
   * `this.consumeMessageService.start()`：启动消费服务
@@ -9238,7 +9209,7 @@ DefaultMQPushConsumerImpl 是默认消费者的实现类
   * `mQClientFactory.start()`：启动客户端实例
   * ` this.updateTopic`：从 nameserver 获取主题路由数据，生成主题集合放入 rbl 对象的 table
   * `this.mQClientFactory.checkClientInBroker()`：检查服务器是否支持消息过滤模式，一般使用 tag 过滤，服务器默认支持
-  * `this.mQClientFactory.sendHeartbeatToAllBrokerWithLock()`：向所有已知的 Broker 节点，发送心跳数据
+  * `this.mQClientFactory.sendHeartbeatToAllBrokerWithLock()`：向所有已知的 Broker 节点，**发送心跳数据**
   * `this.mQClientFactory.rebalanceImmediately()`：唤醒 rbl 线程，触发负载均衡执行
 
 
@@ -9251,7 +9222,7 @@ DefaultMQPushConsumerImpl 是默认消费者的实现类
 
 ##### 实现方式
 
-MQClientInstance#start 中会启动负载均衡服务：
+MQClientInstance#start 中会启动负载均衡服务 RebalanceService：
 
 ```java
 public void run() {
@@ -9267,7 +9238,7 @@ public void run() {
 
 RebalanceImpl 类成员变量：
 
-* 分配给当前消费者的处理队列：处理消息队列集合，ProcessQueue 是 MQ 队列在消费者端的快照
+* 分配给当前消费者的处理队列：处理消息队列集合，**ProcessQueue 是 MQ 队列在消费者端的快照**
 
   ```java
   protected final ConcurrentMap<MessageQueue, ProcessQueue> processQueueTable;
@@ -9282,7 +9253,7 @@ RebalanceImpl 类成员变量：
 * 订阅数据：
 
   ```java
-  protected final ConcurrentMap<String /* topic */, SubscriptionData> subscriptionInner;
+  protected final ConcurrentMap<String/* topic */, SubscriptionData> subscriptionInner;
   ```
 
 * 队列分配策略：
@@ -9293,7 +9264,7 @@ RebalanceImpl 类成员变量：
 
 成员方法：
 
-* doRebalance()：负载均衡方法
+* doRebalance()：负载均衡方法，以每个消费者实例为粒度进行负载均衡
 
   ```java
   public void doRebalance(final boolean isOrder) {
@@ -9313,23 +9284,23 @@ RebalanceImpl 类成员变量：
   }
   ```
 
-  * `Set<MessageQueue> mqSet = this.topicSubscribeInfoTable.get(topic)`：获取当前主题的全部队列信息
+  集群模式下：
+
+  * `Set<MessageQueue> mqSet = this.topicSubscribeInfoTable.get(topic)`：订阅的主题下的全部队列信息
 
   * `cidAll = this...findConsumerIdList(topic, consumerGroup)`：从服务器获取消费者组下的全部消费者 ID
 
-  * `Collections.sort(mqAll)`：主题 MQ 队列和消费者 ID 都进行排序，保证每个消费者的视图一致性
+  * `Collections.sort(mqAll)`：主题 MQ 队列和消费者 ID 都进行排序，**保证每个消费者的视图一致性**
 
-  * `strategy = this.allocateMessageQueueStrategy`：获取队列分配策略对象
+  * `allocateResult = strategy.allocate()`： **调用队列分配策略**，给当前消费者进行分配 MessageQueue（下一节）
 
-  * `allocateResult = strategy.allocate()`： **调用队列分配策略**，给当前消费者进行分配 MessageQueue
-
-  * `boolean changed = this.updateProcessQueueTableInRebalance(...)`：**更新队列处理集合**
-
-    * `boolean changed = false`：当前消费者的消费队列是否有变化
+  * `boolean changed = this.updateProcessQueueTableInRebalance(...)`：**更新队列处理集合**，mqSet 是 rbl 算法分配到当前消费者的 MQ 集合
 
     * `while (it.hasNext())`：遍历当前消费者的所有处理队列
 
-    * `if (!mqSet.contains(mq))`：该 MQ 经过 rbl 计算之后，**被分配到其它 consumer 节点**
+    * `if (mq.getTopic().equals(topic))`：该 MQ 是 本次 rbl 分配算法计算的主题
+
+    * `if (!mqSet.contains(mq))`：该 MQ 经过 rbl 计算之后，**被分配到其它 Consumer 节点**
 
       `pq.setDropped(true)`：将删除状态设置为 true
 
@@ -9343,7 +9314,7 @@ RebalanceImpl 类成员变量：
 
         `if (pq.getLockConsume().tryLock(1000, ..))`： 获取锁成功，说明顺序消费任务已经停止消费工作
 
-        `return this.unlockDelay(mq, pq)`：**释放锁 Broker 端的队列锁**
+        `return this.unlockDelay(mq, pq)`：**释放锁 Broker 端的队列锁，向服务器发起 oneway 的解锁请求**
 
         * `if (pq.hasTempMessage())`：队列中有消息，延迟 20 秒释放队列分布式锁，确保全局范围内只有一个消费任务 运行中
         * `else`：当前消费者本地该消费任务已经退出，直接释放锁
@@ -9352,11 +9323,11 @@ RebalanceImpl 类成员变量：
     
       `it.remove()`：从 processQueueTable 移除该 MQ
     
-    * `else if (pq.isPullExpired())`：说明当前 MQ 还是被当前 consumer 消费，此时判断一下是否超过 2 分钟未到服务器 拉消息，如果条件成立进行上述相同的逻辑
+    * `else if (pq.isPullExpired())`：说明当前 MQ 还是被当前 Consumer 消费，此时判断一下是否超过 2 分钟未到服务器 拉消息，如果条件成立进行上述相同的逻辑
     
-    * `for (MessageQueue mq : mqSet)`：开始处理当前主题**新分配**到当前节点的队列
+    * `for (MessageQueue mq : mqSet)`：开始处理当前主题**新分配到当前节点的队列**
     
-      `if (isOrder && !this.lock(mq))`：**顺序消息为了保证有序性，需要获取分布式锁**
+      `if (isOrder && !this.lock(mq))`：**顺序消息为了保证有序性，需要获取队列锁**
     
       `ProcessQueue pq = new ProcessQueue()`：为每个新分配的消息队列创建快照队列
     
@@ -9364,9 +9335,9 @@ RebalanceImpl 类成员变量：
     
       `ProcessQueue pre = this.processQueueTable.putIfAbsent(mq, pq)`：保存到处理队列集合
     
-      `PullRequest pullRequest = new PullRequest()`：创建拉取请求对象
+      `PullRequest pullRequest = new PullRequest()`：**创建拉取请求对象**
     
-    * `this.dispatchPullRequest(pullRequestList)`：放入拉消息服务的本地阻塞队列内，**用于拉取消息工作**
+    * `this.dispatchPullRequest(pullRequestList)`：放入 PullMessageService 的**本地阻塞队列**内，用于拉取消息工作
   
 * lockAll()：续约锁，对消费者的所有队列进行续约
 
@@ -9374,7 +9345,7 @@ RebalanceImpl 类成员变量：
   public void lockAll()
   ```
 
-  * `HashMap<String, Set<MessageQueue>> brokerMqs`：将分配给当前消费者的全部 MQ，按照 BrokerName 分组
+  * `HashMap<String, Set<MessageQueue>> brokerMqs`：将分配给当前消费者的全部 MQ 按照 BrokerName 分组
 
   * `while (it.hasNext())`：遍历所有的分组
 
@@ -9384,11 +9355,11 @@ RebalanceImpl 类成员变量：
 
   * `LockBatchRequestBody requestBody`：创建请求对象，填充属性
 
-  * `Set<MessageQueue> lockOKMQSet`：**向 Broker 发起批量续约锁的同步请求**，返回成功的队列集合
+  * `Set<MessageQueue> lockOKMQSet`：**以组为单位向 Broker 发起批量续约锁的同步请求**，返回成功的队列集合
 
   * `for (MessageQueue mq : lockOKMQSet)`：遍历续约锁成功的 MQ
 
-    `processQueue.setLocked(true)`：分布式锁状态设置为 true，**表示允许顺序消费**
+    `processQueue.setLocked(true)`：**分布式锁状态设置为 true，表示允许顺序消费**
 
     `processQueue.setLastLockTimestamp(System.currentTimeMillis())`：设置上次获取锁的时间为当前时间
 
@@ -9396,7 +9367,7 @@ RebalanceImpl 类成员变量：
 
     `if (!lockOKMQSet.contains(mq))`：条件成立说明续约锁失败
 
-    `processQueue.setLocked(false)`：分布式锁状态设置为 false，表示不允许顺序消费
+    `processQueue.setLocked(false)`：**分布式锁状态设置为 false，表示不允许顺序消费**
 
 
 
@@ -9461,7 +9432,7 @@ MQClientInstance#start 中会启动消息拉取服务：PullMessageService
 
 ```java
 public void run() {
-    // 检查停止标记
+    // 检查停止标记，【循环拉取】
     while (!this.isStopped()) {
         try {
             // 从阻塞队列中获取拉消息请求
@@ -9491,9 +9462,9 @@ DefaultMQPushConsumerImpl#pullMessage：
 
 * `SubscriptionData subscriptionData`：本次拉消息请求订阅的主题数据，如果调用了 `unsubscribe(主题)` 将会获取为 null
 
-* `PullCallback pullCallback = new PullCallback()`：**拉消息处理回调对象**，
+* `PullCallback pullCallback = new PullCallback()`：**拉消息处理回调对象**
 
-  * `pullResult = ...processPullResult()`：预处理 PullResult 结果
+  * `pullResult = ...processPullResult()`：预处理 PullResult 结果，将服务器端指定 MQ 的拉消息**下一次的推荐节点**保存到 pullFromWhichNodeTable 中，**并进行消息过滤**
 
   * `case FOUND`：正常拉取到消息
 
@@ -9503,21 +9474,21 @@ DefaultMQPushConsumerImpl#pullMessage：
 
     `boolean .. = processQueue.putMessage()`：将服务器拉取的消息集合**加入到消费者本地**的 processQueue 内
 
-    `DefaultMQPushConsumerImpl...submitConsumeRequest()`：**提交消费任务**，分为顺序消费和并发消费
+    `DefaultMQPushConsumerImpl...submitConsumeRequest()`：**提交消费任务，分为顺序消费和并发消费**
 
     `Defaul..executePullRequestImmediately(pullRequest)`：将更新过 nextOffset 字段的 PullRequest 对象，再次放到 pullMessageService 的阻塞队列中，**形成闭环**
 
-  * `case NO_NEW_MSG ||NO_MATCHED_MSG`：表示本次 pull 没有新的可消费的信息
+  * `case NO_NEW_MSG ||NO_MATCHED_MSG`：**表示本次 pull 没有新的可消费的信息**
 
     `pullRequest.setNextOffset()`：更新更新 pullRequest 对象下一次拉取消息的位点
 
     `Defaul..executePullRequestImmediately(pullRequest)`：再次拉取请求
 
-  * `case OFFSET_ILLEGAL`：本次 pull 时使用的 offset 是无效的，即 offset > maxOffset || offset  < minOffset
+  * `case OFFSET_ILLEGAL`：**本次 pull 时使用的 offset 是无效的**，即 offset > maxOffset || offset  < minOffset
 
-    `pullRequest.setNextOffset()`：调整pullRequest nextOffset 为 正确的 offset
+    `pullRequest.setNextOffset()`：调整 pullRequest.nextOffset 为正确的 offset
 
-    `pullRequest.getProcessQueue().setDropped(true)`：设置该 processQueue 为删除状态，如果有该 queue 的消费任务，该消费任务会马上停止任务
+    `pullRequest.getProcessQueue().setDropped(true)`：设置该 processQueue 为删除状态，如果有该 queue 的消费任务，消费任务会马上停止
 
     `DefaultMQPushConsumerImpl.this.executeTaskLater()`：提交异步任务，10 秒后去执行
 
@@ -9531,7 +9502,7 @@ DefaultMQPushConsumerImpl#pullMessage：
 
       负载均衡 rbl 程序会重建该队列的 processQueue，重建完之后会为该队列创建新的 PullRequest 对象
 
-* `int sysFlag = PullSysFlag.buildSysFlag()`：构建标志对象，sysFlag 高 4 位未使用，低 4 位使用，从左到右为 0000 0011
+* `int sysFlag = PullSysFlag.buildSysFlag()`：**构建标志对象**，sysFlag 高 4 位未使用，低 4 位使用，从左到右 0000 0011
 
   * 第一位：表示是否提交消费者本地该队列的 offset，一般是 1
   * 第二位：表示是否允许服务器端进行长轮询，一般是 1
@@ -9576,23 +9547,13 @@ PullAPIWrapper 类封装了拉取消息的 API
 
     * `RemotingCommand request`：创建网络层传输对象 RemotingCommand 对象，**请求 ID 为 `PULL_MESSAGE = 11`**
 
-    * `return this.pullMessageSync(...)`：此处是异步调用，**处理结果放入 ResponseFuture 中**，参考服务端小节的处理器类 `NettyServerHandler#processMessageReceived` 方法
-
-      * `RemotingCommand response = responseFuture.getResponseCommand()`：获取服务器端响应数据 response
+    * `return this.pullMessageSync(...)`：此处是**异步调用，处理结果放入 ResponseFuture 中**，参考服务端小节的处理器类 `NettyServerHandler#processMessageReceived` 方法
+* `RemotingCommand response = responseFuture.getResponseCommand()`：获取服务器端响应数据 response
       * `PullResult pullResult`：从 response 内提取出来拉消息结果对象，将响应头 PullMessageResponseHeader 对象中信息**填充到 PullResult 中**，列出两个重要的字段：
         * `private Long suggestWhichBrokerId`：服务端建议客户端下次 Pull 时选择的 BrokerID
         * `private Long nextBeginOffset`：客户端下次 Pull 时使用的 offset 信息
-
-      * `pullCallback.onSuccess(pullResult)`：将 PullResult 交给拉消息结果处理回调对象，调用 onSuccess 方法
-
-* processPullResult()：预处理拉消息结果，**更新推荐 Broker 和过滤消息**
-
-  * `this.updatePullFromWhichNode()`：更新 pullFromWhichNodeTable 内该 MQ 的下次查询推荐 BrokerID
-  * `if (PullStatus.FOUND == pullResult.getPullStatus())`：条件成立说明拉取成功
-  * `List<MessageExt> msgList`：**将获取的消息进行解码**
-  * `if (!subscriptionData... && !subscriptionData.isClassFilterMode())`：客户端按照 tag 值进行过滤
-  * `pullResultExt.setMsgFoundList(msgListFilterAgain)`：将再次过滤后的消息集合，保存到 pullResult
-  * `pullResultExt.setMessageBinary(null)`：设置为 null，帮助 GC
+      
+* `pullCallback.onSuccess(pullResult)`：将 PullResult 交给拉消息结果处理回调对象，调用 onSuccess 方法
 
 
 
@@ -9617,11 +9578,11 @@ private RemotingCommand processRequest(final Channel channel, RemotingCommand re
 
 * `final PullMessageRequestHeader requestHeader`：解析出请求头 PullMessageRequestHeader
 
-* `response.setOpaque(request.getOpaque())`：设置 opaque 属性，客户端需要根据该字段**获取 ResponseFuture**
+* `response.setOpaque(request.getOpaque())`：设置 opaque 属性，客户端**根据该字段获取 ResponseFuture** 进行处理
 
 * 进行一些鉴权的逻辑：是否允许长轮询、提交 offset、topicConfig 是否是空、队列 ID 是否合理
 
-* `ConsumerGroupInfo consumerGroupInfo`：获取消费者组信息，包好全部的消费者和订阅数据
+* `ConsumerGroupInfo consumerGroupInfo`：获取消费者组信息，包含全部的消费者和订阅数据
 
 * `subscriptionData = consumerGroupInfo.findSubscriptionData()`：**获取指定主题的订阅数据**
 
@@ -9629,13 +9590,13 @@ private RemotingCommand processRequest(final Channel channel, RemotingCommand re
 
 * `MessageFilter messageFilter`：创建消息过滤器，一般是通过 tagCode 进行过滤
 
-* `DefaultMessageStore.getMessage()`：**查询消息的核心逻辑**，在 Broker 端查询消息（存储端笔记详解了该源码）
+* `DefaultMessageStore.getMessage()`：**查询消息的核心逻辑，在 Broker 端查询消息**（存储端笔记详解了该源码）
 
 * `response.setRemark()`：设置此次响应的状态
 
 * `responseHeader.set..`：设置响应头对象的一些字段
 
-* `switch (this.brokerController.getMessageStoreConfig().getBrokerRole())`：如果当前主机节点角色为 slave 并且**从节点读**并未开启的话，直接给客户端 一个状态 `PULL_RETRY_IMMEDIATELY`
+* `switch (this.brokerController.getMessageStoreConfig().getBrokerRole())`：如果当前主机节点角色为 slave 并且**从节点读**并未开启的话，直接给客户端 一个状态 `PULL_RETRY_IMMEDIATELY`，并设置为下次从主节点读
 
 * `if (this.brokerController.getBrokerConfig().isSlaveReadEnable())`：消费太慢，下次从另一台机器拉取
 
@@ -9669,12 +9630,12 @@ private RemotingCommand processRequest(final Channel channel, RemotingCommand re
   * `this.brokerController...suspendPullRequest(topic, queueId, pullRequest)`：将长轮询请求对象交给长轮询服务
     * `String key = this.buildKey(topic, queueId)`：构建一个 `topic@queueId` 的 key
     * `ManyPullRequest mpr = this.pullRequestTable.get(key)`：从拉请求表中获取对象
-    * `mpr.addPullRequest(pullRequest)`：将 PullRequest 对象放入到 ManyPullRequest 的请求集合中
+    * `mpr.addPullRequest(pullRequest)`：**将 PullRequest 对象放入到长轮询的请求集合中**
   * `response = null`：响应设置为 null 内部的 callBack 就不会给客户端发送任何数据，**不进行通信**，否则就又开始重新请求
 
 * `boolean storeOffsetEnable`：允许长轮询、sysFlag 表示提交消费者本地该队列的offset、当前 broker 节点角色为 master 节点三个条件成立，才**在 Broker 端存储消费者组内该主题的指定 queue 的消费进度**
 
-* `return response`：返回 response，不为 null 时外层 requestTask 的 callback 会将数据写给客户端
+* `return response`：返回 response，不为 null 时外层 processRequestCommand 的 callback 会将数据写给客户端
 
 
 
@@ -9715,13 +9676,13 @@ PullRequestHoldService 类负责长轮询，BrokerController#start 方法中调�
   * `long offset = this...getMaxOffsetInQueue(topic, queueId)`： 到存储模块查询该 ConsumeQueue 的**最大 offset**
   * `this.notifyMessageArriving(topic, queueId, offset)`：通知消息到达
 
-* notifyMessageArriving()：通知消息到达的逻辑，ReputMessageService 消息分发服务也会调用该方法
+* notifyMessageArriving()：**通知消息到达**的逻辑，ReputMessageService 消息分发服务也会调用该方法
 
-  * `ManyPullRequest mpr = this.pullRequestTable.get(key)`：获取对应的的manyPullRequest对象
+  * `ManyPullRequest mpr = this.pullRequestTable.get(key)`：获取对应的的 manyPullRequest 对象
   * `List<PullRequest> requestList`：获取该队列下的所有 PullRequest，并进行遍历
   * `List<PullRequest> replayList`：当某个 pullRequest 不超时，并且对应的 `CQ.maxOffset <= pullRequest.offset`，就将该 PullRequest 再放入该列表
   * `long newestOffset`：该值为 CQ 的 maxOffset
-  * `if (newestOffset > request.getPullFromThisOffset())`：说明该请求对应的队列内可以 pull 消息了，**结束长轮询**
+  * `if (newestOffset > request.getPullFromThisOffset())`：**请求对应的队列内可以 pull 消息了，结束长轮询**
   * `boolean match`：进行过滤匹配
   * `this.brokerController...executeRequestWhenWakeup()`：将满足条件的 pullRequest 再次提交到线程池内执行
     * `final RemotingCommand response`：执行 processRequest 方法，并且**不会触发长轮询**
@@ -9930,7 +9891,7 @@ ConsumeMessageConcurrentlyService 负责并发消费服务
 * 线程池：
 
   ```java
-  private final ThreadPoolExecutor consumeExecutor;				// 消费任务线程池
+  private final ThreadPoolExecutor consumeExecutor;				// 消费任务线程池，默认 20
   private final ScheduledExecutorService scheduledExecutorService;// 调度线程池，延迟提交消费任务
   private final ScheduledExecutorService cleanExpireMsgExecutors;	// 清理过期消息任务线程池，15min 一次
   ```
@@ -9975,7 +9936,7 @@ ConsumeMessageConcurrentlyService 并发消费核心方法
   public void submitConsumeRequest(List<MessageExt> msgs, ProcessQueue processQueue, MessageQueue messageQueue, boolean dispatchToConsume)
   ```
 
-  * `final int consumeBatchSize`：**一个消费任务**可消费的消息数量，默认为 1
+  * `final int consumeBatchSize`：**一个消费任务可消费的消息数量**，默认为 1
 
   * `if (msgs.size() <= consumeBatchSize)`：判断一个消费任务是否可以提交
 
@@ -10008,28 +9969,23 @@ ConsumeMessageConcurrentlyService 并发消费核心方法
 
   * `switch (this.defaultMQPushConsumer.getMessageModel())`：判断消费模式，默认是**集群模式**
 
-  * `for (int i = ackIndex + 1; i < msgs.size(); i++)`：当消费失败时 ackIndex 为 -1，i 的起始值为 0，该消费任务内的全部消息都会尝试回退给服务器
+  * `for (int i = ackIndex + 1; i < msgs.size(); i++)`：当消费失败时 ackIndex 为 -1，i 的起始值为 0，该消费任务内的**全部消息**都会尝试回退给服务器
 
   * `MessageExt msg`：提取一条消息
 
-  * `boolean result = this.sendMessageBack(msg, context)`：发送**消息回退**
-
-    * `String brokerAddr`：根据 brokerName 获取 master 节点地址
-    * `his.mQClientFactory...consumerSendMessageBack()`：发送回退消息
-      * `RemotingCommand request`：创建请求对象
-      * `RemotingCommand response = this.remotingClient.invokeSync()`：**同步请求**
+  * `boolean result = this.sendMessageBack(msg, context)`：**发送消息回退，同步发送**
 
   * `if (!result)`：回退失败的消息，将**消息的重试属性加 1**，并加入到回退失败的集合
-
+  
   * `if (!msgBackFailed.isEmpty())`：回退失败集合不为空
-
-    `consumeRequest.getMsgs().removeAll(msgBackFailed)`：将回退失败的消息从当前消费任务的 msgs 集合内移除
-
-    `this.submitConsumeRequestLater()`：回退失败的消息会再次提交消费任务，延迟 5 秒钟后**再次尝试消费**
-
-  * `long offset = ...removeMessage(msgs)`：从 pq 中删除已经消费成功的消息，返回 offset
-
-  * `this...getOffsetStore().updateOffset()`：更新消费者本地该 mq 的**消费进度**
+  
+  `consumeRequest.getMsgs().removeAll(msgBackFailed)`：将回退失败的消息从当前消费任务的 msgs 集合内移除
+  
+  `this.submitConsumeRequestLater()`：**回退失败的消息会再次提交消费任务**，延迟 5 秒钟后再次尝试消费
+  
+* `long offset = ...removeMessage(msgs)`：从 pq 中删除已经消费成功的消息，返回 offset
+  
+* `this...getOffsetStore().updateOffset()`：更新消费者本地该 mq 的**消费进度**
 
 
 
@@ -10115,7 +10071,7 @@ ConsumeMessageOrderlyService 负责顺序消费服务
   private final ScheduledExecutorService scheduledExecutorService;// 调度线程池，延迟提交消费任务
   ```
 
-* 队列锁：消费者本地 MQ 锁，确保本地对于需要顺序消费的 MQ 同一时间只有一个任务在执行
+* 队列锁：消费者本地 MQ 锁，**确保本地对于需要顺序消费的 MQ 同一时间只有一个任务在执行**
 
   ```java
   private final MessageQueueLock messageQueueLock = new MessageQueueLock();
@@ -10139,9 +10095,9 @@ ConsumeMessageOrderlyService 负责顺序消费服务
   }
   ```
 
-  已经获取了 Broker 端该 Queue 的独占锁，为什么还要获取本地队列锁对象？（这里我也没太懂，先记录下来）
+  已经获取了 Broker 端该 Queue 的独占锁，为什么还要获取本地队列锁对象？（这里我也没太懂，先记录下来，本地多线程？）
 
-  * Broker queue 占用锁的角度是 Client 占用，Client 从 Broker 的某个占用了锁的 queue 拉取下来消息以后，将消息存储到消费者本地的 ProcessQueue 中，快照对象的 consuming 属性置为 true，表示本地的队列正在消费处理中。
+  * Broker queue 占用锁的角度是 Client 占用，Client 从 Broker 的某个占用了锁的 queue 拉取下来消息以后，将消息存储到消费者本地的 ProcessQueue 中，快照对象的 consuming 属性置为 true，表示本地的队列正在消费处理中
   * ProcessQueue  调用 takeMessages 方法时会获取下一批待处理的消息，获取不到会修改 `consuming = false`，本消费任务马上停止。
   * 如果此时 Pull 再次拉取一批当前 ProcessQueue  的 msg，会再次向顺序消费服务提交消费任务，此时需要本地队列锁对象同步本地线程
 
@@ -10195,7 +10151,7 @@ ConsumeMessageOrderlyService 负责顺序消费服务
 
   * `case SUSPEND_CURRENT_QUEUE_A_MOMENT`：挂起当前队列
 
-    `consumeRequest.getProcessQueue().makeMessageToConsumeAgain(msgs)`：回滚消息
+    `consumeRequest.getProcessQueue().makeMessageToConsumeAgain(msgs)`：**回滚消息**
 
     * `for (MessageExt msg : msgs)`：遍历所有的消息
     * `this.consumingMsgOrderlyTreeMap.remove(msg.getQueueOffset())`：从顺序消费临时容器中移除
@@ -10262,6 +10218,27 @@ ConsumeRequest 是 ConsumeMessageOrderlyService 的内部类，是一个 Runnabl
     `ConsumeMessageOrderlyService.this.tryLockLaterAndReconsume()`：重新提交任务，根据是否获取到队列锁，选择延迟 10 毫秒或者 300 毫秒
 
 
+
+***
+
+
+
+### 生产消费
+
+生产流程：
+
+* 首先获取当前消息主题的发布信息，获取不到去 Namesrv 获取（默认有 TBW102），并将获取的到的路由数据转化为发布数据，**创建 MQ 队列**，同样更新订阅数据，创建 MQ 队列，放入负载均衡服务 topicSubscribeInfoTable 中
+* 发送消息后，会创建主题对应的 MQ 放入 SendResult
+* Broker 端通过 SendMessageProcessor 对发送的消息进行持久化处理，存储到 CommitLog。将重试次数过多的消息加入死信队列，将延迟级别消息的主题和队列修改为调度主题和调度队列 ID
+* ScheduleMessageService 服务会为每个延迟级别创建一个延迟任务，让延迟消息得到有效的处理，将到达交付时间的消息修改为原始主题的原始 ID 存入 CommitLog，消费者就可以进行消费了
+
+消费流程：
+
+* 首先通过负载均衡服务，将分配到当前消费者实例的 MQ 创建 PullRequest，并放入 PullMessageService 的本地阻塞队列内
+* PullMessageService 循环从阻塞队列获取请求对象，发起拉消息请求，并创建 PullCallback 回调对象，将拉取的消息**提交到消费任务线程池**，并设置下一次拉取的位点，重新放入阻塞队列，形成闭环
+* 消费任务对消费失败的消息进行回退，回退失败的消息会再次提交消费任务
+* Broker 端对拉取消息的请求进行处理（processRequestCommand），查询成功将消息放入响应体，通过 Netty 写回客户端，当 `pullRequest.offset  ==  queue.maxOffset` 说明该队列已经没有需要获取的消息，此时进行长轮询等待有新的消息
+* PullRequestHoldService 负责长轮询，每 5 秒检查一次，将满足条件的 PullRequest 再次提交到线程池内执行
 
 
 
