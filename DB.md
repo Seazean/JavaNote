@@ -5698,7 +5698,7 @@ MySQL Server 是多线程结构，包括后台线程和客户服务线程。多�
 
 * 每当需要为某个事务分配 ID，就会把全局变量的值赋值给事务 ID，然后变量自增 1
 * 每当变量值为 256 的倍数时，就将该变量的值刷新到系统表空间的 Max Trx ID 属性中，该属性占 8 字节
-* 系统再次启动后，会读取表空间的 Max Trx ID 属性到内存，加上 256 后赋值给全局变量，因为关机时的事务 ID 可能并不是 256 的倍数，会比 Max Trx ID 大，所以需要加上 256 保持事务 ID 是一个递增的数字
+* 系统再次启动后，会读取表空间的 Max Trx ID 属性到内存，加上 256 后赋值给全局变量，因为关机时的事务 ID 可能并不是 256 的倍数，会比 Max Trx ID 大，所以需要加上 256 保持事务 ID 是一个**递增的数字**
 
 **聚簇索引**的行记录除了完整的数据，还会自动添加 trx_id、roll_pointer 隐藏列，如果表中没有主键并且没有非空唯一索引，也会添加一个 row_id 的隐藏列作为聚簇索引
 
@@ -11635,7 +11635,7 @@ Redis 如果不设置最大内存大小或者设置最大内存大小为 0，在
 
 * 服务器运行ID（runid）：服务器运行 ID 是每一台服务器每次运行的身份识别码，一台服务器多次运行可以生成多个运行 ID，由 40 位字符组成，是一个随机的十六进制字符
 
-  作用：用于在服务器间进行传输识别身份，如果想两次操作均对同一台服务器进行，必须每次操作携带对应的运行 ID，用于对方识别
+  作用：服务器间进行传输识别身份，如果想两次操作均对同一台服务器进行，**每次必须操作携带对应的运行 ID**，用于对方识别
 
   实现：运行 ID 在每台服务器启动时自动生成，master 在首次连接 slave 时，将运行 ID 发送给 slave，slave 保存此 ID，通过 info Server 命令，可以查看节点的 runid
 
@@ -11736,13 +11736,13 @@ slave 心跳任务
 
 * master 内部创建 master_replid 变量，使用 runid 相同的策略生成，长度41位，并发送给所有 slave
 
-* 在master关闭时执行命令 `shutdown save`，进行RDB持久化，将 runid 与 offset 保存到RDB文件中
+* 在master关闭时执行命令 `shutdown save`，进行 RDB 持久化，将 runid 与 offset 保存到 RDB 文件中
 
   `redis-check-rdb dump.rdb` 命令可以查看该信息，保存为 repl-id 和 repl-offset
 
 * master 重启后加载 RDB 文件，恢复数据
 
-  重启后，将RDB文件中保存的 repl-id 与 repl-offset 加载到内存中
+  重启后，将 RDB 文件中保存的 repl-id 与 repl-offset 加载到内存中
 
   * master_repl_id = repl-id，master_repl_offset = repl-offset
   * 通过 info 命令可以查看该信息
@@ -11758,7 +11758,7 @@ slave 心跳任务
 master 的 CPU 占用过高或 slave 频繁断开连接
 
 * 出现的原因：
-  * slave 每1秒发送 REPLCONF ACK 命令到 master
+  * slave 每 1 秒发送 REPLCONF ACK 命令到 master
   * 当 slave 接到了慢查询时（keys * ，hgetall等），会大量占用 CPU 性能
   * master 每1秒调用复制定时函数 replicationCron()，比对 slave 发现长时间没有进行响应
 

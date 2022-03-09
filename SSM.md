@@ -1677,7 +1677,7 @@ public void testFirstLevelCache(){
   }
   ```
 
-* commit()：事务提交，清空一级缓存，二级缓存使用 TransactionalCacheManager（tcm）管理
+* commit()：事务提交，**清空一级缓存，放入二级缓存**，二级缓存使用 TransactionalCacheManager（tcm）管理
 
   ```java
   public void commit(boolean required) throws SQLException {
