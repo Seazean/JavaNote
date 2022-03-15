@@ -10229,15 +10229,15 @@ ConsumeRequest 是 ConsumeMessageOrderlyService 的内部类，是一个 Runnabl
 
 * 首先获取当前消息主题的发布信息，获取不到去 Namesrv 获取（默认有 TBW102），并将获取的到的路由数据转化为发布数据，**创建 MQ 队列**，客户端实例同样更新订阅数据，创建 MQ 队列，放入负载均衡服务 topicSubscribeInfoTable 中
 * 然后从发布数据中选择一个 MQ 队列发送消息
-* Broker 端通过 SendMessageProcessor 对发送的消息进行持久化处理，存储到 CommitLog。将重试次数过多的消息加入死信队列，将延迟级别消息的主题和队列修改为调度主题和调度队列 ID
+* Broker 端通过 SendMessageProcessor 对发送的消息进行持久化处理，存储到 CommitLog。将重试次数过多的消息加入死信队列，将延迟消息的主题和队列修改为调度主题和调度队列 ID
 * Broker 启动 ScheduleMessageService 服务会为每个延迟级别创建一个延迟任务，让延迟消息得到有效的处理，将到达交付时间的消息修改为原始主题的原始 ID 存入 CommitLog，消费者就可以进行消费了
 
 消费流程：
 
 * 首先通过负载均衡服务，将分配到当前消费者实例的 MQ 创建 PullRequest，并放入 PullMessageService 的本地阻塞队列内
-* PullMessageService 循环从阻塞队列获取请求对象，发起拉消息请求，并创建 PullCallback 回调对象，将正常拉取的消息**提交到消费任务线程池**，并设置下一次拉取的位点，重新放入阻塞队列，形成闭环
+* PullMessageService 循环从阻塞队列获取请求对象，发起拉消息请求，并创建 PullCallback 回调对象，将正常拉取的消息**提交到消费任务线程池**，并设置请求的下一次拉取位点，重新放入阻塞队列，形成闭环
 * 消费任务服务对消费失败的消息进行回退，回退失败的消息会再次提交消费任务重新消费
-* Broker 端对拉取消息的请求进行处理（processRequestCommand），查询成功将消息放入响应体，通过 Netty 写回客户端，当 `pullRequest.offset  ==  queue.maxOffset` 说明该队列已经没有需要获取的消息，将请求放入长轮询集合等待有新消息
+* Broker 端对拉取消息的请求进行处理（processRequestCommand），查询成功将消息放入响应体，通过 Netty 写回客户端，当 `pullRequest.offset == queue.maxOffset` 说明该队列已经没有需要获取的消息，将请求放入长轮询集合等待有新消息
 * PullRequestHoldService 负责长轮询，每 5 秒遍历一次长轮询集合，将满足条件的 PullRequest 再次提交到线程池内处理
 
 

@@ -10388,6 +10388,9 @@ JVM 结构：
 
 JVM、JRE、JDK 对比：
 
+* JDK(Java SE Development Kit)：Java 标准开发包，它提供了编译、运行 Java 程序所需的各种工具和资源
+* JRE( Java Runtime Environment)：Java 运行环境，用于解释执行 Java 的字节码文件
+
 <img src="https://gitee.com/seazean/images/raw/master/Java/JVM-JRE关系.png" style="zoom: 80%;" />
 
 
