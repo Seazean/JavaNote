@@ -4319,12 +4319,14 @@ RocketMQ 支持分布式事务消息，采用了 2PC 的思想来实现了提交
 
 2. 补偿机制：用于解决消息 Commit 或者 Rollback 发生超时或者失败的情况，比如出现网络问题
 
-   * Broker 服务端通过对比 Half 消息和 Op 消息，对未确定状态的消息推进 CheckPoint（记录哪些事务消息的状态是确定的）
+   * Broker 服务端通过**对比 Half 消息和 Op 消息**，对未确定状态的消息推进 CheckPoint
    * 没有 Commit/Rollback 的事务消息，服务端根据根据半消息的生产者组，到 ProducerManager 中获取生产者（同一个 Group 的 Producer）的会话通道，发起一次回查（**单向请求**）
    * Producer 收到回查消息，检查事务消息状态表内对应的本地事务的状态
    * 根据本地事务状态，重新 Commit 或者 Rollback
 
-   注意：RocketMQ 并不会无休止的进行事务状态回查，默认回查 15 次，如果 15 次回查还是无法得知事务状态，则默认回滚该消息
+   RocketMQ 并不会无休止的进行事务状态回查，最大回查 15 次，如果 15 次回查还是无法得知事务状态，则默认回滚该消息，
+   
+   回查服务：`TransactionalMessageCheckService#run`
 
 
 
@@ -4338,7 +4340,7 @@ RocketMQ 支持分布式事务消息，采用了 2PC 的思想来实现了提交
 
 事务消息相对普通消息最大的特点就是**一阶段发送的消息对用户是不可见的**，因为对于 Half 消息，会备份原消息的主题与消息消费队列，然后改变主题为 RMQ_SYS_TRANS_HALF_TOPIC，由于消费组未订阅该主题，故消费端无法消费 Half 类型的消息
 
-RocketMQ 会开启一个定时任务，从 Topic 为 RMQ_SYS_TRANS_HALF_TOPIC 中拉取消息进行消费，根据生产者组获取一个服务提供者发送回查事务状态请求，根据事务状态来决定是提交或回滚消息
+RocketMQ 会开启一个**定时任务**，从 Topic 为 RMQ_SYS_TRANS_HALF_TOPIC 中拉取消息进行消费，根据生产者组获取一个服务提供者发送回查事务状态请求，根据事务状态来决定是提交或回滚消息
 
 RocketMQ 的具体实现策略：如果写入的是事务消息，对消息的 Topic 和 Queue 等属性进行替换，同时将原来的 Topic 和 Queue 信息存储到**消息的属性**中，因为消息的主题被替换，所以消息不会转发到该原主题的消息消费队列，消费者无法感知消息的存在，不会消费
 
@@ -4356,7 +4358,7 @@ RocketMQ 的具体实现策略：如果写入的是事务消息，对消息的 T
 
 * 如果是 Rollback 则需要撤销一阶段的消息，因为消息本就不可见，所以并**不需要真正撤销消息**（实际上 RocketMQ 也无法去删除一条消息，因为是顺序写文件的）。RocketMQ 为了区分这条消息没有确定状态的消息，采用 Op 消息标识已经确定状态的事务消息（Commit 或者 Rollback）
 
-**事务消息无论是 Commit 或者 Rollback 都会记录一个 Op 操作**，两者的区别是 Commit 相对于 Rollback 在写入 Op 消息前创建 Half 消息的索引。如果一条事务消息没有对应的 Op 消息，说明这个事务的状态还无法确定（可能是二阶段失败了）
+**事务消息无论是 Commit 或者 Rollback 都会记录一个 Op 操作**，两者的区别是 Commit 相对于 Rollback 在写入 Op 消息前将原消息的主题和队列恢复。如果一条事务消息没有对应的 Op 消息，说明这个事务的状态还无法确定（可能是二阶段失败了）
 
 RocketMQ 将 Op 消息写入到全局一个特定的 Topic 中，通过源码中的方法 `TransactionalMessageUtil.buildOpTopic()`，这个主题是一个内部的 Topic（像 Half 消息的 Topic 一样），不会被用户消费。Op 消息的内容为对应的 Half 消息的存储的 Offset，这样**通过 Op  消息能索引到 Half 消息**
 
@@ -8825,7 +8827,7 @@ TransactionMQProducer 类发送事务消息时使用
 
   * `MessageAccessor.putProperty(msg, MessageConst.PROPERTY_TRANSACTION_PREPARED, "true")`：**设置事务标志**
 
-  * `sendResult = this.send(msg)`：发送消息
+  * `sendResult = this.send(msg)`：发送消息，同步发送
 
   * `switch (sendResult.getSendStatus())`：**判断发送消息的结果状态**
 
@@ -8845,44 +8847,6 @@ TransactionMQProducer 类发送事务消息时使用
     * `this.mQClientFactory.getMQClientAPIImpl().endTransactionOneway()`：向 Broker 发起事务结束的单向请求
   
   
-
-***
-
-
-
-##### 回查处理
-
-ClientRemotingProcessor 用于处理到服务端的请求，创建 MQClientAPIImpl 时将该处理器注册到 Netty 中，`processRequest()` 方法根据请求的命令码，进行不同的处理，事务回查的处理命令码为 `CHECK_TRANSACTION_STATE`
-
-成员方法：
-
-* checkTransactionState()：检查事务状态
-
-  ```java
-  public RemotingCommand checkTransactionState(ChannelHandlerContext ctx, RemotingCommand request)
-  ```
-
-  * `final CheckTransactionStateRequestHeader requestHeader`：解析出请求头对象
-  * `final MessageExt messageExt`：从请求 body 中解析出服务器回查的事务消息
-  * `String transactionId`：提取 UNIQ_KEY 字段属性值赋值给事务 ID
-  * `final String group`：提取生产者组名
-  * `MQProducerInner producer = this...selectProducer(group)`：根据生产者组获取生产者对象
-  * `String addr = RemotingHelper.parseChannelRemoteAddr()`：解析出要回查的 Broker 服务器的地址
-  * `producer.checkTransactionState(addr, messageExt, requestHeader)`：生产者的事务回查
-    * `Runnable request = new Runnable()`：**创建回查事务状态任务对象**
-      * 获取生产者的 TransactionCheckListener 和 TransactionListener，选择一个不为 null 的监听器进行事务状态回查
-      * `this.processTransactionState()`：处理回查状态
-        * `EndTransactionRequestHeader thisHeader`：构建 EndTransactionRequestHeader 对象
-        * `DefaultMQProducerImpl...endTransactionOneway()`：向 Broker 发起结束事务单向请求，**二阶段提交**
-    * `this.checkExecutor.submit(request)`：提交到线程池运行
-
-
-
-参考图：https://www.processon.com/view/link/61c8257e0e3e7474fb9dcbc0
-
-参考视频：https://space.bilibili.com/457326371
-
-
 
 ***
 
@@ -8946,15 +8910,55 @@ SendMessageProcessor 是服务端处理客户端发送来的消息的处理器�
           return store.asyncPutMessage(parseHalfMessageInner(messageInner));
       }
       ```
-  
+
       TransactionalMessageBridge#parseHalfMessageInner：
-  
+
       * `MessageAccessor.putProperty(...)`：**将消息的原主题和队列 ID 放入消息的属性中**
       * `msgInner.setSysFlag(...)`：消息设置为非事务状态
       * `msgInner.setTopic(TransactionalMessageUtil.buildHalfTopic())`：**消息主题设置为半消息主题**
       * `msgInner.setQueueId(0)`：**队列 ID 设置为 0**
-  
+
   * `else`：普通消息存储
+
+
+
+***
+
+
+
+##### 回查处理
+
+ClientRemotingProcessor 是客户端用于处理请求，创建 MQClientAPIImpl 时将该处理器注册到 Netty 中，`processRequest()` 方法根据请求的命令码，进行不同的处理，事务回查的处理命令码为 `CHECK_TRANSACTION_STATE`
+
+Broker 端有定时任务发送回查请求
+
+成员方法：
+
+* checkTransactionState()：检查事务状态
+
+  ```java
+  public RemotingCommand checkTransactionState(ChannelHandlerContext ctx, RemotingCommand request)
+  ```
+
+  * `final CheckTransactionStateRequestHeader requestHeader`：解析出请求头对象
+  * `final MessageExt messageExt`：从请求 body 中解析出服务器回查的事务消息
+  * `String transactionId`：提取 UNIQ_KEY 字段属性值赋值给事务 ID
+  * `final String group`：提取生产者组名
+  * `MQProducerInner producer = this...selectProducer(group)`：根据生产者组获取生产者对象
+  * `String addr = RemotingHelper.parseChannelRemoteAddr()`：解析出要回查的 Broker 服务器的地址
+  * `producer.checkTransactionState(addr, messageExt, requestHeader)`：生产者的事务回查
+    * `Runnable request = new Runnable()`：**创建回查事务状态任务对象**
+      * 获取生产者的 TransactionCheckListener 和 TransactionListener，选择一个不为 null 的监听器进行事务状态回查
+      * `this.processTransactionState()`：处理回查状态
+        * `EndTransactionRequestHeader thisHeader`：构建 EndTransactionRequestHeader 对象
+        * `DefaultMQProducerImpl...endTransactionOneway()`：向 Broker 发起结束事务单向请求，**二阶段提交**
+    * `this.checkExecutor.submit(request)`：提交到线程池运行
+
+
+
+参考图：https://www.processon.com/view/link/61c8257e0e3e7474fb9dcbc0
+
+参考视频：https://space.bilibili.com/457326371
 
 
 
@@ -8964,7 +8968,7 @@ SendMessageProcessor 是服务端处理客户端发送来的消息的处理器�
 
 ##### 事务提交
 
-EndTransactionProcessor 类用来处理客户端发来的提交或者回滚请求
+EndTransactionProcessor 类是服务端用来处理客户端发来的提交或者回滚请求
 
 * processRequest()：处理请求
 
@@ -8978,12 +8982,12 @@ EndTransactionProcessor 类用来处理客户端发来的提交或者回滚请�
   
     `result = this.brokerController...commitMessage(requestHeader)`：根据 commitLogOffset 提取出 halfMsg 消息
   
-    * `MessageExtBrokerInner msgInner`：根据 result 克隆出一条新消息
+    `MessageExtBrokerInner msgInner`：根据 result 克隆出一条新消息
   
-      `msgInner.setTopic(msgExt.getUserProperty(...))`：**设置回原主题**
+    * `msgInner.setTopic(msgExt.getUserProperty(...))`：**设置回原主题**
   
-      * `msgInner.setQueueId(Integer.parseInt(msgExt.getUserProperty(..)))`：**设置回原队列 ID**
-      * `MessageAccessor.clearProperty()`：清理上面的两个属性
+    * `msgInner.setQueueId(Integer.parseInt(msgExt.getUserProperty(..)))`：**设置回原队列 ID**
+    * `MessageAccessor.clearProperty()`：清理上面的两个属性
   
     `MessageAccessor.clearProperty(msgInner, ...)`：**清理事务属性**
   
@@ -9549,9 +9553,10 @@ PullAPIWrapper 类封装了拉取消息的 API
 
     * `return this.pullMessageSync(...)`：此处是**异步调用，处理结果放入 ResponseFuture 中**，参考服务端小节的处理器类 `NettyServerHandler#processMessageReceived` 方法
 * `RemotingCommand response = responseFuture.getResponseCommand()`：获取服务器端响应数据 response
-      * `PullResult pullResult`：从 response 内提取出来拉消息结果对象，将响应头 PullMessageResponseHeader 对象中信息**填充到 PullResult 中**，列出两个重要的字段：
-        * `private Long suggestWhichBrokerId`：服务端建议客户端下次 Pull 时选择的 BrokerID
-        * `private Long nextBeginOffset`：客户端下次 Pull 时使用的 offset 信息
+  
+  * `PullResult pullResult`：从 response 内提取出来拉消息结果对象，将响应头 PullMessageResponseHeader 对象中信息**填充到 PullResult 中**，列出两个重要的字段：
+  * `private Long suggestWhichBrokerId`：服务端建议客户端下次 Pull 时选择的 BrokerID
+  * `private Long nextBeginOffset`：客户端下次 Pull 时使用的 offset 信息
   
 * `pullCallback.onSuccess(pullResult)`：将 PullResult 交给拉消息结果处理回调对象，调用 onSuccess 方法
 
