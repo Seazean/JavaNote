@@ -6699,7 +6699,7 @@ MySQL InnoDB 存储引擎的默认支持的隔离级别是 **REPEATABLE-READ（�
 
 **不支持当前事务**的情况：
 
-- TransactionDefinition.PROPAGATION_REQUIRES_NEW： 创建一个新的事务，如果当前存在事务，则把当前事务挂起。
+- TransactionDefinition.PROPAGATION_REQUIRES_NEW： 创建一个新的事务，如果当前存在事务，则把当前事务挂起
   - 内外层是不同的事务，如果 bMethod 已经提交，如果 aMethod 失败回滚 ，bMethod 不会回滚
   - 如果 bMethod 失败回滚，ServiceB 抛出的异常被 ServiceA 捕获，如果 B 抛出的异常是 A 会回滚的异常，aMethod 事务需要回滚，否则仍然可以提交
 - TransactionDefinition.PROPAGATION_NOT_SUPPORTED： **以非事务方式运行**，如果当前存在事务，则把当前事务挂起
@@ -9942,6 +9942,8 @@ MVC（Model View Controller），一种用于设计创建Web应用程序表现�
 
   ![](https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-MVC功能图示.png)
 
+
+
 参考视频：https://space.bilibili.com/37974444/
 
 
@@ -11436,6 +11438,8 @@ SpringMVC 提供访问原始 Servlet 接口的功能
 
 #### 组件介绍
 
+核心组件：
+
 * DispatcherServlet：核心控制器， 是 SpringMVC 的核心，整体流程控制的中心，所有的请求第一步都先到达这里，由其调用其它组件处理用户的请求，它就是在 web.xml 配置的核心 Servlet，有效的降低了组件间的耦合性
 
 * HandlerMapping：处理器映射器， 负责根据请求找到对应具体的 Handler 处理器，SpringMVC 中针对配置文件方式、注解方式等提供了不同的映射器来处理
@@ -11449,6 +11453,14 @@ SpringMVC 提供访问原始 Servlet 接口的功能
 * View：视图， View 最后对页面进行渲染将结果返回给用户，SpringMVC 框架提供了很多的 View 视图类型，包括：jstlView、freemarkerView、pdfView 等
 
   ![](https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-技术架构.png)
+
+优点：
+
+* 与 Spring 集成，更好的管理资源
+* 有很多参数解析器和视图解析器，支持的数据类型丰富
+* 将映射器、处理器、视图解析器进行解耦，分工明确
+
+
 
 
 

@@ -3469,19 +3469,7 @@ RCVBUF_ALLOCATOR：属于 SocketChannal 参数
 
   ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-数据分发.png)
 
-主要缺点包含以下几点：
 
-* 系统可用性降低：系统引入的外部依赖越多，系统稳定性越差，一旦 MQ 宕机，就会对业务造成影响
-
-  引申问题：如何保证 MQ 的高可用？
-
-* 系统复杂度提高：MQ 的加入大大增加了系统的复杂度，以前系统间是同步的远程调用，现在是通过 MQ 进行异步调用
-
-  引申问题：如何保证消息没有被重复消费？怎么处理消息丢失情况？那么保证消息传递的顺序性？
-
-* 一致性问题：A 系统处理完业务，通过 MQ 给 B、C、D 三个系统发消息数据，如果 B 系统、C 系统处理成功，D 系统处理失败
-
-  引申问题：如何保证消息数据处理的一致性？
 
 
 
@@ -4528,7 +4516,7 @@ Broker 包含了以下几个重要子模块：
 RocketMQ 的工作流程：
 
 - 启动 NameServer 监听端口，等待 Broker、Producer、Consumer 连上来，相当于一个路由控制中心
-- Broker 启动，跟所有的 NameServer 保持长连接，每隔 30s 时间向 NameServer 上报 Topic 路由信息（心跳包）。心跳包中包含当前 Broker 信息（IP、端口等）以及存储所有 Topic 信息。注册成功后，NameServer 集群中就有 Topic 跟 Broker 的映射关系
+- Broker 启动，跟**所有的 NameServer 保持长连接**，每隔 30s 时间向 NameServer 上报 Topic 路由信息（心跳包）。心跳包中包含当前 Broker 信息（IP、端口等）以及存储所有 Topic 信息。注册成功后，NameServer 集群中就有 Topic 跟 Broker 的映射关系
 - 收发消息前，先创建 Topic，创建 Topic 时需要指定该 Topic 要存储在哪些 Broker 上，也可以在发送消息时自动创建 Topic
 - Producer 启动时先跟 NameServer 集群中的**其中一台**建立长连接，并从 NameServer 中获取当前发送的 Topic 存在哪些 Broker 上，同时 Producer 会默认每隔 30s 向 NameServer **定时拉取**一次路由信息
 - Producer 发送消息时，根据消息的 Topic 从本地缓存的 TopicPublishInfoTable 获取路由信息，如果没有则会从 NameServer 上重新拉取并更新，轮询队列列表并选择一个队列 MessageQueue，然后与队列所在的 Broker 建立长连接，向 Broker 发消息
@@ -4698,9 +4686,9 @@ RocketMQ 网络部署特点：
 
 - NameServer 是一个几乎**无状态节点**，节点之间相互独立，无任何信息同步
 
-- Broker 部署相对复杂，Broker 分为 Master 与 Slave，Master 可以部署多个，一个 Master 可以对应多个 Slave，但是一个 Slave 只能对应一个 Master，Master 与 Slave 的对应关系通过指定相同 BrokerName、不同 BrokerId 来定义，**BrokerId 为 0 是 Master，非 0 表示 Slave。每个 Broker 与 NameServer 集群中的所有节点建立长连接**，定时注册 Topic 信息到所有 NameServer
+- Broker 部署相对复杂，Broker 分为 Master 与 Slave，Master 可以部署多个，一个 Master 可以对应多个 Slave，但是一个 Slave 只能对应一个 Master，Master 与 Slave 的对应关系通过指定相同 BrokerName、不同 BrokerId 来定义，BrokerId 为 0 是 Master，非 0 表示 Slave。**每个 Broker 与 NameServer 集群中的所有节点建立长连接**，定时注册 Topic 信息到所有 NameServer
 
-  注意：部署架构上也支持一 Master 多 Slave，但只有 BrokerId=1 的从服务器才会参与消息的读负载（读写分离）
+  说明：部署架构上也支持一 Master 多 Slave，但只有 BrokerId=1 的从服务器才会参与消息的读负载（读写分离）
 
 - Producer 与 NameServer 集群中的其中**一个节点（随机选择）建立长连接**，定期从 NameServer 获取 Topic 路由信息，并向提供 Topic 服务的 Master 建立长连接，且定时向 Master **发送心跳**。Producer 完全无状态，可集群部署
 
@@ -4709,8 +4697,6 @@ RocketMQ 网络部署特点：
   Consumer 既可以从 Master 订阅消息，也可以从 Slave 订阅消息，在向 Master 拉取消息时，Master 服务器会根据拉取偏移量与最大偏移量的距离（判断是否读老消息，产生读 I/O），以及从服务器是否可读等因素建议下一次是从 Master 还是 Slave 拉取
 
 ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-集群架构.png)
-
-集群工作流程：参考通信机制 → 工作流程
 
 
 
@@ -4722,11 +4708,11 @@ RocketMQ 网络部署特点：
 
 
 
-#### 高可用
-
-在 Consumer 的配置文件中，并不需要设置是从 Master 读还是从 Slave 读，当 Master 不可用或者繁忙的时候，Consumer 会被自动切换到从 Slave 读。有了自动切换的机制，当一个 Master 机器出现故障后，Consumer 仍然可以从 Slave 读取消息，不影响 Consumer 程序，达到了消费端的高可用性
+#### 高可用性
 
 在创建 Topic 的时候，把 Topic 的多个 Message Queue 创建在多个 Broker 组上（相同 Broker 名称，不同 brokerId 的机器组成一个 Broker 组），当一个 Broker 组的 Master 不可用后，其他组的 Master 仍然可用，Producer 仍然可以发送消息
+
+在 Consumer 的配置文件中，并不需要设置是从 Master 读还是从 Slave 读，当 Master 不可用或者繁忙的时候，Consumer 会被自动切换到从 Slave 读。有了自动切换的机制，当一个 Master 机器出现故障后，Consumer 仍然可以从 Slave 读取消息，不影响 Consumer 程序，达到了消费端的高可用性
 
 RocketMQ 目前还不支持把 Slave 自动转成 Master，需要手动停止 Slave 角色的 Broker，更改配置文件，用新的配置文件启动 Broker
 
@@ -6132,6 +6118,8 @@ MappedFileQueue 用来管理 MappedFile 文件
   private volatile long beginTimeInLock = 0;		 	// 写数据时加锁的开始时间
   protected final PutMessageLock putMessageLock;		// 写锁，两个实现类：自旋锁和重入锁
   ```
+  
+  因为发送消息是需要持久化的，在 Broker 端持久化时会获取该锁，**保证发送的消息的线程安全**
 
 构造方法：
 
@@ -6805,7 +6793,7 @@ GroupTransferService 用来控制数据同步
 
 ###### 成员属性
 
-HAClient 是 slave 端运行的代码，用于和 master 服务器建立长连接，上报本地同步进度，消费服务器发来的 msg 数据
+HAClient 是 slave 端运行的代码，用于**和 master 服务器建立长连接**，上报本地同步进度，消费服务器发来的 msg 数据
 
 成员变量：
 
@@ -7224,8 +7212,6 @@ WriteSocketService 类是一个任务对象，master向 slave 传输的数据帧
   * `int writeSize = this.socketChannel.write(this.selectMappedBufferResult...)`：向通道写帧头数据
 
   * `if (writeSize > 0)`：写数据成功，但是不代表 SMBR 中的数据全部写完成
-
-    
 
   * `boolean result`：判断是否发送完成，返回该值
 
@@ -7947,7 +7933,7 @@ DefaultMQProducerImpl 类是默认的生产者实现类
   private SendResult sendKernelImpl(msg, mq, communicationMode, sendCallback, topicPublishInfo, timeout)
   ```
 
-  * `brokerAddr = this.mQClientFactory(...)`：获取指定 BrokerName 对应的 mater 节点的地址，master 节点的 ID 为 0
+  * `brokerAddr = this.mQClientFactory(...)`：**获取指定 BrokerName 对应的 mater 节点的地址**，master 节点的 ID 为 0，集群模式下，**发送消息要发到主节点**
 
   * `brokerAddr = MixAll.brokerVIPChannel()`：Broker 启动时会绑定两个服务器端口，一个是普通端口，一个是 VIP 端口，服务器端根据不同端口创建不同的的 NioSocketChannel
 
@@ -8374,7 +8360,7 @@ MQClientInstance 是 RocketMQ 客户端实例，在一个 JVM 进程中只有一
     MQClientInstance.this.adjustThreadPool();
     ```
 
-* updateTopicRouteInfoFromNameServer()：**更新路由数据**
+* updateTopicRouteInfoFromNameServer()：**更新路由数据**，通过加锁保证当前实例只有一个线程去更新
 
   * `if (isDefault && defaultMQProducer != null)`：需要默认数据
 
@@ -8388,13 +8374,15 @@ MQClientInstance 是 RocketMQ 客户端实例，在一个 JVM 进程中只有一
 
   * `if (changed)`：不一致进入更新逻辑
 
-    `Update Pub info`：更新生产者信息
+    `this.brokerAddrTable.put(...)`：更新客户端 broker 物理**节点映射表**
 
+    `Update Pub info`：更新生产者信息
+    
     * `publishInfo = topicRouteData2TopicPublishInfo(topic, topicRouteData)`：将主题路由数据转化为发布数据，会**创建消息队列 MQ**，放入发布数据对象的集合中
     * `impl.updateTopicPublishInfo(topic, publishInfo)`：生产者将主题的发布数据保存到它本地，方便发送消息使用
-    
-    `Update sub info`：更新消费者信息，创建 MQ 队列，更新订阅信息，用于负载均衡
   
+    `Update sub info`：更新消费者信息，创建 MQ 队列，更新订阅信息，用于负载均衡
+    
     `this.topicRouteTable.put(topic, cloneTopicRouteData)`：**将数据放入本地路由表**
 
 
@@ -9537,7 +9525,7 @@ PullAPIWrapper 类封装了拉取消息的 API
 
 * pullKernelImpl()：拉消息
 
-  * `FindBrokerResult findBrokerResult`：查询指定 BrokerName 的地址信息，主节点或者推荐节点
+  * `FindBrokerResult findBrokerResult`：**本地查询指定 BrokerName 的地址信息**，推荐节点或者主节点
 
   * `if (null == findBrokerResult)`：查询不到，就到 Namesrv 获取指定 topic 的路由数据
 
@@ -9603,7 +9591,7 @@ private RemotingCommand processRequest(final Channel channel, RemotingCommand re
 
 * `switch (this.brokerController.getMessageStoreConfig().getBrokerRole())`：如果当前主机节点角色为 slave 并且**从节点读**并未开启的话，直接给客户端 一个状态 `PULL_RETRY_IMMEDIATELY`，并设置为下次从主节点读
 
-* `if (this.brokerController.getBrokerConfig().isSlaveReadEnable())`：消费太慢，下次从另一台机器拉取
+* `if (this.brokerController.getBrokerConfig().isSlaveReadEnable())`：消费太慢，**下次从另一台机器拉取**
 
 * `switch (getMessageResult.getStatus())`：根据 getMessageResult 的状态设置 response 的 code
 
