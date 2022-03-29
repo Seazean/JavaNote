@@ -18,6 +18,8 @@ HTML（超文本标记语言—HyperText Markup Language）是构成 Web 世界�
 
 
 
+参考视频：https://www.bilibili.com/video/BV1Qf4y1T7Hx
+
 
 
 ***
@@ -7468,8 +7470,8 @@ Jackson：开源免费的 JSON 转换工具，SpringMVC 转换默认使用 Jacks
   public void test03() throws Exception{
       //map<String,User>转json
       HashMap<String,User> map = new HashMap<>();
-      map.put("黑马一班",new User("张三",23));
-      map.put("黑马二班",new User("李四",24));
+      map.put("sea一班",new User("张三",23));
+      map.put("sea二班",new User("李四",24));
       String json = mapper.writeValueAsString(map);
       System.out.println("json字符串：" + json);
   
@@ -7478,8 +7480,8 @@ Jackson：开源免费的 JSON 转换工具，SpringMVC 转换默认使用 Jacks
                                    new TypeReference<HashMap<String,User>>(){});
       System.out.println("java对象：" + map2);
   }
-  //json字符串 = {"黑马一班":{"name":"张三","age":23},"黑马二班":{....}
-  //map对象 = {黑马一班=User{name='张三', age=23}, 黑马二班=User{name='李四', age=24}}
+  //json字符串 = {"sea一班":{"name":"张三","age":23},"sea二班":{....}
+  //map对象 = {sea一班=User{name='张三', age=23}, sea二班=User{name='李四', age=24}}
   ```
 
 * List
@@ -7534,7 +7536,7 @@ RegExp：
 
 #### 验证用户
 
-使用onsubmit表单提交事件
+使用 onsubmit 表单提交事件
 
 ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Web/表单校验.png)
 
@@ -8542,7 +8544,7 @@ Vue只关注视图层，并且非常容易学习，还可以很方便的与其�
           el:"#div",
           data:{
               name:"张三",
-              classRoom:"黑马程序员"
+              classRoom:"sea程序员"
           },
           methods:{
               study(){
@@ -8732,7 +8734,7 @@ v-on：为 HTML 标签绑定事件，有简写方式
     <div id="div">
         <div>{{name}}</div>
         <button v-on:click="change()">改变div的内容</button>  
-        <button @click="change()">改变div的内容</button> <!--把黑马改成传智播客-->
+        <button @click="change()">改变div的内容</button> <!--把sea改成传智播客-->
     </div>
 </body>
 <script src="js/vue.js"></script>
@@ -8740,7 +8742,7 @@ v-on：为 HTML 标签绑定事件，有简写方式
     new Vue({
         el:"#div",
         data:{
-            name:"黑马程序员"
+            name:"sea程序员"
         },
         methods:{
             change(){
