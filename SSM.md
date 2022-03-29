@@ -4,7 +4,7 @@
 
 ORM（Object Relational Mapping）： 对象关系映射，指的是持久化数据和实体对象的映射模式，解决面向对象与关系型数据库存在的互不匹配的现象
 
-![](https://gitee.com/seazean/images/raw/master/Frame/MyBatis-ORM介绍.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/MyBatis-ORM介绍.png)
 
 **MyBatis**：
 
@@ -542,7 +542,7 @@ SqlSession 常用 API：
 
 调用流程：
 
-![](https://gitee.com/seazean/images/raw/master/Frame/分层思想调用流程.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/分层思想调用流程.png)
 
 传统方式实现 DAO 层，需要写接口和实现类。采用 Mybatis 的代理开发方式实现 DAO 层的开发，只需要编写 Mapper 接口（相当于 Dao 接口），由 Mybatis 框架根据接口定义创建接口的**动态代理对象**
 
@@ -561,7 +561,7 @@ Mapper 接口开发需要遵循以下规范：
 
 * Mapper.xml 文件中的增删改查标签的 resultType 属性和 DAO 层 Mapper 接口方法的返回值相同
 
-  ![](https://gitee.com/seazean/images/raw/master/Frame/接口代理方式实现DAO层.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/接口代理方式实现DAO层.png)
   
   
 
@@ -1505,7 +1505,7 @@ public class Blog {
 
 * cacheEnabled：true 表示全局性地开启所有映射器配置文件中已配置的任何缓存，默认 true
 
-![](https://gitee.com/seazean/images/raw/master/Frame/MyBatis-缓存的实现原理.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/MyBatis-缓存的实现原理.png)
 
 
 
@@ -1521,7 +1521,7 @@ public class Blog {
 
 一级缓存是 SqlSession 级别的缓存
 
-<img src="https://gitee.com/seazean/images/raw/master/Frame/MyBatis-一级缓存.png" style="zoom: 67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/MyBatis-一级缓存.png" style="zoom: 67%;" />
 
 工作流程：第一次发起查询用户 id 为 1 的用户信息，先去找缓存中是否有 id 为 1 的用户信息，如果没有，从数据库查询用户信息，得到用户信息，将用户信息存储到一级缓存中；第二次发起查询用户 id 为 1 的用户信息，先去找缓存中是否有 id 为 1 的用户信息，缓存中有，直接从缓存中获取用户信息。
 
@@ -1850,7 +1850,7 @@ OGNL：Object Graphic Navigation Language（对象图导航语言），用于对
 
 表结构：
 
-![](https://gitee.com/seazean/images/raw/master/Frame/MyBatis-动态sql用户表.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/MyBatis-动态sql用户表.png)
 
 
 
@@ -2437,7 +2437,7 @@ MyBatis 提供了 org.apache.ibatis.jdbc.SQL 功能类，专门用于构建 SQL 
 
 ### 运行机制
 
-![](https://gitee.com/seazean/images/raw/master/Frame/MyBatis-执行流程.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/MyBatis-执行流程.png)
 
 MyBatis 运行过程：
 
@@ -2511,7 +2511,7 @@ XMLConfigBuilder.parse()：解析核心配置文件每个标签的信息（**XPa
 
       * `SqlSource sqlSource = getSqlSourceFromAnnotations()`：获取 SQL 的资源对象
 
-        ![](https://gitee.com/seazean/images/raw/master/Frame/MyBatis-SQL资源对象.png)
+        ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/MyBatis-SQL资源对象.png)
 
       * `builderAssistant.addMappedStatement(...)`：封装成 MappedStatement 对象加入 Configuration 对象
 
@@ -2519,7 +2519,7 @@ XMLConfigBuilder.parse()：解析核心配置文件每个标签的信息（**XPa
 
 return new DefaultSqlSessionFactory(config)：返回工厂对象，包含 Configuration 对象
 
-![](https://gitee.com/seazean/images/raw/master/Frame/MyBatis-获取工厂对象.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/MyBatis-获取工厂对象.png)
 
 总结：解析 XML 是对 Configuration 中的属性进行填充，那么可以在一个类中创建 Configuration 对象，自定义其中属性的值来达到配置的效果
 
@@ -2543,7 +2543,7 @@ DefaultSqlSessionFactory.openSessionFromDataSource(...)：ExecutorType 为 Execu
 
  return new DefaultSqlSession(configuration, executor, autoCommit)：返回 DefaultSqlSession 对象
 
-![](https://gitee.com/seazean/images/raw/master/Frame/MyBatis-获取会话对象.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/MyBatis-获取会话对象.png)
 
 
 
@@ -2564,7 +2564,7 @@ MapperRegistry.getMapper(Class, SqlSession)：MapperRegistry 是 Configuration �
     * `MapperProxy<T> implements InvocationHandler` 说明 MapperProxy 默认是一个 InvocationHandler 对象
   * `Proxy.newProxyInstance()`：**JDK 动态代理**创建 MapperProxy 对象
 
-![](https://gitee.com/seazean/images/raw/master/Frame/MyBatis-获取代理对象.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/MyBatis-获取代理对象.png)
 
 
 
@@ -2628,7 +2628,7 @@ Executor#query()：
     
     构造函数中有：`this.parameterObject = parameterObject`
     
-    ![](https://gitee.com/seazean/images/raw/master/Frame/MyBatis-boundSql对象.png)
+    ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/MyBatis-boundSql对象.png)
     
   * `CachingExecutor.createCacheKey()`：创建缓存对象
 
@@ -2697,7 +2697,7 @@ Executor#query()：
 
 `return list.get(0)`：返回结果集的第一个数据
 
-![](https://gitee.com/seazean/images/raw/master/Frame/MyBatis-执行SQL过程.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/MyBatis-执行SQL过程.png)
 
 
 
@@ -2715,7 +2715,7 @@ Executor#query()：
 
 实现原理：插件是按照插件配置顺序创建层层包装对象，执行目标方法的之后，按照逆向顺序执行（栈）
 
-<img src="https://gitee.com/seazean/images/raw/master/Frame/MyBatis-插件原理.png" style="zoom:50%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/MyBatis-插件原理.png" style="zoom:50%;" />
 
 在四大对象创建时：
 
@@ -2790,7 +2790,7 @@ public class MyFirstPlugin implements Interceptor{
 
 ### 分页插件
 
-![](https://gitee.com/seazean/images/raw/master/Frame/分页介绍.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/分页介绍.png)
 
 * 分页可以将很多条结果进行分页显示。如果当前在第一页，则没有上一页。如果当前在最后一页，则没有下一页，需要明确当前是第几页，这一页中显示多少条结果。  
 * MyBatis 是不带分页功能的，如果想实现分页功能，需要手动编写 LIMIT 语句，不同的数据库实现分页的 SQL 语句也是不同，手写分页 成本较高。
@@ -2913,7 +2913,7 @@ PageInfo相关API：
 
 Spring 是分层的 JavaSE/EE 应用 full-stack 轻量级开源框架
 
-![](https://gitee.com/seazean/images/raw/master/Frame/Spring-框架介绍.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Spring-框架介绍.png)
 
 Spring 优点：
 
@@ -2926,7 +2926,7 @@ Spring 优点：
 
 体系结构：
 
-![](https://gitee.com/seazean/images/raw/master/Frame/Spring-体系结构.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Spring-体系结构.png)
 
 
 
@@ -2942,7 +2942,7 @@ Spring 优点：
 - **Spring 控制的资源全部放置在 Spring 容器中，该容器称为 IoC 容器**（存放实例对象）
 - 官方网站：https://spring.io/ → Projects → spring-framework → LEARN → Reference Doc
 
-![](https://gitee.com/seazean/images/raw/master/Frame/Spring-IOC介绍.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Spring-IOC介绍.png)
 
 
 
@@ -3024,7 +3024,7 @@ Spring 优点：
    }
    ```
 
-   ![](https://gitee.com/seazean/images/raw/master/Frame/Spring-IOC实现.png)
+   ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Spring-IOC实现.png)
 
 
 
@@ -3280,7 +3280,7 @@ ApplicationContext 子类相关API：
 
 - DI（Dependency Injection）依赖注入，应用程序运行依赖的资源由 Spring 为其提供，资源进入应用程序的方式称为注入，简单说就是利用反射机制为类的属性赋值的操作
 
-  ![](https://gitee.com/seazean/images/raw/master/Frame/Spring-DI介绍.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Spring-DI介绍.png)
 
 IoC 和 DI 的关系：IoC 与 DI 是同一件事站在不同角度看待问题
 
@@ -3993,7 +3993,7 @@ DAO 接口不需要创建实现类，MyBatis-Spring 提供了一个动态代理�
 
 缺点：为了达成注解驱动的目的，可能会将原先很简单的书写，变的更加复杂。XML 中配置第三方开发的资源是很方便的，但使用注解驱动无法在第三方开发的资源中进行编辑，因此会增大开发工作量
 
-![](https://gitee.com/seazean/images/raw/master/Frame/注解驱动示例.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/注解驱动示例.png)
 
 
 
@@ -4700,7 +4700,7 @@ ApplicationContext：
 
 FileSystemXmlApplicationContext：加载文件系统中任意位置的配置文件，而 ClassPathXmlAC 只能加载类路径下的配置文件
 
-![](https://gitee.com/seazean/images/raw/master/Frame/Spring-ApplicationContext层级结构图.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Spring-ApplicationContext层级结构图.png)
 
 BeanFactory 的成员属性：
 
@@ -5208,11 +5208,11 @@ AOP 作用：
 
 - Introduction（引入/引介）：就是对原始对象无中生有的添加成员变量或成员方法
 
-![](https://gitee.com/seazean/images/raw/master/Frame/AOP连接点.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/AOP连接点.png)
 
-![](https://gitee.com/seazean/images/raw/master/Frame/AOP切入点切面通知.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/AOP切入点切面通知.png)
 
-![](https://gitee.com/seazean/images/raw/master/Frame/AOP织入.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/AOP织入.png)
 
 
 
@@ -5823,7 +5823,7 @@ AOP 的通知类型共5种：前置通知，后置通知、返回后通知、抛
 
 * 设定切入点表达式为通知方法传递参数（锁定通知变量名）
 
-* 流程图：![](https://gitee.com/seazean/images/raw/master/Frame/AOP通知获取参数方式二.png)
+* 流程图：![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/AOP通知获取参数方式二.png)
 
 * 解释：
   * `&amp` 代表并且 &
@@ -5832,7 +5832,7 @@ AOP 的通知类型共5种：前置通知，后置通知、返回后通知、抛
 第三种方式：
 
 * 设定切入点表达式为通知方法传递参数（改变通知变量名的定义顺序）
-* 流程图：![](https://gitee.com/seazean/images/raw/master/Frame/AOP通知获取参数方式三.png)
+* 流程图：![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/AOP通知获取参数方式三.png)
 
 * 解释：输出结果 a = param2   b = param1
 
@@ -6166,7 +6166,7 @@ AOP 的通知类型共5种：前置通知，后置通知、返回后通知、抛
 
 AOP 注解简化 XML：
 
-![](https://gitee.com/seazean/images/raw/master/Frame/AOP注解开发.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/AOP注解开发.png)
 
 注意事项：
 
@@ -6500,7 +6500,7 @@ CGLIB 特点：
 * CGLIB 动态代理无需要原始被代理对象，动态创建出新的代理对象
 * CGLIB **继承被代理类**，如果代理类是 final 则不能实现
 
-![](https://gitee.com/seazean/images/raw/master/Frame/AOP底层原理-cglib.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/AOP底层原理-cglib.png)
 
 * CGLIB 类
 
@@ -6598,7 +6598,7 @@ Spirng 可以通过配置的形式控制使用的代理形式，Spring 会先判
 
 #### 织入时机
 
-![AOP织入时机](https://gitee.com/seazean/images/raw/master/Frame/AOP织入时机.png)
+![AOP织入时机](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/AOP织入时机.png)
 
 
 
@@ -7449,7 +7449,7 @@ Spring 模板对象：TransactionTemplate、JdbcTemplate、RedisTemplate、Rabbi
   }
   ```
 
-![](https://gitee.com/seazean/images/raw/master/Frame/Spring-RedisTemplate.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Spring-RedisTemplate.png)
 
 
 
@@ -9074,7 +9074,7 @@ retVal = invocation.proceed()：**拦截器链驱动方法**
    }
    ```
 
-![](https://gitee.com/seazean/images/raw/master/Frame/Spring-AOP动态代理执行方法.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Spring-AOP动态代理执行方法.png)
 
 
 
@@ -9925,7 +9925,7 @@ SpringMVC 优点：
 
 - 数据层：负责数据操作
 
-  ![](https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-MVC三层架构.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/SpringMVC-MVC三层架构.png)
 
 MVC（Model View Controller），一种用于设计创建Web应用程序表现层的模式
 
@@ -9940,7 +9940,7 @@ MVC（Model View Controller），一种用于设计创建Web应用程序表现�
   * Servlet
   * SpringMVC
 
-  ![](https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-MVC功能图示.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/SpringMVC-MVC功能图示.png)
 
 
 
@@ -10609,7 +10609,7 @@ SpringMVC 对接收的数据进行自动类型转换，该工作通过 Converter
 
 ##### 日期
 
-![](https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-date数据类型转换.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/SpringMVC-date数据类型转换.png)
 
 如果访问 URL：http://localhost/requestParam11?date=1999-09-09 会报错，所以需要日期类型转换
 
@@ -11452,7 +11452,7 @@ SpringMVC 提供访问原始 Servlet 接口的功能
 
 * View：视图， View 最后对页面进行渲染将结果返回给用户，SpringMVC 框架提供了很多的 View 视图类型，包括：jstlView、freemarkerView、pdfView 等
 
-  ![](https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-技术架构.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/SpringMVC-技术架构.png)
 
 优点：
 
@@ -11501,7 +11501,7 @@ SpringMVC 提供访问原始 Servlet 接口的功能
 
 请求进入原生的 HttpServlet 的 doGet() 方法处理，调用子类 FrameworkServlet 的 doGet() 方法，最终调用 DispatcherServlet 的 doService() 方法，为请求设置相关属性后调用 doDispatch()，请求和响应的以参数的形式传入
 
-![](https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-请求相应的原理.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/SpringMVC-请求相应的原理.png)
 
 ```java
 // request 和 response 为 Java 原生的类
@@ -11622,7 +11622,7 @@ protected HandlerExecutionChain getHandler(HttpServletRequest request) throws Ex
 }
 ```
 
-![](https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-获取Controller处理器.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/SpringMVC-获取Controller处理器.png)
 
 * `mapping.getHandler(request)`：调用 AbstractHandlerMapping#getHandler
 
@@ -11636,7 +11636,7 @@ protected HandlerExecutionChain getHandler(HttpServletRequest request) throws Ex
 
       * `directPathMatches = this.mappingRegistry.getMappingsByDirectPath(lookupPath)`：获取当前的映射器与当前**请求的 URI 有关的所有映射规则**
 
-        ![](https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-HandlerMapping的映射规则.png)
+        ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/SpringMVC-HandlerMapping的映射规则.png)
 
       * `addMatchingMappings(directPathMatches, matches, request)`：**匹配某个映射规则**
 
@@ -11706,7 +11706,7 @@ public String param(Map<String, Object> map, Model model, HttpServletRequest req
 }
 ```
 
-![](https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-Model和Map的数据解析.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/SpringMVC-Model和Map的数据解析.png)
 
 doDispatch() 中调用 `mv = ha.handle(processedRequest, response, mappedHandler.getHandler())` **使用适配器执行方法**
 
@@ -12078,7 +12078,7 @@ RequestResponseBodyMethodProcessor#handleReturnValue：处理返回值，要进�
         * `MediaType.sortBySpecificityAndQuality(mediaTypes)`：按照相对品质因数 q 降序排序
     
   
-  ![](https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-浏览器支持接收的数据类型.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/SpringMVC-浏览器支持接收的数据类型.png)
   
 * `producibleTypes = getProducibleMediaTypes(request, valueType, targetType)`：**服务器能生成的媒体类型**
   
@@ -12135,7 +12135,7 @@ RequestResponseBodyMethodProcessor#handleReturnValue：处理返回值，要进�
   
   * `addDefaultHeaders(headers, t, contentType)`：**设置响应头中的数据类型**
   
-    ![](https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-服务器设置数据类型.png)
+    ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/SpringMVC-服务器设置数据类型.png)
   
   * `writeInternal(t, type, outputMessage)`：**数据写出为 JSON 格式**
   
@@ -12678,7 +12678,7 @@ public User cross(HttpServletRequest request){
 
 2. 拦截内容不同： Filter 对所有访问进行增强， Interceptor 仅针对 SpringMVC 的访问进行增强  
 
-   <img src="https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-过滤器和拦截器的运行机制.png" style="zoom:67%;" />
+   <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/SpringMVC-过滤器和拦截器的运行机制.png" style="zoom:67%;" />
 
 
 
@@ -12809,7 +12809,7 @@ public void afterCompletion(HttpServletRequest request,
 * 链路过长时，处理效率低下
 * 可能存在节点上的循环引用现象，造成死循环，导致系统崩溃  
 
-<img src="https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-多拦截器配置.png" style="zoom:67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/SpringMVC-多拦截器配置.png" style="zoom:67%;" />
 
 
 
@@ -12899,7 +12899,7 @@ void triggerAfterCompletion(HttpServletRequest request, HttpServletResponse resp
 
 拦截器的执行流程：
 
-<img src="https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-拦截器工作流程.png" style="zoom: 50%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/SpringMVC-拦截器工作流程.png" style="zoom: 50%;" />
 
 
 
@@ -13278,7 +13278,7 @@ public class UserController {
 
 上传文件过程：
 
-![](https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-上传文件过程分析.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/SpringMVC-上传文件过程分析.png)
 
 
 
@@ -13617,7 +13617,7 @@ public String addEmployee(@Valid Employee employee, Errors errors, Model model){
   ```
 
 * 三种判定空校验器的区别 
-  ![](https://gitee.com/seazean/images/raw/master/Frame/SpringMVC-三种判定空检验器的区别.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/SpringMVC-三种判定空检验器的区别.png)
 
 
 
@@ -13811,7 +13811,7 @@ public class HelloController {
   * 业务层接口 + 业务层实现类
   * 表现层类
 
-  ![](https://gitee.com/seazean/images/raw/master/Frame/SSM-目录结构.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/SSM-目录结构.png)
 
 
 
@@ -14538,7 +14538,7 @@ public class ProjectExceptionAdivce {
 
 项目整体目录结构
 
-![](https://gitee.com/seazean/images/raw/master/Frame/SSM-annotation.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/SSM-annotation.png)
 
 
 
@@ -14596,7 +14596,7 @@ public class ProjectExceptionAdivce {
 
 ### applicationContext.xml
 
-![](https://gitee.com/seazean/images/raw/master/Frame/SSM-IoC注解整合MyBatis图解.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/SSM-IoC注解整合MyBatis图解.png)
 
 * JdbcConfig
 
@@ -14875,7 +14875,7 @@ SpringBoot 功能：
 
 快速构建：
 
-![](https://gitee.com/seazean/images/raw/master/Frame/SpringBoot-IDEA构建工程.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/SpringBoot-IDEA构建工程.png)
 
 
 
@@ -15458,7 +15458,7 @@ SpringBoot 定义了一套接口规范，这套规范规定 SpringBoot 在启动
 
   * 从 spring-boot-autoconfigure-2.5.3.jar/META-INF/spring.factories 文件中寻找 EnableAutoConfiguration 字段，获取自动装配类，**进行条件装配，按需装配**
 
-    ![](https://gitee.com/seazean/images/raw/master/Frame/SpringBoot-自动装配配置文件.png)
+    ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/SpringBoot-自动装配配置文件.png)
 
 
 
@@ -15970,7 +15970,7 @@ Profile 的配置：
 
   * 虚拟机参数：在VM options 指定：`-Dspring.profiles.active=dev`
 
-    ![](https://gitee.com/seazean/images/raw/master/Frame/SpringBoot-profile激活方式虚拟机参数.png)
+    ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/SpringBoot-profile激活方式虚拟机参数.png)
 
   * 命令行参数：`java –jar xxx.jar  --spring.profiles.active=dev`
 

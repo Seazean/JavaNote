@@ -124,7 +124,7 @@ GitLab（地址： https://about.gitlab.com/ ）是一个用于仓库管理系�
 
 ### 工作过程
 
-![](https://gitee.com/seazean/images/raw/master/Tool/Git基本工作流程.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/Git基本工作流程.png)
 
 版本库：.git 隐藏文件夹就是版本库，版本库中存储了很多配置信息、日志信息和文件版本信息等
 
@@ -132,7 +132,7 @@ GitLab（地址： https://about.gitlab.com/ ）是一个用于仓库管理系�
 
 暂存区：.git 文件夹中有很多文件，其中有一个 index 文件就是暂存区，也可以叫做 stage，暂存区是一个临时保存修改文件的地方
 
-![](https://gitee.com/seazean/images/raw/master/Tool/文件流程图.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/文件流程图.png)
 
 
 
@@ -224,7 +224,7 @@ pull = fetch + merge
 
 fetch 是从远程仓库更新到本地仓库，pull是从远程仓库直接更新到工作空间中
 
-![](https://gitee.com/seazean/images/raw/master/Tool/图解远程仓库工作流程.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/图解远程仓库工作流程.png)
 
 
 
@@ -288,7 +288,7 @@ git push <shortname><branchname>：上传本地指定分支到远程仓库
 
 ## 版本管理
 
-![](https://gitee.com/seazean/images/raw/master/Tool/版本切换.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/版本切换.png)
 
 命令：git reset --hard 版本唯一索引值
 
@@ -338,7 +338,7 @@ git merge branch-name：合并指定分支到当前分支
 
 有时候合并操作不会如此顺利。 如果你在两个不同的分支中，对同一个文件的同一个部分进行了不同的修改，Git 就没办法合并它们，同时会提示文件冲突。此时需要我们打开冲突的文件并修复冲突内容，最后执行 git add 命令来标识冲突已解决
 
-​	![](https://gitee.com/seazean/images/raw/master/Tool/合并分支冲突.png)
+​	![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/合并分支冲突.png)
 
 
 
@@ -431,14 +431,14 @@ File → Settings 打开设置窗口，找到 Version Control 下的 git 选项
 ### 版本管理
 
 * 版本对比
-  	![](https://gitee.com/seazean/images/raw/master/Tool/版本对比.png)
+  	![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/版本对比.png)
 
 * 版本切换方式一：控制台 Version Control → Log → 右键 Reset Current Branch → Reset，这种切换会抛弃原来的提交记录
-     		![](https://gitee.com/seazean/images/raw/master/Tool/版本切换方式一.png)
+     		![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/版本切换方式一.png)
 * 版本切换方式二：控制台 Version Control → Log → Revert Commit → Merge → 处理代码 → commit，这种切换会当成一个新的提交记录，之前的提交记录也都保留
-   ![](https://gitee.com/seazean/images/raw/master/Tool/版本切换方式二.png)
+   ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/版本切换方式二.png)
 
-​           ![](https://gitee.com/seazean/images/raw/master/Tool/版本切换方式二(1).png)
+​           ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/版本切换方式二(1).png)
 
 
 
@@ -465,7 +465,7 @@ File → Settings 打开设置窗口，找到 Version Control 下的 git 选项
 
 1. VCS → Git → Push → 点击 master Define remote
 2. 将远程仓库的 url 路径复制过来 → Push
-   ![](https://gitee.com/seazean/images/raw/master/Tool/本地仓库推送到远程仓库.png)
+   ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/本地仓库推送到远程仓库.png)
 
 
 
@@ -477,7 +477,7 @@ File → Settings 打开设置窗口，找到 Version Control 下的 git 选项
 
 File → Close Project → Checkout from Version Control → Git → 指定远程仓库的路径 → 指定本地存放的路径 → clone
 
-![](https://gitee.com/seazean/images/raw/master/Tool/远程仓库克隆到本地仓库.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/远程仓库克隆到本地仓库.png)
 
 
 
@@ -499,11 +499,11 @@ File → Close Project → Checkout from Version Control → Git → 指定远�
 
 操作系统作为接口的示意图：
 
-<img src="https://gitee.com/seazean/images/raw/master/Tool/操作系统.png" style="zoom:80%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/操作系统.png" style="zoom:80%;" />
 
 移动设备操作系统：
 
-![](https://gitee.com/seazean/images/raw/master/Tool/移动设备操作系统.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/移动设备操作系统.png)
 
 
 
@@ -518,7 +518,7 @@ File → Close Project → Checkout from Version Control → Git → 指定远�
 ### 系统介绍
 
 从内到位依次是硬件 → 内核层 → Shell 层 → 应用层 → 用户
-![Linux](https://gitee.com/seazean/images/raw/master/Tool/Linux系统.png)
+![Linux](https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/Linux系统.png)
 
 内核层：核心和基础，附着在硬件平台上，控制和管理系统内的各种资源，有效的组织进程的运行，扩展硬件的功能，提高资源利用效率，为用户提供安全可靠的应用环境。
 
@@ -534,7 +534,7 @@ Shell 层：与用户直接交互的界面。用户可以在提示符下输入�
 
 Linux 文件系统目录结构和熟知的 windows 系统有较大区别，没有各种盘符的概念。根目录只有一个/，采用层级式的树状目录结构。
 
-![Linux文件系统](https://gitee.com/seazean/images/raw/master/Tool/Linux文件系统.png)
+![Linux文件系统](https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/Linux文件系统.png)
 
 /：根目录，所有的目录、文件、设备都在/之下，/就是 Linux 文件系统的组织者，也是最上级的领导者。
 
@@ -586,11 +586,11 @@ Linux 文件系统目录结构和熟知的 windows 系统有较大区别，没�
 #### NAT
 
 首先设置虚拟机中 NAT 模式的选项，打开 VMware，点击“编辑”下的“虚拟网络编辑器”，设置 NAT 参数
-	![](https://gitee.com/seazean/images/raw/master/Tool/配置NAT.jpg)
+	![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/配置NAT.jpg)
 
 **注意**：VMware Network Adapter VMnet8 保证是启用状态
 
-​	![](https://gitee.com/seazean/images/raw/master/Tool/本地主机网络连接.jpg)
+​	![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/本地主机网络连接.jpg)
 
 
 
@@ -637,7 +637,7 @@ Linux 文件系统目录结构和熟知的 windows 系统有较大区别，没�
 * 宿主机 ping 虚拟机，虚拟机 ping 宿主机
 * 在虚拟机中访问网络，需要增加一块 NAT 网卡
   * 【虚拟机】--【设置】--【添加】
-  * <img src="https://gitee.com/seazean/images/raw/master/Tool/两块NAT网卡.jpg" style="zoom:80%;" />
+  * <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/两块NAT网卡.jpg" style="zoom:80%;" />
 
 
 
@@ -652,7 +652,7 @@ Linux 文件系统目录结构和熟知的 windows 系统有较大区别，没�
 **服务器维护工作** 都是在 远程 通过 SSH 客户端 来完成的， 并没有图形界面， 所有的维护工作都需要通过命令来完成，Linux 服务器需要安装 SSH 相关服务。
 首先执行 sudo apt-get install openssh-server 指令。接下来用 xshell 连接。
 
-![](https://gitee.com/seazean/images/raw/master/Tool/远程连接Linux.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/远程连接Linux.png)
 
 先用普通用户登录，然后转成 root
 
@@ -957,7 +957,7 @@ top：用于实时显示 process 的动态
 
 `top -Hp 进程 id`：分析该进程内各线程的cpu使用情况
 
-![](https://gitee.com/seazean/images/raw/master/Tool/top命令.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/top命令.png)
 
 **各进程（任务）的状态监控属性解释说明：**
 	PID — 进程 id
@@ -1017,17 +1017,17 @@ Linux 系统中查看进程使用情况的命令是 ps 指令
 
 ### kill
 
-Linux kill命令用于删除执行中的程序或工作(可强制中断)
+Linux kill 命令用于删除执行中的程序或工作，并不是让进程直接停止，而是给进程发一个信号，可以进入终止逻辑
 
 命令：kill [-s <信息名称或编号>] [程序]　或　kill [-l <信息编号>]
 
-- -l <信息编号> 　若不加<信息编号>选项，则-l参数会列出全部的信息名称。
-- -s <信息名称或编号> 　指定要送出的信息。
+- -l <信息编号> 　若不加<信息编号>选项，则-l参数会列出全部的信息名称
+- -s <信息名称或编号> 　指定要送出的信息
 - -KILL 强制杀死进程
 - **-9 彻底杀死进程（常用）**
-- [程序]  程序的 PID、PGID、工作编号。
+- [程序]  程序的 PID、PGID、工作编号
 
-`kill 15642 `.   `kill -KILL 15642`.    **`kill -9 15642`**
+`kill 15642 `.   `kill -KILL 15642`.    `kill -9 15642`
 
 杀死指定用户所有进程：
 
@@ -1362,7 +1362,7 @@ mv [options] source... directory
 
 Linux系统是一种典型的多用户系统，不同的用户处于不同的地位，拥有不同的权限。为了保护系统的安全性，Linux系统对不同的用户访问同一文件（包括目录文件）的权限做了不同的规定。
 
-![](https://gitee.com/seazean/images/raw/master/Tool/用户目录下的文件.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/用户目录下的文件.png)
 
 在Linux中第一个字符代表这个文件是目录、文件或链接文件等等。
 
@@ -1374,7 +1374,7 @@ Linux系统是一种典型的多用户系统，不同的用户处于不同的地
 
 接下来的字符，以三个为一组，均为[rwx] 的三个参数组合。其中，[ r ]代表可读(read)、[ w ]代表可写(write)、[ x ]代表可执行(execute)。 要注意的是，这三个权限的位置不会改变，如果没有权限，就会出现[ - ]。
 
-<img src="https://gitee.com/seazean/images/raw/master/Tool/文件权限.png" style="zoom: 50%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/文件权限.png" style="zoom: 50%;" />
 
 从左至右用0-9这些数字来表示：
 	第0位确定文件类型，第1-3位确定属主（该文件的所有者）拥有该文件的权限。
@@ -1391,7 +1391,7 @@ Linux系统是一种典型的多用户系统，不同的用户处于不同的地
 > 文件的【属主】有一套【读写执行权限rwx】
 > 文件的【属组】有一套【读写执行权限rwx】
 
-![](https://gitee.com/seazean/images/raw/master/Tool/列出目录文件.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/列出目录文件.png)
 
 `ls -l` 可以查看文件夹下文件的详细信息, 从左到右 依次是:
 
@@ -1436,7 +1436,7 @@ mode : 权限设定字串,格式: [ugoa...][[+-=][rwxX]...][,...]
 
 文件的权限字符为：[-rwxrwxrwx]， 这九个权限是三三一组的，我们使用数字来代表各个权限。
 
-<img src="https://gitee.com/seazean/images/raw/master/Tool/权限数字表.png" style="zoom: 67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/权限数字表.png" style="zoom: 67%;" />
 
 各权限的数字对照表：[r]:4;    [w]:2;    [x]:1;    [-]:0
 
@@ -1452,7 +1452,7 @@ mode : 权限设定字串,格式: [ugoa...][[+-=][rwxX]...][,...]
 
 ##### 符号权限
 
-![](https://gitee.com/seazean/images/raw/master/Tool/权限符号表.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/权限符号表.png)
 
 - user     属主权限
 - group  属组权限
@@ -2128,7 +2128,7 @@ vim 中提供有一个 被复制文本的缓冲区
 
 * 下次再使用 vim 编辑文件时, 会看到以下屏幕信息,
 
-	![](https://gitee.com/seazean/images/raw/master/Tool/vim异常.png)
+	![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/vim异常.png)
 
 * ls -a 一下，会看到隐藏的.swp文件 删除了此文件即可。
 
@@ -2147,7 +2147,7 @@ ln [-sf] source_filename dist_filename
 * -s：默认是实体链接，加 -s 为符号链接
 * -f：如果目标文件存在时，先删除目标文件
 
-<img src="https://gitee.com/seazean/images/raw/master/Tool/文件链接.png" style="zoom: 80%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/文件链接.png" style="zoom: 80%;" />
 
 **实体链接**：
 
@@ -2348,7 +2348,7 @@ ifconfig [网络设备][down up -allmulti -arp -promisc][add<地址>][del<地址
 ```
 
 * `ifconfig`：显示激活的网卡信息  ens
-  <img src="https://gitee.com/seazean/images/raw/master/Tool/网卡信息.png"  />
+  <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/网卡信息.png"  />
 
   **ens33（有的是eth0）**表示第一块网卡。
   表示 ens33 网卡的 IP地址是 192.168.0.137，广播地址，broadcast 192.168.0.255，掩码地址netmask:255.255.255.0 ，inet6 对应的是 ipv6
@@ -2377,7 +2377,7 @@ ping [-dfnqrRv][-c<完成次数>][-i<间隔秒数>][-I<网络界面>][-l<前置�
 * -c<完成次数>：设置完成要求回应的次数；
 
 * `ping -c 2 www.baidu.com`
-  ![](https://gitee.com/seazean/images/raw/master/Tool/ping百度.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/ping百度.png)
 
   icmp_seq：ping 序列，从1开始
 
@@ -2454,7 +2454,7 @@ lsblk 命令的英文是 list block，即用于列出所有可用块设备的信
 命令：lsblk [参数]
 
 * `lsblk`：以树状列出所有块设备
-  ![](https://gitee.com/seazean/images/raw/master/Tool/可用块设备.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/可用块设备.png)
 
   NAME：这是块设备名。
 
@@ -2473,7 +2473,7 @@ lsblk 命令的英文是 list block，即用于列出所有可用块设备的信
   
 
 * `lsblk -f`：不会列出所有空设备
-  ![](https://gitee.com/seazean/images/raw/master/Tool/不包含空设备.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/不包含空设备.png)
 
   NAME表示设备名称
 
@@ -2500,7 +2500,7 @@ lsblk 命令的英文是 list block，即用于列出所有可用块设备的信
 * -h, 使用人类可读的格式(预设值是不加这个选项的...)
 * --total  计算所有的数据之和
 
-![](https://gitee.com/seazean/images/raw/master/Tool/磁盘管理.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/磁盘管理.png)
 
 第一列指定文件系统的名称；第二列指定一个特定的文件系统，1K 是 1024 字节为单位的总容量；已用和可用列分别指定的容量；最后一个已用列指定使用的容量的百分比；最后一栏指定的文件系统的挂载点
 
@@ -2532,7 +2532,7 @@ mount [-fnrsvw] [-t vfstype] [-o options] device dir
   `mkdir -p /mnt/cdrom `：切换到 root 下创建一个挂载点（其实就是创建一个目录）
 * 开始挂载
   `mount -t auto /dev/cdrom /mnt/cdrom`：通过挂载点的方式查看上面的【ISO文件内容】
-  ![挂载成功](https://gitee.com/seazean/images/raw/master/Tool/挂载成功.png)
+  ![挂载成功](https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/挂载成功.png)
 
 * 查看挂载内容：`ls -l -a ./mnt/cdrom/`
 * 卸载 cdrom：`umount /mnt/cdrom/`
@@ -2608,7 +2608,7 @@ Shell 脚本（shell script），是一种为 shell 编写的脚本程序。
 Shell 编程跟 JavaScript、php 编程一样，只要有一个能编写代码的文本编辑器和一个能解释执行的脚本解释器就可以了。
 
 `cat /etc/shells`：查看解释器
-![](https://gitee.com/seazean/images/raw/master/Tool/shell环境.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/shell环境.png)
 
 Linux 的 Shell 种类众多，常见的有：
 
@@ -3339,7 +3339,7 @@ Docker 架构：
 * **容器（Container）**：镜像（Image）和容器（Container）的关系，就像是面向对象程序设计中的类和对象一样，镜像是静态的定义，容器是镜像运行时的实体。容器可以被创建、启动、停止、删除、暂停等
 * **仓库（Repository）**：仓库可看成一个代码控制中心，用来保存镜像
 
-![](https://gitee.com/seazean/images/raw/master/Tool/Docker-docker架构.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/Docker-docker架构.png)
 
 安装步骤：
 
@@ -3514,7 +3514,7 @@ sudo systemctl restart docker
 > Docker 容器和外部机器可以直接交换文件吗？
 > 容器之间想要进行数据交互？
 
-<img src="https://gitee.com/seazean/images/raw/master/Tool/Docker-容器的数据卷.png" style="zoom:67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/Docker-容器的数据卷.png" style="zoom:67%;" />
 
 **数据卷**：数据卷是宿主机中的一个目录或文件，当容器目录和数据卷目录绑定后，对方的修改会立即同步
 
@@ -3550,7 +3550,7 @@ sudo systemctl restart docker
 * 多个容器挂载同一个数据卷
 * 数据卷容器
 
-<img src="https://gitee.com/seazean/images/raw/master/Tool/Docker-多容器数据交换.png" style="zoom:50%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/Docker-多容器数据交换.png" style="zoom:50%;" />
 
 * 创建启动c3数据卷容器，使用 –v 参数设置数据卷
 
@@ -3585,7 +3585,7 @@ sudo systemctl restart docker
 
 * 当容器中的网络服务需要被外部机器访问时，可以将容器中提供服务的端口映射到宿主机的端口上。外部机器访问宿主机的该端口，从而间接访问容器的服务。这种操作称为：**端口映射**
 
-  ![](https://gitee.com/seazean/images/raw/master/Tool/Docker-MySQL部署.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/Docker-MySQL部署.png)
 
 MySQL部署步骤：搜索mysql镜像，拉取mysql镜像，创建容器，操作容器中的mysql
 
@@ -3845,7 +3845,7 @@ Docker镜像原理：
 
 ### 镜像制作
 
-![](https://gitee.com/seazean/images/raw/master/Tool/Docker-Docker镜像原理.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/Docker-Docker镜像原理.png)
 
 ****
 
@@ -3950,7 +3950,7 @@ Docker Compose是一个编排多容器分布式部署的工具，提供命令集
 
 3. 运行 docker-compose up 启动应用
 
-![](https://gitee.com/seazean/images/raw/master/Tool/Docker-Compose原理.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/Docker-Compose原理.png)
 
 
 
@@ -4094,7 +4094,7 @@ Docker官方的Docker hub（https://hub.docker.com）是一个用于管理公共
   * 容器虚拟化的是操作系统，虚拟机虚拟化的是硬件。
   * 传统虚拟机可以运行不同的操作系统，容器只能运行同一类型操作系统
 
-  ![](https://gitee.com/seazean/images/raw/master/Tool/Docker-容器和虚拟机对比.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/Docker-容器和虚拟机对比.png)
 
   | 特性       | 容器               | 虚拟机     |
   | ---------- | ------------------ | ---------- |

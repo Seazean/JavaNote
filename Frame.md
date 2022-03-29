@@ -14,7 +14,7 @@ pom.xml：Maven 需要一个  pom.xml 文件，Maven 通过加载这个配置文
 
 管理资源的存储位置：本地仓库，私服，中央仓库
 
-![](https://gitee.com/seazean/images/raw/master/Frame/Maven介绍.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Maven介绍.png)
 
 基本作用：
 
@@ -24,7 +24,7 @@ pom.xml：Maven 需要一个  pom.xml 文件，Maven 通过加载这个配置文
 
 * 统一开发结构：提供标准的，统一的项目开发结构
 
-  ![](https://gitee.com/seazean/images/raw/master/Frame/Maven标准结构.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Maven标准结构.png)
 
 各目录存放资源类型说明：
 
@@ -107,7 +107,7 @@ Maven 的官网：http://maven.apache.org/
 
 配置 MAVEN_HOME：
 
-![](https://gitee.com/seazean/images/raw/master/Frame/Maven配置环境变量.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Maven配置环境变量.png)
 
 Path 下配置：`%MAVEN_HOME%\bin`
 
@@ -272,7 +272,7 @@ Path 下配置：`%MAVEN_HOME%\bin`
 
 ### 插件构建
 
-![](https://gitee.com/seazean/images/raw/master/Frame/Maven-插件构建.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Maven-插件构建.png)
 
 
 
@@ -285,7 +285,7 @@ Path 下配置：`%MAVEN_HOME%\bin`
 #### 不用原型
 
 1. 在 IDEA 中配置 Maven，选择 maven3.6.1 防止依赖问题
-   <img src="https://gitee.com/seazean/images/raw/master/Frame/IDEA配置Maven.png" alt="IDEA配置Maven" style="zoom:67%;" />
+   <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/IDEA配置Maven.png" alt="IDEA配置Maven" style="zoom:67%;" />
 
 2. 创建 Maven，New Module → Maven → 不选中 Create from archetype
 
@@ -296,15 +296,15 @@ Path 下配置：`%MAVEN_HOME%\bin`
 
 4. 查看各目录颜色标记是否正确
 
-   ![](https://gitee.com/seazean/images/raw/master/Frame/IDEA创建Maven目录结构.png)
+   ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/IDEA创建Maven目录结构.png)
 
 5. IDEA 右侧侧栏有 Maven Project，打开后有 Lifecycle 生命周期
 
-   ![](https://gitee.com/seazean/images/raw/master/Frame/IDEA-Maven生命周期.png)
+   ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/IDEA-Maven生命周期.png)
 
 6. 自定义 Maven 命令：Run → Edit Configurations → 左上角 +  → Maven
 
-   ![](https://gitee.com/seazean/images/raw/master/Frame/IDEA配置Maven命令.png)
+   ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/IDEA配置Maven命令.png)
 
 
 
@@ -318,7 +318,7 @@ Path 下配置：`%MAVEN_HOME%\bin`
 
 1. 创建 Maven 项目的时候选择使用原型骨架
 
-   ![](https://gitee.com/seazean/images/raw/master/Frame/IDEA创建Maven-quickstart.png)
+   ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/IDEA创建Maven-quickstart.png)
 
 2. 创建完成后发现通过这种方式缺少一些目录，需要手动去补全目录，并且要对补全的目录进行标记
 
@@ -328,7 +328,7 @@ Web 工程：
 
 1. 选择 Web 对应的原型骨架（选择 Maven 开头的是简化的）
 
-   ![](https://gitee.com/seazean/images/raw/master/Frame/IDEA创建Maven-webapp.png)
+   ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/IDEA创建Maven-webapp.png)
 
 2. 通过原型创建 Web 项目得到的目录结构是不全的，因此需要我们自行补全，同时要标记正确
 
@@ -472,13 +472,13 @@ Web 工程：
 
 `scope` 标签的取值有四种：`compile,test,provided,runtime`
 
-![](https://gitee.com/seazean/images/raw/master/Frame/Maven依赖范围.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Maven依赖范围.png)
 
 
 
 **依赖范围的传递性：**
 
-![](https://gitee.com/seazean/images/raw/master/Frame/Maven依赖范围的传递性.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Maven依赖范围的传递性.png)
 
 
 
@@ -506,7 +506,7 @@ Maven 的构建生命周期描述的是一次构建过程经历了多少个事�
 
   对于 default 生命周期，每个事件在执行之前都会**将之前的所有事件依次执行一遍**
 
-  ![](https://gitee.com/seazean/images/raw/master/Frame/Maven-default生命周期.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Maven-default生命周期.png)
 
 * site：产生报告，发布站点等
 
@@ -569,7 +569,7 @@ Maven 的插件用来执行生命周期中的相关事件
 
 工程模块与模块划分：
 
-![](https://gitee.com/seazean/images/raw/master/Frame/Maven模块划分.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Maven模块划分.png)
 
 * ssm_pojo 拆分
 
@@ -854,7 +854,7 @@ Maven 的插件用来执行生命周期中的相关事件
 
 * 版本统一的重要性： 
 
-  ![](https://gitee.com/seazean/images/raw/master/Frame/Maven版本统一的重要性.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Maven版本统一的重要性.png)
 
 * 属性类别：
 
@@ -1097,7 +1097,7 @@ mvn 指令 –D skipTests
 
 IEDA 界面：
 
-![](https://gitee.com/seazean/images/raw/master/Frame/IDEA使用界面操作跳过测试.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/IDEA使用界面操作跳过测试.png)
 
 
 
@@ -1162,7 +1162,7 @@ http://localhost:8081
 
 ### 资源操作
 
-![](https://gitee.com/seazean/images/raw/master/Frame/Maven私服资源获取.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Maven私服资源获取.png)
 
 
 
@@ -1200,7 +1200,7 @@ http://localhost:8081
 
 #### 上传下载
 
-![](https://gitee.com/seazean/images/raw/master/Frame/IDEA环境中资源上传与下载.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/IDEA环境中资源上传与下载.png)
 
 
 
@@ -1292,7 +1292,7 @@ mvn deploy
 
 Log4j 是 Apache 的一个开源项目。使用 Log4j，通过一个配置文件来灵活地进行配置，而不需要修改应用的代码。我们可以控制日志信息输送的目的地是控制台、文件等位置，也可以控制每一条日志的输出格式。
 
-<img src="https://gitee.com/seazean/images/raw/master/Frame/日志体系结构.png" style="zoom:50%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/日志体系结构.png" style="zoom:50%;" />
 
 
 
@@ -1340,7 +1340,7 @@ Log4j 是 Apache 的一个开源项目。使用 Log4j，通过一个配置文件
 + org.apache.log4j.TTCCLayout（包含日志产生的时间、线程、类别等信息）
 
 + PatternLayout 常用的选项
-  <img src="https://gitee.com/seazean/images/raw/master/Frame/日志-PatternLayout常用的选项.png" style="zoom:80%;" />
+  <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/日志-PatternLayout常用的选项.png" style="zoom:80%;" />
 
 
 
@@ -1433,7 +1433,7 @@ Netty 的功能特性：
 * 协议支持：HTTP、Protobuf、二进制、文本、WebSocket 等一系列协议都支持，也支持通过实行编码解码逻辑来实现自定义协议
 * Core 核心：可扩展事件模型、通用通信 API、支持零拷贝的 ByteBuf 缓冲对象
 
-<img src="https://gitee.com/seazean/images/raw/master/Frame/Netty-功能特性.png" style="zoom:50%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Netty-功能特性.png" style="zoom:50%;" />
 
 
 
@@ -1451,7 +1451,7 @@ Netty 的功能特性：
 
 传统阻塞型 I/O 模式，每个连接都需要独立的线程完成数据的输入，业务处理，数据返回
 
-<img src="https://gitee.com/seazean/images/raw/master/Frame/Netty-传统阻塞IO服务模型.png" style="zoom:50%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Netty-传统阻塞IO服务模型.png" style="zoom:50%;" />
 
 模型缺点：
 
@@ -1476,7 +1476,7 @@ Reactor 模式，通过一个或多个输入同时传递给服务处理器的**�
 
 **I/O 复用结合线程池**，就是 Reactor 模式基本设计思想：
 
-<img src="https://gitee.com/seazean/images/raw/master/Frame/Netty-Reactor模型.png" style="zoom: 50%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Netty-Reactor模型.png" style="zoom: 50%;" />
 
 Reactor 模式关键组成：
 
@@ -1512,7 +1512,7 @@ Reactor 对象通过 select 监控客户端请求事件，收到事件后通过 
 
   说明：**Handler 和 Acceptor 属于同一个线程**
 
-<img src="https://gitee.com/seazean/images/raw/master/Frame/Netty-单Reactor单线程.png" style="zoom:50%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Netty-单Reactor单线程.png" style="zoom:50%;" />
 
 模型优点：模型简单，没有多线程、进程通信、竞争的问题，全部都在一个线程中完成
 
@@ -1537,7 +1537,7 @@ Reactor 对象通过 select 监控客户端请求事件，收到事件后通过 
 
 * Worker 线程池会分配独立的线程完成真正的业务处理，将响应结果发给 Handler 进行处理，最后由 Handler 收到响应结果后通过 send 将响应结果返回给 Client
 
-<img src="https://gitee.com/seazean/images/raw/master/Frame/Netty-单Reactor多线程.png" style="zoom:50%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Netty-单Reactor多线程.png" style="zoom:50%;" />
 
 模型优点：可以充分利用多核 CPU 的处理能力
 
@@ -1564,7 +1564,7 @@ Reactor 对象通过 select 监控客户端请求事件，收到事件后通过 
 
 * Worker 线程池会分配独立的线程完成真正的业务处理，将响应结果发给 Handler 进行处理，最后由 Handler 收到响应结果后通过 send 将响应结果返回给 Client
 
-<img src="https://gitee.com/seazean/images/raw/master/Frame/Netty-主从Reactor多线程.png" style="zoom: 50%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Netty-主从Reactor多线程.png" style="zoom: 50%;" />
 
 模型优点
 
@@ -1585,7 +1585,7 @@ Reactor 模式中，Reactor 等待某个事件的操作状态发生变化（文�
 
 把 I/O 操作改为异步，交给操作系统来完成就能进一步提升性能，这就是异步网络模型 Proactor（AIO）：
 
-<img src="https://gitee.com/seazean/images/raw/master/Frame/Netty-Proactor模型.png" style="zoom:50%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Netty-Proactor模型.png" style="zoom:50%;" />
 
 工作流程：
 
@@ -1613,7 +1613,7 @@ Reactor 模式中，Reactor 等待某个事件的操作状态发生变化（文�
 
 Netty 主要基于主从 Reactors 多线程模型做了一定的改进，Netty 的工作架构图：
 
-<img src="https://gitee.com/seazean/images/raw/master/Frame/Netty-工作模型.png" style="zoom:50%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Netty-工作模型.png" style="zoom:50%;" />
 
 工作流程：
 
@@ -1637,7 +1637,7 @@ Netty 主要基于主从 Reactors 多线程模型做了一定的改进，Netty �
 
 6. 每个 Worker NioEventLoop 处理业务时，会使用 pipeline（管道），pipeline 中包含了 channel，即通过 pipeline 可以获取到对应通道，管道中维护了很多的处理器 Handler
 
-   <img src="https://gitee.com/seazean/images/raw/master/Frame/Netty-Channel与Pipeline.png" style="zoom: 50%;" />
+   <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Netty-Channel与Pipeline.png" style="zoom: 50%;" />
 
 
 
@@ -2127,7 +2127,7 @@ public static void main(String[] args) {
 * 入站事件会从链表 head 往后传递到最后一个入站的 handler
 * 出站事件会从链表 tail 往前传递到最前一个出站的 handler
 
-![](https://gitee.com/seazean/images/raw/master/Frame/Netty-ChannelPipeline.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Netty-ChannelPipeline.png)
 
 
 
@@ -2212,7 +2212,7 @@ ByteBuf 是对字节数据的封装，优点：
 
 ByteBuf 由四部分组成，最开始读写指针（**双指针**）都在 0 位置
 
-![](https://gitee.com/seazean/images/raw/master/Frame/Netty-ByteBuf组成.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Netty-ByteBuf组成.png)
 
 写入方法：
 
@@ -2829,7 +2829,7 @@ public class LoginRequestMessage extends Message {
 }
 ```
 
-![](https://gitee.com/seazean/images/raw/master/Frame/Netty-自定义协议.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Netty-自定义协议.png)
 
 
 
@@ -3068,7 +3068,7 @@ bootstrap.handler(new ChannelInitializer<SocketChannel>() {
 
 Codec（编解码器）的组成部分有两个：Decoder（解码器）和 Encoder（编码器）。Encoder 负责把业务数据转换成字节码数据，Decoder 负责把字节码数据转换成业务数据
 
-<img src="https://gitee.com/seazean/images/raw/master/Frame/Netty-编码解码.png" style="zoom: 67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Netty-编码解码.png" style="zoom: 67%;" />
 
 
 
@@ -3098,7 +3098,7 @@ Protobuf 是以 message 的方式来管理数据，支持跨平台、跨语言�
   }
   ```
 
-  <img src="https://gitee.com/seazean/images/raw/master/Frame/Netty-Protobuf编译文件.png" style="zoom:80%;" />
+  <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Netty-Protobuf编译文件.png" style="zoom:80%;" />
 
   编译 `protoc.exe --java_out=.Student.proto`（cmd 窗口输入） 将生成的 StudentPOJO 放入到项目使用
 
@@ -3416,7 +3416,7 @@ public class ConnectionTimeoutTest {
 * sync queue：半连接队列，大小通过 `/proc/sys/net/ipv4/tcp_max_syn_backlog` 指定，在 `syncookies` 启用的情况下，逻辑上没有最大值限制
 * accept queue：全连接队列，大小通过 `/proc/sys/net/core/somaxconn` 指定，在使用 listen 函数时，内核会根据传入的 backlog 参数与系统参数，取二者的较小值。如果 accpet queue 队列满了，server 将**发送一个拒绝连接的错误信息**到 client
 
-![](https://gitee.com/seazean/images/raw/master/Frame/Netty-TCP三次握手.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Netty-TCP三次握手.png)
 
 
 
@@ -3459,15 +3459,15 @@ RCVBUF_ALLOCATOR：属于 SocketChannal 参数
 
   实例：用户创建订单后，耦合调用库存系统、物流系统、支付系统，任何一个子系统出了故障都会造成下单异常，影响用户使用体验。使用消息队列解耦合，比如物流系统发生故障，需要几分钟恢复，将物流系统要处理的数据缓存到消息队列中，用户的下单操作正常完成。等待物流系统正常后处理存在消息队列中的订单消息即可，终端系统感知不到物流系统发生过几分钟故障
 
-  ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-解耦.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/RocketMQ-解耦.png)
 
 * 流量削峰：应用系统如果遇到系统请求流量的瞬间猛增，有可能会将系统压垮，使用消息队列可以将大量请求缓存起来，分散到很长一段时间处理，这样可以提高系统的稳定性和用户体验。
 
-  ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-流量削峰.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/RocketMQ-流量削峰.png)
 
 * 数据分发：让数据在多个系统更加之间进行流通，数据的产生方不需要关心谁来使用数据，只需要将数据发送到消息队列，数据使用方直接在消息队列中直接获取数据
 
-  ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-数据分发.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/RocketMQ-数据分发.png)
 
 
 
@@ -4213,7 +4213,7 @@ RocketMQ 在 Producer 端写入消息和在 Consumer 端订阅消息采用**分�
 
 ConsumeQueue 的存储结构如下，有 8 个字节存储的 Message Tag 的哈希值，基于 Tag 的消息过滤就是基于这个字段
 
-![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-消费队列结构.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/RocketMQ-消费队列结构.png)
 
 * Tag 过滤：Consumer 端订阅消息时指定 Topic 和 TAG，然后将订阅请求构建成一个 SubscriptionData，发送一个 Pull 消息的请求给 Broker 端。Broker 端用这些数据先构建一个 MessageFilter，然后传给文件存储层 Store。Store 从 ConsumeQueue 读取到一条记录后，会用它记录的消息 tag hash 值去做过滤。因为在服务端只是根据 hashcode 进行判断，无法精确对 tag 原始字符串进行过滤，所以消费端拉取到消息后，还需要对消息的原始 tag 字符串进行比对，如果不同，则丢弃该消息，不进行消息消费
 
@@ -4290,7 +4290,7 @@ public class Consumer {
 
 RocketMQ 支持分布式事务消息，采用了 2PC 的思想来实现了提交事务消息，同时增加一个**补偿逻辑**来处理二阶段超时或者失败的消息，如下图所示：
 
-![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-事务消息.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/RocketMQ-事务消息.png)
 
 事务消息的大致方案分为两个流程：正常事务消息的发送及提交、事务消息的补偿流程
 
@@ -4303,7 +4303,7 @@ RocketMQ 支持分布式事务消息，采用了 2PC 的思想来实现了提交
    * 根据本地事务状态执行 Commit 或者 Rollback
    
 
-![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-事务工作流程.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/RocketMQ-事务工作流程.png)
 
 2. 补偿机制：用于解决消息 Commit 或者 Rollback 发生超时或者失败的情况，比如出现网络问题
 
@@ -4350,7 +4350,7 @@ RocketMQ 的具体实现策略：如果写入的是事务消息，对消息的 T
 
 RocketMQ 将 Op 消息写入到全局一个特定的 Topic 中，通过源码中的方法 `TransactionalMessageUtil.buildOpTopic()`，这个主题是一个内部的 Topic（像 Half 消息的 Topic 一样），不会被用户消费。Op 消息的内容为对应的 Half 消息的存储的 Offset，这样**通过 Op  消息能索引到 Half 消息**
 
-![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-OP消息.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/RocketMQ-OP消息.png)
 
 
 
@@ -4503,7 +4503,7 @@ Broker 包含了以下几个重要子模块：
 
 * Index Service：根据特定的 Message key 对投递到 Broker 的消息进行索引服务，以提供消息的快速查询
 
-![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-Broker工作流程.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/RocketMQ-Broker工作流程.png)
 
 
 
@@ -4545,7 +4545,7 @@ At least Once：至少一次，指每个消息必须投递一次，Consumer 先 
 5. 如果消息消费者在指定时间内成功返回 ACK，那么 MQ 认为消息消费成功，在存储中删除消息；如果 MQ 在指定时间内没有收到 ACK，则认为消息消费失败，会尝试重新 push 消息，重复执行 4、5、6 步骤
 6. MQ 删除消息
 
-![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-消息存取.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/RocketMQ-消息存取.png)
 
 
 
@@ -4567,7 +4567,7 @@ RocketMQ 消息的存储是由 ConsumeQueue 和 CommitLog 配合完成 的，Com
 
 每条消息都会有对应的索引信息，Consumer 通过 ConsumeQueue 这个结构来读取消息实体内容
 
-![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-消息存储结构.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/RocketMQ-消息存储结构.png)
 
 * CommitLog：消息主体以及元数据的存储主体，存储 Producer 端写入的消息内容，消息内容不是定长的。消息主要是**顺序写入**日志文件，单个文件大小默认 1G，偏移量代表下一次写入的位置，当文件写满了就继续写入下一个文件
 * ConsumerQueue：消息消费队列，存储消息在 CommitLog 的索引。RocketMQ 消息消费时要遍历 CommitLog 文件，并根据主题 Topic 检索消息，这是非常低效的。引入 ConsumeQueue 作为消费消息的索引，**保存了指定 Topic 下的队列消息在 CommitLog 中的起始物理偏移量 offset**，消息大小 size 和消息 Tag 的 HashCode 值，每个 ConsumeQueue 文件大小约 5.72M
@@ -4591,7 +4591,7 @@ RocketMQ 采用的是混合型的存储结构，即为 Broker 单个实例下所
 
 * write：将读取的内容通过网络发送出去
 
-![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-文件与网络操作.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/RocketMQ-文件与网络操作.png)
 
 补充：Prog → NET → I/O → 零拷贝部分的笔记详解相关内容
 
@@ -4637,7 +4637,7 @@ RocketMQ 采用文件系统的方式，无论同步还是异步刷盘，都使�
 
 通过 Broker 配置文件里的 flushDiskType 参数设置采用什么方式，可以配置成 SYNC_FLUSH、ASYNC_FLUSH 中的一个
 
-![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-刷盘机制.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/RocketMQ-刷盘机制.png)
 
 
 
@@ -4696,7 +4696,7 @@ RocketMQ 网络部署特点：
 
   Consumer 既可以从 Master 订阅消息，也可以从 Slave 订阅消息，在向 Master 拉取消息时，Master 服务器会根据拉取偏移量与最大偏移量的距离（判断是否读老消息，产生读 I/O），以及从服务器是否可读等因素建议下一次是从 Master 还是 Slave 拉取
 
-![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-集群架构.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/RocketMQ-集群架构.png)
 
 
 
@@ -4716,7 +4716,7 @@ RocketMQ 网络部署特点：
 
 RocketMQ 目前还不支持把 Slave 自动转成 Master，需要手动停止 Slave 角色的 Broker，更改配置文件，用新的配置文件启动 Broker
 
-![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-高可用.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/RocketMQ-高可用.png)
 
 
 
@@ -4765,7 +4765,7 @@ Producer 端在发送消息时，会先根据 Topic 找到指定的 TopicPublish
 
 默认会**轮询所有的 Message Queue 发送**，以让消息平均落在不同的 queue 上，而由于 queue可以散落在不同的 Broker，所以消息就发送到不同的 Broker 下，图中箭头线条上的标号代表顺序，发布方会把第一条消息发送至 Queue 0，然后第二条消息发送至 Queue 1，以此类推：
 
-![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-producer负载均衡.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/RocketMQ-producer负载均衡.png)
 
 容错策略均在 MQFaultStrategy 这个类中定义，有一个 sendLatencyFaultEnable 开关变量：
 
@@ -4792,11 +4792,11 @@ LatencyFaultTolerance 机制是实现消息发送高可用的核心关键所在�
 
 集群模式下，每当消费者实例的数量有变更，都会触发一次所有实例的负载均衡，这时候会按照 queue 的数量和实例的数量平均分配 queue 给每个实例。默认的分配算法是 AllocateMessageQueueAveragely：
 
-![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-平均队列分配.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/RocketMQ-平均队列分配.png)
 
   还有一种平均的算法是 AllocateMessageQueueAveragelyByCircle，以环状轮流均分 queue 的形式：
 
-![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-平均队列轮流分配.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/RocketMQ-平均队列轮流分配.png)
 
 集群模式下，**queue 都是只允许分配只一个实例**，如果多个实例同时消费一个 queue 的消息，由于拉取哪些消息是 Consumer 主动控制的，会导致同一个消息在不同的实例下被消费多次
 
@@ -4824,7 +4824,7 @@ Consumer 端实现负载均衡的核心类 **RebalanceImpl**
 
 * 调用 updateProcessQueueTableInRebalance() 方法，先将分配到的消息队列集合 mqSet 与 processQueueTable 做一个过滤比对
 
-  ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-负载均衡重新平衡算法.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/RocketMQ-负载均衡重新平衡算法.png)
 
 * processQueueTable 标注的红色部分，表示与分配到的消息队列集合 mqSet 互不包含，将这些队列设置 Dropped 属性为 true，然后查看这些队列是否可以移除出 processQueueTable 缓存变量。具体执行 removeUnnecessaryMessageQueue() 方法，即每隔 1s  查看是否可以获取当前消费处理队列的锁，拿到的话返回 true；如果等待 1s 后，仍然拿不到当前消费处理队列的锁则返回 false。如果返回 true，则从 processQueueTable 缓存变量中移除对应的 Entry
 
@@ -4868,7 +4868,7 @@ RocketMQ 支持按照两种维度进行消息查询：按照 Message ID 查询�
 
 RocketMQ 的索引文件逻辑结构，类似 JDK 中 HashMap 的实现，具体结构如下：
 
-![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-IndexFile索引文件.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/RocketMQ-IndexFile索引文件.png)
 
 IndexFile 文件的存储在 `$HOME\store\index${fileName}`，文件名 fileName 是以创建时的时间戳命名，文件大小是固定的，等于 `40+500W*4+2000W*20= 420000040` 个字节大小。如果消息的 properties 中设置了 UNIQ_KEY 这个属性，就用 `topic + “#” + UNIQ_KEY` 作为 key 来做写入操作；如果消息设置了 KEYS 属性（多个 KEY 以空格分隔），也会用 `topic + “#” + KEY` 来做索引
 
@@ -5290,7 +5290,7 @@ NamesrvController 用来初始化和启动 Namesrv 服务器
 
 RocketMQ 的 RPC 通信采用 Netty 组件作为底层通信库，同样也遵循了 Reactor 多线程模型，NettyRemotingServer 类负责框架的通信服务，同时又在这之上做了一些扩展和优化
 
-![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-Reactor设计.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/RocketMQ-Reactor设计.png)
 
 RocketMQ 基于 NettyRemotingServer 的 Reactor 多线程模型：
 
@@ -5309,7 +5309,7 @@ RocketMQ 基于 NettyRemotingServer 的 Reactor 多线程模型：
 
 RocketMQ 的异步通信流程：
 
-![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-异步通信流程.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/RocketMQ-异步通信流程.png)
 
 
 
@@ -5588,7 +5588,7 @@ NettyRemotingServer 类成员变量：
 | remark     | String                  | 传输自定义文本信息                                           | 传输自定义文本信息                          |
 | extFields  | HashMap<String, String> | 请求自定义扩展信息                                           | 响应自定义扩展信息                          |
 
-![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-消息协议.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/RocketMQ-消息协议.png)
 
 传输内容主要可以分为以下四部分：
 
@@ -9400,11 +9400,11 @@ AllocateMessageQueueStrategy 类是队列的分配策略
 
   队列排序后：Q1 → Q2 → Q3，消费者排序后 C1 → C2 → C3
 
-  ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-平均队列分配.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/RocketMQ-平均队列分配.png)
 
 * 轮流分配：AllocateMessageQueueAveragelyByCircle
 
-  ![](https://gitee.com/seazean/images/raw/master/Frame/RocketMQ-平均队列轮流分配.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/RocketMQ-平均队列轮流分配.png)
 
 * 指定机房平均分配：AllocateMessageQueueByMachineRoom，前提是 Broker 的命名规则为 `机房名@BrokerName`
 

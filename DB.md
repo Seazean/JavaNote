@@ -260,11 +260,11 @@ mysqldump -uroot -p2143 -T /tmp test city
 
 * 备份
 
-  ![图形化界面备份](https://gitee.com/seazean/images/raw/master/DB/图形化界面备份.png)
+  ![图形化界面备份](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/图形化界面备份.png)
 
 * 恢复
 
-  ![图形化界面恢复](https://gitee.com/seazean/images/raw/master/DB/图形化界面恢复.png)
+  ![图形化界面恢复](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/图形化界面恢复.png)
 
 
 
@@ -362,7 +362,7 @@ mysqlshow -uroot -p1234 test book --count
   - 数据存储层，主要是将数据存储在文件系统之上，并完成与存储引擎的交互
   - File System：文件系统，保存配置文件、数据文件、日志文件、错误文件、二进制文件等
 
-![](https://gitee.com/seazean/images/raw/master/DB/MySQL-体系结构.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-体系结构.png)
 
 
 
@@ -370,11 +370,9 @@ mysqlshow -uroot -p1234 test book --count
 
 
 
-### 执行流程
+### 建立连接
 
 #### 连接器
-
-##### 连接原理
 
 池化技术：对于访问数据库来说，建立连接的代价是比较昂贵的，因为每个连接对应一个用来交互的线程，频繁的创建关闭连接比较耗费资源，有必要建立数据库连接池，以提高访问的性能
 
@@ -384,7 +382,7 @@ MySQL 服务器可以同时和多个客户端进行交互，所以要保证每�
 
 整体的执行流程：
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/MySQL-SQL的执行流程.png" style="zoom: 33%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-SQL的执行流程.png" style="zoom: 33%;" />
 
 
 
@@ -392,7 +390,7 @@ MySQL 服务器可以同时和多个客户端进行交互，所以要保证每�
 
 
 
-##### 连接状态
+#### 连接状态
 
 客户端如果长时间没有操作，连接器就会自动断开，时间是由参数 wait_timeout 控制的，默认值是 8 小时。如果在连接被断开之后，客户端**再次发送请求**的话，就会收到一个错误提醒：`Lost connection to MySQL server during query`
 
@@ -403,14 +401,14 @@ MySQL 服务器可以同时和多个客户端进行交互，所以要保证每�
 * 定期断开长连接，使用一段时间，或者程序里面判断执行过一个占用内存的大查询后，断开连接，之后要查询再重连
 
   ```mysql
-  kill connection id
+  KILL CONNECTION id
   ```
 
 * MySQL 5.7 版本，可以在每次执行一个比较大的操作后，通过执行 mysql_reset_connection 来重新初始化连接资源，这个过程不需要重连和重新做权限验证，但是会将连接恢复到刚刚创建完时的状态
 
 SHOW PROCESSLIST：查看当前 MySQL 在进行的线程，可以实时地查看 SQL 的执行情况，其中的 Command 列显示为 Sleep 的这一行，就表示现在系统里面有一个空闲连接
 
-![](https://gitee.com/seazean/images/raw/master/DB/MySQL-SHOW_PROCESSLIST命令.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-SHOW_PROCESSLIST命令.png)
 
 | 参数    | 含义                                                         |
 | ------- | ------------------------------------------------------------ |
@@ -423,11 +421,17 @@ SHOW PROCESSLIST：查看当前 MySQL 在进行的线程，可以实时地查看
 | State   | 显示使用当前连接的 sql 语句的状态，以查询为例，需要经过 copying to tmp table、sorting result、sending data等状态才可以完成 |
 | Info    | 显示执行的 sql 语句，是判断问题语句的一个重要依据            |
 
+**Sending data 状态**表示 MySQL 线程开始访问数据行并把结果返回给客户端，而不仅仅只是返回给客户端，是处于执行器过程中的任意阶段。由于在 Sending data 状态下，MySQL 线程需要做大量磁盘读取操作，所以是整个查询中耗时最长的状态。
+
 
 
 ***
 
 
+
+
+
+### 执行流程
 
 #### 查询缓存
 
@@ -493,7 +497,7 @@ SHOW PROCESSLIST：查看当前 MySQL 在进行的线程，可以实时地查看
    SHOW STATUS LIKE 'Qcache%';
    ```
 
-   <img src="https://gitee.com/seazean/images/raw/master/DB/MySQL-查询缓存的状态变量.png" style="zoom:67%;" />
+   <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-查询缓存的状态变量.png" style="zoom:67%;" />
 
    | 参数                    | 含义                                                         |
    | ----------------------- | ------------------------------------------------------------ |
@@ -666,11 +670,11 @@ MySQL 在真正执行语句之前，并不能精确地知道满足条件的记�
 
 #### 引擎层
 
-Server 层和存储引擎层的交互是**以记录为单位的**，存储引擎会将符合条件的单条记录返回给 Server 层做进一步处理，并不是直接返回所有的记录
+Server 层和存储引擎层的交互是**以记录为单位的**，存储引擎会将单条记录返回给 Server 层做进一步处理，并不是直接返回所有的记录
 
 工作流程：
 
-* 首先根据二级索引选择扫描范围，获取第一条符合条件的记录，进行回表查询，将聚簇索引的记录返回 Server 层
+* 首先根据二级索引选择扫描范围，获取第一条符合二级索引条件的记录，进行回表查询，将聚簇索引的记录返回 Server 层，由 Server 判断记录是否符合要求
 * 然后在二级索引上继续扫描下一个符合条件的记录
 
 
@@ -682,6 +686,62 @@ Server 层和存储引擎层的交互是**以记录为单位的**，存储引擎
 
 
 ***
+
+
+
+### 终止流程
+
+#### 终止语句
+
+终止线程中正在执行的语句：
+
+```mysql
+KILL QUERY thread_id
+```
+
+KILL 不是马上终止的意思，而是告诉执行线程这条语句已经不需要继续执行，可以开始执行停止的逻辑（类似于打断）。因为对表做增删改查操作，会在表上加 MDL 读锁，如果线程被 KILL 时就直接终止，那这个 MDL 读锁就没机会被释放了
+
+命令 `KILL QUERYthread_id_A` 的执行流程：
+
+* 把 session A 的运行状态改成 THD::KILL_QUERY（将变量 killed 赋值为 THD::KILL_QUERY）
+* 给 session A 的执行线程发一个信号，让 session A 来处理这个 THD::KILL_QUERY 状态
+
+会话处于等待状态（锁阻塞），必须满足是一个可以被唤醒的等待，必须有机会去**判断线程的状态**，如果不满足就会造成 KILL 失败
+
+典型场景：innodb_thread_concurrency 为 2，代表并发线程上限数设置为 2
+
+* session A 执行事务，session B 执行事务，达到线程上限；此时 session C 执行事务会阻塞等待，session D 执行 kill query C 无效
+* C 的逻辑是每 10 毫秒判断是否可以进入 InnoDB 执行，如果不行就调用 nanosleep 函数进入 sleep 状态，没有去判断线程状态
+
+补充：执行 Ctrl+C 的时候，是 MySQL 客户端另外启动一个连接，然后发送一个 KILL QUERY 命令
+
+
+
+***
+
+
+
+#### 终止连接
+
+断开线程的连接：
+
+```mysql
+KILL CONNECTION id
+```
+
+断开连接后执行 SHOW PROCESSLIST 命令，如果这条语句的 Command 列显示 Killed，代表线程的状态是 KILL_CONNECTION，说明这个线程有语句正在执行，当前状态是停止语句执行中，终止逻辑耗时较长
+
+* 超大事务执行期间被 KILL，这时回滚操作需要对事务执行期间生成的所有新数据版本做回收操作，耗时很长
+* 大查询回滚，如果查询过程中生成了比较大的临时文件，删除临时文件可能需要等待 IO 资源，导致耗时较长
+* DDL 命令执行到最后阶段被 KILL，需要删除中间过程的临时文件，也可能受 IO 资源影响耗时较久
+
+总结：KILL CONNECTION 本质上只是把客户端的 SQL 连接断开，后面的终止流程还是要走 KILL QUERY
+
+一个事务被 KILL 之后，持续处于回滚状态，不应该强行重启整个 MySQL 进程，应该等待事务自己执行完成，因为重启后依然继续做回滚操作的逻辑
+
+
+
+****
 
 
 
@@ -723,7 +783,7 @@ Server 层和存储引擎层的交互是**以记录为单位的**，存储引擎
 
     - 用来定义数据库的访问权限和安全级别，及创建用户。关键字：grant， revoke等
 
-    ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-SQL分类.png)
+    ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-SQL分类.png)
 
 
 
@@ -1270,7 +1330,7 @@ LIMIT		<limit_params>
   SELECT * FROM product WHERE NAME LIKE '%电脑%';
   ```
 
-  <img src="https://gitee.com/seazean/images/raw/master/DB/MySQL-DQL数据准备.png" style="zoom: 80%;" />
+  <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-DQL数据准备.png" style="zoom: 80%;" />
 
 
 
@@ -1546,7 +1606,7 @@ SELECT * FROM emp WHERE name REGEXP '[uvw]';-- 匹配包含 uvw 的name值
   SELECT * FROM product LIMIT 6,2;  -- 第四页 开始索引=(4-1) * 2
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-DQL分页查询图解.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-DQL分页查询图解.png)
 
 
 
@@ -1875,7 +1935,7 @@ CREATE TABLE card(
 INSERT INTO card VALUES (NULL,'12345',1),(NULL,'56789',2);
 ```
 
-![](https://gitee.com/seazean/images/raw/master/DB/多表设计一对一.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/多表设计一对一.png)
 
 
 
@@ -1909,7 +1969,7 @@ CREATE TABLE orderlist(
 INSERT INTO orderlist VALUES (NULL,'hm001',1),(NULL,'hm002',1),(NULL,'hm003',2),(NULL,'hm004',2);
 ```
 
-![多表设计一对多](https://gitee.com/seazean/images/raw/master/DB/多表设计一对多.png)
+![多表设计一对多](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/多表设计一对多.png)
 
 
 
@@ -1952,7 +2012,7 @@ CREATE TABLE stu_course(
 INSERT INTO stu_course VALUES (NULL,1,1),(NULL,1,2),(NULL,2,1),(NULL,2,2);
 ```
 
-![](https://gitee.com/seazean/images/raw/master/DB/多表设计多对多.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/多表设计多对多.png)
 
 
 
@@ -1962,55 +2022,27 @@ INSERT INTO stu_course VALUES (NULL,1,1),(NULL,1,2),(NULL,2,1),(NULL,2,2);
 
 ### 连接查询
 
-#### 连接原理
-
-连接查询的是两张表有交集的部分数据，如果结果集中的每条记录都是两个表相互匹配的组合，则称这样的结果集为笛卡尔积
-
-查询原理：两张表分为驱动表和被驱动表，首先查询驱动表得到数据集，然后根据数据集中的每一条记录的**关联字段再分别**到被驱动表中查找匹配，所以驱动表只需要访问一次，被驱动表要访问多次
-
-MySQL 将查询驱动表后得到的记录成为驱动表的扇出，连接查询的成本：单次访问驱动表的成本 + 扇出值 * 单次访问被驱动表的成本，优化器会选择成本最小的表连接顺序（确定谁是驱动表，谁是被驱动表）生成执行计划，进行连接查询，优化方式：
-
-* 减少驱动表的扇出
-* 降低访问被驱动表的成本
-
-MySQL 提出了一种**空间换时间**的优化方式，基于块的循环连接，执行连接查询前申请一块固定大小的内存作为连接缓冲区 Join Buffer，先把若干条驱动表中的扇出暂存在缓冲区，每一条被驱动表中的记录一次性的与 Buffer 中多条记录进行匹配（可能是一对多），因为是在内存中完成，所以速度快，并且降低了 I/O 成本。
-
-Join Buffer 可以通过参数 `join_buffer_size` 进行配置，默认大小是 256 KB
-
-在成本分析时，对于很多张表的连接查询，连接顺序有非常多，MySQL 如果挨着进行遍历计算成本，会消耗很多资源
-
-* 提前结束某种连接顺序的成本评估：维护一个全局变量记录当前成本最小的连接方式，如果一种顺序只计算了一部分就已经超过了最小成本，可以提前结束计算
-* 系统变量 optimizer_search_depth：如果连接表的个数小于该变量，就继续穷举分析每一种连接数量，反之只对数量与 depth 值相同的表进行分析，该值越大成本分析的越精确
-
-* 系统变量 optimizer_prune_level：控制启发式规则的启用，这些规则就是根据以往经验指定的，不满足规则的连接顺序不分析成本
-
-
-
-
-
-***
-
-
-
 #### 内外连接
 
 ##### 内连接
 
+连接查询的是两张表有交集的部分数据，两张表分为**驱动表和被驱动表**，如果结果集中的每条记录都是两个表相互匹配的组合，则称这样的结果集为笛卡尔积
+
 内连接查询，若驱动表中的记录在被驱动表中找不到匹配的记录时，则该记录不会加到最后的结果集
 
-* 显式内连接
+* 显式内连接：
 
   ```mysql
   SELECT 列名 FROM 表名1 [INNER] JOIN 表名2 ON 条件;
   ```
 
-* 隐式内连接
+* 隐式内连接：内连接中 WHERE 子句和 ON 子句是等价的
 
   ```mysql
   SELECT 列名 FROM 表名1,表名2 WHERE 条件;
   ```
 
-内连接中 WHERE 子句和 ON 子句是等价的
+STRAIGHT_JOIN与 JOIN 类似，只不过左表始终在右表之前读取，只适用于内连接
 
 
 
@@ -2023,7 +2055,7 @@ Join Buffer 可以通过参数 `join_buffer_size` 进行配置，默认大小是
 
 外连接查询，若驱动表中的记录在被驱动表中找不到匹配的记录时，则该记录也会加到最后的结果集，只是对于被驱动表中**不匹配过滤条件**的记录，各个字段使用 NULL 填充
 
-应用实例：查学生成绩，也想查出缺考的人的成绩
+应用实例：查学生成绩，也想展示出缺考的人的成绩
 
 * 左外连接：选择左侧的表为驱动表，查询左表的全部数据，和左右两张表有交集部分的数据
 
@@ -2037,7 +2069,7 @@ Join Buffer 可以通过参数 `join_buffer_size` 进行配置，默认大小是
   SELECT 列名 FROM 表名1 RIGHT [OUTER] JOIN 表名2 ON 条件;
   ```
 
-![](https://gitee.com/seazean/images/raw/master/DB/MySQL-JOIN查询图.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-JOIN查询图.png)
 
 
 
@@ -2074,7 +2106,7 @@ Join Buffer 可以通过参数 `join_buffer_size` 进行配置，默认大小是
   (1009,'宋江',NULL,16000.00);
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/自关联查询数据准备.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/自关联查询数据准备.png)
 
 * 数据查询
 
@@ -2114,6 +2146,100 @@ Join Buffer 可以通过参数 `join_buffer_size` 进行配置，默认大小是
   1008	林冲	   1009	 1009	 宋江
   1009	宋江	   NULL	 NULL	 NULL
   ```
+
+
+
+***
+
+
+
+#### 连接原理
+
+Index Nested-Loop Join 算法：查询驱动表得到**数据集**，然后根据数据集中的每一条记录的**关联字段再分别**到被驱动表中查找匹配（**走索引**），所以驱动表只需要访问一次，被驱动表要访问多次
+
+MySQL 将查询驱动表后得到的记录成为驱动表的扇出，连接查询的成本：单次访问驱动表的成本 + 扇出值 * 单次访问被驱动表的成本，优化器会选择成本最小的表连接顺序（确定谁是驱动表，谁是被驱动表）生成执行计划，进行连接查询，优化方式：
+
+* 减少驱动表的扇出（让数据量小的表来做驱动表）
+* 降低访问被驱动表的成本
+
+说明：STRAIGHT_JOIN 是查一条驱动表，然后根据关联字段去查被驱动表，要访问多次驱动表，所以需要优化为 INL 算法
+
+Block Nested-Loop Join 算法：一种**空间换时间**的优化方式，基于块的循环连接，执行连接查询前申请一块固定大小的内存作为连接缓冲区 Join Buffer，先把若干条驱动表中的扇出暂存在缓冲区，每一条被驱动表中的记录一次性的与 Buffer 中多条记录进行匹配（扫描全部数据，一条一条的匹配），因为是在内存中完成，所以速度快，并且降低了 I/O 成本
+
+Join Buffer 可以通过参数 `join_buffer_size` 进行配置，默认大小是 256 KB
+
+在成本分析时，对于很多张表的连接查询，连接顺序有非常多，MySQL 如果挨着进行遍历计算成本，会消耗很多资源
+
+* 提前结束某种连接顺序的成本评估：维护一个全局变量记录当前成本最小的连接方式，如果一种顺序只计算了一部分就已经超过了最小成本，可以提前结束计算
+* 系统变量 optimizer_search_depth：如果连接表的个数小于该变量，就继续穷举分析每一种连接数量，反之只对数量与 depth 值相同的表进行分析，该值越大成本分析的越精确
+
+* 系统变量 optimizer_prune_level：控制启发式规则的启用，这些规则就是根据以往经验指定的，不满足规则的连接顺序不分析成本
+
+
+
+***
+
+
+
+#### 连接优化
+
+##### BKA
+
+Batched Key Access 算法是对 NLJ 算法的优化，在读取被驱动表的记录时使用顺序 IO，Extra 信息中会有 Batched Key Access 信息
+
+使用 BKA 的表的 JOIN 过程如下：
+
+* 连接驱动表将满足条件的记录放入 Join Buffer，并将两表连接的字段放入一个 DYNAMIC_ARRAY ranges 中
+* 在进行表的过接过程中，会将 ranges 相关的信息传入 Buffer 中，进行被驱动表主建的查找及排序操作
+* 调用步骤 2 中产生的有序主建，**顺序读取被驱动表的数据**
+* 当缓冲区的数据被读完后，会重复进行步骤 2、3，直到记录被读取完
+
+使用 BKA 优化需要设进行设置：
+
+```mysql
+SET optimizer_switch='mrr=on,mrr_cost_based=off,batched_key_access=on';
+```
+
+说明：前两个参数的作用是启用 MRR，因为 BKA 算法的优化要依赖于 MRR（系统优化 → 内存优化 → Read 详解）
+
+
+
+***
+
+
+
+##### BNL
+
+###### 问题
+
+BNL 即 Block Nested-Loop Join 算法，由于要访问多次被驱动表，会产生两个问题：
+
+* Join 语句多次扫描一个冷表，并且语句执行时间小于 1 秒，就会在再次扫描冷表时，把冷表的数据页移到 LRU 链表头部，导致热数据被淘汰，影响业务的正常运行
+
+  这种情况冷表的数据量要小于整个 Buffer Pool 的 old 区域，能够完全放入 old 区，才会再次被读时加到 young，否则读取下一段时就已经把上一段淘汰
+
+* Join 语句在循环读磁盘和淘汰内存页，进入 old 区域的数据页很可能在 1 秒之内就被淘汰，就会导致 MySQL 实例的 Buffer Pool 在这段时间内 young 区域的数据页没有被合理地淘汰
+
+大表 Join 操作虽然对 IO 有影响，但是在语句执行结束后对 IO 的影响随之结束。但是对 Buffer Pool 的影响就是持续性的，需要依靠后续的查询请求慢慢恢复内存命中率
+
+
+
+###### 优化
+
+将 BNL 算法转成 BKA 算法，优化方向：
+
+* 在被驱动表上建索引，这样就可以根据索引进行顺序 IO
+* 使用临时表，**在临时表上建立索引**，将被驱动表和临时表进行连接查询
+
+驱动表 t1，被驱动表 t2，使用临时表的工作流程：
+
+* 把表 t1 中满足条件的数据放在临时表 tmp_t 中
+* 给临时表 tmp_t 的关联字段加上索引，使用 BKA 算法
+* 让表 t2 和 tmp_t 做 Join 操作（临时表是被驱动表）
+
+补充：MySQL 8.0 支持 hash join，join_buffer 维护的不再是一个无序数组，而是一个哈希表，查询效率更高，执行效率比临时表更高
+
+
 
 
 
@@ -2174,8 +2300,8 @@ Join Buffer 可以通过参数 `join_buffer_size` 进行配置，默认大小是
 
 系统变量 tmp_table_size 或者 max_heap_table_size 为表的最值
 
-* 小于系统变量时，内存中可以保存，会为建立基于内存的 MEMORY 存储引擎的临时表，并建立哈希索引
-* 大于任意一个系统变量时，物化表会使用基于磁盘的 InnoDB 存储引擎来保存结果集中的记录，索引类型为 B+ 树
+* 小于系统变量时，内存中可以保存，会为建立**基于内存**的 MEMORY 存储引擎的临时表，并建立哈希索引
+* 大于任意一个系统变量时，物化表会使用**基于磁盘**的 InnoDB 存储引擎来保存结果集中的记录，索引类型为 B+ 树
 
 物化后，嵌套查询就相当于外层查询的表和物化表进行内连接查询，然后经过优化器选择成本最小的表连接顺序执行查询
 
@@ -2191,6 +2317,32 @@ Join Buffer 可以通过参数 `join_buffer_size` 进行配置，默认大小是
 
 
 ***
+
+
+
+#### 联合查询
+
+UNION 是取这两个子查询结果的并集，并进行去重，同时进行默认规则的排序（union 是行加起来，join 是列加起来）
+
+UNION ALL 是对两个结果集进行并集操作不进行去重，不进行排序
+
+```mysql
+(select 1000 as f) union (select id from t1 order by id desc limit 2); #t1表中包含id 为 1-1000 的数据
+```
+
+语句的执行流程：
+
+* 创建一个内存临时表，这个临时表只有一个整型字段 f，并且 f 是主键字段
+* 执行第一个子查询，得到 1000 这个值，并存入临时表中
+* 执行第二个子查询，拿到第一行 id=1000，试图插入临时表中，但由于 1000 这个值已经存在于临时表了，违反了唯一性约束，所以插入失败，然后继续执行
+* 取到第二行 id=999，插入临时表成功
+* 从临时表中按行取出数据，返回结果并删除临时表，结果中包含两行数据分别是 1000 和 999
+
+
+
+
+
+****
 
 
 
@@ -2243,17 +2395,18 @@ CREATE TABLE us_pro(
 );
 ```
 
-![多表练习架构设计](https://gitee.com/seazean/images/raw/master/DB/多表练习架构设计.png)
+![多表练习架构设计](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/多表练习架构设计.png)
 
 
 
 **数据查询：**
 
-1. 查询用户的编号、姓名、年龄、订单编号。
-   分析：
-   	数据：用户的编号、姓名、年龄在 user 表，订单编号在 orderlist 表
-   	条件：user.id = orderlist.uid
-
+1. 查询用户的编号、姓名、年龄、订单编号
+   
+   数据：用户的编号、姓名、年龄在 user 表，订单编号在 orderlist 表
+   
+   条件：user.id = orderlist.uid
+   
    ```mysql
    SELECT
    	u.*,
@@ -2264,7 +2417,7 @@ CREATE TABLE us_pro(
    WHERE
    	u.id = o.uid;
    ```
-
+   
 2. 查询所有的用户，显示用户的编号、姓名、年龄、订单编号。
 
    ```mysql
@@ -2279,7 +2432,7 @@ CREATE TABLE us_pro(
    	u.id = o.uid;
    ```
 
-3. 查询用户年龄大于 23 岁的信息，显示用户的编号、姓名、年龄、订单编号。
+3. 查询用户年龄大于 23 岁的信息，显示用户的编号、姓名、年龄、订单编号
 
    ```mysql
    SELECT
@@ -2320,8 +2473,10 @@ CREATE TABLE us_pro(
    	u.name IN ('张三','李四');
    ````
 
-5. 查询所有的用户和该用户能查看的所有的商品，显示用户的编号、姓名、年龄、商品名称。
-   数据：用户的编号、姓名、年龄在user表，商品名称在product表，中间表 us_pro
+5. 查询所有的用户和该用户能查看的所有的商品，显示用户的编号、姓名、年龄、商品名称
+   
+   数据：用户的编号、姓名、年龄在 user 表，商品名称在 product 表，中间表 us_pro
+   
    条件：us_pro.uid = user.id AND us_pro.pid = product.id
    
    ```mysql
@@ -3418,7 +3573,7 @@ InnoDB 存储引擎：(MySQL5.5 版本后默认的存储引擎)
 
 MEMORY 存储引擎：
 
-- 特点：每个 MEMORY 表实际对应一个磁盘文件 ，该文件中只存储表的结构，表数据保存在内存中，且默认**使用 HASH 索引**，这样有利于数据的快速处理，在需要快速定位记录可以提供更快的访问，但是服务一旦关闭，表中的数据就会丢失，数据存储不安全
+- 特点：每个 MEMORY 表实际对应一个磁盘文件 ，该文件中只存储表的结构，表数据保存在内存中，且默认**使用 HASH 索引**，这样有利于数据的快速处理，在需要快速定位记录可以提供更快的访问，但是**服务一旦关闭，表中的数据就会丢失**，存储不安全
 - 应用场景：通常用于更新不太频繁的小表，用以快速得到访问结果，类似缓存
 - 存储方式：表结构保存在 .frm 中
 
@@ -3448,7 +3603,7 @@ MERGE 存储引擎：
   )ENGINE = MERGE UNION = (order_1,order_2) INSERT_METHOD=LAST DEFAULT CHARSET=utf8;
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-MERGE.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-MERGE.png)
 
 | 特性         | MyISAM                         | InnoDB        | MEMORY               |
 | ------------ | ------------------------------ | ------------- | -------------------- |
@@ -3468,7 +3623,7 @@ MERGE 存储引擎：
 | 批量插入速度 | 高                             | 低            | 高                   |
 | **外键**     | **不支持**                     | **支持**      | **不支持**           |
 
-面试问题：MyIsam 和 InnoDB 的区别？
+MyISAM 和 InnoDB 的区别？
 
 * 事务：InnoDB 支持事务，MyISAM 不支持事务
 * 外键：InnoDB 支持外键，MyISAM 不支持外键
@@ -3543,7 +3698,7 @@ MySQL 官方对索引的定义为：索引（index）是帮助 MySQL 高效获�
 **索引是在存储引擎层实现的**，所以并没有统一的索引标准，即不同存储引擎的索引的工作方式并不一样
 
 索引使用：一张数据表，用于保存数据；一个索引配置文件，用于保存索引；每个索引都指向了某一个数据
-![](https://gitee.com/seazean/images/raw/master/DB/MySQL-索引的介绍.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-索引的介绍.png)
 
 左边是数据表，一共有两列七条记录，最左边的是数据记录的物理地址（注意逻辑上相邻的记录在磁盘上也并不是一定物理相邻的）。为了加快 Col2 的查找，可以维护一个右边所示的二叉查找树，每个节点分别包含索引键值和一个指向对应数据的物理地址的指针，这样就可以运用二叉查找快速获取到相应数据
 
@@ -3592,7 +3747,7 @@ MySQL 官方对索引的定义为：索引（index）是帮助 MySQL 高效获�
 
 联合索引图示：根据身高年龄建立的组合索引（height,age）
 
-![](https://gitee.com/seazean/images/raw/master/DB/MySQL-组合索引图.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-组合索引图.png)
 
 
 
@@ -3758,7 +3913,7 @@ InnoDB 使用 B+Tree 作为索引结构，并且 InnoDB 一定有索引
 
 * InnoDB 表是基于聚簇索引建立的，因此 InnoDB 的索引能提供一种非常快速的主键查找性能。不过辅助索引也会包含主键列，所以不建议使用过长的字段作为主键，**过长的主索引会令辅助索引变得过大**
 
-![](https://gitee.com/seazean/images/raw/master/DB/MySQL-InnoDB聚簇和辅助索引结构.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-InnoDB聚簇和辅助索引结构.png)
 
 
 
@@ -3775,7 +3930,7 @@ MyISAM 的主键索引使用的是非聚簇索引，索引文件和数据文件�
 * 主键索引 B+ 树的节点存储了主键，辅助键索引 B+ 树存储了辅助键，表数据存储在独立的地方，这两颗 B+ 树的叶子节点都使用一个地址指向真正的表数据，对于表数据来说，这两个键没有任何差别
 * 由于索引树是独立的，通过辅助索引检索**无需回表查询**访问主键的索引树
 
-![](https://gitee.com/seazean/images/raw/master/DB/MySQL-聚簇索引和辅助索引检锁数据图.jpg)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-聚簇索引和辅助索引检锁数据图.jpg)
 
 
 
@@ -3791,7 +3946,7 @@ MyISAM 的索引方式也叫做非聚集的，之所以这么称呼是为了与 
 
 辅助索引：MyISAM 中主索引和辅助索引（Secondary key）在结构上没有任何区别，只是主索引要求 key 是唯一的，而辅助索引的 key 可以重复
 
-![](https://gitee.com/seazean/images/raw/master/DB/MySQL-MyISAM主键和辅助索引结构.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-MyISAM主键和辅助索引结构.png)
 
 
 
@@ -3855,40 +4010,40 @@ BTree 又叫多路平衡搜索树，一颗 m 叉的 BTree 特性如下：
 
 * 插入前 4 个字母 C N G A 
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-BTree工作流程1.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-BTree工作流程1.png)
 
 * 插入 H，n>4，中间元素 G 字母向上分裂到新的节点
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-BTree工作流程2.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-BTree工作流程2.png)
 
 * 插入 E、K、Q 不需要分裂
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-BTree工作流程3.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-BTree工作流程3.png)
 
 * 插入 M，中间元素 M 字母向上分裂到父节点 G
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-BTree工作流程4.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-BTree工作流程4.png)
 
 * 插入 F，W，L，T 不需要分裂
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-BTree工作流程5.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-BTree工作流程5.png)
 
 *  插入 Z，中间元素 T 向上分裂到父节点中
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-BTree工作流程6.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-BTree工作流程6.png)
 
 * 插入 D，中间元素 D 向上分裂到父节点中，然后插入 P，R，X，Y 不需要分裂
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-BTree工作流程7.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-BTree工作流程7.png)
 
 *  最后插入 S，NPQR 节点 n>5，中间节点 Q 向上分裂，但分裂后父节点 DGMT 的 n>5，中间节点 M 向上分裂
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-BTree工作流程8.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-BTree工作流程8.png)
 
 BTree 树就已经构建完成了，BTree 树和二叉树相比， 查询数据的效率更高， 因为对于相同的数据量来说，**BTree 的层级结构比二叉树少**，所以搜索速度快
 
 BTree 结构的数据可以让系统高效的找到数据所在的磁盘块，定义一条记录为一个二元组 [key, data] ，key 为记录的键值，对应表中的主键值，data 为一行记录中除主键外的数据。对于不同的记录，key 值互不相同，BTree 中的每个节点根据实际情况可以包含大量的关键字信息和分支
-![](https://gitee.com/seazean/images/raw/master/DB/索引的原理1.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/索引的原理1.png)
 
 缺点：当进行范围查找时会出现回旋查找
 
@@ -3913,7 +4068,7 @@ B+Tree 为 BTree 的变种，B+Tree 与 BTree 的区别为：
 - **叶子节点按照 key 大小顺序排列，左边结尾数据都会保存右边节点开始数据的指针，形成一个链表**
 - 所有节点中的 key 在叶子节点中也存在（比如 5)，**key 允许重复**，B 树不同节点不存在重复的 key
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/MySQL-B加Tree数据结构.png" style="zoom:67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-B加Tree数据结构.png" style="zoom:67%;" />
 
 B* 树：是 B+ 树的变体，在 B+ 树的非根和非叶子结点再增加指向兄弟的指针
 
@@ -3931,7 +4086,7 @@ MySQL 索引数据结构对经典的 B+Tree 进行了优化，在原 B+Tree 的�
 
 B+ 树的**叶子节点是数据页**（page），一个页里面可以存多个数据行
 
-![](https://gitee.com/seazean/images/raw/master/DB/索引的原理2.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/索引的原理2.png)
 
 通常在 B+Tree 上有两个头指针，**一个指向根节点，另一个指向关键字最小的叶子节点**，而且所有叶子节点（即数据节点）之间是一种链式环结构。可以对 B+Tree 进行两种查找运算：
 
@@ -4065,10 +4220,10 @@ B+ 树为了保持索引的有序性，在插入新值的时候需要做相应�
 
 * 不使用索引下推优化时存储引擎通过索引检索到数据，然后回表查询记录返回给 Server 层，**服务器判断数据是否符合条件**
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-不使用索引下推.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-不使用索引下推.png)
 * 使用索引下推优化时，如果**存在某些被索引的列的判断条件**时，由存储引擎在索引遍历的过程中判断数据是否符合传递的条件，将符合条件的数据进行回表，检索出来返回给服务器，由此减少 IO 次数
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-使用索引下推.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-使用索引下推.png)
 
 **适用条件**：
 
@@ -4084,10 +4239,10 @@ SELECT * FROM user WHERE name LIKE '张%' AND　age = 10;	-- 头部模糊匹配�
 
 * 优化前：在非主键索引树上找到满足第一个条件的行，然后通过叶子节点记录的主键值再回到主键索引树上查找到对应的行数据，再对比 AND 后的条件是否符合，符合返回数据，需要 4 次回表
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-索引下推优化1.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-索引下推优化1.png)
 
 * 优化后：检查索引中存储的列信息是否符合索引条件，然后交由存储引擎用剩余的判断条件判断此行数据是否符合要求，**不满足条件的不去读取表中的数据**，满足下推条件的就根据主键值进行回表查询，2 次回表
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-索引下推优化2.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-索引下推优化2.png)
 
 当使用 EXPLAIN 进行分析时，如果使用了索引条件下推，Extra 会显示 Using index condition
 
@@ -4183,6 +4338,124 @@ CREATE INDEX idx_area ON table_name(area(7));
 
 ## 系统优化
 
+### 表优化
+
+#### 临时表
+
+临时表分为内部临时表和用户临时表
+
+* 内部临时表：系统执行 SQL 语句优化时产生的表，例如 Join 连接查询、去重查询等
+
+* 用户临时表：用户主动创建的临时表
+
+  ```mysql
+  CREATE TEMPORARY TABLE temp_t like table_1;
+  ```
+
+临时表可以是内存表，也可以是磁盘表（多表操作 → 嵌套查询章节提及）
+
+* 内存表指的是使用 Memory 引擎的表，建立哈希索引，建表语法是 `create table … engine=memory`，这种表的数据都保存在内存里，系统重启时会被清空，但是表结构还在
+* 磁盘表是使用 InnoDB 引擎或者 MyISAM 引擎的临时表，建立 B+ 树索引，写数据的时候是写到磁盘上的
+
+临时表的特点：
+
+* 一个临时表只能被创建它的 session 访问，对其他线程不可见，所以不同 session 的临时表是**可以重名**的
+* 临时表可以与普通表同名，会话内有同名的临时表和普通表时，执行 show create 语句以及增删改查语句访问的都是临时表
+* show tables 命令不显示临时表
+* 数据库发生异常重启不需要担心数据删除问题，临时表会**自动回收**
+
+
+
+***
+
+
+
+#### 重名原理
+
+执行创建临时表的 SQL：
+
+```mysql
+create temporary table temp_t(id int primary key)engine=innodb;
+```
+
+MySQL 给 InnoDB 表创建一个 frm 文件保存表结构定义，在 ibd 保存表数据。frm 文件放在临时文件目录下，文件名的后缀是 .frm，**前缀是** `#sql{进程 id}_{线程 id}_ 序列号`，使用 `select @@tmpdir` 命令，来显示实例的临时文件目录
+
+MySQL 维护数据表，除了物理磁盘上的文件外，内存里也有一套机制区别不同的表，每个表都对应一个 table_def_key
+
+* 一个普通表的 table_def_key 的值是由 `库名 + 表名` 得到的，所以如果在同一个库下创建两个同名的普通表，创建第二个表的过程中就会发现 table_def_key 已经存在了
+* 对于临时表，table_def_key 在 `库名 + 表名` 基础上，又加入了 `server_id + thread_id`，所以不同线程之间，临时表可以重名
+
+实现原理：每个线程都维护了自己的临时表链表，每次 session 内操作表时，先遍历链表，检查是否有这个名字的临时表，如果有就**优先操作临时表**，如果没有再操作普通表；在 session 结束时对链表里的每个临时表，执行 `DROP TEMPORARY TABLE + 表名` 操作
+
+执行 rename table 语句无法修改临时表，因为会按照 `库名 / 表名.frm` 的规则去磁盘找文件，但是临时表文件名的规则是 `#sql{进程 id}_{线程 id}_ 序列号.frm`，因此会报找不到文件名的错误
+
+
+
+****
+
+
+
+#### 基本应用
+
+##### 主备复制
+
+创建临时表的语句会传到备库执行，因此备库的同步线程就会创建这个临时表。主库在线程退出时会自动删除临时表，但备库同步线程是持续在运行的并不会退出，所以这时就需要在主库上再写一个 DROP TEMPORARY TABLE 传给备库执行
+
+binlog 日志写入规则：
+
+* binlog_format=row，跟临时表有关的语句就不会记录到 binlog
+* binlog_format=statment/mixed，binlog 中才会记录临时表的操作，也就会记录 `DROP TEMPORARY TABLE` 这条命令
+
+主库上不同的线程创建同名的临时表是不冲突的，但是备库只有一个执行线程，所以 MySQL 在记录 binlog 时会把主库执行这个语句的线程 id 写到 binlog 中，在备库的应用线程就可以获取执行每个语句的主库线程 id，并利用这个线程 id 来构造临时表的 table_def_key
+
+* session A 的临时表 t1，在备库的 table_def_key 就是：`库名 + t1 +“M 的 serverid" + "session A 的 thread_id”`
+* session B 的临时表 t1，在备库的 table_def_key 就是 ：`库名 + t1 +"M 的 serverid" + "session B 的 thread_id"`
+
+MySQL 在记录 binlog 的时不论是 create table 还是 alter table 语句都是原样记录，但是如果执行 drop table，系统记录 binlog 就会被服务端改写
+
+```mysql
+DROP TABLE `t_normal` /* generated by server */
+```
+
+
+
+***
+
+
+
+##### 跨库查询
+
+分库分表系统的跨库查询使用临时表不用担心线程之间的重名冲突，分库分表就是要把一个逻辑上的大表分散到不同的数据库实例上
+
+比如将一个大表 ht，按照字段 f，拆分成 1024 个分表，分布到 32 个数据库实例上，一般情况下都有一个中间层 proxy 解析 SQL 语句，通过分库规则通过分表规则（比如 N%1024）确定将这条语句路由到哪个分表做查询
+
+```mysql
+select v from ht where f=N;
+```
+
+如果这个表上还有另外一个索引 k，并且查询语句：
+
+```mysql
+select v from ht where k >= M order by t_modified desc limit 100;
+```
+
+查询条件里面没有用到分区字段 f，只能**到所有的分区**中去查找满足条件的所有行，然后统一做 order by 操作，两种方式：
+
+* 在 proxy 层的进程代码中实现排序，拿到分库的数据以后，直接在内存中参与计算，但是对 proxy 端的压力比较大，很容易出现内存不够用和 CPU 瓶颈问题
+* 把各个分库拿到的数据，汇总到一个 MySQL 实例的一个表中，然后在这个汇总实例上做逻辑操作，执行流程：
+  * 在汇总库上创建一个临时表 temp_ht，表里包含三个字段 v、k、t_modified
+  * 在各个分库执行：`select v,k,t_modified from ht_x where k >= M order by t_modified desc limit 100`
+  * 把分库执行的结果插入到 temp_ht 表中
+  * 在临时表上执行：`select v from temp_ht order by t_modified desc limit 100`
+
+
+
+
+
+***
+
+
+
 ### 优化步骤
 
 #### 执行频率
@@ -4205,7 +4478,7 @@ SHOW [SESSION|GLOBAL] STATUS LIKE '';
 
   Com_xxx 表示每种语句执行的次数
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-SQL语句执行频率.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-SQL语句执行频率.png)
 
 * 查询 SQL 语句影响的行数：
 
@@ -4213,7 +4486,7 @@ SHOW [SESSION|GLOBAL] STATUS LIKE '';
   SHOW STATUS LIKE 'Innodb_rows_%';
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-SQL语句影响的行数.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-SQL语句影响的行数.png)
 
 Com_xxxx：这些参数对于所有存储引擎的表操作都会进行累计
 
@@ -4278,7 +4551,7 @@ SQL 执行慢有两种情况：
 
 * SHOW PROCESSLIST：**实时查看**当前 MySQL 在进行的连接线程，包括线程的状态、是否锁表、SQL 的执行情况，同时对一些锁表操作进行优化
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-SHOW_PROCESSLIST命令.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-SHOW_PROCESSLIST命令.png)
 
 
 
@@ -4301,7 +4574,7 @@ SQL 执行慢有两种情况：
 EXPLAIN SELECT * FROM table_1 WHERE id = 1;
 ```
 
-![](https://gitee.com/seazean/images/raw/master/DB/MySQL-explain查询SQL语句的执行计划.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-explain查询SQL语句的执行计划.png)
 
 | 字段          | 含义                                                         |
 | ------------- | ------------------------------------------------------------ |
@@ -4331,7 +4604,7 @@ SHOW WARINGS：在使用 EXPALIN 命令后执行该语句，可以查询与执�
 
 环境准备：
 
-![](https://gitee.com/seazean/images/raw/master/DB/MySQL-执行计划环境准备.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-执行计划环境准备.png)
 
 
 
@@ -4351,7 +4624,7 @@ id 代表 SQL 执行的顺序的标识，每个 SELECT 关键字对应一个唯�
   EXPLAIN SELECT * FROM t_role r, t_user u, user_role ur WHERE r.id = ur.role_id AND u.id = ur.user_id ;
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-explain之id相同.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-explain之id相同.png)
 
 * id 不同时，id 值越大优先级越高，越先被执行
 
@@ -4359,7 +4632,7 @@ id 代表 SQL 执行的顺序的标识，每个 SELECT 关键字对应一个唯�
   EXPLAIN SELECT * FROM t_role WHERE id = (SELECT role_id FROM user_role WHERE user_id = (SELECT id FROM t_user WHERE username = 'stu1'))
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-explain之id不同.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-explain之id不同.png)
 
 * id 有相同也有不同时，id 相同的可以认为是一组，从上往下顺序执行；在所有的组中，id 的值越大的组，优先级越高，越先执行
 
@@ -4367,7 +4640,7 @@ id 代表 SQL 执行的顺序的标识，每个 SELECT 关键字对应一个唯�
   EXPLAIN SELECT * FROM t_role r , (SELECT * FROM user_role ur WHERE ur.`user_id` = '2') a WHERE r.id = a.role_id ; 
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-explain之id相同和不同.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-explain之id相同和不同.png)
 
 * id 为 NULL 时代表的是临时表
 
@@ -4484,11 +4757,11 @@ key_len：
 SHOW PROFILES 能够在做 SQL 优化时分析当前会话中语句执行的**资源消耗**情况
 
 * 通过 have_profiling 参数，能够看到当前 MySQL 是否支持 profile：
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-have_profiling.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-have_profiling.png)
 
 * 默认 profiling 是关闭的，可以通过 set 语句在 Session 级别开启 profiling：
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-profiling.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-profiling.png)
 
   ```mysql
   SET profiling=1; #开启profiling 开关；
@@ -4500,7 +4773,7 @@ SHOW PROFILES 能够在做 SQL 优化时分析当前会话中语句执行的**�
   SHOW PROFILES;
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-查看SQL语句执行耗时.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-查看SQL语句执行耗时.png)
 
 * 查看到该 SQL 执行过程中每个线程的状态和消耗的时间：
 
@@ -4508,13 +4781,11 @@ SHOW PROFILES 能够在做 SQL 优化时分析当前会话中语句执行的**�
   SHOW PROFILE FOR QUERY query_id;
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-SQL执行每个状态消耗的时间.png)
-
-  **Sending data 状态**表示 MySQL 线程开始访问数据行并把结果返回给客户端，而不仅仅只是返回给客户端。由于在 Sending data 状态下，MySQL 线程需要做大量磁盘读取操作，所以是整个查询中耗时最长的状态。
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-SQL执行每个状态消耗的时间.png)
 
 * 在获取到最消耗时间的线程状态后，MySQL 支持选择 all、cpu、block io 、context switch、page faults 等类型查看 MySQL 在使用什么资源上耗费了过高的时间。例如，选择查看 CPU 的耗费时间：
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-SQL执行每个状态消耗的CPU.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-SQL执行每个状态消耗的CPU.png)
 
   * Status：SQL 语句执行的状态
   * Durationsql：执行过程中每一个步骤的耗时
@@ -4560,7 +4831,7 @@ MySQL 提供了对 SQL 的跟踪， 通过 trace 文件可以查看优化器**�
 
 
 
-### 索引失效
+### 索引优化
 
 #### 创建索引
 
@@ -4581,7 +4852,7 @@ INSERT INTO `tb_seller` (`sellerid`, `name`, `nickname`, `password`, `status`, `
 CREATE INDEX idx_seller_name_sta_addr ON tb_seller(name, status, address); # 联合索引
 ```
 
-![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引环境准备.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL使用索引环境准备.png)
 
 
 
@@ -4599,7 +4870,7 @@ CREATE INDEX idx_seller_name_sta_addr ON tb_seller(name, status, address); # 联
   EXPLAIN SELECT * FROM tb_seller WHERE name='小米科技' AND status='1' AND address='西安市';
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引1.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL使用索引1.png)
 
 * **最左前缀法则**：联合索引遵守最左前缀法则
 
@@ -4610,7 +4881,7 @@ CREATE INDEX idx_seller_name_sta_addr ON tb_seller(name, status, address); # 联
   EXPLAIN SELECT * FROM tb_seller WHERE name='小米科技' AND status='1';
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引2.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL使用索引2.png)
 
   违法最左前缀法则 ， 索引失效：
 
@@ -4619,7 +4890,7 @@ CREATE INDEX idx_seller_name_sta_addr ON tb_seller(name, status, address); # 联
   EXPLAIN SELECT * FROM tb_seller WHERE status='1' AND address='西安市';
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引3.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL使用索引3.png)
 
   如果符合最左法则，但是出现跳跃某一列，只有最左列索引生效：
 
@@ -4627,7 +4898,7 @@ CREATE INDEX idx_seller_name_sta_addr ON tb_seller(name, status, address); # 联
   EXPLAIN SELECT * FROM tb_seller WHERE name='小米科技' AND address='西安市';
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引4.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL使用索引4.png)
 
   虽然索引列失效，但是系统会**使用了索引下推进行了优化**
 
@@ -4639,7 +4910,7 @@ CREATE INDEX idx_seller_name_sta_addr ON tb_seller(name, status, address); # 联
 
   根据前面的两个字段 name ， status 查询是走索引的， 但是最后一个条件 address 没有用到索引，使用了索引下推
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引5.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL使用索引5.png)
 
 * 在索引列上**函数或者运算（+ - 数值）操作**， 索引将失效：会破坏索引值的有序性
 
@@ -4647,7 +4918,7 @@ CREATE INDEX idx_seller_name_sta_addr ON tb_seller(name, status, address); # 联
   EXPLAIN SELECT * FROM tb_seller WHERE SUBSTRING(name,3,2) = '科技';
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引6.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL使用索引6.png)
 
 * **字符串不加单引号**，造成索引失效：隐式类型转换，当字符串和数字比较时会**把字符串转化为数字**
 
@@ -4657,7 +4928,7 @@ CREATE INDEX idx_seller_name_sta_addr ON tb_seller(name, status, address); # 联
   EXPLAIN SELECT * FROM tb_seller WHERE name='小米科技' AND status = 1;
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引7.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL使用索引7.png)
 
   如果 status 是 int 类型，SQL 为 `SELECT * FROM tb_seller WHERE status = '1' ` 并不会造成索引失效，因为会将 `'1'` 转换为 `1`，并**不会对索引列产生操作**
 
@@ -4674,7 +4945,7 @@ CREATE INDEX idx_seller_name_sta_addr ON tb_seller(name, status, address); # 联
   EXPLAIN SELECT * FROM tb_seller WHERE name='小米科技' OR status='1';
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引10.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL使用索引10.png)
 
   **AND 分割的条件不影响**：
 
@@ -4682,7 +4953,7 @@ CREATE INDEX idx_seller_name_sta_addr ON tb_seller(name, status, address); # 联
   EXPLAIN SELECT * FROM tb_seller WHERE name='阿里巴巴' AND createtime = '2088-01-01 12:00:00';
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引11.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL使用索引11.png)
 
 * **以 % 开头的 LIKE 模糊查询**，索引失效：
 
@@ -4692,7 +4963,7 @@ CREATE INDEX idx_seller_name_sta_addr ON tb_seller(name, status, address); # 联
   EXPLAIN SELECT * FROM tb_seller WHERE name like '%科技%';
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引12.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL使用索引12.png)
 
   解决方案：通过覆盖索引来解决 
 
@@ -4700,7 +4971,7 @@ CREATE INDEX idx_seller_name_sta_addr ON tb_seller(name, status, address); # 联
   EXPLAIN SELECT sellerid,name,status FROM tb_seller WHERE name like '%科技%';
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引13.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL使用索引13.png)
 
   原因：在覆盖索引的这棵 B+ 数上只需要进行 like 的匹配，或者是基于覆盖索引查询再进行 WHERE 的判断就可以获得结果
 
@@ -4724,7 +4995,7 @@ CREATE INDEX idx_seller_name_sta_addr ON tb_seller(name, status, address); # 联
 
   北京市的键值占 9/10（区分度低），所以优化为全表扫描，type = ALL
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引14.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL使用索引14.png)
 
 * IS  NULL、IS NOT NULL  **有时**索引失效：
 
@@ -4735,7 +5006,7 @@ CREATE INDEX idx_seller_name_sta_addr ON tb_seller(name, status, address); # 联
 
   NOT NULL 失效的原因是 name 列全部不是 null，优化为全表扫描，当 NULL 过多时，IS NULL 失效
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引15.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL使用索引15.png)
 
 * IN 肯定会走索引，但是当 IN 的取值范围较大时会导致索引失效，走全表扫描：
 
@@ -4756,16 +5027,16 @@ CREATE INDEX idx_seller_name_sta_addr ON tb_seller(name, status, address); # 联
 
 索引失效一般是针对联合索引，联合索引一般由几个字段组成，排序方式是先按照第一个字段进行排序，然后排序第二个，依此类推，图示（a, b）索引，**a 相等的情况下 b 是有序的**
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/MySQL-索引失效底层原理1.png" style="zoom:67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-索引失效底层原理1.png" style="zoom:67%;" />
 
 * 最左前缀法则：当不匹配前面的字段的时候，后面的字段都是无序的。这种无序不仅体现在叶子节点，也会**导致查询时扫描的非叶子节点也是无序的**，因为索引树相当于忽略的第一个字段，就无法使用二分查找
 
 * 范围查询右边的列，不能使用索引，比如语句： `WHERE a > 1 AND b = 1 `，在 a 大于 1 的时候，b 是无序的，a > 1 是扫描时有序的，但是找到以后进行寻找 b 时，索引树就不是有序的了
 
-  <img src="https://gitee.com/seazean/images/raw/master/DB/MySQL-索引失效底层原理2.png" style="zoom:67%;" />
+  <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-索引失效底层原理2.png" style="zoom:67%;" />
 
 * 以 % 开头的 LIKE 模糊查询，索引失效，比如语句：`WHERE a LIKE '%d'`，前面的不确定，导致不符合最左匹配，直接去索引中搜索以 d 结尾的节点，所以没有顺序
-                                  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-索引失效底层原理3.png)
+                                  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-索引失效底层原理3.png)
 
 
 
@@ -4784,7 +5055,7 @@ SHOW STATUS LIKE 'Handler_read%';
 SHOW GLOBAL STATUS LIKE 'Handler_read%';
 ```
 
-![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL查看索引使用情况.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL查看索引使用情况.png)
 
 * Handler_read_first：索引中第一条被读的次数，如果较高，表示服务器正执行大量全索引扫描（这个值越低越好）
 
@@ -4818,7 +5089,7 @@ SHOW GLOBAL STATUS LIKE 'Handler_read%';
 EXPLAIN SELECT name,status,address FROM tb_seller WHERE name='小米科技' AND status='1' AND address='西安市';
 ```
 
-![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引8.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL使用索引8.png)
 
 如果查询列，超出索引列，也会降低性能：
 
@@ -4826,7 +5097,7 @@ EXPLAIN SELECT name,status,address FROM tb_seller WHERE name='小米科技' AND 
 EXPLAIN SELECT name,status,address,password FROM tb_seller WHERE name='小米科技' AND status='1' AND address='西安市';
 ```
 
-![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用索引9.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL使用索引9.png)
 
 
 
@@ -4887,7 +5158,7 @@ EXPLAIN SELECT name,status,address,password FROM tb_seller WHERE name='小米科
 
 当使用 load 命令导入数据的时候，适当的设置可以提高导入的效率：
 
-![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL load data.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL load data.png)
 
 ```mysql
 LOAD DATA LOCAL INFILE = '/home/seazean/sql1.log' INTO TABLE `tb_user_1` FIELD TERMINATED BY ',' LINES TERMINATED BY '\n'; -- 文件格式如上图
@@ -4901,21 +5172,21 @@ LOAD DATA LOCAL INFILE = '/home/seazean/sql1.log' INTO TABLE `tb_user_1` FIELD T
 
    * 插入 ID 顺序排列数据：
 
-   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL插入ID顺序排列数据.png)
+   ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL插入ID顺序排列数据.png)
 
    * 插入 ID 无序排列数据：
 
-   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL插入ID无序排列数据.png)
+   ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL插入ID无序排列数据.png)
 
 2. **关闭唯一性校验**：在导入数据前执行 `SET UNIQUE_CHECKS=0`，关闭唯一性校验；导入结束后执行 `SET UNIQUE_CHECKS=1`，恢复唯一性校验，可以提高导入的效率。
 
-   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL插入数据关闭唯一性校验.png)
+   ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL插入数据关闭唯一性校验.png)
 
 3. **手动提交事务**：如果应用使用自动提交的方式，建议在导入前执行`SET AUTOCOMMIT=0`，关闭自动提交；导入结束后再打开自动提交，可以提高导入的效率。
 
    事务需要控制大小，事务太大可能会影响执行的效率。MySQL 有 innodb_log_buffer_size 配置项，超过这个值的日志会写入磁盘数据，效率会下降，所以在事务大小达到配置项数据级前进行事务提交可以提高效率
 
-   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL插入数据手动提交事务.png)
+   ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL插入数据手动提交事务.png)
 
 
 
@@ -4945,7 +5216,7 @@ CREATE INDEX idx_emp_age_salary ON emp(age,salary);
   EXPLAIN SELECT * FROM emp ORDER BY age DESC;	-- 年龄降序
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL ORDER BY排序1.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL ORDER BY排序1.png)
 
 * 第二种通过有序索引顺序扫描直接返回**有序数据**，这种情况为 Using index，不需要额外排序，操作效率高
 
@@ -4953,7 +5224,7 @@ CREATE INDEX idx_emp_age_salary ON emp(age,salary);
   EXPLAIN SELECT id, age, salary FROM emp ORDER BY age DESC;
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL ORDER BY排序2.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL ORDER BY排序2.png)
 
 * 多字段排序：
 
@@ -4963,7 +5234,7 @@ CREATE INDEX idx_emp_age_salary ON emp(age,salary);
   EXPLAIN SELECT id,age,salary FROM emp ORDER BY age DESC, salary ASC;
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL ORDER BY排序3.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL ORDER BY排序3.png)
 
   尽量减少额外的排序，通过索引直接返回有序数据。**需要满足 Order by 使用相同的索引、Order By 的顺序和索引顺序相同、Order  by 的字段都是升序或都是降序**，否则需要额外的操作，就会出现 FileSort
   
@@ -5011,7 +5282,7 @@ GROUP BY 也会进行排序操作，与 ORDER BY 相比，GROUP BY 主要只是�
   EXPLAIN SELECT age,COUNT(*) FROM emp GROUP BY age;
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL GROUP BY排序1.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL GROUP BY排序1.png)
 
   Using temporary：表示 MySQL 需要使用临时表（不是 sort buffer）来存储结果集，常见于排序和分组查询
 
@@ -5021,15 +5292,17 @@ GROUP BY 也会进行排序操作，与 ORDER BY 相比，GROUP BY 主要只是�
   EXPLAIN SELECT age,COUNT(*) FROM emp GROUP BY age ORDER BY NULL;
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL GROUP BY排序2.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL GROUP BY排序2.png)
 
-* 创建索引：
+* 创建索引：索引本身有序，不需要临时表，也不需要再额外排序
 
   ```mysql
   CREATE INDEX idx_emp_age_salary ON emp(age,salary);
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL GROUP BY排序3.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL GROUP BY排序3.png)
+  
+* 数据量很大时，使用 SQL_BIG_RESULT 提示优化器直接使用直接用磁盘临时表
 
 
 
@@ -5047,7 +5320,7 @@ GROUP BY 也会进行排序操作，与 ORDER BY 相比，GROUP BY 主要只是�
   EXPLAIN SELECT * FROM emp WHERE id = 1 OR age = 30;	-- 两个索引，并且不是复合索引
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL OR条件查询1.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL OR条件查询1.png)
 
   ```sh
   Extra: Using sort_union(idx_emp_age_salary,PRIMARY); Using where
@@ -5061,7 +5334,7 @@ GROUP BY 也会进行排序操作，与 ORDER BY 相比，GROUP BY 主要只是�
   EXPLAIN SELECT * FROM emp WHERE id = 1 UNION SELECT * FROM emp WHERE age = 30;
   ```
   
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL OR条件查询2.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL OR条件查询2.png)
   
 * UNION 要优于 OR 的原因：
 
@@ -5090,7 +5363,7 @@ MySQL 4.1 版本之后，开始支持 SQL 的子查询
   EXPLAIN SELECT * FROM t_user WHERE id IN (SELECT user_id FROM user_role);
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL嵌套查询1.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL嵌套查询1.png)
 
 * 优化后：
 
@@ -5098,7 +5371,7 @@ MySQL 4.1 版本之后，开始支持 SQL 的子查询
   EXPLAIN SELECT * FROM t_user u , user_role ur WHERE u.id = ur.user_id;
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL嵌套查询2.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL嵌套查询2.png)
 
   连接查询之所以效率更高 ，是因为不需要在内存中创建临时表来完成逻辑上需要两个步骤的查询工作
 
@@ -5122,15 +5395,15 @@ MySQL 4.1 版本之后，开始支持 SQL 的子查询
   EXPLAIN SELECT * FROM tb_user_1 LIMIT 200000,10;
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL分页查询1.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL分页查询1.png)
 
-* 优化方式一：子查询，在索引列 id 上完成排序分页操作，最后根据主键关联回原表查询所需要的其他列内容
+* 优化方式一：内连接查询，在索引列 id 上完成排序分页操作，最后根据主键关联回原表查询所需要的其他列内容
 
   ```mysql
   EXPLAIN SELECT * FROM tb_user_1 t,(SELECT id FROM tb_user_1 ORDER BY id LIMIT 200000,10) a WHERE t.id = a.id;
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL分页查询2.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL分页查询2.png)
 
 * 优化方式二：方案适用于主键自增的表，可以把 LIMIT 查询转换成某个位置的查询
 
@@ -5139,7 +5412,7 @@ MySQL 4.1 版本之后，开始支持 SQL 的子查询
   EXPLAIN SELECT * FROM tb_user_1 WHERE id BETWEEN 200000 and 200010;	-- 写法 2
   ```
   
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL分页查询3.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL分页查询3.png)
 
 
 
@@ -5158,7 +5431,7 @@ SQL 提示，是优化数据库的一个重要手段，就是在 SQL 语句中�
   EXPLAIN SELECT * FROM tb_seller USE INDEX(idx_seller_name) WHERE name='小米科技';
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用提示1.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL使用提示1.png)
 
 * IGNORE INDEX：让 MySQL 忽略一个或者多个索引，则可以使用 IGNORE INDEX 作为提示
 
@@ -5166,7 +5439,7 @@ SQL 提示，是优化数据库的一个重要手段，就是在 SQL 语句中�
   EXPLAIN SELECT * FROM tb_seller IGNORE INDEX(idx_seller_name) WHERE name = '小米科技';
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用提示2.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL使用提示2.png)
 
 * FORCE INDEX：强制 MySQL 使用一个特定的索引
 
@@ -5174,7 +5447,7 @@ SQL 提示，是优化数据库的一个重要手段，就是在 SQL 语句中�
   EXPLAIN SELECT * FROM tb_seller FORCE INDEX(idx_seller_name_sta_addr) WHERE NAME='小米科技';
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-优化SQL使用提示3.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-优化SQL使用提示3.png)
 
 
 
@@ -5198,7 +5471,7 @@ SQL 提示，是优化数据库的一个重要手段，就是在 SQL 语句中�
 
 * 计数直接放到数据库里单独的一张计数表中，利用事务解决计数精确问题：
 
-  <img src="https://gitee.com/seazean/images/raw/master/DB/MySQL-计数count优化.png" style="zoom: 50%;" />
+  <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-计数count优化.png" style="zoom: 50%;" />
 
   会话 B 的读操作在 T3 执行的，这时更新事务还没有提交，所以计数值加 1 这个操作对会话 B 还不可见，因此会话 B 查询的计数值和最近 100 条记录，返回的结果逻辑上就是一致的
 
@@ -5223,7 +5496,7 @@ count 函数的按照效率排序：`count(字段) < count(主键id) < count(1) 
 
 
 
-### 内存优化
+### 缓冲优化
 
 #### 优化原则
 
@@ -5269,7 +5542,7 @@ MySQL 提供了缓冲页的快速查找方式：**哈希表**，使用表空间�
 
 MySQL 启动时完成对 Buffer Pool 的初始化，先向操作系统申请连续的内存空间，然后将内存划分为若干对控制块和缓冲页。为了区分空闲和已占用的数据页，将所有空闲缓冲页对应的**控制块作为一个节点**放入一个链表中，就是 Free 链表（**空闲链表**）
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/MySQL-空闲链表.png" style="zoom: 50%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-空闲链表.png" style="zoom: 50%;" />
 
 基节点：是一块单独申请的内存空间（占 40 字节），并不在 Buffer Pool 的那一大片连续内存空间里
 
@@ -5293,7 +5566,7 @@ MySQL 启动时完成对 Buffer Pool 的初始化，先向操作系统申请连�
 
 Flush 链表是一个用来**存储脏页**的链表，对于已经修改过的缓冲脏页，第一次修改后加入到**链表头部**，以后每次修改都不会重新加入，只修改部分控制信息，出于性能考虑并不是直接更新到磁盘，而是在未来的某个时间进行刷脏
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/MySQL-脏页链表.png" style="zoom:50%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-脏页链表.png" style="zoom:50%;" />
 
 **后台有专门的线程每隔一段时间把脏页刷新到磁盘**：
 
@@ -5328,12 +5601,12 @@ MySQL 基于局部性原理提供了预读功能：
 
 预读会造成加载太多用不到的数据页，造成那些使用**频率很高的数据页被挤到 LRU 链表尾部**，所以 InnoDB 将 LRU 链表分成两段：
 
-* 一部分存储使用频率很高的数据页，这部分链表也叫热数据，young 区
-* 一部分存储使用频率不高的冷数据，old 区，默认占 37%，可以通过系统变量 `innodb_old_blocks_pct` 指定
+* 一部分存储使用频率很高的数据页，这部分链表也叫热数据，young 区，靠近链表头部的区域
+* 一部分存储使用频率不高的冷数据，old 区，靠近链表尾部，默认占 37%，可以通过系统变量 `innodb_old_blocks_pct` 指定
 
 当磁盘上的某数据页被初次加载到 Buffer Pool 中会被放入 old 区，淘汰时优先淘汰 old 区
 
-* 当对 old 区的数据进行访问时，会在控制块记录下访问时间，等待后续的访问时间与第一次访问的时间是否在某个时间间隔内，通过系统变量 `innodb_old_blocks_time` 指定时间间隔，默认 1000ms，成立就移动到 young 区的链表头部
+* 当对 old 区的数据进行访问时，会在控制块记录下访问时间，等待后续的访问时间与第一次访问的时间是否在某个时间间隔内，通过系统变量 `innodb_old_blocks_time` 指定时间间隔，默认 1000ms，成立就**移动到 young 区的链表头部**
 * `innodb_old_blocks_time` 为 0 时，每次访问一个页面都会放入 young 区的头部
 
 
@@ -5360,7 +5633,7 @@ SHOW ENGINE INNODB STATUS\G
   SHOW VARIABLES LIKE 'innodb_buffer_pool_size';
   ```
 
-  在保证操作系统及其他程序有足够内存可用的情况下，`innodb_buffer_pool_size` 的值越大，缓存命中率越高
+  在保证操作系统及其他程序有足够内存可用的情况下，`innodb_buffer_pool_size` 的值越大，缓存命中率越高，建议设置成可用物理内存的 60%~80%
 
   ```sh
   innodb_buffer_pool_size=512M
@@ -5389,9 +5662,9 @@ MySQL 5.7.5 之前 `innodb_buffer_pool_size` 只支持在系统启动时修改�
 
 
 
-#### 其他内存
+### 内存优化
 
-##### Change
+#### Change
 
 InnoDB 管理的 Buffer Pool 中有一块内存叫 Change Buffer 用来对**增删改操作**提供缓存，参数 `innodb_change_buffer_max_size ` 来动态设置，设置为 50 时表示 Change Buffer 的大小最多只能占用 Buffer Pool 的 50%
 
@@ -5419,16 +5692,26 @@ Change Buffer 并不是数据页，只是对操作的缓存，所以需要将 Ch
 
 
 
-##### Net
+#### Net
 
 Server 层针对优化**查询**的内存为 Net Buffer，内存的大小是由参数 `net_buffer_length`定义，默认 16k，实现流程：
 
 * 获取一行数据写入 Net Buffer，重复获取直到 Net Buffer 写满，调用网络接口发出去
-* 若发送成功就清空 Net Buffer，然后继续取下一行；若发送函数返回 `EAGAIN` 或 `WSAEWOULDBLOCK`，表示本地网络栈 `socket send buffer` 写满了，**进入等待**，直到网络栈重新可写再继续发送
+* 若发送成功就清空 Net Buffer，然后继续取下一行；若发送函数返回 EAGAIN 或 WSAEWOULDBLOCK，表示本地网络栈 `socket send buffer` 写满了，**进入等待**，直到网络栈重新可写再继续发送
 
-MySQL 采用的是边算边发的逻辑，因此对于数据量很大的查询来说，不会在 Server 端保存完整的结果集，如果客户端读结果不及时，会堵住 MySQL 的查询过程，但是**不会把内存打爆导致 OOM**
+MySQL 采用的是边读边发的逻辑，因此对于数据量很大的查询来说，不会在 Server 端保存完整的结果集，如果客户端读结果不及时，会堵住 MySQL 的查询过程，但是**不会把内存打爆导致 OOM**
 
-![](https://gitee.com/seazean/images/raw/master/DB/MySQL-查询内存优化.png)
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/MySQL-查询内存优化.png" style="zoom: 50%;" />
+
+SHOW PROCESSLIST 获取线程信息后，处于 Sending to client 状态代表服务器端的网络栈写满，等待客户端接收数据
+
+假设有一个业务的逻辑比较复杂，每读一行数据以后要处理很久的逻辑，就会导致客户端要过很久才会去取下一行数据，导致 MySQL 的阻塞，一直处于 Sending to client 的状态
+
+解决方法：如果一个查询的返回结果很是很多，建议使用 mysql_store_result 这个接口，直接把查询结果保存到本地内存
+
+
+
+参考文章：https://blog.csdn.net/qq_33589510/article/details/117673449
 
 
 
@@ -5436,7 +5719,33 @@ MySQL 采用的是边算边发的逻辑，因此对于数据量很大的查询�
 
 
 
-##### Key
+#### Read
+
+read_rnd_buffer 是 MySQL 的随机读缓冲区，当按任意顺序读取记录行时将分配一个随机读取缓冲区，进行排序查询时，MySQL 会首先扫描一遍该缓冲，以避免磁盘搜索，提高查询速度，大小是由 read_rnd_buffer_size 参数控制的
+
+**Multi-Range Read 优化**，将随机 IO 转化为顺序 IO 以降低查询过程中 IO 开销，因为大多数的数据都是按照主键递增顺序插入得到，所以按照主键的递增顺序查询的话，对磁盘的读比较接近顺序读，能够提升读性能
+
+二级索引为 a，聚簇索引为 id，优化回表流程：
+
+* 根据索引 a，定位到满足条件的记录，将 id 值放入 read_rnd_buffer 中
+* 将 read_rnd_buffer 中的 id 进行**递增排序**
+* 排序后的 id 数组，依次回表到主键 id 索引中查记录，并作为结果返回
+
+说明：如果步骤 1 中 read_rnd_buffer 放满了，就会先执行步骤 2 和 3，然后清空 read_rnd_buffer，之后继续找索引 a 的下个记录
+
+使用 MRR 优化需要设进行设置：
+
+```mysql
+SET optimizer_switch='mrr_cost_based=off'
+```
+
+
+
+***
+
+
+
+#### Key
 
 MyISAM 存储引擎使用 key_buffer 缓存索引块，加速 MyISAM 索引的读写速度。对于 MyISAM 表的数据块没有特别的缓存机制，完全依赖于操作系统的 IO 缓存
 
@@ -5456,13 +5765,6 @@ MyISAM 存储引擎使用 key_buffer 缓存索引块，加速 MyISAM 索引的�
 * read_buffer_size：如果需要经常顺序扫描 MyISAM 表，可以通过增大 read_buffer_size 的值来改善性能。但 read_buffer_size 是每个 Session 独占的，如果默认值设置太大，并发环境就会造成内存浪费
 
 * read_rnd_buffer_size：对于需要做排序的 MyISAM 表的查询，如带有 ORDER BY 子句的语句，适当增加该的值，可以改善此类的 SQL 的性能，但是 read_rnd_buffer_size 是每个 Session 独占的，如果默认值设置太大，就会造成内存浪费
-
-
-
-
-
-
-参考文章：https://blog.csdn.net/qq_33589510/article/details/117673449
 
 
 
@@ -5501,7 +5803,7 @@ MyISAM 存储引擎使用 key_buffer 缓存索引块，加速 MyISAM 索引的�
 
 MySQL 的数据删除就是移除掉某个记录后，该位置就被标记为**可复用**，如果有符合范围条件的数据可以插入到这里。符合范围条件的意思是假设删除记录 R4，之后要再插入一个 ID 在 300 和 600 之间的记录时，就会复用这个位置
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/MySQL-删除数据.png" style="zoom:50%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-删除数据.png" style="zoom:50%;" />
 
 InnoDB 的数据是按页存储的如果删掉了一个数据页上的所有记录，整个数据页就可以被复用了，如果相邻的两个数据页利用率都很小，系统就会把这两个页上的数据合到其中一个页上，另外一个数据页就被标记为可复用
 
@@ -5535,7 +5837,7 @@ MySQL 5.6 版本开始引入的 **Online DDL**，重建表的命令默认执行�
 * 临时文件生成后，将日志文件中的操作应用到临时文件，得到一个逻辑数据上与表 A 相同的数据文件，对应的就是图中 state3
 * 用临时文件替换表 A 的数据文件
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/MySQL-重建表.png" style="zoom: 67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-重建表.png" style="zoom: 67%;" />
 
 Online DDL 操作会先获取 MDL 写锁，再退化成 MDL 读锁。但 MDL 写锁持有时间比较短，所以可以称为 Online； 而 MDL 读锁，不阻止数据增删查改，但会阻止其它线程修改表结构（可以对比 `ANALYZE TABLE t`  命令）
 
@@ -5577,6 +5879,8 @@ MySQL Server 是多线程结构，包括后台线程和客户服务线程。多�
   如果状态变量 connection_errors_max_connections 不为零，并且一直增长，则说明不断有连接请求因数据库连接数已达到允许最大值而失败，这时可以考虑增大 max_connections 的值
 
   MySQL 最大可支持的连接数取决于很多因素，包括操作系统平台的线程库的质量、内存大小、每个连接的负荷、CPU的处理速度、期望的响应时间等。在 Linux 平台下，性能好的服务器，可以支持 500-1000 个连接，需要根据服务器性能进行评估设定
+
+* innodb_thread_concurrency：并发线程数，代表系统内同时运行的线程数量（已经被移除）
 
 * back_log：控制 MySQL 监听 TCP 端口时的积压请求栈的大小
 
@@ -6055,7 +6359,7 @@ InnoDB 存储引擎，数据库中的**聚簇索引**每行数据，除了自定
 * DB_ROLL_PTR：回滚指针，**指向记录对应的 undo log 日志**，undo log 中又指向上一个旧版本的 undo log
 * DB_ROW_ID：隐含的自增 ID（**隐藏主键**），如果数据表没有主键，InnoDB 会自动以 DB_ROW_ID 作为聚簇索引
 
-![](https://gitee.com/seazean/images/raw/master/DB/MySQL-MVCC版本链隐藏字段.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-MVCC版本链隐藏字段.png)
 
 
 
@@ -6084,7 +6388,7 @@ undo log 主要分为两种：
 
 说明：因为 DELETE 删除记录，都是移动到垃圾链表中，不是真正的删除，所以才可以通过版本链访问原始数据
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/MySQL-MVCC版本链.png" style="zoom: 80%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-MVCC版本链.png" style="zoom: 80%;" />
 
 注意：undo 是逻辑日志，这里只是直观的展示出来
 
@@ -6155,7 +6459,7 @@ START TRANSACTION;	-- 开启事务
 -- 操作表的其他数据
 ```
 
-![](https://gitee.com/seazean/images/raw/master/DB/MySQL-MVCC工作流程1.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-MVCC工作流程1.png)
 
 ID 为 0 的事务创建 Read View：
 
@@ -6164,7 +6468,7 @@ ID 为 0 的事务创建 Read View：
 * max_trx_id：61
 * creator_trx_id：0
 
-![](https://gitee.com/seazean/images/raw/master/DB/MySQL-MVCC工作流程2.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-MVCC工作流程2.png)
 
 只有红框部分才复合条件，所以只有张三对应的版本的数据可以被看到
 
@@ -6431,7 +6735,7 @@ InnoDB 会真正的去执行把值修改成 (1,2) 这个操作，先加行锁，
 update T set c=c+1 where ID=2;
 ```
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/MySQL-update的执行流程.png" style="zoom: 33%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-update的执行流程.png" style="zoom: 33%;" />
 
 流程说明：执行引擎将这行新数据读入到内存中（Buffer Pool）后，先将此次更新操作记录到 redo log buffer 里，然后更新记录。最后将 redo log 刷盘后事务处于 prepare 状态，执行器会生成这个操作的 binlog，并**把 binlog 写入磁盘**，完成提交
 
@@ -6653,7 +6957,7 @@ MyISAM 引擎在执行查询语句之前，会**自动**给涉及到的所有表
 * 对 MyISAM 表的读操作，不会阻塞其他用户对同一表的读请求，但会阻塞对同一表的写请求
 * 对 MyISAM 表的写操作，则会阻塞其他用户对同一表的读和写操作
 
-![](https://gitee.com/seazean/images/raw/master/DB/MySQL-MyISAM 锁的兼容性.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-MyISAM 锁的兼容性.png)
 
 锁调度：**MyISAM 的读写锁调度是写优先**，因为写锁后其他线程不能做任何操作，大量的更新会使查询很难得到锁，从而造成永远阻塞，所以 MyISAM 不适合做写为主的表的存储引擎
 
@@ -6691,7 +6995,7 @@ MyISAM 引擎在执行查询语句之前，会**自动**给涉及到的所有表
   SELECT * FROM tb_book;		-- C1、C2
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-MyISAM 读锁1.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-MyISAM 读锁1.png)
 
 * C1 加读锁，C1、C2 查询未锁定的表，C1 报错，C2 正常查询
 
@@ -6700,7 +7004,7 @@ MyISAM 引擎在执行查询语句之前，会**自动**给涉及到的所有表
   SELECT * FROM tb_user;		-- C1、C2
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-MyISAM 读锁2.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-MyISAM 读锁2.png)
 
   C1、C2 执行插入操作，C1 报错，C2 等待获取
 
@@ -6708,7 +7012,7 @@ MyISAM 引擎在执行查询语句之前，会**自动**给涉及到的所有表
   INSERT INTO tb_book VALUES(NULL,'Spring高级','2088-01-01','1');	-- C1、C2
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-MyISAM 读锁3.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-MyISAM 读锁3.png)
 
   当在 C1 中释放锁指令 UNLOCK TABLES，C2 中的 INSERT 语句立即执行
 
@@ -6729,7 +7033,7 @@ MyISAM 引擎在执行查询语句之前，会**自动**给涉及到的所有表
   SELECT * FROM tb_book;		-- C1、C2
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-MyISAM 写锁1.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-MyISAM 写锁1.png)
 
   当在 C1 中释放锁指令 UNLOCK TABLES，C2 中的 SELECT 语句立即执行
 
@@ -6739,7 +7043,7 @@ MyISAM 引擎在执行查询语句之前，会**自动**给涉及到的所有表
   LOCK TABLE tb_book WRITE;
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-MyISAM 写锁2.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-MyISAM 写锁2.png)
 
 * C1 加写锁，C1、C2查询未锁定的表，C1 报错，C2 正常查询
 
@@ -6757,7 +7061,7 @@ MyISAM 引擎在执行查询语句之前，会**自动**给涉及到的所有表
   SHOW OPEN TABLES;
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-锁争用情况查看1.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-锁争用情况查看1.png)
 
   In_user：表当前被查询使用的次数，如果该数为零，则表是打开的，但是当前没有被使用
 
@@ -6767,7 +7071,7 @@ MyISAM 引擎在执行查询语句之前，会**自动**给涉及到的所有表
   LOCK TABLE tb_book READ;	-- 执行命令
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-锁争用情况查看2.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-锁争用情况查看2.png)
 
 * 查看锁状态：
 
@@ -6775,7 +7079,7 @@ MyISAM 引擎在执行查询语句之前，会**自动**给涉及到的所有表
   SHOW STATUS LIKE 'Table_locks%';
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-MyISAM 锁状态.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-MyISAM 锁状态.png)
 
   Table_locks_immediate：指的是能立即获得表级锁的次数，每立即获取锁，值加 1
 
@@ -6864,7 +7168,7 @@ SELECT * FROM table_name WHERE ... FOR UPDATE			-- 排他锁
   SELECT * FROM test_innodb_lock WHERE id=3;	-- C1、C2
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-InnoDB 锁操作1.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-InnoDB 锁操作1.png)
 
 * C1 更新 id 为 3 的数据，但不提交：
 
@@ -6872,7 +7176,7 @@ SELECT * FROM table_name WHERE ... FOR UPDATE			-- 排他锁
   UPDATE test_innodb_lock SET name='300' WHERE id=3;	-- C1
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-InnoDB 锁操作2.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-InnoDB 锁操作2.png)
 
   C2 查询不到 C1 修改的数据，因为隔离界别为 REPEATABLE READ，C1 提交事务，C2 查询：
 
@@ -6880,7 +7184,7 @@ SELECT * FROM table_name WHERE ... FOR UPDATE			-- 排他锁
   COMMIT;	-- C1
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-InnoDB 锁操作3.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-InnoDB 锁操作3.png)
 
   提交后仍然查询不到 C1 修改的数据，因为隔离级别可以防止脏读、不可重复读，所以 C2 需要提交才可以查询到其他事务对数据的修改：
 
@@ -6889,7 +7193,7 @@ SELECT * FROM table_name WHERE ... FOR UPDATE			-- 排他锁
   SELECT * FROM test_innodb_lock WHERE id=3;	-- C2
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-InnoDB 锁操作4.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-InnoDB 锁操作4.png)
 
 * C1 更新 id 为 3 的数据，但不提交，C2 也更新 id 为 3 的数据：
 
@@ -6898,7 +7202,7 @@ SELECT * FROM table_name WHERE ... FOR UPDATE			-- 排他锁
   UPDATE test_innodb_lock SET name='30' WHERE id=3;	-- C2
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-InnoDB 锁操作5.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-InnoDB 锁操作5.png)
 
   当 C1 提交，C2 直接解除阻塞，直接更新
 
@@ -6909,7 +7213,7 @@ SELECT * FROM table_name WHERE ... FOR UPDATE			-- 排他锁
   UPDATE test_innodb_lock SET name='30' WHERE id=3;	-- C2
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-InnoDB 锁操作6.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-InnoDB 锁操作6.png)
 
   由于 C1、C2 操作的不同行，获取不同的行锁，所以都可以正常获取行锁
 
@@ -6960,7 +7264,7 @@ InnoDB 加锁的基本单位是 next-key lock，该锁是行锁和 gap lock 的�
   SELECT * FROM test_innodb_lock;
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-InnoDB 间隙锁1.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-InnoDB 间隙锁1.png)
 
 * C1 根据 id 范围更新数据，C2 插入数据：
 
@@ -6969,7 +7273,7 @@ InnoDB 加锁的基本单位是 next-key lock，该锁是行锁和 gap lock 的�
   INSERT INTO test_innodb_lock VALUES(2,'200','2');		-- C2
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-InnoDB 间隙锁2.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-InnoDB 间隙锁2.png)
 
   出现间隙锁，C2 被阻塞，等待 C1 提交事务后才能更新
 
@@ -6995,7 +7299,7 @@ InnoDB 为了支持多粒度的加锁，允许行锁和表锁同时存在，支�
 
 兼容性如下所示：
 
-![](https://gitee.com/seazean/images/raw/master/DB/MySQL-意向锁兼容性.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-意向锁兼容性.png)
 
 **插入意向锁** Insert Intention Lock 是在插入一行记录操作之前设置的一种间隙锁，是行级锁
 
@@ -7100,7 +7404,7 @@ InnoDB 存储引擎实现了行级锁定，虽然在锁定机制的实现方面�
   UPDATE test_innodb_lock SET sex='2' WHERE id=3;		-- C2
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-InnoDB 锁升级.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-InnoDB 锁升级.png)
 
   索引失效：执行更新时 name 字段为 varchar 类型，造成索引失效，最终行锁变为表锁 
 
@@ -7142,7 +7446,7 @@ InnoDB 存储引擎实现了行级锁定，虽然在锁定机制的实现方面�
 SHOW STATUS LIKE 'innodb_row_lock%';
 ```
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/MySQL-InnoDB 锁争用.png" style="zoom: 80%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-InnoDB 锁争用.png" style="zoom: 80%;" />
 
 参数说明：
 
@@ -7165,7 +7469,7 @@ SELECT * FROM information_schema.innodb_locks;	#锁的概况
 SHOW ENGINE INNODB STATUS\G; #InnoDB整体状态，其中包括锁的情况
 ```
 
-![](https://gitee.com/seazean/images/raw/master/DB/MySQL-InnoDB查看锁状态.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-InnoDB查看锁状态.png)
 
 lock_id 是锁 id；lock_trx_id 为事务 id；lock_mode 为 X 代表排它锁（写锁）；lock_type 为 RECORD 代表锁为行锁（记录锁）
 
@@ -7271,7 +7575,7 @@ MySQL 的主从之间维持了一个**长连接**。主库内部有一个线程�
 
 主从复制原理图：
 
-![](https://gitee.com/seazean/images/raw/master/DB/MySQL-主从复制原理图.jpg)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-主从复制原理图.jpg)
 
 主从复制主要依赖的是 binlog，MySQL 默认是异步复制，需要三个线程：
 
@@ -7521,7 +7825,7 @@ SELECT wait_for_executed_gtid_set(gtid_set [, timeout])
 
 工作流程：先执行 trx1，再执行一个查询请求的逻辑，要保证能够查到正确的数据
 
-* trx1 事务更新完成后，从返回包直接获取这个事务的 GTID，记为 gtid1
+* trx1 事务更新完成后，从返回包直接获取这个事务的 GTID，记为 gtid
 * 选定一个从库执行查询语句，如果返回值是 0，则在这个从库执行查询语句，否则到主库执行查询语句
 
 对比等待位点方法，减少了一次 `show master status` 的方法，将参数 session_track_gtids 设置为 OWN_GTID，然后通过 API 接口 mysql_session_track_get_first 从返回包解析出 GTID 的值即可
@@ -7544,7 +7848,7 @@ SELECT wait_for_executed_gtid_set(gtid_set [, timeout])
 
 * 分流查询：通过 MySQL 的主从复制，实现读写分离，使增删改操作走主节点，查询操作走从节点，从而可以降低单台服务器的读写压力
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-负载均衡主从复制.jpg)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-负载均衡主从复制.jpg)
 
 * 分布式数据库架构：适合大数据量、负载高的情况，具有良好的拓展性和高可用性。通过在多台服务器之间分布数据，可以实现在多台服务器之间的负载均衡，提高访问效率
 
@@ -7604,7 +7908,7 @@ SELECT wait_for_executed_gtid_set(gtid_set [, timeout])
    SHOW MASTER STATUS;
    ```
 
-   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-查看master状态.jpg)
+   ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-查看master状态.jpg)
 
    * File：从哪个日志文件开始推送日志文件 
    * Position：从哪个位置开始推送日志
@@ -7678,11 +7982,11 @@ SELECT wait_for_executed_gtid_set(gtid_set [, timeout])
 
    在从库中，可以查看到刚才创建的数据库：
 
-   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-主从复制验证1.jpg)
+   ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-主从复制验证1.jpg)
 
    在该数据库中，查询表中的数据：
 
-   ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-主从复制验证2.jpg)
+   ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-主从复制验证2.jpg)
 
 
 
@@ -8004,7 +8308,7 @@ mysqlbinlog log-file;
   mysqlbinlog mysqlbing.000001;
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-日志读取1.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-日志读取1.png)
   
   日志结尾有 COMMIT
 
@@ -8029,7 +8333,7 @@ mysqlbinlog log-file;
   mysqlbinlog -vv mysqlbin.000002
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-日志读取2.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-日志读取2.png)
 
 
 
@@ -8063,6 +8367,29 @@ mysqlbinlog log-file;
 
 
 
+
+
+****
+
+
+
+#### 数据恢复
+
+误删库或者表时，需要根据 binlog 进行数据恢复，
+
+一般情况下数据库有定时的全量备份，假如每天 0 点定时备份，12 点误删了库，恢复流程：
+
+* 取最近一次全量备份，用备份恢复出一个临时库
+* 从日志文件中取出凌晨 0 点之后的日志
+* 把除了误删除数据的语句外日志，全部应用到临时库
+
+跳过误删除语句日志的方法：
+
+* 如果原实例没有使用 GTID 模式，只能在应用到包含 12 点的 binlog 文件的时候，先用 –stop-position 参数执行到误操作之前的日志，然后再用 –start-position 从误操作之后的日志继续执行
+* 如果实例使用了 GTID 模式，假设误操作命令的 GTID 是 gtid1，那么只需要提交一个空事务先将这个 GTID 加到临时实例的 GTID 集合，之后按顺序执行 binlog 的时就会自动跳过误操作的语句
+
+
+
 ***
 
 
@@ -8091,7 +8418,7 @@ SELECT * FROM tb_book WHERE id < 8
 
 执行完毕之后， 再次来查询日志文件：
 
-![](https://gitee.com/seazean/images/raw/master/DB/MySQL-查询日志.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-查询日志.png)
 
 
 
@@ -8124,7 +8451,7 @@ long_query_time=10
   cat slow_query.log
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-慢日志读取1.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-慢日志读取1.png)
 
 * 如果慢查询日志内容很多，直接查看文件比较繁琐，可以借助 mysql 自带的 mysqldumpslow 工具对慢查询日志进行分类汇总：
 
@@ -8132,7 +8459,7 @@ long_query_time=10
   mysqldumpslow slow_query.log
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/MySQL-慢日志读取2.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/MySQL-慢日志读取2.png)
 
 
 
@@ -8152,12 +8479,12 @@ long_query_time=10
 
 基本表：
 
-![](https://gitee.com/seazean/images/raw/master/DB/普通表.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/普通表.png)
 					
 
 第一范式表：
 
-![](https://gitee.com/seazean/images/raw/master/DB/第一范式.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/第一范式.png)
 
 
 
@@ -8186,7 +8513,7 @@ long_query_time=10
    * 主属性：码属性组中的所有属性
    * 非主属性：除码属性组以外的属性
 
-![](https://gitee.com/seazean/images/raw/master/DB/第二范式.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/第二范式.png)
 
 
 
@@ -8202,7 +8529,7 @@ long_query_time=10
 
 作用：可以通过主键 id 区分相同数据，修改数据的时候只需要修改一张表（方便修改），反之需要修改多表。
 
-![](https://gitee.com/seazean/images/raw/master/DB/第三范式.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/第三范式.png)
 
 
 
@@ -8216,7 +8543,7 @@ long_query_time=10
 
 ### 总结
 
-![](https://gitee.com/seazean/images/raw/master/DB/三大范式.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/三大范式.png)
 
 
 
@@ -8638,7 +8965,7 @@ SQL 注入攻击演示
 
 * 在登录界面，输入一个错误的用户名或密码，也可以登录成功 
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/SQL注入攻击演示.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/SQL注入攻击演示.png)
 
 * 原理：我们在密码处输入的所有内容，都应该认为是密码的组成，但是 Statement 对象在执行 SQL 语句时，将一部分内容当做查询条件来执行
 
@@ -8696,7 +9023,7 @@ PreparedStatement：预编译 sql 语句的执行者对象，继承 `PreparedSta
 
 数据库连接池原理
 
-![](https://gitee.com/seazean/images/raw/master/DB/数据库连接池原理图解.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/数据库连接池原理图解.png)
 
 
 
@@ -9292,7 +9619,7 @@ MySQL 支持 ACID 特性，保证可靠性和持久性，读取性能不高，�
 
 常见的 Nosql：Redis、memcache、HBase、MongoDB
 
-![](https://gitee.com/seazean/images/raw/master/DB/电商场景解决方案.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/电商场景解决方案.png)
 
 
 
@@ -9600,7 +9927,7 @@ Redis 并没有直接使用数据结构来实现键值对数据库，而是基�
 
 Redis 自身是一个 Map，其中所有的数据都是采用 key : value 的形式存储，**键对象都是字符串对象**，而值对象有五种基本类型和三种高级类型对象
 
-![](https://gitee.com/seazean/images/raw/master/DB/Redis-对象模型.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-对象模型.png)
 
 
 
@@ -9651,7 +9978,7 @@ io-threads-do-reads yesCopy to clipboardErrorCopied
 io-threads 4 #官网建议4核的机器建议设置为2或3个线程，8核的建议设置为6个线程
 ```
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-多线程.png" style="zoom:80%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-多线程.png" style="zoom:80%;" />
 
 
 
@@ -9812,7 +10139,7 @@ Redis 发布订阅（pub/sub）是一种消息通信模式：发送者（pub）�
 
 Redis 客户端可以订阅任意数量的频道
 
-![](https://gitee.com/seazean/images/raw/master/DB/Redis-发布订阅.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-发布订阅.png)
 
 操作命令：
 
@@ -9820,7 +10147,7 @@ Redis 客户端可以订阅任意数量的频道
 2. 打开另一个客户端，给 channel1发布消息 hello：`publish channel1 hello`
 3. 第一个客户端可以看到发送的消息
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-发布订阅指令操作.png" style="zoom:67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-发布订阅指令操作.png" style="zoom:67%;" />
 
 注意：发布的消息没有持久化，所以订阅的客户端只能收到订阅后发布的消息
 
@@ -9834,7 +10161,7 @@ Redis 客户端可以订阅任意数量的频道
 
 Redis ACL 是 Access Control List（访问控制列表）的缩写，该功能允许根据可以执行的命令和可以访问的键来限制某些连接
 
-![](https://gitee.com/seazean/images/raw/master/DB/Redis-ACL指令.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-ACL指令.png)
 
 * acl cat：查看添加权限指令类别
 * acl whoami：查看当前用户
@@ -9861,7 +10188,7 @@ Redis ACL 是 Access Control List（访问控制列表）的缩写，该功能�
 
 存储内容：通常使用字符串，如果字符串以整数的形式展示，可以作为数字操作使用
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-string结构图.png" style="zoom:50%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-string结构图.png" style="zoom:50%;" />
 
 Redis 所有操作都是**原子性**的，采用**单线程**机制，命令是单个顺序执行，无需考虑并发带来影响，原子性就是有一个失败则都失败
 
@@ -9941,7 +10268,7 @@ Redis 所有操作都是**原子性**的，采用**单线程**机制，命令是
 * 单数据执行 3 条指令的过程：3 次发送 + 3 次处理 + 3 次返回
 * 多数据执行 1 条指令的过程：1 次发送 + 3 次处理 + 1 次返回（发送和返回的事件略高于单数据）
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/string单数据与多数据操作.png" style="zoom: 33%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/string单数据与多数据操作.png" style="zoom: 33%;" />
 
 
 
@@ -9999,7 +10326,7 @@ struct sdshdr{
 }
 ```
 
-![](https://gitee.com/seazean/images/raw/master/DB/Redis-string数据结构.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-string数据结构.png)
 
 内部为当前字符串实际分配的空间 capacity 一般要高于实际字符串长度 len，当字符串长度小于 1M 时，扩容都是双倍现有的空间，如果超过 1M，扩容时一次只会多扩 1M 的空间，需要注意的是字符串最大长度为 512M
 
@@ -10023,7 +10350,7 @@ struct sdshdr{
 
 hash 类型：底层使用**哈希表**结构实现数据存储
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/hash结构图.png" style="zoom: 33%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/hash结构图.png" style="zoom: 33%;" />
 
 Redis 中的 hash 类似于 Java 中的  `Map<String, Map<Object,object>>`，左边是 key，右边是值，中间叫 field 字段，本质上 **hash 存了一个 key-value 的存储空间**
 
@@ -10099,7 +10426,7 @@ user:id:3506728370 → {"name":"春晚","fans":12210862,"blogs":83}
 
 假如现在粉丝数量发生了变化，要把整个值都改变，但是用单条存就不存在这个问题，只需要改其中一个就可以
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/hash应用场景结构图.png" style="zoom: 33%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/hash应用场景结构图.png" style="zoom: 33%;" />
 
 可以实现购物车的功能，key 对应着每个用户，存储空间存储购物车的信息
 
@@ -10132,7 +10459,7 @@ ziplist 使用更加紧凑的结构实现多个元素的连续存储，所以在
 
 压缩列表（ziplist）是列表和哈希的底层实现之一，压缩列表用来紧凑数据存储，节省内存，有序：
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-压缩列表数据结构.png" style="zoom:67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-压缩列表数据结构.png" style="zoom:67%;" />
 
 压缩列表是由一系列特殊编码的连续内存块组成的顺序型（sequential）数据结枃，一个压缩列表可以包含任意多个节点（entry），每个节点可以保存一个字节数组或者一个整数值
 
@@ -10165,7 +10492,7 @@ Redis 字典使用散列表为底层实现，一个散列表里面有多个散�
 
 list 类型：保存多个数据，底层使用**双向链表**存储结构实现，类似于 LinkedList
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/list结构图.png" style="zoom:33%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/list结构图.png" style="zoom:33%;" />
 
 如果两端都能存取数据的话，这就是双端队列，如果只能从一端进一端出，这个模型叫栈
 
@@ -10278,7 +10605,7 @@ typedef struct listNode
 } listNode;
 ```
 
-![](https://gitee.com/seazean/images/raw/master/DB/Redis-链表数据结构.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-链表数据结构.png)
 
 - 双向：链表节点带有前驱、后继指针，获取某个节点的前驱、后继节点的时间复杂度为 O(1)
 - 无环：链表为非循环链表，表头节点的前驱指针和表尾节点的后继指针都指向 NULL，对链表的访问以 NULL 为终点
@@ -10293,7 +10620,7 @@ typedef struct listNode
 
 quicklist 实际上是 ziplist 和 linkedlist 的混合体，将 linkedlist 按段切分，每一段使用 ziplist 来紧凑存储，多个 ziplist 之间使用双向指针串接起来，既满足了快速的插入删除性能，又不会出现太大的空间冗余
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-快速列表数据结构.png" style="zoom: 50%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-快速列表数据结构.png" style="zoom: 50%;" />
 
 
 
@@ -10311,7 +10638,7 @@ quicklist 实际上是 ziplist 和 linkedlist 的混合体，将 linkedlist 按�
 
 set 类型：与 hash 存储结构哈希表完全相同，只是仅存储键不存储值（nil），所以添加，删除，查找的复杂度都是 O(1)，并且**值是不允许重复且无序的**
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/set结构图.png" style="zoom: 33%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/set结构图.png" style="zoom: 33%;" />
 
 
 
@@ -10422,7 +10749,7 @@ set 类型：与 hash 存储结构哈希表完全相同，只是仅存储键不�
 
 sorted_set 类型：在 set 的存储结构基础上添加可排序字段，类似于 TreeSet
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-sorted_set结构图.png" style="zoom: 67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-sorted_set结构图.png" style="zoom: 67%;" />
 
 
 
@@ -10526,7 +10853,7 @@ Redis 使用跳跃表作为有序集合键的底层实现之一，如果一个�
 - Redis 每个跳跃表节点的层高都是 1 至 32 之间的随机数（Redis5 之后最大层数为 64）
 - 在同一个跳跃表中，多个节点可以包含相同的分值，但每个节点的成员对象必须是唯一的。跳跃表中的节点按照分值大小进行排序，当分值相同时节点按照成员对象的大小进行排序
 
-![](https://gitee.com/seazean/images/raw/master/DB/Redis-跳跃表数据结构.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-跳跃表数据结构.png)
 
 
 
@@ -10586,7 +10913,7 @@ Bitmaps 本身不是一种数据类型， 实际上就是字符串（key-value�
 
 - 解决 Redis 缓存穿透，判断给定数据是否存在， 防止缓存穿透
 
-  <img src="https://gitee.com/seazean/images/raw/master/DB/Redis-Bitmaps应用之缓存穿透.png" style="zoom: 67%;" />
+  <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-Bitmaps应用之缓存穿透.png" style="zoom: 67%;" />
 
 - 垃圾邮件过滤，对每一个发送邮件的地址进行判断是否在布隆的黑名单中，如果在就判断为垃圾邮件
 
@@ -10808,7 +11135,7 @@ public JedisPool(GenericObjectPoolConfig poolConfig, String host, int port) {
 
 Redis Desktop Manager
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-可视化工具.png" style="zoom:80%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-可视化工具.png" style="zoom:80%;" />
 
 
 
@@ -10827,7 +11154,7 @@ Redis Desktop Manager
 作用：持久化用于防止数据的意外丢失，确保数据安全性，因为 Redis 是内存级，所以需要持久化到磁盘
 
 计算机中的数据全部都是二进制，保存一组数据有两种方式
-<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-持久化的两种方式.png" style="zoom: 33%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-持久化的两种方式.png" style="zoom: 33%;" />
 
 第一种：将当前数据状态进行保存，快照形式，存储数据结果，存储格式简单
 
@@ -10881,7 +11208,7 @@ rdbchecksum yes|no
 
 bgsave 指令工作原理：
 
-![](https://gitee.com/seazean/images/raw/master/DB/Redis-bgsave工作原理.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-bgsave工作原理.png)
 
 流程：当执行 bgsave 的时候，客户端发出 bgsave 指令给到 redis 服务器，服务器返回后台已经开始执行的信息给客户端，同时使用 fork 函数**创建一个子进程**，让子进程去执行 save 相关的操作。持久化过程是先将数据写入到一个临时文件中，持久化操作结束再用这个临时文件**替换**上次持久化的文件，在这个过程中主进程是不进行任何 IO 操作的，这确保了极高的性能 
 
@@ -10987,7 +11314,7 @@ AOF（append only file）持久化：以独立日志的方式记录每次写命�
 AOF 主要作用是解决了数据持久化的实时性，目前已经是 Redis 持久化的主流方式
 
 AOF 写数据过程：
-![](https://gitee.com/seazean/images/raw/master/DB/Redis-AOF工作原理.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-AOF工作原理.png)
 
 
 
@@ -11024,7 +11351,7 @@ AOF 持久化数据的三种策略（appendfsync）：
 **AOF 缓冲区同步文件策略**，系统调用 write 和 fsync：
 
 * write 操作会触发延迟写（delayed write）机制，Linux 在内核提供页缓冲区用来提高硬盘 IO 性能，write 操作在写入系统缓冲区后直接返回
-* 同步硬盘操作依赖于系统调度机制，比如缓冲区页空间写满或达到特定时间周期。同步文件之前，如果此时系统故障宕机，缓冲区内数据将丢失
+* 同步硬盘操作（刷脏）依赖于系统调度机制，比如缓冲区页空间写满或达到特定时间周期。同步文件之前，如果此时系统故障宕机，缓冲区内数据将丢失
 * fsync 针对单个文件操作（比如 AOF 文件）做强制硬盘同步，fsync 将阻塞到写入硬盘完成后返回，保证了数据持久化
 
 异常恢复：AOF 文件损坏，通过 redis-check-aof--fix appendonly.aof 进行恢复，重启 Redis，然后重新加载
@@ -11082,7 +11409,7 @@ AOF 重写规则：
 
   原理分析：
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/Redis-AOF手动重写原理.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-AOF手动重写原理.png)
 
 * 自动重写
 
@@ -11117,11 +11444,11 @@ AOF 重写规则：
 
 持久化流程：
 
-![](https://gitee.com/seazean/images/raw/master/DB/Redis-AOF重写流程1.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-AOF重写流程1.png)
 
 重写流程：
 
-![](https://gitee.com/seazean/images/raw/master/DB/Redis-AOF重写流程2.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-AOF重写流程2.png)
 
 使用**新的 AOF 文件覆盖旧的 AOF 文件**，完成 AOF 重写
 
@@ -11273,7 +11600,7 @@ int main(void)
 */
 ```
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-fork函数使用演示.png" style="zoom: 80%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-fork函数使用演示.png" style="zoom: 80%;" />
 
 在 p3224 和 p3225 执行完第二个循环后，main 函数退出，进程死亡。所以 p3226，p3227 就没有父进程了，成为孤儿进程，所以 p3226 和 p3227 的父进程就被置为 ID 为 1的 init 进程（笔记 Tool → Linux → 进程管理详解）
 
@@ -11293,7 +11620,7 @@ fork() 调用之后父子进程的内存关系
 
 * 父子进程的代码段是相同的，所以代码段是没必要复制的，只需内核将代码段标记为只读，父子进程就共享此代码段。fork() 之后在进程创建代码段时，子进程的进程级页表项都指向和父进程相同的物理页帧
 
-  <img src="https://gitee.com/seazean/images/raw/master/DB/Redis-fork以后内存关系1.png" style="zoom: 67%;" />
+  <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-fork以后内存关系1.png" style="zoom: 67%;" />
 
 * 对于父进程的数据段，堆段，栈段中的各页，由于父子进程要相互独立，采用**写时复制**的技术，来提高内存以及内核的利用率
 
@@ -11301,7 +11628,7 @@ fork() 调用之后父子进程的内存关系
 
   fork 之后内核会将子进程放在队列的前面，让子进程先执行，以免父进程执行导致写时复制，而后子进程再执行，因无意义的复制而造成效率的下降
 
-  <img src="https://gitee.com/seazean/images/raw/master/DB/Redis-fork以后内存关系2.png" style="zoom:67%;" />
+  <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-fork以后内存关系2.png" style="zoom:67%;" />
 
 补充知识：
 
@@ -11363,17 +11690,17 @@ Redis 事务的三大特性：
 
 事务机制整体工作流程：
 
-![](https://gitee.com/seazean/images/raw/master/DB/Redis-事务的工作流程.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-事务的工作流程.png)
 
 几种常见错误：
 
 * 定义事务的过程中，命令格式输入错误，出现语法错误造成，**整体事务中所有命令均不会执行**，包括那些语法正确的命令
 
-  <img src="https://gitee.com/seazean/images/raw/master/DB/Redis-事务中出现语法错误.png" style="zoom:80%;" />
+  <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-事务中出现语法错误.png" style="zoom:80%;" />
 
 * 定义事务的过程中，命令执行出现错误，例如对字符串进行 incr 操作，能够正确运行的命令会执行，运行错误的命令不会被执行
 
-  <img src="https://gitee.com/seazean/images/raw/master/DB/Redis-事务中出现执行错误.png" style="zoom:80%;" />
+  <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-事务中出现执行错误.png" style="zoom:80%;" />
 
 * 已经执行完毕的命令对应的数据不会自动回滚，需要程序员在代码中实现回滚，应该尽可能避免：
 
@@ -11505,7 +11832,7 @@ TTL 返回的值有三种情况：正数，-1，-2
 
 过期数据是一块独立的存储空间，Hash 结构，field 是内存地址，value 是过期时间，保存了所有 key 的过期描述，在最终进行过期处理的时候，对该空间的数据进行检测， 当时间到期之后通过 field 找到内存该地址处的数据，然后进行相关操作
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-时效性数据的存储结构.png" style="zoom:67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-时效性数据的存储结构.png" style="zoom:67%;" />
 
 
 
@@ -11594,7 +11921,7 @@ Redis 采用惰性删除和定期删除策略的结合使用
 * 参数 current_db 用于记录 activeExpireCycle() 进入哪个expires[*] 执行
 * 如果 activeExpireCycle() 执行时间到期，下次从 current_db 继续向下执行
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-定期删除.png" style="zoom: 67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-定期删除.png" style="zoom: 67%;" />
 
 定期删除特点：
 
@@ -11758,7 +12085,7 @@ Redis 如果不设置最大内存大小或者设置最大内存大小为 0，在
 
 * 解决方案：为了避免单点 Redis 服务器故障，准备多台服务器，互相连通。将数据复制多个副本保存在不同的服务器上连接在一起，并保证数据是同步的。即使有其中一台服务器宕机，其他服务器依然可以继续提供服务，实现 Redis 高可用，同时实现数据冗余备份
 
-  <img src="https://gitee.com/seazean/images/raw/master/DB/Redis-主从复制多台服务器连接方案.png" style="zoom: 80%;" />
+  <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-主从复制多台服务器连接方案.png" style="zoom: 80%;" />
 
 
 
@@ -11774,7 +12101,7 @@ Redis 如果不设置最大内存大小或者设置最大内存大小为 0，在
 * 数据同步阶段
 * 命令传播阶段
 
-![](https://gitee.com/seazean/images/raw/master/DB/Redis-主从复制工作流程.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-主从复制工作流程.png)
 
 
 
@@ -11805,7 +12132,7 @@ Redis 如果不设置最大内存大小或者设置最大内存大小为 0，在
 
 * 主从之间创建了连接的 socket
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-主从复制建立连接.png" style="zoom: 80%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-主从复制建立连接.png" style="zoom: 80%;" />
 
 
 
@@ -11927,7 +12254,7 @@ Redis 如果不设置最大内存大小或者设置最大内存大小为 0，在
 
 * 主从之间完成了数据克隆
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-主从复制数据同步.png" style="zoom:80%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-主从复制数据同步.png" style="zoom:80%;" />
 
 
 
@@ -12021,7 +12348,7 @@ Redis 如果不设置最大内存大小或者设置最大内存大小为 0，在
 - master 记录已发送的信息对应的 offset
 - slave 记录已接收的信息对应的 offset
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-主从复制复制缓冲区原理.png" style="zoom:67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-主从复制复制缓冲区原理.png" style="zoom:67%;" />
 
 
 
@@ -12033,7 +12360,7 @@ Redis 如果不设置最大内存大小或者设置最大内存大小为 0，在
 
 全量复制/部分复制
 
-![](https://gitee.com/seazean/images/raw/master/DB/Redis-主从复制流程更新.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-主从复制流程更新.png)
 
 
 
@@ -12181,7 +12508,7 @@ slave 与 master 连接断开
 
 哨兵（sentinel）是一个分布式系统，用于对主从结构中的每台服务器进行**监控**，当出现故障时通过**投票机制选择**新的 master 并将所有 slave 连接到新的 master
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-哨兵模式.png" style="zoom:67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-哨兵模式.png" style="zoom:67%;" />
 
 哨兵的作用：
 
@@ -12298,7 +12625,7 @@ sentinel 1 首先连接 master，建立 cmd 通道，根据主节点访问从节
 
 sentinel 2 首先连接 master，然后通过 master 中的 sentinels 发现其他哨兵，然后寻找哨兵建立连接，哨兵之间同步数据
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-哨兵模式监控工作原理.png" style="zoom:67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-哨兵模式监控工作原理.png" style="zoom:67%;" />
 
 
 
@@ -12310,7 +12637,7 @@ sentinel 2 首先连接 master，然后通过 master 中的 sentinels 发现其�
 
 sentinel 在通知阶段不断的去获取 master/slave 的信息，然后在各个 sentinel 之间进行共享，流程如下：
 
-![](https://gitee.com/seazean/images/raw/master/DB/Redis-哨兵模式通知工作流程.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-哨兵模式通知工作流程.png)
 
 
 
@@ -12326,13 +12653,13 @@ sentinel 在通知阶段不断的去获取 master/slave 的信息，然后在各
 
   sentinel1 检测到 master 下线后会做 flag:SRI_S_DOWN 标志，此时 master 的状态是主观下线，并通知其他哨兵，其他哨兵也会尝试与 master 连接，如果大于 (n/2) + 1 个sentinel 检测到 master 下线，就达成共识更改 flag，此时 master 的状态是客观下线
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/Redis-哨兵模式故障转移工作流程1.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-哨兵模式故障转移工作流程1.png)
 
 * 当 sentinel 认定 master 下线之后，此时需要决定更换 master，选举某个 sentinel 处理事故
 
   在选举的时候每一个 sentinel 都有一票，于是每个 sentinel 都会发出一个指令，在内网广播要做主持人；比如 sentinel1 和 sentinel4 发出这个选举指令了，那么 sentinel2 既能接到 sentinel1 的也能接到 sentinel4 的，sentinel2 会把一票投给其中一方，投给指令最先到达的 sentinel。选举最终得票多的，就成为了处理事故的哨兵，需要注意在这个过程中有可能会存在失败的现象，就是一轮选举完没有选取，那就会接着进行第二轮第三轮直到完成选举。
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/Redis-哨兵模式故障转移工作流程2.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-哨兵模式故障转移工作流程2.png)
 
 选择新的 master，在服务器列表中挑选备选 master 的原则：
 
@@ -12362,7 +12689,7 @@ sentinel 在通知阶段不断的去获取 master/slave 的信息，然后在各
 
 集群就是使用网络将若干台计算机联通起来，并提供统一的管理方式，使其对外呈现单机的服务效果
 
-![](https://gitee.com/seazean/images/raw/master/DB/Redis-集群图示.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-集群图示.png)
 
 **集群作用：**
 
@@ -12392,7 +12719,7 @@ sentinel 在通知阶段不断的去获取 master/slave 的信息，然后在各
 
 3. 将 key 按照计算出的结果放到对应的存储空间
 
-   <img src="https://gitee.com/seazean/images/raw/master/DB/Redis-集群存储空间.png" style="zoom: 67%;" />
+   <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-集群存储空间.png" style="zoom: 67%;" />
 
 查找数据：
 
@@ -12402,7 +12729,7 @@ sentinel 在通知阶段不断的去获取 master/slave 的信息，然后在各
 
 设置数据：系统默认存储到某一个
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-集群查找数据.png" style="zoom:67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-集群查找数据.png" style="zoom:67%;" />
 
 
 
@@ -12928,7 +13255,7 @@ Redis 中的监控指标如下：
   redis-benchmark -c 100 -n 5000
   ```
 
-  ![](https://gitee.com/seazean/images/raw/master/DB/Redis-redis-benchmark指令.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-redis-benchmark指令.png)
 
 * redis-cli
 

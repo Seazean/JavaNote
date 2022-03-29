@@ -59,7 +59,7 @@ Java 语言提供了八种基本类型。六种数字类型（四个整数型，
 **int：**
 
 - int 数据类型是 32 位 4 字节、有符号的以二进制补码表示的整数
-- 最小值是 -2,147,483,648（-2^31 -）
+- 最小值是 -2,147,483,648（-2^31）
 - 最大值是 2,147,483,647（2^31 - 1）
 - 一般地整型变量默认为 int 类型
 - 默认值是 `0`
@@ -444,15 +444,15 @@ public static void main(String[] args) {
 
 * 一个数组内存图
 
-  ![](https://gitee.com/seazean/images/raw/master/Java/数组内存分配-一个数组内存图.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/数组内存分配-一个数组内存图.png)
 
 * 两个数组内存图
 
-  ![](https://gitee.com/seazean/images/raw/master/Java/数组内存分配-两个数组内存图.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/数组内存分配-两个数组内存图.png)
 
 * 多个数组指向相同内存图
 
-  ![](https://gitee.com/seazean/images/raw/master/Java/数组内存分配-多个数组指向一个数组内存图.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/数组内存分配-多个数组指向一个数组内存图.png)
 
 ***
 
@@ -976,9 +976,9 @@ Debug 是供程序员使用的程序调试工具，它可以用于查看程序�
 
 加断点 → Debug 运行 → 单步运行 → 看 Debugger 窗口 → 看 Console 窗口
 
-![](https://gitee.com/seazean/images/raw/master/Java/Debug按键说明.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/Debug按键说明.png)
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/Debug条件断点.png" alt="Debug条件断点" style="zoom:50%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/Debug条件断点.png" alt="Debug条件断点" style="zoom:50%;" />
 
 
 
@@ -2356,7 +2356,7 @@ Cloneable 接口是一个标识性接口，即该接口不包含任何方法（�
   * 对基本数据类型和包装类的克隆是没有问题的。String、Integer 等包装类型在内存中是**不可以被改变的对象**，所以在使用克隆时可以视为基本类型，只需浅克隆引用即可
   * 如果对一个引用类型进行克隆时只是克隆了它的引用，和原始对象共享对象成员变量
 
-  ![](https://gitee.com/seazean/images/raw/master/Java/Object浅克隆.jpg)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/Object浅克隆.jpg)
 
   深克隆：在对整个对象浅克隆后，对其引用变量进行克隆，并将其更新到浅克隆对象中去
 
@@ -2509,7 +2509,7 @@ s.replace("-","");//12378
 
 * 创建一个对象：字符串池中已经存在 abc 对象，那么直接在创建一个对象放入堆中，返回堆内引用
 * 创建两个对象：字符串池中未找到 abc 对象，那么分别在堆中和字符串池中创建一个对象，字符串池中的比较都是采用 equals() 
-  <img src="https://gitee.com/seazean/images/raw/master/Java/String构造方法字节码.png" style="zoom: 67%;" />
+  <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/String构造方法字节码.png" style="zoom: 67%;" />
 
 `new String("a") + new String("b")` 创建字符串对象：
 
@@ -2518,7 +2518,7 @@ s.replace("-","");//12378
 * 对象 2：new String("a")、对象 3：常量池中的 a
 
 * 对象 4：new String("b")、对象 5：常量池中的 b
-  <img src="https://gitee.com/seazean/images/raw/master/Java/String拼接方法字节码.png" style="zoom:67%;" />
+  <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/String拼接方法字节码.png" style="zoom:67%;" />
 
 *  StringBuilder 的 toString()：
 
@@ -2701,7 +2701,7 @@ Java 7 之前，String Pool 被放在运行时常量池中，属于永久代；J
   }
   ```
 
-![](https://gitee.com/seazean/images/raw/master/Java/JVM-内存图对比.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-内存图对比.png)
 
 
 
@@ -3782,7 +3782,7 @@ public class RegexDemo {
 
 各数据结构时间复杂度对比：
 
-![](https://gitee.com/seazean/images/raw/master/Java/数据结构的复杂度对比.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/数据结构的复杂度对比.png)
 
 
 
@@ -4263,7 +4263,7 @@ public class ListDemo {
 
 LinkedList 是一个实现了 List 接口的**双端链表**，支持高效的插入和删除操作，另外也实现了 Deque 接口，使得 LinkedList 类也具有队列的特性
 
-![](https://gitee.com/seazean/images/raw/master/Java/LinkedList底层结构.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/LinkedList底层结构.png)
 
 核心方法：
 
@@ -4397,7 +4397,7 @@ Set 集合添加的元素是无序，不重复的。
     * 当链表长度超过阈值 8 且当前数组的长度 > 64时，将链表转换为红黑树，减少了查找时间
     * 当链表长度超过阈值 8 且当前数组的长度 < 64时，扩容
 
-  ![](https://gitee.com/seazean/images/raw/master/Java/HashSet底层结构哈希表.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/HashSet底层结构哈希表.png)
 
   每个元素的 hashcode() 的值进行响应的算法运算，计算出的值相同的存入一个数组块中，以链表的形式存储，如果链表长度超过8就采取红黑树存储，所以输出的元素是无序的。
 
@@ -4725,7 +4725,7 @@ JDK7 对比 JDK8：
   * 当链表长度**超过（大于）阈值**（或者红黑树的边界值，默认为 8）并且当前数组的**长度大于等于 64 时**，此索引位置上的所有数据改为红黑树存储
   * 即使哈希函数取得再好，也很难达到元素百分百均匀分布。当 HashMap 中有大量的元素都存放到同一个桶中时，就相当于一个长的单链表，假如单链表有 n 个元素，遍历的**时间复杂度是 O(n)**，所以 JDK1.8 中引入了 红黑树（查找**时间复杂度为 O(logn)**）来优化这个问题，使得查找效率更高
   
-  ![](https://gitee.com/seazean/images/raw/master/Java/HashMap底层结构.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/HashMap底层结构.png)
 
 
 
@@ -4741,7 +4741,7 @@ JDK7 对比 JDK8：
 
 HashMap 继承关系如下图所示：
 
-![](https://gitee.com/seazean/images/raw/master/Java/HashMap继承关系.bmp)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/HashMap继承关系.bmp)
 
 说明：
 
@@ -5076,7 +5076,7 @@ HashMap 继承关系如下图所示：
   
     * `(n - 1) & hash`：计算下标位置
   
-    <img src="https://gitee.com/seazean/images/raw/master/Java/HashMap-putVal哈希运算.png" style="zoom: 67%;" />
+    <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/HashMap-putVal哈希运算.png" style="zoom: 67%;" />
   
     * 余数本质是不断做除法，把剩余的数减去，运算效率要比位运算低
 
@@ -5209,7 +5209,7 @@ HashMap 继承关系如下图所示：
 
   注意：这里要求**数组长度 2 的幂**
 
-  ![](https://gitee.com/seazean/images/raw/master/Java/HashMap-resize扩容.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/HashMap-resize扩容.png)
 
   普通节点：把所有节点分成高低位两个链表，转移到数组
 
@@ -10392,14 +10392,14 @@ Java 代码执行流程：Java 程序 --（编译）--> 字节码文件 --（解
 
 JVM 结构：
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-概述图.png" style="zoom: 80%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-概述图.png" style="zoom: 80%;" />
 
 JVM、JRE、JDK 对比：
 
 * JDK(Java SE Development Kit)：Java 标准开发包，它提供了编译、运行 Java 程序所需的各种工具和资源
 * JRE( Java Runtime Environment)：Java 运行环境，用于解释执行 Java 的字节码文件
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-JRE关系.png" style="zoom: 80%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-JRE关系.png" style="zoom: 80%;" />
 
 
 
@@ -10438,14 +10438,14 @@ Java 编译器输入的指令流是一种基于栈的指令集架构。因为跨
 
 ### 生命周期
 
-JVM 的生命周期分为三个阶段，分别为：启动、运行、死亡。
+JVM 的生命周期分为三个阶段，分别为：启动、运行、死亡
 
 - **启动**：当启动一个 Java 程序时，通过引导类加载器（bootstrap class loader）创建一个初始类（initial class），对于拥有 main 函数的类就是 JVM 实例运行的起点
 - **运行**：
   
   - main() 方法是一个程序的初始起点，任何线程均可由在此处启动
   - 在 JVM 内部有两种线程类型，分别为：用户线程和守护线程，**JVM 使用的是守护线程，main() 和其他线程使用的是用户线程**，守护线程会随着用户线程的结束而结束
-  - 执行一个 Java 程序时，真真正正在执行的是一个 Java 虚拟机的进程
+  - 执行一个 Java 程序时，真真正正在执行的是一个 **Java 虚拟机的进程**
   - JVM 有两种运行模式 Server 与 Client，两种模式的区别在于：Client 模式启动速度较快，Server 模式启动较慢；但是启动进入稳定期长期运行之后 Server 模式的程序运行速度比 Client 要快很多
   
     Server 模式启动的 JVM 采用的是重量级的虚拟机，对程序采用了更多的优化；Client 模式启动的 JVM 采用的是轻量级的虚拟机
@@ -10474,11 +10474,11 @@ JVM 的生命周期分为三个阶段，分别为：启动、运行、死亡。
 JVM 内存结构规定了 Java 在运行过程中内存申请、分配、管理的策略，保证了 JVM 的高效稳定运行
 
 * Java1.8 以前的内存结构图：
-  ![](https://gitee.com/seazean/images/raw/master/Java/JVM-Java7内存结构图.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-Java7内存结构图.png)
 
 * Java1.8 之后的内存结果图：
 
-  ![](https://gitee.com/seazean/images/raw/master/Java/JVM-Java8内存结构图.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-Java8内存结构图.png)
 
 线程运行诊断：
 
@@ -10521,7 +10521,7 @@ Java 虚拟机栈：Java Virtual Machine Stacks，**每个线程**运行时所�
   * 方法返回地址：方法正常退出或者异常退出的定义
   * 操作数栈或表达式栈和其他一些附加信息
   
-  <img src="https://gitee.com/seazean/images/raw/master/Java/JVM-虚拟机栈.png" style="zoom:50%;" />
+  <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-虚拟机栈.png" style="zoom:50%;" />
 
 设置栈内存大小：`-Xss size`   `-Xss 1024k`
 
@@ -10597,13 +10597,13 @@ Java 虚拟机栈：Java Virtual Machine Stacks，**每个线程**运行时所�
 
 * 为了支持当前方法的代码能够实现动态链接，每一个栈帧内部都包含一个指向运行时常量池或该栈帧所属方法的引用
 
-  ![](https://gitee.com/seazean/images/raw/master/Java/JVM-动态链接符号引用.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-动态链接符号引用.png)
 
 * 在 Java 源文件被编译成的字节码文件中，所有的变量和方法引用都作为符号引用保存在 class 的常量池中
   
   常量池的作用：提供一些符号和常量，便于指令的识别
   
-  ![](https://gitee.com/seazean/images/raw/master/Java/JVM-动态链接运行时常量池.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-动态链接运行时常量池.png)
 
 
 
@@ -10656,7 +10656,7 @@ JNI：Java Native Interface，通过使用 Java 本地接口书写程序，可�
   * 直接从本地内存的堆中分配任意数量的内存
   * 可以直接使用本地处理器中的寄存器
   
-  <img src="https://gitee.com/seazean/images/raw/master/Java/JVM-本地方法栈.png" style="zoom:67%;" />
+  <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-本地方法栈.png" style="zoom:67%;" />
   
   
 
@@ -10795,7 +10795,7 @@ public static void main(String[] args) {
 
 本地内存概述图：
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-内存图对比.png" style="zoom: 67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-内存图对比.png" style="zoom: 67%;" />
 
 
 
@@ -10949,7 +10949,7 @@ TLAB：Thread Local Allocation Buffer，为每个线程在堆内单独分配了�
 
 问题：堆空间都是共享的么？ 不一定，因为还有 TLAB，在堆中划分出一块区域，为每个线程所独占
 
-![](https://gitee.com/seazean/images/raw/master/Java/JVM-TLAB内存分配策略.jpg)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-TLAB内存分配策略.jpg)
 
 JVM 是将 TLAB 作为内存分配的首选，但不是所有的对象实例都能够在 TLAB 中成功分配内存，一旦对象在 TLAB 空间分配内存失败时，JVM 就会通过**使用加锁机制确保数据操作的原子性**，从而直接在堆中分配内存
 
@@ -10962,7 +10962,7 @@ JVM 是将 TLAB 作为内存分配的首选，但不是所有的对象实例都�
 * `-XX:TLABWasteTargetPercent`：设置 TLAB 空间所占用 Eden 空间的百分比大小，默认情况下 TLAB 空间的内存非常小，仅占有整个 Eden 空间的1%
 * `-XX:TLABRefillWasteFraction`：指当 TLAB 空间不足，请求分配的对象内存大小超过此阈值时不会进行 TLAB 分配，直接进行堆内存分配，否则还是会优先进行 TLAB 分配
 
-![](https://gitee.com/seazean/images/raw/master/Java/JVM-TLAB内存分配过程.jpg)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-TLAB内存分配过程.jpg)
 
 
 
@@ -11063,7 +11063,7 @@ Java8 时，堆被分为了两份：新生代和老年代（1：2），在 Java7
 
  Eden 和 Survivor 大小比例默认为 8:1:1
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-分代收集算法.png" style="zoom: 67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-分代收集算法.png" style="zoom: 67%;" />
 
 
 
@@ -11248,7 +11248,7 @@ public void localvarGC4() {
   }
   ```
 
-![](https://gitee.com/seazean/images/raw/master/Java/JVM-循环引用.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-循环引用.png)
 
 
 
@@ -11293,7 +11293,7 @@ GC Roots 对象：
 
 - 在可达性分析算法中，只有能够被根对象集合直接或者间接连接的对象才是存活对象
 
-  <img src="https://gitee.com/seazean/images/raw/master/Java/JVM-可达性分析算法.png" style="zoom: 50%;" />
+  <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-可达性分析算法.png" style="zoom: 50%;" />
 
 
 
@@ -11321,7 +11321,7 @@ GC Roots 对象：
 4. 重复步骤 3，直至灰色集合为空时结束
 5. 结束后，仍在白色集合的对象即为 GC Roots 不可达，可以进行回收
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-三色标记法过程.gif" style="zoom: 67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-三色标记法过程.gif" style="zoom: 67%;" />
 
 
 
@@ -11342,7 +11342,7 @@ GC Roots 对象：
 * 针对并发标记开始后的**新对象**，通常的做法是直接全部当成黑色，也算浮动垃圾
 * 浮动垃圾并不会影响应用程序的正确性，只是需要等到下一轮垃圾回收中才被清除
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-三色标记法多标情况.png" style="zoom: 50%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-三色标记法多标情况.png" style="zoom: 50%;" />
 
 **漏标情况：**
 
@@ -11350,7 +11350,7 @@ GC Roots 对象：
 * 条件二：其他线程中修改了黑色对象，插入了一条或多条对该白色对象的新引用
 * 结果：导致该白色对象当作垃圾被 GC，影响到了程序的正确性
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-三色标记法漏标情况.png" style="zoom:50%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-三色标记法漏标情况.png" style="zoom:50%;" />
 
 代码角度解释漏标：
 
@@ -11542,7 +11542,7 @@ Java 语言提供了对象终止（finalization）机制来允许开发人员提
 - 标记和清除过程效率都不高
 - 会产生大量不连续的内存碎片，导致无法给大对象分配内存，需要维护一个空闲链表
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-标记清除算法.png" style="zoom: 67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-标记清除算法.png" style="zoom: 67%;" />
 
 
 
@@ -11556,7 +11556,7 @@ Java 语言提供了对象终止（finalization）机制来允许开发人员提
 
 应用场景：如果内存中的垃圾对象较多，需要复制的对象就较少，这种情况下适合使用该方式并且效率比较高，反之则不适合
 
-![](https://gitee.com/seazean/images/raw/master/Java/JVM-复制算法.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-复制算法.png)
 
 算法优点：
 
@@ -11586,7 +11586,7 @@ Java 语言提供了对象终止（finalization）机制来允许开发人员提
 
 缺点：需要移动大量对象，处理效率比较低
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-标记整理算法.png" style="zoom:67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-标记整理算法.png" style="zoom:67%;" />
 
 |          | Mark-Sweep         | Mark-Compact     | Copying                                 |
 | -------- | ------------------ | ---------------- | --------------------------------------- |
@@ -11630,7 +11630,7 @@ GC 性能指标：
 
 **垃圾收集器的组合关系**：
 
-![](https://gitee.com/seazean/images/raw/master/Java/JVM-垃圾回收器关系图.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-垃圾回收器关系图.png)
 
 新生代收集器：Serial、ParNew、Parallel Scavenge
 
@@ -11667,7 +11667,7 @@ Serial：串行垃圾收集器，作用于新生代，是指使用单线程进�
 
 开启参数：`-XX:+UseSerialGC` 等价于新生代用 Serial GC 且老年代用 Serial old GC
 
-![](https://gitee.com/seazean/images/raw/master/Java/JVM-Serial收集器.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-Serial收集器.png)
 
 优点：简单而高效（与其他收集器的单线程比），对于限定单个 CPU 的环境来说，Serial 收集器由于没有线程交互的开销，可以获得最高的单线程收集效率
 
@@ -11700,7 +11700,7 @@ Parallel Old 收集器：是一个应用于老年代的并行垃圾回收器，*
 
 在注重吞吐量及 CPU 资源敏感的场合，都可以优先考虑 Parallel Scavenge + Parallel Old 收集器，在 Server 模式下的内存回收性能很好，**Java8 默认是此垃圾收集器组合**
 
-![](https://gitee.com/seazean/images/raw/master/Java/JVM-ParallelScavenge收集器.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-ParallelScavenge收集器.png)
 
 参数配置：
 
@@ -11738,7 +11738,7 @@ Par 是 Parallel 并行的缩写，New 是只能处理的是新生代
 
 * `-XX:ParallelGCThreads`：默认开启和 CPU 数量相同的线程数
 
-![](https://gitee.com/seazean/images/raw/master/Java/JVM-ParNew收集器.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-ParNew收集器.png)
 
 ParNew 是很多 JVM 运行在 Server 模式下新生代的默认垃圾收集器
 
@@ -11764,15 +11764,11 @@ CMS 收集器的关注点是尽可能缩短垃圾收集时用户线程的停顿�
 - 重新标记：修正并发标记期间因用户程序继续运作而导致标记产生变动的那一部分对象的标记记录，比初始标记时间长但远比并发标记时间短，需要 STW（不停顿就会一直变化，采用写屏障 + 增量更新来避免漏标情况）
 - 并发清除：清除标记为可以回收对象，**不需要移动存活对象**，所以这个阶段可以与用户线程同时并发的
 
-Mark Sweep 会造成内存碎片，不把算法换成 Mark Compact 的原因：
-
-* Mark Compact 算法会整理内存，导致用户线程使用的**对象的地址改变**，影响用户线程继续执行
-
-* Mark Compact 更适合 Stop The World 场景
+Mark Sweep 会造成内存碎片，不把算法换成 Mark Compact 的原因：Mark Compact 算法会整理内存，导致用户线程使用的**对象的地址改变**，影响用户线程继续执行
 
 在整个过程中耗时最长的并发标记和并发清除过程中，收集器线程都可以与用户线程一起工作，不需要进行停顿
 
-![](https://gitee.com/seazean/images/raw/master/Java/JVM-CMS收集器.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-CMS收集器.png)
 
 优点：并发收集、低延迟
 
@@ -11832,7 +11828,7 @@ G1 对比其他处理器的优点：
   * Region 结构图：
   
 
-![](https://gitee.com/seazean/images/raw/master/Java/JVM-G1-Region区域.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-G1-Region区域.png)
 
 - 空间整合：
 
@@ -11866,7 +11862,7 @@ G1 垃圾收集器的缺点：
 
 记忆集 Remembered Set 在新生代中，每个 Region 都有一个 Remembered Set，用来被哪些其他 Region 里的对象引用（谁引用了我就记录谁）
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/JUC-G1记忆集.png" style="zoom:67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JUC-G1记忆集.png" style="zoom:67%;" />
 
 * 程序对 Reference 类型数据写操作时，产生一个 Write Barrier 暂时中断操作，检查该对象和 Reference 类型数据是否在不同的 Region（跨代引用），不同就将相关引用信息记录到 Reference 类型所属的 Region 的 Remembered Set 之中
 * 进行内存回收时，在 GC 根节点的枚举范围中加入 Remembered Set 即可保证不对全堆扫描也不会有遗漏
@@ -11897,7 +11893,7 @@ G1 中提供了三种垃圾回收模式：YoungGC、Mixed GC 和 Full GC，在�
 * 当堆内存使用达到一定值（默认 45%）时，开始老年代并发标记过程
 * 标记完成马上开始混合回收过程
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-G1回收过程.png" style="zoom: 50%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-G1回收过程.png" style="zoom: 50%;" />
 
 顺时针：Young GC → Young GC + Concurrent Mark → Mixed GC 顺序，进行垃圾回收
 
@@ -11921,7 +11917,7 @@ G1 中提供了三种垃圾回收模式：YoungGC、Mixed GC 和 Full GC，在�
   * 最终标记：为了修正在并发标记期间因用户程序继续运作而导致标记产生变动的那一部分标记记录，虚拟机将这段时间对象变化记录在线程的 Remembered Set Logs 里面，最终标记阶段需要把 Remembered Set Logs 的数据合并到 Remembered Set 中，这阶段需要停顿线程，但是可并行执行（**防止漏标**）
   * 筛选回收：并发清理阶段，首先对 CSet 中各个 Region 中的回收价值和成本进行排序，根据用户所期望的 GC 停顿时间来制定回收计划，也需要 STW
 
-  ![](https://gitee.com/seazean/images/raw/master/Java/JVM-G1收集器.jpg)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-G1收集器.jpg)
 
 * **Mixed GC**：当很多对象晋升到老年代时，为了避免堆内存被耗尽，虚拟机会触发一个混合的垃圾收集器，即 Mixed GC，除了回收整个 young region，还会回收一部分的 old region，过程同 YGC
 
@@ -12038,7 +12034,7 @@ Serial GC、Parallel GC、Concurrent Mark Sweep GC 这三个 GC  不同：
 - 最大化应用程序的吞吐量，选 Parallel GC
 - 最小化 GC 的中断或停顿时间，选 CMS GC
 
-![](https://gitee.com/seazean/images/raw/master/Java/JVM-垃圾回收器总结.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-垃圾回收器总结.png)
 
 
 
@@ -12312,7 +12308,7 @@ private int hash32;
 
 下图显示了一个简单的对象引用关系图，对象 A 引用了 C 和 D，对象 B 引用了 C 和 E。那么对象 A 的浅堆大小只是 A 本身，**A 的实际大小为 A、C、D 三者之和**，A 的深堆大小为 A 与 D 之和，由于对象 C 还可以通过对象 B 访问到 C，因此 C 不在对象 A 的深堆范围内
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-对象的实际大小.png" style="zoom: 67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-对象的实际大小.png" style="zoom: 67%;" />
 
 内存分析工具 MAT 提供了一种叫支配树的对象图，体现了对象实例间的支配关系
 
@@ -12326,7 +12322,7 @@ private int hash32;
 
 左图表示对象引用图，右图表示左图所对应的支配树：
 
-![](https://gitee.com/seazean/images/raw/master/Java/JVM-支配树.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-支配树.png)
 
 比如：对象 F 与对象 D 相互引用，因为到对象 F 的所有路径必然经过对象 D，因此对象 D 是对象 F 的直接支配者
 
@@ -12373,7 +12369,7 @@ JVM 是通过**栈帧中的对象引用**访问到其内部的对象实例：
   
   优点：reference 中存储的是稳定的句柄地址，在对象被移动（垃圾收集）时只会改变句柄中的实例数据指针，而 reference 本身不需要被修改
 
-  ![](https://gitee.com/seazean/images/raw/master/Java/JVM-对象访问-句柄访问.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-对象访问-句柄访问.png)
 
 * 直接指针（HotSpot 采用）：Java 堆对象的布局必须考虑如何放置访问类型数据的相关信息，reference 中直接存储的对象地址
   
@@ -12381,7 +12377,7 @@ JVM 是通过**栈帧中的对象引用**访问到其内部的对象实例：
 
   缺点：对象被移动时（如进行 GC 后的内存重新排列），对象的 reference 也需要同步更新
   
-  ![](https://gitee.com/seazean/images/raw/master/Java/JVM-对象访问-直接指针.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-对象访问-直接指针.png)
 
 
 
@@ -12573,7 +12569,7 @@ Java 对象创建时机：
 
 类是在运行期间**第一次使用时动态加载**的（不使用不加载），而不是一次性加载所有类，因为一次性加载会占用很多的内存，加载的类信息存放于一块成为方法区的内存空间
 
-![](https://gitee.com/seazean/images/raw/master/Java/JVM-类的生命周期.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-类的生命周期.png)
 
 包括 7 个阶段：
 
@@ -12619,7 +12615,7 @@ Java 对象创建时机：
 * 加载和链接可能是交替运行的
 * Class 对象和 _java_mirror 相互持有对方的地址，堆中对象通过 instanceKlass 和元空间进行交互
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-类的生命周期-加载.png" style="zoom:80%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-类的生命周期-加载.png" style="zoom:80%;" />
 
 创建数组类有些特殊，因为数组类本身并不是由类加载器负责创建，而是由 JVM 在运行时根据需要而直接创建的，但数组的元素类型仍然需要依靠类加载器去创建，创建数组类的过程：
 
@@ -13039,7 +13035,7 @@ ClassLoader 类常用方法：
 
 双亲委派机制的缺点：检查类是否加载的委托过程是单向的，这个方式虽然从结构上看比较清晰，使各个 ClassLoader 的职责非常明确，但**顶层的 ClassLoader 无法访问底层的 ClassLoader 所加载的类**（可见性）
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-双亲委派模型.png" style="zoom: 50%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-双亲委派模型.png" style="zoom: 50%;" />
 
 
 
@@ -13135,7 +13131,7 @@ protected Class<?> loadClass(String name, boolean resolve)
   
   热替换是指在程序的运行过程中，不停止服务，只通过替换程序文件来修改程序的行为，**热替换的关键需求在于服务不能中断**，修改必须立即表现正在运行的系统之中
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-热替换.png" style="zoom: 33%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-热替换.png" style="zoom: 33%;" />
 
 
 
@@ -13154,7 +13150,7 @@ protected Class<?> loadClass(String name, boolean resolve)
 * JDK1.2：改进了安全机制，增加了代码签名，不论本地代码或是远程代码都会按照用户的安全策略设定，由类加载器加载到虚拟机中权限不同的运行空间，来实现差异化的代码执行权限控制
 * JDK1.6：当前最新的安全机制，引入了域（Domain）的概念。虚拟机会把所有代码加载到不同的系统域和应用域，不同的保护域对应不一样的权限。系统域部分专门负责与关键资源进行交互，而各个应用域部分则通过系统域的部分代理来对各种需要的资源进行访问
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-沙箱机制.png" style="zoom:67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-沙箱机制.png" style="zoom:67%;" />
 
 
 
@@ -13272,7 +13268,7 @@ public static void main(String[] args) {
 
  Java 文件编译执行的过程：
 
-![](https://gitee.com/seazean/images/raw/master/Java/JVM-Java文件编译执行的过程.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-Java文件编译执行的过程.png)
 
 - 类加载器：用于装载字节码文件（.class文件）
 - 运行时数据区：用于分配存储空间
@@ -13347,7 +13343,7 @@ Java 语言：跨平台的语言（write once ，run anywhere）
 * 字节码为了实现特定软件运行和软件环境，与硬件环境无关
 * 通过编译器和虚拟机器实现，编译器将源码编译成字节码，虚拟机器将字节码转译为可以直接执行的指令
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-高级语言执行过程.png" style="zoom:50%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-高级语言执行过程.png" style="zoom:50%;" />
 
 
 
@@ -13452,7 +13448,7 @@ Class 文件格式采用一种类似于 C 语言结构体的方式进行数据�
 | 54               | 0                | 1.10       |
 | 55               | 0                | 1.11       |
 
-![](https://gitee.com/seazean/images/raw/master/Java/JVM-类结构.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-类结构.png)
 
 
 
@@ -14260,7 +14256,7 @@ finally 中的代码被**复制了 3 份**，分别放入 try 流程，catch 流
 * montiorenter：进入并获取对象监视器，即为栈顶对象加锁
 * monitorexit：释放并退出对象监视器，即为栈顶对象解锁
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-字节码指令同步控制.png" style="zoom: 33%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-字节码指令同步控制.png" style="zoom: 33%;" />
 
 
 
@@ -14304,12 +14300,12 @@ javap -v Demo.class：省略
 
   `istore_1`：将操作数栈顶数据弹出，存入局部变量表的 slot 1
 
-  ![](https://gitee.com/seazean/images/raw/master/Java/JVM-字节码执行流程1.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-字节码执行流程1.png)
 
   `ldc #3`：从常量池加载 #3 数据到操作数栈
   Short.MAX_VALUE 是 32767，所以 32768 = Short.MAX_VALUE + 1 实际是在编译期间计算完成
 
-  ![](https://gitee.com/seazean/images/raw/master/Java/JVM-字节码执行流程2.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-字节码执行流程2.png)
 
   `istore_2`：将操作数栈顶数据弹出，存入局部变量表的 slot 2
 
@@ -14319,17 +14315,17 @@ javap -v Demo.class：省略
 
   `iadd`：执行相加操作
 
-  ![](https://gitee.com/seazean/images/raw/master/Java/JVM-字节码执行流程3.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-字节码执行流程3.png)
 
   `istore_3`：将操作数栈顶数据弹出，存入局部变量表的 slot 3
 
   `getstatic #4`：获取静态字段
 
-  ![](https://gitee.com/seazean/images/raw/master/Java/JVM-字节码执行流程4.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-字节码执行流程4.png)
 
   `iload_3`：
 
-  ![](https://gitee.com/seazean/images/raw/master/Java/JVM-字节码执行流程5.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-字节码执行流程5.png)
 
   `invokevirtual #5`：
 
@@ -14340,7 +14336,7 @@ javap -v Demo.class：省略
   * 执行完毕，弹出栈帧
   * 清除 main 操作数栈内容
 
-  ![](https://gitee.com/seazean/images/raw/master/Java/JVM-字节码执行流程6.png)
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-字节码执行流程6.png)
 
   return：完成 main 方法调用，弹出 main 栈帧，程序结束
 
@@ -14389,7 +14385,7 @@ HotSpot VM 可以通过 VM 参数设置程序执行方式：
 - -Xcomp：完全采用即时编译器模式执行程序。如果即时编译出现问题，解释器会介入执行
 - -Xmixed：采用解释器 + 即时编译器的混合模式共同执行程序
 
-![](https://gitee.com/seazean/images/raw/master/Java/JVM-执行引擎工作流程.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-执行引擎工作流程.png)
 
 
 
@@ -14737,7 +14733,7 @@ Java 虚拟机中关于方法重写的判定基于方法描述符，如果子类
 * 其一，子类方法表中包含父类方法表中的**所有方法**，并且在方法表中的索引值与父类方法表种的索引值相同
 * 其二，**非重写的方法指向父类的方法表项，与父类共享一个方法表项，重写的方法指向本身自己的实现**。所以这就是为什么多态情况下可以访问父类的方法。
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/JVM-虚方法表.png" style="zoom: 80%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-虚方法表.png" style="zoom: 80%;" />
 
 Passenger 类的方法表包括两个方法，分别对应 0 号和 1 号。方法表调换了 toString 方法和 passThroughImmigration 方法的位置，是因为 toString 方法的索引值需要与 Object 类中同名方法的索引值一致，为了保持简洁，这里不考虑 Object 类中的其他方法。
 
@@ -14772,7 +14768,7 @@ class Girl extends Person {
 }
 ```
 
-![](https://gitee.com/seazean/images/raw/master/Java/JVM-虚方法表指向.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-虚方法表指向.png)
 
 
 
@@ -15736,7 +15732,7 @@ jstatd 是一个 RMI 服务端程序，相当于代理服务器，建立本地�
 
 远程主机信息收集，前面的指令只涉及到监控本机的 Java 应用程序，而在这些工具中，一些监控工具也支持对远程计算机的监控（如 jps、jstat），为了启用远程监控，则需要配合使用 jstatd 工具。
 
-![](https://gitee.com/seazean/images/raw/master/Java/JVM-jstatd图解.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-jstatd图解.png)
 
 
 
@@ -16317,7 +16313,7 @@ public class BeerDemo{
 1. 确定总共需要冒几轮：数组的长度-1
 2. 每轮两两比较几次
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-冒泡排序.gif" style="zoom: 80%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/Sort-冒泡排序.gif" style="zoom: 80%;" />
 
 ```java
 // 0 1位置比较，大的放后面，然后1 2位置比较，大的继续放后面，一轮循环最后一位是最大值
@@ -16374,7 +16370,7 @@ public class BubbleSort {
 1. 控制选择几轮：数组的长度 - 1
 2. 控制每轮从当前位置开始比较几次
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-选择排序.gif" style="zoom: 80%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/Sort-选择排序.gif" style="zoom: 80%;" />
 
 ```java
 public class SelectSort {
@@ -16426,7 +16422,7 @@ public class SelectSort {
 
 3. 交换后新的堆顶 R[1] 可能违反堆的性质，因此需要对当前无序区（R1,R2,……Rn-1）调整为新堆，然后再次将 R[1] 与无序区最后一个元素交换，得到新的无序区（R1,R2….Rn-2）和新的有序区（Rn-1,Rn），不断重复此过程直到有序区的元素个数为 n-1，则整个排序过程完成
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-堆排序.jpg" style="zoom:67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/Sort-堆排序.jpg" style="zoom:67%;" />
 
 floor：向下取整
 
@@ -16496,7 +16492,7 @@ public class HeapSort {
 
 插入排序（Insertion Sort）：在要排序的一组数中，假定前 n-1 个数已经排好序，现在将第 n 个数插到这个有序数列中，使得这 n 个数也是排好顺序的，如此反复循环，直到全部排好顺序
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-插入排序.png" style="zoom: 67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/Sort-插入排序.png" style="zoom: 67%;" />
 
 ```java
 public class InsertSort {
@@ -16543,7 +16539,7 @@ public class InsertSort {
 2. 对分好组的每一组数据完成插入排序
 3. 减小增长量，最小减为 1，重复第二步操作
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-希尔排序.png" style="zoom:67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/Sort-希尔排序.png" style="zoom:67%;" />
 
 希尔排序的核心在于间隔序列的设定，既可以提前设定好间隔序列，也可以动态的定义间隔序列，希尔排序就是插入排序增加了间隔
 
@@ -16598,15 +16594,15 @@ public class ShellSort {
 2. 将相邻的两个子组进行合并成一个有序的大组
 3. 不断的重复步骤2，直到最终只有一个组为止
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-归并排序.png" style="zoom:50%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/Sort-归并排序.png" style="zoom:50%;" />
 
 归并步骤：每次比较两端最小的值，把最小的值放在辅助数组的左边
 
-![](https://gitee.com/seazean/images/raw/master/Java/Sort-归并步骤1.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/Sort-归并步骤1.png)
 
-![](https://gitee.com/seazean/images/raw/master/Java/Sort-归并步骤2.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/Sort-归并步骤2.png)
 
-![](https://gitee.com/seazean/images/raw/master/Java/Sort-归并步骤3.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/Sort-归并步骤3.png)
 
 
 
@@ -16659,7 +16655,7 @@ public class MergeSort {
 }
 ```
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-归并排序时间复杂度.png" style="zoom: 67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/Sort-归并排序时间复杂度.png" style="zoom: 67%;" />
 
 用树状图来描述归并，假设元素的个数为 n，那么使用归并排序拆分的次数为 `log2(n)`，即层数，每次归并需要做 n 次对比，最终得出的归并排序的时间复杂度为 `log2(n)*n`，根据大O推导法则，忽略底数，最终归并排序的时间复杂度为 O(nlogn)
 
@@ -16683,7 +16679,7 @@ public class MergeSort {
 2. 重新排序数列，所有比基准值小的摆放在基准前面，所有比基准值大的摆在基准的后面（相同的数可以到任一边），在这个分区退出之后，该基准就处于数列的中间位置，这个称为分区（partition）操作；
 3. 递归地（recursive）把小于基准值元素的子数列和大于基准值元素的子数列排序
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-快速排序.gif" style="zoom:80%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/Sort-快速排序.gif" style="zoom:80%;" />
 
 ```java
 public class QuickSort {
@@ -16743,7 +16739,7 @@ public class QuickSort {
 
 * 最坏情况：每一次切分选择的基准数字是当前序列中最大数或者最小数，这使得每次切分都会有一个子组，那么总共就得切分n次，所以最坏情况下，快速排序的时间复杂度为 O(n^2)
 
-  <img src="https://gitee.com/seazean/images/raw/master/Java/Sort-快排时间复杂度.png" style="zoom: 50%;" />
+  <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/Sort-快排时间复杂度.png" style="zoom: 50%;" />
 
 * 平均情况：每一次切分选择的基准数字不是最大值和最小值，也不是中值，这种情况用数学归纳法证明，快速排序的时间复杂度为 O(nlogn)
 
@@ -16771,7 +16767,7 @@ public class QuickSort {
 
 解释：先排低位再排高位，可以说明在高位相等的情况下低位是递增的，如果高位也是递增，则数据有序
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-基数排序.gif" style="zoom:67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/Sort-基数排序.gif" style="zoom:67%;" />
 
 实现思路：
 
@@ -16849,7 +16845,7 @@ public class BucketSort {
 
 如果一组数据只需要一次排序，则稳定性一般是没有意义的，如果一组数据需要多次排序，稳定性是有意义的。
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/Sort-稳定性.png" style="zoom:50%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/Sort-稳定性.png" style="zoom:50%;" />
 
 * 冒泡排序：只有当 `arr[i]>arr[i+1]` 的时候，才会交换元素的位置，而相等的时候并不交换位置，所以冒泡排序是一种稳定排序算法
 * 选择排序：是给每个位置选择当前元素最小的，例如有数据{5(1)，8 ，5(2)， 3， 9 }，第一遍选择到的最小元素为3，所以5(1)会和3进行交换位置，此时5(1)到了5(2)后面，破坏了稳定性，所以是不稳定的排序算法
@@ -16874,7 +16870,7 @@ public class BucketSort {
 
 #### 算法对比
 
-![](https://gitee.com/seazean/images/raw/master/Java/Sort-排序算法对比.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/Sort-排序算法对比.png)
 
 
 
@@ -16943,7 +16939,7 @@ public class binarySearch {
 }
 ```
 
-![](https://gitee.com/seazean/images/raw/master/Java/二分查找.gif)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/二分查找.gif)
 
 查找第一个匹配的元素：
 
@@ -17146,7 +17142,7 @@ public class Kmp {
 + 节点：在树结构中,每一个元素称之为节点
 + 度：每一个节点的子节点数量称之为度
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/二叉树结构图.png" alt="二叉树结构图" style="zoom:80%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/二叉树结构图.png" alt="二叉树结构图" style="zoom:80%;" />
 
 
 
@@ -17165,7 +17161,7 @@ public class Kmp {
 + 右子树上所有节点的值都大于根节点的值
 + 不存在重复的节点
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/二叉查找树结构图.png" alt="二叉查找树" style="zoom: 80%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/二叉查找树结构图.png" alt="二叉查找树" style="zoom: 80%;" />
 
 
 
@@ -17261,7 +17257,7 @@ public class Kmp {
   }
   ```
 
-* 删除节点：要删除节点12，先找到节点19，然后移动并替换节点12<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-二叉查找树删除节点.png" style="zoom: 50%;" />
+* 删除节点：要删除节点12，先找到节点19，然后移动并替换节点12<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/Tree-二叉查找树删除节点.png" style="zoom: 50%;" />
 
   代码链接：https://leetcode-cn.com/submissions/detail/190232548/
 
@@ -17290,15 +17286,15 @@ public class Kmp {
 
 + 平衡二叉树和二叉查找树对比结构图
 
-![平衡二叉树和二叉查找树对比](https://gitee.com/seazean/images/raw/master/Java/平衡二叉树和二叉查找树对比结构图.png)
+![平衡二叉树和二叉查找树对比](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/平衡二叉树和二叉查找树对比结构图.png)
 
 + 左旋：将根节点的右侧往左拉，原先的右子节点变成新的父节点，并把多余的左子节点出让，给已经降级的根节点当右子节点
 
-  ![平衡二叉树左旋](https://gitee.com/seazean/images/raw/master/Java/平衡二叉树左旋01.png)
+  ![平衡二叉树左旋](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/平衡二叉树左旋01.png)
 
 * 右旋：将根节点的左侧往右拉，左子节点变成了新的父节点，并把多余的右子节点出让，给已经降级根节点当左子节点
 
-  ![平衡二叉树右旋](https://gitee.com/seazean/images/raw/master/Java/平衡二叉树右旋01.png)
+  ![平衡二叉树右旋](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/平衡二叉树右旋01.png)
 
 推荐文章：https://pdai.tech/md/algorithm/alg-basic-tree-balance.html
 
@@ -17332,12 +17328,12 @@ public class Kmp {
 
 - 红黑树整体性能略优于 AVL 树，AVL 树的旋转比红黑树的旋转多，更加难以平衡和调试，插入和删除的效率比红黑树慢
 
-![红黑树](https://gitee.com/seazean/images/raw/master/Java/红黑树结构图.png)
+![红黑树](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/红黑树结构图.png)
 
 
 
 红黑树添加节点的默认颜色为红色，效率高
-![](https://gitee.com/seazean/images/raw/master/Java/红黑树添加节点颜色.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/红黑树添加节点颜色.png)
 
 
 
@@ -17377,7 +17373,7 @@ public class Kmp {
 * 一个组中的数据对应的树和另外一个组中的数据对应的树之间没有任何联系
 * 元素在树中并没有子父级关系的硬性要求
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-并查集.png" style="zoom:50%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/Tree-并查集.png" style="zoom:50%;" />
 
 可以高效地进行如下操作：
 
@@ -17386,11 +17382,11 @@ public class Kmp {
 
 存储结构：
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-并查集存储结构.png" style="zoom:67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/Tree-并查集存储结构.png" style="zoom:67%;" />
 
 合并方式：
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-并查集合并.png" style="zoom:67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/Tree-并查集合并.png" style="zoom:67%;" />
 
 
 
@@ -17489,7 +17485,7 @@ public class Kmp {
 
 让每个索引处的节点都指向它的父节点，当 eleGroup[i] = i 时，说明 i 是根节点
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-并查集优化.png" style="zoom: 67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/Tree-并查集优化.png" style="zoom: 67%;" />
 
 ```java
 //查询p所在的分组的标识符，递归寻找父标识符，直到找到根节点
@@ -17522,7 +17518,7 @@ public void union(int p, int q) {
 
 平均时间复杂度为 O(N)，最坏时间复杂度是 O(N^2)
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-并查集时间复杂度.png" style="zoom:67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/Tree-并查集时间复杂度.png" style="zoom:67%;" />
 
 继续优化：路径压缩，保证每次把小树合并到大树
 
@@ -17595,7 +17591,7 @@ public class UF_Tree_Weighted {
 
 畅通工程：某省调查城镇交通状况，得到现有城镇道路统计表，表中列出了每条道路直接连通的城镇。省政府畅通工程的目标是使全省任何两个城镇间都可以实现交通，但不一定有直接的道路相连，只要互相间接通过道路可达即可，问最少还需要建设多少条道路？
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-应用场景.png" style="zoom:67%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/Tree-应用场景.png" style="zoom:67%;" />
 
 解题思路：
 
@@ -17644,9 +17640,9 @@ Trie 树，也叫字典树，是一种专门处理字符串匹配的树形结构
 * 每个节点表示一个字符串中的字符，从**根节点到红色节点的一条路径表示一个字符串**
 * 红色节点并不都是叶子节点
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-字典树构造过程1.png" style="zoom: 50%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/Tree-字典树构造过程1.png" style="zoom: 50%;" />
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-字典树构造过程2.png" style="zoom:50%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/Tree-字典树构造过程2.png" style="zoom:50%;" />
 
 注意：要查找的是字符串“he”，从根节点开始，沿着某条路径来匹配，可以匹配成功。但是路径的最后一个节点“e”并不是红色的，也就是说，“he”是某个字符串的前缀子串，但并不能完全匹配任何字符串
 
@@ -17660,7 +17656,7 @@ Trie 树，也叫字典树，是一种专门处理字符串匹配的树形结构
 
 通过一个下标与字符一一映射的数组，来存储子节点的指针
 
-<img src="https://gitee.com/seazean/images/raw/master/Java/Tree-字典树存储结构.png" style="zoom:50%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/Tree-字典树存储结构.png" style="zoom:50%;" />
 
 时间复杂度是 O(n)（n 表示要查找字符串的长度）
 
@@ -17724,7 +17720,7 @@ public class Trie {
 
 Trie 树是非常耗内存，采取空间换时间的思路。Trie 树的变体有很多，可以在一定程度上解决内存消耗的问题。比如缩点优化，对只有一个子节点的节点，而且此节点不是一个串的结束节点，可以将此节点与子节点合并
 
-![](https://gitee.com/seazean/images/raw/master/Java/Tree-字典树缩点优化.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/Tree-字典树缩点优化.png)
 
 
 
@@ -17819,7 +17815,7 @@ public class MGraph {
 
 布隆过滤器：一种数据结构，是一个很长的二进制向量（位数组）和一系列随机映射函数（哈希函数），既然是二进制，每个空间存放的不是 0 就是 1，但是初始默认值都是 0，所以布隆过滤器不存数据只存状态
 
-<img src="https://gitee.com/seazean/images/raw/master/DB/Redis-Bitmaps数据结构.png" style="zoom: 80%;" />
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-Bitmaps数据结构.png" style="zoom: 80%;" />
 
 这种数据结构是高效且性能很好的，但缺点是具有一定的错误识别率和删除难度。并且理论情况下，添加到集合中的元素越多，误报的可能性就越大
 
@@ -17833,7 +17829,7 @@ public class MGraph {
 
 向布隆过滤器中添加一个元素 key 时，会通过多个 hash 函数得到多个哈希值，在位数组中把对应下标的值置为 1
 
-![](https://gitee.com/seazean/images/raw/master/DB/Redis-布隆过滤器添加数据.png)
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-布隆过滤器添加数据.png)
 
 布隆过滤器查询一个数据，是否在二进制的集合中，查询过程如下：
 
