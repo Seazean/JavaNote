@@ -4856,7 +4856,7 @@ RocketMQ 支持按照两种维度进行消息查询：按照 Message ID 查询�
 
 * 按照 Message Key 查询消息，IndexFile 索引文件为提供了通过 Message Key 查询消息的服务
 
-  实现方式：通过 Broker 端的 QueryMessageProcessor 业务处理器来查询，读取消息的过程用 Topic 和 Key 找到 IndexFile 索引文件中的一条记录，根据其中的 CommitLog Offset 从 CommitLog 文件中读取消息的实体内容
+  实现方式：通过 Broker 端的 QueryMessageProcessor 业务处理器来查询，读取消息的过程用 **Topic 和 Key** 找到 IndexFile 索引文件中的一条记录，根据其中的 CommitLog Offset 从 CommitLog 文件中读取消息的实体内容
 
 
 
