@@ -7086,15 +7086,16 @@ ReadSocketService 类是一个任务对象，slave 向 master 传输的帧格式
 
       * `int pos = ...`：**获取可读帧数据中最后一个完整的帧数据的位点，后面的数据丢弃**
     * `long readOffset = ...byteBufferRead.getLong(pos - 8)`：读取最后一帧数据，slave 端当前的同步进度信息
+      
       * `this.processPosition = pos`：更新处理位点
       * `HAConnection.this.slaveAckOffset = readOffset`：更新应答位点
       * `if (HAConnection.this.slaveRequestOffset < 0)`：条件成立**给 slaveRequestOffset 赋值**
       * `HAConnection...notifyTransferSome(slaveAckOffset)`：**唤醒阻塞的生产者线程**
       
     * `else if (readSize == 0) `：读取 3 次无新数据跳出循环
-
+  
     * `else`：readSize = -1 就表示 Socket 处于半关闭状态，对端已经关闭了
-
+  
   * `if (interval > 20)`：超过 20 秒未发生通信，直接结束循环
 
 
@@ -7105,7 +7106,7 @@ ReadSocketService 类是一个任务对象，slave 向 master 传输的帧格式
 
 ###### WriteSocket
 
-WriteSocketService 类是一个任务对象，master向 slave 传输的数据帧格式为 `{[phyOffset][size][data...]}{[phyOffset][size][data...]}`，上报的是 slave 本地的同步进度，同步进度是一个 long 值
+WriteSocketService 类是一个任务对象，master 向 slave 传输的数据帧格式为 `{[phyOffset][size][data...]}{[phyOffset][size][data...]}`
 
 * phyOffset：数据区间的开始偏移量，并不表示某一条具体的消息，表示的数据块开始的偏移量位置
 * size：同步的数据块的大小
