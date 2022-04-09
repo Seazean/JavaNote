@@ -2546,7 +2546,7 @@ CREATE TABLE us_pro(
 
 
 
-## 存储结构
+## 高级结构
 
 ### 视图
 
@@ -8740,7 +8740,7 @@ long_query_time=10
 
 ## 概述
 
-JDBC（Java DataBase Connectivity，java数据库连接）是一种用于执行 SQL 语句的 Java API，可以为多种关系型数据库提供统一访问，是由一组用 Java 语言编写的类和接口组成的。
+JDBC（Java DataBase Connectivity，Java 数据库连接）是一种用于执行 SQL 语句的 Java API，可以为多种关系型数据库提供统一访问，是由一组用 Java 语言编写的类和接口组成的。
 
 JDBC 是 Java 官方提供的一套规范（接口），用于帮助开发人员快速实现不同关系型数据库的连接
 
@@ -9304,7 +9304,7 @@ public class MyDataSourceTest {
 
 - 通过打印连接对象，发现 DriverManager 获取的连接实现类是 JDBC4Connection
 - 自定义一个类，继承 JDBC4Connection 这个类，重写 close() 方法
-- 通过查看 JDBC 工具类获取连接的方法我们发现：我们虽然自定义了一个子类，完成了归还连接的操作。但是DriverManager 获取的还是 JDBC4Connection 这个对象，并不是我们的子类对象。
+- 查看 JDBC 工具类获取连接的方法发现：虽然自定义了一个子类，完成了归还连接的操作。但是 DriverManager 获取的还是 JDBC4Connection 这个对象，并不是我们的子类对象
 
 代码实现
 

@@ -8676,7 +8676,7 @@ DefaultMessageStore 中有成员属性 ScheduleMessageService，在 start 方法
 
   * `this.timer`：创建定时器对象
 
-  * `for (... : this.delayLevelTable.entrySet())`：为**每个延迟级别创建一个延迟任务**提交到 timer ，这样就可以**将延迟消息得到及时的消费**
+  * `for (... : this.delayLevelTable.entrySet())`：为**每个延迟级别创建一个延迟任务**提交到 timer ，周期执行，这样就可以**将延迟消息得到及时的消费**
 
   * `this.timer.scheduleAtFixedRate()`：提交周期型任务，延迟 10 秒执行，周期为 10 秒，持久化延迟队列消费进度任务
 
