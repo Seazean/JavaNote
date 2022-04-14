@@ -6915,7 +6915,7 @@ HAClient 是 slave 端运行的代码，用于**和 master 服务器建立长连
 
   * `if (diff >= (msgHeaderSize + bodySize))`：说明**缓冲区内是包含当前帧的全部数据的**，开始处理帧数据 
 
-    `HAService...appendToCommitLog(masterPhyOffset, bodyData)`：**存储数据到 CommitLog**
+    `HAService...appendToCommitLog(masterPhyOffset, bodyData)`：**存储数据到 CommitLog**，并构建 Index 和 CQ
 
     `this.byteBufferRead.position(readSocketPos)`：恢复 byteBufferRead 的 pos 指针
 
@@ -7386,7 +7386,7 @@ AllocateMappedFileService **创建 MappedFile 服务**
 
 ReputMessageService 消息分发服务，用于构**建 ConsumerQueue 和 IndexFile 文件**
 
-* run()：循环执行 doReput 方法，每执行一次线程休眠 1 毫秒
+* run()：**循环执行 doReput 方法**，所以发送的消息存储进 CL 就可以产生对应的 CQ，每执行一次线程休眠 1 毫秒
 
   ```java
   public void run()

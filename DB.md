@@ -9796,9 +9796,7 @@ MySQL 支持 ACID 特性，保证可靠性和持久性，读取性能不高，�
 * 灵活的数据模型，设计了一些数据存储格式，能保证效率上的提高
 * 高可用，集群
 
-常见的 Nosql：Redis、memcache、HBase、MongoDB
-
-![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/电商场景解决方案.png)
+常见的 NoSQL：Redis、memcache、HBase、MongoDB
 
 
 

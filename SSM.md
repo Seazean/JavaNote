@@ -1498,7 +1498,7 @@ public class Blog {
 
 缓存类别：
 
-* 一级缓存：SqlSession 级别的缓存，又叫本地会话缓存，自带的（不需要配置），一级缓存的生命周期与 SqlSession 一致。在操作数据库时需要构造 SqlSession 对象，在对象中有一个数据结构（HashMap）用于存储缓存数据，不同的 SqlSession 之间的缓存数据区域是互相不影响的
+* 一级缓存：SqlSession 级别的缓存，又叫本地会话缓存，自带的（不需要配置），一级缓存的生命周期与 SqlSession 一致。在操作数据库时需要构造 SqlSession 对象，**在对象中有一个数据结构（HashMap）用于存储缓存数据**，不同的 SqlSession 之间的缓存数据区域是互相不影响的
 * 二级缓存：mapper（namespace）级别的缓存，二级缓存的使用，需要手动开启（需要配置）。多个 SqlSession 去操作同一个 Mapper 的 SQL 可以共用二级缓存，二级缓存是跨 SqlSession 的
 
 开启缓存：配置核心配置文件中 <settings> 标签
