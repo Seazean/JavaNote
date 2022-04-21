@@ -8242,7 +8242,7 @@ SELECT wait_for_executed_gtid_set(gtid_set [, timeout])
 
 #### 基于位点
 
-主库上位后，从库（B）执行 CHANGE MASTER TO 命令，指定 MASTER_LOG_FILE、MASTER_LOG_POS 表示从新主库（A）的哪个文件的哪个位点开始同步，这个位置就是**同步位点**，对应主库的文件名和日志偏移量
+主库上位后，从库 B 执行 CHANGE MASTER TO 命令，指定 MASTER_LOG_FILE、MASTER_LOG_POS 表示从新主库 A 的哪个文件的哪个位点开始同步，这个位置就是**同步位点**，对应主库的文件名和日志偏移量
 
 寻找位点需要找一个稍微往前的，然后再通过判断跳过那些在从库 B 上已经执行过的事务，获取位点方法：
 
@@ -8730,1046 +8730,6 @@ long_query_time=10
 
 
 
-****
-
-
-
-
-
-# JDBC
-
-## 概述
-
-JDBC（Java DataBase Connectivity，Java 数据库连接）是一种用于执行 SQL 语句的 Java API，可以为多种关系型数据库提供统一访问，是由一组用 Java 语言编写的类和接口组成的。
-
-JDBC 是 Java 官方提供的一套规范（接口），用于帮助开发人员快速实现不同关系型数据库的连接
-
-
-
-***
-
-
-
-## 功能类
-
-### DriverManager
-
-DriverManager：驱动管理对象
-
-* 注册驱动：
-  * 注册给定的驱动：`public static void registerDriver(Driver driver)`
-
-  * 代码实现语法：`Class.forName("com.mysql.jdbc.Driver)`
-
-  * com.mysql.jdbc.Driver 中存在静态代码块
-
-    ```java
-    static {
-        try {
-            DriverManager.registerDriver(new Driver());
-        } catch (SQLException var1) {
-            throw new RuntimeException("Can't register driver!");
-        }
-    }
-    ```
-
-  * 不需要通过 DriverManager 调用静态方法 registerDriver，因为 Driver 类被使用，则自动执行静态代码块完成注册驱动
-
-  * jar 包中 META-INF 目录下存在一个 java.sql.Driver 配置文件，文件中指定了 com.mysql.jdbc.Driver
-
-* 获取数据库连接并返回连接对象：
-
-  方法：`public static Connection getConnection(String url, String user, String password)`
-
-  * url：指定连接的路径。语法：`jdbc:mysql://ip地址(域名):端口号/数据库名称`
-  * user：用户名
-  * password：密码
-
-
-
-***
-
-
-
-### Connection
-
-Connection：数据库连接对象
-
-- 获取执行者对象
-  - 获取普通执行者对象：`Statement createStatement()`
-  - 获取预编译执行者对象：`PreparedStatement prepareStatement(String sql)`
-- 管理事务
-  - 开启事务：`setAutoCommit(boolean autoCommit)`，false 开启事务，true 自动提交模式（默认）
-  - 提交事务：`void commit()`
-  - 回滚事务：`void rollback()`
-- 释放资源
-  - 释放此 Connection 对象的数据库和 JDBC 资源：`void close()`
-
-
-
-***
-
-
-
-### Statement
-
-Statement：执行 sql 语句的对象
-
-- 执行 DML 语句：`int executeUpdate(String sql)`
-  - 返回值 int：返回影响的行数
-  - 参数 sql：可以执行 insert、update、delete 语句
-- 执行 DQL 语句：`ResultSet executeQuery(String sql)`
-  - 返回值 ResultSet：封装查询的结果
-  - 参数 sql：可以执行 select 语句
-- 释放资源
-  - 释放此 Statement 对象的数据库和 JDBC 资源：`void close()`
-
-
-
-***
-
-
-
-### ResultSet
-
-ResultSet：结果集对象，ResultSet 对象维护了一个游标，指向当前的数据行，初始在第一行
-
-- 判断结果集中是否有数据：`boolean next()`
-  - 有数据返回 true，并将索引**向下移动一行**
-  - 没有数据返回 false
-- 获取结果集中**当前行**的数据：`XXX getXxx("列名")`
-  - XXX 代表数据类型（要获取某列数据，这一列的数据类型）
-  - 例如：String getString("name");   int getInt("age");
-- 释放资源
-  - 释放 ResultSet 对象的数据库和 JDBC 资源：`void close()`
-
-
-
-***
-
-
-
-### 代码实现
-
-数据准备
-
-```mysql
--- 创建db14数据库
-CREATE DATABASE db14;
-
--- 使用db14数据库
-USE db14;
-
--- 创建student表
-CREATE TABLE student(
-	sid INT PRIMARY KEY AUTO_INCREMENT,	-- 学生id
-	NAME VARCHAR(20),					-- 学生姓名
-	age INT,							-- 学生年龄
-	birthday DATE,						-- 学生生日
-);
-
--- 添加数据
-INSERT INTO student VALUES (NULL,'张三',23,'1999-09-23'),(NULL,'李四',24,'1998-08-10'),
-(NULL,'王五',25,'1996-06-06'),(NULL,'赵六',26,'1994-10-20');
-```
-
-JDBC 连接代码：
-
-```java
-public class JDBCDemo01 {
-    public static void main(String[] args) throws Exception{
-        //1.导入jar包
-        //2.注册驱动
-        Class.forName("com.mysql.jdbc.Driver");
-
-        //3.获取连接
-        Connection con = DriverManager.getConnection("jdbc:mysql://192.168.2.184:3306/db2","root","123456");
-
-        //4.获取执行者对象
-        Statement stat = con.createStatement();
-
-        //5.执行sql语句，并且接收结果
-        String sql = "SELECT * FROM user";
-        ResultSet rs = stat.executeQuery(sql);
-
-        //6.处理结果
-        while(rs.next()) {
-            System.out.println(rs.getInt("id") + "\t" + rs.getString("name"));
-        }
-
-        //7.释放资源
-        con.close();
-        stat.close();
-        con.close();
-    }
-}
-
-```
-
-
-
-
-
-***
-
-
-
-## 工具类
-
-* 配置文件（在 src 下创建 config.properties）
-
-  ```properties
-  driverClass=com.mysql.jdbc.Driver
-  url=jdbc:mysql://192.168.2.184:3306/db14
-  username=root
-  password=123456
-  ```
-
-* 工具类
-
-  ```java
-  public class JDBCUtils {
-      //1.私有构造方法
-      private JDBCUtils(){
-      };
-  
-      //2.声明配置信息变量
-      private static String driverClass;
-      private static String url;
-      private static String username;
-      private static String password;
-      private static Connection con;
-  
-      //3.静态代码块中实现加载配置文件和注册驱动
-      static{
-          try{
-              //通过类加载器返回配置文件的字节流
-              InputStream is = JDBCUtils.class.getClassLoader().
-                  	getResourceAsStream("config.properties");
-  
-              //创建Properties集合，加载流对象的信息
-              Properties prop = new Properties();
-              prop.load(is);
-  
-              //获取信息为变量赋值
-              driverClass = prop.getProperty("driverClass");
-              url = prop.getProperty("url");
-              username = prop.getProperty("username");
-              password = prop.getProperty("password");
-  
-              //注册驱动
-              Class.forName(driverClass);
-  
-          } catch (Exception e) {
-              e.printStackTrace();
-          }
-      }
-  
-      //4.获取数据库连接的方法
-      public static Connection getConnection() {
-          try {
-              con = DriverManager.getConnection(url,username,password);
-          } catch (SQLException e) {
-              e.printStackTrace();
-          }
-          return con;
-      }
-  
-      //5.释放资源的方法
-      public static void close(Connection con, Statement stat, ResultSet rs) {
-          if(con != null) {
-              try {
-                  con.close();
-              } catch (SQLException e) {
-                  e.printStackTrace();
-              }
-          }
-  
-          if(stat != null) {
-              try {
-                  stat.close();
-              } catch (SQLException e) {
-                  e.printStackTrace();
-              }
-          }
-  
-          if(rs != null) {
-              try {
-                  rs.close();
-              } catch (SQLException e) {
-                  e.printStackTrace();
-              }
-          }
-      }
-  	//方法重载，可能没有返回值对象
-      public static void close(Connection con, Statement stat) {
-          close(con,stat,null);
-      }
-  }
-  ```
-
-  
-
-
-****
-
-
-
-## 数据封装
-
-从数据库读取数据并封装成 Student 对象，需要：
-
-- Student 类成员变量对应表中的列
-
-- 所有的基本数据类型需要使用包装类，**以防 null 值无法赋值**
-
-  ```java
-  public class Student {
-      private Integer sid;
-      private String name;
-      private Integer age;
-      private Date birthday;
-      ........
-
-- 数据准备
-
-  ```mysql
-  -- 创建db14数据库
-  CREATE DATABASE db14;
-  
-  -- 使用db14数据库
-  USE db14;
-  
-  -- 创建student表
-  CREATE TABLE student(
-  	sid INT PRIMARY KEY AUTO_INCREMENT,	-- 学生id
-  	NAME VARCHAR(20),					-- 学生姓名
-  	age INT,							-- 学生年龄
-  	birthday DATE						-- 学生生日
-  );
-  
-  -- 添加数据
-  INSERT INTO student VALUES (NULL,'张三',23,'1999-09-23'),(NULL,'李四',24,'1998-08-10'),(NULL,'王五',25,'1996-06-06'),(NULL,'赵六',26,'1994-10-20');
-  ```
-
-- 操作数据库
-
-  ```java
-  public class StudentDaoImpl{
-  	//查询所有学生信息
-      @Override
-      public ArrayList<Student> findAll() {
-          //1. 
-          ArrayList<Student> list = new ArrayList<>();
-          Connection con = null;
-          Statement stat = null;
-          ResultSet rs = null;
-          try{
-              //2.获取数据库连接
-  			con = JDBCUtils.getConnection();
-  
-             	//3.获取执行者对象
-             	stat = con.createStatement();
-  
-             	//4.执行sql语句，并且接收返回的结果集
-  			String sql = "SELECT * FROM student";
-             	rs = stat.executeQuery(sql);
-  
-            	//5.处理结果集
-             	while(rs.next()) {
-                  Integer sid = rs.getInt("sid");
-                 	String name = rs.getString("name");
-                 	Integer age = rs.getInt("age");
-                 	Date birthday = rs.getDate("birthday");
-  
-                 	//封装Student对象
-                 	Student stu = new Student(sid,name,age,birthday);
-                 	//将student对象保存到集合中
-                 	list.add(stu);
-             	}
-         	} catch(Exception e) {
-             	e.printStackTrace();
-         	} finally {
-             	//6.释放资源
-             	JDBCUtils.close(con,stat,rs);
-         	}
-  		//将集合对象返回
-  		return list;
-      }
-  
-  	//添加学生信息
-      @Override
-      public int insert(Student stu) {
-          Connection con = null;
-          Statement stat = null;
-          int result = 0;
-          try{
-              con = JDBCUtils.getConnection();
-  
-              //3.获取执行者对象
-              stat = con.createStatement();
-  
-              //4.执行sql语句，并且接收返回的结果集
-              Date d = stu.getBirthday();
-              SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-              String birthday = sdf.format(d);
-              String sql = "INSERT INTO student VALUES ('"+stu.getSid()+"','"+stu.getName()+"','"+stu.getAge()+"','"+birthday+"')";
-              result = stat.executeUpdate(sql);
-  
-          } catch(Exception e) {
-              e.printStackTrace();
-          } finally {
-              //6.释放资源
-              JDBCUtils.close(con,stat);
-          }
-          //将结果返回
-          return result;
-      }
-  }
-  ```
-
-
-
-
-
-***
-
-
-
-## 注入攻击
-
-### 攻击演示
-
-SQL 注入攻击演示
-
-* 在登录界面，输入一个错误的用户名或密码，也可以登录成功 
-
-  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/SQL注入攻击演示.png)
-
-* 原理：我们在密码处输入的所有内容，都应该认为是密码的组成，但是 Statement 对象在执行 SQL 语句时，将一部分内容当做查询条件来执行
-
-  ```mysql
-  SELECT * FROM user WHERE loginname='aaa' AND password='aaa' OR '1'='1';
-  ```
-
-
-
-
-***
-
-
-
-### 攻击解决
-
-PreparedStatement：预编译 sql 语句的执行者对象，继承 `PreparedStatement extends Statement`
-
-* 在执行 sql 语句之前，将 sql 语句进行提前编译，**明确 sql 语句的格式**，剩余的内容都会认为是参数
-* sql 语句中的参数使用 ? 作为**占位符**
-
-为 ? 占位符赋值的方法：`setXxx(int parameterIndex, xxx data)`
-
-- 参数1：? 的位置编号（编号从 1 开始）
-
-- 参数2：? 的实际参数
-
-  ```java
-  String sql = "SELECT * FROM user WHERE loginname=? AND password=?";
-  pst = con.prepareStatement(sql);
-  pst.setString(1,loginName);
-  pst.setString(2,password);
-  ```
-
-执行 sql 语句的方法
-
-- 执行 insert、update、delete 语句：`int executeUpdate()`
-- 执行 select 语句：`ResultSet executeQuery()`
-
-
-
-
-
-****
-
-
-
-## 连接池
-
-### 概念
-
-数据库连接背景：数据库连接是一种关键的、有限的、昂贵的资源，这一点在多用户的网页应用程序中体现得尤为突出。对数据库连接的管理能显著影响到整个应用程序的伸缩性和健壮性，影响到程序的性能指标。
-
-数据库连接池：**数据库连接池负责分配、管理和释放数据库连接**，它允许应用程序**重复使用**一个现有的数据库连接，而不是再重新建立一个，这项技术能明显提高对数据库操作的性能。
-
-数据库连接池原理
-
-![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/数据库连接池原理图解.png)
-
-
-
-
-
-****
-
-
-
-### 自定义池
-
-DataSource 接口概述：
-
-* java.sql.DataSource 接口：数据源（数据库连接池）
-* Java 中 DataSource 是一个标准的数据源接口，官方提供的数据库连接池规范，连接池类实现该接口
-* 获取数据库连接对象：`Connection getConnection()`
-
-自定义连接池：
-
-```java
-public class MyDataSource implements DataSource{
-    //1.定义集合容器，用于保存多个数据库连接对象
-    private static List<Connection> pool = Collections.synchronizedList(new ArrayList<Connection>());
-
-    //2.静态代码块，生成10个数据库连接保存到集合中
-    static {
-        for (int i = 0; i < 10; i++) {
-            Connection con = JDBCUtils.getConnection();
-            pool.add(con);
-        }
-    }
-    //3.返回连接池的大小
-    public int getSize() {
-        return pool.size();
-    }
-
-    //4.从池中返回一个数据库连接
-    @Override
-    public Connection getConnection() {
-        if(pool.size() > 0) {
-            //从池中获取数据库连接
-            return pool.remove(0);
-        }else {
-            throw new RuntimeException("连接数量已用尽");
-        }
-    }
-}
-```
-
-测试连接池功能：
-
-```java
-public class MyDataSourceTest {
-    public static void main(String[] args) throws Exception{
-        //创建数据库连接池对象
-        MyDataSource dataSource = new MyDataSource();
-
-        System.out.println("使用之前连接池数量：" + dataSource.getSize());//10
-        
-        //获取数据库连接对象
-        Connection con = dataSource.getConnection();
-        System.out.println(con.getClass());// JDBC4Connection
-
-        //查询学生表全部信息
-        String sql = "SELECT * FROM student";
-        PreparedStatement pst = con.prepareStatement(sql);
-        ResultSet rs = pst.executeQuery();
-
-        while(rs.next()) {
-            System.out.println(rs.getInt("sid") + "\t" + rs.getString("name") + "\t" + rs.getInt("age") + "\t" + rs.getDate("birthday"));
-        }
-        
-        //释放资源
-        rs.close();
-        pst.close();
-		//目前的连接对象close方法，是直接关闭连接，而不是将连接归还池中
-        con.close();
-
-        System.out.println("使用之后连接池数量：" + dataSource.getSize());//9
-    }
-}
-```
-
-结论：释放资源并没有把连接归还给连接池
-
-
-
-***
-
-
-
-### 归还连接
-
-归还数据库连接的方式：继承方式、装饰者设计者模式、适配器设计模式、动态代理方式
-
-#### 继承方式
-
-继承（无法解决）
-
-- 通过打印连接对象，发现 DriverManager 获取的连接实现类是 JDBC4Connection
-- 自定义一个类，继承 JDBC4Connection 这个类，重写 close() 方法
-- 查看 JDBC 工具类获取连接的方法发现：虽然自定义了一个子类，完成了归还连接的操作。但是 DriverManager 获取的还是 JDBC4Connection 这个对象，并不是我们的子类对象
-
-代码实现
-
-* 自定义继承连接类
-
-  ```java
-  //1.定义一个类，继承JDBC4Connection
-  public class MyConnection1 extends JDBC4Connection{
-      //2.定义Connection连接对象和容器对象的成员变量
-      private Connection con;
-      private List<Connection> pool;
-  
-      //3.通过有参构造方法为成员变量赋值
-      public MyConnection1(String hostToConnectTo, int portToConnectTo, Properties info, String databaseToConnectTo, String url,Connection con,List<Connection> pool) throws SQLException {
-          super(hostToConnectTo, portToConnectTo, info, databaseToConnectTo, url);
-          this.con = con;
-          this.pool = pool;
-      }
-  
-      //4.重写close方法，完成归还连接
-      @Override
-      public void close() throws SQLException {
-          pool.add(con);
-      }
-  }
-  ```
-
-* 自定义连接池类
-
-  ```java
-  //将之前的连接对象换成自定义的子类对象
-  private static MyConnection1 con;
-  
-  //4.获取数据库连接的方法
-  public static Connection getConnection() {
-      try {
-          //等效于：MyConnection1 con = new JDBC4Connection();  语法错误！
-          con = DriverManager.getConnection(url,username,password);
-      } catch (SQLException e) {
-          e.printStackTrace();
-      }
-  
-      return con;
-  }
-  ```
-
-  
-
-***
-
-
-
-#### 装饰者
-
-自定义类实现 Connection 接口，通过装饰设计模式，实现和 mysql 驱动包中的 Connection 实现类相同的功能
-
-在实现类对每个获取的 Connection 进行装饰：把连接和连接池参数传递进行包装
-
-特点：通过装饰设计模式连接类我们发现，有很多需要重写的方法，代码太繁琐
-
-* 装饰设计模式类
-
-  ```java
-  //1.定义一个类，实现Connection接口
-  public class MyConnection2 implements Connection {
-      //2.定义Connection连接对象和连接池容器对象的变量
-      private Connection con;
-      private List<Connection> pool;
-  
-      //3.提供有参构造方法，接收连接对象和连接池对象，对变量赋值
-      public MyConnection2(Connection con,List<Connection> pool) {
-          this.con = con;
-          this.pool = pool;
-      }
-  
-      //4.在close()方法中，完成连接的归还
-      @Override
-      public void close() throws SQLException {
-          pool.add(con);
-      }
-      //5.剩余方法，只需要调用mysql驱动包的连接对象完成即可
-      @Override
-      public Statement createStatement() throws SQLException {
-          return con.createStatement();
-      }
-      ..........
-  }
-  ```
-
-* 自定义连接池类
-
-  ```java
-  @Override
-  public Connection getConnection() {
-      if(pool.size() > 0) {
-          //从池中获取数据库连接
-          Connection con = pool.remove(0);
-          //通过自定义连接对象进行包装
-          MyConnection2 mycon = new MyConnection2(con,pool);
-          //返回包装后的连接对象
-          return mycon;
-      }else {
-          throw new RuntimeException("连接数量已用尽");
-      }
-  }
-  ```
-
-  
-
-***
-
-
-
-#### 适配器
-
-使用适配器设计模式改进，提供一个适配器类，实现 Connection 接口，将所有功能进行实现（除了 close 方法），自定义连接类只需要继承这个适配器类，重写需要改进的 close() 方法即可。
-
-特点：自定义连接类中很简洁。剩余所有的方法抽取到了适配器类中，但是适配器这个类还是我们自己编写。
-
-* 适配器类
-
-  ```java
-  public abstract class MyAdapter implements Connection {
-  
-      // 定义数据库连接对象的变量
-      private Connection con;
-  
-      // 通过构造方法赋值
-      public MyAdapter(Connection con) {
-          this.con = con;
-      }
-  
-      // 所有的方法，均调用mysql的连接对象实现
-      @Override
-      public Statement createStatement() throws SQLException {
-          return con.createStatement();
-      }
-  }
-  ```
-
-* 自定义连接类
-
-  ```java
-  public class MyConnection3 extends MyAdapter {
-      //2.定义Connection连接对象和连接池容器对象的变量
-      private Connection con;
-      private List<Connection> pool;
-  
-      //3.提供有参构造方法，接收连接对象和连接池对象，对变量赋值
-      public MyConnection3(Connection con,List<Connection> pool) {
-          super(con);    // 将接收的数据库连接对象给适配器父类传递
-          this.con = con;
-          this.pool = pool;
-      }
-  
-      //4.在close()方法中，完成连接的归还
-      @Override
-      public void close() throws SQLException {
-          pool.add(con);
-      }
-  }
-  ```
-
-* 自定义连接池类
-
-  ```java
-  //从池中返回一个数据库连接
-  @Override
-  public Connection getConnection() {
-      if(pool.size() > 0) {
-          //从池中获取数据库连接
-          Connection con = pool.remove(0);
-          //通过自定义连接对象进行包装
-          MyConnection3 mycon = new MyConnection3(con,pool);
-          //返回包装后的连接对象
-          return mycon;
-      }else {
-          throw new RuntimeException("连接数量已用尽");
-      }
-  }
-  ```
-
-  
-
-***
-
-
-
-#### 动态代理
-
-使用动态代理的方式来改进
-
-自定义数据库连接池类：
-
-```java
-public class MyDataSource implements DataSource {
-    //1.准备一个容器。用于保存多个数据库连接对象
-    private static List<Connection> pool = Collections.synchronizedList(new ArrayList<>());
-
-    //2.定义静态代码块,获取多个连接对象保存到容器中
-    static{
-        for(int i = 1; i <= 10; i++) {
-            Connection con = JDBCUtils.getConnection();
-            pool.add(con);
-        }
-    }
-    //3.提供一个获取连接池大小的方法
-    public int getSize() {
-        return pool.size();
-    }
-
-   	//动态代理方式
-    @Override
-    public Connection getConnection() throws SQLException {
-        if(pool.size() > 0) {
-            Connection con = pool.remove(0);
-
-            Connection proxyCon = (Connection) Proxy.newProxyInstance(
-                con.getClass().getClassLoader(), new Class[]{Connection.class}, 
-                new InvocationHandler() {
-                /*
-                    执行Connection实现类连接对象所有的方法都会经过invoke
-                    如果是close方法，归还连接
-                    如果不是，直接执行连接对象原有的功能即可
-                 */
-                @Override
-                public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-                    if(method.getName().equals("close")) {
-                        //归还连接
-                        pool.add(con);
-                        return null;
-                    }else {
-                        return method.invoke(con,args);
-                    }
-                }
-            });
-            return proxyCon;
-        }else {
-            throw new RuntimeException("连接数量已用尽");
-        }
-    }
-}
-```
-
-
-
-***
-
-
-
-### 开源项目
-
-#### C3P0
-
-使用 C3P0 连接池：
-
-* 配置文件名称：c3p0-config.xml，必须放在 src 目录下
-
-  ```xml
-  <c3p0-config>
-    <!-- 使用默认的配置读取连接池对象 -->
-    <default-config>
-    	<!--  连接参数 -->
-      <property name="driverClass">com.mysql.jdbc.Driver</property>
-      <property name="jdbcUrl">jdbc:mysql://192.168.2.184:3306/db14</property>
-      <property name="user">root</property>
-      <property name="password">123456</property>
-      
-      <!-- 连接池参数 -->
-      <!--初始化数量-->
-      <property name="initialPoolSize">5</property>
-      <!--最大连接数量-->
-      <property name="maxPoolSize">10</property>
-      <!--超时时间 3000ms-->
-      <property name="checkoutTimeout">3000</property>
-    </default-config>
-  
-    <named-config name="otherc3p0"> 
-      <!--  连接参数 -->
-      <!-- 连接池参数 -->
-    </named-config>
-  </c3p0-config>
-  ```
-  
-* 代码演示
-
-  ```java
-  public class C3P0Test1 {
-      public static void main(String[] args) throws Exception{
-          //1.创建c3p0的数据库连接池对象
-          DataSource dataSource = new ComboPooledDataSource();
-  
-          //2.通过连接池对象获取数据库连接
-          Connection con = dataSource.getConnection();
-  
-          //3.执行操作
-          String sql = "SELECT * FROM student";
-          PreparedStatement pst = con.prepareStatement(sql);
-  
-          //4.执行sql语句，接收结果集
-          ResultSet rs = pst.executeQuery();
-  
-          //5.处理结果集
-          while(rs.next()) {
-              System.out.println(rs.getInt("sid") + "\t" + rs.getString("name") + "\t" + rs.getInt("age") + "\t" + rs.getDate("birthday"));
-          }
-  
-          //6.释放资源
-          rs.close();   pst.close();   con.close();
-      }
-  }
-  ```
-
-  
-
-#### Druid
-
-Druid 连接池：
-
-* 配置文件：druid.properties，必须放在src目录下
-
-  ```properties
-  driverClassName=com.mysql.jdbc.Driver
-  url=jdbc:mysql://192.168.2.184:3306/db14
-  username=root
-  password=123456
-  initialSize=5
-  maxActive=10
-  maxWait=3000
-  ```
-
-* 代码演示
-
-  ```java
-  public class DruidTest1 {
-      public static void main(String[] args) throws Exception{
-          //获取配置文件的流对象
-          InputStream is = DruidTest1.class.getClassLoader().getResourceAsStream("druid.properties");
-  
-          //1.通过Properties集合，加载配置文件
-          Properties prop = new Properties();
-          prop.load(is);
-  
-          //2.通过Druid连接池工厂类获取数据库连接池对象
-          DataSource dataSource = DruidDataSourceFactory.createDataSource(prop);
-  
-          //3.通过连接池对象获取数据库连接进行使用
-          Connection con = dataSource.getConnection();
-          
-  		//4.执行sql语句，接收结果集
-          String sql = "SELECT * FROM student";
-          PreparedStatement pst = con.prepareStatement(sql);
-          ResultSet rs = pst.executeQuery();
-  
-          //5.处理结果集
-          while(rs.next()) {
-              System.out.println(rs.getInt("sid") + "\t" + rs.getString("name") + "\t" + rs.getInt("age") + "\t" + rs.getDate("birthday"));
-          }
-  
-          //6.释放资源
-          rs.close();   pst.close();   con.close();
-      }
-  }
-  
-  ```
-
-
-
-### 工具类
-
-数据库连接池的工具类：
-
-```java
-public class DataSourceUtils {
-    //1.私有构造方法
-    private DataSourceUtils(){}
-
-    //2.声明数据源变量
-    private static DataSource dataSource;
-
-    //3.提供静态代码块，完成配置文件的加载和获取数据库连接池对象
-    static{
-        try{
-            //完成配置文件的加载
-            InputStream is = DataSourceUtils.class.getClassLoader().getResourceAsStream("druid.properties");
-            Properties prop = new Properties();
-            prop.load(is);
-
-            //获取数据库连接池对象
-            dataSource = DruidDataSourceFactory.createDataSource(prop);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    //4.提供一个获取数据库连接的方法
-    public static Connection getConnection() {
-        Connection con = null;
-        try {
-            con = dataSource.getConnection();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return con;
-    }
-
-    //5.提供一个获取数据库连接池对象的方法
-    public static DataSource getDataSource() {
-        return dataSource;
-    }
-
-    //6.释放资源
-    public static void close(Connection con, Statement stat, ResultSet rs) {
-        if(con != null) {
-            try {
-                con.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-
-        if(stat != null) {
-            try {
-                stat.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-
-        if(rs != null) {
-            try {
-                rs.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-	//方法重载
-    public static void close(Connection con, Statement stat) {
-        if(con != null) {
-            try {
-                con.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-
-        if(stat != null) {
-            try {
-                stat.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-}
-
-```
-
-
-
-
-
-
-
 
 ***
 
@@ -9781,7 +8741,7 @@ public class DataSourceUtils {
 
 ## NoSQL
 
-### 概述
+### 基本介绍
 
 NoSQL（Not-Only SQL）：泛指非关系型的数据库，作为关系型数据库的补充。 
 
@@ -9800,6 +8760,8 @@ MySQL 支持 ACID 特性，保证可靠性和持久性，读取性能不高，�
 
 
 
+参考书籍：https://book.douban.com/subject/25900156/
+
 参考视频：https://www.bilibili.com/video/BV1CJ411m7Gc
 
 参考视频：https://www.bilibili.com/video/BV1Rv41177Af
@@ -9812,14 +8774,14 @@ MySQL 支持 ACID 特性，保证可靠性和持久性，读取性能不高，�
 
 ### Redis
 
-Redis (REmote DIctionary Server) ：用 C 语言开发的一个开源的高性能键值对（key-value）数据库。
+Redis (REmote DIctionary Server) ：用 C 语言开发的一个开源的高性能键值对（key-value）数据库
 
 特征：
 
 * 数据间没有必然的关联关系，**不存关系，只存数据**
 * 数据**存储在内存**，存取速度快，解决了磁盘 IO 速度慢的问题
 * 内部采用**单线程**机制进行工作
-* 高性能，官方测试数据，50 个并发执行 100000 个请求，读的速度是 110000 次/s,写的速度是 81000次/s
+* 高性能，官方测试数据，50 个并发执行 100000 个请求，读的速度是 110000 次/s，写的速度是 81000 次/s
 * 多数据类型支持
   * 字符串类型：string（String）
   * 列表类型：list（LinkedList）
@@ -10023,7 +8985,7 @@ Redis (REmote DIctionary Server) ：用 C 语言开发的一个开源的高性�
 
 #### 客户端
 
-* 服务器允许客户端连接最大数量，默认0，表示无限制，当客户端连接到达上限后，Redis会拒绝新的连接：
+* 服务器允许客户端连接最大数量，默认0，表示无限制，当客户端连接到达上限后，Redis 会拒绝新的连接：
 
   ```sh
   maxclients count
@@ -10043,7 +9005,9 @@ Redis (REmote DIctionary Server) ：用 C 语言开发的一个开源的高性�
 
 #### 日志配置
 
-* 设置服务器以指定日志记录级别：
+设置日志记录
+
+* 设置服务器以指定日志记录级别
 
   ```sh
   loglevel debug|verbose|notice|warning
@@ -10079,42 +9043,13 @@ dbfilename "dump-6379.rdb"
 
 
 
+
+
 ## 体系结构
 
-### 存储对象
-
-Redis 使用对象来表示数据库中的键和值，当在 Redis 数据库中新创建一个键值对时至少会创建两个对象，一个对象用作键值对的键（键对象），另一个对象用作键值对的值（值对象）
-
-Redis 中对象由一个 redisObject 结构表示，该结构中和保存数据有关的三个属性分别是 type、 encoding、ptr：
-
-```c
-typedef struct redisObiect{
-	//类型
-	unsigned type:4;
-	//编码
-	unsigned encoding:4;
-	//指向底层数据结构的指针
-	void *ptr;
-}
-```
-
-Redis 中主要数据结构有：简单动态字符串（SDS）、双端链表、字典、压缩列表、整数集合、跳跃表
-
-Redis 并没有直接使用数据结构来实现键值对数据库，而是基于这些数据结构创建了一个对象系统，包含字符串对象、列表对象、哈希对象、集合对象和有序集合对象这五种类型的对象，而每种对象又通过不同的编码映射到不同的底层数据结构
-
-Redis 自身是一个 Map，其中所有的数据都是采用 key : value 的形式存储，**键对象都是字符串对象**，而值对象有五种基本类型和三种高级类型对象
-
-![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-对象模型.png)
-
-
-
-
-
-***
-
-
-
 ### 线程模型
+
+#### 单线程
 
 Redis 基于 Reactor 模式开发了网络事件处理器，这个处理器被称为文件事件处理器（file event handler），这个文件事件处理器是单线程的，所以 Redis 叫做单线程的模型
 
@@ -10139,7 +9074,7 @@ Redis 基于 Reactor 模式开发了网络事件处理器，这个处理器被�
 
 
 
-### 多线程
+#### 多线程
 
 Redis6.0 引入多线程主要是为了提高网络 IO 读写性能，因为这是 Redis 的一个性能瓶颈（Redis 的瓶颈主要受限于内存和网络），多线程只是用来**处理网络数据的读写和协议解析**， 执行命令仍然是单线程顺序执行，因此不需要担心线程安全问题。
 
@@ -10160,6 +9095,10 @@ io-threads 4 #官网建议4核的机器建议设置为2或3个线程，8核的�
 
 
 参考文章：https://mp.weixin.qq.com/s/dqmiR0ECf4lB6Y2OyK-dyA
+
+
+
+
 
 
 
@@ -10353,7 +9292,384 @@ Redis ACL 是 Access Control List（访问控制列表）的缩写，该功能�
 
 
 
+
+
+## 数据结构
+
+### 字符串
+
+#### SDS
+
+Redis 构建了简单动态字符串（SDS）的数据类型，作为 Redis 的默认字符串表示，包含字符串的键值对在底层都是由 SDS 实现
+
+```c
+struct sdshdr {
+    // 记录buf数组中已使用字节的数量，等于 SDS 所保存字符串的长度
+    int len;
+    
+	// 记录buf数组中未使用宇节的数量
+    int free;
+    
+    // 【字节】数组，用于保存字符串（不是字符数组）
+    char buf[];
+};
+```
+
+SDS 遵循 C 字符串**以空字符结尾**的惯例， 保存空字符的 1 字节不计算在 len 属性，SDS 会自动为空字符分配额外的 1 字节空间和添加空字符到字符串末尾，所以空字符对于 SDS 的使用者来说是完全透明的
+
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-SDS底层结构.png)
+
+
+
+***
+
+
+
+#### 对比
+
+SDS 与 C 字符串的主要区别：
+
+常数复杂度获取字符串长度：
+
+* C 字符串不记录自身的长度，获取时需要遍历整个字符串，遇到空字符串为止，时间复杂度为 O(N)
+* SDS 获取字符串长度的时间复杂度为 O(1)，设置和更新 SDS 长度由函数底层自动完成
+
+杜绝缓冲区溢出：
+
+* C 字符串调用 strcat 函数拼接字符串时，如果字符串内存不够容纳目标字符串，就会造成缓冲区溢出（Buffer Overflow）
+
+  s1 和 s2 是内存中相邻的字符串，执行 `strcat(s1, " Cluster")`（有空格）：
+
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-内存溢出问题.png)
+
+* SDS 空间分配策略：当对 SDS 进行修改时，首先检查 SDS 的空间是否满足修改所需的要求， 如果不满足会自动将 SDS 的空间扩展至执行修改所需的大小，然后执行实际的修改操作， 避免了缓冲区溢出的问题
+
+二进制安全：
+
+* C 字符串中的字符必须符合某种编码（比如 ASCII）方式，除了字符串末尾以外其他位置不能包含空字符，否则会被误认为是字符串的结尾，所以只能保存文本数据
+* SDS 的 API 都是二进制安全的，使用字节数组 buf 保存一系列的二进制数据，使用 len 属性来判断数据的结尾，所以可以保存图片、视频、压缩文件等二进制数据
+
+兼容 C 字符串的函数：SDS 会在为 buf 数组分配空间时多分配一个字节来保存空字符，所以可以重用一部分 C 字符串函数库的函数
+
+
+
+***
+
+
+
+#### 内存
+
+C 字符串每次增长或者缩短都会进行一次内存重分配，拼接操作通过重分配扩展底层数组空间，截断操作通过重分配释放不使用的内存空间，防止出现内存泄露
+
+SDS通过未使用空间解除了字符串长度和底层数组长度之间的关联，在 SDS 中 buf 数组的长度不一定就是字符数量加一， 数组里面可以包含未使用的字节，字节的数量由 free 属性记录
+
+内存重分配涉及复杂的算法，需要执行系统调用，是一个比较耗时的操作，SDS 的两种优化策略：
+
+* 空间预分配：当 SDS 的 API 进行修改并且需要进行空间扩展时， 程序不仅会为 SDS 分配修改所必需的空间， 还会为 SDS 分配额外的未使用空间
+
+  * 对 SDS 修改之后，SDS 的长度（len 属性）小于 1MB，程序分配和 len 属性同样大小的未使用空间，此时 len 和 free 相等
+
+    s 为 Redis，执行 `sdscat(s, " Cluster")` 后，len 变为 13 字节，所以也分配了 13 字节的 free 空间，总长度变为 27 字节（额外的一字节保存空字符，13 + 13 + 1 = 27）
+
+    ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-SDS内存预分配.png)
+
+  * 对 SDS 修改之后，SDS 的长度大于等于 1MB，程序会分配 1MB 的未使用空间
+
+  在扩展 SDS 空间前，API 会先检查 free 空间是否足够，如果足够就无需执行内存重分配，所以通过预分配策略，SDS 将连续增长 N 次字符串所需内存的重分配次数从**必定 N 次降低为最多 N 次**
+
+* 惰性空间释放：当 SDS 的 API 需要缩短字符串时，程序并不立即使用内存重分配来回收缩短后多出来的字节，而是使用 free 属性将这些字节的数量记录起来，并等待将来使用
+
+  SDS 提供了相应的 API 来真正释放 SDS 的未使用空间，所以不用担心空间惰性释放策略造成的内存浪费问题
+
+
+
+
+
+****
+
+
+
+### 链表
+
+链表提供了高效的节点重排能力，C 语言并没有内置这种数据结构，所以 Redis 构建了链表数据类型
+
+链表节点：
+
+```c
+typedef struct listNode {
+    // 前置节点
+    struct listNode *prev;
+    
+    // 后置节点
+    struct listNode *next;
+    
+    // 节点的值
+    void *value
+} listNode;
+```
+
+多个 listNode 通过 prev 和 next 指针组成双端链表：
+
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-链表节点底层结构.png)
+
+list 链表结构：提供了表头指针 head 、表尾指针 tail 以及链表长度计数器 len
+
+```c
+typedef struct list {
+    // 表头节点
+    listNode *head;
+    // 表尾节点
+    listNode *tail;
+    
+    // 链表所包含的节点数量
+    unsigned long len;
+    
+    // 节点值复制函数，用于复制链表节点所保存的值
+    void *(*dup) (void *ptr);
+    // 节点值释放函数，用于释放链表节点所保存的值
+    void (*free) (void *ptr);
+    // 节点值对比函数，用于对比链表节点所保存的值和另一个输入值是否相等
+    int (*match) (void *ptr, void *key);
+} list;
+```
+
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-链表底层结构.png)
+
+Redis 链表的特性：
+
+* 双端：链表节点带有 prev 和 next 指针，获取某个节点的前置节点和后置节点的时间复杂度都是 O(1)
+* 无环：表头节点的 prev 指针和表尾节点的 next 指针都指向 NULL，对链表的访问以 NULL 为终点
+* 带表头指针和表尾指针： 通过 list 结构的 head 指针和 tail 指针，获取链表的表头节点和表尾节点的时间复杂度为 O(1)
+* 带链表长度计数器：使用 len 属性来对 list 持有的链表节点进行计数，获取链表中节点数量的时间复杂度为 O(1)
+* 多态：链表节点使用 void * 指针来保存节点值， 并且可以通过 dup、free 、match 三个属性为节点值设置类型特定函数，所以链表可以保存各种**不同类型的值**
+
+
+
+****
+
+
+
+### 字典
+
+#### 哈希表
+
+Redis 字典使用的哈希表结构：
+
+```c
+typedef struct dictht {
+    // 哈希表数组，数组中每个元素指向 dictEntry 结构
+	dictEntry **table;
+    
+	// 哈希表大小，数组的长度
+	unsigned long size;
+    
+	// 哈希表大小掩码，用于计算索引值，总是等于 【size-1】
+	unsigned long sizemask;
+    
+	// 该哈希表已有节点的数量 
+	unsigned long used;
+} dictht;
+```
+
+哈希表节点结构：
+
+```c
+typedef struct dictEntry {
+    // 键
+	void *key;
+    
+	// 值，可以是一个指针，或者整数
+	union {
+        void *val;	// 指针
+        uint64_t u64;
+        int64_t s64;
+    }
+    
+	// 指向下个哈希表节点，形成链表，用来解决冲突问题
+    struct dictEntry *next;
+} dictEntry;
+```
+
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-哈希表底层结构.png)
+
+
+
+***
+
+
+
+#### 字典结构
+
+字典，又称为符号表、关联数组、映射（Map），用于保存键值对的数据结构，字典中的每个键都是独一无二的。底层采用哈希表实现，一个哈希表包含多个哈希表节点，每个节点保存一个键值对
+
+```c
+typedef struct dict {
+    // 类型特定函数
+    dictType *type;
+    
+    // 私有数据
+    void *privdata;
+    
+    // 哈希表，数组中的每个项都是一个dictht哈希表，
+    // 一般情况下字典只使用 ht[O] 哈希表， ht[1] 哈希表只会在对 ht[O] 哈希表进行 rehash 时使用
+    dictht ht[2];
+    
+    // rehash 索引，当 rehash 不在进行时，值为 -1
+    int rehashidx;
+} dict;
+```
+
+type 属性和 privdata 属性是针对不同类型的键值对， 为创建多态字典而设置的：
+
+* type 属性是指向 dictType 结构的指针， 每个 dictType 结构保存了一簇用于操作特定类型键值对的函数， Redis 会为用途不同的字典设置不同的类型特定函数
+* privdata 属性保存了需要传给那些类型特定函数的可选参数
+
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-字典底层结构.png)
+
+
+
+****
+
+
+
+#### 哈希冲突
+
+Redis 使用 MurmurHash 算法来计算键的哈希值，这种算法的优点在于，即使输入的键是有规律的，算法仍能给出一个很好的随机分布性，并且算法的计算速度也非常快
+
+将一个新的键值对添加到字典里，需要先根据键 key 计算出哈希值，然后进行取模运算（取余）：
+
+```c
+index = hash & dict->ht[x].sizemask
+```
+
+当有两个或以上数量的键被分配到了哈希表数组的同一个索引上时，就称这些键发生了哈希冲突（collision）
+
+Redis 的哈希表使用链地址法（separate chaining）来解决键哈希冲突， 每个哈希表节点都有一个 next 指针，多个节点通过 next 指针构成一个单向链表，被分配到同一个索引上的多个节点可以用这个单向链表连接起来，这就解决了键冲突的问题
+
+dictEntry 节点组成的链表没有指向链表表尾的指针，为了速度考虑，程序总是将新节点添加到链表的表头位置（**头插法**），时间复杂度为 O(1)
+
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-字典解决哈希冲突.png)
+
+
+
+****
+
+
+
+#### 负载因子
+
+为了让哈希表的负载因子（load factor）维持在一个合理的范围之内，当哈希表保存的键值对数量太多或者太少时 ，程序会自动对哈希表的大小进行相应的扩展或者收缩
+
+负载因子的计算方式：哈希表中的**节点数量** / 哈希表的大小（**长度**）
+
+```c
+load_factor = ht[0].used / ht[0].size
+```
+
+哈希表执行扩容的条件：
+
+* 服务器没有执行 BGSAVE 或者 BGREWRITEAOF 命令，哈希表的负载因子大于等于 1
+
+* 服务器正在执行 BGSAVE 或者 BGREWRITEAOF 命令，哈希表的负载因子大于等于 5
+
+  原因：执行该命令的过程中，Redis 需要创建当前服务器进程的子进程，而大多数操作系统都采用写时复制（copy-on­-write）技术来优化子进程的使用效率，通过提高执行扩展操作的负载因子，尽可能地避免在子进程存在期间进行哈希表扩展操作，可以避免不必要的内存写入操作，最大限度地节约内存
+
+哈希表执行收缩的条件：负载因子小于 0.1（自动执行）
+
+
+
+***
+
+
+
+#### 重新散列
+
+扩展和收缩哈希表的操作通过 rehash（重新散列）来完成，步骤如下：
+
+* 为字典的 ht[1] 哈希表分配空间，空间大小的分配情况：
+  * 如果执行的是扩展操作，ht[1] 的大小为第一个大于等于 $ht[0].used * 2$ 的 $2^n$
+  * 如果执行的是收缩操作 ht[1] 的大小为第一个大于等于 $ht[0].used$ 的 $2^n$
+* 将保存在 ht[0] 中所有的键值对重新计算哈希值和索引值，迁移到 ht[1] 上
+* 当 ht[0] 包含的所有键值对都迁移到了 ht[1] 之后（ht[0]变为空表）， 释放 ht[0]，将 ht[1] 设置为 ht[0]，并在 ht[1] 创建一个新的空白哈希表，为下一次 rehash 做准备
+
+如果哈希表里保存的键值对数量很少，rehash 就可以在瞬间完成，但是如果哈希表里数据很多，那么要一次性将这些键值对全部 rehash 到 ht[1] 需要大量计算，可能会导致服务器在一段时间内停止服务
+
+Redis 对 rehash 做了优化，使 rehash 的动作并不是一次性、集中式的完成，而是分多次，渐进式的完成，又叫**渐进式 rehash**
+
+* 为 ht[1] 分配空间，此时字典同时持有 ht[0] 和 ht[1] 两个哈希表
+* 在字典中维护了一个索引计数器变量 rehashidx，并将变量的值设为 0，表示 rehash 正式开始
+* 在 rehash 进行期间，每次对字典执行添加、删除、查找或者更新操作时，程序除了执行指定的操作以外，还会顺带将 ht[0] 哈希表在 rehashidx 索引上的所有键值对 rehash 到 ht[1]，rehash 完成之后**将 rehashidx 属性的值增一**
+* 随着字典操作的不断执行，最终在某个时间点上 ht[0] 的所有键值对都被 rehash 至 ht[1]，这时程序将 rehashidx 属性的值设为 -1，表示 rehash 操作已完成
+
+渐进式 rehash 采用分而治之的方式，将 rehash 键值对所需的计算工作均摊到对字典的每个添加、删除、查找和更新操作上，从而避免了集中式 rehash 带来的庞大计算量
+
+渐进式 rehash 期间的哈希表操作：
+
+* 字典的查找、删除、更新操作会在两个哈希表上进行，比如查找一个键会先在 ht[0] 上查找，查找不到就去 ht[1] 继续查找
+* 字典的添加操作会直接在 ht[1] 上添加，不在 ht[0] 上进行任何添加
+
+
+
+****
+
+
+
+### 跳跃表
+
+
+
+
+
+
+
+
+
+***
+
+
+
+
+
+
+
+
+
+****
+
+
+
+
+
 ## 数据类型
+
+### redisObj
+
+Redis 使用对象来表示数据库中的键和值，当在 Redis 数据库中新创建一个键值对时至少会创建两个对象，一个对象用作键值对的键（**键对象**），另一个对象用作键值对的值（**值对象**）
+
+Redis 中对象由一个 redisObject 结构表示，该结构中和保存数据有关的三个属性分别是 type、 encoding、ptr：
+
+```c
+typedef struct redisObiect{
+	//类型
+	unsigned type:4;
+	//编码
+	unsigned encoding:4;
+	//指向底层数据结构的指针
+	void *ptr;
+}
+```
+
+Redis 中主要数据结构有：简单动态字符串（SDS）、双端链表、字典、压缩列表、整数集合、跳跃表
+
+Redis 并没有直接使用数据结构来实现键值对数据库，而是基于这些数据结构创建了一个对象系统，包含字符串对象、列表对象、哈希对象、集合对象和有序集合对象这五种类型的对象，而每种对象又通过不同的编码映射到不同的底层数据结构
+
+Redis 自身是一个 Map，其中所有的数据都是采用 key : value 的形式存储，**键对象都是字符串对象**，而值对象有五种基本类型和三种高级类型对象
+
+
+
+***
+
+
 
 ### string
 
@@ -10419,14 +9735,16 @@ Redis 所有操作都是**原子性**的，采用**单线程**机制，命令是
 1. 数据操作不成功的反馈与数据正常操作之间的差异
 
    * 表示运行结果是否成功
-     (integer) 0  → false                 失败
-
-     (integer) 1  → true                  成功
-
+     
+     * (integer) 0  → false ，失败
+     
+     * (integer) 1  → true，成功
+     
    * 表示运行结果值
-     (integer) 3  → 3                        3个
-
-     (integer) 1  → 1                         1个
+     
+     * (integer) 3  → 3 个
+     
+     * (integer) 1  → 1 个
 
 2. 数据未获取到时，对应的数据为（nil），等同于null
 
@@ -11179,146 +10497,9 @@ redis 应用于地理位置计算
 
 
 
-***
-
-
-
-## Jedis
-
-### 基本使用
-
-Jedis 用于 Java 语言连接 redis 服务，并提供对应的操作 API
-
-1. jar 包导入
-
-   * 下载地址：https://mvnrepository.com/artifact/redis.clients/jedis
-
-   * 基于 maven：
-
-     ```xml
-     <dependency>
-     	<groupId>redis.clients</groupId>
-     	<artifactId>jedis</artifactId>
-     	<version>2.9.0</version>
-     </dependency>
-     ```
-
-2. 客户端连接 redis
-   API 文档：http://xetorthio.github.io/jedis/
-
-   连接 redis：`Jedis jedis = new Jedis("192.168.0.185", 6379);`
-   操作 redis：`jedis.set("name", "seazean");  jedis.get("name");`
-   关闭 redis：`jedis.close();`
-
-代码实现：
-
-```java
-public class JedisTest {
-    public static void main(String[] args) {
-        //1.获取连接对象
-        Jedis jedis = new Jedis("192.168.2.185",6379);
-        //2.执行操作
-        jedis.set("age","39");
-        String hello = jedis.get("hello");
-        System.out.println(hello);
-        jedis.lpush("list1","a","b","c","d");
-        List<String> list1 = jedis.lrange("list1", 0, -1);
-        for (String s:list1 ) {
-            System.out.println(s);
-        }
-        jedis.sadd("set1","abc","abc","def","poi","cba");
-        Long len = jedis.scard("set1");
-        System.out.println(len);
-        //3.关闭连接
-        jedis.close();
-    }
-}
-```
-
-
-
-***
-
-
-
-### 工具类
-
-连接池对象：
-
-* JedisPool：Jedis 提供的连接池技术
-* poolConfig：连接池配置对象 
-* host：redis 服务地址
-* port：redis 服务端口号
-
-JedisPool 的构造器如下：
-
-```java
-public JedisPool(GenericObjectPoolConfig poolConfig, String host, int port) {
-	this(poolConfig, host, port, 2000, (String)null, 0, (String)null);
-}
-```
-
-* 创建配置文件 redis.properties
-
-  ```properties
-  redis.maxTotal=50
-  redis.maxIdel=10
-  redis.host=192.168.2.185
-  redis.port=6379
-  ```
-
-* 工具类：
-
-  ```java
-  public class JedisUtils {
-      private static int maxTotal;
-      private static int maxIdel;
-      private static String host;
-      private static int port;
-      private static JedisPoolConfig jpc;
-      private static JedisPool jp;
-  
-      static {
-          ResourceBundle bundle = ResourceBundle.getBundle("redis");
-          //最大连接数
-          maxTotal = Integer.parseInt(bundle.getString("redis.maxTotal"));
-          //活动连接数
-          maxIdel = Integer.parseInt(bundle.getString("redis.maxIdel"));
-          host = bundle.getString("redis.host");
-          port = Integer.parseInt(bundle.getString("redis.port"));
-  
-          //Jedis连接配置
-          jpc = new JedisPoolConfig();
-          jpc.setMaxTotal(maxTotal);
-          jpc.setMaxIdle(maxIdel);
-          //连接池对象
-          jp = new JedisPool(jpc, host, port);
-      }
-  
-      //对外访问接口，提供jedis连接对象，连接从连接池获取
-      public static Jedis getJedis() {
-          return jp.getResource();
-      }
-  }
-  ```
-
-  
-
 ****
 
 
-
-### 可视化
-
-Redis Desktop Manager
-
-<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-可视化工具.png" style="zoom:80%;" />
-
-
-
-
-
-****
 
 
 
@@ -11799,9 +10980,9 @@ fork() 调用之后父子进程的内存关系
 
   <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-fork以后内存关系1.png" style="zoom: 67%;" />
 
-* 对于父进程的数据段，堆段，栈段中的各页，由于父子进程要相互独立，采用**写时复制**的技术，来提高内存以及内核的利用率
+* 对于父进程的数据段，堆段，栈段中的各页，由于父子进程相互独立，采用**写时复制 COW** 的技术，来提高内存以及内核的利用率
 
-  在 fork 之后两个进程用的是相同的物理空间（内存区），子进程的代码段、数据段、堆栈都是指向父进程的物理空间，**两者的虚拟空间不同，但其对应的物理空间是同一个**。当父子进程中有更改相应段的行为发生时，再为子进程相应的段分配物理空间，如果两者的代码完全相同，代码段继续共享父进程的物理空间；而如果两者执行的代码不同，子进程的代码段也会分配单独的物理空间。   
+  在 fork 之后两个进程用的是相同的物理空间（内存区），子进程的代码段、数据段、堆栈都是指向父进程的物理空间，**两者的虚拟空间不同，但其对应的物理空间是同一个**，当父子进程中有更改相应段的行为发生时，再为子进程相应的段分配物理空间。如果两者的代码完全相同，代码段继续共享父进程的物理空间；而如果两者执行的代码不同，子进程的代码段也会分配单独的物理空间。   
 
   fork 之后内核会将子进程放在队列的前面，让子进程先执行，以免父进程执行导致写时复制，而后子进程再执行，因无意义的复制而造成效率的下降
 
@@ -13459,4 +12640,1197 @@ Redis 中的监控指标如下：
   slowlog-max-len 100	#设置慢查询命令对应的日志显示长度，单位：命令数
   ```
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+*****
+
+
+
+
+
+# Java
+
+## JDBC
+
+### 概述
+
+JDBC（Java DataBase Connectivity，Java 数据库连接）是一种用于执行 SQL 语句的 Java API，可以为多种关系型数据库提供统一访问，是由一组用 Java 语言编写的类和接口组成的。
+
+JDBC 是 Java 官方提供的一套规范（接口），用于帮助开发人员快速实现不同关系型数据库的连接
+
+
+
+***
+
+
+
+### 功能类
+
+#### DriverManager
+
+DriverManager：驱动管理对象
+
+* 注册驱动：
+
+  * 注册给定的驱动：`public static void registerDriver(Driver driver)`
+
+  * 代码实现语法：`Class.forName("com.mysql.jdbc.Driver)`
+
+  * com.mysql.jdbc.Driver 中存在静态代码块
+
+    ```java
+    static {
+        try {
+            DriverManager.registerDriver(new Driver());
+        } catch (SQLException var1) {
+            throw new RuntimeException("Can't register driver!");
+        }
+    }
+    ```
+
+  * 不需要通过 DriverManager 调用静态方法 registerDriver，因为 Driver 类被使用，则自动执行静态代码块完成注册驱动
+
+  * jar 包中 META-INF 目录下存在一个 java.sql.Driver 配置文件，文件中指定了 com.mysql.jdbc.Driver
+
+* 获取数据库连接并返回连接对象：
+
+  方法：`public static Connection getConnection(String url, String user, String password)`
+
+  * url：指定连接的路径，语法为 `jdbc:mysql://ip地址(域名):端口号/数据库名称`
+  * user：用户名
+  * password：密码
+
+
+
+***
+
+
+
+#### Connection
+
+Connection：数据库连接对象
+
+- 获取执行者对象
+  - 获取普通执行者对象：`Statement createStatement()`
+  - 获取预编译执行者对象：`PreparedStatement prepareStatement(String sql)`
+- 管理事务
+  - 开启事务：`setAutoCommit(boolean autoCommit)`，false 开启事务，true 自动提交模式（默认）
+  - 提交事务：`void commit()`
+  - 回滚事务：`void rollback()`
+- 释放资源
+  - 释放此 Connection 对象的数据库和 JDBC 资源：`void close()`
+
+
+
+***
+
+
+
+#### Statement
+
+Statement：执行 sql 语句的对象
+
+- 执行 DML 语句：`int executeUpdate(String sql)`
+  - 返回值 int：返回影响的行数
+  - 参数 sql：可以执行 insert、update、delete 语句
+- 执行 DQL 语句：`ResultSet executeQuery(String sql)`
+  - 返回值 ResultSet：封装查询的结果
+  - 参数 sql：可以执行 select 语句
+- 释放资源
+  - 释放此 Statement 对象的数据库和 JDBC 资源：`void close()`
+
+
+
+***
+
+
+
+#### ResultSet
+
+ResultSet：结果集对象，ResultSet 对象维护了一个游标，指向当前的数据行，初始在第一行
+
+- 判断结果集中是否有数据：`boolean next()`
+  - 有数据返回 true，并将索引**向下移动一行**
+  - 没有数据返回 false
+- 获取结果集中**当前行**的数据：`XXX getXxx("列名")`
+  - XXX 代表数据类型（要获取某列数据，这一列的数据类型）
+  - 例如：String getString("name");   int getInt("age");
+- 释放资源
+  - 释放 ResultSet 对象的数据库和 JDBC 资源：`void close()`
+
+
+
+***
+
+
+
+#### 代码实现
+
+数据准备
+
+```mysql
+-- 创建db14数据库
+CREATE DATABASE db14;
+
+-- 使用db14数据库
+USE db14;
+
+-- 创建student表
+CREATE TABLE student(
+	sid INT PRIMARY KEY AUTO_INCREMENT,	-- 学生id
+	NAME VARCHAR(20),					-- 学生姓名
+	age INT,							-- 学生年龄
+	birthday DATE,						-- 学生生日
+);
+
+-- 添加数据
+INSERT INTO student VALUES (NULL,'张三',23,'1999-09-23'),(NULL,'李四',24,'1998-08-10'),
+(NULL,'王五',25,'1996-06-06'),(NULL,'赵六',26,'1994-10-20');
+```
+
+JDBC 连接代码：
+
+```java
+public class JDBCDemo01 {
+    public static void main(String[] args) throws Exception{
+        //1.导入jar包
+        //2.注册驱动
+        Class.forName("com.mysql.jdbc.Driver");
+
+        //3.获取连接
+        Connection con = DriverManager.getConnection("jdbc:mysql://192.168.2.184:3306/db2","root","123456");
+
+        //4.获取执行者对象
+        Statement stat = con.createStatement();
+
+        //5.执行sql语句，并且接收结果
+        String sql = "SELECT * FROM user";
+        ResultSet rs = stat.executeQuery(sql);
+
+        //6.处理结果
+        while(rs.next()) {
+            System.out.println(rs.getInt("id") + "\t" + rs.getString("name"));
+        }
+
+        //7.释放资源
+        con.close();
+        stat.close();
+        con.close();
+    }
+}
+
+```
+
+
+
+
+
+***
+
+
+
+### 工具类
+
+* 配置文件（在 src 下创建 config.properties）
+
+  ```properties
+  driverClass=com.mysql.jdbc.Driver
+  url=jdbc:mysql://192.168.2.184:3306/db14
+  username=root
+  password=123456
+  ```
+
+* 工具类
+
+  ```java
+  public class JDBCUtils {
+      //1.私有构造方法
+      private JDBCUtils(){
+      };
   
+      //2.声明配置信息变量
+      private static String driverClass;
+      private static String url;
+      private static String username;
+      private static String password;
+      private static Connection con;
+  
+      //3.静态代码块中实现加载配置文件和注册驱动
+      static{
+          try{
+              //通过类加载器返回配置文件的字节流
+              InputStream is = JDBCUtils.class.getClassLoader().
+                  	getResourceAsStream("config.properties");
+  
+              //创建Properties集合，加载流对象的信息
+              Properties prop = new Properties();
+              prop.load(is);
+  
+              //获取信息为变量赋值
+              driverClass = prop.getProperty("driverClass");
+              url = prop.getProperty("url");
+              username = prop.getProperty("username");
+              password = prop.getProperty("password");
+  
+              //注册驱动
+              Class.forName(driverClass);
+  
+          } catch (Exception e) {
+              e.printStackTrace();
+          }
+      }
+  
+      //4.获取数据库连接的方法
+      public static Connection getConnection() {
+          try {
+              con = DriverManager.getConnection(url,username,password);
+          } catch (SQLException e) {
+              e.printStackTrace();
+          }
+          return con;
+      }
+  
+      //5.释放资源的方法
+      public static void close(Connection con, Statement stat, ResultSet rs) {
+          if(con != null) {
+              try {
+                  con.close();
+              } catch (SQLException e) {
+                  e.printStackTrace();
+              }
+          }
+  
+          if(stat != null) {
+              try {
+                  stat.close();
+              } catch (SQLException e) {
+                  e.printStackTrace();
+              }
+          }
+  
+          if(rs != null) {
+              try {
+                  rs.close();
+              } catch (SQLException e) {
+                  e.printStackTrace();
+              }
+          }
+      }
+  	//方法重载，可能没有返回值对象
+      public static void close(Connection con, Statement stat) {
+          close(con,stat,null);
+      }
+  }
+  ```
+
+  
+
+
+****
+
+
+
+### 数据封装
+
+从数据库读取数据并封装成 Student 对象，需要：
+
+- Student 类成员变量对应表中的列
+
+- 所有的基本数据类型需要使用包装类，**以防 null 值无法赋值**
+
+  ```java
+  public class Student {
+      private Integer sid;
+      private String name;
+      private Integer age;
+      private Date birthday;
+      ........
+  ```
+
+- 数据准备
+
+  ```mysql
+  -- 创建db14数据库
+  CREATE DATABASE db14;
+  
+  -- 使用db14数据库
+  USE db14;
+  
+  -- 创建student表
+  CREATE TABLE student(
+  	sid INT PRIMARY KEY AUTO_INCREMENT,	-- 学生id
+  	NAME VARCHAR(20),					-- 学生姓名
+  	age INT,							-- 学生年龄
+  	birthday DATE						-- 学生生日
+  );
+  
+  -- 添加数据
+  INSERT INTO student VALUES (NULL,'张三',23,'1999-09-23'),(NULL,'李四',24,'1998-08-10'),(NULL,'王五',25,'1996-06-06'),(NULL,'赵六',26,'1994-10-20');
+  ```
+
+- 操作数据库
+
+  ```java
+  public class StudentDaoImpl{
+  	//查询所有学生信息
+      @Override
+      public ArrayList<Student> findAll() {
+          //1. 
+          ArrayList<Student> list = new ArrayList<>();
+          Connection con = null;
+          Statement stat = null;
+          ResultSet rs = null;
+          try{
+              //2.获取数据库连接
+  			con = JDBCUtils.getConnection();
+  
+             	//3.获取执行者对象
+             	stat = con.createStatement();
+  
+             	//4.执行sql语句，并且接收返回的结果集
+  			String sql = "SELECT * FROM student";
+             	rs = stat.executeQuery(sql);
+  
+            	//5.处理结果集
+             	while(rs.next()) {
+                  Integer sid = rs.getInt("sid");
+                 	String name = rs.getString("name");
+                 	Integer age = rs.getInt("age");
+                 	Date birthday = rs.getDate("birthday");
+  
+                 	//封装Student对象
+                 	Student stu = new Student(sid,name,age,birthday);
+                 	//将student对象保存到集合中
+                 	list.add(stu);
+             	}
+         	} catch(Exception e) {
+             	e.printStackTrace();
+         	} finally {
+             	//6.释放资源
+             	JDBCUtils.close(con,stat,rs);
+         	}
+  		//将集合对象返回
+  		return list;
+      }
+  
+  	//添加学生信息
+      @Override
+      public int insert(Student stu) {
+          Connection con = null;
+          Statement stat = null;
+          int result = 0;
+          try{
+              con = JDBCUtils.getConnection();
+  
+              //3.获取执行者对象
+              stat = con.createStatement();
+  
+              //4.执行sql语句，并且接收返回的结果集
+              Date d = stu.getBirthday();
+              SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+              String birthday = sdf.format(d);
+              String sql = "INSERT INTO student VALUES ('"+stu.getSid()+"','"+stu.getName()+"','"+stu.getAge()+"','"+birthday+"')";
+              result = stat.executeUpdate(sql);
+  
+          } catch(Exception e) {
+              e.printStackTrace();
+          } finally {
+              //6.释放资源
+              JDBCUtils.close(con,stat);
+          }
+          //将结果返回
+          return result;
+      }
+  }
+  ```
+
+
+
+
+
+***
+
+
+
+### 注入攻击
+
+#### 攻击演示
+
+SQL 注入攻击演示
+
+* 在登录界面，输入一个错误的用户名或密码，也可以登录成功 
+
+  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/SQL注入攻击演示.png)
+
+* 原理：我们在密码处输入的所有内容，都应该认为是密码的组成，但是 Statement 对象在执行 SQL 语句时，将一部分内容当做查询条件来执行
+
+  ```mysql
+  SELECT * FROM user WHERE loginname='aaa' AND password='aaa' OR '1'='1';
+  ```
+
+
+
+
+***
+
+
+
+#### 攻击解决
+
+PreparedStatement：预编译 sql 语句的执行者对象，继承 `PreparedStatement extends Statement`
+
+* 在执行 sql 语句之前，将 sql 语句进行提前编译，**明确 sql 语句的格式**，剩余的内容都会认为是参数
+* sql 语句中的参数使用 ? 作为**占位符**
+
+为 ? 占位符赋值的方法：`setXxx(int parameterIndex, xxx data)`
+
+- 参数1：? 的位置编号（编号从 1 开始）
+
+- 参数2：? 的实际参数
+
+  ```java
+  String sql = "SELECT * FROM user WHERE loginname=? AND password=?";
+  pst = con.prepareStatement(sql);
+  pst.setString(1,loginName);
+  pst.setString(2,password);
+  ```
+
+执行 sql 语句的方法
+
+- 执行 insert、update、delete 语句：`int executeUpdate()`
+- 执行 select 语句：`ResultSet executeQuery()`
+
+
+
+
+
+****
+
+
+
+### 连接池
+
+#### 概念
+
+数据库连接背景：数据库连接是一种关键的、有限的、昂贵的资源，这一点在多用户的网页应用程序中体现得尤为突出。对数据库连接的管理能显著影响到整个应用程序的伸缩性和健壮性，影响到程序的性能指标。
+
+数据库连接池：**数据库连接池负责分配、管理和释放数据库连接**，它允许应用程序**重复使用**一个现有的数据库连接，而不是再重新建立一个，这项技术能明显提高对数据库操作的性能。
+
+数据库连接池原理
+
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/数据库连接池原理图解.png)
+
+
+
+
+
+****
+
+
+
+#### 自定义池
+
+DataSource 接口概述：
+
+* java.sql.DataSource 接口：数据源（数据库连接池）
+* Java 中 DataSource 是一个标准的数据源接口，官方提供的数据库连接池规范，连接池类实现该接口
+* 获取数据库连接对象：`Connection getConnection()`
+
+自定义连接池：
+
+```java
+public class MyDataSource implements DataSource{
+    //1.定义集合容器，用于保存多个数据库连接对象
+    private static List<Connection> pool = Collections.synchronizedList(new ArrayList<Connection>());
+
+    //2.静态代码块，生成10个数据库连接保存到集合中
+    static {
+        for (int i = 0; i < 10; i++) {
+            Connection con = JDBCUtils.getConnection();
+            pool.add(con);
+        }
+    }
+    //3.返回连接池的大小
+    public int getSize() {
+        return pool.size();
+    }
+
+    //4.从池中返回一个数据库连接
+    @Override
+    public Connection getConnection() {
+        if(pool.size() > 0) {
+            //从池中获取数据库连接
+            return pool.remove(0);
+        }else {
+            throw new RuntimeException("连接数量已用尽");
+        }
+    }
+}
+```
+
+测试连接池功能：
+
+```java
+public class MyDataSourceTest {
+    public static void main(String[] args) throws Exception{
+        //创建数据库连接池对象
+        MyDataSource dataSource = new MyDataSource();
+
+        System.out.println("使用之前连接池数量：" + dataSource.getSize());//10
+        
+        //获取数据库连接对象
+        Connection con = dataSource.getConnection();
+        System.out.println(con.getClass());// JDBC4Connection
+
+        //查询学生表全部信息
+        String sql = "SELECT * FROM student";
+        PreparedStatement pst = con.prepareStatement(sql);
+        ResultSet rs = pst.executeQuery();
+
+        while(rs.next()) {
+            System.out.println(rs.getInt("sid") + "\t" + rs.getString("name") + "\t" + rs.getInt("age") + "\t" + rs.getDate("birthday"));
+        }
+        
+        //释放资源
+        rs.close();
+        pst.close();
+		//目前的连接对象close方法，是直接关闭连接，而不是将连接归还池中
+        con.close();
+
+        System.out.println("使用之后连接池数量：" + dataSource.getSize());//9
+    }
+}
+```
+
+结论：释放资源并没有把连接归还给连接池
+
+
+
+***
+
+
+
+#### 归还连接
+
+归还数据库连接的方式：继承方式、装饰者设计者模式、适配器设计模式、动态代理方式
+
+##### 继承方式
+
+继承（无法解决）
+
+- 通过打印连接对象，发现 DriverManager 获取的连接实现类是 JDBC4Connection
+- 自定义一个类，继承 JDBC4Connection 这个类，重写 close() 方法
+- 查看 JDBC 工具类获取连接的方法发现：虽然自定义了一个子类，完成了归还连接的操作。但是 DriverManager 获取的还是 JDBC4Connection 这个对象，并不是我们的子类对象
+
+代码实现
+
+* 自定义继承连接类
+
+  ```java
+  //1.定义一个类，继承JDBC4Connection
+  public class MyConnection1 extends JDBC4Connection{
+      //2.定义Connection连接对象和容器对象的成员变量
+      private Connection con;
+      private List<Connection> pool;
+  
+      //3.通过有参构造方法为成员变量赋值
+      public MyConnection1(String hostToConnectTo, int portToConnectTo, Properties info, String databaseToConnectTo, String url,Connection con,List<Connection> pool) throws SQLException {
+          super(hostToConnectTo, portToConnectTo, info, databaseToConnectTo, url);
+          this.con = con;
+          this.pool = pool;
+      }
+  
+      //4.重写close方法，完成归还连接
+      @Override
+      public void close() throws SQLException {
+          pool.add(con);
+      }
+  }
+  ```
+
+* 自定义连接池类
+
+  ```java
+  //将之前的连接对象换成自定义的子类对象
+  private static MyConnection1 con;
+  
+  //4.获取数据库连接的方法
+  public static Connection getConnection() {
+      try {
+          //等效于：MyConnection1 con = new JDBC4Connection();  语法错误！
+          con = DriverManager.getConnection(url,username,password);
+      } catch (SQLException e) {
+          e.printStackTrace();
+      }
+  
+      return con;
+  }
+  ```
+
+  
+
+***
+
+
+
+##### 装饰者
+
+自定义类实现 Connection 接口，通过装饰设计模式，实现和 mysql 驱动包中的 Connection 实现类相同的功能
+
+在实现类对每个获取的 Connection 进行装饰：把连接和连接池参数传递进行包装
+
+特点：通过装饰设计模式连接类我们发现，有很多需要重写的方法，代码太繁琐
+
+* 装饰设计模式类
+
+  ```java
+  //1.定义一个类，实现Connection接口
+  public class MyConnection2 implements Connection {
+      //2.定义Connection连接对象和连接池容器对象的变量
+      private Connection con;
+      private List<Connection> pool;
+  
+      //3.提供有参构造方法，接收连接对象和连接池对象，对变量赋值
+      public MyConnection2(Connection con,List<Connection> pool) {
+          this.con = con;
+          this.pool = pool;
+      }
+  
+      //4.在close()方法中，完成连接的归还
+      @Override
+      public void close() throws SQLException {
+          pool.add(con);
+      }
+      //5.剩余方法，只需要调用mysql驱动包的连接对象完成即可
+      @Override
+      public Statement createStatement() throws SQLException {
+          return con.createStatement();
+      }
+      ..........
+  }
+  ```
+
+* 自定义连接池类
+
+  ```java
+  @Override
+  public Connection getConnection() {
+      if(pool.size() > 0) {
+          //从池中获取数据库连接
+          Connection con = pool.remove(0);
+          //通过自定义连接对象进行包装
+          MyConnection2 mycon = new MyConnection2(con,pool);
+          //返回包装后的连接对象
+          return mycon;
+      }else {
+          throw new RuntimeException("连接数量已用尽");
+      }
+  }
+  ```
+
+  
+
+***
+
+
+
+##### 适配器
+
+使用适配器设计模式改进，提供一个适配器类，实现 Connection 接口，将所有功能进行实现（除了 close 方法），自定义连接类只需要继承这个适配器类，重写需要改进的 close() 方法即可。
+
+特点：自定义连接类中很简洁。剩余所有的方法抽取到了适配器类中，但是适配器这个类还是我们自己编写。
+
+* 适配器类
+
+  ```java
+  public abstract class MyAdapter implements Connection {
+  
+      // 定义数据库连接对象的变量
+      private Connection con;
+  
+      // 通过构造方法赋值
+      public MyAdapter(Connection con) {
+          this.con = con;
+      }
+  
+      // 所有的方法，均调用mysql的连接对象实现
+      @Override
+      public Statement createStatement() throws SQLException {
+          return con.createStatement();
+      }
+  }
+  ```
+
+* 自定义连接类
+
+  ```java
+  public class MyConnection3 extends MyAdapter {
+      //2.定义Connection连接对象和连接池容器对象的变量
+      private Connection con;
+      private List<Connection> pool;
+  
+      //3.提供有参构造方法，接收连接对象和连接池对象，对变量赋值
+      public MyConnection3(Connection con,List<Connection> pool) {
+          super(con);    // 将接收的数据库连接对象给适配器父类传递
+          this.con = con;
+          this.pool = pool;
+      }
+  
+      //4.在close()方法中，完成连接的归还
+      @Override
+      public void close() throws SQLException {
+          pool.add(con);
+      }
+  }
+  ```
+
+* 自定义连接池类
+
+  ```java
+  //从池中返回一个数据库连接
+  @Override
+  public Connection getConnection() {
+      if(pool.size() > 0) {
+          //从池中获取数据库连接
+          Connection con = pool.remove(0);
+          //通过自定义连接对象进行包装
+          MyConnection3 mycon = new MyConnection3(con,pool);
+          //返回包装后的连接对象
+          return mycon;
+      }else {
+          throw new RuntimeException("连接数量已用尽");
+      }
+  }
+  ```
+
+  
+
+***
+
+
+
+##### 动态代理
+
+使用动态代理的方式来改进
+
+自定义数据库连接池类：
+
+```java
+public class MyDataSource implements DataSource {
+    //1.准备一个容器。用于保存多个数据库连接对象
+    private static List<Connection> pool = Collections.synchronizedList(new ArrayList<>());
+
+    //2.定义静态代码块,获取多个连接对象保存到容器中
+    static{
+        for(int i = 1; i <= 10; i++) {
+            Connection con = JDBCUtils.getConnection();
+            pool.add(con);
+        }
+    }
+    //3.提供一个获取连接池大小的方法
+    public int getSize() {
+        return pool.size();
+    }
+
+   	//动态代理方式
+    @Override
+    public Connection getConnection() throws SQLException {
+        if(pool.size() > 0) {
+            Connection con = pool.remove(0);
+
+            Connection proxyCon = (Connection) Proxy.newProxyInstance(
+                con.getClass().getClassLoader(), new Class[]{Connection.class}, 
+                new InvocationHandler() {
+                /*
+                    执行Connection实现类连接对象所有的方法都会经过invoke
+                    如果是close方法，归还连接
+                    如果不是，直接执行连接对象原有的功能即可
+                 */
+                @Override
+                public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+                    if(method.getName().equals("close")) {
+                        //归还连接
+                        pool.add(con);
+                        return null;
+                    }else {
+                        return method.invoke(con,args);
+                    }
+                }
+            });
+            return proxyCon;
+        }else {
+            throw new RuntimeException("连接数量已用尽");
+        }
+    }
+}
+```
+
+
+
+***
+
+
+
+#### 开源项目
+
+##### C3P0
+
+使用 C3P0 连接池：
+
+* 配置文件名称：c3p0-config.xml，必须放在 src 目录下
+
+  ```xml
+  <c3p0-config>
+    <!-- 使用默认的配置读取连接池对象 -->
+    <default-config>
+    	<!--  连接参数 -->
+      <property name="driverClass">com.mysql.jdbc.Driver</property>
+      <property name="jdbcUrl">jdbc:mysql://192.168.2.184:3306/db14</property>
+      <property name="user">root</property>
+      <property name="password">123456</property>
+      
+      <!-- 连接池参数 -->
+      <!--初始化数量-->
+      <property name="initialPoolSize">5</property>
+      <!--最大连接数量-->
+      <property name="maxPoolSize">10</property>
+      <!--超时时间 3000ms-->
+      <property name="checkoutTimeout">3000</property>
+    </default-config>
+  
+    <named-config name="otherc3p0"> 
+      <!--  连接参数 -->
+      <!-- 连接池参数 -->
+    </named-config>
+  </c3p0-config>
+  ```
+
+* 代码演示
+
+  ```java
+  public class C3P0Test1 {
+      public static void main(String[] args) throws Exception{
+          //1.创建c3p0的数据库连接池对象
+          DataSource dataSource = new ComboPooledDataSource();
+  
+          //2.通过连接池对象获取数据库连接
+          Connection con = dataSource.getConnection();
+  
+          //3.执行操作
+          String sql = "SELECT * FROM student";
+          PreparedStatement pst = con.prepareStatement(sql);
+  
+          //4.执行sql语句，接收结果集
+          ResultSet rs = pst.executeQuery();
+  
+          //5.处理结果集
+          while(rs.next()) {
+              System.out.println(rs.getInt("sid") + "\t" + rs.getString("name") + "\t" + rs.getInt("age") + "\t" + rs.getDate("birthday"));
+          }
+  
+          //6.释放资源
+          rs.close();   pst.close();   con.close();
+      }
+  }
+  ```
+
+
+
+
+***
+
+
+
+##### Druid
+
+Druid 连接池：
+
+* 配置文件：druid.properties，必须放在 src 目录下
+
+  ```properties
+  driverClassName=com.mysql.jdbc.Driver
+  url=jdbc:mysql://192.168.2.184:3306/db14
+  username=root
+  password=123456
+  initialSize=5
+  maxActive=10
+  maxWait=3000
+  ```
+
+* 代码演示
+
+  ```java
+  public class DruidTest1 {
+      public static void main(String[] args) throws Exception{
+          //获取配置文件的流对象
+          InputStream is = DruidTest1.class.getClassLoader().getResourceAsStream("druid.properties");
+  
+          //1.通过Properties集合，加载配置文件
+          Properties prop = new Properties();
+          prop.load(is);
+  
+          //2.通过Druid连接池工厂类获取数据库连接池对象
+          DataSource dataSource = DruidDataSourceFactory.createDataSource(prop);
+  
+          //3.通过连接池对象获取数据库连接进行使用
+          Connection con = dataSource.getConnection();
+          
+  		//4.执行sql语句，接收结果集
+          String sql = "SELECT * FROM student";
+          PreparedStatement pst = con.prepareStatement(sql);
+          ResultSet rs = pst.executeQuery();
+  
+          //5.处理结果集
+          while(rs.next()) {
+              System.out.println(rs.getInt("sid") + "\t" + rs.getString("name") + "\t" + rs.getInt("age") + "\t" + rs.getDate("birthday"));
+          }
+  
+          //6.释放资源
+          rs.close();   pst.close();   con.close();
+      }
+  }
+  
+  ```
+
+
+
+***
+
+
+
+#### 工具类
+
+数据库连接池的工具类：
+
+```java
+public class DataSourceUtils {
+    //1.私有构造方法
+    private DataSourceUtils(){}
+
+    //2.声明数据源变量
+    private static DataSource dataSource;
+
+    //3.提供静态代码块，完成配置文件的加载和获取数据库连接池对象
+    static{
+        try{
+            //完成配置文件的加载
+            InputStream is = DataSourceUtils.class.getClassLoader().getResourceAsStream("druid.properties");
+            Properties prop = new Properties();
+            prop.load(is);
+
+            //获取数据库连接池对象
+            dataSource = DruidDataSourceFactory.createDataSource(prop);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    //4.提供一个获取数据库连接的方法
+    public static Connection getConnection() {
+        Connection con = null;
+        try {
+            con = dataSource.getConnection();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return con;
+    }
+
+    //5.提供一个获取数据库连接池对象的方法
+    public static DataSource getDataSource() {
+        return dataSource;
+    }
+
+    //6.释放资源
+    public static void close(Connection con, Statement stat, ResultSet rs) {
+        if(con != null) {
+            try {
+                con.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if(stat != null) {
+            try {
+                stat.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if(rs != null) {
+            try {
+                rs.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+	//方法重载
+    public static void close(Connection con, Statement stat) {
+        if(con != null) {
+            try {
+                con.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if(stat != null) {
+            try {
+                stat.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+}
+
+```
+
+
+
+
+
+****
+
+
+
+
+
+## Jedis
+
+### 基本使用
+
+Jedis 用于 Java 语言连接 Redis 服务，并提供对应的操作 API
+
+* jar 包导入
+
+  下载地址：https://mvnrepository.com/artifact/redis.clients/jedis
+
+  基于 maven：
+
+  ```xml
+  <dependency>
+  	<groupId>redis.clients</groupId>
+  	<artifactId>jedis</artifactId>
+  	<version>2.9.0</version>
+  </dependency>
+  ```
+
+* 客户端连接 Redis：API 文档 http://xetorthio.github.io/jedis/
+
+  连接 redis：`Jedis jedis = new Jedis("192.168.0.185", 6379)`
+  操作 redis：`jedis.set("name", "seazean");  jedis.get("name")`
+  关闭 redis：`jedis.close()`
+
+代码实现：
+
+```java
+public class JedisTest {
+    public static void main(String[] args) {
+        //1.获取连接对象
+        Jedis jedis = new Jedis("192.168.2.185",6379);
+        //2.执行操作
+        jedis.set("age","39");
+        String hello = jedis.get("hello");
+        System.out.println(hello);
+        jedis.lpush("list1","a","b","c","d");
+        List<String> list1 = jedis.lrange("list1", 0, -1);
+        for (String s:list1 ) {
+            System.out.println(s);
+        }
+        jedis.sadd("set1","abc","abc","def","poi","cba");
+        Long len = jedis.scard("set1");
+        System.out.println(len);
+        //3.关闭连接
+        jedis.close();
+    }
+}
+```
+
+
+
+***
+
+
+
+### 工具类
+
+连接池对象：
+
+* JedisPool：Jedis 提供的连接池技术
+* poolConfig：连接池配置对象 
+* host：Redis 服务地址
+* port：Redis 服务端口号
+
+JedisPool 的构造器如下：
+
+```java
+public JedisPool(GenericObjectPoolConfig poolConfig, String host, int port) {
+	this(poolConfig, host, port, 2000, (String)null, 0, (String)null);
+}
+```
+
+* 创建配置文件 redis.properties
+
+  ```properties
+  redis.maxTotal=50
+  redis.maxIdel=10
+  redis.host=192.168.2.185
+  redis.port=6379
+  ```
+
+* 工具类：
+
+  ```java
+  public class JedisUtils {
+      private static int maxTotal;
+      private static int maxIdel;
+      private static String host;
+      private static int port;
+      private static JedisPoolConfig jpc;
+      private static JedisPool jp;
+  
+      static {
+          ResourceBundle bundle = ResourceBundle.getBundle("redis");
+          //最大连接数
+          maxTotal = Integer.parseInt(bundle.getString("redis.maxTotal"));
+          //活动连接数
+          maxIdel = Integer.parseInt(bundle.getString("redis.maxIdel"));
+          host = bundle.getString("redis.host");
+          port = Integer.parseInt(bundle.getString("redis.port"));
+  
+          //Jedis连接配置
+          jpc = new JedisPoolConfig();
+          jpc.setMaxTotal(maxTotal);
+          jpc.setMaxIdle(maxIdel);
+          //连接池对象
+          jp = new JedisPool(jpc, host, port);
+      }
+  
+      //对外访问接口，提供jedis连接对象，连接从连接池获取
+      public static Jedis getJedis() {
+          return jp.getResource();
+      }
+  }
+  ```
+
+  
+
