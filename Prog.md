@@ -5887,7 +5887,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
   private long completedTaskCount;	// 记录线程池所完成任务总数，当某个 worker 退出时将完成的任务累加到该属性
   ```
 
-* 控制核心线程数量内的线程是否可以被回收：
+* 控制**核心线程数量内的线程是否可以被回收**：
 
   ```java
   // false（默认）代表不可以，为 true 时核心线程空闲超过 keepAliveTime 也会被回收
@@ -13454,7 +13454,7 @@ int select(int n, fd_set *readfds, fd_set *writefds, fd_set *exceptfds, struct t
 
 - n 是监测的 socket 的最大数量
 
-- timeout 为超时参数，调用 select 会一直阻塞直到有描述符的事件到达或者等待的时间超过 timeout
+- timeout 为超时参数，调用 select 会一直**阻塞**直到有描述符的事件到达或者等待的时间超过 timeout
 
   ```c
   struct timeval{
@@ -14109,9 +14109,9 @@ Socket 类：
   
   * `Socket(InetAddress address,int port)`：创建流套接字并将其连接到指定 IP 指定端口号
   
-  * `Socket(String host, int port)`：根据ip地址字符串和端口号创建客户端 Socket 对象
+  * `Socket(String host, int port)`：根据 IP 地址字符串和端口号创建客户端 Socket 对象
   
-    注意事项：执行该方法，就会立即连接指定的服务器，连接成功，则表示三次握手通过，反之抛出异常
+    注意事项：**执行该方法，就会立即连接指定的服务器，连接成功，则表示三次握手通过**，反之抛出异常
 * 常用 API：
   
   * `OutputStream getOutputStream()`：获得字节输出流对象

@@ -5297,7 +5297,7 @@ RocketMQ 基于 NettyRemotingServer 的 Reactor 多线程模型：
 * 一个 Reactor 主线程（eventLoopGroupBoss）负责监听 TCP 网络连接请求，建立好连接创建 SocketChannel（RocketMQ 会自动根据 OS 的类型选择 NIO 和 Epoll，也可以通过参数配置），并注册到 Selector 上，然后监听真正的网络数据
 
 * 拿到网络数据交给 Worker 线程池（eventLoopGroupSelector，默认设置为 3），在真正执行业务逻辑之前需要进行 SSL 验证、编解码、空闲检查、网络连接管理，这些工作交给 defaultEventExecutorGroup（默认设置为 8）去做
-* 处理业务操作放在业务线程池中执行，根据 RomotingCommand 的**业务请求码 code*** 去 processorTable 这个本地缓存变量中找到对应的 processor，封装成 task 任务提交给对应的 processor 处理线程池来执行（sendMessageExecutor，以发送消息为例）
+* 处理业务操作放在业务线程池中执行，根据 RomotingCommand 的**业务请求码 code** 去 processorTable 这个本地缓存变量中找到对应的 processor，封装成 task 任务提交给对应的 processor 处理线程池来执行（sendMessageExecutor，以发送消息为例）
 * 从入口到业务逻辑的几个步骤中线程池一直再增加，这跟每一步逻辑复杂性相关，越复杂，需要的并发通道越宽
 
 | 线程数 | 线程名                         | 线程具体说明              |
