@@ -33,7 +33,7 @@
 
 参考视频：https://www.bilibili.com/video/BV1zJ411M7TB
 
-参考文章：https://time.geekbang.org/column/intro/139
+参考专栏：https://time.geekbang.org/column/intro/139
 
 参考书籍：https://book.douban.com/subject/35231266/
 
@@ -8764,8 +8764,6 @@ MySQL 支持 ACID 特性，保证可靠性和持久性，读取性能不高，�
 
 参考视频：https://www.bilibili.com/video/BV1CJ411m7Gc
 
-参考视频：https://www.bilibili.com/video/BV1Rv41177Af
-
 
 
 ***
@@ -9575,7 +9573,7 @@ Redis 基于 Reactor 模式开发了网络事件处理器，这个处理器被�
 
 <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-文件事件处理器.png" style="zoom:80%;" />
 
-尽管多个文件事件可能会并发出现，但是 I/O 多路复用程序将所有产生事件的套接字处理请求放入一个**单线程的执行队列**中，通过队列有序、同步的向文件事件分派器传送套接字，上一个套接字产生的事件处理完后，才会继续向分派器传统下一个
+尽管多个文件事件可能会并发出现，但是 I/O 多路复用程序将所有产生事件的套接字处理请求放入一个**单线程的执行队列**中，通过队列有序、同步的向文件事件分派器传送套接字，上一个套接字产生的事件处理完后，才会继续向分派器传送下一个
 
 <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-IO多路复用程序.png" style="zoom: 67%;" />
 
@@ -9834,8 +9832,6 @@ typedef struct redisClient {
 
 
 
-
-
 ***
 
 
@@ -9883,11 +9879,11 @@ typedef struct redisClient {
 * REDIS_MONITOR 表示客户端正在执行 MONITOR 命令
 * REDIS_UNIX_SOCKET 表示服务器使用 UNIX 套接字来连接客户端
 * REDIS_BLOCKED 表示客户端正在被 BRPOP、BLPOP 等命令阻塞
-* REDIS_UNBLOCKED 表示客户端已经从 REDIS_BLOCKED 所表示的阻塞状态脱离，该标志只能在 REDIS_BLOCKED 标志已经打开的情况下使用
+* REDIS_UNBLOCKED 表示客户端已经从 REDIS_BLOCKED 所表示的阻塞状态脱离，在 REDIS_BLOCKED 标志打开的情况下使用
 * REDIS_MULTI 标志表示客户端正在执行事务
 * REDIS_DIRTY_CAS 表示事务使用 WATCH 命令监视的数据库键已经被修改
 * REDIS_DIRTY_EXEC 表示事务在命令入队时出现了错误。以上两个标志都表示事务的安全性已经被破坏，只要两个标记中的任意一个被打开，EXEC 命令必然会执行失败，这两个标志只能在客户端打开了 REDIS_MULTI 标志的情况下使用
-* REDIS_CLOSE_ASAP 表示客户端的输出缓冲区大小超出了服务器允许的范围，服务器会在下 一次执行 serverCron 函数时关闭这个客户端，防止服务器的稳定性受到这个客户端影响，积存在输出缓冲区中的所有内容会被**直接释放**，不会返回给客户端
+* REDIS_CLOSE_ASAP 表示客户端的输出缓冲区大小超出了服务器允许的范围，关闭这个客户端并且直接丢弃缓冲区的内容
 * REDIS_CLOSE_AFTER_REPLY 表示有用户对这个客户端执行了 `CLIENT KILL` 命令，或者客户端发送给服务器的命令请求中包含了错误的协议内容，服务器会将客户端积存在输出缓冲区中的所有内容发送给客户端，然后关闭客户端
 * REDIS_ASKING 表示客户端向集群节点（运行在集群模式下的服务器）发送了 `ASKING` 命令
 * REDIS_FORCE_AOF 表示强制服务器将当前执行的命令写入到 AOF 文件里，执行 `PUBSUB` 命令会使客户端打开该标志
@@ -10044,7 +10040,7 @@ lua_client 伪客户端在服务器运行的整个生命周期会一直存在，
 
 理论上来说，可变缓冲区可以保存任意长的命令回复，但是为了回复过大占用过多的服务器资源，服务器会时刻检查客户端的输出缓冲区的大小，并在缓冲区的大小超出范围时，执行相应的限制操作：
 
-* 硬性限制 (hard limit)：输出缓冲区的大小超过了硬性限制所设置的大小，那么服务器立即关闭客户端
+* 硬性限制 (hard limit)：输出缓冲区的大小超过了硬性限制所设置的大小，那么服务器会关闭客户端（serverCron 函数中执行），积存在输出缓冲区中的所有内容会被**直接释放**，不会返回给客户端
 * 软性限制 (soft limit)：输出缓冲区的大小超过了软性限制所设置的大小，小于硬性限制的大小，服务器的操作：
   * 用属性 obuf_soft_limit_reached_time 记录下客户端到达软性限制的起始时间，继续监视客户端
   * 如果输出缓冲区的大小一直超出软性限制，并且持续时间超过服务器设定的时长，那么服务器将关闭客户端
@@ -10436,7 +10432,7 @@ struct redisServer {
 
 ##### 缓冲限制
 
-服务器会关闭那些输入或者输出缓冲区大小超出限制的客户端
+服务器会关闭那些输入或者输出**缓冲区大小超出限制**的客户端
 
 
 
@@ -10829,7 +10825,7 @@ Redis 对 rehash 做了优化，使 rehash 的动作并不是一次性、集中�
 * 在 rehash 进行期间，每次对字典执行添加、删除、查找或者更新操作时，程序除了执行指定的操作以外，还会顺带将 ht[0] 哈希表在 rehashidx 索引上的所有键值对 rehash 到 ht[1]，rehash 完成之后**将 rehashidx 属性的值增一**
 * 随着字典操作的不断执行，最终在某个时间点上 ht[0] 的所有键值对都被 rehash 至 ht[1]，这时程序将 rehashidx 属性的值设为 -1，表示 rehash 操作已完成
 
-渐进式 rehash 采用分而治之的方式，将 rehash 键值对所需的计算工作均摊到对字典的每个添加、删除、查找和更新操作上，从而避免了集中式 rehash 带来的庞大计算量
+渐进式 rehash 采用**分而治之**的方式，将 rehash 键值对所需的计算工作均摊到对字典的每个添加、删除、查找和更新操作上，从而避免了集中式 rehash 带来的庞大计算量
 
 渐进式 rehash 期间的哈希表操作：
 
@@ -10914,7 +10910,7 @@ typedef struct zskiplistNode {
 
 后退指针：backward 用于从表尾到表头方向逆序（降序）遍历节点
 
-分值：score 属性一个 double 类型的浮点数，跳跃表中的所有节点都按分值从小到大来排序
+分值：score 属性一个 double 类型的浮点数，跳跃表中的所有节点都**按分值从小到大来排序**
 
 成员对象：obj 属性是一个指针，指向一个 SDS 字符串对象。同一个跳跃表中，各个节点保存的成员对象必须是唯一的，但是多个节点保存的分值可以是相同的，分值相同的节点将按照成员对象在字典序中的大小来进行排序（从小到大）
 
@@ -12722,6 +12718,8 @@ vfork（虚拟内存 fork virtual memory fork）：调用 vfork() 父进程被�
 
 
 
+
+
 ## 事务机制
 
 ### 基本操作
@@ -12894,43 +12892,28 @@ unique_value 是客户端的**唯一标识**，可以用一个随机生成的字
 
 
 
+
+
 ## 主从复制
 
-### 基本介绍
+### 基本操作
 
-**三高**架构：
+#### 主从介绍
 
-- 高并发：应用提供某一业务要能支持很多客户端同时访问的能力，称为并发
+主从复制：一个服务器去复制另一个服务器，被复制的服务器为主服务器 master，复制的服务器为从服务器 slave
 
-- 高性能：性能带给我们最直观的感受就是速度快，时间短
+* master 用来**写数据**，执行写操作时，将出现变化的数据自动同步到 slave，很少会进行读取操作
+* slave 用来读数据，禁止在 slave 服务器上进行读操作
 
-- 高可用：
-  - 可用性：应用服务在全年宕机的时间加在一起就是全年应用服务不可用的时间
-  - 业界可用性目标 5 个 9，即 99.999%，即服务器年宕机时长低于 315 秒，约 5.25 分钟
+进行复制中的主从服务器双方的数据库将保存相同的数据，将这种现象称作**数据库状态一致**
 
-主从复制：
-
-* 概念：将 master 中的数据即时、有效的复制到 slave 中
-* 特征：一个 master 可以拥有多个 slave，一个 slave 只对应一个 master
-* 职责：master 和 slave 各自的职责不一样
-
-  master：
-  * **写数据**，执行写操作时，将出现变化的数据自动同步到 slave
-  * 读数据（可忽略）
-
-  slave
-  * **读数据**
-  * 写数据（禁止）
-
-主从复制的机制：
+主从复制的特点：
 
 * **薪火相传**：一个 slave 可以是下一个 slave 的 master，slave 同样可以接收其他 slave 的连接和同步请求，那么该 slave 作为了链条中下一个的 master, 可以有效减轻 master 的写压力，去中心化降低风险
 
   注意：主机挂了，从机还是从机，无法写数据了
 
 * **反客为主**：当一个 master 宕机后，后面的 slave 可以立刻升为 master，其后面的 slave 不做任何修改
-
-  将从机变为主机的命令：`slaveof no one`
 
 主从复制的作用：
 
@@ -12940,31 +12923,16 @@ unique_value 是客户端的**唯一标识**，可以用一个随机生成的字
 - 数据冗余：实现数据热备份，是持久化之外的一种数据冗余方式
 - 高可用基石：基于主从复制，构建哨兵模式与集群，实现 Redis 的高可用方案
 
-主从复制的应用场景：
 
-* 机器故障：硬盘故障、系统崩溃，造成数据丢失，对业务形成灾难性打击，基本上会放弃使用redis
+**三高**架构：
 
-* 容量瓶颈：内存不足，放弃使用 Redis
+- 高并发：应用提供某一业务要能支持很多客户端同时访问的能力，称为并发
 
-* 解决方案：为了避免单点 Redis 服务器故障，准备多台服务器，互相连通。将数据复制多个副本保存在不同的服务器上连接在一起，并保证数据是同步的。即使有其中一台服务器宕机，其他服务器依然可以继续提供服务，实现 Redis 高可用，同时实现数据冗余备份
+- 高性能：性能最直观的感受就是速度快，时间短
 
-  <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-主从复制多台服务器连接方案.png" style="zoom: 80%;" />
-
-
-
-***
-
-
-
-### 工作流程
-
-主从复制过程大体可以分为3个阶段
-
-* 建立连接阶段（即准备阶段）
-* 数据同步阶段
-* 命令传播阶段
-
-![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-主从复制工作流程.png)
+- 高可用：
+  - 可用性：应用服务在全年宕机的时间加在一起就是全年应用服务不可用的时间
+  - 业界可用性目标 5 个 9，即 99.999%，即服务器年宕机时长低于 315 秒，约 5.25 分钟
 
 
 
@@ -12972,152 +12940,76 @@ unique_value 是客户端的**唯一标识**，可以用一个随机生成的字
 
 
 
-### 建立连接
+#### 操作指令
 
-#### 建立流程
+系统状态指令：
 
-建立连接阶段：建立 slave 到 master 的连接，使 master 能够识别 slave，并保存 slave 端口号
+```sh
+INFO replication
+```
 
-流程如下：
+master 和 slave 互连：
 
-1. 设置 master 的地址和端口，保存 master 信息
-2. 建立 socket 连接
-3. 发送 ping 命令（定时器任务）
-4. 身份验证（可能没有）
-5. 发送 slave 端口信息
-6. 主从连接成功
-
-连接成功的状态：
-
-* slave：保存 master 的地址与端口
-
-* master：保存 slave 的端口
-
-* 主从之间创建了连接的 socket
-
-<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-主从复制建立连接.png" style="zoom: 80%;" />
-
-
-
-***
-
-
-
-#### 相关指令
-
-* master 和 slave 互联
-
-  方式一：客户端发送命令
+* 方式一：客户端发送命令，设置 slaveof 选项，产生主从结构
 
   ```sh
   slaveof masterip masterport
   ```
 
-  方式二：服务器带参启动
+* 方式二：服务器带参启动
 
   ```sh
   redis-server --slaveof masterip masterport
   ```
 
-  方式三：服务器配置（主流方式）
+* 方式三：服务器配置（主流方式）
 
   ```sh
   slaveof masterip masterport
   ```
 
-  * slave 系统信息：info 指令
+主从断开连接：
 
-    ```sh
-    master_link_down_since_seconds
-    masterhost & masterport
-    ```
-
-  * master 系统信息：
-
-    ```sh
-    uslave_listening_port(多个)
-    ```
-    
-  * 系统信息：
-
-    ```sh
-    info replication
-    ```
-
-* 主从断开连接：断开 slave 与 master 的连接，slave 断开连接后，不会删除已有数据，只是不再接受 master 发送的数据
-
-  slave客户端执行命令：
+* slave 断开连接后，不会删除已有数据，只是不再接受 master 发送的数据，可以作**为从服务器升级为主服务器的指令**
 
   ```sh
   slaveof no one	
   ```
-  
-* 授权访问：master 有服务端和客户端，slave 也有服务端和客户端，不仅服务端之间可以发命令，客户端也可以
 
-  master 客户端发送命令设置密码：
+授权访问：master 有服务端和客户端，slave 也有服务端和客户端，不仅服务端之间可以发命令，客户端也可以
+
+* master 客户端发送命令设置密码：
 
   ```sh
   requirepass password
   ```
-  
+
   master 配置文件设置密码：
 
   ```sh
   config set requirepass password
   config get requirepass
   ```
-  
-  slave 客户端发送命令设置密码：
+
+* slave 客户端发送命令设置密码：
 
   ```sh
   auth password
   ```
-  
+
   slave 配置文件设置密码：
 
   ```sh
   masterauth password
   ```
-  
+
   slave 启动服务器设置密码：
 
   ```sh
   redis-server –a password
   ```
-  
-  
-
-***
 
 
-
-### 数据同步
-
-#### 同步流程
-
-数据同步需求：
-
-- 在 slave 初次连接 master 后，复制 master 中的所有数据到 slave
-- 将 slave 的数据库状态更新成 master 当前的数据库状态
-
-同步过程如下：
-
-1. 请求同步数据
-2. 创建 RDB 同步数据
-3. 恢复 RDB 同步数据（从服务器会**清空原有数据**）
-4. 请求部分同步数据
-5. 恢复部分同步数据
-6. 数据同步工作完成
-
-同步完成的状态：
-
-* slave：具有 master 端全部数据，包含 RDB 过程接收的数据
-
-* master：保存 slave 当前数据同步的位置
-
-* 主从之间完成了数据克隆
-
-<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-主从复制数据同步.png" style="zoom:80%;" />
 
 
 
@@ -13125,39 +13017,25 @@ unique_value 是客户端的**唯一标识**，可以用一个随机生成的字
 
 
 
-#### 同步优化
+### 复制流程
 
-* 数据同步阶段 master 说明
+#### 旧版复制
 
-  1. master 数据量巨大，数据同步阶段应避开流量高峰期，避免造成 master 阻塞，影响业务正常执行
+Redis 的复制功能分为同步（sync）和命令传播（command propagate）两个操作
 
-  2. 复制缓冲区大小设定不合理，会导致**数据溢出**。比如进行全量复制周期太长，进行部分复制时发现数据已经存在丢失的情况，必须进行第二次全量复制，致使 slave 陷入死循环状态
+同步操作用于将从服务器的数据库状态更新至主服务器当前所处的数据库状态，该过程又叫全量复制：
 
-     ```sh
-     repl-backlog-size ?mb
-     ```
+* 从服务器向主服务器发送 SYNC 命令来进行同步
+* 收到 SYNC 的主服务器执行 BGSAVE 命令，在后台生成一个 RDB 文件，并使用一个**缓冲区**记录从现在开始执行的所有**写命令**
+* 当 BGSAVE 命令执行完毕时，主服务器会将 RDB 文件发送给从服务器
+* 从服务接收并载入 RDB 文件（从服务器会**清空原有数据**）
+* 缓冲区记录了 RDB 文件所在状态后的所有写命令，主服务器将在缓冲区的所有命令发送给从服务器，从服务器执行这些写命令
+* 至此从服务器的数据库状态和主服务器一致
 
-     建议设置如下：
+命令传播用于在主服务器的数据库状态被修改，导致主从数据库状态出现不一致时， 让主从服务器的数据库重新回到一致状态
 
-     * 测算从 master 到 slave 的重连平均时长 second
-     * 获取 master 平均每秒产生写命令数据总量 write_size_per_second
-     * 最优复制缓冲区空间 = 2 * second * write_size_per_second
-
-  3. master 单机内存占用主机内存的比例不应过大，建议使用 50%-70% 的内存，留下 30%-50% 的内存用于执行 bgsave 命令和创建复制缓冲区
-
-* 数据同步阶段 slave 说明
-
-  1. 为避免 slave 进行全量复制、部分复制时服务器响应阻塞或数据不同步，建议关闭此期间的对外服务
-
-     ```sh
-     slave-serve-stale-data yes|no
-     ```
-
-  2. 数据同步阶段，master 发给 slave 信息可以理解 master是 slave 的一个客户端，主动向 slave 发送命令
-
-  3. 多个 slave 同时对 master 请求数据同步，master 发送的 RDB 文件增多，会对带宽造成巨大冲击，如果 master 带宽不足，因此数据同步需要根据业务需求，适量错峰
-
-  4. slave 过多时，建议调整拓扑结构，由一主多从结构变为树状结构，中间的节点既是 master，也是 slave。注意使用树状结构时，由于层级深度，导致深度越高的 slave 与最顶层 master 间数据同步延迟较大，数据一致性变差，应谨慎选择
+* 主服务器会将自己执行的写命令，也即是造成主从服务器不一致的那条写命令，发送给从服务器
+* 从服务器接受命令并执行，主从服务器将再次回到一致状态
 
 
 
@@ -13165,53 +13043,20 @@ unique_value 是客户端的**唯一标识**，可以用一个随机生成的字
 
 
 
-### 命令传播
+#### 功能缺陷
 
-#### 传播原理
+SYNC 本身就是一个非常消耗资源的操作，每次执行 SYNC 命令，都需要执行以下动作：
 
-命令传播：当 master 数据库状态被修改后，导致主从服务器数据库状态不一致，此时需要让主从数据同步到一致的状态，同步的动作称为命令传播
+* 生成 RDB 文件，耗费主服务器大量 CPU 、内存和磁盘 I/O 资源
+* RDB 文件发送给从服务器，耗费主从服务器大量的网络资源（带宽和流量），并对主服务器响应命令请求的时间产生影响
+* 从服务器载入 RDB 文件，期间会因为阻塞而没办法处理命令请求
 
-命令传播的过程：master 将接收到的数据变更命令发送给 slave，slave 接收命令后执行命令
+SYNC 命令下的从服务器对主服务器的复制分为两种情况：
 
-命令传播阶段出现了断网现象：
+* 初次复制：从服务器没有复制过任何主服务器，或者从服务器当前要复制的主服务器和上一次复制的主服务器不同
+* 断线后重复制：处于命令传播阶段的主从服务器因为网络原因而中断了复制，自动重连后并继续复制主服务器
 
-* 网络闪断闪连：忽略
-* 短时间网络中断：部分复制
-* 长时间网络中断：全量复制
-
-部分复制的三个核心要素：服务器的运行 id（run id）、主服务器的复制积压缓冲区、主从服务器的复制偏移量
-
-* 服务器运行ID（runid）：服务器运行 ID 是每一台服务器每次运行的身份识别码，一台服务器多次运行可以生成多个运行 ID，由 40 位字符组成，是一个随机的十六进制字符
-
-  作用：服务器间进行传输识别身份，如果想两次操作均对同一台服务器进行，**每次必须操作携带对应的运行 ID**，用于对方识别
-
-  实现：运行 ID 在每台服务器启动时自动生成，master 在首次连接 slave 时，将运行 ID 发送给 slave，slave 保存此 ID，通过 info Server 命令，可以查看节点的 runid
-
-* 复制缓冲区：复制积压缓冲区，是一个先进先出（FIFO）的队列，用于存储服务器执行过的命令
-
-  作用：用于保存 master 收到的所有指令（仅影响数据变更的指令，例如 set，select）
-
-  实现方式：每次传播命令，master 都会将传播的命令记录下来，并存储在复制缓冲区，复制缓冲区默认数据存储空间大小是 1M，当入队元素的数量大于队列长度时，最先入队的元素被弹出，新元素会被放入队列
-
-* 复制偏移量：一个数字，描述复制缓冲区中的指令字节位置
-
-  - master 复制偏移量：记录发送给所有 slave 的指令字节对应的位置（多个）
-  - slave 复制偏移量：记录 slave 接收 master 发送过来的指令字节对应的位置（一个）
-  
-  作用：同步信息，比对 master 与 slave 的差异，当 slave 断线后，恢复数据使用
-  
-  数据来源：
-  
-  - master 端：发送一次记录一次
-  - slave 端：接收一次记录一次
-
-**工作原理**：
-
-- 通过 offset 区分不同的 slave 当前数据传播的差异
-- master 记录已发送的信息对应的 offset
-- slave 记录已接收的信息对应的 offset
-
-<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-主从复制复制缓冲区原理.png" style="zoom:67%;" />
+旧版复制在断线后重复制时，也会创建 RDB 文件进行**全量复制**，但是从服务器只需要断线时间内的这部分数据，所以旧版复制的实现方式非常浪费资源
 
 
 
@@ -13219,9 +13064,178 @@ unique_value 是客户端的**唯一标识**，可以用一个随机生成的字
 
 
 
-#### 复制流程
+#### 新版复制
 
-全量复制/部分复制
+Redis 从 2.8 版本开始，使用 PSYNC 命令代替 SYNC 命令来执行复制时的**同步操作**（命令传播阶段相同），解决了旧版复制在处理断线重复制情况的低效问题
+
+PSYNC 命令具有完整重同步（full resynchronization）和**部分重同步**（partial resynchronization）两种模式：
+
+* 完整重同步：处理初次复制情况，执行步骤和 SYNC命令基本一样
+* 部分重同步：处理断线后重复制情况，主服务器可以将主从连接断开期间执行的写命令发送给从服务器，从服务器只要接收并执行这些写命令，就可以将数据库更新至主服务器当前所处的状态，该过程又叫**部分复制**
+
+
+
+
+
+***
+
+
+
+### 部分同步
+
+部分重同步功能由以下三个部分构成：
+
+* 主服务器的复制偏移量（replication offset）和从服务器的复制偏移量
+* 主服务器的复制积压缓冲区（replication backlog）
+* 服务器的运行 ID (run ID)
+
+
+
+#### 偏移量
+
+主服务器和从服务器会分别维护一个复制偏移量：
+
+* 主服务器每次向从服务器传播 N 个字节的数据时，就将自己的复制偏移量的值加上 N
+
+* 从服务器每次收到主服务器传播来的 N 个字节的数据时，就将自己的复制偏移量的值加上 N
+
+通过对比主从服务器的复制偏移量，可以判断主从服务器是否处于一致状态
+
+* 主从服务器的偏移量是相同的，说明主从服务器处于一致状态
+* 主从服务器的偏移量是不同的，说明主从服务器处于不一致状态
+
+
+
+***
+
+
+
+#### 缓冲区
+
+复制积压缓冲区是由主服务器维护的一个固定长度（fixed-size）先进先出（FIFO）队列，默认大小为 1MB
+
+* 出队规则跟普通的先进先出队列一样
+* 入队规则是当入队元素的数量大于队列长度时，最先入队的元素会被弹出，然后新元素才会被放入队列
+
+当主服务器进行**命令传播时，不仅会将写命令发送给所有从服务器，还会将写命令入队到复制积压缓冲区**，缓冲区会保存着一部分最近传播的写命令，并且缓冲区会为队列中的每个字节记录相应的复制偏移量
+
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-复制积压缓冲区.png)
+
+从服务器会通过 PSYNC 命令将自己的复制偏移量 offset 发送给主服务器，主服务器会根据这个复制偏移量来决定对从服务器执行何种同步操作：
+
+* offset 之后的数据（即 offset+1）仍然存在于复制积压缓冲区里，那么主服务器将对从服务器执行部分重同步操作
+* offset 之后的数据已经不在复制积压缓冲区，说明部分数据已经丢失，那么主服务器将对从服务器执行完整重同步操作
+
+复制缓冲区大小设定不合理，会导致**数据溢出**。比如主服务器需要执行大量写命令，又或者主从服务器断线后重连接所需的时间较长，导致缓冲区中的数据已经丢失，则必须进行完整重同步
+
+```sh
+repl-backlog-size ?mb
+```
+
+建议设置如下，这样可以保证绝大部分断线情况都能用部分重同步来处理：
+
+* 从服务器断线后重新连接上主服务器所需的平均时间 second
+* 获取 master 平均每秒产生写命令数据总量 write_size_per_second
+* 最优复制缓冲区空间 = 2 * second * write_size_per_second
+
+
+
+****
+
+
+
+#### 运行ID
+
+服务器运行 ID（run ID）：是每一台服务器每次运行的身份识别码，在服务器启动时自动生成，由 40 位随机的十六进制字符组成，一台服务器多次运行可以生成多个运行 ID
+
+作用：服务器间进行传输识别身份，如果想两次操作均对同一台服务器进行，**每次必须操作携带对应的运行 ID**，用于对方识别
+
+从服务器对主服务器进行初次复制时，主服务器将自己的运行 ID 传送给从服务器，然后从服务器会将该运行 ID 保存。当从服务器断线并重新连上一个主服务器时，会向当前连接的主服务器发送之前保存的运行 ID：
+
+* 如果运行 ID 和当前连接的主服务器的运行 ID 相同，说明从服务器断线之前复制的就是当前连接的这个主服务器，执行部分重同步
+* 如果不同，需要执行完整重同步操作
+
+
+
+
+
+***
+
+
+
+#### PSYNC
+
+PSYNC 命令的调用方法有两种
+
+* 如果从服务器之前没有复制过任何主服务器，或者执行了 `SLAVEOF no one`，开始一次新的复制时将向主服务器发送 `PSYNC ? -1` 命令，主动请求主服务器进行完整重同步
+* 如果从服务器已经复制过某个主服务器，那么从服务器在开始一次新的复制时将向主服务器发送 `PSYNC <runid> <offset>` 命令，runid 是上一次复制的主服务器的运行 ID，offset 是复制的偏移量
+
+接收到 PSYNC 命令的主服务器会向从服务器返回以下三种回复的其中一种：
+
+* 执行完整重同步操作：返回 `+FULLRESYNC <runid> <offset>`，runid 是主服务器的运行 ID，offset 是主服务器的复制偏移量
+* 执行部分重同步操作：返回 `+CONTINUE`，从服务器收到该回复说明只需要等待主服务器发送缺失的部分数据即可
+* 主服务器的版本低于 Redis2.8：返回 `-ERR`，版本过低识别不了 PSYNC，从服务器将向主服务器发送 SYNC 命令
+
+
+
+
+
+***
+
+
+
+### 复制实现
+
+#### 实现流程
+
+通过向从服务器发送 SLAVEOF 命令，可以让从服务器去复制一个主服务器
+
+* 设置主服务器的地址和端口：将 SLAVEOF 命令指定的 ip 和 port 保存到服务器状态 redisServer
+
+  ```c
+  struct redisServer {
+  	// 主服务器的地址 
+      char *masterhost; 
+  	 //主服务器的端口 
+      int masterport; 
+  };
+  ```
+
+  SLAVEOF 命令是一个异步命令，在完成属性的设置后服务器直接返回 OK，而实际的复制工作将在 OK返回之后才真正开始执行
+
+* 建立套接字连接：
+
+  * 从服务器 connect 主服务器建立套接字连接，成功后从服务器将为这个套接字关联一个用于复制工作的文件事件处理器，负责执行后续的复制工作，如接收 RDB 文件、接收主服务器传播来的写命令等
+  * 主服务器在接受 accept 从务器的套接字连接后，将为该套接字创建相应的客户端状态，将从服务器看作一个客户端，从服务器将同时具有 server 和 client（可以发命令）两个身份
+
+* 发送 PING 命令：从服务器向主服务器发送一个 PING 命令，检查主从之间的通信是否正常、主服务器处理命令的能力是否正常
+
+  * 返回错误，表示主服务器无法处理从服务器的命令请求（忙碌），从服务器断开并重新创建连向主服务器的套接字
+  * 返回命令回复，但从服务器不能在规定的时间内读取出命令回复的内容，表示主从之间的网络状态不佳，需要断开重连
+  * 读取到 PONG，表示一切状态正常，可以执行复制
+
+* 身份验证：如果从服务器设置了 masterauth 选项就进行身份验证，将向主服务器发送一条 AUTH 命令，命令参数为从服务器 masterauth 选项的值，如果主从设置的密码不相同，那么主将返回一个 invalid password 错误
+
+* 发送端口信息：身份验证后
+
+  * 从服务器执行命令 `REPLCONF listening-port <port­number>`， 向主服务器发送从服务器的监听端口号
+  * 主服务器在接收到这个命令后，会将端口号记录在对应的客户端状态 redisClient.slave_listening_port 属性中：
+
+* 同步：从服务器将向主服务器发送 PSYNC 命令，在同步操作执行之后，**主从服务器双方都是对方的客户端**，可以相互发送命令
+
+  * 完整重同步：主服务器需要成为从服务器的客户端，才能将保存在缓冲区里面的写命令发送给从服务器执行
+
+  * 部分重同步：主服务器需要成为从服务器的客户端，才能向从服务器发送保存在复制积压缓冲区里面的写命令
+
+* 命令传播：主服务器将写命令发送给从服务器，保持数据库的状态一致
+
+
+
+***
+
+
+
+#### 复制图示
 
 ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-主从复制流程更新.png)
 
@@ -13233,38 +13247,73 @@ unique_value 是客户端的**唯一标识**，可以用一个随机生成的字
 
 
 
+### 心跳检测
+
 #### 心跳机制
 
-心跳机制：进入命令传播阶段，master 与 slave 间需要信息交换，使用心跳机制维护，实现双方连接保持在线
+心跳机制：进入命令传播阶段，从服务器默认会以每秒一次的频率，向主服务器发送命令：`REPLCONF ACK <replication_offset>`，re_offset 是从服务器当前的复制偏移量
 
-master 心跳任务：
+心跳的作用：
 
-- 内部指令：PING
-- 周期：由 `repl-ping-slave-period` 决定，默认10秒
-- 作用：判断 slave 是否在线
-- 查询：INFO replication  获取 slave 最后一次连接时间间隔，lag 项维持在 0 或 1 视为正常
-
-slave 心跳任务
-
-- 内部指令：REPLCONF ACK {offset}
-- 周期：1秒
-- 作用：汇报 slave 自己的复制偏移量，获取最新的数据变更指令；判断 master 是否在线
-
-心跳阶段注意事项：
-
-* 当 slave 多数掉线，或延迟过高时，master 为保障数据稳定性，将拒绝所有信息同步
-
-  slave 数量少于 2 个，或者所有 slave 的延迟都大于等于 8 秒时，强制关闭 master 写功能，停止数据同步
-
-  ```sh
-  min-slaves-to-write 2
-  min-slaves-max-lag 8
-  ```
-
-* slave 数量由 slave 发送 REPLCONF ACK 命令做确认
+* 检测主从服务器的网络连接状态
+* 辅助实现 min-slaves 选项
+* 检测命令丢失
 
 
-- slave 延迟由 slave 发送 REPLCONF ACK 命令做确认
+
+***
+
+
+
+#### 网络状态
+
+如果主服务器超过一秒钟没有收到从服务器发来的 REPLCONF ACK 命令，主服务就认为主从服务器之间的连接出现问题
+
+向主服务器发送 `INFO replication` 命令，lag 一栏表示从服务器最后一次向主服务器发送 ACK 命令距离现在多少秒：
+
+```sh
+127.0.0.1:6379> INFO replication 
+# Replication 
+role:master 
+connected_slaves:2 
+slave0: ip=127.0.0.1,port=11111,state=online,offset=123,lag=O # 刚刚发送过 REPLCONF ACK 
+slavel: ip=127.0.0.1,port=22222,state=online,offset=456,lag=3 # 3秒之前发送过REPLCONF ACK 
+```
+
+在一般情况下，lag 的值应该在 0 或者 1 秒之间跳动，如果超过 1 秒说明主从服务器之间的连接出现了故障
+
+
+
+***
+
+
+
+#### 配置选项
+
+Redis 的 min-slaves-to-write 和 min-slaves-max-lag 两个选项可以防止主服务器在**不安全的情况下**执行写命令
+
+比如向主服务器设置：
+
+```sh
+min-slaves-to-write 5
+min-slaves-max-lag 10
+```
+
+那么在从服务器的数最少于 5 个，或者 5 个从服务器的延迟（lag）值都大于或等于10 秒时，主服务器将拒绝执行写命令
+
+
+
+***
+
+
+
+#### 命令丢失
+
+检测命令丢失：由于网络或者其他原因，主服务器传播给从服务器的写命令丢失，那么当从服务器向主服务器发送 REPLCONF ACK 命令时，主服务器会检查从服务器的复制偏移量是否小于自己的，然后在复制积压缓冲区里找到从服务器缺少的数据，并将这些数据重新发送给从服务器
+
+说明：REPLCONF ACK 命令和复制积压缓冲区都是 Redis 2.8 版本新增的，在 Redis 2.8 版本以前，即使命令在传播过程中丢失，主从服务器都不会注意到，也不会向从服务器补发丢失的数据，所以为了保证主从复制的数据一致性，最好使用 2.8 或以上版本的 Redis
+
+
 
 
 
@@ -13276,24 +13325,21 @@ slave 心跳任务
 
 #### 重启恢复
 
-系统不断运行，master 的数据量会越来越大，一旦 master 重启，runid 将发生变化，会导致全部 slave 的全量复制操作
+系统不断运行，master 的数据量会越来越大，一旦 **master 重启**，runid 将发生变化，会导致全部 slave 的全量复制操作
 
 解决方法：本机保存上次 runid，重启后恢复该值，使所有 slave 认为还是之前的 master
 
 优化方案：
 
-* master 内部创建 master_replid 变量，使用 runid 相同的策略生成，长度41位，并发送给所有 slave
+* master 内部创建 master_replid 变量，使用 runid 相同的策略生成，并发送给所有 slave
 
-* 在master关闭时执行命令 `shutdown save`，进行 RDB 持久化，将 runid 与 offset 保存到 RDB 文件中
+* 在 master 关闭时执行命令 `shutdown save`，进行 RDB 持久化，将 runid 与 offset 保存到 RDB 文件中
 
   `redis-check-rdb dump.rdb` 命令可以查看该信息，保存为 repl-id 和 repl-offset
 
-* master 重启后加载 RDB 文件，恢复数据
+* master 重启后加载 RDB 文件，恢复数据，将 RDB 文件中保存的 repl-id 与 repl-offset 加载到内存中，master_repl_id = repl-id，master_repl_offset = repl-offset
 
-  重启后，将 RDB 文件中保存的 repl-id 与 repl-offset 加载到内存中
-
-  * master_repl_id = repl-id，master_repl_offset = repl-offset
-  * 通过 info 命令可以查看该信息
+* 通过 info 命令可以查看该信息
 
  
 
@@ -13306,9 +13352,10 @@ slave 心跳任务
 master 的 CPU 占用过高或 slave 频繁断开连接
 
 * 出现的原因：
+
   * slave 每 1 秒发送 REPLCONF ACK 命令到 master
   * 当 slave 接到了慢查询时（keys * ，hgetall等），会大量占用 CPU 性能
-  * master 每1秒调用复制定时函数 replicationCron()，比对 slave 发现长时间没有进行响应
+  * master 每 1 秒调用复制定时函数 replicationCron()，比对 slave 发现长时间没有进行响应
 
   最终导致 master 各种资源（输出缓冲区、带宽、连接等）被严重占用
 
@@ -13321,6 +13368,7 @@ master 的 CPU 占用过高或 slave 频繁断开连接
 slave 与 master 连接断开
 
 * 出现的原因：
+
   * master 发送 ping 指令频度较低
   * master 设定超时时间较短
   * ping 指令在网络中存在丢包
@@ -13355,6 +13403,8 @@ slave 与 master 连接断开
 
   开启后仅响应 info、slaveof 等少数命令（慎用，除非对数据一致性要求很高）
 
+* 多个 slave 同时对 master 请求数据同步，master 发送的 RDB 文件增多，会对带宽造成巨大冲击，造成 master 带宽不足，因此数据同步需要根据业务需求，适量错峰
+
 
 
 
@@ -13363,26 +13413,29 @@ slave 与 master 连接断开
 
 
 
+
+
 ## 哨兵模式
 
 ### 哨兵概述
 
-如果 Redis 的 master 宕机了，需要从 slave 中重新选出一个 master，要实现这些功能就需要 Redis 的哨兵
+Sentinel（哨兵）是 Redis 的高可用性（high availability）解决方案，由一个或多个 Sentinel 实例 instance 组成的 Sentinel 系统可以监视任意多个主服务器，以及这些主服务器的所有从服务器，并在被监视的主服务器下线时进行故障转移
 
-哨兵（sentinel）是一个分布式系统，用于对主从结构中的每台服务器进行**监控**，当出现故障时通过**投票机制选择**新的 master 并将所有 slave 连接到新的 master
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-哨兵系统.png" style="zoom:67%;" />
 
-<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-哨兵模式.png" style="zoom:67%;" />
+* 双环图案表示主服务器
+* 单环图案表示三个从服务器
 
 哨兵的作用：
 
 - 监控：监控 master 和 slave，不断的检查 master 和 slave 是否正常运行，master 存活检测、master 与 slave 运行情况检测
 
-- 通知：当被监控的服务器出现问题时，向其他（哨兵间，客户端）发送通知
+- 通知：当被监控的服务器出现问题时，向其他哨兵发送通知
 
 
 - 自动故障转移：断开 master 与 slave 连接，选取一个 slave 作为 master，将其他 slave 连接新的 master，并告知客户端新的服务器地址
 
-注意：哨兵也是一台 Redis 服务器，只是不提供数据相关服务，通常哨兵的数量配置为单数（投票）
+
 
 
 
@@ -13392,55 +13445,51 @@ slave 与 master 连接断开
 
 ### 启用哨兵
 
-配置哨兵：
+#### 配置方式
 
-* 配置一拖二的主从结构
+配置三个哨兵 sentinel.conf：一般多个哨兵配置相同、端口不同，特殊需求可以配置不同的属性
 
-* 配置三个哨兵（配置相同，端口不同），sentinel.conf
+```sh
+port 26401
+dir "/redis/data"
+sentinel monitor mymaster 127.0.0.1 6401 2
+sentinel down-after-milliseconds mymaster 5000
+sentinel failover-timeout mymaster 20000
+sentinel parallel-sync mymaster 1
+sentinel deny-scripts-reconfig yes
+```
 
-  ```sh
-  port 26401
-  dir "/redis/data"
-  sentinel monitor mymaster 127.0.0.1 6401 2
-  sentinel down-after-milliseconds mymaster 5000
-  sentinel failover-timeout mymaster 20000
-  sentinel parallel-sync mymaster 1
-  sentinel deny-scripts-reconfig yes
-  ```
+配置说明：
 
-  配置说明：
-
-  * 设置哨兵监听的主服务器信息， sentinel_number 表示参与投票的哨兵数量
-
-    ```sh
-    sentinel monitor master_name master_host master_port sentinel_number
-    ```
-
-  * 指定哨兵在监控 Redis 服务时，设置判定服务器宕机的时长，该设置控制是否进行主从切换
-
-    ```sh
-    sentinel down-after-milliseconds master_name million_seconds
-    ```
-
-  * 出现故障后，故障切换的最大超时时间，超过该值，认定切换失败，默认 3 分钟
-
-    ```sh
-    sentinel failover-timeout master_name	million_seconds
-    ```
-
-  * 指定同时进行主从的 slave 数量，数值越大，要求网络资源越高
-
-    ```sh
-    sentinel parallel-syncs master_name sync_slave_number
-    ```
-
-启动哨兵：
-
-* 服务端命令（Linux 命令）：
+* 设置哨兵监听的主服务器信息，判断主观下线所需要的票数
 
   ```sh
-  redis-sentinel filename
+  sentinel monitor <master-name> <master_ip> <master_port> <quorum>
   ```
+
+* 指定哨兵在监控 Redis 服务时，设置判定服务器宕机的时长，该设置控制是否进行主从切换
+
+  ```sh
+  sentinel down-after-milliseconds <master-name> <million_seconds>
+  ```
+
+* 出现故障后，故障切换的最大超时时间，超过该值，认定切换失败，默认 3 分钟
+
+  ```sh
+  sentinel failover-timeout <master_name> <million_seconds>
+  ```
+
+* 故障转移时，同时进行主从同步的 slave 数量，数值越大，要求网络资源越高
+
+  ```sh
+  sentinel parallel-syncs <master_name> <sync_slave_number>
+  ```
+
+启动哨兵：服务端命令（Linux 命令）
+
+```sh
+redis-sentinel filename
+```
 
 
 
@@ -13448,47 +13497,18 @@ slave 与 master 连接断开
 
 
 
-### 工作原理
+#### 初始化
 
-#### 监控阶段
+Sentinel 本质上只是一个运行在特殊模式下的 Redis 服务器，当一个 Sentinel 启动时，首先初始化 Redis 服务器，但是初始化过程和普通 Redis 服务器的初始化过程并不完全相同，哨兵**不提供数据相关服务**，所以不会载入 RDB、AOF 文件
 
-哨兵在进行主从切换过程中经历三个阶段
+整体流程：
 
-- 监控
-- 通知
-- 故障转移
+* 初始化服务器
+* 将普通 Redis 服务器使用的代码替换成 Sentinel 专用代码
 
-监控阶段作用：同步各个节点的状态信息
-
-* 获取各个 sentinel 的状态（是否在线）
-
-
-- 获取 master 的状态
-
-  ```markdown
-  master属性
-  	prunid
-  	prole：master
-  	各个slave的详细信息	
-  ```
-
-- 获取所有 slave 的状态（根据 master 中的 slave 信息）
-
-  ```markdown
-  slave属性
-  	prunid
-  	prole：slave
-  	pmaster_host、master_port
-  	poffset
-  ```
-
-内部的工作原理：
-
-sentinel 1 首先连接 master，建立 cmd 通道，根据主节点访问从节点，连接完成
-
-sentinel 2 首先连接 master，然后通过 master 中的 sentinels 发现其他哨兵，然后寻找哨兵建立连接，哨兵之间同步数据
-
-<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-哨兵模式监控工作原理.png" style="zoom:67%;" />
+* 初始化 Sentinel 状态
+* 根据给定的配置文件，初始化 Sentinel 的监视主服务器列表
+* 创建连向主服务器的网络连接
 
 
 
@@ -13496,11 +13516,36 @@ sentinel 2 首先连接 master，然后通过 master 中的 sentinels 发现其�
 
 
 
-#### 通知阶段
+#### 代码替换
 
-sentinel 在通知阶段不断的去获取 master/slave 的信息，然后在各个 sentinel 之间进行共享，流程如下：
+将一部分普通 Redis服务器使用的代码替换成 Sentinel 专用代码
 
-![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-哨兵模式通知工作流程.png)
+Redis 服务器端口：
+
+```c
+# define REDIS_SERVERPORT 6379 		// 普通服务器端口
+# define REDIS_SENTINEL_PORT 26379 	// 哨兵端口
+```
+
+服务器的命令表：
+
+```c
+// 普通 Redis 服务器
+struct redisCommand redisCommandTable[] = {
+    {"get", getCommand, 2, "r", 0, NULL, 1, 1, 1, 0, 0},
+    {"set", setCommand, -3, "wm", 0, noPreloadGetKeys, 1, 1, 1, 0, 0},
+    //....
+}
+// 哨兵
+struct redisCommand sentinelcmds[] = {
+    {"ping", pingCommand, 1, "", 0, NULL, 0, 0, 0, 0, 0},
+    {"sentinel", sentinelCommand, -2,"",0,NULL,0,0,0,0,0},
+    {"subscribe",...}, {"unsubscribe",...O}, {"psubscribe",...}, {"punsubscribe",...},
+    {"info",...}
+};
+```
+
+上述表是哨兵模式下客户端可以执行的命令，所以对于 GET、SET 等命令，服务器根本就没有载入
 
 
 
@@ -13508,35 +13553,405 @@ sentinel 在通知阶段不断的去获取 master/slave 的信息，然后在各
 
 
 
-#### 故障转移
+#### 哨兵状态
 
-当 master 宕机后，sentinel 会判断出 master 是否真的宕机，具体的操作流程：
+服务器会初始化一个 sentinelState 结构，又叫 Sentinel 状态，结构保存了服务器中所有和 Sentinel 功能有关的状态（服务器的一般状态仍然由 redisServer 结构保存）
 
-* 检测 master
+```c
+struct sentinelState {
+    // 当前纪元，用于实现故障转移
+    uint64_t current_epoch; 
+    
+    // 保存了所有被这个sentinel监视的主服务器
+    dict *masters;
+    
+    // 是否进入了 TILT 模式
+    int tilt;
+    // 进入 TILT 模式的时间
+    mstime_t tilt_start_time;
+    
+    // 最后一次执行时间处理的事件
+    mstime_t previous_time;
+    
+    // 目前正在执行的脚本数量
+    int running_scripts;
+    // 一个FIFO队列，包含了所有需要执行的用户脚本
+    list *scripts_queue;
+    
+} sentinel;
+```
 
-  sentinel1 检测到 master 下线后会做 flag:SRI_S_DOWN 标志，此时 master 的状态是主观下线，并通知其他哨兵，其他哨兵也会尝试与 master 连接，如果大于 (n/2) + 1 个sentinel 检测到 master 下线，就达成共识更改 flag，此时 master 的状态是客观下线
 
-  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-哨兵模式故障转移工作流程1.png)
 
-* 当 sentinel 认定 master 下线之后，此时需要决定更换 master，选举某个 sentinel 处理事故
+***
 
-  在选举的时候每一个 sentinel 都有一票，于是每个 sentinel 都会发出一个指令，在内网广播要做主持人；比如 sentinel1 和 sentinel4 发出这个选举指令了，那么 sentinel2 既能接到 sentinel1 的也能接到 sentinel4 的，sentinel2 会把一票投给其中一方，投给指令最先到达的 sentinel。选举最终得票多的，就成为了处理事故的哨兵，需要注意在这个过程中有可能会存在失败的现象，就是一轮选举完没有选取，那就会接着进行第二轮第三轮直到完成选举。
 
-  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-哨兵模式故障转移工作流程2.png)
 
-选择新的 master，在服务器列表中挑选备选 master 的原则：
+#### 监控列表
 
-- 不在线的 OUT
+Sentinel 状态的初始化将 masters 字典的初始化，根据被载入的 Sentinel 配置文件 conf 来进行属性赋值
 
-- 响应慢的 OUT
-- 与原 master 断开时间久的 OUT
+Sentinel 状态中的 masters 字典记录了所有被 Sentinel 监视的**主服务器的相关信息**，字典的键是被监视主服务器的名字，值是主服务器对应的实例结构
 
-- 优先原则：先根据优先级 → offset → runid
+实例结构是一个 sentinelRedisinstance 数据类型，代表被 Sentinel 监视的实例，这个实例可以是主、从服务器，或者其他 Sentinel
 
-选出新的 master之后，发送指令（sentinel ）给其他的 slave
+```c
+typedef struct sentinelRedisinstance {
+    // 标识值，记录了实例的类型，以及该实例的当前状态
+    int flags;
+    
+    // 实例的名字，主服务器的名字由用户在配置文件中设置，
+    // 从服务器和哨兵的名字由 Sentinel 自动设置，格式为 ip:port，例如 127.0.0.1:6379
+    char *name;
+    
+    // 实例运行的 ID
+    char *runid;
+    
+    // 配置纪元，用于实现故障转移
+    uint64_t config_epoch;
+    
+    // 实例地址
+    sentinelAddr *addr; 
+    
+    // 如果当前实例时主服务器，该字段保存从服务器信息，键是名字格式为 ip:port，值是实例结构
+    dict *slaves;
+    
+    // 所有监视当前服务器的 Sentinel 实例，键是名字格式为 ip:port，值是实例结构
+    dict *sentinels;
+    
+    // sentinel down-after-milliseconds 的值，表示实例无响应多少毫秒后会被判断为主观下线(subjectively down) 
+    mstime_t down_after_period;
+    
+    // sentinel monitor 选项中的quorum参数，判断这个实例为客观下线(objectively down)所需的支持投票数量
+    int quorum;
+    
+    // sentinel parallel-syncs 的值，在执行故障转移操作时，可以同时对新的主服务器进行同步的从服务器数量
+    int parallel-syncs;
+    
+    // sentinel failover-timeout的值，刷新故障迁移状态的最大时限
+    mstime_t failover_timeout;
+}
+```
 
-* 向新的 master 发送 slaveof no one
-* 向其他 slave 发送 slaveof 新 master IP 端口
+addr 属性是一个指向 sentinelAddr 的指针：
+
+```c
+typedef struct sentinelAddr {
+    char *ip;
+    int port;
+}
+```
+
+
+
+***
+
+
+
+#### 网络连接
+
+初始化 Sentinel 的最后一步是创建连向被监视主服务器的网络连接，Sentinel 将成为主服务器的客户端，可以向主服务器发送命令，并从命令回复中获取相关的信息
+
+每个被 Sentinel 监视的主服务器，Sentinel 会创建两个连向主服务器的**异步网络连接**：
+
+* 命令连接：用于向主服务器发送命令，并接收命令回复
+* 订阅连接：用于订阅主服务器的 `_sentinel_:hello` 频道
+
+建立两个连接的原因：
+
+* 在 Redis 目前的发布与订阅功能中，被发送的信息都不会保存在 Redis 服务器里， 如果在信息发送时接收信息的客户端离线或断线，那么这个客户端就会丢失这条信息，为了不丢失 hello 频道的任何信息，Sentinel 必须用一个订阅连接来接收该频道的信息
+
+* Sentinel 还必须向主服务器发送命令，以此来与主服务器进行通信，所以 Sentinel 还必须向主服务器创建命令连接
+
+说明：断线的意思就是网络连接断开
+
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-哨兵系统建立连接.png)
+
+
+
+***
+
+
+
+### 信息交互
+
+#### 获取信息
+
+##### 主服务器
+
+Sentinel 默认会以每十秒一次的频率，通过命令连接向被监视的主服务器发送 INFO 命令，来获取主服务器的当前信息
+
+* 一部分是主服务器本身的信息，包括 runid 域记录的服务器运行 ID，以及 role 域记录的服务器角色
+* 另一部分是服务器属下所有从服务器的信息，每个从服务器都由一个 slave 字符串开头的行记录，根据这些 IP 地址和端口号，Sentinel 无须用户提供从服务器的地址信息，就可以自动发现从服务器
+
+```sh
+# Server 
+run_id:76llc59dc3a29aa6fa0609f84lbb6al019008a9c
+...
+# Replication 
+role:master 
+...
+slave0: ip=l27.0.0.1, port=11111, state=online, offset=22, lag=0
+slave1: ip=l27.0.0.1, port=22222, state=online, offset=22, lag=0
+...
+```
+
+根据 run_id 和 role 记录的信息 Sentinel 将对主服务器的实例结构进行更新，比如主服务器重启之后，运行 ID 就会和实例结构之前保存的运行 ID 不同，哨兵检测到这一情况之后就会对实例结构的运行 ID 进行更新
+
+对于主服务器返回的从服务器信息，用实例结构的 slaves 字典记录了从服务器的信息：
+
+* 如果从服务器对应的实例结构已经存在，那么 Sentinel 对从服务器的实例结构进行更新
+* 如果不存在，为这个从服务器新创建一个实例结构加入字典，字典键为 `ip:port`
+
+
+
+***
+
+
+
+##### 从服务器
+
+当 Sentinel 发现主服务器有新的从服务器出现时，会为这个新的从服务器创建相应的实例结构， 还会创建到从服务器的命令连接和订阅连接，所以 Sentinel 对所有的从服务器之间都可以进行命令操作
+
+Sentinel 默认会以每十秒一次的频率，向从服务器发送 INFO 命令：
+
+```sh
+# Server 
+run_id:76llc59dc3a29aa6fa0609f84lbb6al019008a9c	#从服务器的运行 id
+...
+# Replication 
+role:slave 				# 从服务器角色
+...
+master_host:127.0.0.1 	# 主服务器的 ip
+master_port:6379 		# 主服务器的 port
+master_link_status:up 	# 主从服务器的连接状态
+slave_repl_offset:11111	# 从服务器的复制偏移蜇
+slave_priority:100 		# 从服务器的优先级
+...
+```
+
+* **优先级属性**在故障转移时会用到
+
+根据这些信息，Sentinel 会对从服务器的实例结构进行更新
+
+
+
+
+
+***
+
+
+
+#### 发送信息
+
+Sentinel 在默认情况下，会以每两秒一次的频率，通过命令连接向所有被监视的主服务器和从服务器发送以下格式的命令：
+
+```sh
+PUBLISH _sentinel_:hello "<s_ip>, <s_port>, <s_runid>, <s_epoch>, <m_name>, <m_ip>, <m_port>, <m_epoch>
+```
+
+这条命令向服务器的 `_sentinel_:hello` 频道发送了一条信息，信息的内容由多个参数组成：
+
+* 以 s_ 开头的参数记录的是 Sentinel 本身的信息
+* 以 m_ 开头的参数记录的则是主服务器的信息
+
+说明：**通过命令连接发送的频道信息**
+
+
+
+***
+
+
+
+#### 接受信息
+
+##### 订阅频道
+
+Sentinel 与一个主或从服务器建立起订阅连接之后，就会通过订阅连接向服务器发送订阅命令，频道的订阅会一直持续到 Sentinel 与服务器的连接断开为止
+
+```sh
+SUBSCRIBE _sentinel_:hello
+```
+
+订阅成功后，Sentinel 就可以通过订阅连接从服务器的 `_sentinel_:hello` 频道接收信息，对消息分析：
+
+* 如果信息中记录的 Sentinel 运行 ID 与自己的相同，不做进一步处理
+* 如果不同，将根据信息中的各个参数，对相应主服务器的实例结构进行更新
+
+对于监视同一个服务器的多个 Sentinel 来说，**一个 Sentinel 发送的信息会被其他 Sentinel 接收到**，这些信息会被用于更新其他 Sentinel 对发送信息 Sentinel 的认知，也会被用于更新其他 Sentinel 对被监视的服务器的认知
+
+
+
+***
+
+
+
+##### 更新字典
+
+Sentinel 为主服务器创建的实例结构的 sentinels 字典保存所有同样监视这个**主服务器的 Sentinel 信息**（包括 Sentinel 自己），字典的键是 Sentinel 的名字，格式为 `ip:port`，值是键所对应 Sentinel 的实例结构
+
+当一个 Sentinel 接收到其他 Sentinel 发来的信息时（发送信息为源 Sentinel，接收信息的为目标 Sentinel），目标 Sentinel 会分析提取出 Sentinel 相关的参数和主服务器相关的参数。根据主服务器参数，目标 Sentinel 会在自己的 Sentinel 状态 sentinelState.masters 中查找相应的主服务器实例结构，检查主服务器实例结构的 sentinels 字典中， 源 Sentinel 的实例结构是否存在
+
+* 如果源 Sentinel 的实例结构存在，那么对源 Sentinel 的实例结构进行更新
+* 如果源 Sentinel 的实例结构不存在，说明源 Sentinel 是刚开始监视主服务器，目标 Sentinel 会为源 Sentinel 创建一个新的实例结构，并将这个结构添加到 sentinels 字典里面
+
+因为 Sentinel 可以接收到的频道信息来获知其他 Sentinel 的存在，并通过发送频道信息来让其他 Sentinel 知道自己的存在，所以用户在使用 Sentinel 时并不需要提供各个 Sentinel 的地址信息，**监视同一个主服务器的多个 Sentinel 可以自动发现对方**
+
+
+
+***
+
+
+
+##### 命令连接
+
+Sentinel 通过频道信息发现新的 Sentinel，除了创建实例结构，还会创建一个连向新 Sentinel 的命令连接，而新 Sentinel 也同样会创建连向这个 Sentinel 的命令连接，最终监视同一主服务器的多个 Sentinel 将形成相互连接的网络
+
+作用：**通过命令连接相连的各个 Sentinel** 可以向其他 Sentinel 发送命令请求来进行信息交换
+
+Sentinel 之间不会创建订阅连接：
+
+* Sentinel 需要通过接收主服务器或者从服务器发来的频道信息来发现未知的新 Sentinel，所以才创建订阅连接
+* 相互已知的 Sentinel 只要使用命令连接来进行通信就足够了
+
+
+
+
+
+***
+
+
+
+### 下线检测
+
+#### 主观下线
+
+Sentinel 在默认情况下会以每秒一次的频率向所有与它创建了命令连接的实例（包括主从服务器、其他 Sentinel）发送 PING 命令，通过实例返回的 PING 命令回复来判断实例是否在线
+
+* 有效回复：实例返回 +PONG、-LOADING、-MASTERDOWN 三种回复的其中一种
+* 无效回复：实例返回除上述三种以外的任何数据
+
+Sentinel 配置文件中 down-after-milliseconds 选项指定了判断实例进入主观下线所需的时长，如果主服务器在该时间内一直向 Sentinel 返回无效回复，Sentinel 就会在该服务器对应实例结构的 flags 属性打开 SRI_S_DOWN 标识，表示该主服务器进入主观下线状态
+
+配置的 down-after-milliseconds 值不仅适用于主服务器，还会被用于当前 Sentinel 判断主服务器属下的所有从服务器，以及所有同样监视这个主服务器的其他 Sentinel 的主观下线状态
+
+注意：对于监视同一个主服务器的多个 Sentinel 来说，设置的 down-after-milliseconds 选项的值可能不同，所以当一个 Sentinel 将主服务器判断为主观下线时，其他 Sentinel 可能仍然会认为主服务器处于在线状态
+
+
+
+***
+
+
+
+#### 客观下线
+
+当 Sentinel 将一个主服务器判断为主观下线之后，会向同样监视这一主服务器的其他 Sentinel 进行询问
+
+Sentinel 使用命令询问其他 Sentinel 是否同意主服务器已下线：
+
+```sh
+SENTINEL is-master-down-by-addr <ip> <port> <current_epoch> <runid>
+```
+
+* ip：被 Sentinel 判断为主观下线的主服务器的 IP 地址
+* port：被 Sentinel 判断为主观下线的主服务器的端口号
+* current_epoch：Sentinel 当前的配置纪元，用于选举领头 Sentinel
+* runid：取值为 * 符号代表命令仅仅用于检测主服务器的客观下线状态；取值为 Sentinel 的运行 ID 则用于选举领头 Sentinel
+
+目标 Sentinel 接收到源 Sentinel 的命令时，会根据参数的 lP 和端口号，检查主服务器是否已下线，然后返回一条包含三个参数的 Multi Bulk 回复：
+
+* down_state：返回目标 Sentinel 对服务器的检查结果，1 代表主服务器已下线，0 代表未下线
+* leader_runid：取值为 * 符号代表命令仅用于检测服务器的下线状态；而局部领头 Sentinel 的运行 ID 则用于选举领头 Sentinel
+* leader_epoch：目标 Sentinel 的局部领头 Sentinel 的配置纪元
+
+源 Sentinel 将统计其他 Sentinel 同意主服务器已下线的数量，当这一数量达到配置指定的判断客观下线所需的数量（quorum）时，Sentinel 会将主服务器对应实例结构 flags 属性的 SRI_O_DOWN 标识打开，代表客观下线，并对主服务器执行故障转移操作
+
+注意：不同 Sentinel 判断客观下线的条件可能不同，因为载入的配置文件中的属性（quorum）可能不同
+
+
+
+***
+
+
+
+### 领头选举
+
+主服务器被判断为客观下线时，监视这个主服务器的各个 Sentinel 会进行协商，选举出一个领头 Sentinel 对下线服务器执行故障转移
+
+Redis 选举领头 Sentinel 的规则：
+
+* 所有在线的 Sentinel 都有被选为领头 Sentinel 的资格
+* 每个发现主服务器进入客观下线的 Sentinel 都会要求其他 Sentinel 将自己设置为局部领头 Sentinel
+
+* 在一个配置纪元里，所有 Sentinel 都只有一次将某个 Sentinel 设置为局部领头 Sentinel 的机会，并且局部领头一旦设置，在这个配置纪元里就不能再更改
+* Sentinel 设置局部领头 Sentinel 的规则是先到先得，最先向目标 Sentinel 发送设置要求的源 Sentinel 将成为目标 Sentinel 的局部领头 Sentinel，之后接收到的所有设置要求都会被目标 Sentinel 拒绝
+* 领头 Sentinel 的产生需要半数以上 Sentinel 的支持，并且每个 Sentinel 只有一票，所以一个配置纪元只会出现一个领头 Sentinel，比如 10 个 Sentinel 的系统中，至少需要 `10/2 + 1 = 6` 票
+
+选举过程：
+
+* 一个 Sentinel 向目标 Sentinel 发送 `SENTINEL is-master-down-by-addr` 命令，命令中的 runid 参数不是＊符号而是源 Sentinel 的运行 ID，表示源 Sentinel 要求目标 Sentinel 将自己设置为它的局部领头 Sentinel
+* 目标 Sentinel 接受命令处理完成后，将返回一条命令回复，回复中的 leader_runid 和 leader_epoch 参数分别记录了目标 Sentinel 的局部领头 Sentinel 的运行 ID 和配置纪元
+* 源 Sentinel 接收目标 Sentinel 命令回复之后，会判断 leader_epoch 是否和自己的相同，相同就继续判断 leader_runid 是否和自己的运行 ID 一致，成立表示目标 Sentinel 将源 Sentinel 设置成了局部领头 Sentinel，即获得一票
+* 如果某个 Sentinel 被半数以上的 Sentinel 设置成了局部领头 Sentinel，那么这个 Sentinel 成为领头 Sentinel
+* 如果在给定时限内，没有一个 Sentinel 被选举为领头 Sentinel，那么各个 Sentinel 将在一段时间后再次选举，直到选出领头
+* 每次进行领头 Sentinel 选举之后，不论选举是否成功，所有 Sentinel 的配置纪元（configuration epoch）都要自增一次
+
+Sentinel 集群至少 3 个节点的原因：
+
+* 如果 Sentinel 集群只有 2 个 Sentinel 节点，则领头选举需要 `2/2 + 1 = 2` 票，如果一个节点挂了，那就永远选不出领头
+* Sentinel 集群允许 1 个 Sentinel 节点故障则需要 3 个节点的集群，允许 2 个节点故障则需要 5 个节点集群
+
+
+
+
+
+***
+
+
+
+### 故障转移
+
+#### 执行流程
+
+领头 Sentinel 将对已下线的主服务器执行故障转移操作，该操作包含以下三个步骤
+
+* 从下线主服务器属下的所有从服务器里面，挑选出一个从服务器，执行 `SLAVEOF no one`，将从服务器升级为主服务器
+
+  在发送 SLAVEOF no one 命令后，领头 Sentinel 会以**每秒一次的频率**（一般是 10s/次）向被升级的从服务器发送 INFO 命令，观察命令回复中的角色信息，当被升级服务器的 role 从 slave 变为 master 时，说明从服务器已经顺利升级为主服务器
+
+* 将已下线的主服务器的所有从服务器改为复制新的主服务器，通过向从服务器发送 SLAVEOF 命令实现
+
+* 将已经下线的主服务器设置为新的主服务器的从服务器，设置是保存在服务器对应的实例结构中，当旧的主服务器重新上线时，Sentinel 就会向它发送 SLAVEOF 命令，成为新的主服务器的从服务器
+
+示例：sever1 是主，sever2、sever3、sever4 是从服务器，sever1 故障后选中 sever2 升级
+
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-哨兵执行故障转移.png)
+
+
+
+
+
+***
+
+
+
+#### 选择算法
+
+领头 Sentinel 会将已下线主服务器的所有从服务器保存到一个列表里，然后按照以下规则对列表进行过滤，最后挑选出一个**状态良好、数据完整**的从服务器
+
+* 删除列表中所有处于下线或者断线状态的从服务器，保证列表中的从服务器都是正常在线的
+
+* 删除列表中所有最近五秒内没有回复过领头 Sentinel 的 INFO 命令的从服务器，保证列表中的从服务器最近成功进行过通信
+
+* 删除所有与已下线主服务器连接断开超过 `down-after-milliseconds * 10` 毫秒的从服务器，保证列表中剩余的从服务器都没有过早地与主服务器断开连接，保存的数据都是比较新的
+
+  down-after-milliseconds 时间用来判断是否主观下线，其余的时间完全可以完成客观下线和领头选举
+
+* 根据从服务器的优先级，对列表中剩余的从服务器进行排序，并选出其中**优先级最高**的从服务器
+
+* 如果有多个具有相同最高优先级的从服务器，领头 Sentinel 将对这些相同优先级的服务器按照复制偏移量进行排序，选出其中偏移量最大的从服务器，也就是保存着最新数据的从服务器
+
+* 如果还没选出来，就按照运行 ID 对这些从服务器进行排序，并选出其中运行 ID 最小的从服务器
 
 
 
@@ -13546,19 +13961,23 @@ sentinel 在通知阶段不断的去获取 master/slave 的信息，然后在各
 
 
 
+
+
 ## 集群模式
 
-### 集群概述
+### 集群节点
 
-集群就是使用网络将若干台计算机联通起来，并提供统一的管理方式，使其对外呈现单机的服务效果
+#### 节点概述
 
-![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-集群图示.png)
+Redis 集群是 Redis 提供的分布式数据库方案，集群通过分片（sharding）来进行数据共享， 并提供复制和故障转移功能，一个 Redis 集群通常由多个节点（node）组成，将各个独立的节点连接起来，构成一个包含多节点的集群
 
-**集群作用：**
+一个节点就是一个**运行在集群模式下的 Redis 服务器**，Redis 在启动时会根据配置文件中的 `cluster-enabled` 配置选项是否为 yes 来决定是否开启服务器的集群模式
 
-- 分散单台服务器的访问压力，实现负载均衡
-- 分散单台服务器的存储压力，实现可扩展性
-- 降低单台服务器宕机带来的业务灾难
+节点会继续使用所有在单机模式中使用的服务器组件，使用 redisServer 结构来保存服务器的状态，使用 redisClient 结构来保存客户端的状态，也有集群特有的数据结构
+
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-集群模式.png)
+
+
 
 
 
@@ -13566,33 +13985,729 @@ sentinel 在通知阶段不断的去获取 master/slave 的信息，然后在各
 
 
 
-### 结构设计
+#### 数据结构
 
-**数据存储设计：**
+每个节点都保存着一个集群状态 clusterState 结构，这个结构记录了在当前节点的视角下，集群目前所处的状态
 
-1. 通过算法设计，计算出 key 应该保存的位置（类似哈希寻址）
+```c
+typedef struct clusterState {
+    // 指向当前节点的指针
+	clusterNode *myself;
+    
+	// 集群当前的配置纪元，用于实现故障转移
+	uint64_t currentEpoch;
+    
+	// 集群当前的状态，是在线还是下线
+	int state;
+    
+	// 集群中至少处理着一个槽的节点的数量，为0表示集群目前没有任何节点在处理槽
+	int size;
 
-   ```markdown
-   key -> CRC16(key) -> 值 -> %16384 -> 存储位置
-   ```
+    // 集群节点名单（包括 myself 节点），字典的键为节点的名字，字典的值为节点对应的clusterNode结构 
+    dict *nodes;
+}
+```
 
-2. 将所有的存储空间计划切割成 16384 份，每台主机保存一部分
+每个节点都会使用 clusterNode 结构记录当前状态，并为集群中的所有其他节点（包括主节点和从节点）都创建一个相应的 clusterNode 结构，以此来记录其他节点的状态
 
-   注意：每份代表的是一个存储空间，不是一个 key 的保存空间，可以存储多个 key
+```c
+struct clusterNode {
+    // 创建节点的时间
+    mstime_t ctime;
+    
+    // 节点的名字，由 40 个十六进制字符组成
+    char name[REDIS_CLUSTER_NAMELEN];
+    
+    // 节点标识，使用各种不同的标识值记录节点的角色（比如主节点或者从节点）以及节点目前所处的状态（比如在线或者下线）
+    int flags;
+    
+    // 节点当前的配置纪元，用于实现故障转移
+    uint64_t configEpoch;
+    
+    // 节点的IP地址
+    char ip[REDIS_IP_STR_LEN];
+    
+    // 节点的端口号
+    int port;
+    
+    // 保存连接节点所需的有关信息
+    clusterLink *link;
+}
+```
 
-3. 将 key 按照计算出的结果放到对应的存储空间
+clusterNode 结构的 link 属性是一个 clusterLink 结构，该结构保存了连接节点所需的有关信息
 
-   <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-集群存储空间.png" style="zoom: 67%;" />
+```c
+typedef struct clusterLink {
+    // 连接的创建时间 
+    mstime_t ctime;
+    
+	// TCP套接字描述符
+	int fd;
+    
+	// 输出缓冲区，保存着等待发送给其他节点的消息(message)。 
+    sds sndbuf;
+    
+	// 输入缓冲区，保存着从其他节点接收到的消息。
+	sds rcvbuf;
+    
+	// 与这个连接相关联的节点，如果没有的话就为NULL
+	struct clusterNode *node; 
+}
+```
 
-查找数据：
+* redisClient 结构中的套接宇和缓冲区是用于连接客户端的
+* clusterLink结构中的套接宇和缓冲区则是用于连接节点的
 
-- 各个数据库相互通信，保存各个库中槽的编号数据
-- 一次命中，直接返回
-- 一次未命中，告知具体位置，最多两次命中
 
-设置数据：系统默认存储到某一个
 
-<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-集群查找数据.png" style="zoom:67%;" />
+****
+
+
+
+#### MEET
+
+CLUSTER MEET 命令用来将 ip 和 port 所指定的节点添加到接受命令的节点所在的集群中
+
+```sh
+CLUSTER MEET <ip> <port> 
+```
+
+假设向节点 A 发送 CLUSTER MEET 命令，让节点 A 将另一个节点 B 添加到节点 A 当前所在的集群里，收到命令的节点 A 将与根据 ip 和 port 向节点 B 进行握手（handshake）：
+
+* 节点 A 会为节点 B 创建一个 clusterNode 结构，并将该结构添加到自己的 clusterState.nodes 字典里，然后节点 A 向节点 B **发送 MEET 消息**（message）
+* 节点 B 收到 MEET 消息后，节点 B 会为节点 A 创建一个 clusterNode 结构，并将该结构添加到自己的 clusterState.nodes 字典里，之后节点 B 将向节点 A **返回一条 PONG 消息**
+* 节点 A 收到 PONG 消息后，代表节点 A 可以知道节点 B 已经成功地接收到了自已发送的 MEET 消息，此时节点 A 将向节点 B **返回一条 PING 消息**
+* 节点 B 收到 PING 消息后， 代表节点 B 可以知道节点 A 已经成功地接收到了自己返回的 PONG 消息，握手完成
+
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-集群节点握手.png)
+
+节点 A 会将节点 B 的信息通过 Gossip 协议传播给集群中的其他节点，让其他节点也与节点 B 进行握手，最终经过一段时间之后，节点 B 会被集群中的所有节点认识
+
+
+
+
+
+***
+
+
+
+### 槽指派
+
+#### 基本操作
+
+Redis 集群通过分片的方式来保存数据库中的键值对，集群的整个数据库被分为16384 个槽（slot），数据库中的每个键都属于 16384 个槽中的一个，集群中的每个节点可以处理 0 个或最多 16384 个槽（**每个主节点存储的数据并不一样**）
+
+* 当数据库中的 16384 个槽都有节点在处理时，集群处于上线状态（ok）
+* 如果数据库中有任何一个槽得到处理，那么集群处于下线状态（fail）
+
+通过向节点发送 CLUSTER ADDSLOTS 命令，可以将一个或多个槽指派（assign）给节点负责
+
+```sh
+CLUSTER ADDSLOTS <slot> [slot ... ] 
+```
+
+```sh
+127.0.0.1:7000> CLUSTER ADDSLOTS 0 1 2 3 4 ... 5000 # 将槽0至槽5000指派给节点7000负责
+OK 
+```
+
+命令执行细节：
+
+* 如果命令参数中有一个槽已经被指派给了某个节点，那么会向客户端返回错误，并终止命令执行
+* 将 slots 数组中的索引 i 上的二进制位设置为 1，就代表指派成功
+
+
+
+
+
+***
+
+
+
+#### 节点指派
+
+clusterNode 结构的 slots 属性和 numslot 属性记录了节点负责处理哪些槽：
+
+```c
+struct clusterNode {
+    // 处理信息，一字节等于 8 位
+    unsigned char slots[l6384/8];
+    // 记录节点负责处理的槽的数量，就是 slots 数组中值为 1 的二进制位数量
+    int numslots;
+}
+```
+
+slots 是一个二进制位数组（bit array），长度为 `16384/8 = 2048` 个字节，包含 16384 个二进制位，Redis 以 0 为起始索引，16383 为终止索引，对 slots 数组的 16384 个二进制位进行编号，并根据索引 i 上的二进制位的值来判断节点是否负责处理槽 i：
+
+* 在索引 i 上的二进制位的值为 1，那么表示节点负责处理槽 i
+* 在索引 i 上的二进制位的值为 0，那么表示节点不负责处理槽 i
+
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-集群槽指派信息.png)
+
+取出和设置 slots 数组中的任意一个二进制位的值的**复杂度仅为 O(1)**，所以对于一个给定节点的 slots 数组来说，检查节点是否负责处理某个槽或者将某个槽指派给节点负责，这两个动作的复杂度都是 O(1)
+
+**传播节点的槽指派信息**：一个节点除了会将自己负责处理的槽记录在 clusterNode 中，还会将自己的 slots 数组通过消息发送给集群中的其他节点，每个接收到 slots 数组的节点都会将数组保存到相应节点的 clusterNode 结构里面，因此集群中的**每个节点**都会知道数据库中的 16384 个槽分别被指派给了集群中的哪些节点
+
+
+
+
+
+***
+
+
+
+#### 集群指派
+
+集群状态 clusterState 结构中的 slots 数组记录了集群中所有 16384 个槽的指派信息，数组每一项都是一个指向 clusterNode 的指针
+
+```c
+typedef struct clusterState {
+    // ...
+    clusterNode *slots[16384];
+}
+```
+
+* 如果 slots[i] 指针指向 NULL，那么表示槽 i 尚未指派给任何节点
+* 如果 slots[i] 指针指向一个 clusterNode 结构，那么表示槽 i 已经指派给该节点所代表的节点
+
+通过该节点，程序检查槽 i 是否已经被指派或者取得负责处理槽 i 的节点，只需要访问 clusterState. slots[i] 即可，时间复杂度仅为 O(1)
+
+
+
+
+
+***
+
+
+
+### 集群命令
+
+#### 执行命令
+
+集群处于上线状态，客户端就可以向集群中的节点发送命令（16384 个槽全部指派就进入上线状态）
+
+当客户端向节点发送与数据库键有关的命令时，接收命令的节点会计算出命令该键属于哪个槽，并检查这个槽是否指派给了自己
+
+* 如果键所在的槽正好就指派给了当前节点，那么节点直接执行这个命令
+* 反之，节点会向客户端返回一个 MOVED 错误，指引客户端转向（redirect）至正确的节点，再次发送该命令
+
+计算键归属哪个槽的**寻址算法**：
+
+```c
+def slot_number(key): 			// CRC16(key) 语句计算键 key 的 CRC-16 校验和
+	return CRC16(key) & 16383;	// 取模，十进制对16384的取余
+```
+
+使用 `CLUSTER KEYSLOT <key>` 命令可以查看一个给定键属于哪个槽，底层实现：
+
+```c
+def CLUSTER_KEYSLOT(key):
+	// 计算槽号
+	slot = slot_number(key);
+	// 将槽号返回给客户端
+	reply_client(slot);
+```
+
+判断槽是否由当前节点负责处理：
+
+* 如果 clusterState.slots[i] 等于 clusterState.myself，那么说明槽 i 由当前节点负责，节点可以执行客户端发送的命令
+* 如果 clusterState.slots[i] 不等于 clusterState.myself，那么说明槽 i 并非由当前节点负责，节点会根据 clusterState.slots[i] 指向的clusterNode 结构所记录的节点 IP 和端口号，向客户端返回 MOVED 错误
+
+
+
+***
+
+
+
+#### MOVED
+
+MOVED 错误的格式为：
+
+```sh
+MOVED <slot> <ip>:<port＞
+```
+
+参数 slot 为键所在的槽，ip 和 port 是负责处理槽 slot 的节点的 ip 地址和端口号
+
+```sh
+MOVED 12345 127.0.0.1:6380 # 表示槽 12345 正由 IP地址为 127.0.0.1, 端口号为 6380 的节点负责
+```
+
+当客户端接收到节点返回的 MOVED 错误时，客户端会根据 MOVED 错误中提供的 IP 地址和端口号，转至负责处理槽 slot 的节点重新发送执行的命令
+
+* 一个集群客户端通常会与集群中的多个节点创建套接字连接，节点转向实际上就是换一个套接字来发送命令
+
+* 如果客户端尚未与转向的节点创建套接字连接，那么客户端会先根据 IP 地址和端口号来连接节点，然后再进行转向
+
+集群模式的 redis-cli 在接收到 MOVED 错误时，并不会打印出 MOVED 错误，而是根据错误**自动进行节点转向**，并打印出转向信息：
+
+```sh
+$ redis-cli -c -p 6379 	#集群模式
+127.0.0.1:6379> SET msg "happy" 
+-> Redirected to slot [6257] located at 127.0.0.1:6380
+OK 
+
+127.0.0.1:6379> 
+```
+
+使用单机（stand alone）模式的 redis-cli 会打印错误，因为单机模式客户端不清楚 MOVED 错误的作用，不会进行自动转向：
+
+```sh
+$ redis-cli -c -p 6379 	#集群模式
+127.0.0.1:6379> SET msg "happy" 
+(error) MOVED 6257 127.0.0.1:6380
+
+127.0.0.1:6379>
+```
+
+
+
+
+
+***
+
+
+
+### 集群数据
+
+集群节点保存键值对以及键值对过期时间的方式，与单机 Redis 服务器保存键值对以及键值对过期时间的方式完全相同，但是集群节点只能使用 0 号数据库，单机服务器可以任意使用
+
+除了将键值对保存在数据库里面之外，节点还会用 clusterState 结构中的 slots_to_keys 跳跃表来保存**槽和键**之间的关系
+
+```c
+typedef struct clusterState {
+    // ...
+    zskiplist *slots_to_keys;
+}
+```
+
+slots_to_keys 跳跃表每个节点的分值（score）都是一个槽号，而每个节点的成员（member）都是一个数据库键（按槽号升序）
+
+* 当节点往数据库中添加一个新的键值对时，节点就会将这个键以及键的槽号关联到 slots_to_keys 跳跃表
+* 当节点删除数据库中的某个键值对时，节点就会在 slots_to_keys 跳跃表解除被删除键与槽号的关联
+
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-槽和键跳跃表.png)
+
+通过在 slots_to_keys 跳跃表中记录各个数据库键所属的槽，可以很方便地对属于某个或某些槽的所有数据库键进行批量操作，比如 `CLUSTER GETKEYSINSLOT <slot> <count>` 命令返回最多 count 个属于槽 slot 的数据库键，就是通过该跳表实现
+
+
+
+
+
+***
+
+
+
+### 重新分片
+
+#### 实现原理
+
+Redis 集群的重新分片操作可以将任意数量已经指派给某个节点（源节点）的槽改为指派给另一个节点（目标节点），并且相关槽的键值对也会从源节点被移动到目标节点，该操作是可以在线（online）进行，在重新分片的过程中源节点和目标节点都可以处理命令请求
+
+Redis 的集群管理软件 redis-trib 负责执行重新分片操作，redis-trib 通过向源节点和目标节点发送命令来进行重新分片操作
+
+* redis-trib 向目标节点发送 `CLUSTER SETSLOT <slot> IMPORTING <source_id>` 命令，让目标节点准备好从源节点导入属于槽 slot 的键值对
+* redis-trib 向源节点发送 `CLUSTER SETSLOT <slot> MIGRATING <target_id>` 命令，让源节点准备好将属于槽 slot 的键值对迁移至目标节点
+* redis-trib 向源节点发送 `CLUSTER GETKEYSINSLOT <slot> <count>` 命令，获得最多 count 个属于槽 slot 的键值对的键名
+* 对于每个 key，redis-trib 都向源节点发送一个 `MIGRATE <target_ip> <target_port> <key_name> 0 <timeout＞` 命令，将被选中的键**原子地**从源节点迁移至目标节点
+* 重复上述步骤，直到源节点保存的所有槽 slot 的键值对都被迁移至目标节点为止
+* redis-trib 向集群中的任意一个节点发送 `CLUSTER SETSLOT <slot> NODE <target _id>` 命令，将槽 slot 指派给目标节点，这一指派信息会通过消息传播至整个集群，最终集群中的所有节点都直到槽 slot 已经指派给了目标节点
+
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-集群重新分片.png)
+
+如果重新分片涉及多个槽，那么 redis-trib 将对每个给定的槽分别执行上面给出的步骤
+
+
+
+
+
+***
+
+
+
+#### 命令原理
+
+clusterState 结构的 importing_slots_from 数组记录了当前节点正在从其他节点导入的槽，migrating_slots_to 数组记录了当前节点正在迁移至其他节点的槽：
+
+```c
+typedef struct clusterState {
+    // 如果 importing_slots_from[i] 的值不为 NULL，而是指向一个 clusterNode 结构，
+    // 那么表示当前节点正在从 clusterNode 所代表的节点导入槽 i
+    clusterNode *importing_slots_from[16384];
+    
+    // 表示当前节点正在将槽 i 迁移至 clusterNode 所代表的节点
+    clusterNode *migrating_slots_to[16384];
+}
+```
+
+`CLUSTER SETSLOT <slot> IMPORTING <source_id>` 命令：将目标节点 `clusterState.importing_slots_from[slot]` 的值设置为  source_id 所代表节点的 clusterNode 结构
+
+`CLUSTER SETSLOT <slot> MIGRATING <target_id>` 命令：将源节点 `clusterState.migrating_slots_to[slot]` 的值设置为target_id 所代表节点的 clusterNode 结构
+
+
+
+***
+
+
+
+#### ASK 错误
+
+重新分片期间，源节点向目标节点迁移一个槽的过程中，可能出现被迁移槽的一部分键值对保存在源节点，另一部分保存在目标节点
+
+客户端向源节点发送命令请求，并且命令要处理的数据库键属于被迁移的槽：
+
+* 源节点会先在数据库里面查找指定键，如果找到的话，就直接执行客户端发送的命令
+
+* 未找到会检查 clusterState.migrating_slots_to[slot]，看键 key 所属的槽 slot 是否正在进行迁移
+
+* 槽 slot 正在迁移则源节点将向客户端返回一个 ASK 错误，指引客户端转向正在导入槽的目标节点
+
+  ```sh
+  ASK <slot> <ip:port>
+  ```
+
+* 接到 ASK 错误的客户端，会根据错误提供的 IP 地址和端口号转向目标节点，首先向目标节点发送一个 ASKING 命令，再重新发送原本想要执行的命令
+
+和 MOVED 错误情况类似，集群模式的 redis-cli 在接到 ASK 错误时不会打印错误进行自动转向；单机模式的 redis-cli 会打印错误
+
+对比 MOVED 错误：
+
+* MOVED 错误代表槽的负责权已经从一个节点转移到了另一个节点，转向是一种持久性的转向
+
+* ASK 错误只是两个节点在迁移槽的过程中使用的一种临时措施，ASK 的转向不会对客户端今后发送关于槽 slot 的命令请求产生任何影响，客户端仍然会将槽 slot 的命令请求发送至目前负责处理槽 slot 的节点，除非 ASK 错误再次出现
+
+
+
+***
+
+
+
+#### ASKING
+
+客户端不发送 ASKING 命令，而是直接发送执行的命令，那么客户端发送的命令将被节点拒绝执行，并返回 MOVED 错误
+
+ASKING 命令作用是打开发送该命令的客户端的 REDIS_ASKING 标识，该命令的伪代码实现：
+
+```c
+def ASKING ():
+    // 打开标识
+    client.flags |= REDIS_ASKING 
+    // 向客户端返回OK回复
+    reply("OK") 
+```
+
+当前节点正在导入槽 slot，并且发送命令的客户端带有 REDIS_ASKING 标识，那么节点将破例执行这个关于槽 slot 的命令一次
+
+客户端的 REDIS_ASKING 标识是一次性标识，当节点执行了一个带有 REDIS_ASKING 标识的客户端发送的命令之后，该客户端的 REDIS_ASKING 标识就会被移除
+
+
+
+
+
+***
+
+
+
+### 高可用
+
+#### 节点复制
+
+Redis 集群中的节点分为主节点（master）和从节点（slave），其中主节点用于处理槽，而从节点则用于复制主节点，并在被复制的主节点下线时，代替下线主节点继续处理命令请求
+
+```sh
+CLUSTER REPLICATE <node_id> 
+```
+
+向一个节点发送命令可以让接收命令的节点成为 node_id 所指定节点的从节点，并开始对主节点进行复制
+
+* 接受命令的节点首先会在的 clusterState.nodes 字典中找到 node_id 所对应节点的 clusterNode 结构，并将自己的节点中的 clusterState.myself.slaveof 指针指向这个结构，记录这个节点正在复制的主节点
+
+* 节点会修改 clusterState.myself.flags 中的属性，关闭 REDIS_NODE_MASTER 标识，打开 REDIS_NODE_SLAVE 标识
+* 节点会调用复制代码，对主节点进行复制（节点的复制功能和单机 Redis 服务器的使用了相同的代码）
+
+一个节点成为从节点，并开始复制某个主节点这一信息会通过消息发送给集群中的其他节点，最终集群中的所有节点都会知道某个从节点正在复制某个主节点
+
+主节点的 clusterNode 结构的 slaves 属性和 numslaves 属性中记录正在复制这个主节点的从节点名单：
+
+```c
+struct clusterNode {
+    // 正在复制这个主节点的从节点数量
+    int numslaves;
+    
+    // 数组项指向一个正在复制这个主节点的从节点的clusterNode结构
+    struct clusterNode **slaves; 
+}
+```
+
+
+
+***
+
+
+
+#### 故障检测
+
+集群中的每个节点都会定期地向集群中的其他节点发送 PING 消息，来检测对方是否在线，如果接收 PING 的节点没有在规定的时间内返回 PONG 消息，那么发送消息节点就会将接收节点标记为**疑似下线**（probable fail, PFAIL）
+
+集群中的节点会互相发送消息，来**交换集群中各个节点的状态信息**，当一个主节点 A 通过消息得知主节点 B 认为主节点 C 进入了疑似下线状态时，主节点 A 会在 clusterState.nodes 字典中找到主节点 C 所对应的节点，并将主节点 B 的下线报告（failure report）添加到 clusterNode.fail_reports 链表里面
+
+```c
+struct clusterNode {
+    // 一个链表，记录了所有其他节点对该节点的下线报告 
+    list *fail_reports;
+}
+// 每个下线报告由一个 clusterNodeFailReport 结构表示
+struct clusterNodeFailReport {
+    // 报告目标节点巳经下线的节点 
+    struct clusterNode *node;
+    
+    // 最后一次从node节点收到下线报告的时间
+    // 程序使用这个时间戳来检查下线报告是否过期，与当前时间相差太久的下线报告会被删除 
+    mstime_t time; 
+};
+```
+
+集群里**半数以上**负责处理槽的主节点都将某个主节点 X 报告为疑似下线，那么 X 将被标记为**已下线**（FAIL），将 X 标记为已下线的节点会向集群广播一条关于主节点 X 的 FAIL 消息，所有收到消息的节点都会将 X 标记为已下线
+
+
+
+****
+
+
+
+#### 故障转移
+
+当一个从节点发现所属的主节点进入了已下线状态，从节点将开始对下线主节点进行故障转移，执行步骤：
+
+* 下属的从节点通过选举产生一个节点
+* 被选中的从节点会执行 `SLAVEOF no one` 命令，成为新的主节点
+* 新的主节点会撤销所有对已下线主节点的槽指派，并将这些槽全部指派给自己
+* 新的主节点向集群广播一条 PONG 消息，让集群中的其他节点知道当前节点变成了主节点，并且接管了下线节点负责处理的槽
+* 新的主节点开始接收有关的命令请求，故障转移完成
+
+
+
+***
+
+
+
+#### 选举算法
+
+集群选举新的主节点的规则：
+
+* 集群的配置纪元是一个自增的计数器，初始值为 0
+* 当集群里某个节点开始一次故障转移，集群的配置纪元就是增加一
+* 每个配置纪元里，集群中每个主节点都有一次投票的机会，而第一个向主节点要求投票的从节点将获得该主节点的投票
+* 具有投票权的主节点是必须具有正在处理的槽
+* 集群里有 N 个具有投票权的主节点，那么当一个从节点收集到大于等于 `N/2+1` 张支持票时，从节点就会当选
+* 每个配置纪元里，具有投票权的主节点只能投一次票，所以获得一半以上票的节点只会有一个
+
+选举流程：
+
+* 当某个从节点发现正在复制的主节点进入已下线状态时，会向集群广播一条 `CLUSTERMSG_TYPE_FAILOVER_AUTH_REQUEST` 消息，要求所有收到这条消息、并且具有投票权的主节点向这个从节点投票
+* 如果主节点尚未投票给其他从节点，将向要求投票的从节点返回一条 `CLUSTERMSG_TYPE_FAILOVER_AUTH_ACK` 消息，表示这个主节点支持从节点成为新的主节点
+* 如果从节点获取到了半数以上的选票，则会当选新的主节点
+* 如果一个配置纪元里没有从节点能收集到足够多的支待票，那么集群进入一个新的配置纪元，并再次进行选举，直到选出新的主节点
+
+
+
+选举新主节点的方法和选举领头 Sentinel 的方法非常相似，两者都是基于 Raft 算法的领头选举（eader election）方法实现的
+
+
+
+
+
+***
+
+
+
+### 消息机制
+
+#### 消息结构
+
+集群中的各个节点通过发送和接收消息（message）来进行通信，将发送消息的节点称为发送者（sender），接收消息的节点称为接收者（receiver）
+
+节点发送的消息主要有：
+
+* MEET 消息：当发送者接到客户端发送的 CLUSTER MEET 命令时，会向接收者发送 MEET 消息，请求接收者加入到发送者当前所处的集群里
+
+* PING 消息：集群里的每个节点默认每隔一秒钟就会从已知节点列表中随机选出五个，然后对这五个节点中最长时间没有发送过 PING 消息的节点发送 PING，以此来**随机检测**被选中的节点是否在线
+
+  如果节点 A 最后一次收到节点 B 发送的 PONG 消息的时间，距离当前已经超过了节点 A 的 cluster-node­-timeout 设置时长的一半，那么 A 也会向 B 发送 PING 消息，防止 A 因为长时间没有随机选中 B 发送 PING，而导致对节点 B 的信息更新滞后
+
+* PONG 消息：当接收者收到 MEET 消息或者 PING 消息时，为了让发送者确认已经成功接收消息，会向发送者返回一条 PONG；节点也可以通过向集群广播 PONG 消息来让集群中的其他节点立即刷新关于这个节点的认识（从升级为主）
+
+* FAIL 消息：当一个主节点 A 判断另一个主节点 B 已经进入 FAIL 状态时，节点 A 会向集群广播一条 B 节点的 FAIL 信息
+
+* PUBLISH 消息：当节点接收到一个 PUBLISH 命令时，节点会执行这个命令并向集群广播一条 PUBLISH 消息，接收到 PUBLISH 消息的节点都会执行相同的 PUBLISH 命令
+
+
+
+
+
+***
+
+
+
+#### 消息头
+
+节点发送的所有消息都由一个消息头包裹，消息头除了包含消息正文之外，还记录了消息发送者自身的一些信息
+
+消息头：
+
+```c
+typedef struct clusterMsg {
+    // 消息的长度（包括这个消息头的长度和消息正文的长度）
+	uint32_t totlen;
+	// 消息的类型
+	uint16_t type;
+    // 消息正文包含的节点信息数量，只在发送MEET、PING、PONG这三种Gossip协议消息时使用 
+    uint16_t count;
+    
+    // 发送者所处的配置纪元
+    uint64_t currentEpoch;
+    // 如果发送者是一个主节点，那么这里记录的是发送者的配置纪元
+    // 如果发送者是一个从节点，那么这里记录的是发送者正在复制的主节点的配置纪元
+    uint64_t configEpoch;
+    
+    // 发送者的名字(ID)
+	char sender[REDIS CLUSTER NAMELEN];
+	// 发送者目前的槽指派信息
+	unsigned char myslots[REDIS_CLUSTER_SLOTS/8];
+    
+    // 如果发送者是一个从节点，那么这里记录的是发送者正在复制的主节点的名字
+    // 如果发送者是一个主节点，那么这里记录的是 REDIS_NODE_NULL_NAME，一个 40 宇节长值全为 0 的字节数组
+    char slaveof[REDIS_CLUSTER_NAMELEN];
+    
+	// 发送者的端口号
+	uint16_t port;
+	// 发送者的标识值
+    uint16_t flags; 
+	//发送者所处集群的状态
+    unsigned char state;
+	// 消息的正文（或者说， 内容） 
+    union clusterMsgData data;
+}
+```
+
+clusterMsg 结构的 currentEpoch、sender、myslots 等属性记录了发送者的节点信息，接收者会根据这些信息在 clusterState.nodes 字典里找到发送者对应的 clusterNode 结构，并对结构进行更新，比如**传播节点的槽指派信息**
+
+消息正文：
+
+```c
+union clusterMsgData {
+    // MEET、PING、PONG 消息的正文
+    struct {
+        // 每条 MEET、PING、PONG 消息都包含两个 clusterMsgDataGossip 结构
+        clusterMsgDataGossip gossip[1];
+    } ping;
+    
+    // FAIL 消息的正文
+    struct { 
+		clusterMsgDataFail about;
+    } fail;
+    
+    // PUBLISH 消息的正文
+    struct {
+    	clusterMsgDataPublish msg;
+    } publish;
+    
+    // 其他消息正文...
+}
+```
+
+
+
+***
+
+
+
+
+
+#### Gossip
+
+Redis 集群中的各个节点通过 Gossip 协议来交换各自关于不同节点的状态信息，其中 Gossip 协议由 MEET、PING、PONG 消息实现，三种消息使用相同的消息正文，所以节点通过消息头的 type 属性来判断消息的具体类型
+
+发送者发送这三种消息时，会从已知节点列表中**随机选出两个节点**（主从都可以），将两个被选中节点信息保存到两个 Gossip 结构
+
+```c
+typedef struct clusterMsgDataGossip {
+    // 节点的名字
+	char nodename[REDIS CLUSTER NAMELEN];
+    
+	// 最后一次向该节点发送PING消息的时间戳
+    uint32_t ping_sent;
+	// 最后一次从该节点接收到PONG消息的时间戳
+    uint32_t pong_received;
+    
+	// 节点的IP地址
+	char ip[16];
+    // 节点的端口号
+    uint16_t port;
+	// 节点的标识值
+    uint16_t flags;
+}
+```
+
+当接收者收到消息时，会访问消息正文中的两个数据结构，来进行相关操作
+
+* 如果被选中节点不存在于接收者的已知节点列表，接收者将根据结构中记录的 IP 地址和端口号，与节点进行握手
+* 如果存在，根据 Gossip 结构记录的信息对节点所对应的 clusterNode 结构进行更新
+
+
+
+***
+
+
+
+#### FAIL
+
+在集群的节点数量比较大的情况下，使用 Gossip 协议来传播节点的已下线信息会带来一定延迟，因为 Gossip 协议消息通常需要一段时间才能传播至整个集群，所以通过发送 FAIL消息可以让集群里的所有节点立即知道某个主节点已下线，从而尽快进行其他操作
+
+FAIL 消息的正文由 clusterMsgDataFail 结构表示，该结构只有一个属性，记录了已下线节点的名字
+
+```c
+typedef struct clusterMsgDataFail {
+	char nodename[REDIS_CLUSTER_NAMELEN)];
+};
+```
+
+因为传播下线信息不需要其他属性，所以节省了传播的资源
+
+
+
+***
+
+
+
+#### PUBLISH
+
+当客户端向集群中的某个节点发送命令，接收到 PUBLISH 命令的节点不仅会向 channel 频道发送消息 message，还会向集群广播一条 PUBLISH 消息，所有接收到这条 PUBLISH 消息的节点都会向 channel 频道发送 message 消息，最终集群中所有节点都发了
+
+```sh
+PUBLISH <channel> <message> 
+```
+
+PUBLISH 消息的正文由 clusterMsgDataPublish 结构表示：
+
+```c
+typedef struct clusterMsgDataPublish {
+    // channel参数的长度
+    uint32_t channel_len;
+    // message参数的长度
+    uint32_t message_len;
+    
+    // 定义为8字节只是为了对齐其他消息结构，实际的长度由保存的内容决定
+    // bulk_data 的 0 至 channel_len-1 字节保存的是channel参数
+    // bulk_data的 channel_len 字节至 channel_len + message_len-1 字节保存的则是message参数
+    unsigned char bulk_data[8];
+}
+```
+
+让集群的所有节点执行相同的 PUBLISH 命令，最简单的方法就是向所有节点广播相同的 PUBLISH 命令，这也是 Redis 复制 PUBLISH 命令时所使用的，但是这种做法并不符合 Redis 集群的各**个节点通过发送和接收消息来进行通信**的规则
+
+
 
 
 
@@ -13640,25 +14755,25 @@ sentinel 在通知阶段不断的去获取 master/slave 的信息，然后在各
 
 - 是否启用 cluster，加入 cluster 节点
 
-  ```properties
+  ```sh
   cluster-enabled yes|no
   ```
 
 - cluster 配置文件名，该文件属于自动生成，仅用于快速查找文件并查询文件内容
 
-  ```properties
+  ```sh
   cluster-config-file filename
   ```
 
 - 节点服务响应超时时间，用于判定该节点是否下线或切换为从节点
 
-  ```properties
+  ```sh
   cluster-node-timeout milliseconds
   ```
 
 - master 连接的 slave 最小数量
 
-  ```properties
+  ```sh
   cluster-migration-barrier min_slave_number
   ```
 
@@ -13668,31 +14783,31 @@ sentinel 在通知阶段不断的去获取 master/slave 的信息，然后在各
 
 - 查看集群节点信息
 
-  ```properties
+  ```sh
   cluster nodes
   ```
 
 - 更改 slave 指向新的 master
 
-  ```properties
+  ```sh
   cluster replicate master-id
   ```
 
 - 发现一个新节点，新增 master
 
-  ```properties
+  ```sh
   cluster meet ip:port
   ```
 
 - 忽略一个没有 solt 的节点
 
-  ```properties
+  ```sh
   cluster forget server_id
   ```
 
 - 手动故障转移
 
-  ```properties
+  ```sh
   cluster failover
   ```
 
@@ -13700,7 +14815,7 @@ sentinel 在通知阶段不断的去获取 master/slave 的信息，然后在各
 
 * 创建集群
 
-  ```properties
+  ```sh
   redis-cli –-cluster create masterhost1:masterport1 masterhost2:masterport2  masterhost3:masterport3 [masterhostn:masterportn …] slavehost1:slaveport1  slavehost2:slaveport2 slavehost3:slaveport3 -–cluster-replicas n
   ```
 
@@ -13709,25 +14824,25 @@ sentinel 在通知阶段不断的去获取 master/slave 的信息，然后在各
 
 * 添加 master 到当前集群中，连接时可以指定任意现有节点地址与端口
 
-  ```properties
+  ```sh
   redis-cli --cluster add-node new-master-host:new-master-port now-host:now-port
   ```
 
 * 添加 slave
 
-  ```properties
+  ```sh
   redis-cli --cluster add-node new-slave-host:new-slave-port master-host:master-port --cluster-slave --cluster-master-id masterid
   ```
 
 * 删除节点，如果删除的节点是 master，必须保障其中没有槽 slot
 
-  ```properties
+  ```sh
   redis-cli --cluster del-node del-slave-host:del-slave-port del-slave-id
   ```
 
 * 重新分槽，分槽是从具有槽的 master 中划分一部分给其他 master，过程中不创建新的槽
 
-  ```properties
+  ```sh
   redis-cli --cluster reshard new-master-host:new-master:port --cluster-from src-  master-id1, src-master-id2, src-master-idn --cluster-to target-master-id --  cluster-slots slots
   ```
 
@@ -13736,7 +14851,7 @@ sentinel 在通知阶段不断的去获取 master/slave 的信息，然后在各
 
 * 重新分配槽，从具有槽的 master 中分配指定数量的槽到另一个 master 中，常用于清空指定 master 中的槽
 
-  ```properties
+  ```sh
   redis-cli --cluster reshard src-master-host:src-master-port --cluster-from src-  master-id --cluster-to target-master-id --cluster-slots slots --cluster-yes
   ```
 

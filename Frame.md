@@ -4486,7 +4486,7 @@ NameServer 主要包括两个功能：
 NameServer 特点：
 
 * NameServer 通常是集群的方式部署，**各实例间相互不进行信息通讯**
-* Broker 向每一台 NameServer 注册自己的路由信息，所以每个 NameServer 实例上面**都保存一份完整的路由信息**
+* Broker 向每一台 NameServer（集群）注册自己的路由信息，所以每个 NameServer 实例上面**都保存一份完整的路由信息**
 * 当某个 NameServer 因某种原因下线了，Broker 仍可以向其它 NameServer 同步其路由信息
 
 BrokerServer 主要负责消息的存储、投递和查询以及服务高可用保证，在 RocketMQ 系统中接收从生产者发送来的消息并存储、同时为消费者的拉取请求作准备，也存储消息相关的元数据，包括消费者组、消费进度偏移和主题和队列消息等
