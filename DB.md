@@ -9223,13 +9223,11 @@ typedef struct redisDB {
 
   ```sh
   type key					#获取key的类型
-  sort key [ASC/DESC]			#对key中数据排序，默认对数字排序，并不更改集合中的数据位置，只是查询
-  sort key alpha				#对key中字母排序
   dbsize						#获取当前数据库的数据总量，即key的个数
   flushdb						#清除当前数据库的所有数据(慎用)
   flushall					#清除所有数据(慎用)
   ```
-
+  
   在执行 FLUSHDB 这样的危险命令之前，最好先执行一个 SELECT 命令，保证当前所操作的数据库是目标数据库
 
 
@@ -9415,6 +9413,8 @@ Redis 采用惰性删除和定期删除策略的结合使用
 
 
 
+
+
 ***
 
 
@@ -9501,6 +9501,221 @@ Redis 如果不设置最大内存大小或者设置最大内存大小为 0，在
 
 
 
+### 排序机制
+
+#### 基本介绍
+
+Redis 的 SORT 命令可以对列表键、集合键或者有序集合键的值进行排序，并不更改集合中的数据位置，只是查询
+
+```sh
+SORT key [ASC/DESC]			#对key中数据排序，默认对数字排序，并不更改集合中的数据位置，只是查询
+SORT key ALPHA				#对key中字母排序，按照字典序
+```
+
+
+
+
+
+***
+
+
+
+#### SORT
+
+`SORT <key>` 命令可以对一个包含数字值的键 key 进行排序
+
+假设 `RPUSH numbers 3 1 2`，执行 `SORT numbers` 的详细步骤：
+
+* 创建一个和 key 列表长度相同的数组，数组每项都是 redisSortObject 结构
+
+  ```c
+  typedef struct redisSortObject {
+      // 被排序键的值
+      robj *obj;
+      
+      // 权重
+      union {
+          // 排序数字值时使用
+          double score;
+          // 排序带有 BY 选项的字符串
+          robj *cmpobj;
+      } u;
+  }
+  ```
+
+* 遍历数组，将各个数组项的 obj 指针分别指向 numbers 列表的各个项
+
+* 遍历数组，将 obj 指针所指向的列表项转换成一个 double 类型的浮点数，并将浮点数保存在对应数组项的 u.score 属性里
+
+* 根据数组项 u.score 属性的值，对数组进行数字值排序，排序后的数组项按 u.score 属性的值**从小到大排列**
+
+* 遍历数组，将各个数组项的 obj 指针所指向的值作为排序结果返回给客户端，程序首先访问数组的索引 0，依次向后访问
+
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-sort排序.png)
+
+对于 `SORT key [ASC/DESC]` 函数：
+
+* 在执行升序排序时，排序算法使用的对比函数产生升序对比结果
+* 在执行降序排序时，排序算法所使用的对比函数产生降序对比结果
+
+
+
+****
+
+
+
+#### BY
+
+SORT 命令默认使用被排序键中包含的元素作为排序的权重，元素本身决定了元素在排序之后所处的位置，通过使用 BY 选项，SORT 命令可以指定某些字符串键，或者某个哈希键所包含的某些域（field）来作为元素的权重，对一个键进行排序
+
+```sh
+SORT <key> BY <pattern>			# 数值
+SORT <key> BY <pattern> ALPHA	# 字符
+```
+
+```sh
+redis> SADD fruits "apple" "banana" "cherry" 
+(integer) 3
+redis> SORT fruits ALPHA
+1)	"apple"
+2)	"banana"
+3)	"cherry"
+```
+
+```sh
+redis> MSET apple-price 8 banana-price 5.5 cherry-price 7 
+OK
+# 使用水果的价钱进行排序
+redis> SORT fruits BY *-price
+1)	"banana"
+2)	"cherry"
+3)	"apple"
+```
+
+实现原理：排序时的 u.score 属性就会被设置为对应的权重
+
+
+
+
+
+***
+
+
+
+#### LIMIT
+
+SORT 命令默认会将排序后的所有元素都返回给客户端，通过 LIMIT 选项可以让 SORT 命令只返回其中一部分已排序的元素
+
+```sh
+LIMIT <offset> <count>
+```
+
+* offset 参数表示要跳过的已排序元素数量
+* count 参数表示跳过给定数量的元素后，要返回的已排序元素数量
+
+```sh
+# 对应 a b c d e f  g
+redis> SORT alphabet ALPHA LIMIT 2 3
+1) 	"c"
+2) 	"d"
+3) 	"e"
+```
+
+实现原理：在排序后的 redisSortObject 结构数组中，将指针移动到数组的索引 2 上，依次访问 array[2]、array[3]、array[4] 这 3 个数组项，并将数组项的 obj 指针所指向的元素返回给客户端
+
+
+
+
+
+***
+
+
+
+#### GET
+
+SORT 命令默认在对键进行排序后，返回被排序键本身所包含的元素，通过使用 GET 选项， 可以在对键进行排序后，根据被排序的元素以及 GET 选项所指定的模式，查找并返回某些键的值
+
+```sh
+SORT <key> GET <pattern>
+```
+
+```sh
+redis> SADD students "tom" "jack" "sea"
+#设置全名
+redis> SET tom-name "Tom Li" 
+OK 
+redis> SET jack-name "Jack Wang" 
+OK 
+redis> SET sea-name "Sea Zhang"
+OK 
+```
+
+```sh
+redis> SORT students ALPHA GET *-name
+1)	"Jack Wang"
+2)	"Sea Zhang"
+3) 	"Tom Li"
+```
+
+实现原理：对 students 进行排序后，对于 jack 元素和 *-name 模式，查找程序返回键 jack-name，然后获取 jack-name 键对应的值
+
+
+
+
+
+***
+
+
+
+#### STORE
+
+SORT 命令默认只向客户端返回排序结果，而不保存排序结果，通过使用 STORE 选项可以将排序结果保存在指定的键里面
+
+```sh
+SORT <key> STORE <sort_key>
+```
+
+```sh
+redis> SADD students "tom" "jack" "sea"
+(integer) 3 
+redis> SORT students ALPHA STORE sorted_students 
+(integer) 3 
+```
+
+实现原理：排序后，检查 sorted_students 键是否存在，如果存在就删除该键，设置 sorted_students 为空白的列表键，遍历排序数组将元素依次放入
+
+
+
+
+
+***
+
+
+
+#### 执行顺序
+
+调用 SORT 命令，除了 GET 选项之外，改变其他选项的摆放顺序并不会影响命令执行选项的顺序
+
+```sh
+SORT <key> ALPHA [ASC/DESC] BY <by-pattern> LIMIT <offset> <count> GET <get-pattern> STORE <store_key>
+```
+
+执行顺序：
+
+* 排序：命令会使用 ALPHA 、ASC 或 DESC、BY 这几个选项，对输入键进行排序，并得到一个排序结果集
+* 限制排序结果集的长度：使用 LIMIT 选项，对排序结果集的长度进行限制
+* 获取外部键：根据排序结果集中的元素以及 GET 选项指定的模式，查找并获取指定键的值，并用这些值来作为新的排序结果集
+* 保存排序结果集：使用 STORE 选项，将排序结果集保存到指定的键上面去
+* 向客户端返回排序结果集：最后一步命令遍历排序结果集，并依次向客户端返回排序结果集中的元素
+
+
+
+
+
+***
+
+
+
 ### 通知机制
 
 数据库通知是可以让客户端通过订阅给定的频道或者模式，来获知数据库中键的变化，以及数据库中命令的执行情况
@@ -9525,8 +9740,8 @@ Redis 如果不设置最大内存大小或者设置最大内存大小为 0，在
 
 * 如果给定的通知类型 type 不是服务器允许发送的通知类型，那么函数会直接返回
 * 如果给定的通知是服务器允许发送的通知
-  * 检测服务器是否允许发送键空间通知，如果允许程序就会构建并发送事件通知
-  * 检测服务器是否允许发送键事件通知，如果允许程序就会构建并发送事件通知
+  * 检测服务器是否允许发送键空间通知，允许就会构建并发送事件通知
+  * 检测服务器是否允许发送键事件通知，允许就会构建并发送事件通知
 
 
 
@@ -9708,11 +9923,9 @@ def aeProcessEvents():
 事件的调度和执行规则：
 
 *  aeApiPoll 函数的最大阻塞时间由到达时间最接近当前时间的时间事件决定，可以避免服务器对时间事件进行频繁的轮询（忙等待），也可以确保 aeApiPoll 函数不会阻塞过长时间
-*  文件事件是随机出现的，如果等待并处理完一次文件事件后仍未有任何时间事件到达，那么服务器将再次等待并处理文件事件。随着文件事件的不断执行，会逐渐向时间事件所设置的到达时间逼近，并最终来到到达时间，这时就可以开始处理时间事件
 *  对文件事件和时间事件的处理都是**同步、有序、原子地执行**，服务器不会中途中断事件处理，也不会对事件进行抢占，所以两种处理器都要尽可地减少程序的阻塞时间，并在有需要时**主动让出执行权**，从而降低事件饥饿的可能性
    * 命令回复处理器在写入字节数超过了某个预设常量，就会主动用 break 跳出写入循环，将余下的数据留到下次再写
    * 时间事件也会将非常耗时的持久化操作放到子线程或者子进程执行
-
 *  时间事件在文件事件之后执行，并且事件之间不会出现抢占，所以时间事件的实际处理时间通常会比设定的到达时间稍晚
 
 
@@ -10103,7 +10316,7 @@ SET KEY VALUE ->	# 命令
 
 命令执行器开始对命令操作：
 
-* 查找命令：首先根据客户端状态的 argv[0] 参数，在命令表 (command table) 中查找参数所指定的命令，并将找到的命令保存到客户端状态的 cmd 属性里面，是一个 redisCommand 结构
+* 查找命令：首先根据客户端状态的 argv[0] 参数，在**命令表 (command table)** 中查找参数所指定的命令，并将找到的命令保存到客户端状态的 cmd 属性里面，是一个 redisCommand 结构
 
   命令查找算法与字母的大小写无关，所以命令名字的大小写不影响命令表的查找结果
 
@@ -10125,10 +10338,10 @@ SET KEY VALUE ->	# 命令
 
   * 如果服务器开启了慢查询日志功能，那么慢查询日志模块会检查是否需要为刚刚执行完的命令请求添加一条新的慢查询日志
   * 根据执行命令所耗费的时长，更新命令的 redisCommand 结构的 milliseconds 属性，并将命令 calls 计数器的值增一
-  * 如果服务器开启了 AOF 持久化功能，那么 AOF 持久化模块会将刚刚执行的命令请求写入到 AOF 缓冲区里面
-  * 如果有其他从服务器正在复制当前这个服务器，那么服务器会将刚刚执行的命令传播给所有从服务器
+  * 如果服务器开启了 AOF 持久化功能，那么 AOF 持久化模块会将执行的命令请求写入到 AOF 缓冲区里面
+  * 如果有其他从服务器正在复制当前这个服务器，那么服务器会将执行的命令传播给所有从服务器
 
-* 将命令回复发送给客户端：客户端套接字变为可写状态时，服务器就会执行命令回复处理器，将客户端输出缓冲区中的命令回复发送给客户端，发送完毕之后回复处理器会清空客户端状态的输出缓冲区，为处理下一个命令请求做好准备
+* 将命令回复发送给客户端：客户端**套接字变为可写状态**时，服务器就会执行命令回复处理器，将客户端输出缓冲区中的命令回复发送给客户端，发送完毕之后回复处理器会清空客户端状态的输出缓冲区，为处理下一个命令请求做好准备
 
 
 
@@ -10512,6 +10725,98 @@ initServer 还进行了非常重要的设置操作：
 
 
 
+*****
+
+
+
+### 慢日志
+
+#### 基本介绍
+
+Redis 的慢查询日志功能用于记录执行时间超过给定时长的命令请求，通过产生的日志来监视和优化查询速度
+
+服务器配置有两个和慢查询日志相关的选项：
+
+* slowlog-log-slower-than 选项指定执行时间超过多少微秒的命令请求会被记录到日志上
+* slowlog-max-len 选项指定服务器最多保存多少条慢查询日志
+
+服务器使用先进先出 FIFO 的方式保存多条慢查询日志，当服务器存储的慢查询日志数量等于 slowlog-max-len 选项的值时，在添加一条新的慢查询日志之前，会先将最旧的一条慢查询日志删除
+
+配置选项可以通过 CONFIG SET option value 命令进行设置
+
+常用命令：
+
+```sh
+SLOWLOG GET 命令查看服务器保存的慢日志
+SLOWLOG LEN 命令查看日志数量
+SLOWLOG RESET 命令清除所有慢查询日志
+```
+
+
+
+***
+
+
+
+#### 日志保存
+
+服务器状态中包含了慢查询日志功能有关的属性：
+
+```c
+struct redisServer {
+	// 下一条慢查询日志的ID
+	long long slowlog_entry_id;
+    
+	// 保存了所有慢查询日志的链表
+	list *slowlog;
+    
+	// 服务器配置选项的值 
+    long long slowlog-log-slower-than;
+	// 服务器配置选项的值
+	unsigned long slowlog_max_len;
+}
+```
+
+slowlog_entry_id 属性的初始值为 0，每当创建一条新的慢查询日志时，这个属性就会用作新日志的 id 值，之后该属性增一
+
+slowlog 链表保存了服务器中的所有慢查询日志，链表中的每个节点是一个 slowlogEntry 结构， 代表一条慢查询日志：
+
+```c
+typedef struct slowlogEntry {
+    // 唯一标识符
+    long long id;
+   	// 命令执行时的时间，格式为UNIX时间戳
+    time_t time;
+	// 执行命令消耗的时间，以微秒为单位 
+    long long duration;
+	// 命令与命令参数
+	robj **argv;
+	// 命令与命令参数的数量
+	int argc;
+}
+```
+
+
+
+
+
+***
+
+
+
+#### 添加日志
+
+在每次执行命令的前后，程序都会记录微秒格式的当前 UNIX 时间戳，两个时间之差就是执行命令所耗费的时长，函数会检查命令的执行时长是否超过 slowlog-log-slower-than 选项所设置：
+
+* 如果是的话，就为命令创建一个新的日志，并将新日志添加到 slowlog 链表的表头
+* 检查慢查询日志的长度是否超过 slowlog-max-len 选项所设置的长度，如果是将多出来的日志从 slowlog 链表中删除掉
+
+* 将 redisServer. slowlog_entry_id 的值增 1
+
+
+
+
+
 ***
 
 
@@ -10585,7 +10890,7 @@ C 字符串**每次**增长或者缩短都会进行一次内存重分配，拼�
 
 SDS 通过未使用空间解除了字符串长度和底层数组长度之间的关联，在 SDS 中 buf 数组的长度不一定就是字符数量加一， 数组里面可以包含未使用的字节，字节的数量由 free 属性记录
 
-内存重分配涉及复杂的算法，需要执行系统调用，是一个比较耗时的操作，SDS 的两种优化策略：
+内存重分配涉及复杂的算法，需要执行**系统调用**，是一个比较耗时的操作，SDS 的两种优化策略：
 
 * 空间预分配：当 SDS 的 API 进行修改并且需要进行空间扩展时，程序不仅会为 SDS 分配修改所必需的空间， 还会为 SDS 分配额外的未使用空间
 
@@ -11910,39 +12215,107 @@ set 类型：与 hash 存储结构哈希表完全相同，只是仅存储键不�
 
 ### Bitmaps
 
-#### 操作
+### Bitmaps
 
-Bitmaps 本身不是一种数据类型， 实际上就是字符串（key-value） ， 但是它可以对字符串的位进行操作
+#### 基本操作
+
+Bitmaps 是二进制位数组（bit array），底层使用 SDS 字符串表示，因为 SDS 是二进制安全的
+
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-位数组结构.png)
+
+buf 数组的每个字节用一行表示，buf[1] 是 `'\0'`，保存位数组的顺序和书写位数组的顺序是完全相反的，图示的位数组 0100 1101
 
 数据结构的详解查看 Java → Algorithm → 位图
 
-指令操作：
 
-* 获取指定 key 对应**偏移量**上的 bit 值
 
-  ```sh
-  getbit key offset
-  ```
 
-* 设置指定 key 对应偏移量上的 bit 值，value 只能是 1 或 0
 
-  ```sh
-  setbit key offset value
-  ```
+***
 
-* 对指定 key 按位进行交、并、非、异或操作，并将结果保存到 destKey 中
 
-  ```sh
-  bitop option destKey key1 [key2...]
-  ```
 
-  option：and 交、or 并、not 非、xor 异或
+#### 命令实现
 
-* 统计指定 key 中1的数量
+##### GETBIT
 
-  ```sh
-  bitcount key [start end]
-  ```
+GETBIT 命令获取位数组 bitarray 在 offset 偏移量上的二进制位的值
+
+```sh
+GETBIT <bitarray> <offset>
+```
+
+执行过程：
+
+* 计算 `byte = offset/8`（向下取整）, byte 值记录数据保存在位数组中的索引
+* 计算 `bit = (offset mod 8) + 1`，bit 值记录数据在位数组中的第几个二进制位
+* 根据 byte 和 bit 值，在位数组 bitarray 中定位 offset 偏移量指定的二进制位，并返回这个位的值
+
+GETBIT 命令执行的所有操作都可以在常数时间内完成，所以时间复杂度为 O(1)
+
+
+
+***
+
+
+
+##### SETBIT
+
+SETBIT 将位数组 bitarray 在 offset 偏移量上的二进制位的值设置为 value，并向客户端返回二进制位的旧值
+
+```sh
+SETBIT <bitarray> <offset> <value> 
+```
+
+执行过程：
+
+* 计算 `len = offset/8 + 1`，len 值记录了保存该数据至少需要多少个字节
+* 检查 bitarray 键保存的位数组的长度是否小于 len，成立就会将 SDS 扩展为 len 字节（注意空间预分配机制），所有新扩展空间的二进制位的值置为 0
+* 计算 `byte = offset/8`（向下取整）, byte 值记录数据保存在位数组中的索引
+* 计算 `bit = (offset mod 8) + 1`，bit 值记录数据在位数组中的第几个二进制位
+* 根据 byte 和 bit 值，在位数组 bitarray 中定位 offset 偏移量指定的二进制位，首先将指定位现存的值保存在 oldvalue 变量，然后将新值 value 设置为这个二进制位的值
+* 向客户端返回 oldvalue 变量的值
+
+
+
+***
+
+
+
+##### BITCOUNT
+
+BITCOUNT 命令用于统计给定位数组中，值为 1 的二进制位的数量
+
+```sh
+BITCOUNT <bitarray> [start end]
+```
+
+二进制位统计算法：
+
+* 遍历法：遍历位数组中的每个二进制位
+* 查表算法：读取每个字节（8 位）的数据，查表获取数值对应的二进制中有几个 1 
+* variable-precision SWAR算法：计算汉明距离
+* Redis 实现：
+  * 如果二进制位的数量大于等于 128 位， 那么使用 variable-precision SWAR 算法来计算二进制位的汉明重量
+  * 如果二进制位的数量小于 128 位，那么使用查表算法来计算二进制位的汉明重量
+
+
+
+****
+
+
+
+##### BITOP
+
+BITOP 命令对指定 key 按位进行交、并、非、异或操作，并将结果保存到指定的键中
+
+```sh
+BITOP OPTION destKey key1 [key2...]
+```
+
+OPTION 有 AND（与）、OR（或）、 XOR（异或）和 NOT（非）四个选项
+
+AND、OR、XOR 三个命令可以接受多个位数组作为输入，需要遍历输入的每个位数组的每个字节来进行计算，所以命令的复杂度为 O(n^2)；与此相反，NOT 命令只接受一个位数组输入，所以时间复杂度为 O(n)
 
 
 
@@ -12076,7 +12449,7 @@ AOF：将数据的操作过程进行保存，日志形式，存储操作过程�
 
 #### 文件创建
 
-RDB 持久化功能所生成的 RDB文件 是一个经过压缩的紧凑二进制文件，通过该文件可以还原生成 RDB 文件时的数据库状态，有两个 Redis 命令可以生成 RDB 文件，一个是 SAVE，另一个是 BGSAVE
+RDB 持久化功能所生成的 RDB 文件 是一个经过压缩的紧凑二进制文件，通过该文件可以还原生成 RDB 文件时的数据库状态，有两个 Redis 命令可以生成 RDB 文件，一个是 SAVE，另一个是 BGSAVE
 
 
 
@@ -12722,37 +13095,14 @@ vfork（虚拟内存 fork virtual memory fork）：调用 vfork() 父进程被�
 
 ## 事务机制
 
-### 基本操作
+### 事务特征
 
-Redis 事务的主要作用就是串联多个命令防止别的命令插队
+Redis 事务就是将多个命令请求打包，然后**一次性、按顺序**地执行多个命令的机制，并且在事务执行期间，服务器不会中断事务去执行其他的命令请求，会将事务中的所有命令都执行完毕，然后才去处理其他客户端的命令请求，Redis 事务的特性：
 
-* 开启事务
-
-  ```sh
-  multi	#设定事务的开启位置，此指令执行后，后续的所有指令均加入到事务中
-  ```
-
-* 执行事务
-
-  ```sh
-  exec	#设定事务的结束位置，同时执行事务，与multi成对出现，成对使用
-  ```
-
-  加入事务的命令暂时进入到任务队列中，并没有立即执行，只有执行 exec 命令才开始执行
-
-* 取消事务
-
-  ```sh
-  discard	#终止当前事务的定义，发生在multi之后，exec之前
-  ```
-
-  一般用于事务执行过程中输入了错误的指令，直接取消这次事务，类似于回滚
-
-Redis 事务的三大特性：
-
-* Redis 事务是一个单独的隔离操作，将一系列预定义命令包装成一个整体（一个队列），当执行时按照添加顺序依次执行，中间不会被打断或者干扰
 * Redis 事务**没有隔离级别**的概念，队列中的命令在事务没有提交之前都不会实际被执行
 * Redis 单条命令式保存原子性的，但是事务**不保证原子性**，事务中如果有一条命令执行失败，其后的命令仍然会被执行，没有回滚
+
+
 
 
 
@@ -12762,30 +13112,128 @@ Redis 事务的三大特性：
 
 ### 工作流程
 
-事务机制整体工作流程：
+事务的执行流程分为三个阶段：
 
-![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-事务的工作流程.png)
+* 事务开始：MULTI 命令的执行标志着事务的开始，通过在客户端状态的 flags 属性中打开 REDIS_MULTI 标识，将执行该命令的客户端从非事务状态切换至事务状态
 
-几种常见错误：
+  ```sh
+  MULTI	# 设定事务的开启位置，此指令执行后，后续的所有指令均加入到事务中
+  ```
 
-* 定义事务的过程中，命令格式输入错误，出现语法错误造成，**整体事务中所有命令均不会执行**，包括那些语法正确的命令
+* 命令入队：事务队列以先进先出（FIFO）的方式保存入队的命令，每个 Redis 客户端都有事务状态，包含着事务队列：
 
-  <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-事务中出现语法错误.png" style="zoom:80%;" />
+  ```c
+  typedef struct redisClient {
+  	// 事务状态
+      multiState mstate;	/* MULTI/EXEC state */ 
+  }
+  
+  typedef struct multiState {
+      // 事务队列，FIFO顺序
+      multiCmd *commands; 
+      
+     	// 已入队命令计数
+      int count；
+  }
+  ```
 
-* 定义事务的过程中，命令执行出现错误，例如对字符串进行 incr 操作，能够正确运行的命令会执行，运行错误的命令不会被执行
+  * 如果命令为 EXEC、DISCARD、WATCH、MULTI 四个命中的一个，那么服务器立即执行这个命令
+  * 其他命令服务器不执行，而是将命令放入一个事务队列里面，然后向客户端返回 QUEUED 回复
 
-  <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-事务中出现执行错误.png" style="zoom:80%;" />
+* 事务执行：EXEC 提交事务给服务器执行，服务器会遍历这个客户端的事务队列，执行队列中的命令并将执行结果返回
 
-* 已经执行完毕的命令对应的数据不会自动回滚，需要程序员在代码中实现回滚，应该尽可能避免：
+  ```sh
+  EXEC	# Commit 提交，执行事务，与multi成对出现，成对使用
+  ```
 
-  事务操作之前记录数据的状态
+事务取消的方法：
+
+* 取消事务：
+
+  ```sh
+  DISCARD	# 终止当前事务的定义，发生在multi之后，exec之前
+  ```
+
+  一般用于事务执行过程中输入了错误的指令，直接取消这次事务，类似于回滚
+
+
+
+
+
+***
+
+
+
+### WATCH
+
+#### 监视机制
+
+WATCH 命令是一个乐观锁（optimistic locking），可以在 EXEC 命令执行之前，监视任意数量的数据库键，并在 EXEC 命令执行时，检查被监视的键是否至少有一个已经被修改过了，如果是服务器将拒绝执行事务，并向客户端返回代表事务执行失败的空回复
+
+* 添加监控锁
+
+  ```sh
+  WATCH key1 [key2……]	#可以监控一个或者多个key
+  ```
+
+* 取消对所有 key 的监视
+
+  ```sh
+  UNWATCH
+  ```
+
+
+
+***
+
+
+
+#### 实现原理
+
+每个 Redis 数据库都保存着一个 watched_keys 字典，键是某个被 WATCH 监视的数据库键，值则是一个链表，记录了所有监视相应数据库键的客户端：
+
+```c
+typedef struct redisDb {
+	// 正在被 WATCH 命令监视的键
+    dict *watched_keys;
+}
+```
+
+所有对数据库进行修改的命令，在执行后都会调用 `multi.c/touchWatchKey` 函数对 watched_keys 字典进行检查，是否有客户端正在监视刚被命令修改过的数据库键，如果有的话函数会将监视被修改键的客户端的 REDIS_DIRTY_CAS 标识打开，表示该客户端的事务安全性已经被破坏
+
+服务器接收到个客户端 EXEC 命令时，会根据这个客户端是否打开了 REDIS_DIRTY_CAS 标识，如果打开了说明客户端提交事务不安全，服务器会拒绝执行
+
+
+
+
+
+****
+
+
+
+### ACID
+
+#### 原子性
+
+在 Redis 中，事务总是具有原子性（Atomicity）、一致性（Consistency）和隔离性（Isolation），并且当 Redis 运行在某种特定的持久化模式下，事务也具有持久性（Durability）
+
+Redis 的事务队列中的命令要么就全部都执行，要么一个都不执行，因此 Redis 的事务是具有原子性的
+
+Redis 不支持事务回滚机制（rollback），即使事务队列中的某个命令在执行期间出现了错误，整个事务也会继续执行下去，直到将事务队列中的所有命令都执行完毕为止
+
+回滚需要程序员在代码中实现，应该尽可能避免：
+
+* 事务操作之前记录数据的状态
 
   * 单数据：string
+
   * 多数据：hash、list、set、zset
 
-  设置指令恢复所有的被修改的项
+
+* 设置指令恢复所有的被修改的项
 
   * 单数据：直接 set（注意周边属性，例如时效）
+
   * 多数据：修改对应值或整体克隆复制
 
 
@@ -12794,23 +13242,25 @@ Redis 事务的三大特性：
 
 
 
-### 监控锁
+#### 一致性
 
-对 key 添加监视锁，是一种乐观锁，在执行 exec 前如果其他客户端的操作导致 key 发生了变化，执行结果为 nil
+事务具有一致性指的是，数据库在执行事务之前是一致的，那么在事务执行之后，无论事务是否执行成功，数据库也应该仍然是一致的
 
-* 添加监控锁
+一致是数据符合数据库的定义和要求，没有包含非法或者无效的错误数据，Redis 通过错误检测和简单的设计来保证事务的一致性：
 
-  ```sh
-  watch key1 [key2……]	#可以监控一个或者多个key
-  ```
+* 入队错误：命令格式输入错误，出现语法错误造成，**整体事务中所有命令均不会执行**，包括那些语法正确的命令
 
-* 取消对所有 key 的监视
+  <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-命令的语法错误.png" style="zoom:80%;" />
 
-  ```sh
-  unwatch
-  ```
+* 执行错误：命令执行出现错误，例如对字符串进行 incr 操作，食物中正确的命令会被执行，运行错误的命令不会被执行
 
-应用：基于状态控制的批量任务执行，防止其他线程对变量的修改
+  <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-事务中执行错误.png" style="zoom:80%;" />
+
+* 服务器停机：
+
+  * 如果服务器运行在无持久化的内存模式下，那么重启之后的数据库将是空白的，因此数据库是一致的
+  * 如果服务器运行在持久化模式下，重启之后将数据库还原到一致的状态
+
 
 
 
@@ -12818,9 +13268,314 @@ Redis 事务的三大特性：
 
 
 
-### 分布式锁
+#### 隔离性
 
-#### 基本操作
+Redis 使用单线程的方式来执行事务，并且服务器保在执行事务期间不会对事务进行中断， 因此 Redis 的事务总是以串行的方式运行的，事务也总是具有隔离性的
+
+
+
+***
+
+
+
+#### 持久性
+
+Redis 并没有为事务提供任何额外的持久化功能，事务的持久性由 Redis 所使用的持久化模式决定
+
+配置选项 `no-appendfsync-on-rewrite` 可以配合 appendfsync 选项在 AOF 持久化模式使用：
+
+* 选项打开时在执行 BGSAVE 或者 BGREWRITEAOF 期间，服务器会暂时停止对 AOF 文件进行同步，从而尽可能地减少 I/O 阻塞
+* 选项打开时运行在 always 模式的 AOF 持久化，事务也不具有持久性，所以该选项默认关闭
+
+在一个事务的最后加上 SAVE 命令总可以保证事务的耐久性
+
+
+
+
+
+***
+
+
+
+## Lua 脚本
+
+### 环境创建
+
+#### 基本介绍
+
+Redis 从 2.6 版本引入对 Lua 脚本的支持，通过在服务器中嵌入 Lua 环境，客户端可以使用 Lua 脚本直接在服务器端**原子地执行**多个 Redis 命令
+
+```sh
+EVAL <script> <numkeys> [key ...] [arg ...]
+EVALSHA <sha1> <numkeys> [key ...] [arg ...]
+```
+
+EVAL 命令可以直接对输入的脚本计算：
+
+```sh
+redis> EVAL "return 1 + 1" 0
+(integer) 2 
+```
+
+EVALSHA 命令根据脚本的 SHA1 校验和来对脚本计算：
+
+```sh
+redis> EVALSHA "2f3lba2bb6d6a0f42ccl59d2e2dad55440778de3" 0
+(integer) 2 
+```
+
+
+
+
+
+***
+
+
+
+#### 创建过程
+
+Redis 服务器创建并修改 Lua 环境的整个过程：
+
+* 创建一个基础的 Lua 环境，调用 Lua 的 API 函数 lua_open
+
+* 载入多个函数库到 Lua 环境里面，让 Lua 脚本可以使用这些函数库来进行数据操作，包括基础核心函数
+
+* 创建全局变量 redis 表格，表格包含以下函数：
+
+  * 执行 Redis 命令的 redis.call 和 redis.pcall 函数
+  * 记录 Redis 日志的 redis.log 函数，以及相应的日志级别 (level) 常量 redis.LOG_DEBUG 等
+  * 计算 SHAl 校验和的 redis.shalhex 函数
+  * 返回错误信息的 redis.error_reply 函数和 redis.status_reply 函数
+
+* 使用 Redis 自制的随机函数来替换 Lua 原有的带有副作用的随机函数，从而避免在脚本中引入副作用
+
+  Redis 要求所有传入服务器的 Lua 脚本，以及 Lua 环境中的所有函数，都必须是无副作用（side effect）的纯函数（pure function），所以对有副作用的随机函数 `math.random` 和 `math.randornseed` 进行替换
+
+* 创建排序辅助函数 ` _redis_compare_helper`，使用辅助函数来对一部分 Redis 命令的结果进行排序，从而消除命令的不确定性
+
+  比如集合元素的排列是无序的， 所以即使两个集合的元素完全相同，输出结果也不一定相同，Redis 将 SMEMBERS 这类在相同数据集上产生不同输出的命令称为带有不确定性的命令
+
+* 创建 redis.pcall 函数的错误报告辅助函数 `_redis_err_handler `，这个函数可以打印出错代码的来源和发生错误的行数
+
+* 对 Lua环境中的全局环境进行保护，确保传入服务器的脚本不会因忘记使用 local 关键字，而将额外的全局变量添加到 Lua 环境
+
+* 将完成修改的 Lua 环境保存到服务器状态的 lua 属性中，等待执行服务器传来的 Lua 脚本
+
+  ```c
+  struct redisServer {
+      Lua *lua;
+  };
+  ```
+
+Redis 使用串行化的方式来执行 Redis 命令，所以在任何时间里最多都只会有一个脚本能够被放进 Lua 环境里面运行，因此整个 Redis 服务器只需要创建一个 Lua 环境即可
+
+
+
+
+
+****
+
+
+
+### 协作组件
+
+#### 伪客户端
+
+Redis 服务器为 Lua 环境创建了一个伪客户端负责处理 Lua 脚本中包含的所有 Redis 命令，工作流程：
+
+*  Lua 环境将 redis.call 或者 redis.pcall 函数想要执行的命令传给伪客户端
+* 伪客户端将命令传给命令执行器
+* 命令执行器执行命令并将命令的执行结果返回给伪客户端
+* 伪客户端接收命令执行器返回的命令结果，并将结果返回给 Lua 环境
+* Lua 将命令结果返回给 redis.call 函数或者 redis.pcall 函数
+* redis.call 函数或者 redis.pcall 函数会将命令结果作为返回值返回给脚本的调用者
+
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-Lua伪客户端执行.png)
+
+
+
+
+
+***
+
+
+
+#### 脚本字典
+
+Redis 服务器为 Lua 环境创建 lua_scripts 字典，键为某个 Lua 脚本的 SHA1 校验和（checksum），值则是校验和对应的 Lua 脚本
+
+```c
+struct redisServer {
+    dict *lua_scripts;
+};
+```
+
+服务器会将所有被 EVAL 命令执行过的 Lua 脚本，以及所有被 SCRIPT LOAD 命令载入过的 Lua 脚本都保存到 lua_scripts 字典
+
+```sh
+redis> SCRIPT LOAD "return 'hi'"
+"2f3lba2bb6d6a0f42ccl59d2e2dad55440778de3" # 字典的键，SHA1 校验和
+```
+
+
+
+
+
+***
+
+
+
+### 命令实现
+
+#### 脚本函数
+
+EVAL 命令的执行的第一步是为传入的脚本定义一个相对应的 Lua 函数，Lua 函数的名字由 f_ 前缀加上脚本的 SHA1 校验和（四十个字符长）组成，而函数的体（body）则是脚本本身
+
+```sh
+EVAL "return 'hello world'" 0 
+# 命令将会定义以下的函数
+function f_533203lc6b470dc5a0dd9b4bf2030dea6d65de91() {
+	return 'hello world'
+}
+```
+
+使用函数来保存客户端传入的脚本有以下优点：
+
+* 通过函数的局部性来让 Lua 环境保持清洁，减少了垃圾回收的工作最， 并且避免了使用全局变量
+* 如果某个脚本在 Lua 环境中被定义过至少一次，那么只需要 SHA1 校验和，服务器就可以在不知道脚本本身的情况下，直接通过调用 Lua 函数来执行脚本
+
+
+
+
+
+#### 保存脚本
+
+EVAL 命令第二步是将客户端传入的脚本保存到服务器的 lua_scripts 字典里，在 lua_scripts字典中新添加一个键值对
+
+
+
+
+
+***
+
+
+
+#### 执行函数
+
+EVAL 命令第三步是执行脚本函数
+
+* 将 EVAL 命令中传入的键名（key name）参数和脚本参数分别保存到 KEYS 数组和 ARGV 数组，将这两个数组作为全局变量传入到 Lua 环境里
+* 为 Lua 环境装载超时处理钩子（hook），这个钩子可以在脚本出现超时运行情况时，让客户端通过 `SCRIPT KILL` 命令停止脚本，或者通过 SHUTDOWN 命令直接关闭服务器
+* 执行脚本函数
+* 移除之前装载的超时钩子
+* 将执行脚本函数的结果保存到客户端状态的输出缓冲区里，等待服务器将结果返回给客户端
+
+
+
+
+
+***
+
+
+
+#### EVALSHA
+
+EVALSHA 命令的实现原理就是根据脚本的 SHA1 校验和来调用**脚本对应的函数**，如果函数在 Lua 环境中不存在，找不到 f_ 开头的函数，就会返回 `SCRIPT NOT FOUND`
+
+
+
+
+
+***
+
+
+
+### 管理命令
+
+Redis 中与 Lua 脚本有关的管理命令有四个：
+
+* SCRIPT FLUSH：用于清除服务器中所有和 Lua 脚本有关的信息，会释放并重建 lua_scripts 字典，关闭现有的 Lua 环境并重新创建一个新的 Lua 环境
+
+* SCRIPT EXISTS：根据输入的 SHA1 校验和（允许一次传入多个校验和），检查校验和对应的脚本是否存在于服务器中，通过检查 lua_scripts 字典实现
+
+* SCRIPT LOAD：在 Lua 环境中为脚本创建相对应的函数，然后将脚本保存到 lua_scripts字典里
+
+  ```sh
+  redis> SCRIPT LOAD "return 'hi'"
+  "2f3lba2bb6d6a0f42ccl59d2e2dad55440778de3"
+  ```
+
+* SCRIPT KILL：停止脚本
+
+如果服务器配置了 lua-time-li­mit 选项，那么在每次执行 Lua 脚本之前，都会设置一个超时处理的钩子。钩子会在脚本运行期间会定期检查运行时间是否超过配置时间，如果超时钩子将定期在脚本运行的间隙中，查看是否有 SCRIPT KILL 或者 SHUTDOWN 到达：
+
+* 如果超时运行的脚本没有执行过写入操作，客户端可以通过 SCRIPT KILL 来停止这个脚本
+* 如果执行过写入操作，客户端只能用 SHUTDOWN nosave 命令来停止服务器，防止不合法的数据被写入数据库中
+
+
+
+
+
+***
+
+
+
+### 脚本复制
+
+#### 命令复制
+
+当服务器运行在复制模式时，具有写性质的脚本命令也会被复制到从服务器，包括 EVAL、EVALSHA、SCRIPT FLUSH，以及 SCRIPT LOAD 命令
+
+Redis 复制 EVAL、SCRIPT FLUSH、SCRIPT LOAD 三个命令的方法和复制普通 Redis 命令的方法一样，当主服务器执行完以上三个命令的其中一个时，会直接将被执行的命令传播（propagate）给所有从服务器，在从服务器中产生相同的效果
+
+
+
+
+
+***
+
+
+
+#### EVALSHA
+
+EVALSHA 命令的复制操作相对复杂，因为多个从服务器之间载入 Lua 脚本的清况各有不同，一个在主服务器被成功执行的 EVALSHA 命令，在从服务器执行时可能会出现脚本未找到（not found）错误
+
+Redis 要求主服务器在传播 EVALSHA 命令时，必须确保 EVALSHA 命令要执行的脚本已经被所有从服务器载入过，如果不能确保主服务器会**将 EVALSHA 命令转换成一个等价的 EVAL 命令**，然后通过传播 EVAL 命令来代替 EVALSHA 命令
+
+主服务器使用服务器状态的 repl_scriptcache_dict 字典记录已经将哪些脚本传播给了**所有从服务器**，当一个校验和出现在字典时，说明校验和对应的 Lua 脚本已经传播给了所有从服务器，主服务器可以直接传播 EVALSHA 命令
+
+```c
+struct redisServer {
+    // 键是一个个 Lua 脚本的 SHA1 校验和，值则全部都是 NULL
+    dict *repl_scriptcache_dict;
+}
+```
+
+注意：每当主服务器添加一个新的从服务器时，都会清空 repl_scriptcache_dict 字典，因为字典里面记录的脚本已经不再被所有从服务器载入过，所以服务器以清空字典的方式，强制重新向所有从服务器传播脚本
+
+通过使用 EVALSHA 命令指定的 SHA1 校验和，以及 lua_scripts 字典保存的 Lua 脚本，可以将一个 EVALSHA 命令转化为 EVAL 命令
+
+```sh
+EVALSHA "533203lc6b470dc5a0dd9b4bf2030dea6d65de91" 0 
+# -> 转换
+EVAL "return'hello world'" 0 
+```
+
+脚本内容 `"return'hello world'"` 来源于 lua_scripts 字典 533203lc6b470dc5a0dd9b4bf2030dea6d65de91 键的值
+
+
+
+
+
+***
+
+
+
+
+
+## 分布式锁
+
+### 基本操作
 
 由于分布式系统多线程并发分布在不同机器上，这将使单机部署情况下的并发控制锁策略失效，需要分布式锁
 
@@ -12873,7 +13628,7 @@ Redis 分布式锁的基本使用，悲观锁
 
 
 
-#### 防误删
+### 防误删
 
 setnx 获取锁时，设置一个指定的唯一值（uuid），释放前获取这个值，判断是否自己的锁，防止出现线程之间误删了其他线程的锁
 
@@ -13780,6 +14535,8 @@ SUBSCRIBE _sentinel_:hello
 
 对于监视同一个服务器的多个 Sentinel 来说，**一个 Sentinel 发送的信息会被其他 Sentinel 接收到**，这些信息会被用于更新其他 Sentinel 对发送信息 Sentinel 的认知，也会被用于更新其他 Sentinel 对被监视的服务器的认知
 
+哨兵实例之间可以相互发现，要归功于 Redis 提供发布订阅机制
+
 
 
 ***
@@ -13790,7 +14547,7 @@ SUBSCRIBE _sentinel_:hello
 
 Sentinel 为主服务器创建的实例结构的 sentinels 字典保存所有同样监视这个**主服务器的 Sentinel 信息**（包括 Sentinel 自己），字典的键是 Sentinel 的名字，格式为 `ip:port`，值是键所对应 Sentinel 的实例结构
 
-当一个 Sentinel 接收到其他 Sentinel 发来的信息时（发送信息为源 Sentinel，接收信息的为目标 Sentinel），目标 Sentinel 会分析提取出 Sentinel 相关的参数和主服务器相关的参数。根据主服务器参数，目标 Sentinel 会在自己的 Sentinel 状态 sentinelState.masters 中查找相应的主服务器实例结构，检查主服务器实例结构的 sentinels 字典中， 源 Sentinel 的实例结构是否存在
+当 Sentinel 接收到其他 Sentinel 发来的信息时（发送信息的为源 Sentinel，接收信息的为目标 Sentinel），目标 Sentinel 会分析提取参数，在自己的 Sentinel 状态 sentinelState.masters 中查找相应的主服务器实例结构，检查主服务器实例结构的 sentinels 字典中，源 Sentinel 的实例结构是否存在
 
 * 如果源 Sentinel 的实例结构存在，那么对源 Sentinel 的实例结构进行更新
 * 如果源 Sentinel 的实例结构不存在，说明源 Sentinel 是刚开始监视主服务器，目标 Sentinel 会为源 Sentinel 创建一个新的实例结构，并将这个结构添加到 sentinels 字典里面
@@ -14855,11 +15612,14 @@ typedef struct clusterMsgDataPublish {
   redis-cli --cluster reshard src-master-host:src-master-port --cluster-from src-  master-id --cluster-to target-master-id --cluster-slots slots --cluster-yes
   ```
 
-  
+
+
 
 
 
 ***
+
+
 
 
 
@@ -15268,25 +16028,135 @@ Redis 中的监控指标如下：
 
 
 
+
+
 ## 其他指令
 
-### 通信指令
+### 发布订阅
 
-Redis 发布订阅（pub/sub）是一种消息通信模式：发送者（pub）发送消息，订阅者（sub）接收消息。
+#### 基本指令
 
-Redis 客户端可以订阅任意数量的频道
+Redis 发布订阅（pub/sub）是一种消息通信模式：发送者（pub）发送消息，订阅者（sub）接收消息
+
+Redis 客户端可以订阅任意数量的频道，每当有客户端向被订阅的频道发送消息（message）时，频道的**所有订阅者都会收到消息**
 
 ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-发布订阅.png)
 
-操作命令：
+操作过程：
 
-1. 打开一个客户端订阅 channel1：`SUBSCRIBE channel1`
-2. 打开另一个客户端，给 channel1发布消息 hello：`publish channel1 hello`
-3. 第一个客户端可以看到发送的消息
+* 打开一个客户端订阅 channel1：`SUBSCRIBE channel1`
+
+* 打开另一个客户端，给 channel1 发布消息 hello：`PUBLISH channel1 hello`
+
+* 第一个客户端可以看到发送的消息
 
 <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-发布订阅指令操作.png" style="zoom:67%;" />
 
+客户端还可以通过 PSUBSCRIBE 命令订阅一个或多个模式，每当有其他客户端向某个频道发送消息时，消息不仅会被发送给这个频道的所有订阅者，还会被**发送给所有与这个频道相匹配的模式的订阅者**，比如 `PSUBSCRIBE channel*` 订阅模式，与 channel1 匹配
+
 注意：发布的消息没有持久化，所以订阅的客户端只能收到订阅后发布的消息
+
+
+
+
+
+***
+
+
+
+#### 频道操作
+
+Redis 将所有频道的订阅关系都保存在服务器状态的 pubsub_channels 字典里，键是某个被订阅的频道，值是一个记录所有订阅这个频道的客户端链表
+
+```c
+struct redisServer {
+	// 保存所有频道的订阅关系，
+	dict *pubsub_channels;
+}
+```
+
+客户端执行 SUBSCRIBE 命令订阅某个或某些频道，服务器会将客户端与频道进行关联：
+
+* 频道已经存在，直接将客户端添加到链表末尾
+* 频道还未有任何订阅者，在字典中为频道创建一个键值对，再将客户端添加到链表
+
+UNSUBSCRIBE 命令用来退订某个频道，服务器将从 pubsub_channels 中解除客户端与被退订频道之间的关联
+
+
+
+
+
+****
+
+
+
+#### 模式操作
+
+Redis 服务器将所有模式的订阅关系都保存在服务器状态的 pubsub_patterns 属性里
+
+```c
+struct redisServer {
+	// 保存所有模式订阅关系，链表中每个节点是一个 pubsubPattern
+	list *pubsub_patterns;
+}
+
+typedef struct pubsubPattern {
+    // 订阅的客户端
+    redisClient *client;
+	// 被订阅的模式，比如  channel*
+    robj *pattern; 
+}
+```
+
+客户端执行 PSUBSCRIBE 命令订阅某个模式，服务器会新建一个 pubsubPattern 结构并赋值，放入 pubsub_patterns 链表结尾
+
+模式的退订命令 PUNSUBSCRIBE 是订阅命令的反操作，服务器在 pubsub_patterns 链表中查找并删除对应的结构
+
+
+
+
+
+***
+
+
+
+#### 发送消息
+
+Redis 客户端执行 `PUBLISH <channel> <message>` 命令将消息 message发送给频道 channel，服务器会执行：
+
+* 在 pubsub_channels 字典里找到频道 channel 的订阅者名单，将消息 message 发送给所有订阅者
+* 遍历整个 pubsub_patterns 链表，查找与 channel 频道相**匹配的模式**，并将消息发送给所有订阅了这些模式的客户端
+
+```c
+// 如果频道和模式相匹配
+if match(channel, pubsubPattern.pattern) {
+    // 将消息发送给订阅该模式的客户端
+    send_message(pubsubPattern.client, message);
+}
+```
+
+
+
+
+
+***
+
+
+
+#### 查看信息
+
+PUBSUB 命令用来查看频道或者模式的相关信息
+
+`PUBSUB CHANNELS [pattern]` 返回服务器当前被订阅的频道，其中 pattern 参数是可选的
+
+* 如果不给定 pattern  参数，那么命令返回服务器当前被订阅的所有频道
+* 如果给定 pattern 参数，那么命令返回服务器当前被订阅的频道中与 pattern 模式相匹配的频道
+
+`PUBSUB NUMSUB [channel-1 channel-2 ... channel-n]`  命令接受任意多个频道作为输入参数，并返回这些频道的订阅者数量
+
+`PUBSUB NUMPAT` 命令用于返回服务器当前被订阅模式的数量
+
+
 
 
 
@@ -15304,6 +16174,46 @@ Redis ACL 是 Access Control List（访问控制列表）的缩写，该功能�
 * acl whoami：查看当前用户
 
 * acl setuser username on >password ~cached:* +get：设置有用户名、密码、ACL 权限（只能 get）
+
+
+
+
+
+***
+
+
+
+### 监视器
+
+MONITOR 命令，可以将客户端变为一个监视器，实时地接收并打印出服务器当前处理的命令请求的相关信息
+
+```c
+// 实现原理
+def MONITOR():
+	// 打开客户端的监视器标志
+	client.flags |= REDIS_MONITOR
+        
+  	// 将客户端添加到服务器状态的 redisServer.monitors链表的末尾
+   	server.monitors.append(client)
+  	// 向客户端返回 ok
+	send_reply("OK")
+```
+
+服务器每次处理命令请求都会调用 replicationFeedMonitors 函数，函数将被处理的命令请求的相关信息**发送给各个监视器**
+
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-监视器.png" style="zoom:50%;" />
+
+```sh
+redis> MONITOR 
+OK 
+1378822099.421623 [0 127.0.0.1:56604] "PING" 
+1378822105.089572 [0 127.0.0.1:56604] "SET" "msg" "hello world" 
+1378822109.036925 [0 127.0.0.1:56604] "SET" "number" "123" 
+1378822140.649496 (0 127.0.0.1:56604] "SADD" "fruits" "Apple" "Banana" "Cherry" 
+1378822154.117160 [0 127.0.0.1:56604] "EXPIRE" "msg" "10086" 
+1378822257.329412 [0 127.0.0.1:56604] "KEYS" "*" 
+1378822258.690131 [0 127.0.0.1:56604] "DBSIZE" 
+```
 
 
 
