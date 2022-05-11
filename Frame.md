@@ -4710,11 +4710,17 @@ RocketMQ 网络部署特点：
 
 #### 高可用性
 
-在创建 Topic 的时候，把 Topic 的多个 Message Queue 创建在多个 Broker 组上（相同 Broker 名称，不同 brokerId 的机器组成一个 Broker 组），当一个 Broker 组的 Master 不可用后，其他组的 Master 仍然可用，Producer 仍然可以发送消息
+NameServer 节点是无状态的，且各个节点直接的数据是一致的，部分 NameServer 不可用也可以保证 MQ 服务正常运行
 
-在 Consumer 的配置文件中，并不需要设置是从 Master 读还是从 Slave 读，当 Master 不可用或者繁忙的时候，Consumer 会被自动切换到从 Slave 读。有了自动切换的机制，当一个 Master 机器出现故障后，Consumer 仍然可以从 Slave 读取消息，不影响 Consumer 程序，达到了消费端的高可用性
+BrokerServer 的高可用通过 Master 和 Slave 的配合：
 
-RocketMQ 目前还不支持把 Slave 自动转成 Master，需要手动停止 Slave 角色的 Broker，更改配置文件，用新的配置文件启动 Broker
+* Slave 只负责读，当 Master 不可用，对应的 Slave 仍能保证消息被正常消费
+* 配置多组 Master-Slave 组，其他的 Master-Slave 组也会保证消息的正常发送和消费
+* 目前不支持把 Slave 自动转成 Master，需要手动停止 Slave 角色的 Broker，更改配置文件，用新的配置文件启动 Broker
+
+生产端的高可用：在创建 Topic 的时候，把 Topic 的**多个 Message Queue 创建在多个 Broker 组**上（相同 Broker 名称，不同 brokerId 的机器），当一个 Broker 组的 Master 不可用后，其他组的 Master 仍然可用，Producer 仍然可以发送消息
+
+消费端的高可用：在 Consumer 的配置文件中，并不需要设置是从 Master Broker 读还是从 Slave 读，当 Master 不可用或者繁忙的时候，Consumer 会被自动切换到从 Slave 读。有了自动切换的机制，当一个 Master 机器出现故障后，Consumer 仍然可以从 Slave 读取消息，不影响 Consumer 程序，达到了消费端的高可用性
 
 ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/RocketMQ-高可用.png)
 
