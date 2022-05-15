@@ -6925,8 +6925,8 @@ private static void method1() {
     };
     // 使用 timer 添加两个任务，希望它们都在 1s 后执行
 	// 但由于 timer 内只有一个线程来顺序执行队列中的任务，因此任务1的延时，影响了任务2的执行
-    timer.schedule(task1,1000);//17:45:56 c.ThreadPool [Timer-0] - task 1
-    timer.schedule(task2,1000);//17:45:58 c.ThreadPool [Timer-0] - task 2
+    timer.schedule(task1, 1000);//17:45:56 c.ThreadPool [Timer-0] - task 1
+    timer.schedule(task2, 1000);//17:45:58 c.ThreadPool [Timer-0] - task 2
 }
 ```
 
