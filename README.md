@@ -5,7 +5,7 @@
 内容说明：
 
 * DB：MySQL、Redis
-* Frame：Maven、Netty、RocketMQ
+* Frame：Maven、Netty、RocketMQ、Zookeeper
 * Java：JavaSE、JVM、Algorithm
 * Prog：Concurrent、Network Programming
 * SSM：MyBatis、Spring、SpringMVC、SpringBoot
