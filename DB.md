@@ -13643,7 +13643,7 @@ SETNX 获取锁时，设置一个指定的唯一值（UUID），释放前获取�
 SET lock_key unique_value NX PX 10000
 ```
 
- Lua 脚本（unlock.script）实现的释放锁操作的伪代码：key 类型参数会放入 KEYS 数组，其它参数会放入 ARGV 数组，在脚本中通过 KEYS 和 ARGV 传递参数，**保证判断标识和释放锁这两个操作的原子性**
+Lua 脚本（unlock.script）实现的释放锁操作的伪代码：key 类型参数会放入 KEYS 数组，其它参数会放入 ARGV 数组，在脚本中通过 KEYS 和 ARGV 传递参数，**保证判断标识和释放锁这两个操作的原子性**
 
 ```sh
 EVAL "return redis.call('set', KEYS[1], ARGV[1])" 1 lock_key unique_value # 1 代表需要一个参数
