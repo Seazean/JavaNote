@@ -4730,9 +4730,7 @@ UserService userService = (UserService)bf.getBean("userService");
 
 ##### FactoryBean
 
-繁琐的 bean 初始化过程处理：
-
-* FactoryBean：对单一的 bean 的初始化过程进行封装，达到简化配置的目的
+FactoryBean：对单一的 bean 的初始化过程进行封装，达到简化配置的目的
 
 FactoryBean与 BeanFactory 区别：
 
@@ -15235,7 +15233,7 @@ Web 部分源码详解：SpringMVC → 运行原理
 
 ### 内嵌容器
 
-SpringBoot 嵌入式 Servlet 容器，默认支持的 webServe：Tomcat、Jetty、Undertow
+SpringBoot 嵌入式 Servlet 容器，默认支持的 WebServe：Tomcat、Jetty、Undertow
 
 配置方式：
 
@@ -15814,9 +15812,7 @@ Spring Boot 2.2.0 版本开始引入 JUnit 5 作为单元测试默认库，由�
 @SpringBootTest
 class Boot05WebAdminApplicationTests {
     @Test
-    void contextLoads() {
-
-    }
+    void contextLoads() { }
 }
 ```
 

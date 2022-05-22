@@ -1623,7 +1623,7 @@ Netty 主要基于主从 Reactors 多线程模型做了一定的改进，Netty �
    - 处理 I/O 事件，即 read，write 事件，在对应 NioSocketChannel 处理
    - 处理任务队列的任务，即 runAllTasks
 
-6. 每个 Worker NioEventLoop 处理业务时，会使用 pipeline（管道），pipeline 中包含了 channel，即通过 pipeline 可以获取到对应通道，管道中维护了很多的处理器 Handler
+6. 每个 Worker NioEventLoop 处理业务时，会使用 Pipeline（管道），Pipeline 中包含了 Channel，即通过 Pipeline 可以获取到对应通道，管道中维护了很多的处理器 Handler
 
    <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Netty-Channel与Pipeline.png" style="zoom: 50%;" />
 
@@ -1641,9 +1641,9 @@ Netty 主要基于主从 Reactors 多线程模型做了一定的改进，Netty �
 
 开发简单的服务器端和客户端，基本介绍：
 
-* channel 理解为数据的通道，把 msg 理解为流动的数据，最开始输入是 ByteBuf，但经过 pipeline 的加工，会变成其它类型对象，最后输出又变成 ByteBuf
-* handler 理解为数据的处理工序，pipeline 负责发布事件传播给每个 handler，handler 对自己感兴趣的事件进行处理（重写了相应事件处理方法），分 Inbound 和 Outbound 两类
-* eventLoop 理解为处理数据的执行者，既可以执行 IO 操作，也可以进行任务处理。每个执行者有任务队列，队列里可以堆放多个 channel 的待处理任务，任务分为普通任务、定时任务。按照 pipeline 顺序，依次按照 handler 的规划（代码）处理数据
+* Channel 理解为数据的通道，把 msg 理解为流动的数据，最开始输入是 ByteBuf，但经过 Pipeline 的加工，会变成其它类型对象，最后输出又变成 ByteBuf
+* Handler 理解为数据的处理工序，Pipeline 负责发布事件传播给每个 Handler，Handler 对自己感兴趣的事件进行处理（重写了相应事件处理方法），分 Inbound 和 Outbound 两类
+* EventLoop 理解为处理数据的执行者，既可以执行 IO 操作，也可以进行任务处理。每个执行者有任务队列，队列里可以堆放多个 Channel 的待处理任务，任务分为普通任务、定时任务。按照 Pipeline 顺序，依次按照 Handler 的规划（代码）处理数据
 
 代码实现：
 
@@ -1706,7 +1706,7 @@ Netty 主要基于主从 Reactors 多线程模型做了一定的改进，Netty �
           new Bootstrap()
                   // 2. 添加 EventLoop
                   .group(new NioEventLoopGroup())
-              	//.option() 	//给 SocketChannel 配置参数
+              	//.option()，给 SocketChannel 配置参数
                   // 3. 选择客户端 channel 实现
                   .channel(NioSocketChannel.class)
                   // 4. 添加处理器
@@ -1793,7 +1793,6 @@ public class EventLoopServer {
                             public void channelRead(ChannelHandlerContext ctx, Object msg) {
                                 ByteBuf buf = (ByteBuf) msg;
                                 log.debug(buf.toString(Charset.defaultCharset()));
-
                             }
                         });
                     }
@@ -1885,8 +1884,13 @@ public class ChannelClient {
             @Override
             // nio 线程连接建立好以后，回调该方法
             public void operationComplete(ChannelFuture future) throws Exception {
-                Channel channel = future.channel();
-                channel.writeAndFlush("hello, world");
+                if (future.isSuccess()) {
+                    Channel channel = future.channel();
+                	channel.writeAndFlush("hello, world");
+                } else {
+                    // 建立失败，需要关闭
+                    future.channel().close();
+                }
             }
         });
     }
@@ -1908,15 +1912,7 @@ public class CloseFutureClient {
     public static void main(String[] args) throws InterruptedException {
         NioEventLoopGroup group = new NioEventLoopGroup();
         ChannelFuture channelFuture = new Bootstrap()
-                .group(group)
-                .channel(NioSocketChannel.class)
-                .handler(new ChannelInitializer<NioSocketChannel>() {
-                    @Override
-                    protected void initChannel(NioSocketChannel ch) throws Exception {
-                        ch.pipeline().addLast(new LoggingHandler(LogLevel.DEBUG));
-                        ch.pipeline().addLast(new StringEncoder());
-                    }
-                })
+                // ....
                 .connect(new InetSocketAddress("127.0.0.1", 8080));
         Channel channel = channelFuture.sync().channel();
         // 发送数据
@@ -2065,7 +2061,7 @@ public static void main(String[] args) {
             protected void initChannel(NioSocketChannel ch) throws Exception {
                 // 1. 通过 channel 拿到 pipeline
                 ChannelPipeline pipeline = ch.pipeline();
-                // 2. 添加处理器 head -> h1 -> h2 -> h3 -> h4 -> h5 -> h6 -> tail
+                // 2. 添加处理器 head -> h1 -> h2 -> h3 -> h4 -> tail
                 pipeline.addLast("h1", new ChannelInboundHandlerAdapter() {
                     @Override
                     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -2219,7 +2215,7 @@ ByteBuf 由四部分组成，最开始读写指针（**双指针**）都在 0 �
 * 写入几位写指针后移几位，指向可以写入的位置
 * 网络传输，默认习惯是 Big Endian
 
-扩容：写入数据时，容量不够了（初始容量是 10），这时会引发扩容
+扩容：写入数据时，容量不够了（初始容量是 10），这时会引发**扩容**
 
 * 如果写入后数据大小未超过 512，则选择下一个 16 的整数倍，例如写入后大小为 12 ，则扩容后 capacity 是 16
 * 如果写入后数据大小超过 512，则选择下一个 2^n，例如写入后大小为 513，则扩容后 capacity 是 2^10 = 1024（2^9=512 不够）
@@ -2264,15 +2260,13 @@ try {
 
 Pipeline 的存在，需要将 ByteBuf 传递给下一个 ChannelHandler，如果在 finally 中 release 了，就失去了传递性，处理规则：
 
-* 创建 ByteBuf 放入 pipeline
+* 创建 ByteBuf 放入 Pipeline
 
 * 入站 ByteBuf 处理原则
 
-  * 对原始 ByteBuf 不做处理，调用 ctx.fireChannelRead(msg) 向后传递，这时无须 release
+  * 对原始 ByteBuf 不做处理，调用 ctx.fireChannelRead(msg) 向后传递，这时无须 release，反之不传递需要
 
   * 将原始 ByteBuf 转换为其它类型的 Java 对象，这时 ByteBuf 就没用了，此时必须 release
-
-  * 如果不调用 ctx.fireChannelRead(msg) 向后传递，那么也必须 release
 
   * 如果出现异常，ByteBuf 没有成功传递到下一个 ChannelHandler，必须 release
 
@@ -2295,7 +2289,7 @@ Pipeline 的存在，需要将 ByteBuf 传递给下一个 ChannelHandler，如�
         return false;
     }
     ```
-
+  
 * 出站 ByteBuf 处理原则
 
   * 出站消息最终都会转为 ByteBuf 输出，一直向前传，由 HeadContext flush 后 release
@@ -2702,7 +2696,7 @@ public class HttpDemo {
                     // 只针对某一种类型的请求处理，此处针对 HttpRequest
                     ch.pipeline().addLast(new SimpleChannelInboundHandler<HttpRequest>() {
                         @Override
-                        protected void channelRead0(ChannelHandlerContext ctx, HttpRequest msg) throws Exception {
+                        protected void channelRead0(ChannelHandlerContext ctx, HttpRequest msg) {
                             // 获取请求
                             log.debug(msg.uri());
 
@@ -3060,7 +3054,7 @@ Codec（编解码器）的组成部分有两个：Decoder（解码器）和 Enco
 
 
 
-Protobuf 是 Google 发布的开源项目，全称  Google Protocol Buffers ，是一种轻便高效的结构化数据存储格式，可以用于结构化数据串行化，或者说序列化。很适合做数据存储或  RPC（远程过程调用  remote procedure call）数据交换格式。目前很多公司从 HTTP + Json 转向 TCP + Protobuf ，效率会更高
+Protobuf 是 Google 发布的开源项目，全称  Google Protocol Buffers ，是一种轻便高效的结构化数据存储格式，可以用于结构化数据串行化，或者说序列化。很适合做数据存储或 RPC（远程过程调用 remote procedure call）数据交换格式。目前很多公司从 HTTP + Json 转向 TCP + Protobuf ，效率会更高
 
 Protobuf 是以 message 的方式来管理数据，支持跨平台、跨语言（客户端和服务器端可以是不同的语言编写的），高性能、高可靠性
 
@@ -3234,7 +3228,7 @@ HTTP 协议是无状态的，浏览器和服务器间的请求响应一次，下
                   }
               });
   
-              //启动服务器
+              // 启动服务器
               ChannelFuture channelFuture = serverBootstrap.bind(8080).sync();
               channelFuture.channel().closeFuture().sync();
   
@@ -10256,8 +10250,9 @@ Zookeeper 是基于观察者模式设计的分布式服务管理框架，负责�
 * 集群中只要有半数以上节点存活就能正常服务，所以 Zookeeper 适合部署奇数台服务器
 * **全局数据一致**，每个 Server 保存一份相同的数据副本，Client 无论连接到哪个 Server，数据都是一致
 * 更新的请求顺序执行，来自同一个 Client 的请求按其发送顺序依次执行
-* 数据更新原子性，一次数据更新要么成功，要么失败
+* **数据更新原子性**，一次数据更新要么成功，要么失败
 * 实时性，在一定的时间范围内，Client 能读到最新数据
+* 心跳检测，会定时向各个服务提供者发送一个请求（实际上建立的是一个 Socket 长连接）
 
 ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/Zookeeper-框架结构.png)
 
@@ -10295,7 +10290,7 @@ Zookeeper 提供的主要功能包括：统一命名服务、统一配置管理�
 
 * 集群环境中，需要实时掌握每个集群节点的状态，可以将这些信息放入 ZNode，通过监控通知的机制实现
 
-* 实现客户端实时观察服务器上下线的变化
+* 实现客户端实时观察服务器上下线的变化，通过心跳检测实现
 
 
 
@@ -10339,7 +10334,7 @@ Zookeeper 提供的主要功能包括：统一命名服务、统一配置管理�
 
 Zookeeper 中的配置文件 zoo.cfg 中参数含义解读： 
 
-* tickTime = 2000：通信心跳时间，Zookeeper 服务器与客户端心跳时间，单位毫秒
+* tickTime = 2000：通信心跳时间，**Zookeeper 服务器与客户端心跳**时间，单位毫秒
 * initLimit = 10：Leader 与 Follower 初始通信时限，初始连接时能容忍的最多心跳次数
 * syncLimit = 5：Leader 与 Follower 同步通信时限，LF 通信时间超过 `syncLimit * tickTime`，Leader 认为 Follwer 下线
 * dataDir：保存 Zookeeper 中的数据目录，默认是 tmp目录，容易被 Linux 系统定期删除，所以建议修改
@@ -10520,7 +10515,7 @@ Zookeepe 集群三个角色：
 相关属性：
 
 * SID：服务器 ID，用来唯一标识一台集群中的机器，和 myid 一致
-* ZXID：事务ID，用来标识一次服务器状态的变更，在某一时刻集群中每台机器的 ZXID 值不一定完全一致，这和 ZooKeeper 服务器对于客户端更新请求的处理逻辑有关
+* ZXID：事务 ID，用来标识一次服务器状态的变更，在某一时刻集群中每台机器的 ZXID 值不一定完全一致，这和 ZooKeeper 服务器对于客户端更新请求的处理逻辑有关
 
 * Epoch：每个 Leader 任期的代号，同一轮选举投票过程中的该值是相同的，投完一次票就增加
 
@@ -10858,7 +10853,7 @@ public class DistributeServer {
     }
 
     private void register(String hostname) throws KeeperException, InterruptedException {
-        // OPEN_ACL_UNSAFE: ACL开放
+        // OPEN_ACL_UNSAFE: ACL 开放
         // EPHEMERAL_SEQUENTIAL: 临时顺序节点
         String create = zk.create("/servers/" + hostname, hostname.getBytes(),
                                   ZooDefs.Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL);
