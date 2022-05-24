@@ -10579,38 +10579,10 @@ public String requestParam1(String name ,int age){
 
 SpringMVC 对接收的数据进行自动类型转换，该工作通过 Converter 接口实现：
 
-* **标量转换器**
-  StringToBooleanConverter String → Boolean
-  ObjectToStringConverter Object → String
-  StringToNumberConverterFactory String → Number（ Integer、 Long 等）
-  NumberToNumberConverterFactory Number子类型之间（Integer、 Long、 Double 等）
-  StringToCharacterConverter String → java.lang.Character
-  NumberToCharacterConverter Number子类型（Integer、 Long、 Double 等）→ java.lang.Character
-  CharacterToNumberFactory java.lang.Character → Number子类型（Integer、Long、Double 等）
-  StringToEnumConverterFactory String → enum类型
-  EnumToStringConverter enum类型 → String
-  StringToLocaleConverter String → java.util.Local
-  PropertiesToStringConverter java.util.Properties → String
-  StringToPropertiesConverter String → java.util.Properties  
-
-* **集合、数组相关转换器**
-  ArrayToCollectionConverter 数组 → 集合（ List、 Set）
-  CollectionToArrayConverter 集合（ List、 Set） →数组
-  ArrayToArrayConverter 数组间
-  CollectionToCollectionConverter 集合间（ List、 Set）
-  MapToMapConverter Map间
-  ArrayToStringConverter 数组→String类型
-  StringToArrayConverter String →数组， trim后使用“,”split
-  ArrayToObjectConverter 数组 → Object
-  ObjectToArrayConverter Object → 单元素数组
-  CollectionToStringConverter 集合（ List、 Set） →String
-  StringToCollectionConverter String → 集合（ List、 Set）， trim后使用“,”split
-  CollectionToObjectConverter 集合 → Object
-  ObjectToCollectionConverter Object → 单元素集合  
-* **默认转换器**
-  ObjectToObjectConverter Object间
-  IdToEntityConverter Id → Entity
-  FallbackObjectToStringConverter Object → String  
+* 标量转换器
+  
+* 集合、数组相关转换器
+* 默认转换器
 
 
 

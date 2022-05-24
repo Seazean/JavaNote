@@ -10744,7 +10744,7 @@ get –w /path				# 监听【节点数据】的变化
 
 * 在主线程中创建 Zookeeper 客户端，这时就会创建**两个线程**，一个负责网络连接通信（connet），一个负责监听（listener）
 * 通过 connect 线程将注册的监听事件发送给 Zookeeper
-* 在 Zookeeper 的注册监听器列表中将注册的监听事件添加到列表中
+* 在 Zookeeper 的注册监听器列表中将注册的**监听事件添加到列表**中
 * Zookeeper 监听到有数据或路径变化，将消息发送给 listener 线程
 * listener 线程内部调用 process() 方法
 
