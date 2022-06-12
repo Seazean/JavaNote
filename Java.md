@@ -6,25 +6,22 @@
 
 #### 变量类型
 
-|          |    成员变量    |          局部变量          |          静态变量           |
-| :------: | :------------: | :------------------------: | :-------------------------: |
-| 定义位置 | 在类中，方法外 |    方法中或者方法的形参    |       在类中，方法外        |
-| 初始化值 | 有默认初始化值 | 无，先定义，赋值后才能使用 |       有默认初始化值        |
-| 调用方法 |    对象调用    |                            |     对象调用，类名调用      |
-| 存储位置 |      堆中      |            栈中            | 方法区（JDK8 以后移到堆中） |
-| 生命周期 |  与对象共存亡  |        与方法共存亡        |         与类共存亡          |
-|   别名   |    实例变量    |                            |    类变量，静态成员变量     |
+|          |    成员变量    |       局部变量       |          静态变量           |
+| :------: | :------------: | :------------------: | :-------------------------: |
+| 定义位置 | 在类中，方法外 | 方法中或者方法的形参 |       在类中，方法外        |
+| 初始化值 | 有默认初始化值 |  无，赋值后才能使用  |       有默认初始化值        |
+| 调用方法 |    对象调用    |                      |     对象调用，类名调用      |
+| 存储位置 |      堆中      |         栈中         | 方法区（JDK8 以后移到堆中） |
+| 生命周期 |  与对象共存亡  |     与方法共存亡     |         与类共存亡          |
+|   别名   |    实例变量    |                      |    类变量，静态成员变量     |
 
-**静态变量只有一个，成员变量是类中的变量，局部变量是方法中的变量**
+静态变量只有一个，成员变量是类中的变量，局部变量是方法中的变量
 
 
 
-初学时笔记内容参考视频：https://www.bilibili.com/video/BV1TE41177mP，随着学习的深入又增加了很多知识
+初学时笔记内容参考视频：https://www.bilibili.com/video/BV1TE41177mP，随着学习的深入又增加很多知识
 
-给初学者的一些个人建议：
 
-* 初学者对编程的认知比较浅显，一些专有词汇和概念难以理解，所以建议观看视频进行入门，大部分公开课视频讲的比较基础
-* 在有了一定的编程基础后，需要看一些经典书籍和技术博客，来扩容自己的知识广度和深度，可以长期保持记录笔记的好习惯
 
 
 
@@ -40,9 +37,8 @@ Java 语言提供了八种基本类型。六种数字类型（四个整数型，
 
 **byte：**
 
-- byte 数据类型是 8 位、有符号的，以**二进制补码**表示的整数，**8 位一个字节**，首位是符号位
-- 最小值是 -128（-2^7）
-- 最大值是 127（2^7-1）
+- byte 数据类型是 8 位、有符号的，以二进制补码表示的整数，**8 位一个字节**，首位是符号位
+- 最小值是 -128（-2^7）、最大值是 127（2^7-1）
 - 默认值是 `0`
 - byte 类型用在大型数组中节约空间，主要代替整数，byte 变量占用的空间只有 int 类型的四分之一
 - 例子：`byte a = 100，byte b = -50`
@@ -50,8 +46,7 @@ Java 语言提供了八种基本类型。六种数字类型（四个整数型，
 **short：**
 
 - short 数据类型是 16 位、有符号的以二进制补码表示的整数
-- 最小值是 -32768（-2^15）
-- 最大值是 32767（2^15 - 1）
+- 最小值是 -32768（-2^15）、最大值是 32767（2^15 - 1）
 - short 数据类型也可以像 byte 那样节省空间，一个 short 变量是 int 型变量所占空间的二分之一
 - 默认值是 `0`
 - 例子：`short s = 1000，short r = -20000`
@@ -59,8 +54,7 @@ Java 语言提供了八种基本类型。六种数字类型（四个整数型，
 **int：**
 
 - int 数据类型是 32 位 4 字节、有符号的以二进制补码表示的整数
-- 最小值是 -2,147,483,648（-2^31）
-- 最大值是 2,147,483,647（2^31 - 1）
+- 最小值是 -2,147,483,648（-2^31）、最大值是 2,147,483,647（2^31 - 1）
 - 一般地整型变量默认为 int 类型
 - 默认值是 `0`
 - 例子：`int a = 100000, int b = -200000`
@@ -68,12 +62,10 @@ Java 语言提供了八种基本类型。六种数字类型（四个整数型，
 **long：**
 
 - long 数据类型是 64 位 8 字节、有符号的以二进制补码表示的整数
-- 最小值是 -9,223,372,036,854,775,808（-2^63）
-- 最大值是 9,223,372,036,854,775,807（2^63 -1）
+- 最小值是 -9,223,372,036,854,775,808（-2^63）、最大值是 9,223,372,036,854,775,807（2^63 -1）
 - 这种类型主要使用在需要比较大整数的系统上
 - 默认值是 ` 0L`
-- 例子： `long a = 100000L，Long b = -200000L`
-  L 理论上不分大小写，但是若写成 I 容易与数字 1 混淆，不容易分辩，所以最好大写
+- 例子： `long a = 100000L，Long b = -200000L`，L 理论上不分大小写，但是若写成 I 容易与数字 1 混淆，不容易分辩
 
 **float：**
 
@@ -104,7 +96,7 @@ Java 语言提供了八种基本类型。六种数字类型（四个整数型，
 - char 类型是一个单一的 16 位**两个字节**的 Unicode 字符
 - 最小值是 `\u0000`（即为 0）
 - 最大值是 `\uffff`（即为 65535）
-- char 数据类型可以存储任何字符
+- char 数据类型可以**存储任何字符**
 - 例子：`char c = 'A'`，`char c = '张'`
 
 
@@ -117,7 +109,7 @@ Java 语言提供了八种基本类型。六种数字类型（四个整数型，
 
 * float 与 double：
 
-  Java 不能隐式执行**向下转型**，因为这会使得精度降低（参考多态），但是可以向上转型
+  Java 不能隐式执行**向下转型**，因为这会使得精度降低，但是可以向上转型
 
   ```java
   //1.1字面量属于double类型，不能直接将1.1直接赋值给 float 变量，因为这是向下转型
@@ -146,7 +138,7 @@ Java 语言提供了八种基本类型。六种数字类型（四个整数型，
 
   字面量 1 是 int 类型，比 short 类型精度要高，因此不能隐式地将 int 类型向下转型为 short 类型
 
-  使用 += 或者 ++ 运算符会执行隐式类型转换：
+  使用 += 或者 ++ 运算符会执行类型转换：
 
   ```java
   short s1 = 1;
@@ -177,12 +169,12 @@ Java 语言提供了八种基本类型。六种数字类型（四个整数型，
 基本数据类型                包装类（引用数据类型）
 byte                      Byte
 short                     Short
-int                       Integer(特殊)
+int                       Integer
 long                      Long
 
 float                     Float
 double                    Double
-char                      Character(特殊)
+char                      Character
 boolean                   Boolean
 ```
 Java 为包装类做了一些特殊功能，具体来看特殊功能主要有：
@@ -209,17 +201,15 @@ Java 为包装类做了一些特殊功能，具体来看特殊功能主要有：
           String itStr1 = Integer.toString(it);
           System.out.println(itStr1+1);//1001
           // c.直接把基本数据类型+空字符串就得到了字符串。
-          String itStr2 = it+"";
+          String itStr2 = it + "";
           System.out.println(itStr2+1);// 1001
   
-          // 2.把字符串类型的数值转换成对应的基本数据类型的值。（真的很有用）
+          // 2.把字符串类型的数值转换成对应的基本数据类型的值
           String numStr = "23";
-          //int numInt = Integer.parseInt(numStr);
           int numInt = Integer.valueOf(numStr);
           System.out.println(numInt+1);//24
   
           String doubleStr = "99.9";
-          //double doubleDb = Double.parseDouble(doubleStr);
           double doubleDb = Double.valueOf(doubleStr);
           System.out.println(doubleDb+0.1);//100.0
       }
@@ -329,7 +319,7 @@ new Integer(123) 与 Integer.valueOf(123) 的区别在于：
   System.out.println(z == k);   // true
   ```
 
-valueOf() 方法的实现比较简单，就是先判断值是否在缓存池中，如果在的话就直接返回缓存池的内容。编译器会在自动装箱过程调用 valueOf() 方法，因此多个值相同且值在缓存池范围内的 Integer 实例使用自动装箱来创建，那么就会引用相同的对象。
+valueOf() 方法的实现比较简单，就是先判断值是否在缓存池中，如果在的话就直接返回缓存池的内容。编译器会在自动装箱过程调用 valueOf() 方法，因此多个值相同且值在缓存池范围内的 Integer 实例使用自动装箱来创建，那么就会引用相同的对象
 
 **基本类型对应的缓存池如下：**
 
@@ -417,7 +407,7 @@ public static void main(String[] args) {
 
 #### 元素访问
 
-* **索引**：每一个存储到数组的元素，都会自动的拥有一个编号，从 **0** 开始。这个自动编号称为数组索引（index），可以通过数组的索引访问到数组中的元素。 
+* **索引**：每一个存储到数组的元素，都会自动的拥有一个编号，从 **0** 开始。这个自动编号称为数组索引（index），可以通过数组的索引访问到数组中的元素
 
 * **访问格式**：数组名[索引]，`arr[0]`
 * **赋值：**`arr[0] = 10`
@@ -430,7 +420,7 @@ public static void main(String[] args) {
 
 #### 内存分配
 
-内存是计算机中的重要器件，临时存储区域，作用是运行程序。我们编写的程序是存放在硬盘中，在硬盘中的程序是不会运行的，必须放进内存中才能运行，运行完毕后会清空内存。 Java 虚拟机要运行程序，必须要对内存进行空间的分配和管理。 
+内存是计算机中的重要器件，临时存储区域，作用是运行程序。编写的程序是存放在硬盘中，在硬盘中的程序是不会运行的，必须放进内存中才能运行，运行完毕后会清空内存，Java 虚拟机要运行程序，必须要对内存进行空间的分配和管理
 
 | 区域名称   | 作用                                                       |
 | ---------- | ---------------------------------------------------------- |
@@ -475,9 +465,9 @@ public static void main(String[] args) {
   }
   ```
 
-  arr = null，表示变量 arr 将不再保存数组的内存地址，也就不允许再操作数组，因此运行的时候会抛出空指针异常。在开发中，空指针异常是不能出现的，一旦出现了，就必须要修改编写的代码。
+  arr = null，表示变量 arr 将不再保存数组的内存地址，也就不允许再操作数组，因此运行的时候会抛出空指针异常。在开发中，空指针异常是不能出现的，一旦出现了，就必须要修改编写的代码
 
-  解决方案：给数组一个真正的堆内存空间引用即可！
+  解决方案：给数组一个真正的堆内存空间引用即可
   
   
 
@@ -491,14 +481,12 @@ public static void main(String[] args) {
 
 初始化：
 
-* 动态初始化：
-  
-  数据类型[][] 变量名 = new 数据类型[m] [n] : `int[][] arr = new int[3][3]`
+* 动态初始化：数据类型[][] 变量名 = new 数据类型[m] [n]，`int[][] arr = new int[3][3]`
   
   * m 表示这个二维数组，可以存放多少个一维数组，行
   * n 表示每一个一维数组，可以存放多少个元素，列
 * 静态初始化
-  * 数据类型[][] 变量名 = new 数据类型[][]{ {元素1, 元素2...} , {元素1, 元素2...} 
+  * 数据类型[][] 变量名 = new 数据类型 [][]{{元素1, 元素2...} , {元素1, 元素2...} 
   * 数据类型[][] 变量名 = {{元素1, 元素2...}, {元素1, 元素2...}...}
   * `int[][] arr = {{11,22,33}, {44,55,66}}`
 
@@ -537,20 +525,20 @@ public class Test1 {
 ### 运算
 
 * i++ 与 ++i 的区别？
-  i++ 表示先将 i 放在表达式中运算，然后再加 1
-  ++i 表示先将 i 加 1，然后再放在表达式中运算
+  
+  i++ 表示先将 i 放在表达式中运算，然后再加 1，++i 表示先将 i 加 1，然后再放在表达式中运算
 
 * || 和 |，&& 和& 的区别，逻辑运算符
 
-  **& 和| 称为布尔运算符，位运算符。&& 和 || 称为条件布尔运算符，也叫短路运算符**。
+  **& 和| 称为布尔运算符，位运算符；&& 和 || 称为条件布尔运算符，也叫短路运算符**
 
   如果 && 运算符的第一个操作数是 false，就不需要考虑第二个操作数的值了，因为无论第二个操作数的值是什么，其结果都是 false；同样，如果第一个操作数是 true，|| 运算符就返回 true，无需考虑第二个操作数的值；但 & 和 | 却不是这样，它们总是要计算两个操作数。为了提高性能，**尽可能使用 && 和 || 运算符**
 
-* ^ 异或：两位相异为 1，相同为 0，又叫不进位加法。同或：两位相同为 1，相异为 0
+* 异或 ^：两位相异为 1，相同为 0，又叫不进位加法
 
-* switch
+* 同或：两位相同为 1，相异为 0
 
-  从 Java 7 开始，可以在 switch 条件判断语句中使用 String 对象
+* switch：从 Java 7 开始，可以在 switch 条件判断语句中使用 String 对象
 
   ```java
   String s = "a";
@@ -570,11 +558,9 @@ public class Test1 {
   
 * break：跳出一层循环
 
-* 移位运算
+* 移位运算：计算机里一般用**补码表示数字**，正数、负数的表示区别就是最高位是 0 还是 1
   
-  计算机里一般用**补码表示数字**，正数、负数的表示区别就是最高位是 0 还是 1
-  
-  * 正数的原码反码补码相同
+  * 正数的原码反码补码相同，最高位为 0
   
     ```java
     100:	00000000  00000000  00000000  01100100
@@ -583,7 +569,7 @@ public class Test1 {
   * 负数：
     原码：最高位为 1，其余位置和正数相同
     反码：保证符号位不变，其余位置取反
-    补码：保证符号位不变，其余位置取反加 1，即反码 +1
+    补码：保证符号位不变，其余位置取反后加 1，即反码 +1
   
     ```java
     -100 原码:	10000000  00000000  00000000  01100100	//32位
@@ -636,7 +622,7 @@ public class Test1 {
 
 格式：数据类型... 参数名称
 
-作用：传输参数非常灵活，方便，可以不传输参数、传输一个参数、或者传输一个数组。
+作用：传输参数非常灵活，可以不传输参数、传输一个参数、或者传输一个数组
 
 可变参数的注意事项：
 
@@ -837,7 +823,7 @@ public class MethodDemo {
 
 Java 的参数是以**值传递**的形式传入方法中
 
-值传递和引用传递的区别在于传递后会不会影响实参的值：值传递会创建副本，引用传递不会创建副本
+值传递和引用传递的区别在于传递后会不会影响实参的值：**值传递会创建副本**，引用传递不会创建副本
 
 * 基本数据类型：形式参数的改变，不影响实际参数
   
@@ -996,11 +982,11 @@ Debug 是供程序员使用的程序调试工具，它可以用于查看程序�
 
 ### 概述
 
-**Java 是一种面向对象的高级编程语言。**
+Java 是一种面向对象的高级编程语言
 
-**三大特征：封装，继承，多态**
+面向对象三大特征：**封装，继承，多态**
 
-面向对象最重要的两个概念：类和对象
+两个概念：类和对象
 
 * 类：相同事物共同特征的描述，类只是学术上的一个概念并非真实存在的，只能描述一类事物
 * 对象：是真实存在的实例， 实例 == 对象，**对象是类的实例化**
@@ -1198,11 +1184,11 @@ Java 是通过成员变量是否有 static 修饰来区分是类的还是属于�
 
 内存问题：
 
-* **栈内存存放 main 方法和地址**
+* 栈内存存放 main 方法和地址
 
-* **堆内存存放对象和变量**
+* 堆内存存放对象和变量
 
-* **方法区存放 class 和静态变量（jdk8 以后移入堆）**
+* 方法区存放 class 和静态变量（jdk8 以后移入堆）
 
 访问问题：
 
@@ -1210,7 +1196,7 @@ Java 是通过成员变量是否有 static 修饰来区分是类的还是属于�
 * 实例方法是否可以直接访问静态成员变量？可以，静态成员变量可以被共享访问
 * 实例方法是否可以直接访问实例方法? 可以，实例方法和实例方法都属于对象
 * 实例方法是否可以直接访问静态方法？可以，静态方法可以被共享访问
-* 静态方法是否可以直接访问实例变量？ 不可以，实例变量必须用对象访问！！
+* 静态方法是否可以直接访问实例变量？ 不可以，实例变量**必须用对象访问**！！
 * 静态方法是否可以直接访问静态变量？ 可以，静态成员变量可以被共享访问。
 * 静态方法是否可以直接访问实例方法? 不可以，实例方法必须用对象访问！！
 * 静态方法是否可以直接访问静态方法？可以，静态方法可以被共享访问！！
@@ -1256,7 +1242,7 @@ Java 是通过成员变量是否有 static 修饰来区分是类的还是属于�
 
 * 子类不能继承父类的构造器，子类有自己的构造器
 * 子类是不能可以继承父类的私有成员的，可以反射暴力去访问继承自父类的私有成员
-* 子类是不能继承父类的静态成员的，子类只是可以访问父类的静态成员，父类静态成员只有一份可以被子类共享访问，**共享并非继承**
+* 子类是不能继承父类的静态成员，父类静态成员只有一份可以被子类共享访问，**共享并非继承**
 
 ```java
 public class ExtendsDemo {
@@ -1267,8 +1253,10 @@ public class ExtendsDemo {
         System.out.println(Cat.schoolName);
     }
 }
+
 class Cat extends Animal{
 }
+
 class Animal{
     public static String schoolName ="seazean";
     public static void test(){}
@@ -1295,6 +1283,7 @@ public class ExtendsDemo {
         w.showName();
     }
 }
+
 class Wolf extends Animal{
     private String name = "子类狼";
     public void showName(){
@@ -1327,7 +1316,7 @@ class Animal{
 
 方法重写的校验注解：@Override
 
-* 方法加了这个注解，那就必须是成功重写父类的方法，否则报错 
+* 方法加了这个注解，那就必须是成功重写父类的方法，否则报错
 * @Override 优势：可读性好，安全，优雅
 
 **子类可以扩展父类的功能，但不能改变父类原有的功能**，重写有以下三个限制：
@@ -1432,11 +1421,11 @@ class Animal{
 * this 代表了当前对象的引用（继承中指代子类对象）：this.子类成员变量、this.子类成员方法、**this(...)** 可以根据参数匹配访问本类其他构造器
 * super 代表了父类对象的引用（继承中指代了父类对象空间）：super.父类成员变量、super.父类的成员方法、super(...) 可以根据参数匹配访问父类的构造器
 
-**注意：**
+注意：
 
-* this(...) 借用本类其他构造器，super(...) 调用父类的构造器。
-* this(...) 或 super(...) 必须放在构造器的第一行，否则报错!
-* this(...) 和 super(...) 不能同时出现在构造器中，因为构造函数必须出现在第一行上，只能选择一个。
+* this(...) 借用本类其他构造器，super(...) 调用父类的构造器
+* this(...) 或 super(...) 必须放在构造器的第一行，否则报错
+* this(...) 和 super(...) **不能同时出现**在构造器中，因为构造函数必须出现在第一行上，只能选择一个
 
 ```java
 public class ThisDemo {
@@ -1503,7 +1492,7 @@ final 和 abstract 的关系是**互斥关系**，不能同时修饰类或者同
 
 final 修饰静态成员变量，变量变成了常量
 
-**常量：有 public static final 修饰，名称字母全部大写，多个单词用下划线连接。**
+常量：有 public static final 修饰，名称字母全部大写，多个单词用下划线连接
 
 final 修饰静态成员变量可以在哪些地方赋值：
 
@@ -1520,7 +1509,6 @@ public class FinalDemo {
     static{
         //SCHOOL_NAME = "java";//报错
         SCHOOL_NAME1 = "张三1";
-        //SCHOOL_NAME1 = "张三2"; // 报错，第二次赋值！
     }
 }
 ```
@@ -1575,13 +1563,13 @@ public class FinalDemo {
 
 #### 基本介绍
 
-> 父类知道子类要完成某个功能，但是每个子类实现情况不一样。
+> 父类知道子类要完成某个功能，但是每个子类实现情况不一样
 
 抽象方法：没有方法体，只有方法签名，必须用 abstract 修饰的方法就是抽象方法
 
 抽象类：拥有抽象方法的类必须定义成抽象类，必须用 abstract 修饰，**抽象类是为了被继承**
 
-一个类继承抽象类，**必须重写抽象类的全部抽象方法**，否则这个类必须定义成抽象类，因为拥有抽象方法的类必须定义成抽象类
+一个类继承抽象类，**必须重写抽象类的全部抽象方法**，否则这个类必须定义成抽象类
 
 ```java
 public class AbstractDemo {
@@ -1811,32 +1799,32 @@ public class InterfaceDemo {
         InterfaceJDK8.inAddr();
     }
 }
-class Man implements InterfaceJDK8{
+class Man implements InterfaceJDK8 {
     @Override
     public void work() {
         System.out.println("工作中。。。");
     }
 }
 
-interface InterfaceJDK8{
+interface InterfaceJDK8 {
     //抽象方法！！
     void work();
     // a.默认方法（就是之前写的普通实例方法）
     // 必须用接口的实现类的对象来调用。
-    default void run(){
+    default void run() {
         go();
         System.out.println("开始跑步🏃‍");
     }
 
     // b.静态方法
     // 注意：接口的静态方法必须用接口的类名本身来调用
-    static void inAddr(){
+    static void inAddr() {
         System.out.println("我们在武汉");
     }
     
     // c.私有方法（就是私有的实例方法）: JDK 1.9才开始有的。
     // 只能在本接口中被其他的默认方法或者私有方法访问。
-    private void go(){
+    private void go() {
         System.out.println("开始。。");
     }
 }
@@ -1874,7 +1862,7 @@ interface InterfaceJDK8{
 
 #### 基本介绍
 
-多态的概念：同一个实体同时具有多种形式同一个类型的对象，执行同一个行为，在不同的状态下会表现出不同的行为特征。
+多态的概念：同一个实体同时具有多种形式同一个类型的对象，执行同一个行为，在不同的状态下会表现出不同的行为特征
 
 多态的格式：
 
@@ -1897,11 +1885,11 @@ interface InterfaceJDK8{
 * 存在方法重写
 
 多态的优势：
-* 在多态形式下，右边对象可以实现组件化切换，业务功能也随之改变，便于扩展和维护。可以实现类与类之间的**解耦**
+* 在多态形式下，右边对象可以实现组件化切换，便于扩展和维护，也可以实现类与类之间的**解耦**
 * 父类类型作为方法形式参数，传递子类对象给方法，可以传入一切子类对象进行方法的调用，更能体现出多态的**扩展性**与便利性
 
 多态的劣势： 
-* 多态形式下，不能直接调用子类特有的功能，因为编译看左边，父类中没有子类独有的功能，所以代码在编译阶段就直接报错了！ 
+* 多态形式下，不能直接调用子类特有的功能，因为编译看左边，父类中没有子类独有的功能，所以代码在编译阶段就直接报错了
 
 ```java
 public class PolymorphicDemo {
@@ -2061,7 +2049,7 @@ static class Outter{
 
 #### 实例内部类
 
-定义：无 static 修饰的内部类，属于外部类的每个对象，跟着外部类对象一起加载。
+定义：无 static 修饰的内部类，属于外部类的每个对象，跟着外部类对象一起加载
 
 实例内部类的成分特点：实例内部类中不能定义静态成员，其他都可以定义
 
@@ -2192,9 +2180,8 @@ static {
  ```
 
 * 静态代码块特点： 
-  * 必须有 static 修饰
+  * 必须有 static 修饰，只能访问静态资源
   * 会与类一起优先加载，且自动触发执行一次
-  * 只能访问静态资源
 * 静态代码块作用：
   * 可以在执行类的方法等操作之前先在静态代码块中进行静态资源的初始化 
   * **先执行静态代码块，在执行 main 函数里的操作**
@@ -2337,7 +2324,7 @@ Object 的 clone() 是 protected 方法，一个类不显式去重写 clone()，
 
 * 浅拷贝 (shallowCopy)：**对基本数据类型进行值传递，对引用数据类型只是复制了引用**，被复制对象属性的所有的引用仍然指向原来的对象，简而言之就是增加了一个指针指向原来对象的内存地址
 
-  **Java 中的复制方法基本都是浅克隆**：Object.clone()、System.arraycopy()、Arrays.copyOf()
+  **Java 中的复制方法基本都是浅拷贝**：Object.clone()、System.arraycopy()、Arrays.copyOf()
 
 * 深拷贝 (deepCopy)：对基本数据类型进行值传递，对引用数据类型是一个整个独立的对象拷贝，会拷贝所有的属性并指向的动态分配的内存，简而言之就是把所有属性复制到一个新的内存，增加一个指针指向新内存。所以使用深拷贝的情况下，释放内存的时候不会出现使用浅拷贝时释放同一块内存的错误
 
@@ -2390,11 +2377,11 @@ Objects 类与 Object 是继承关系
 
 Objects 的方法：
 
-* `public static boolean equals(Object a, Object b)`：比较两个对象是否相同。
-    底层进行非空判断，从而可以避免空指针异常，更安全，推荐使用！
-
-  ```java
+* `public static boolean equals(Object a, Object b)`：比较两个对象是否相同
+  
+    ```java
   public static boolean equals(Object a, Object b) {
+      // 进行非空判断，从而可以避免空指针异常
       return a == b || a != null && a.equals(b);
   }
   ```
@@ -2637,7 +2624,7 @@ public static void main(String[] args) {
     System.out.println(str1 == str1.intern());//true，字符串池中不存在，把堆中的引用复制一份放入串池
 
     String str2 = new StringBuilder("ja").append("va").toString();
-    System.out.println(str2 == str2.intern());//false
+    System.out.println(str2 == str2.intern());//false，字符串池中存在，直接返回已经存在的引用
 }
 ```
 
@@ -2900,11 +2887,11 @@ System 代表当前系统
 * `public static long currentTimeMillis()`：获取当前系统此刻时间毫秒值
 
 * `static void arraycopy(Object var0, int var1, Object var2, int var3, int var4)`：数组拷贝
-  参数一：原数组
-  参数二：从原数组的哪个位置开始赋值
-  参数三：目标数组
-  参数四：从目标数组的哪个位置开始赋值
-  参数五：赋值几个
+  * 参数一：原数组
+  * 参数二：从原数组的哪个位置开始赋值
+  * 参数三：目标数组
+  * 参数四：从目标数组的哪个位置开始赋值
+  * 参数五：赋值几个
 
 ```java
 public class SystemDemo {
@@ -3758,15 +3745,12 @@ public class RegexDemo {
 数据存储的常用结构有：栈、队列、数组、链表和红黑树
 
 * 队列（queue）：先进先出，后进后出。(FIFO first in first out)
-  场景：各种排队、叫号系统，有很多集合可以实现队列
-
+  
 * 栈（stack）：后进先出，先进后出 （LIFO）
-  压栈 == 入栈、弹栈 == 出栈
-  场景：手枪的弹夹 
-
+  
 * 数组：数组是内存中的连续存储区域，分成若干等分的小区域（每个区域大小是一样的）元素存在索引
-  特点：**查询元素快**（根据索引快速计算出元素的地址，然后立即去定位）
-              **增删元素慢**（创建新数组，迁移元素）
+  
+  特点：**查询元素快**（根据索引快速计算出元素的地址，然后立即去定位），**增删元素慢**（创建新数组，迁移元素）
 
 * 链表：元素不是内存中的连续区域存储，元素是游离存储的，每个元素会记录下个元素的地址
   特点：**查询元素慢，增删元素快**（针对于首尾元素，速度极快，一般是双链表）
@@ -3774,11 +3758,12 @@ public class RegexDemo {
 * 树：
 
   * 二叉树：binary tree 永远只有一个根节点，是每个结点不超过2个节点的树（tree） 
+  
     特点：二叉排序树：小的左边，大的右边，但是可能树很高，性能变差，为了做排序和搜索会进行左旋和右旋实现平衡查找二叉树，让树的高度差不大于1
   
-* 红黑树（基于红黑规则实现自平衡的排序二叉树）：树保证到了很矮小，但是又排好序，性能最高的树
+  * 红黑树（基于红黑规则实现自平衡的排序二叉树）：树保证到了很矮小，但是又排好序，性能最高的
   
-  特点：**红黑树的增删查改性能都好**
+    特点：**红黑树的增删查改性能都好**
 
 各数据结构时间复杂度对比：
 
@@ -3970,8 +3955,8 @@ ArrayList 添加的元素，是有序，可重复，有索引的
 * `public boolean add(E e)`：将指定的元素追加到此集合的末尾
 * `public void add(int index, E element)`：将指定的元素，添加到该集合中的指定位置上
 * `public E get(int index)`：返回集合中指定位置的元素
-* `public E remove(int index)`：移除列表中指定位置的元素, 返回的是被移除的元素
-* `public E set(int index, E element)`：用指定元素替换集合中指定位置的元素,返回更新前的元素值
+* `public E remove(int index)`：移除列表中指定位置的元素，返回的是被移除的元素
+* `public E set(int index, E element)`：用指定元素替换集合中指定位置的元素，返回更新前的元素值
 * `int indexOf(Object o)`：返回列表中指定元素第一次出现的索引，如果不包含此元素，则返回 -1
 
 ```java
@@ -4008,7 +3993,7 @@ public class ArrayList<E> extends AbstractList<E>
 
 核心方法：
 
-* 构造函数：以无参数构造方法创建 ArrayList 时，实际上初始化赋值的是一个空数组。当真正对数组进行添加元素操作时，才真正分配容量，即向数组中添加第一个元素时，**数组容量扩为 10**
+* 构造函数：以无参数构造方法创建 ArrayList 时，实际上初始化赋值的是一个空数组。当真正对数组进行添加元素操作时，才真正分配容量（惰性初始化），即向数组中添加第一个元素时，**数组容量扩为 10**
 
 * 添加元素：
 
@@ -4059,8 +4044,8 @@ public class ArrayList<E> extends AbstractList<E>
   public void add(int index, E element) {
       rangeCheckForAdd(index);
       ensureCapacityInternal(size + 1);  // Increments modCount!!
-      System.arraycopy(elementData, index, elementData, index + 1,
-                       size - index);
+      // 将指定索引后的数据后移
+      System.arraycopy(elementData, index, elementData, index + 1, size - index);
       elementData[index] = element;
       size++;
   }
@@ -4091,7 +4076,7 @@ public class ArrayList<E> extends AbstractList<E>
   * OutOfMemoryError:Requested array size exceeds VM limit（请求的数组大小超出 VM 限制）
   * OutOfMemoryError: Java heap space（堆区内存不足，可以通过设置 JVM 参数 -Xmx 来调节）
 
-* 删除元素：需要调用 System.arraycopy() 将 index+1 后面的元素都复制到 index 位置上，在旧数组上操作，该操作的时间复杂度为 O(N)，可以看到 ArrayList 删除元素的代价是非常高的，
+* 删除元素：需要调用 System.arraycopy() 将 index+1 后面的元素都复制到 index 位置上，在旧数组上操作，该操作的时间复杂度为 O(N)，可以看到 ArrayList 删除元素的代价是非常高的
 
   ```java
   public E remove(int index) {
@@ -4212,10 +4197,6 @@ LinkedList 除了拥有 List 集合的全部功能还多了很多操作首尾元
 * `public E poll()`：检索并删除此列表的头（第一个元素）
 * `public void addFirst(E e)`：将指定元素插入此列表的开头
 * `public void addLast(E e)`：将指定元素添加到此列表的结尾
-* `public E getFirst()`：返回此列表的第一个元素
-* `public E getLast()`：返回此列表的最后一个元素
-* `public E removeFirst()`：移除并返回此列表的第一个元素
-* `public E removeLast()`：移除并返回此列表的最后一个元素
 * `public E pop()`：从此列表所表示的堆栈处弹出一个元素
 * `public void push(E e)`：将元素推入此列表所表示的堆栈
 * `public int indexOf(Object o)`：返回此列表中指定元素的第一次出现的索引，如果不包含返回 -1
@@ -4401,7 +4382,7 @@ Set 集合添加的元素是无序，不重复的。
 
   每个元素的 hashcode() 的值进行响应的算法运算，计算出的值相同的存入一个数组块中，以链表的形式存储，如果链表长度超过8就采取红黑树存储，所以输出的元素是无序的。
 
-* 如何设置只要对象内容一样，就希望集合认为它们重复了：**重写 hashCode 和 equals 方法**
+* 如何设置只要对象内容一样，就希望集合认为重复：**重写 hashCode 和 equals 方法**
 
 
 
@@ -4585,7 +4566,7 @@ Map集合的体系：
                                   LinkedHashMap<K, V>(实现类)
 ```
 
-Map集合的特点：
+Map 集合的特点：
 
 1. Map 集合的特点都是由键决定的
 2. Map 集合的键是无序，不重复的，无索引的（Set）
@@ -4596,13 +4577,6 @@ Map集合的特点：
 HashMap：元素按照键是无序，不重复，无索引，值不做要求
 
 LinkedHashMap：元素按照键是有序，不重复，无索引，值不做要求
-
-```java
-//经典代码
-Map<String , Integer> maps = new HashMap<>();
-maps.put("手机",1);
-System.out.println(maps);
-```
 
 
 
@@ -4714,12 +4688,12 @@ JDK7 对比 JDK8：
 
 * 哈希表（Hash table，也叫散列表），根据关键码值而直接访问的数据结构。通过把关键码值映射到表中一个位置来访问记录，以加快查找的速度，这个映射函数叫做散列函数，存放记录的数组叫做散列表
 
-* JDK1.8 之前 HashMap 由 数组+链表 组成
+* JDK1.8 之前 HashMap 由数组+链表组成
 
   * 数组是 HashMap 的主体
   * 链表则是为了解决哈希冲突而存在的（**拉链法解决冲突**），拉链法就是头插法，两个对象调用的 hashCode 方法计算的哈希码值（键的哈希）一致导致计算的数组索引值相同
   
-* JDK1.8 以后 HashMap 由 **数组+链表 +红黑树**数据结构组成
+* JDK1.8 以后 HashMap 由**数组+链表 +红黑树**数据结构组成
 
   * 解决哈希冲突时有了较大的变化
   * 当链表长度**超过（大于）阈值**（或者红黑树的边界值，默认为 8）并且当前数组的**长度大于等于 64 时**，此索引位置上的所有数据改为红黑树存储
@@ -4767,7 +4741,7 @@ HashMap 继承关系如下图所示：
 
    ```java
    // 默认的初始容量是16 -- 1<<4相当于1*2的4次方---1*16
-   static final int DEFAULT_INITIAL_CAPACITY = 1 << 4;   
+   static final int DEFAULT_INITIAL_CAPACITY = 1 << 4;
    ```
 
    HashMap 构造方法指定集合的初始化容量大小：
@@ -4776,9 +4750,9 @@ HashMap 继承关系如下图所示：
    HashMap(int initialCapacity)// 构造一个带指定初始容量和默认加载因子 (0.75) 的空 HashMap
    ```
 
-   * 为什么必须是 2 的 n 次幂？
+   * 为什么必须是 2 的 n 次幂？用位运算替代取余计算
 
-     HashMap 中添加元素时，需要根据 key 的 hash 值，确定在数组中的具体位置。为了存取高效，要尽量较少碰撞，把数据分配均匀，每个链表长度大致相同，实现该方法的算法就是取模，hash%length，计算机中直接求余效率不如位移运算，所以源码中使用 hash&(length-1)，实际上**hash % length == hash & (length-1)的前提是 length 是 2 的n次幂**
+     HashMap 中添加元素时，需要根据 key 的 hash 值确定在数组中的具体位置。为了减少碰撞，把数据分配均匀，每个链表长度大致相同，实现该方法就是取模 `hash%length`，计算机中直接求余效率不如位移运算， **`hash % length == hash & (length-1)` 的前提是 length 是 2 的 n 次幂**
 
      散列平均分布：2 的 n 次方是 1 后面 n 个 0，2 的 n 次方 -1 是 n 个 1，可以**保证散列的均匀性**，减少碰撞
 
@@ -4803,11 +4777,6 @@ HashMap 继承关系如下图所示：
     // 集合最大容量的上限是：2的30次幂
     static final int MAXIMUM_CAPACITY = 1 << 30;// 0100 0000 0000 0000 0000 0000 0000 0000 = 2 ^ 30
     ```
-
-    最大容量为什么是 2 的 30 次方原因：
-
-    * int 类型是 32 位整型，占 4 个字节
-    * Java 的原始类型里没有无符号类型，所以首位是符号位正数为 0，负数为 1，
 
 5. 当链表的值超过 8 则会转红黑树（JDK1.8 新增）
 
@@ -4852,7 +4821,7 @@ HashMap 继承关系如下图所示：
     static final int MIN_TREEIFY_CAPACITY = 64;
     ```
 
-    原因：数组比较小的情况下变为红黑树结构，反而会降低效率，红黑树需要进行左旋，右旋，变色这些操作来保持平衡。同时数组长度小于 64 时，搜索时间相对快些，所以为了提高性能和减少搜索时间，底层在阈值大于 8 并且数组长度大于等于 64 时，链表才转换为红黑树，效率也变的更高效
+    原因：数组比较小的情况下变为红黑树结构，反而会降低效率，红黑树需要进行左旋，右旋，变色这些操作来保持平衡
 
 8. table 用来初始化（必须是二的 n 次幂）
 
@@ -4860,8 +4829,6 @@ HashMap 继承关系如下图所示：
     // 存储元素的数组 
     transient Node<K,V>[] table;
     ```
-
-    jdk8 之前数组类型是 Entry<K,V>类型，之后是 Node<K,V> 类型。只是换了个名字，都实现了一样的接口 Map.Entry<K,V>，负责存储键值对数据的
 
  9. HashMap 中**存放元素的个数**
 
@@ -4884,7 +4851,7 @@ HashMap 继承关系如下图所示：
      int threshold;
      ```
 
-12. **哈希表的加载因子（重点）**
+12. **哈希表的加载因子**
 
     ```java
      final float loadFactor;
@@ -4892,9 +4859,9 @@ HashMap 继承关系如下图所示：
     
     * 加载因子的概述
     
-      loadFactor 加载因子，是用来衡量 HashMap 满的程度，表示 **HashMap 的疏密程度**，影响 hash 操作到同一个数组位置的概率，计算 HashMap 的实时加载因子的方法为：size/capacity，而不是占用桶的数量去除以 capacity，capacity 是桶的数量，也就是 table 的长度 length。
+      loadFactor 加载因子，是用来衡量 HashMap 满的程度，表示 HashMap 的疏密程度，影响 hash 操作到同一个数组位置的概率，计算 HashMap 的实时加载因子的方法为 **size/capacity**，而不是占用桶的数量去除以 capacity，capacity 是桶的数量，也就是 table 的长度 length
     
-      当 HashMap 里面容纳的元素已经达到 HashMap 数组长度的 75% 时，表示 HashMap 拥挤，需要扩容，而扩容这个过程涉及到  rehash、复制数据等操作，非常消耗性能，所以开发中尽量减少扩容的次数，可以通过创建 HashMap 集合对象时指定初始容量来尽量避免。
+      当 HashMap 容纳的元素已经达到数组长度的 75% 时，表示 HashMap 拥挤需要扩容，而扩容这个过程涉及到 rehash、复制数据等操作，非常消耗性能，所以开发中尽量减少扩容的次数，通过创建 HashMap 集合对象时指定初始容量来避免
     
       ```java
       HashMap(int initialCapacity, float loadFactor)//构造指定初始容量和加载因子的空HashMap
@@ -4904,7 +4871,7 @@ HashMap 继承关系如下图所示：
     
       loadFactor 太大导致查找元素效率低，存放的数据拥挤，太小导致数组的利用率低，存放的数据会很分散。loadFactor 的默认值为 **0.75f 是官方给出的一个比较好的临界值**
     
-    * threshold 计算公式：capacity（数组长度默认16） * loadFactor（默认 0.75）。当 size>=threshold 的时候，那么就要考虑对数组的 resize（扩容），这就是衡量数组是否需要扩增的一个标准， 扩容后的 HashMap 容量是之前容量的**两倍**
+    * threshold 计算公式：capacity（数组长度默认16） * loadFactor（默认 0.75）。当 size >= threshold 的时候，那么就要考虑对数组的 resize（扩容），这就是衡量数组是否需要扩增的一个标准， 扩容后的 HashMap 容量是之前容量的**两倍**
 
 
 
@@ -5013,8 +4980,8 @@ HashMap 继承关系如下图所示：
   ```java
   static final int hash(Object key) {
       int h;
-      // 1）如果key等于null：可以看到当key等于null的时候也是有哈希值的，返回的是0.
-      // 2）如果key不等于null：首先计算出key的hashCode赋值给h,然后与h无符号右移16位后的二进制进行按位异或得到最后的hash值
+      // 1）如果key等于null：可以看到当key等于null的时候也是有哈希值的，返回的是0
+      // 2）如果key不等于null：首先计算出key的hashCode赋值给h,然后与h无符号右移16位后的二进制进行按位异或
       return (key == null) ? 0 : (h = key.hashCode()) ^ (h >>> 16);
   }
   ```
@@ -5095,8 +5062,6 @@ HashMap 继承关系如下图所示：
   1. 如果当前数组为空或者数组的长度小于进行树形化的阈 MIN_TREEIFY_CAPACITY = 64 就去扩容，而不是将节点变为红黑树
   2. 如果是树形化遍历桶中的元素，创建相同个数的树形节点，复制内容，建立起联系，类似单向链表转换为双向链表
   3. 让桶中的第一个元素即数组中的元素指向新建的红黑树的节点，以后这个桶里的元素就是红黑树而不是链表数据结构了
-
-  
 
 * tableSizeFor()：创建 HashMap 指定容量时，HashMap 通过位移运算和或运算得到比指定初始化容量大的最小的 2 的 n 次幂
   
@@ -5678,15 +5643,11 @@ TreeMap 集合指定大小规则有 2 种方式：
 
 #### WeakMap
 
-WeakHashMap 是基于弱引用的
-
-内部的 Entry 继承 WeakReference，被弱引用关联的对象在**下一次垃圾回收时会被回收**，并且构造方法传入引用队列，用来在清理对象完成以后清理引用
+WeakHashMap 是基于弱引用的，内部的 Entry 继承 WeakReference，被弱引用关联的对象在**下一次垃圾回收时会被回收**，并且构造方法传入引用队列，用来在清理对象完成以后清理引用
 
 ```java
 private static class Entry<K,V> extends WeakReference<Object> implements Map.Entry<K,V> {
-    Entry(Object key, V value,
-          ReferenceQueue<Object> queue,
-          int hash, Entry<K,V> next) {
+    Entry(Object key, V value, ReferenceQueue<Object> queue, int hash, Entry<K,V> next) {
         super(key, queue);
         this.value = value;
         this.hash  = hash;
@@ -5758,7 +5719,7 @@ Tomcat 中的 ConcurrentCache 使用了 WeakHashMap 来实现缓存功能，Conc
 注意：
 
 * JDK 1.7 开始之后，泛型后面的申明可以省略不写
-* **泛型和集合都只能支持引用数据类型，不支持基本数据类型。**
+* **泛型和集合都只能支持引用数据类型，不支持基本数据类型**
 
 ```java
 ArrayList<Object> lists = new ArrayList<>(); 
@@ -5943,7 +5904,6 @@ Java 中异常继承的根类是：Throwable
     Error           Exception（异常，需要研究和处理）
                     /            \
                    编译时异常     RuntimeException(运行时异常)
-                   
 ```
 
 Exception 异常的分类:
@@ -6016,7 +5976,7 @@ public static void main(String[] args) throws ParseException {
 
 在出现编译时异常的地方层层把异常抛出去给调用者，调用者最终抛出给 JVM 虚拟机，JVM 虚拟机输出异常信息，直接终止掉程序，这种方式与默认方式是一样的
 
-**Exception是异常最高类型可以抛出一切异常**
+**Exception 是异常最高类型可以抛出一切异常**
 
 ```java
 public static void main(String[] args) throws Exception {
@@ -6038,7 +5998,7 @@ public static void main(String[] args) throws Exception {
 
 可以处理异常，并且出现异常后代码也不会死亡
 
-* 自己捕获异常和处理异常的格式：**捕获处理**
+* 捕获异常和处理异常的格式：**捕获处理**
 
   ```java
   try{
@@ -6168,7 +6128,7 @@ public class ExceptionDemo {
 
 运行时异常在编译阶段是不会报错，在运行阶段才会出错，运行时出错了程序还是会停止，运行时异常也建议要处理，运行时异常是自动往外抛出的，不需要手工抛出
 
-**运行时异常的处理规范**：直接在最外层捕获处理即可，底层会自动抛出！！
+**运行时异常的处理规范**：直接在最外层捕获处理即可，底层会自动抛出
 
 ```java
 public class ExceptionDemo{
@@ -6196,7 +6156,7 @@ public class ExceptionDemo{
 
 ### Finally
 
-用在捕获处理的异常格式中的，放在最后面。
+用在捕获处理的异常格式中的，放在最后面
 
 ```java
 try{
@@ -6267,9 +6227,9 @@ public class FinallyDemo {
 * 自定义编译时异常：定义一个异常类继承 Exception，重写构造器，在出现异常的地方用 throw new 自定义对象抛出
 * 自定义运行时异常：定义一个异常类继承 RuntimeException，重写构造器，在出现异常的地方用 throw new 自定义对象抛出
 
-**throws：用在方法上，用于抛出方法中的异常**
+throws：用在方法上，用于抛出方法中的异常
 
-**throw:  用在出现异常的地方，创建异常对象且立即从此处抛出**
+throw:  用在出现异常的地方，创建异常对象且立即从此处抛出
 
 ```java
 //需求：认为年龄小于0岁，大于200岁就是一个异常。
@@ -6318,7 +6278,7 @@ public class AgeIllegalRuntimeException extends RuntimeException{
 1. 运行时异常被抛出可以不处理，可以自动抛出；**编译时异常必须处理**；按照规范都应该处理
 2. **重写方法申明抛出的异常，子类方法抛出的异常类型必须是父类抛出异常类型或为其子类型**
 3. 方法默认都可以自动抛出运行时异常， throws RuntimeException 可以省略不写
-4. 当多异常处理时，捕获处理，前面的异常类不能是后面异常类的父类。
+4. 当多异常处理时，捕获处理，前面的异常类不能是后面异常类的父类
 5. 在 try/catch 后可以追加 finally 代码块，其中的代码一定会被执行，通常用于资源回收操作
 
 异常的作用：
@@ -6366,11 +6326,11 @@ Lambda 表达式是 JDK1.8 开始之后的新技术，是一种代码的新语�
 
 作用：为了简化匿名内部类的代码写法
 
-Lambda 表达式的格式:
+Lambda 表达式的格式：
 
 ```java
 (匿名内部类被重写方法的形参列表) -> {
-	//被重写方法的方法体代码。
+	//被重写方法的方法体代码
 }
 ```
 
@@ -6392,13 +6352,13 @@ Lambda 表达式的省略写法（进一步在 Lambda 表达式的基础上继�
 
 * 如果 Lambda 表达式的方法体代码只有一行代码，可以省略大括号不写，同时要省略分号；如果这行代码是 return 语句，必须省略 return 不写
 * 参数类型可以省略不写
-* 如果只有一个参数，参数类型可以省略，同时()也可以省略
+* 如果只有一个参数，参数类型可以省略，同时 `()` 也可以省略
 
 ```java
 List<String> names = new ArrayList<>();
-names.add("胡");
-names.add("甘");
-names.add("洪");
+names.add("a");
+names.add("b");
+names.add("c");
 
 names.forEach(new Consumer<String>() {
     @Override
@@ -6634,8 +6594,6 @@ public class ConstructorDemo {
 
 Stream 流其实就是一根传送带，元素在上面可以被 Stream 流操作
 
-作用：
-
 * 可以解决已有集合类库或者数组 API 的弊端
 * Stream 流简化集合和数组的操作
 * 链式编程
@@ -6706,7 +6664,7 @@ public class StreamDemo {
     public static void main(String[] args) {
         List<String> list = new ArrayList<>();
         list.add("张无忌"); list.add("周芷若"); list.add("赵敏");
-        list.add("张强"); list.add("张三丰"); list.add("张三丰");
+        list.add("张三"); list.add("张三丰"); list.add("张");
         //取以张开头并且名字是三位数的
         list.stream().filter(s -> s.startsWith("张")
                 .filter(s -> s.length == 3).forEach(System.out::println);
@@ -6719,7 +6677,7 @@ public class StreamDemo {
 		list.stream().filter(s -> s.length == 3).skip(2).forEach(...);
 
 		// 需求：把名称都加上“张三的:+xxx”
-		list.stream().map(s -> "张三的"+s).forEach(System.out::println);
+		list.stream().map(s -> "张三的" + s).forEach(System.out::println);
 		// 需求：把名称都加工厂学生对象放上去!!
 		// list.stream().map(name -> new Student(name));
 		list.stream.map(Student::new).forEach(System.out::println);
@@ -6767,7 +6725,7 @@ list.stream().filter(s -> s.startsWith("张"))
 
 收集 Stream：把 Stream 流的数据转回到集合中去
 
-* Stream流：工具
+* Stream 流：工具
 * 集合：目的
 
 Stream 收集方法：`R collect(Collector collector)` 把结果收集到集合中
@@ -6817,10 +6775,10 @@ File 类构造器：
 * `public File(String pathname)`：根据路径获取文件对象
 * `public File(String parent , String child)`：根据父路径和文件名称获取文件对象
 
-File 类创建文件对象的格式:
+File 类创建文件对象的格式：
 
 * `File f = new File("绝对路径/相对路径");`
-  * 绝对路径：从磁盘的的盘符一路走到目的位置的路径。
+  * 绝对路径：从磁盘的的盘符一路走到目的位置的路径
     * 绝对路径依赖具体的环境，一旦脱离环境，代码可能出错
     * 一般是定位某个操作系统中的某个文件对象
   * **相对路径**：不带盘符的（重点）
@@ -6972,9 +6930,9 @@ public class FileDemo {
 
 #### 遍历目录
 
-- `public String[] list()`：获取当前目录下所有的"一级文件名称"到一个字符串数组中去返回。
-- `public File[] listFiles()`：获取当前目录下所有的"一级文件对象"到一个**文件对象数组**中去返回（**重点**）
-- `public long lastModified`：返回此抽象路径名表示的文件上次修改的时间。 
+- `public String[] list()`：获取当前目录下所有的一级文件名称到一个字符串数组中去返回
+- `public File[] listFiles()`：获取当前目录下所有的一级文件对象到一个**文件对象数组**中去返回（**重点**）
+- `public long lastModified`：返回此抽象路径名表示的文件上次修改的时间
 
 ```java
 public class FileDemo {
@@ -7061,7 +7019,7 @@ public static void searchFiles(File dir , String fileName){
 
 字符集：为字符编制的一套编号规则
 
-计算机的底层是不能直接存储字符的，只能存储二进制，010101
+计算机的底层是不能直接存储字符的，只能存储二进制 010101
 
 ASCII 编码：8 个开关一组就可以编码字符，1 个字节 2^8 = 256， 一个字节存储一个字符完全够用，英文和数字在底层存储都是采用 1 个字节存储的
 
@@ -7080,7 +7038,7 @@ B  66
 
 美国人：收集全球所有的字符，统一编号，这套编码叫 Unicode 编码（万国码），一个英文等于两个字节，一个中文（含繁体）等于两个字节，中文标点占两个字节，英文标点占两个字节
 
-* UTF-8 是变种形式，也必须兼容ASCII编码表
+* UTF-8 是变种形式，也必须兼容 ASCII 编码表
 * UTF-8 一个中文一般占 3 个字节，中文标点占 3 个，英文字母和数字 1 个字节
 
 编码前与编码后的编码集必须一致才不会乱码
@@ -7145,7 +7103,7 @@ FileInputStream 文件字节输入流：以内存为基准，把磁盘文件中�
 
 方法：
 
-* `public int read()`：每次读取一个字节返回，读取完毕会返回-1
+* `public int read()`：每次读取一个字节返回，读取完毕会返回 -1
 * `public int read(byte[] buffer)`：从字节输入流中读取字节到字节数组中去，返回读取的字节数量，没有字节可读返回 -1，**byte 中新读取的数据默认是覆盖原数据**，构造 String 需要设定长度
 * `public String(byte[] bytes,int offset,int length)`：构造新的 String
 * `public long transferTo(OutputStream out) `：从输入流中读取所有字节，并按读取的顺序，将字节写入给定的输出流
@@ -7603,7 +7561,7 @@ public class InputStreamReaderDemo{
         // 1.提取GBK文件的原始字节流
         InputStream is = new FileInputStream("D:\\seazean\\Netty.txt");
         // 2.把原始字节输入流通过转换流，转换成 字符输入转换流InputStreamReader
-        InputStreamReader isr = new InputStreamReader(is,"GBK"); 
+        InputStreamReader isr = new InputStreamReader(is, "GBK"); 
         // 3.包装成缓冲流
         BufferedReader br = new BufferedReader(isr);
         //循环读取
@@ -7649,7 +7607,7 @@ osw.close();
 
 ##### 基本介绍
 
-对象序列化：把 Java 对象转换成字节序列的过程，将对象写入到 IO 流中。对象 => 文件中
+对象序列化：把 Java 对象转换成字节序列的过程，将对象写入到 IO 流中，对象 => 文件中
 
 对象反序列化：把字节序列恢复为 Java 对象的过程，从 IO 流中恢复对象，文件中 => 对象
 
@@ -7671,7 +7629,7 @@ transient 关键字修饰的成员变量，将不参与序列化
 
 序列化方法：`public final void writeObject(Object obj)`
 
-注意：对象如果想参与序列化，对象必须实现序列化接口 **implements Serializable** ，否则序列化失败！
+注意：对象如果想参与序列化，对象必须实现序列化接口 **implements Serializable** ，否则序列化失败
 
 ```java
 public class SerializeDemo01 {
@@ -7861,7 +7819,7 @@ Properties 方法：
 | String getProperty(String key)               | 使用此属性列表中指定的键搜索属性              |
 | Set<String>   stringPropertyNames()          | 所有键的名称的集合                            |
 | synchronized void load(Reader r)             | 从输入字符流读取属性列表（键和元素对）        |
-| synchronized void load(InputStream inStream) | 加载属性文件的数据到属性集对象中去            |
+| synchronized void load(InputStream in)       | 加载属性文件的数据到属性集对象中去            |
 | void store(Writer w, String comments)        | 将此属性列表(键和元素对)写入 Properties 表    |
 | void store(OutputStream os, String comments) | 保存数据到属性文件中去                        |
 
@@ -7936,7 +7894,7 @@ public static void main(String[] args) throws Exception {
 
 ### Commons
 
-commons-io 是 apache 提供的一组有关 IO 操作的类库，可以挺提高 IO 功能开发的效率。
+commons-io 是 apache 提供的一组有关 IO 操作的类库，可以提高 IO 功能开发的效率
 
 commons-io 工具包提供了很多有关 IO 操作的类：
 
@@ -8438,7 +8396,7 @@ public class ReflectDemo {
         // b.从ArrayList的Class对象中定位add方法
         Method add = c.getDeclaredMethod("add", Object.class);
         // c.触发scores集合对象中的add执行（运行阶段，泛型不能约束了）
-        add.invoke(scores,"波仔");
+        add.invoke(scores, "字符串");
         System.out.println(scores);
     }
 }
@@ -9549,10 +9507,6 @@ public class XPathDemo {
 
 #### 基本介绍
 
-创建型模式的主要关注点是怎样创建对象，将对象的创建与使用分离，降低系统的耦合度，使用者不需要关注对象的创建细节
-
-创建型模式分为：单例模式、工厂方法模式、抽象工程模式、原型模式、建造者模式
-
 单例模式（Singleton Pattern）是 Java 中最简单的设计模式之一，提供了一种创建对象的最佳方式
 
 单例设计模式分类两种：
@@ -9603,7 +9557,7 @@ public class XPathDemo {
 
   * 构造方法设置为私有，防止其他类无限创建对象，但是不能防止反射破坏
 
-  * 静态变量初始化在类加载时完成，由 JVM 保证线程安全，能保证单例对象创建时的安全
+  * 静态变量初始化在类加载时完成，**由 JVM 保证线程安全**，能保证单例对象创建时的安全
 
   * 提供静态方法而不是直接将 INSTANCE 设置为 public，体现了更好的封装性、提供泛型支持、可以改进成懒汉单例设计
 
