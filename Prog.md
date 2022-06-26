@@ -8,7 +8,7 @@
 
 进程的特征：并发性、异步性、动态性、独立性、结构性
 
-**线程**：线程是属于进程的，是一个基本的 CPU 执行单元，是程序执行流的最小单元。线程是进程中的一个实体，是系统**独立调度的基本单位**，线程本身不拥有系统资源，只拥有一点在运行中必不可少的资源，但它可与同属一个进程的其他线程共享进程所拥有的全部资源
+**线程**：线程是属于进程的，是一个基本的 CPU 执行单元，是程序执行流的最小单元。线程是进程中的一个实体，是系统**独立调度的基本单位**，线程本身不拥有系统资源，只拥有一点在运行中必不可少的资源，与同属一个进程的其他线程共享进程所拥有的全部资源
 
 关系：一个进程可以包含多个线程，这就是多线程，比如看视频是进程，图画、声音、广告等就是多个线程
 
@@ -389,7 +389,7 @@ public class Test {
 
 打断的线程会发生上下文切换，操作系统会保存线程信息，抢占到 CPU 后会从中断的地方接着运行（打断不是停止）
 
-* sleep、wait、join 方法都会让线程进入阻塞状态，打断进程**会清空打断状态**（false）
+* sleep、wait、join 方法都会让线程进入阻塞状态，打断线程**会清空打断状态**（false）
 
   ```java
   public static void main(String[] args) throws InterruptedException {
@@ -514,7 +514,7 @@ class TwoPhaseTermination {
                         System.out.println("执行监控记录");	// 在此被打断不会异常
                     } catch (InterruptedException e) {		// 在睡眠期间被打断，进入异常处理的逻辑
                         e.printStackTrace();
-                        // 重新设置打断标记
+                        // 重新设置打断标记，打断 sleep 会清除打断状态
                         thread.interrupt();
                     }
                 }
@@ -651,7 +651,7 @@ Java 提供了线程优先级的机制，优先级会提示（hint）调度器�
 
 #### 未来优化
 
-内核级线程调度的成本较大，所以引入了更轻量级的协程。用户线程的调度由用户自己实现，被设计为协同式调度，所以叫协程
+内核级线程调度的成本较大，所以引入了更轻量级的协程。用户线程的调度由用户自己实现（一对多的线程模型），被设计为协同式调度，所以叫协程
 
 * 有栈协程：协程会完整的做调用栈的保护、恢复工作，所以叫有栈协程
 * 无栈协程：本质上是一种有限状态机，状态保存在闭包里，比有栈协程更轻量，但是功能有限
@@ -711,13 +711,13 @@ Java 提供了线程优先级的机制，优先级会提示（hint）调度器�
 
 ### 查看线程
 
-windows：
+Windows：
 
 * 任务管理器可以查看进程和线程数，也可以用来杀死进程
 * tasklist 查看进程
 * taskkill 杀死进程
 
-linux：
+Linux：
 
 * ps -ef 查看所有进程
 * ps -fT -p <PID> 查看某个进程（PID）的所有线程
@@ -1391,43 +1391,6 @@ public class Dead {
 }
 ```
 
-面向对象写法：
-
-```java
-public class DeadLock {
-    static String lockA = "lockA";
-    static String lockB = "lockB";
-    public static void main(String[] args) {
-        new Thread(new HoldLockThread(lockA, lockB)).start();
-        new Thread(new HoldLockThread(lockB, lockA)).start();
-    }
-}
-class HoldLockThread implements Runnable {
-    private String lockA;
-    private String lockB;
-
-    public HoldLockThread(String lockA, String lockB) {
-        this.lockA = lockA;
-        this.lockB = lockB;
-    }
-
-    @Override
-    public void run() {
-        synchronized (lockA) {
-            System.out.println(Thread.currentThread().getName() + " 持有" + lockA + "，尝试获得" + lockB);
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            synchronized (lockB) {
-                System.out.println(Thread.currentThread().getName() + " 持有" + lockB + "，尝试获得" + lockA);
-            }
-        }
-    }
-}
-```
-
 
 
 ***
@@ -1736,7 +1699,7 @@ LockSupport 出现就是为了增强 wait & notify 的功能：
   ```java
   Hashtable table = new Hashtable();
   // 线程1，线程2
-  if( table.get("key") == null) {
+  if(table.get("key") == null) {
   	table.put("key", value);
   }
   ```
@@ -2578,7 +2541,7 @@ volatile 修饰的变量，可以禁用指令重排
 
 使用 volatile 修饰的共享变量，总线会开启 **CPU 总线嗅探机制**来解决 JMM 缓存一致性问题，也就是共享变量在多线程中可见性的问题，实现 MESI 缓存一致性协议
 
-底层是通过汇编 lock 前缀指令，共享变量加了 lock 前缀指令，在线程修改完共享变量后，会先执行**缓存锁定**的操作然后写回主存，其他的 CPU 上运行的线程根据 CPU 总线嗅探机制会修改其共享变量为失效状态，读取时会重新从主内存中读取最新的数据
+底层是通过汇编 lock 前缀指令，共享变量加了 lock 前缀指令就会进行缓存锁定，在线程修改完共享变量后写回主存，其他的 CPU 核心上运行的线程根据总线嗅探机制会修改其共享变量为失效状态，读取时会重新从主内存中读取最新的数据
 
 lock 前缀指令就相当于内存屏障，Memory Barrier（Memory Fence）
 
@@ -2636,7 +2599,7 @@ lock 前缀指令就相当于内存屏障，Memory Barrier（Memory Fence）
 
 不能解决指令交错：
 
-* 写屏障仅仅是保证之后的读能够读到最新的结果，但不能保证其他的读跑到写屏障之前
+* 写屏障仅仅是保证之后的读能够读到最新的结果，但不能保证其他线程的读跑到写屏障之前
 
 * 有序性的保证也只是保证了本线程内相关代码不被重排序
 
@@ -2976,8 +2939,8 @@ CAS 缺点：
 
 CAS 与 synchronized 总结：
 
-* synchronized 是从悲观的角度出发：总是假设最坏的情况，每次去拿数据的时候都认为别人会修改，所以每次在拿数据的时候都会上锁，这样别人想拿这个数据就会阻塞（**共享资源每次只给一个线程使用，其它线程阻塞，用完后再把资源转让给其它线程**），因此 synchronized 也称之为悲观锁，ReentrantLock 也是一种悲观锁，**性能较差**
-* CAS 是从乐观的角度出发：总是假设最好的情况，每次去拿数据的时候都认为别人不会修改，所以不会上锁，但是在更新的时候会判断一下在此期间别人有没有去更新这个数据。**如果别人修改过，则获取现在最新的值，如果别人没修改过，直接修改共享数据的值**，CAS 这种机制也称之为乐观锁，**综合性能较好**
+* synchronized 是从悲观的角度出发：总是假设最坏的情况，每次去拿数据的时候都认为别人会修改，所以每次在拿数据的时候都会上锁，这样别人想拿这个数据就会阻塞（共享资源每次只给一个线程使用，其它线程阻塞，用完后再把资源转让给其它线程），因此 synchronized 也称之为悲观锁，ReentrantLock 也是一种悲观锁，性能较差
+* CAS 是从乐观的角度出发：总是假设最好的情况，每次去拿数据的时候都认为别人不会修改，所以不会上锁，但是在更新的时候会判断一下在此期间别人有没有去更新这个数据。**如果别人修改过，则获取现在最新的值，如果别人没修改过，直接修改共享数据的值**，CAS 这种机制也称之为乐观锁，综合性能较好
 
 
 
@@ -3225,7 +3188,7 @@ LongAdder 和 LongAccumulator 区别：
 
 相同点：
 
-* LongAddr 与 LongAccumulator 类都是使用非阻塞算法 CAS 实现的，
+* LongAddr 与 LongAccumulator 类都是使用非阻塞算法 CAS 实现的
 * LongAddr 类是 LongAccumulator 类的一个特例，只是 LongAccumulator 提供了更强大的功能，可以自定义累加规则，当accumulatorFunction 为 null 时就等价于 LongAddr
 
 不同点：
@@ -4607,8 +4570,8 @@ java.util.concurrent.BlockingQueue 接口有以下阻塞队列的实现：**FIFO
 
 与普通队列（LinkedList、ArrayList等）的不同点在于阻塞队列中阻塞添加和阻塞删除方法，以及线程安全：
 
-* 阻塞添加 take()：当阻塞队列元素已满时，添加队列元素的线程会被阻塞，直到队列元素不满时才重新唤醒线程执行
-* 阻塞删除 put()：在队列元素为空时，删除队列元素的线程将被阻塞，直到队列不为空再执行删除操作（一般会返回被删除的元素)
+* 阻塞添加 put()：当阻塞队列元素已满时，添加队列元素的线程会被阻塞，直到队列元素不满时才重新唤醒线程执行
+* 阻塞删除 take()：在队列元素为空时，删除队列元素的线程将被阻塞，直到队列不为空再执行删除操作（一般会返回被删除的元素)
 
 
 
@@ -5251,7 +5214,7 @@ TransferStack 类成员方法：
 
 ##### 公平实现
 
-TransferQueue 是公平的同步队列，采用 FIFO 的队列实现
+TransferQueue 是公平的同步队列，采用 FIFO 的队列实现，请求节点与队尾模式不同，需要与队头发生匹配
 
 TransferQueue 类成员变量：
 
@@ -5602,7 +5565,7 @@ Executors 提供了四种线程池的创建：newCachedThreadPool、newFixedThre
 
   原因：父类不能直接调用子类中的方法，需要反射或者创建对象的方式，可以调用子类静态方法
 
-* Executors.newFixedThreadPool(1) 初始时为1，可以修改。对外暴露的是 ThreadPoolExecutor 对象，可以强转后调用 setCorePoolSize 等方法进行修改
+* Executors.newFixedThreadPool(1) 初始时为 1，可以修改。对外暴露的是 ThreadPoolExecutor 对象，可以强转后调用 setCorePoolSize 等方法进行修改
 
 ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JUC-newSingleThreadExecutor.png)
 
@@ -5687,7 +5650,7 @@ ExecutorService 类 API：
 
 | 方法                                                  | 说明                                                         |
 | ----------------------------------------------------- | ------------------------------------------------------------ |
-| void shutdown()                                       | 线程池状态变为 SHUTDOWN，等待任务执行完后关闭线程池，不会接收新任务，但已提交任务会执行完，而且也可以添加线程 |
+| void shutdown()                                       | 线程池状态变为 SHUTDOWN，等待任务执行完后关闭线程池，不会接收新任务，但已提交任务会执行完，而且也可以添加线程（不绑定ren'wu） |
 | List<Runnable> shutdownNow()                          | 线程池状态变为 STOP，用 interrupt 中断正在执行的任务，直接关闭线程池，不会接收新任务，会将队列中的任务返回 |
 | boolean isShutdown()                                  | 不在 RUNNING 状态的线程池，此执行者已被关闭，方法返回 true   |
 | boolean isTerminated()                                | 线程池状态是否是 TERMINATED，如果所有任务在关闭后完成，返回 true |
@@ -6050,7 +6013,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
 
 * addWorker()：**添加线程到线程池**，返回 true 表示创建 Worker 成功，且线程启动。首先判断线程池是否允许添加线程，允许就让线程数量 + 1，然后去创建 Worker 加入线程池
 
-  注意：SHUTDOWN 状态也能添加线程，但是要求新加的 Woker 没有 firstTask，而且当前 queue 不为空，所以创建一个线程来帮助执行队列中的任务
+  注意：SHUTDOWN 状态也能添加线程，但是要求新加的 Woker 没有 firstTask，而且当前 queue 不为空，所以创建一个线程来帮助线程池执行队列中的任务
 
   ```java
   // core == true 表示采用核心线程数量限制，false 表示采用 maximumPoolSize
@@ -6388,7 +6351,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
   }
   ```
 
-* interruptIdleWorkers()：shutdown 方法会**中断所有空闲线程**，根据是否可以获取 AQS 独占锁判断是否处于工作状态。线程之所以空闲是因为阻塞队列没有任务，不会中断正在运行的线程，所以 shutdown 方法会让所有的任务执行完毕。
+* interruptIdleWorkers()：shutdown 方法会**中断所有空闲线程**，根据是否可以获取 AQS 独占锁判断是否处于工作状态。线程之所以空闲是因为阻塞队列没有任务，不会中断正在运行的线程，所以 shutdown 方法会让所有的任务执行完毕
 
   ```java
   // onlyOne == true 说明只中断一个线程 ，false 则中断所有线程
@@ -8309,7 +8272,7 @@ public void lock() {
               return node;
           }
       }
-      // 初始时没有队列为空，或者 CAS 失败进入这里
+      // 初始时队列为空，或者 CAS 失败进入这里
       enq(node);
       return node;
   }
@@ -9056,7 +9019,7 @@ public static void main(String[] args) throws InterruptedException {
 
 ###### await
 
-总体流程是将 await 线程包装成 node 节点放入 ConditionObject 的条件队列，如果被唤醒就将 node 转移到 AQS 的执行阻塞队列，等待获取锁
+总体流程是将 await 线程包装成 node 节点放入 ConditionObject 的条件队列，如果被唤醒就将 node 转移到 AQS 的执行阻塞队列，等待获取锁，**每个 Condition 对象都包含一个等待队列**
 
 * 开始 Thread-0 持有锁，调用 await，线程进入 ConditionObject 等待，直到被唤醒或打断，调用 await 方法的线程都是持锁状态的，所以说逻辑里**不存在并发**
 
@@ -10422,7 +10385,7 @@ public static void main(String[] args) {
               try {
                   // 根据是否需要超时等待选择阻塞方法
                   if (!timed)
-                      // 当前线程释放掉 lock，进入到 trip 条件队列的尾部挂起自己，等待被唤醒
+                      // 当前线程释放掉 lock，【进入到 trip 条件队列的尾部挂起自己】，等待被唤醒
                       trip.await();
                   else if (nanos > 0L)
                       nanos = trip.awaitNanos(nanos);
@@ -10511,7 +10474,7 @@ Semaphore（信号量）用来限制能同时访问共享资源的线程上限�
 构造方法：
 
 * `public Semaphore(int permits)`：permits 表示许可线程的数量（state）
-* `public Semaphore(int permits, boolean fair)`：fair 表示公平性，如果这个设为 true 的话，下次执行的线程会是等待最久的线程
+* `public Semaphore(int permits, boolean fair)`：fair 表示公平性，如果设为 true，下次执行的线程会是等待最久的线程
 
 常用API：
 
@@ -11278,19 +11241,7 @@ B站视频解析：https://www.bilibili.com/video/BV1n541177Ea
               break;
           // 与 addCount 逻辑相同
           else if (tab == table) {
-              int rs = resizeStamp(n);
-              if (sc < 0) {
-                  Node<K,V>[] nt;
-                  if ((sc >>> RESIZE_STAMP_SHIFT) != rs || sc == rs + 1 ||
-                      sc == rs + MAX_RESIZERS || (nt = nextTable) == null ||
-                      transferIndex <= 0)
-                      break;
-                  if (U.compareAndSwapInt(this, SIZECTL, sc, sc + 1))
-                      transfer(tab, nt);
-              }
-              else if (U.compareAndSwapInt(this, SIZECTL, sc,
-                                           (rs << RESIZE_STAMP_SHIFT) + 2))
-                  transfer(tab, null);
+             
           }
       }
   }
@@ -11976,7 +11927,7 @@ ConcurrentHashMap 使用 get()  方法获取指定 key 的数据
   }
   ```
 
-* replaceNode()：替代指定的元素，会协助扩容，**增删改（写）都会协助扩容，只有查询（读）操作不会**，因为读操作不涉及加锁
+* replaceNode()：替代指定的元素，会协助扩容，**增删改（写）都会协助扩容，查询（读）操作不会**，因为读操作不涉及加锁
 
   ```java
   final V replaceNode(Object key, V value, Object cv) {
@@ -12166,7 +12117,7 @@ public CopyOnWriteArraySet() {
 
   适合读多写少的应用场景
 
-* 迭代器：CopyOnWriteArrayList 在返回迭代器时，**创建一个该内部数组当前的快照（引用）**，即使其他线程替换了原始数组，迭代器遍历的快照依然引用的是创建快照时的数组，所以这种实现方式也存在一定的数据延迟性，对其他线程并行添加的数据不可见
+* 迭代器：CopyOnWriteArrayList 在返回迭代器时，**创建一个内部数组当前的快照（引用）**，即使其他线程替换了原始数组，迭代器遍历的快照依然引用的是创建快照时的数组，所以这种实现方式也存在一定的数据延迟性，对其他线程并行添加的数据不可见
 
   ```java
   public Iterator<E> iterator() {
@@ -13223,7 +13174,7 @@ final void updateHead(Node<E> h, Node<E> p) {
 * C/S 结构 ：全称为 Client/Server 结构，是指客户端和服务器结构，常见程序有 QQ、IDEA 等软件
 * B/S 结构 ：全称为 Browser/Server 结构，是指浏览器和服务器结构
 
-两种架构各有优势，但是无论哪种架构，都离不开网络的支持。、
+两种架构各有优势，但是无论哪种架构，都离不开网络的支持
 
 网络通信的三要素：
 
@@ -13231,7 +13182,7 @@ final void updateHead(Node<E> h, Node<E> p) {
 
 2. IP 地址：互联网协议地址（Internet Protocol Address），用来给一个网络中的计算机设备做唯一的编号
 
-   * IPv4：4个字节，32 位组成，192.168.1.1
+   * IPv4：4 个字节，32 位组成，192.168.1.1
    * IPv6：可以实现为所有设备分配 IP，128 位
 
    * ipconfig：查看本机的 IP
@@ -13257,14 +13208,6 @@ final void updateHead(Node<E> h, Node<E> p) {
 ### 通信协议
 
 网络通信协议：对计算机必须遵守的规则，只有遵守这些规则，计算机之间才能进行通信
-
-> 应用层：应用程序（QQ、微信、浏览器），可能用到的协议（HTTP、FTP、SMTP）
->
-> 传输层：TCP/IP 协议 - UDP 协议
->
-> 网络层  ：IP 协议，封装自己的 IP 和对方的 IP 和端口
->
-> 数据链路层 ： 进入到硬件（网）
 
 通信**是进程与进程之间的通信**，不是主机与主机之间的通信
 
@@ -13301,7 +13244,7 @@ Java 中的通信模型:
    
    同步阻塞式性能极差：大量线程，大量阻塞
    
-2. 伪异步通信：引入线程池，不需要一个客户端一个线程，实现线程复用来处理很多个客户端，线程可控。
+2. 伪异步通信：引入线程池，不需要一个客户端一个线程，实现线程复用来处理很多个客户端，线程可控
    
    高并发下性能还是很差：线程数量少，数据依然是阻塞的，数据没有来线程还是要等待
    
@@ -13422,7 +13365,7 @@ IO 复用让单个进程具有处理多个 I/O 事件的能力，又被称为 Ev
 
 #### 异步 IO
 
-应用进程执行 aio_read 系统调用会立即返回，给内核传递描述符、缓冲区指针、缓冲区大小等。应用进程可以继续执行不会被阻塞，内核会在所有操作完成之后向应用进程发送信号。
+应用进程执行 aio_read 系统调用会立即返回，给内核传递描述符、缓冲区指针、缓冲区大小等。应用进程可以继续执行不会被阻塞，内核会在所有操作完成之后向应用进程发送信号
 
 异步 I/O 与信号驱动 I/O 的区别在于，异步 I/O 的信号是通知应用进程 I/O 完成，而信号驱动 I/O 的信号是通知应用进程可以开始 I/O
 
@@ -13440,7 +13383,7 @@ IO 复用让单个进程具有处理多个 I/O 事件的能力，又被称为 Ev
 
 ##### 函数
 
-Socket 不是文件，只是一个标识符，但是 Unix 操作系统把所有东西都**看作**是文件，所以 socket 说成 file descriptor，也就是 fd
+Socket 不是文件，只是一个标识符，但是 Unix 操作系统把所有东西都**看作**是文件，所以 Socket 说成 file descriptor，也就是 fd
 
 select 允许应用程序监视一组文件描述符，等待一个或者多个描述符成为就绪状态，从而完成 I/O 操作。
 
@@ -13753,7 +13696,7 @@ epoll 的特点：
 
 * 进程描述符和用户的进程是一一对应的
 * SYS_API 系统调用：如 read、write，系统调用就是 0X80 中断
-* 进程描述符 pd：进程从用户态切换到内核态时，需要保存用户态时的上下文信息在 PCB 中
+* 进程描述符 pd：进程从用户态切换到内核态时，需要**保存用户态时的上下文信息在 PCB 中**
 * 线程上下文：用户程序基地址，程序计数器、cpu cache、寄存器等，方便程序切回用户态时恢复现场
 * 内核堆栈：**系统调用函数也是要创建变量的，**这些变量在内核堆栈上分配
 
@@ -13858,7 +13801,7 @@ mmap（Memory Mapped Files）内存映射加 write 实现零拷贝，**零拷贝
 进行了 4 次用户空间与内核空间的上下文切换，以及 3 次数据拷贝（2 次 DMA，一次 CPU 复制）：
 
 * 发出 mmap 系统调用，DMA 拷贝到内核缓冲区，映射到共享缓冲区；mmap 系统调用返回，无需拷贝
-* 发出 write 系统调用，将数据从内核缓冲区拷贝到内核 Socket 缓冲区；write系统调用返回，DMA 将内核空间 Socket 缓冲区中的数据传递到协议引擎
+* 发出 write 系统调用，将数据从内核缓冲区拷贝到内核 Socket 缓冲区；write 系统调用返回，DMA 将内核空间 Socket 缓冲区中的数据传递到协议引擎
 
 ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/IO-mmap工作流程.png)
 
@@ -13905,7 +13848,7 @@ Java NIO 对 sendfile 的支持是 `FileChannel.transferTo()/transferFrom()`，�
 成员方法：
 
 * `static InetAddress getLocalHost()`：获得本地主机 IP 地址对象
-* `static InetAddress getByName(String host)`：根据 IP 地址字符串或主机名获得对应的IP地址对象
+* `static InetAddress getByName(String host)`：根据 IP 地址字符串或主机名获得对应的 IP 地址对象
 * `String getHostName()`：获取主机名
 * `String getHostAddress()`：获得 IP 地址字符串
 
@@ -14072,7 +14015,6 @@ TCP/IP 协议的特点：
 
 * 面向连接的协议，提供可靠交互，速度慢
 * 点对点的全双工通信
-* 只能由客户端主动发送数据给服务器端，服务器端接收到数据之后，可以给客户端响应数据
 * 通过**三次握手**建立连接，连接成功形成数据传输通道；通过**四次挥手**断开连接
 * 基于字节流进行数据传输，传输数据大小没有限制
 
@@ -14562,7 +14504,7 @@ NIO 和 BIO 的比较：
 
 ### 实现原理
 
-NIO 三大核心部分：Channel( 通道) ，Buffer( 缓冲区), Selector( 选择器)
+NIO 三大核心部分：Channel (通道)、Buffer (缓冲区)、Selector (选择器)
 
 * Buffer 缓冲区
 
@@ -14570,7 +14512,7 @@ NIO 三大核心部分：Channel( 通道) ，Buffer( 缓冲区), Selector( 选�
 
 * Channel 通道
 
-  Java NIO 的通道类似流，不同的是既可以从通道中读取数据，又可以写数据到通道，流的读写通常是单向的，通道可以非阻塞读取和写入通道，支持读取或写入缓冲区，也支持异步地读写。
+  Java NIO 的通道类似流，不同的是既可以从通道中读取数据，又可以写数据到通道，流的读写通常是单向的，通道可以非阻塞读取和写入通道，支持读取或写入缓冲区，也支持异步地读写
 
 * Selector 选择器
 
@@ -14955,8 +14897,8 @@ FileChannel 中的成员属性：
 
 * MapMode.mode：内存映像文件访问的方式，共三种：
   * `MapMode.READ_ONLY`：只读，修改得到的缓冲区将导致抛出异常
-  * `MapMode.READ_WRITE`：读/写，对缓冲区的更改最终将写入文件，但此次修改对映射到同一文件的其他程序不一定是可见的
-  * `MapMode.PRIVATE`：私用，可读可写，但是修改的内容不会写入文件，只是 buffer 自身的改变，称之为写时复制
+  * `MapMode.READ_WRITE`：读/写，对缓冲区的更改最终将写入文件，但此次修改对映射到同一文件的其他程序不一定是可见
+  * `MapMode.PRIVATE`：私用，可读可写，但是修改的内容不会写入文件，只是 buffer 自身的改变
 
 * `public final FileLock lock()`：获取此文件通道的排他锁
 
@@ -15026,7 +14968,7 @@ public class MappedByteBufferTest {
    * 通道可以实现异步读写数据
    * 通道可以从缓冲读数据，也可以写数据到缓冲
 
-2. BIO 中的 Stream 是单向的，NIO中的 Channel 是双向的，可以读操作，也可以写操作
+2. BIO 中的 Stream 是单向的，NIO 中的 Channel 是双向的，可以读操作，也可以写操作
 
 3. Channel 在 NIO 中是一个接口：`public interface Channel extends Closeable{}`
 
@@ -15041,7 +14983,7 @@ Channel 实现类：
 
 * SocketChannel：通过 TCP 读写网络中的数据
 
-* ServerSocketChannel：可以监听新进来的 TCP 连接，对每一个新进来的连接都会创建一个 SocketChannel
+* ServerSocketChannel：可以**监听**新进来的 TCP 连接，对每一个新进来的连接都会创建一个 SocketChannel
   
   提示：ServerSocketChanne 类似 ServerSocket、SocketChannel 类似 Socket
   
@@ -15266,11 +15208,11 @@ public class ChannelTest {
 
 #### 基本介绍
 
-选择器（Selector） 是 SelectableChannle 对象的**多路复用器**，Selector 可以同时监控多个通道的状况，利用 Selector 可使一个单独的线程管理多个 Channel，**Selector 是非阻塞 IO 的核心**。
+选择器（Selector） 是 SelectableChannle 对象的**多路复用器**，Selector 可以同时监控多个通道的状况，利用 Selector 可使一个单独的线程管理多个 Channel，**Selector 是非阻塞 IO 的核心**
 
 ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/NIO-Selector.png)
 
-* Selector 能够检测多个注册的通道上是否有事件发生（多个 Channel 以事件的方式可以注册到同一个 Selector)，如果有事件发生，便获取事件然后针对每个事件进行相应的处理，就可以只用一个单线程去管理多个通道，也就是管理多个连接和请求
+* Selector 能够检测多个注册的通道上是否有事件发生（多个 Channel 以事件的方式可以注册到同一个 Selector)，如果有事件发生，就获取事件然后针对每个事件进行相应的处理，就可以只用一个单线程去管理多个通道，也就是管理多个连接和请求
 * 只有在连接/通道真正有读写事件发生时，才会进行读写，就大大地减少了系统开销，并且不必为每个连接都创建一个线程，不用去维护多个线程
 * 避免了多线程之间的上下文切换导致的开销
 
@@ -15487,13 +15429,17 @@ public class Client {
 
 
 
+
+
 ***
+
+
 
 
 
 ## AIO
 
-Java AIO(NIO.2) ： AsynchronousI/O，异步非阻塞，采用了 Proactor 模式。服务器实现模式为一个有效请求一个线程，客户端的 I/O 请求都是由 OS 先完成了再通知服务器应用去启动线程进行处理。
+Java AIO(NIO.2) ： AsynchronousI/O，异步非阻塞，采用了 Proactor 模式。服务器实现模式为一个有效请求一个线程，客户端的 I/O 请求都是由 OS 先完成了再通知服务器应用去启动线程进行处理
 
 ```java
 AIO异步非阻塞，基于NIO的，可以称之为NIO2.0

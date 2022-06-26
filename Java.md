@@ -10342,7 +10342,7 @@ JVM：全称 Java Virtual Machine，即 Java 虚拟机，一种规范，本身�
 * Java 虚拟机基于**二进制字节码**执行，由一套字节码指令集、一组寄存器、一个栈、一个垃圾回收堆、一个方法区等组成
 * JVM 屏蔽了与操作系统平台相关的信息，从而能够让 Java 程序只需要生成能够在 JVM 上运行的字节码文件，通过该机制实现的**跨平台性**
 
-Java 代码执行流程：Java 程序 --（编译）--> 字节码文件 --（解释执行）--> 操作系统（Win，Linux）
+Java 代码执行流程：`Java 程序 --（编译）--> 字节码文件 --（解释执行）--> 操作系统（Win，Linux）`
 
 JVM 结构：
 
@@ -10350,7 +10350,7 @@ JVM 结构：
 
 JVM、JRE、JDK 对比：
 
-* JDK(Java SE Development Kit)：Java 标准开发包，它提供了编译、运行 Java 程序所需的各种工具和资源
+* JDK(Java SE Development Kit)：Java 标准开发包，提供了编译、运行 Java 程序所需的各种工具和资源
 * JRE( Java Runtime Environment)：Java 运行环境，用于解释执行 Java 的字节码文件
 
 <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-JRE关系.png" style="zoom: 80%;" />
@@ -10684,7 +10684,7 @@ Heap 堆：是 JVM 内存中最大的一块，由所有线程共享，由垃圾�
 
 在 Java7 中堆内会存在**年轻代、老年代和方法区（永久代）**：
 
-* Young 区被划分为三部分，Eden 区和两个大小严格相同的 Survivor 区。Survivor 区某一时刻只有其中一个是被使用的，另外一个留做垃圾回收时复制对象。在 Eden 区变满的时候， GC 就会将存活的对象移到空闲的 Survivor 区间中，根据 JVM 的策略，在经过几次垃圾回收后，仍然存活于 Survivor 的对象将被移动到 Tenured 区间
+* Young 区被划分为三部分，Eden 区和两个大小严格相同的 Survivor 区。Survivor 区某一时刻只有其中一个是被使用的，另外一个留做垃圾回收时复制对象。在 Eden 区变满的时候，GC 就会将存活的对象移到空闲的 Survivor 区间中，根据 JVM 的策略，在经过几次垃圾回收后，仍然存活于 Survivor 的对象将被移动到 Tenured 区间
 * Tenured 区主要保存生命周期长的对象，一般是一些老的对象，当一些对象在 Young 复制转移一定的次数以后，对象就会被转移到 Tenured 区
 * Perm 代主要保存 Class、ClassLoader、静态变量、常量、编译后的代码，在 Java7 中堆内方法区会受到 GC 的管理
 
@@ -10692,9 +10692,9 @@ Heap 堆：是 JVM 内存中最大的一块，由所有线程共享，由垃圾�
 
 ```java
 public static void main(String[] args) {
-    //返回Java虚拟机中的堆内存总量
+    // 返回Java虚拟机中的堆内存总量
     long initialMemory = Runtime.getRuntime().totalMemory() / 1024 / 1024;
-    //返回Java虚拟机使用的最大堆内存量
+    // 返回Java虚拟机使用的最大堆内存量
     long maxMemory = Runtime.getRuntime().maxMemory() / 1024 / 1024;
     
     System.out.println("-Xms : " + initialMemory + "M");//-Xms : 245M
@@ -10864,7 +10864,7 @@ public class Demo1_8 extends ClassLoader { // 可以用来加载类的二进制�
   String b = "iloveu";	//iloveu便是字面量
   ```
 
-* 符号引用：在编译过程中并不知道每个类的地址，因为可能这个类还没有加载，如果在一个类中引用了另一个类，无法知道它的内存地址，只能用他的类名作为符号引用，在类加载完后用这个符号引用去获取内存地址
+* 符号引用：在编译过程中并不知道每个类的地址，因为可能这个类还没有加载，如果在一个类中引用了另一个类，无法知道它的内存地址，只能用它的类名作为符号引用，在类加载完后用这个符号引用去获取内存地址
 
 
 
@@ -11005,7 +11005,7 @@ JVM 是将 TLAB 作为内存分配的首选，但不是所有的对象实例都�
 
 ##### 分代介绍
 
-Java8 时，堆被分为了两份：新生代和老年代（1：2），在 Java7 时，还存在一个永久代
+Java8 时，堆被分为了两份：新生代和老年代（1:2），在 Java7 时，还存在一个永久代
 
 - 新生代使用：复制算法
 - 老年代使用：标记 - 清除 或者 标记 - 整理 算法
@@ -11504,12 +11504,6 @@ Java 语言提供了对象终止（finalization）机制来允许开发人员提
 
 #### 标记清除
 
-当成功区分出内存中存活对象和死亡对象后，GC 接下来的任务就是执行垃圾回收，释放掉无用对象所占用的内存空间，以便有足够的可用内存空间为新对象分配内存。目前在 JVM 中比较常见的三种垃圾收集算法：
-
-- 标记清除算法（Mark-Sweep）
-- 复制算法（copying）
-- 标记压缩算法（Mark-Compact）
-
 标记清除算法，是将垃圾回收分为两个阶段，分别是**标记和清除**
 
 - **标记**：Collector 从引用根节点开始遍历，标记所有被引用的对象，一般是在对象的 Header 中记录为可达对象，**标记的是引用的对象，不是垃圾**
@@ -11548,8 +11542,7 @@ Java 语言提供了对象终止（finalization）机制来允许开发人员提
 | 空间开销 | 少（但会堆积碎片） | 少（不堆积碎片） | 通常需要活对象的 2 倍大小（不堆积碎片） |
 | 移动对象 | 否                 | 是               | 是                                      |
 
-- 效率上来说，复制算法是当之无愧的老大，但是却浪费了太多内存
-- 为了尽量兼顾三个指标，标记一整理算法相对来说更平滑一些
+
 
 
 
@@ -11633,6 +11626,33 @@ Serial：串行垃圾收集器，作用于新生代，是指使用单线程进�
 
 
 
+#### ParNew
+
+Par 是 Parallel 并行的缩写，New 是只能处理的是新生代
+
+并行垃圾收集器在串行垃圾收集器的基础之上做了改进，**采用复制算法**，将单线程改为了多线程进行垃圾回收，可以缩短垃圾回收的时间
+
+对于其他的行为（收集算法、stop the world、对象分配规则、回收策略等）同 Serial 收集器一样，应用在年轻代，除 Serial 外，只有**ParNew GC 能与 CMS 收集器配合工作**
+
+相关参数：
+
+* `-XX：+UseParNewGC`：表示年轻代使用并行收集器，不影响老年代
+
+* `-XX:ParallelGCThreads`：默认开启和 CPU 数量相同的线程数
+
+![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-ParNew收集器.png)
+
+ParNew 是很多 JVM 运行在 Server 模式下新生代的默认垃圾收集器
+
+- 对于新生代，回收次数频繁，使用并行方式高效
+- 对于老年代，回收次数少，使用串行方式节省资源（CPU 并行需要切换线程，串行可以省去切换线程的资源）
+
+
+
+***
+
+
+
 #### Parallel
 
 Parallel Scavenge 收集器是应用于新生代的并行垃圾回收器，**采用复制算法**、并行回收和 Stop the World 机制
@@ -11662,7 +11682,7 @@ Parallel Old 收集器：是一个应用于老年代的并行垃圾回收器，*
 * `-XX：+UseParalleloldcc`：手动指定老年代使用并行回收收集器执行内存回收任务
   * 上面两个参数，默认开启一个，另一个也会被开启（互相激活），默认 JDK8 是开启的
 * `-XX:+UseAdaptivesizepplicy`：设置 Parallel scavenge 收集器具有**自适应调节策略**，在这种模式下，年轻代的大小、Eden 和 Survivor 的比例、晋升老年代的对象年龄等参数会被自动调整，虚拟机会根据当前系统的运行情况收集性能监控信息，动态调整这些参数以提供最合适的停顿时间或者最大的吞吐量
-* `-XX:ParallelGcrhreads`：设置年轻代并行收集器的线程数，一般最好与 CPU 数量相等，以避免过多的线程数影响垃圾收集性能
+* `-XX:ParallelGcrhreads`：设置年轻代并行收集器的线程数，一般与 CPU 数量相等，以避免过多的线程数影响垃圾收集性能
   * 在默认情况下，当 CPU 数量小于 8 个，ParallelGcThreads 的值等于 CPU 数量
   * 当 CPU 数量大于 8 个，ParallelGCThreads 的值等于 3+[5*CPU Count]/8]
 * `-XX:MaxGCPauseMillis`：设置垃圾收集器最大停顿时间（即 STW 的时间），单位是毫秒
@@ -11673,31 +11693,6 @@ Parallel Old 收集器：是一个应用于老年代的并行垃圾回收器，*
   * 与 `-xx:MaxGCPauseMillis` 参数有一定矛盾性，暂停时间越长，Radio 参数就容易超过设定的比例
 
 
-
-***
-
-
-
-#### ParNew
-
-Par 是 Parallel 并行的缩写，New 是只能处理的是新生代
-
-并行垃圾收集器在串行垃圾收集器的基础之上做了改进，**采用复制算法**，将单线程改为了多线程进行垃圾回收，可以缩短垃圾回收的时间
-
-对于其他的行为（收集算法、stop the world、对象分配规则、回收策略等）同 Serial 收集器一样，应用在年轻代，除 Serial 外，只有**ParNew GC 能与 CMS 收集器配合工作**
-
-相关参数：
-
-* `-XX：+UseParNewGC`：表示年轻代使用并行收集器，不影响老年代
-
-* `-XX:ParallelGCThreads`：默认开启和 CPU 数量相同的线程数
-
-![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-ParNew收集器.png)
-
-ParNew 是很多 JVM 运行在 Server 模式下新生代的默认垃圾收集器
-
-- 对于新生代，回收次数频繁，使用并行方式高效
-- 对于老年代，回收次数少，使用串行方式节省资源（CPU 并行需要切换线程，串行可以省去切换线程的资源）
 
 
 
@@ -11751,7 +11746,7 @@ Mark Sweep 会造成内存碎片，不把算法换成 Mark Compact 的原因：M
 
 * `-XX:ParallelCMSThreads`：设置 CMS 的线程数量
 
-  * CMS 默认启动的线程数是(ParallelGCThreads+3)/4，ParallelGCThreads 是年轻代并行收集器的线程数
+  * CMS 默认启动的线程数是 (ParallelGCThreads+3)/4，ParallelGCThreads 是年轻代并行收集器的线程数
   * 收集线程占用的 CPU 资源多于25%，对用户程序影响可能较大；当 CPU 资源比较紧张时，受到 CMS 收集器线程的影响，应用程序的性能在垃圾回收阶段可能会非常糟糕
 
 
@@ -11959,7 +11954,7 @@ ZGC 目标：
 ZGC 的工作过程可以分为 4 个阶段：
 
 * 并发标记（Concurrent Mark）： 遍历对象图做可达性分析的阶段，也要经过初始标记和最终标记，需要短暂停顿
-* 并发预备重分配（ Concurrent Prepare for Relocate）：根据特定的查询条件统计得出本次收集过程要清理哪些 Region，将这些 Region 组成重分配集（Relocation Set）
+* 并发预备重分配（Concurrent Prepare for Relocate）：根据特定的查询条件统计得出本次收集过程要清理哪些 Region，将这些 Region 组成重分配集（Relocation Set）
 * 并发重分配（Concurrent Relocate）： 重分配是 ZGC 执行过程中的核心阶段，这个过程要把重分配集中的存活对象复制到新的 Region 上，并为重分配集中的**每个 Region 维护一个转发表**（Forward Table），记录从旧地址到新地址的转向关系
 * 并发重映射（Concurrent Remap）：修正整个堆中指向重分配集中旧对象的所有引用，ZGC 的并发映射并不是一个必须要立即完成的任务，ZGC 很巧妙地把并发重映射阶段要做的工作，合并到下一次垃圾收集循环中的并发标记阶段里去完成，因为都是要遍历所有对象，这样合并节省了一次遍历的开销
 
@@ -12231,7 +12226,7 @@ public Object pop() {
 * `int[] arr = new int[10]`
 
   ```ruby
-  # 由于需要8位对齐，所以最终大小为56byte`。
+  # 由于需要8位对齐，所以最终大小为56byte
   4(Mark Word) + 4(Klass Word) + 4(length) + 4*10(10个int大小) + 4(Padding) = 56sbyte
   ```
 
@@ -12545,8 +12540,8 @@ Java 对象创建时机：
 加载过程完成以下三件事：
 
 - 通过类的完全限定名称获取定义该类的二进制字节流（二进制字节码）
-- 将该字节流表示的**静态存储结构转换为方法区的运行时存储结构**（Java 类模型）
-- 在内存中生成一个代表该类的 Class 对象，作为该类在方法区中的各种数据的访问入口
+- 将该字节流表示的静态存储结构转换为方法区的运行时存储结构（Java 类模型）
+- **在内存中生成一个代表该类的 Class 对象，作为该类在方法区中的各种数据的访问入口**
 
 其中二进制字节流可以从以下方式中获取：
 
@@ -12559,7 +12554,7 @@ Java 对象创建时机：
 
 方法区内部采用 C++ 的 instanceKlass 描述 Java 类的数据结构：
 
-* `_java_mirror` 即 java 的类镜像，例如对 String 来说就是 String.class，作用是把 class 暴露给 Java 使用
+* `_java_mirror` 即 Java 的类镜像，例如对 String 来说就是 String.class，作用是把 class 暴露给 Java 使用
 * `_super` 即父类、`_fields` 即成员变量、`_methods` 即方法、`_constants` 即常量池、`_class_loader` 即类加载器、`_vtable` **虚方法表**、`_itable` 接口方法表
 
 加载过程：
@@ -12619,10 +12614,7 @@ Java 对象创建时机：
 
 ##### 准备
 
-准备阶段为**静态变量分配内存并设置初始值**，使用的是方法区的内存：
-
-* 类变量也叫静态变量，就是是被 static 修饰的变量
-* 实例变量也叫对象变量，即没加 static 的变量
+准备阶段为**静态变量（类变量）分配内存并设置初始值**，使用的是方法区的内存：
 
 说明：实例变量不会在这阶段分配内存，它会在对象实例化时随着对象一起被分配在堆中，类加载发生在所有实例化操作之前，并且类加载只进行一次，实例化可以进行多次
 
@@ -12658,7 +12650,7 @@ Java 对象创建时机：
 
 将常量池中类、接口、字段、方法的**符号引用替换为直接引用**（内存地址）的过程：
 
-* 符号引用：一组符号来描述目标，可以是任何字面量，属于编译原理方面的概念，如：包括类和接口的全限名、字段的名称和描述符、方法的名称和**方法描述符**
+* 符号引用：一组符号来描述目标，可以是任何字面量，属于编译原理方面的概念，如：包括类和接口的全限名、字段的名称和描述符、方法的名称和**方法描述符**（因为类还没有加载完，很多方法是找不到的）
 * 直接引用：直接指向目标的指针、相对偏移量或一个间接定位到目标的句柄，如果有了直接引用，那说明引用的目标必定已经存在于内存之中
 
 例如：在 `com.demo.Solution` 类中引用了 `com.test.Quest`，把 `com.test.Quest` 作为符号引用存进类常量池，在类加载完后，**用这个符号引用去方法区找这个类的内存地址**
@@ -12788,6 +12780,8 @@ init 指的是实例构造器，主要作用是在类实例化过程中执行，
 实例化即调用 <init>()V ，虚拟机会保证这个类的构造方法的线程安全，先为实例变量分配内存空间，再执行赋默认值，然后根据源码中的顺序执行赋初值或代码块，没有成员变量初始化和代码块则不会执行
 
 类实例化过程：**父类的类构造器<clinit>() -> 子类的类构造器<clinit>() -> 父类的成员变量和实例代码块 -> 父类的构造函数 -> 子类的成员变量和实例代码块 -> 子类的构造函数**
+
+new 关键字会创建对象并复制 dup 一个对象引用，一个调用 <init> 方法，另一个用来赋值给接收者
 
 
 
@@ -13253,7 +13247,7 @@ Java 语言：跨平台的语言（write once ，run anywhere）
 
 * 后端运行期编译器：HotSpot VM 的 C1、C2 编译器，也就是 JIT 编译器，Graal 编译器
 
-  * JIT编译器：执行引擎部分详解
+  * JIT 编译器：执行引擎部分详解
   * Graal 编译器：JDK10 HotSpot 加入的一个全新的即时编译器，编译效果短短几年时间就追平了 C2
 
 * 静态提前编译器：AOT  (Ahead Of Time Compiler）编译器，直接把源代码编译成本地机器代码
@@ -13739,7 +13733,7 @@ Java 字节码属于 JVM 基本执行指令。由一个字节长度的代表某�
 * f 代表 float
 * d 代表 double
 
-大部分的指令都没有支持 byte、char、short、boolean 类型，编译器会在编译期或运行期将 byte 和 short 类型的数据带符号扩展（Sign-Extend-）为相应的 int 类型数据，将 boolean 和 char 类型数据零位扩展（Zero-Extend-）为相应的 int 类型数据
+大部分的指令都没有支持 byte、char、short、boolean 类型，编译器会在编译期或运行期将 byte 和 short 类型的数据带符号扩展（Sign-Extend-）为相应的 int 类型数据，将 boolean 和 char 类型数据零位扩展（Zero-Extend）为相应的 int 类型数据
 
 在做值相关操作时:
 
@@ -13762,7 +13756,7 @@ Java 字节码属于 JVM 基本执行指令。由一个字节长度的代表某�
 * 指令 xload_n 表示将第 n 个局部变量压入操作数栈，aload_n 表示将一个对象引用压栈
 * 指令 xload n 通过指定参数的形式，把局部变量压入操作数栈，局部变量数量超过 4 个时使用这个命令
 
-常量入栈指令：将常数压入操作数栈，根据数据类型和入栈内容的不同，又分为 const、push、ldc指令
+常量入栈指令：将常数压入操作数栈，根据数据类型和入栈内容的不同，又分为 const、push、ldc 指令
 
 * push：包括 bipush 和 sipush，区别在于接收数据类型的不同，bipush 接收 8 位整数作为参数，sipush 接收 16 位整数
 * ldc：如果以上指令不能满足需求，可以使用 ldc 指令，接收一个 8 位的参数，该参数指向常量池中的 int、 float 或者 String 的索引，将指定的内容压入堆栈。ldc_w 接收两个 8 位参数，能支持的索引范围更大，如果要压入的元素是 long 或 double 类型的，则使用 ldc2_w 指令
@@ -13785,7 +13779,7 @@ Java 字节码属于 JVM 基本执行指令。由一个字节长度的代表某�
 
 算术指令用于对两个操作数栈上的值进行某种特定运算，并把计算结果重新压入操作数栈
 
-没有直接支持 byte、 short、 char 和 boolean类型的算术指令，对于这些数据的运算，都使用 int 类型的指令来处理，数组类型也是转换成 int 数组
+没有直接支持 byte、 short、 char 和 boolean 类型的算术指令，对于这些数据的运算，都使用 int 类型的指令来处理，数组类型也是转换成 int 数组
 
 * 加法指令：iadd、ladd、fadd、dadd
 * 减法指令：isub、lsub、fsub、dsub
@@ -13814,7 +13808,7 @@ double j = i / 0.0;
 System.out.println(j);//无穷大，NaN: not a number
 ```
 
-**分析 i++**：从字节码角度分析：a++ 和 ++a 的区别是先执行 iload 还是 先执行 iinc
+**分析 i++**：从字节码角度分析：a++ 和 ++a 的区别是先执行 iload 还是先执行 iinc
 
 ```java
  4 iload_1		//存入操作数栈
@@ -14820,7 +14814,7 @@ JDK5 以后编译阶段自动转换成上述片段
 
 #### 泛型擦除
 
-泛型也是在 JDK 5 开始加入的特性，但 Java 在编译泛型代码后会执行**泛型擦除**的动作，即泛型信息。在编译为字节码之后就丢失了，实际的类型都**当做了 Object 类型**来处理：
+泛型也是在 JDK 5 开始加入的特性，但 Java 在编译泛型代码后会执行**泛型擦除**的动作，即泛型信息在编译为字节码之后就丢失了，实际的类型都**当做了 Object 类型**来处理：
 
 ```java
 List<Integer> list = new ArrayList<>();
@@ -14880,7 +14874,7 @@ public static void main(String[] args) {
 
 #### foreach
 
-**数组的循环：**
+数组的循环：
 
 ```java
 int[] array = {1, 2, 3, 4, 5}; // 数组赋初值的简化写法也是语法糖
@@ -14898,7 +14892,7 @@ for(int i = 0; i < array.length; ++i) {
 }
 ```
 
-**集合的循环：**
+集合的循环：
 
 ```java
 List<Integer> list = Arrays.asList(1,2,3,4,5);
@@ -15093,7 +15087,7 @@ try(资源变量 = 创建资源对象){
 }
 ```
 
-其中资源对象需要实现 **AutoCloseable**接口，例如 InputStream、OutputStream、Connection、Statement、ResultSet 等接口都实现了 AutoCloseable ，使用 try-withresources可以不用写 finally 语句块，编译器会帮助生成关闭资源代码：
+其中资源对象需要实现 **AutoCloseable** 接口，例如 InputStream、OutputStream、Connection、Statement、ResultSet 等接口都实现了 AutoCloseable ，使用 try-withresources可以不用写 finally 语句块，编译器会帮助生成关闭资源代码：
 
 ```java
 try(InputStream is = new FileInputStream("d:\\1.txt")) {
@@ -17786,7 +17780,7 @@ public class MGraph {
 
 布隆过滤器查询一个数据，是否在二进制的集合中，查询过程如下：
 
-- 通过 K 个哈希函数计算该数据，对应计算出的 K 个hash值
+- 通过 K 个哈希函数计算该数据，对应计算出的 K 个 hash 值
 - 通过 hash 值找到对应的二进制的数组下标
 - 判断方法：如果存在一处位置的二进制数据是 0，那么该数据一定不存在。如果都是 1，则认为数据存在集合中（会误判）
 
