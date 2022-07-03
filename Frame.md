@@ -3073,7 +3073,7 @@ Protobuf 是以 message 的方式来管理数据，支持跨平台、跨语言�
   ```protobuf
   syntax = "proto3"; 								// 版本
   option java_outer_classname = "StudentPOJO";	// 生成的外部类名，同时也是文件名
-  // protobuf 使用 message 管理数据
+  
   message Student { 	// 在 StudentPOJO 外部类种生成一个内部类 Student，是真正发送的 POJO 对象
       int32 id = 1; 	// Student 类中有一个属性：名字为 id 类型为 int32(protobuf类型) ，1表示属性序号，不是值
       string name = 2;
@@ -3443,7 +3443,7 @@ RCVBUF_ALLOCATOR：属于 SocketChannal 参数
 
   ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/RocketMQ-解耦.png)
 
-* 流量削峰：应用系统如果遇到系统请求流量的瞬间猛增，有可能会将系统压垮，使用消息队列可以将大量请求缓存起来，分散到很长一段时间处理，这样可以提高系统的稳定性和用户体验。
+* 流量削峰：应用系统如果遇到系统请求流量的瞬间猛增，有可能会将系统压垮，使用消息队列可以将大量请求缓存起来，分散到很长一段时间处理，这样可以提高系统的稳定性和用户体验
 
   ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/RocketMQ-流量削峰.png)
 
@@ -3970,9 +3970,9 @@ Broker 可以配置 messageDelayLevel，该属性是 Broker 的属性，不属�
 - 1<=level<=maxLevel：消息延迟特定时间，例如 level==1，延迟 1s
 - level > maxLevel：则 level== maxLevel，例如 level==20，延迟 2h
 
-定时消息会暂存在名为 SCHEDULE_TOPIC_XXXX 的 Topic 中，并根据 delayTimeLevel 存入特定的 queue，队列的标识 `queueId = delayTimeLevel – 1`，即**一个 queue 只存相同延迟的消息**，保证具有相同发送延迟的消息能够顺序消费。Broker 会调度地消费 SCHEDULE_TOPIC_XXXX，将消息写入真实的 Topic
+定时消息会暂存在名为 SCHEDULE_TOPIC_XXXX 的 Topic 中，并根据 delayTimeLevel 存入特定的 queue，队列的标识 `queueId = delayTimeLevel – 1`，即**一个 queue 只存相同延迟的消息**，保证具有相同发送延迟的消息能够顺序消费。Broker 会为每个延迟级别提交一个定时任务，调度地消费 SCHEDULE_TOPIC_XXXX，将消息写入真实的 Topic
 
-注意：定时消息在第一次写入和调度写入真实 Topic 时都会计数，因此发送数量、tps 都会变高。
+注意：定时消息在第一次写入和调度写入真实 Topic 时都会计数，因此发送数量、tps 都会变高
 
 
 
@@ -4786,7 +4786,7 @@ LatencyFaultTolerance 机制是实现消息发送高可用的核心关键所在�
 
 ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Frame/RocketMQ-平均队列轮流分配.png)
 
-集群模式下，**queue 都是只允许分配只一个实例**，如果多个实例同时消费一个 queue 的消息，由于拉取哪些消息是 Consumer 主动控制的，会导致同一个消息在不同的实例下被消费多次
+集群模式下，**queue 都是只允许分配一个实例**，如果多个实例同时消费一个 queue 的消息，由于拉取哪些消息是 Consumer 主动控制的，会导致同一个消息在不同的实例下被消费多次
 
 通过增加 Consumer 实例去分摊 queue 的消费，可以起到水平扩展的消费能力的作用。而当有实例下线时，会重新触发负载均衡，这时候原来分配到的 queue 将分配到其他实例上继续消费。但是如果 Consumer 实例的数量比 Message Queue 的总数量还多的话，多出来的 Consumer 实例将无法分到 queue，也就无法消费到消息，也就无法起到分摊负载的作用了，所以需要**控制让 queue 的总数量大于等于 Consumer 的数量**
 
@@ -4802,7 +4802,7 @@ LatencyFaultTolerance 机制是实现消息发送高可用的核心关键所在�
 
 Consumer 端实现负载均衡的核心类 **RebalanceImpl**
 
-在 Consumer 实例的启动流程中的会启动 MQClientInstance 实例，完成负载均衡服务线程 RebalanceService 的启动（每隔 20s 执行一次），RebalanceService 线程的 run() 方法最终调用的是 RebalanceImpl 类的 rebalanceByTopic() 方法，该方法是实现 Consumer 端负载均衡的核心。rebalanceByTopic() 方法会根据消费者通信类型为广播模式还是集群模式做不同的逻辑处理。这里主要看下集群模式下的处理流程：
+在 Consumer 实例的启动流程中的会启动 MQClientInstance 实例，完成负载均衡服务线程 RebalanceService 的启动（**每隔 20s 执行一次**负载均衡），RebalanceService 线程的 run() 方法最终调用的是 RebalanceImpl 类的 rebalanceByTopic() 方法，该方法是实现 Consumer 端负载均衡的核心。rebalanceByTopic() 方法会根据广播模式还是集群模式做不同的逻辑处理。主要看集群模式：
 
 * 从 rebalanceImpl 实例的本地缓存变量 topicSubscribeInfoTable 中，获取该 Topic 主题下的消息消费队列集合 mqSet
 
@@ -4915,7 +4915,7 @@ RocketMQ 会为每个消费组都设置一个 Topic 名称为 `%RETRY%+consumerG
 
 * 无序消息（普通、定时、延时、事务消息）的重试，可以通过设置返回状态达到消息重试的结果。无序消息的重试只针对集群消费方式生效，广播方式不提供失败重试特性，即消费失败后，失败消息不再重试，继续消费新的消息
 
-**无序消息情况下**，因为异常恢复需要一些时间，会为重试队列设置多个重试级别，每个重试级别都有对应的重新投递延时，重试次数越多投递延时就越大。RocketMQ 对于重试消息的处理是先保存至 Topic 名称为 `SCHEDULE_TOPIC_XXXX` 的延迟队列中，后台定时任务按照对应的时间进行 Delay 后重新保存至 `%RETRY%+consumerGroup` 的重试队列中
+**无序消息情况下**，因为异常恢复需要一些时间，会为重试队列设置多个重试级别，每个重试级别都有对应的重新投递延时，重试次数越多投递延时就越大。RocketMQ 对于重试消息的处理是先保存至 Topic 名称为 `SCHEDULE_TOPIC_XXXX` 的延迟队列中，后台定时任务**按照对应的时间进行 Delay 后**重新保存至 `%RETRY%+consumerGroup` 的重试队列中
 
 消息队列 RocketMQ 默认允许每条消息最多重试 16 次，每次重试的间隔时间如下表示：
 
@@ -10211,7 +10211,7 @@ ConsumeRequest 是 ConsumeMessageOrderlyService 的内部类，是一个 Runnabl
 
 * 首先获取当前消息主题的发布信息，获取不到去 Namesrv 获取（默认有 TBW102），并将获取的到的路由数据转化为发布数据，**创建 MQ 队列**，客户端实例同样更新订阅数据，创建 MQ 队列，放入负载均衡服务 topicSubscribeInfoTable 中
 * 然后从发布数据中选择一个 MQ 队列发送消息
-* Broker 端通过 SendMessageProcessor 对发送的消息进行持久化处理，存储到 CommitLog。将重试次数过多的消息加入死信队列，将延迟消息的主题和队列修改为调度主题和调度队列 ID
+* Broker 端通过 SendMessageProcessor 对发送的消息进行持久化处理，存储到 CommitLog。将重试次数过多的消息加入**死信队列**，将延迟消息的主题和队列修改为调度主题和调度队列 ID
 * Broker 启动 ScheduleMessageService 服务会为每个延迟级别创建一个延迟任务，让延迟消息得到有效的处理，将到达交付时间的消息修改为原始主题的原始 ID 存入 CommitLog，消费者就可以进行消费了
 
 消费流程：
@@ -10519,7 +10519,7 @@ Zookeepe 集群三个角色：
 
 * Epoch：每个 Leader 任期的代号，同一轮选举投票过程中的该值是相同的，投完一次票就增加
 
-选举机制：半数机制，超过半数的投票旧通过
+选举机制：半数机制，超过半数的投票就通过
 
 * 第一次启动选举规则：投票过半数时，服务器 ID 大的胜出
 
@@ -11223,7 +11223,7 @@ FastLeaderElection 中有 WorkerReceiver 线程
 
 
 
-### 状态同步
+#### 状态同步
 
 选举结束后，每个节点都需要根据角色更新自己的状态，Leader 更新状态为 Leader，其他节点更新状态为 Follower，整体流程：
 

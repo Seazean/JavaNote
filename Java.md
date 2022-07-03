@@ -4750,7 +4750,7 @@ HashMap 继承关系如下图所示：
    HashMap(int initialCapacity)// 构造一个带指定初始容量和默认加载因子 (0.75) 的空 HashMap
    ```
 
-   * 为什么必须是 2 的 n 次幂？用位运算替代取余计算
+   * 为什么必须是 2 的 n 次幂？用位运算替代取余计算，减少 rehash 的代价（移动的节点少）
 
      HashMap 中添加元素时，需要根据 key 的 hash 值确定在数组中的具体位置。为了减少碰撞，把数据分配均匀，每个链表长度大致相同，实现该方法就是取模 `hash%length`，计算机中直接求余效率不如位移运算， **`hash % length == hash & (length-1)` 的前提是 length 是 2 的 n 次幂**
 
