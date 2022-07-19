@@ -1544,9 +1544,9 @@ Reactor 对象通过 select 监控客户端请求事件，收到事件后通过 
 
 采用多个 Reactor ，执行流程：
 
-* Reactor 主线程 MainReactor 通过 select 监控建立连接事件，收到事件后通过 Acceptor 接收，处理建立连接事件，处理完成后 MainReactor 会将连接分配给 Reactor 子线程的 SubReactor（有多个）处理
+* Reactor 主线程 MainReactor 通过 select **监控建立连接事件**，收到事件后通过 Acceptor 接收，处理建立连接事件，处理完成后 MainReactor 会将连接分配给 Reactor 子线程的 SubReactor（有多个）处理
 
-* SubReactor 将连接加入连接队列进行监听，并创建一个 Handler 用于处理该连接的事件，当有新的事件发生时，SubReactor 会调用连接对应的 Handler 进行响应
+* SubReactor 将连接加入连接队列进行监听其他事件，并创建一个 Handler 用于处理该连接的事件，当有新的事件发生时，SubReactor 会调用连接对应的 Handler 进行响应
 
 * Handler 通过 read 读取数据后，会分发给 Worker 线程池进行业务处理
 
