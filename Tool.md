@@ -1380,10 +1380,10 @@ mode : 权限设定字串,格式: [ugoa...][[+-=][rwxX]...][,...]
 
 命令：chmod [-R] xyz 文件或目录
 
-- xyz : 就是刚刚提到的数字类型的权限属性，为 rwx 属性数值的相加。
-- -R : 进行递归(recursive)的持续变更，亦即连同次目录下的所有文件都会变更
+- xyz : 就是刚刚提到的数字类型的权限属性，为 rwx 属性数值的相加
+- -R : 进行递归（recursive）的持续变更，亦即连同次目录下的所有文件都会变更
 
-文件的权限字符为：[-rwxrwxrwx]， 这九个权限是三三一组的，我们使用数字来代表各个权限。
+文件的权限字符为：[-rwxrwxrwx]， 这九个权限是三三一组的，我们使用数字来代表各个权限
 
 <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Tool/权限数字表.png" style="zoom: 67%;" />
 
@@ -1395,7 +1395,7 @@ mode : 权限设定字串,格式: [ugoa...][[+-=][rwxX]...][,...]
 - group = rwx = 4+2+1 = 7
 - others= --- = 0+0+0 = 0
 
-表示为：`chmod  -R 770 文件名`
+表示为：`chmod -R 770 文件名`
 
 
 
@@ -1408,11 +1408,11 @@ mode : 权限设定字串,格式: [ugoa...][[+-=][rwxX]...][,...]
 - others  其他权限
 - all  全部的身份
 
-我们就可以使用 **u, g, o，a** 来代表身份的权限！读写的权限可以写成 **r, w, x**。
+我们就可以使用 **u g o a** 来代表身份的权限，读写的权限可以写成 **r w x**
 
-`chmod u=rwx,g=rx,o=r  a.txt`：将as.txt的权限设置为**-rwxr-xr--**
+`chmod u=rwx,g=rx,o=r  a.txt`：将as.txt的权限设置为 **-rwxr-xr--**
 
-` chmod  a-r a.txt`：将文件的所有权限去除**r**
+` chmod a-r a.txt`：将文件的所有权限去除 **r**
 
 
 
