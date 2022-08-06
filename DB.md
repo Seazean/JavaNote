@@ -12657,7 +12657,7 @@ appendfsync always|everysec|no	#AOF写数据策略：默认为everysec
   特点：安全性最高，数据零误差，但是性能较低，不建议使用
 
 
-- everysec：先将 aof_buf 缓冲区中的内容写入到 AOF 文件，判断上次同步 AOF 文件的时间距离现在超过一秒钟，再次对 AOF 文件进行同步，这个同步操作是由一个（子）线程专门负责执行的
+- everysec：先将 aof_buf 缓冲区中的内容写入到 AOF 文件，判断上次同步 AOF 文件的时间距离现在超过一秒钟，再次对 AOF 文件进行同步 fsync，这个同步操作是由一个（子）线程专门负责执行的
 
   特点：在系统突然宕机的情况下丢失 1 秒内的数据，准确性较高，性能较高，建议使用，也是默认配置
 
@@ -12826,7 +12826,7 @@ RDB 的特点
 
 AOF 特点：
 
-* AOF 的优点：数据持久化有较好的实时性，通过 AOF 重写可以降低文件的体积
+* AOF 的优点：数据持久化有**较好的实时性**，通过 AOF 重写可以降低文件的体积
 * AOF 的缺点：文件较大时恢复较慢
 
 AOF 和 RDB 同时开启，系统默认取 AOF 的数据（数据不会存在丢失）
@@ -12955,7 +12955,7 @@ int main(void)
 
 <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-fork函数使用演示.png" style="zoom: 80%;" />
 
-在 p3224 和 p3225 执行完第二个循环后，main 函数退出，进程死亡。所以 p3226，p3227 就没有父进程了，成为孤儿进程，所以 p3226 和 p3227 的父进程就被置为 ID 为 1的 init 进程（笔记 Tool → Linux → 进程管理详解）
+在 p3224 和 p3225 执行完第二个循环后，main 函数退出，进程死亡。所以 p3226，p3227 就没有父进程了，成为孤儿进程，所以 p3226 和 p3227 的父进程就被置为 ID 为 1 的 init 进程（笔记 Tool → Linux → 进程管理详解）
 
 参考文章：https://blog.csdn.net/love_gaohz/article/details/41727415
 
@@ -14557,7 +14557,7 @@ Sentinel 为主服务器创建的实例结构的 sentinels 字典保存所有同
 * 如果源 Sentinel 的实例结构存在，那么对源 Sentinel 的实例结构进行更新
 * 如果源 Sentinel 的实例结构不存在，说明源 Sentinel 是刚开始监视主服务器，目标 Sentinel 会为源 Sentinel 创建一个新的实例结构，并将这个结构添加到 sentinels 字典里面
 
-因为 Sentinel 可以接收到的频道信息来获知其他 Sentinel 的存在，并通过发送频道信息来让其他 Sentinel 知道自己的存在，所以用户在使用 Sentinel 时并不需要提供各个 Sentinel 的地址信息，**监视同一个主服务器的多个 Sentinel 可以自动发现对方**
+因为 Sentinel 可以接收到的频道信息来获知其他 Sentinel 的存在，并通过发送频道信息来让其他 Sentinel 知道自己的存在，所以用户在使用 Sentinel 时并不需要提供各个 Sentinel 的地址信息，**监视同一个主服务器的多个 Sentinel 可以xiang发现对方**
 
 
 
@@ -14628,7 +14628,7 @@ SENTINEL is-master-down-by-addr <ip> <port> <current_epoch> <runid>
 
 源 Sentinel 将统计其他 Sentinel 同意主服务器已下线的数量，当这一数量达到配置指定的判断客观下线所需的数量（quorum）时，Sentinel 会将主服务器对应实例结构 flags 属性的 SRI_O_DOWN 标识打开，代表客观下线，并对主服务器执行故障转移操作
 
-注意：不同 Sentinel 判断客观下线的条件可能不同，因为载入的配置文件中的属性（quorum）可能不同
+注意：**不同 Sentinel 判断客观下线的条件可能不同**，因为载入的配置文件中的属性（quorum）可能不同
 
 
 
