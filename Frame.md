@@ -10218,7 +10218,7 @@ ConsumeRequest 是 ConsumeMessageOrderlyService 的内部类，是一个 Runnabl
 
 * 首先通过负载均衡服务，将分配到当前消费者实例的 MQ 创建 PullRequest，并放入 PullMessageService 的本地阻塞队列内
 * PullMessageService 循环从阻塞队列获取请求对象，发起拉消息请求，并创建 PullCallback 回调对象，将正常拉取的消息**提交到消费任务线程池**，并设置请求的下一次拉取位点，重新放入阻塞队列，形成闭环
-* 消费任务服务对消费失败的消息进行回退，回退失败的消息会再次提交消费任务重新消费
+* 消费任务服务对消费失败的消息进行回退，通过内部生产者实例发送回退消息，回退失败的消息会再次提交消费任务重新消费
 * Broker 端对拉取消息的请求进行处理（processRequestCommand），查询成功将消息放入响应体，通过 Netty 写回客户端，当 `pullRequest.offset == queue.maxOffset` 说明该队列已经没有需要获取的消息，将请求放入长轮询集合等待有新消息
 * PullRequestHoldService 负责长轮询，每 5 秒遍历一次长轮询集合，将满足条件的 PullRequest 再次提交到线程池内处理
 

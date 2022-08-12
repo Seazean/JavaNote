@@ -9272,7 +9272,7 @@ Redis 通过过期字典可以检查一个给定键是否过期：
 针对过期数据有三种删除策略：
 
 - 定时删除
-- 惰性删除
+- 惰性删除（被动删除）
 - 定期删除
 
 Redis 采用惰性删除和定期删除策略的结合使用
@@ -9333,7 +9333,7 @@ Redis 采用惰性删除和定期删除策略的结合使用
 
 - activeExpireCycle() 对某个数据库中的每个 expires 进行检测，工作模式：
 
-  * 轮询每个数据库，从数据库中取出一定数量的随机键进行检查，并删除其中的过期键
+  * 轮询每个数据库，从数据库中取出一定数量的随机键进行检查，并删除其中的过期键，如果过期 key 的比例超过了 25%，则继续重复此过程，直到过期 key 的比例下降到 25% 以下，或者这次任务的执行耗时超过了 25 毫秒
 
   * 全局变量 current_db 用于记录 activeExpireCycle() 的检查进度（哪一个数据库），下一次调用时接着该进度处理
   * 随着函数的不断执行，服务器中的所有数据库都会被检查一遍，这时将 current_db 重置为 0，然后再次开始新一轮的检查
@@ -9805,8 +9805,6 @@ Redis 的时间事件分为以下两类：
 无序链表指是链表不按 when 属性的大小排序，每当时间事件执行器运行时就必须遍历整个链表，查找所有已到达的时间事件，并调用相应的事件处理器处理
 
 无序链表并不影响时间事件处理器的性能，因为正常模式下的 Redis 服务器**只使用 serverCron 一个时间事件**，在 benchmark 模式下服务器也只使用两个时间事件，所以无序链表不会影响服务器的性能，几乎可以按照一个指针处理
-
-服务器 → serverCron 详解该时间事件 
 
 
 
@@ -11334,7 +11332,7 @@ typedef struct redisObiect {
 
 Redis 并没有直接使用数据结构来实现键值对数据库，而是基于这些数据结构创建了一个对象系统，包含字符串对象、列表对象、哈希对象、集合对象和有序集合对象这五种类型的对象，而每种对象又通过不同的编码映射到不同的底层数据结构
 
-Redis 自身是一个 Map，其中所有的数据都是采用 key : value 的形式存储，**键对象都是字符串对象**，而值对象有五种基本类型和三种高级类型对象
+Redis 是一个 Map 类型，其中所有的数据都是采用 key : value 的形式存储，**键对象都是字符串对象**，而值对象有五种基本类型和三种高级类型对象
 
 ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-对象编码.png)
 
@@ -13440,8 +13438,6 @@ Redis 复制 EVAL、SCRIPT FLUSH、SCRIPT LOAD 三个命令的方法和复制普
 
 
 
-
-
 ***
 
 
@@ -14054,6 +14050,9 @@ Redis 的 min-slaves-to-write 和 min-slaves-max-lag 两个选项可以防止主
 
 比如向主服务器设置：
 
+* min-slaves-to-write：主库最少有 N 个健康的从库存活才能执行写命令，没有足够的从库直接拒绝写入
+* min-slaves-max-lag：从库和主库进行数据复制时的 ACK 消息延迟的最大时间
+
 ```sh
 min-slaves-to-write 5
 min-slaves-max-lag 10
@@ -14538,26 +14537,13 @@ SUBSCRIBE _sentinel_:hello
 * 如果信息中记录的 Sentinel 运行 ID 与自己的相同，不做进一步处理
 * 如果不同，将根据信息中的各个参数，对相应主服务器的实例结构进行更新
 
-对于监视同一个服务器的多个 Sentinel 来说，**一个 Sentinel 发送的信息会被其他 Sentinel 接收到**，这些信息会被用于更新其他 Sentinel 对发送信息 Sentinel 的认知，也会被用于更新其他 Sentinel 对被监视的服务器的认知
-
-哨兵实例之间可以相互发现，要归功于 Redis 提供发布订阅机制
-
-
-
-***
-
-
-
-##### 更新字典
-
 Sentinel 为主服务器创建的实例结构的 sentinels 字典保存所有同样监视这个**主服务器的 Sentinel 信息**（包括 Sentinel 自己），字典的键是 Sentinel 的名字，格式为 `ip:port`，值是键所对应 Sentinel 的实例结构
 
-当 Sentinel 接收到其他 Sentinel 发来的信息时（发送信息的为源 Sentinel，接收信息的为目标 Sentinel），目标 Sentinel 会分析提取参数，在自己的 Sentinel 状态 sentinelState.masters 中查找相应的主服务器实例结构，检查主服务器实例结构的 sentinels 字典中，源 Sentinel 的实例结构是否存在
+监视同一个服务器的 Sentinel 订阅的频道相同，Sentinel 发送的信息会被其他 Sentinel 接收到（发送信息的为源 Sentinel，接收信息的为目标 Sentinel），目标 Sentinel 在自己的 sentinelState.masters 中查找源 Sentinel 服务器的实例结构进行添加或更新
 
-* 如果源 Sentinel 的实例结构存在，那么对源 Sentinel 的实例结构进行更新
-* 如果源 Sentinel 的实例结构不存在，说明源 Sentinel 是刚开始监视主服务器，目标 Sentinel 会为源 Sentinel 创建一个新的实例结构，并将这个结构添加到 sentinels 字典里面
+因为 Sentinel 可以接收到的频道信息来感知其他 Sentinel 的存在，并通过发送频道信息来让其他 Sentinel 知道自己的存在，所以用户在使用 Sentinel 时并不需要提供各个 Sentinel 的地址信息，**监视同一个主服务器的多个 Sentinel 可以相互发现对方**
 
-因为 Sentinel 可以接收到的频道信息来获知其他 Sentinel 的存在，并通过发送频道信息来让其他 Sentinel 知道自己的存在，所以用户在使用 Sentinel 时并不需要提供各个 Sentinel 的地址信息，**监视同一个主服务器的多个 Sentinel 可以xiang发现对方**
+哨兵实例之间可以相互发现，要归功于 Redis 提供发布订阅机制
 
 
 
@@ -15481,6 +15467,7 @@ typedef struct clusterMsgDataPublish {
 
 * 假设从库有 K 个，可以将 min-slaves-to-write 设置为 K/2+1（如果 K 等于 1，就设为 1）
 * 将 min-slaves-max-lag 设置为十几秒（例如 10～20s）
+* 在假故障期间无法响应哨兵发出的心跳测试，无法和从库进行 ACK 确认，并且没有足够的从库，**拒绝客户端的写入**
 
 
 
@@ -16158,173 +16145,20 @@ Read-Through Pattern 也存在首次不命中的问题，采用缓存预热解�
 
 
 
+### 慢查询
 
+确认服务和 Redis 之间的链路是否正常，排除网络原因后进行 Redis 的排查：
 
-### 性能指标
-
-Redis 中的监控指标如下：
-
-* 性能指标：Performance
-
-  响应请求的平均时间：
-
-  ```sh
-  latency
-  ```
-
-  平均每秒处理请求总数：
-
-  ```sh
-  instantaneous_ops_per_sec
-  ```
-
-  缓存查询命中率（通过查询总次数与查询得到非nil数据总次数计算而来）：
-
-  ```sh
-  hit_rate(calculated)
-  ```
-
-* 内存指标：Memory
-
-  当前内存使用量：
-
-  ```sh
-  used_memory
-  ```
-
-  内存碎片率（关系到是否进行碎片整理）：
-
-  ```sh
-  mem_fragmentation_ratio
-  ```
-
-  为避免内存溢出删除的key的总数量：
-
-  ```sh
-  evicted_keys
-  ```
-
-  基于阻塞操作（BLPOP等）影响的客户端数量：
-
-  ```sh
-  blocked_clients
-  ```
-
-* 基本活动指标：Basic_activity
-
-  当前客户端连接总数：
-
-  ```sh
-  connected_clients
-  ```
-
-  当前连接 slave 总数：
-
-  ```sh
-  connected_slaves
-  ```
-
-  最后一次主从信息交换距现在的秒：
-
-  ```sh
-  master_last_io_seconds_ago
-  ```
-
-  key 的总数：
-
-  ```sh
-  keyspace
-  ```
-
-* 持久性指标：Persistence
-
-  当前服务器其最后一次 RDB 持久化的时间：
-
-  ```sh
-  rdb_last_save_time
-  ```
-
-  当前服务器最后一次 RDB 持久化后数据变化总量：
-
-  ```sh
-  rdb_changes_since_last_save
-  ```
-
-* 错误指标：Error
-
-  被拒绝连接的客户端总数（基于达到最大连接值的因素）：
-
-  ```sh
-  rejected_connections
-  ```
-
-  key未命中的总次数：
-
-  ```sh
-  keyspace_misses
-  ```
-
-  主从断开的秒数：
-
-  ```sh
-  master_link_down_since_seconds
-  ```
-
-要对 Redis 的相关指标进行监控，我们可以采用一些用具：
-
-- CloudInsight Redis
-- Prometheus
-- Redis-stat
-- Redis-faina
-- RedisLive
-- zabbix
-
-命令工具：
-
-* benchmark
-
-  测试当前服务器的并发性能：
-
-  ```sh
-  redis-benchmark [-h ] [-p ] [-c ] [-n <requests]> [-k ]
-  ```
-
-  范例：100 个连接，5000 次请求对应的性能
-
-  ```sh
-  redis-benchmark -c 100 -n 5000
-  ```
-
-  ![](https://seazean.oss-cn-beijing.aliyuncs.com/img/DB/Redis-redis-benchmark指令.png)
-
-* redis-cli
-
-  monitor：启动服务器调试信息
-
-  ```sh
-  monitor
-  ```
-
-  slowlog：慢日志
-
-  ```sh
-  slowlog [operator]    #获取慢查询日志
-  ```
-
-  * get ：获取慢查询日志信息
-  * len ：获取慢查询日志条目数
-  * reset ：重置慢查询日志
-
-  相关配置：
-
-  ```sh
-  slowlog-log-slower-than 1000 #设置慢查询的时间下线，单位：微妙
-  slowlog-max-len 100	#设置慢查询命令对应的日志显示长度，单位：命令数
-  ```
+* 使用复杂度过高的命令
+* 操作大 key，分配内存和释放内存会比较耗时
+* key 集中过期，导致定时任务需要更长的时间去清理
+* 实例内存达到上限，每次写入新的数据之前，Redis 必须先从实例中踢出一部分数据
 
 
 
 
+
+参考文章：https://www.cnblogs.com/traditional/p/15633919.html（非常好）
 
 
 
@@ -16512,227 +16346,6 @@ public class JDBCDemo01 {
 
 
 
-***
-
-
-
-### 工具类
-
-* 配置文件（在 src 下创建 config.properties）
-
-  ```properties
-  driverClass=com.mysql.jdbc.Driver
-  url=jdbc:mysql://192.168.2.184:3306/db14
-  username=root
-  password=123456
-  ```
-
-* 工具类
-
-  ```java
-  public class JDBCUtils {
-      //1.私有构造方法
-      private JDBCUtils(){
-      };
-  
-      //2.声明配置信息变量
-      private static String driverClass;
-      private static String url;
-      private static String username;
-      private static String password;
-      private static Connection con;
-  
-      //3.静态代码块中实现加载配置文件和注册驱动
-      static{
-          try{
-              //通过类加载器返回配置文件的字节流
-              InputStream is = JDBCUtils.class.getClassLoader().
-                  	getResourceAsStream("config.properties");
-  
-              //创建Properties集合，加载流对象的信息
-              Properties prop = new Properties();
-              prop.load(is);
-  
-              //获取信息为变量赋值
-              driverClass = prop.getProperty("driverClass");
-              url = prop.getProperty("url");
-              username = prop.getProperty("username");
-              password = prop.getProperty("password");
-  
-              //注册驱动
-              Class.forName(driverClass);
-  
-          } catch (Exception e) {
-              e.printStackTrace();
-          }
-      }
-  
-      //4.获取数据库连接的方法
-      public static Connection getConnection() {
-          try {
-              con = DriverManager.getConnection(url,username,password);
-          } catch (SQLException e) {
-              e.printStackTrace();
-          }
-          return con;
-      }
-  
-      //5.释放资源的方法
-      public static void close(Connection con, Statement stat, ResultSet rs) {
-          if(con != null) {
-              try {
-                  con.close();
-              } catch (SQLException e) {
-                  e.printStackTrace();
-              }
-          }
-  
-          if(stat != null) {
-              try {
-                  stat.close();
-              } catch (SQLException e) {
-                  e.printStackTrace();
-              }
-          }
-  
-          if(rs != null) {
-              try {
-                  rs.close();
-              } catch (SQLException e) {
-                  e.printStackTrace();
-              }
-          }
-      }
-  	//方法重载，可能没有返回值对象
-      public static void close(Connection con, Statement stat) {
-          close(con,stat,null);
-      }
-  }
-  ```
-
-  
-
-
-****
-
-
-
-### 数据封装
-
-从数据库读取数据并封装成 Student 对象，需要：
-
-- Student 类成员变量对应表中的列
-
-- 所有的基本数据类型需要使用包装类，**以防 null 值无法赋值**
-
-  ```java
-  public class Student {
-      private Integer sid;
-      private String name;
-      private Integer age;
-      private Date birthday;
-      ........
-  ```
-
-- 数据准备
-
-  ```mysql
-  -- 创建db14数据库
-  CREATE DATABASE db14;
-  
-  -- 使用db14数据库
-  USE db14;
-  
-  -- 创建student表
-  CREATE TABLE student(
-  	sid INT PRIMARY KEY AUTO_INCREMENT,	-- 学生id
-  	NAME VARCHAR(20),					-- 学生姓名
-  	age INT,							-- 学生年龄
-  	birthday DATE						-- 学生生日
-  );
-  
-  -- 添加数据
-  INSERT INTO student VALUES (NULL,'张三',23,'1999-09-23'),(NULL,'李四',24,'1998-08-10'),(NULL,'王五',25,'1996-06-06'),(NULL,'赵六',26,'1994-10-20');
-  ```
-
-- 操作数据库
-
-  ```java
-  public class StudentDaoImpl{
-  	//查询所有学生信息
-      @Override
-      public ArrayList<Student> findAll() {
-          //1. 
-          ArrayList<Student> list = new ArrayList<>();
-          Connection con = null;
-          Statement stat = null;
-          ResultSet rs = null;
-          try{
-              //2.获取数据库连接
-  			con = JDBCUtils.getConnection();
-  
-             	//3.获取执行者对象
-             	stat = con.createStatement();
-  
-             	//4.执行sql语句，并且接收返回的结果集
-  			String sql = "SELECT * FROM student";
-             	rs = stat.executeQuery(sql);
-  
-            	//5.处理结果集
-             	while(rs.next()) {
-                  Integer sid = rs.getInt("sid");
-                 	String name = rs.getString("name");
-                 	Integer age = rs.getInt("age");
-                 	Date birthday = rs.getDate("birthday");
-  
-                 	//封装Student对象
-                 	Student stu = new Student(sid,name,age,birthday);
-                 	//将student对象保存到集合中
-                 	list.add(stu);
-             	}
-         	} catch(Exception e) {
-             	e.printStackTrace();
-         	} finally {
-             	//6.释放资源
-             	JDBCUtils.close(con,stat,rs);
-         	}
-  		//将集合对象返回
-  		return list;
-      }
-  
-  	//添加学生信息
-      @Override
-      public int insert(Student stu) {
-          Connection con = null;
-          Statement stat = null;
-          int result = 0;
-          try{
-              con = JDBCUtils.getConnection();
-  
-              //3.获取执行者对象
-              stat = con.createStatement();
-  
-              //4.执行sql语句，并且接收返回的结果集
-              Date d = stu.getBirthday();
-              SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-              String birthday = sdf.format(d);
-              String sql = "INSERT INTO student VALUES ('"+stu.getSid()+"','"+stu.getName()+"','"+stu.getAge()+"','"+birthday+"')";
-              result = stat.executeUpdate(sql);
-  
-          } catch(Exception e) {
-              e.printStackTrace();
-          } finally {
-              //6.释放资源
-              JDBCUtils.close(con,stat);
-          }
-          //将结果返回
-          return result;
-      }
-  }
-  ```
-
-
-
 
 
 ***
@@ -16811,292 +16424,15 @@ PreparedStatement：预编译 sql 语句的执行者对象，继承 `PreparedSta
 
 
 
-****
-
-
-
-#### 自定义池
-
-DataSource 接口概述：
-
-* java.sql.DataSource 接口：数据源（数据库连接池）
-* Java 中 DataSource 是一个标准的数据源接口，官方提供的数据库连接池规范，连接池类实现该接口
-* 获取数据库连接对象：`Connection getConnection()`
-
-自定义连接池：
-
-```java
-public class MyDataSource implements DataSource{
-    //1.定义集合容器，用于保存多个数据库连接对象
-    private static List<Connection> pool = Collections.synchronizedList(new ArrayList<Connection>());
-
-    //2.静态代码块，生成10个数据库连接保存到集合中
-    static {
-        for (int i = 0; i < 10; i++) {
-            Connection con = JDBCUtils.getConnection();
-            pool.add(con);
-        }
-    }
-    //3.返回连接池的大小
-    public int getSize() {
-        return pool.size();
-    }
-
-    //4.从池中返回一个数据库连接
-    @Override
-    public Connection getConnection() {
-        if(pool.size() > 0) {
-            //从池中获取数据库连接
-            return pool.remove(0);
-        }else {
-            throw new RuntimeException("连接数量已用尽");
-        }
-    }
-}
-```
-
-测试连接池功能：
-
-```java
-public class MyDataSourceTest {
-    public static void main(String[] args) throws Exception{
-        //创建数据库连接池对象
-        MyDataSource dataSource = new MyDataSource();
-
-        System.out.println("使用之前连接池数量：" + dataSource.getSize());//10
-        
-        //获取数据库连接对象
-        Connection con = dataSource.getConnection();
-        System.out.println(con.getClass());// JDBC4Connection
-
-        //查询学生表全部信息
-        String sql = "SELECT * FROM student";
-        PreparedStatement pst = con.prepareStatement(sql);
-        ResultSet rs = pst.executeQuery();
-
-        while(rs.next()) {
-            System.out.println(rs.getInt("sid") + "\t" + rs.getString("name") + "\t" + rs.getInt("age") + "\t" + rs.getDate("birthday"));
-        }
-        
-        //释放资源
-        rs.close();
-        pst.close();
-		//目前的连接对象close方法，是直接关闭连接，而不是将连接归还池中
-        con.close();
-
-        System.out.println("使用之后连接池数量：" + dataSource.getSize());//9
-    }
-}
-```
-
-结论：释放资源并没有把连接归还给连接池
-
 
 
 ***
+
+
 
 
 
 #### 归还连接
-
-归还数据库连接的方式：继承方式、装饰者设计者模式、适配器设计模式、动态代理方式
-
-##### 继承方式
-
-继承（无法解决）
-
-- 通过打印连接对象，发现 DriverManager 获取的连接实现类是 JDBC4Connection
-- 自定义一个类，继承 JDBC4Connection 这个类，重写 close() 方法
-- 查看 JDBC 工具类获取连接的方法发现：虽然自定义了一个子类，完成了归还连接的操作。但是 DriverManager 获取的还是 JDBC4Connection 这个对象，并不是我们的子类对象
-
-代码实现
-
-* 自定义继承连接类
-
-  ```java
-  //1.定义一个类，继承JDBC4Connection
-  public class MyConnection1 extends JDBC4Connection{
-      //2.定义Connection连接对象和容器对象的成员变量
-      private Connection con;
-      private List<Connection> pool;
-  
-      //3.通过有参构造方法为成员变量赋值
-      public MyConnection1(String hostToConnectTo, int portToConnectTo, Properties info, String databaseToConnectTo, String url,Connection con,List<Connection> pool) throws SQLException {
-          super(hostToConnectTo, portToConnectTo, info, databaseToConnectTo, url);
-          this.con = con;
-          this.pool = pool;
-      }
-  
-      //4.重写close方法，完成归还连接
-      @Override
-      public void close() throws SQLException {
-          pool.add(con);
-      }
-  }
-  ```
-
-* 自定义连接池类
-
-  ```java
-  //将之前的连接对象换成自定义的子类对象
-  private static MyConnection1 con;
-  
-  //4.获取数据库连接的方法
-  public static Connection getConnection() {
-      try {
-          //等效于：MyConnection1 con = new JDBC4Connection();  语法错误！
-          con = DriverManager.getConnection(url,username,password);
-      } catch (SQLException e) {
-          e.printStackTrace();
-      }
-  
-      return con;
-  }
-  ```
-
-  
-
-***
-
-
-
-##### 装饰者
-
-自定义类实现 Connection 接口，通过装饰设计模式，实现和 mysql 驱动包中的 Connection 实现类相同的功能
-
-在实现类对每个获取的 Connection 进行装饰：把连接和连接池参数传递进行包装
-
-特点：通过装饰设计模式连接类我们发现，有很多需要重写的方法，代码太繁琐
-
-* 装饰设计模式类
-
-  ```java
-  //1.定义一个类，实现Connection接口
-  public class MyConnection2 implements Connection {
-      //2.定义Connection连接对象和连接池容器对象的变量
-      private Connection con;
-      private List<Connection> pool;
-  
-      //3.提供有参构造方法，接收连接对象和连接池对象，对变量赋值
-      public MyConnection2(Connection con,List<Connection> pool) {
-          this.con = con;
-          this.pool = pool;
-      }
-  
-      //4.在close()方法中，完成连接的归还
-      @Override
-      public void close() throws SQLException {
-          pool.add(con);
-      }
-      //5.剩余方法，只需要调用mysql驱动包的连接对象完成即可
-      @Override
-      public Statement createStatement() throws SQLException {
-          return con.createStatement();
-      }
-      ..........
-  }
-  ```
-
-* 自定义连接池类
-
-  ```java
-  @Override
-  public Connection getConnection() {
-      if(pool.size() > 0) {
-          //从池中获取数据库连接
-          Connection con = pool.remove(0);
-          //通过自定义连接对象进行包装
-          MyConnection2 mycon = new MyConnection2(con,pool);
-          //返回包装后的连接对象
-          return mycon;
-      }else {
-          throw new RuntimeException("连接数量已用尽");
-      }
-  }
-  ```
-
-  
-
-***
-
-
-
-##### 适配器
-
-使用适配器设计模式改进，提供一个适配器类，实现 Connection 接口，将所有功能进行实现（除了 close 方法），自定义连接类只需要继承这个适配器类，重写需要改进的 close() 方法即可。
-
-特点：自定义连接类中很简洁。剩余所有的方法抽取到了适配器类中，但是适配器这个类还是我们自己编写。
-
-* 适配器类
-
-  ```java
-  public abstract class MyAdapter implements Connection {
-  
-      // 定义数据库连接对象的变量
-      private Connection con;
-  
-      // 通过构造方法赋值
-      public MyAdapter(Connection con) {
-          this.con = con;
-      }
-  
-      // 所有的方法，均调用mysql的连接对象实现
-      @Override
-      public Statement createStatement() throws SQLException {
-          return con.createStatement();
-      }
-  }
-  ```
-
-* 自定义连接类
-
-  ```java
-  public class MyConnection3 extends MyAdapter {
-      //2.定义Connection连接对象和连接池容器对象的变量
-      private Connection con;
-      private List<Connection> pool;
-  
-      //3.提供有参构造方法，接收连接对象和连接池对象，对变量赋值
-      public MyConnection3(Connection con,List<Connection> pool) {
-          super(con);    // 将接收的数据库连接对象给适配器父类传递
-          this.con = con;
-          this.pool = pool;
-      }
-  
-      //4.在close()方法中，完成连接的归还
-      @Override
-      public void close() throws SQLException {
-          pool.add(con);
-      }
-  }
-  ```
-
-* 自定义连接池类
-
-  ```java
-  //从池中返回一个数据库连接
-  @Override
-  public Connection getConnection() {
-      if(pool.size() > 0) {
-          //从池中获取数据库连接
-          Connection con = pool.remove(0);
-          //通过自定义连接对象进行包装
-          MyConnection3 mycon = new MyConnection3(con,pool);
-          //返回包装后的连接对象
-          return mycon;
-      }else {
-          throw new RuntimeException("连接数量已用尽");
-      }
-  }
-  ```
-
-  
-
-***
-
-
-
-##### 动态代理
 
 使用动态代理的方式来改进
 
@@ -17280,101 +16616,6 @@ Druid 连接池：
   ```
 
 
-
-***
-
-
-
-#### 工具类
-
-数据库连接池的工具类：
-
-```java
-public class DataSourceUtils {
-    //1.私有构造方法
-    private DataSourceUtils(){}
-
-    //2.声明数据源变量
-    private static DataSource dataSource;
-
-    //3.提供静态代码块，完成配置文件的加载和获取数据库连接池对象
-    static{
-        try{
-            //完成配置文件的加载
-            InputStream is = DataSourceUtils.class.getClassLoader().getResourceAsStream("druid.properties");
-            Properties prop = new Properties();
-            prop.load(is);
-
-            //获取数据库连接池对象
-            dataSource = DruidDataSourceFactory.createDataSource(prop);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    //4.提供一个获取数据库连接的方法
-    public static Connection getConnection() {
-        Connection con = null;
-        try {
-            con = dataSource.getConnection();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return con;
-    }
-
-    //5.提供一个获取数据库连接池对象的方法
-    public static DataSource getDataSource() {
-        return dataSource;
-    }
-
-    //6.释放资源
-    public static void close(Connection con, Statement stat, ResultSet rs) {
-        if(con != null) {
-            try {
-                con.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-
-        if(stat != null) {
-            try {
-                stat.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-
-        if(rs != null) {
-            try {
-                rs.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-	//方法重载
-    public static void close(Connection con, Statement stat) {
-        if(con != null) {
-            try {
-                con.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-
-        if(stat != null) {
-            try {
-                stat.close();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-}
-
-```
 
 
 
