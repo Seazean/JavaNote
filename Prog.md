@@ -5808,7 +5808,7 @@ ThreadPoolExecutor 使用 int 的**高 3 位来表示线程池状态，低 29 �
 
 成员变量
 
-* 线程池中存放 Worker 的容器：线程池没有初始化，直接往池中加线程即可
+* **线程池中存放 Worker 的容器**：线程池没有初始化，直接往池中加线程即可
 
   ```java
   private final HashSet<Worker> workers = new HashSet<Worker>();
@@ -6583,7 +6583,7 @@ FutureTask 类的成员属性：
   private volatile Thread runner;	// 当前任务被线程执行期间，保存当前执行任务的线程对象引用
   ```
 
-* 线程阻塞队列的头节点：
+* **线程阻塞队列的头节点**：
 
   ```java
   // 会有很多线程去 get 当前任务的结果，这里使用了一种数据结构头插头取（类似栈）的一个队列来保存所有的 get 线程
