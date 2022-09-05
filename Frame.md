@@ -3435,6 +3435,8 @@ RCVBUF_ALLOCATOR：属于 SocketChannal 参数
 
 ### 消息队列
 
+#### 应用场景
+
 消息队列是一种先进先出的数据结构，常见的应用场景：
 
 * 应用解耦：系统的耦合性越高，容错性就越低
@@ -3456,6 +3458,36 @@ RCVBUF_ALLOCATOR：属于 SocketChannal 参数
 
 
 参考视频：https://www.bilibili.com/video/BV1L4411y7mn
+
+
+
+***
+
+
+
+#### 技术选型
+
+RocketMQ 对比 Kafka 的优点
+
+* 支持 Pull和 Push 两种消息模式
+
+- 支持延时消息、死信队列、消息重试、消息回溯、消息跟踪、事务消息等高级特性
+- 对消息可靠性做了改进，**保证消息不丢失并且至少消费一次**，与 Kafka 一样是先写 PageCache 再落盘，并且数据有多副本
+- RocketMQ 存储模型是所有的 Topic 都写到同一个 Commitlog 里，是一个 append only 操作，在海量 Topic 下也能将磁盘的性能发挥到极致，并且保持稳定的写入时延。Kafka 的吞吐非常高（零拷贝、操作系统页缓存、磁盘顺序写），但是在多 Topic 下时延不够稳定（顺序写入特性会被破坏从而引入大量的随机 I/O），不适合实时在线业务场景
+- 经过阿里巴巴多年双 11 验证过、可以支持亿级并发的开源消息队列
+
+Kafka 比 RocketMQ 吞吐量高：
+
+* Kafka 将 Producer 端将多个小消息合并，采用异步批量发送的机制，当发送一条消息时，消息并没有发送到 Broker 而是缓存起来，直接向业务返回成功，当缓存的消息达到一定数量时再批量发送
+
+* 减少了网络 I/O，提高了消息发送的性能，但是如果消息发送者宕机，会导致消息丢失，降低了可靠性
+* RocketMQ 缓存过多消息会导致频繁 GC，并且为了保证可靠性没有采用这种方式
+
+Topic 的 partition 数量过多时，Kafka 的性能不如 RocketMQ：
+
+* 两者都使用文件存储，但是 Kafka 是一个分区一个文件，Topic 过多时分区的总量也会增加，过多的文件导致对消息刷盘时出现文件竞争磁盘，造成性能的下降。一个分区只能被一个消费组中的一个消费线程进行消费，因此可以同时消费的消费端也比较少
+
+* RocketMQ 所有队列都存储在一个文件中，每个队列存储的消息量也比较小，因此多 Topic 的对 RocketMQ 的性能的影响较小
 
 
 
@@ -4555,7 +4587,7 @@ RocketMQ 消息的存储是由 ConsumeQueue 和 CommitLog 配合完成 的，Com
 * ConsumerQueue：消息消费队列，存储消息在 CommitLog 的索引。RocketMQ 消息消费时要遍历 CommitLog 文件，并根据主题 Topic 检索消息，这是非常低效的。引入 ConsumeQueue 作为消费消息的索引，**保存了指定 Topic 下的队列消息在 CommitLog 中的起始物理偏移量 offset**，消息大小 size 和消息 Tag 的 HashCode 值，每个 ConsumeQueue 文件大小约 5.72M
 * IndexFile：为了消息查询提供了一种通过 Key 或时间区间来查询消息的方法，通过 IndexFile 来查找消息的方法**不影响发送与消费消息的主流程**。IndexFile 的底层存储为在文件系统中实现的 HashMap 结构，故 RocketMQ 的索引文件其底层实现为 **hash 索引**
 
-RocketMQ 采用的是混合型的存储结构，即为 Broker 单个实例下所有的队列共用一个日志数据文件（CommitLog）来存储。混合型存储结构（多个 Topic 的消息实体内容都存储于一个 CommitLog 中）针对 Producer 和 Consumer 分别采用了**数据和索引部分相分离**的存储结构，Producer 发送消息至 Broker 端，然后 Broker 端使用同步或者异步的方式对消息刷盘持久化，保存至 CommitLog 中。只要消息被持久化至磁盘文件 CommitLog 中，Producer 发送的消息就不会丢失，Consumer 也就肯定有机会去消费这条消息
+RocketMQ 采用的是混合型的存储结构，即为 Broker 单个实例下所有的队列共用一个日志数据文件（CommitLog）来存储，多个 Topic 的消息实体内容都存储于一个 CommitLog 中。混合型存储结构针对 Producer 和 Consumer 分别采用了**数据和索引部分相分离**的存储结构，Producer 发送消息至 Broker 端，然后 Broker 端使用同步或者异步的方式对消息刷盘持久化，保存至 CommitLog 中。只要消息被持久化至磁盘文件 CommitLog 中，Producer 发送的消息就不会丢失，Consumer 也就肯定有机会去消费这条消息
 
 服务端支持长轮询模式，当消费者无法拉取到消息后，可以等下一次消息拉取，Broker 允许等待 30s 的时间，只要这段时间内有新消息到达，将直接返回给消费端。RocketMQ 的具体做法是，使用 Broker 端的后台服务线程 ReputMessageService 不停地分发请求并异步构建 ConsumeQueue（逻辑消费队列）和 IndexFile（索引文件）数据
 
@@ -4593,7 +4625,7 @@ MappedByteBuffer 内存映射的方式**限制**一次只能映射 1.5~2G 的文
 
 页缓存（PageCache）是 OS 对文件的缓存，每一页的大小通常是 4K，用于加速对文件的读写。因为 OS 将一部分的内存用作 PageCache，所以程序对文件进行顺序读写的速度几乎接近于内存的读写速度
 
-* 对于数据的写入，OS 会先写入至 Cache 内，随后通过异步的方式由 pdflush 内核线程将 Cache 内的数据刷盘至物理磁盘上
+* 对于数据的写入，OS 会先写入至 Cache 内，随后**通过异步的方式由 pdflush 内核线程将 Cache 内的数据刷盘至物理磁盘上**
 * 对于数据的读取，如果一次读取文件时出现未命中 PageCache 的情况，OS 从物理磁盘上访问读取文件的同时，会顺序对其他相邻块的数据文件进行**预读取**（局部性原理，最大 128K）
 
 在 RocketMQ 中，ConsumeQueue 逻辑消费队列存储的数据较少，并且是顺序读取，在 PageCache 机制的预读取作用下，Consume Queue 文件的读性能几乎接近读内存，即使在有消息堆积情况下也不会影响性能。但是 CommitLog 消息存储的日志数据文件读取内容时会产生较多的随机访问读取，严重影响性能。选择合适的系统 IO 调度算法和固态硬盘，比如设置调度算法为 Deadline，随机读的性能也会有所提升
@@ -4624,8 +4656,6 @@ RocketMQ 采用文件系统的方式，无论同步还是异步刷盘，都使�
 
 
 官方文档：https://github.com/apache/rocketmq/blob/master/docs/cn/design.md
-
-
 
 
 
@@ -4698,7 +4728,9 @@ BrokerServer 的高可用通过 Master 和 Slave 的配合：
 
 * Slave 只负责读，当 Master 不可用，对应的 Slave 仍能保证消息被正常消费
 * 配置多组 Master-Slave 组，其他的 Master-Slave 组也会保证消息的正常发送和消费
-* 目前不支持把 Slave 自动转成 Master，需要手动停止 Slave 角色的 Broker，更改配置文件，用新的配置文件启动 Broker
+* **目前不支持把 Slave 自动转成 Master**，需要手动停止 Slave 角色的 Broker，更改配置文件，用新的配置文件启动 Broker
+
+  所以需要配置多个 Master 保证可用性，否则一个 Master 挂了导致整体系统的写操作不可用
 
 生产端的高可用：在创建 Topic 的时候，把 Topic 的**多个 Message Queue 创建在多个 Broker 组**上（相同 Broker 名称，不同 brokerId 的机器），当一个 Broker 组的 Master 不可用后，其他组的 Master 仍然可用，Producer 仍然可以发送消息
 
@@ -4716,7 +4748,7 @@ BrokerServer 的高可用通过 Master 和 Slave 的配合：
 
 如果一个 Broker 组有 Master 和 Slave，消息需要从 Master 复制到 Slave 上，有同步和异步两种复制方式：
 
-* 同步复制方式：Master 和 Slave 均写成功后才反馈给客户端写成功状态。在同步复制方式下，如果 Master 出故障， Slave 上有全部的备份数据，容易恢复，但是同步复制会增大数据写入延迟，降低系统吞吐量
+* 同步复制方式：Master 和 Slave 均写成功后才反馈给客户端写成功状态（写 Page Cache）。在同步复制方式下，如果 Master 出故障， Slave 上有全部的备份数据，容易恢复，但是同步复制会增大数据写入延迟，降低系统吞吐量
 
 * 异步复制方式：只要 Master 写成功，即可反馈给客户端写成功状态，系统拥有较低的延迟和较高的吞吐量，但是如果 Master 出了故障，有些数据因为没有被写入 Slave，有可能会丢失
 
@@ -4736,6 +4768,8 @@ RocketMQ 支持消息的高可靠，影响消息可靠性的几种情况：
 前四种情况都属于硬件资源可立即恢复情况，RocketMQ 在这四种情况下能保证消息不丢，或者丢失少量数据（依赖刷盘方式）
 
 后两种属于单点故障，且无法恢复，一旦发生，在此单点上的消息全部丢失。RocketMQ 在这两种情况下，通过主从异步复制，可保证 99% 的消息不丢，但是仍然会有极少量的消息可能丢失。通过**同步双写技术**可以完全避免单点，但是会影响性能，适合对消息可靠性要求极高的场合，RocketMQ 从 3.0 版本开始支持同步双写
+
+一般而言，我们会建议采取同步双写 + 异步刷盘的方式，在消息的可靠性和性能间有一个较好的平衡
 
 
 
@@ -4883,7 +4917,7 @@ IndexFile 文件的存储在 `$HOME\store\index${fileName}`，文件名 fileName
 
 #### 消息重投
 
-生产者在发送消息时，同步消息和异步消息失败会重投，oneway 没有任何保证。消息重投保证消息尽可能发送成功、不丢失，但当出现消息量大、网络抖动时，可能会造成消息重复；生产者主动重发、Consumer 负载变化也会导致重复消息。
+生产者在发送消息时，同步消息和异步消息失败会重投，oneway 没有任何保证。消息重投保证消息尽可能发送成功、不丢失，但当出现消息量大、网络抖动时，可能会造成消息重复；生产者主动重发、Consumer 负载变化也会导致重复消息
 
 如下方法可以设置消息重投策略：
 
@@ -5042,6 +5076,31 @@ public class MessageListenerImpl implements MessageListener {
 一条消息进入死信队列，需要排查可疑因素并解决问题后，可以在消息队列 RocketMQ 控制台重新发送该消息，让消费者重新消费一次
 
 
+
+
+
+***
+
+
+
+### 高可靠性
+
+RocketMQ 消息丢失可能发生在以下三个阶段：
+
+- 生产阶段：消息在 Producer 发送端创建出来，经过网络传输发送到 Broker 存储端
+  - 生产者得到一个成功的响应，就可以认为消息的存储和消息的消费都是可靠的
+  - 消息重投机制
+- 存储阶段：消息在 Broker 端存储，如果是主备或者多副本，消息会在这个阶段被复制到其他的节点或者副本上
+  - 单点：刷盘机制（同步或异步）
+  - 主从：消息同步机制（异步复制或同步双写，主从复制章节详解）
+  - 过期删除：操作 CommitLog、ConsumeQueue 文件是基于文件内存映射机制，并且在启动的时候会将所有的文件加载，为了避免内存与磁盘的浪费，让磁盘能够循环利用，防止磁盘不足导致消息无法写入等引入了文件过期删除机制。最终使得磁盘水位保持在一定水平，最终保证新写入消息的可靠存储
+- 消费阶段：Consumer 消费端从 Broker存储端拉取消息，经过网络传输发送到 Consumer 消费端上
+  - 消息重试机制来最大限度的保证消息的消费
+  - 消费失败的进行消息回退，重试次数过多的消息放入死信队列
+
+
+
+推荐文章：https://cdn.modb.pro/db/394751
 
 
 
@@ -7374,7 +7433,7 @@ AllocateMappedFileService **创建 MappedFile 服务**
 
 ReputMessageService 消息分发服务，用于构**建 ConsumerQueue 和 IndexFile 文件**
 
-* run()：**循环执行 doReput 方法**，所以发送的消息存储进 CL 就可以产生对应的 CQ，每执行一次线程休眠 1 毫秒
+* run()：**循环执行 doReput 方法**，**所以发送的消息存储进 CL 就可以产生对应的 CQ**，每执行一次线程休眠 1 毫秒
 
   ```java
   public void run()
@@ -7566,7 +7625,7 @@ public GetMessageResult getMessage(final String group, final String topic, final
 
     `if ((bufferTotal + sizePy) > ...)`：热数据一次 pull 请求最大允许获取 256kb 的消息
 
-    `if (messageTotal > ...)`：冷数据一次 pull 请求最大允许获取32 条消息
+    `if (messageTotal > ...)`：冷数据一次 pull 请求最大允许获取 32 条消息
 
 * `if (messageFilter != null)`：按照消息 tagCode 进行过滤
 
