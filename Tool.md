@@ -66,7 +66,7 @@ GitLab（地址： https://about.gitlab.com/ ）是一个用于仓库管理系�
 设置用户信息：
 
 * git config --global user.name “Seazean”
-* git config --global user.email “imseazean@gmail.com”  //用户名和邮箱可以随意填写，不会校对
+* git config --global user.email "imseazean@gmail.com"  //用户名和邮箱可以随意填写，不会校对
 
 查看配置信息：
 
