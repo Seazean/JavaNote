@@ -31,7 +31,7 @@ Git 是分布式版本控制系统（Distributed Version Control System，简称
 
 4．提交到本地仓库。本地仓库中保存修改的各个历史版本
 
-5．修改完成后，需要和团队成员共享代码时，将代码push到远程仓库
+5．修改完成后，需要和团队成员共享代码时，将代码 push 到远程仓库
 
 
 
@@ -66,7 +66,7 @@ GitLab（地址： https://about.gitlab.com/ ）是一个用于仓库管理系�
 设置用户信息：
 
 * git config --global user.name “Seazean”
-* git config --global user.email “zhyzhyang@sina.com”  //用户名和邮箱可以随意填写，不会校对
+* git config --global user.email “imseazean@gmail.com”  //用户名和邮箱可以随意填写，不会校对
 
 查看配置信息：
 
@@ -108,8 +108,8 @@ GitLab（地址： https://about.gitlab.com/ ）是一个用于仓库管理系�
     * -t 指定密钥类型，默认是 rsa ，可以省略
     * -C 设置注释文字，比如邮箱
     * -f 指定密钥文件存储文件名
-  * 查看命令: cat ~/.ssh/id_rsa.pub
-  * 公钥测试命令: ssh -T git@github.com
+  * 查看命令：cat ~/.ssh/id_rsa.pub
+  * 公钥测试命令：ssh -T git@github.com
 
 
 
@@ -2245,7 +2245,7 @@ pid_t wait(int *status)
 
 参数：status 用来保存被收集的子进程退出时的状态，如果不关心子进程**如何**销毁，可以设置这个参数为 NULL
 
-父进程调用 wait() 会一直阻塞，直到收到一个子进程退出的 SIGCHLD 信号，wait() 函数就会销毁子进程并返回
+父进程调用 wait() 会阻塞等待，直到收到一个子进程退出的 SIGCHLD 信号，wait() 函数就会销毁子进程并返回
 
 * 成功，返回被收集的子进程的进程 ID
 * 失败，返回 -1，同时 errno 被置为 ECHILD（如果调用进程没有子进程，调用就会失败）

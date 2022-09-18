@@ -10596,23 +10596,26 @@ Return Address：存放调用该方法的 PC 寄存器的值
 
 本地方法栈是为虚拟机执行本地方法时提供服务的
 
-JNI：Java Native Interface，通过使用 Java 本地接口书写程序，可以确保代码在不同的平台上方便移植
+JNI：Java Native Interface，通过使用 Java 本地接口程序，可以确保代码在不同的平台上方便移植
 
 * 不需要进行 GC，与虚拟机栈类似，也是线程私有的，有 StackOverFlowError 和 OutOfMemoryError 异常
-
 * 虚拟机栈执行的是 Java 方法，在 HotSpot JVM 中，直接将本地方法栈和虚拟机栈合二为一
-
 * 本地方法一般是由其他语言编写，并且被编译为基于本机硬件和操作系统的程序
-
 * 当某个线程调用一个本地方法时，就进入了不再受虚拟机限制的世界，和虚拟机拥有同样的权限
 
   * 本地方法可以通过本地方法接口来**访问虚拟机内部的运行时数据区**
   * 直接从本地内存的堆中分配任意数量的内存
   * 可以直接使用本地处理器中的寄存器
   
-  <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-本地方法栈.png" style="zoom:67%;" />
-  
-  
+
+原理：将本地的 C 函数（如 foo）编译到一个共享库（foo.so）中，当正在运行的 Java 程序调用 foo 时，Java 解释器利用 dlopen 接口动态链接和加载 foo.so 后再调用该函数
+
+* dlopen 函数：Linux 系统加载和链接共享库
+* dlclose 函数：卸载共享库
+
+<img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JVM-本地方法栈.png" style="zoom:67%;" />
+
+
 
 图片来源：https://github.com/CyC2018/CS-Notes/blob/master/notes/Java%20%E8%99%9A%E6%8B%9F%E6%9C%BA.md
 
