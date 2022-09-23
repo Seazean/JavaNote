@@ -2921,7 +2921,7 @@ CAS 特点：
 
 CAS 缺点：
 
-- 循环时间长，开销大，因为执行的是循环操作，如果比较不成功一直在循环，最差的情况某个线程一直取到的值和预期值都不一样，就会无限循环导致饥饿，**使用 CAS 线程数不要超过 CPU 的核心数**
+- 执行的是循环操作，如果比较不成功一直在循环，最差的情况某个线程一直取到的值和预期值都不一样，就会无限循环导致饥饿，**使用 CAS 线程数不要超过 CPU 的核心数**，采用分段 CAS 和自动迁移机制
 - 只能保证一个共享变量的原子操作
   - 对于一个共享变量执行操作时，可以通过循环 CAS 的方式来保证原子操作
   - 对于多个共享变量操作时，循环 CAS 就无法保证操作的原子性，这个时候**只能用锁来保证原子性**
@@ -3470,7 +3470,7 @@ ABA 问题：当进行获取主内存值时，该内存值在写入主内存时�
   * `public AtomicStampedReference(V initialRef, int initialStamp)`：初始值和初始版本号
 
 * 常用API：
-  * ` public boolean compareAndSet(V expectedReference, V newReference, int expectedStamp, int newStamp)`：期望引用和期望版本号都一致才进行 CAS 修改数据
+  * ` public boolean compareAndSet(V expectedReference, V newReference, int expectedStamp, int newStamp)`：**期望引用和期望版本号都一致**才进行 CAS 修改数据
   * `public void set(V newReference, int newStamp)`：设置值和版本号
   * `public V getReference()`：返回引用的值
   * `public int getStamp()`：返回当前版本号
