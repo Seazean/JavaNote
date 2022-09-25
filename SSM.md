@@ -13890,7 +13890,7 @@ SpringBoot 功能：
 
 1. 使用 @ComponentScan 扫描 com.example.config 包
 
-2. 使用 @Import 注解，加载类，这些类都会被 Spring 创建并放入 ioc 容器，默认组件的名字就是**全类名**
+2. 使用 @Import 注解加载类，这些类都会被 Spring 创建并放入 ioc 容器，默认组件的名字就是**全类名**
 
 3. 对 @Import 注解进行封装
 
@@ -13982,14 +13982,14 @@ Condition 是 Spring4.0 后引入的条件化配置接口，通过实现 Conditi
 
 ConditionContext 类API：
 
-| 方法                                                | 说明                          |
-| --------------------------------------------------- | ----------------------------- |
-| ConfigurableListableBeanFactory  getBeanFactory（） | 获取到 IOC 使用的 beanfactory |
-| ClassLoader getClassLoader()                        | 获取类加载器                  |
-| Environment getEnvironment()                        | 获取当前环境信息              |
-| BeanDefinitionRegistry getRegistry()                | 获取到 bean 定义的注册类      |
+| 方法                                              | 说明                          |
+| ------------------------------------------------- | ----------------------------- |
+| ConfigurableListableBeanFactory  getBeanFactory() | 获取到 IOC 使用的 beanfactory |
+| ClassLoader getClassLoader()                      | 获取类加载器                  |
+| Environment getEnvironment()                      | 获取当前环境信息              |
+| BeanDefinitionRegistry getRegistry()              | 获取到 bean 定义的注册类      |
 
-* ClassCondition
+* ClassCondition：
 
   ```java
   public class ClassCondition implements Condition {
@@ -14013,7 +14013,7 @@ ConditionContext 类API：
   }
   ```
 
-* UserConfig
+* UserConfig：
 
   ```java
   @Configuration
@@ -14202,7 +14202,7 @@ public class Car {
 
 
 
-### 源码解析
+### 装配原理
 
 #### 启动流程
 

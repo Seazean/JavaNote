@@ -10758,7 +10758,7 @@ public class ExchangerDemo {
         // 创建交换对象（信使）
         Exchanger<String> exchanger = new Exchanger<>();
         new ThreadA(exchanger).start();
-        new ThreadA(exchanger).start();
+        new ThreadB(exchanger).start();
     } 
 }
 class ThreadA extends Thread{

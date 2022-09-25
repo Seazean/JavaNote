@@ -2063,8 +2063,6 @@ a{
 </html>
 ```
 
-![](https://seazean.oss-cn-beijing.aliyuncs.com/img/Web/CSS案例登陆页面.png)
-
 
 
 
