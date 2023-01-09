@@ -2539,9 +2539,7 @@ volatile 修饰的变量，可以禁用指令重排
 
 ##### 缓存一致
 
-使用 volatile 修饰的共享变量，总线会开启 **CPU 总线嗅探机制**来解决 JMM 缓存一致性问题，也就是共享变量在多线程中可见性的问题，实现 MESI 缓存一致性协议
-
-底层是通过汇编 lock 前缀指令，共享变量加了 lock 前缀指令就会进行缓存锁定，在线程修改完共享变量后写回主存，其他的 CPU 核心上运行的线程根据总线嗅探机制会修改其共享变量为失效状态，读取时会重新从主内存中读取最新的数据
+使用 volatile 修饰的共享变量，底层通过汇编 lock 前缀指令进行缓存锁定，在线程修改完共享变量后写回主存，其他的 CPU 核心上运行的线程通过 CPU 总线嗅探机制会修改其共享变量为失效状态，读取时会重新从主内存中读取最新的数据
 
 lock 前缀指令就相当于内存屏障，Memory Barrier（Memory Fence）
 
@@ -4424,9 +4422,9 @@ ThreadLocal 内部解决方法：在 ThreadLocalMap 中的 set/getEntry 方法�
 
 ##### 基本使用
 
-父子线程：**创建子线程的线程是父线程**，比如实例中的 main 线程就是父线程
+父子线程：创建子线程的线程是父线程，比如实例中的 main 线程就是父线程
 
-ThreadLocal 中存储的是线程的局部变量，如果想实现线程间局部变量传递可以使用 InheritableThreadLocal 类
+ThreadLocal 中存储的是线程的局部变量，如果想**实现线程间局部变量传递**可以使用 InheritableThreadLocal 类
 
 ```java
 public static void main(String[] args) {
@@ -8251,7 +8249,7 @@ public void lock() {
   }
   ```
 
-* 接下来进入 addWaiter 逻辑，构造 Node 队列，前置条件是当前线程获取锁失败，说明有线程占用了锁
+* 接下来进入 addWaiter 逻辑，构造 Node 队列（不是阻塞队列），前置条件是当前线程获取锁失败，说明有线程占用了锁
 
   * 图中黄色三角表示该 Node 的 waitStatus 状态，其中 0 为默认**正常状态**
   * Node 的创建是懒惰的，其中第一个 Node 称为 **Dummy（哑元）或哨兵**，用来占位，并不关联线程
@@ -8262,7 +8260,7 @@ public void lock() {
       // 将当前线程关联到一个 Node 对象上, 模式为独占模式   
       Node node = new Node(Thread.currentThread(), mode);
       Node pred = tail;
-      // 快速入队，如果 tail 不为 null，说明存在阻塞队列
+      // 快速入队，如果 tail 不为 null，说明存在队列
       if (pred != null) {
           // 将当前节点的前驱节点指向 尾节点
           node.prev = pred;
@@ -8305,7 +8303,7 @@ public void lock() {
 
   <img src="https://seazean.oss-cn-beijing.aliyuncs.com/img/Java/JUC-ReentrantLock-非公平锁2.png" style="zoom:80%;" />
 
-* 线程节点加入阻塞队列成功，进入 AbstractQueuedSynchronizer#acquireQueued 逻辑阻塞线程
+* 线程节点加入队列成功，进入 AbstractQueuedSynchronizer#acquireQueued 逻辑阻塞线程
 
   * acquireQueued 会在一个自旋中不断尝试获得锁，失败后进入 park 阻塞
 

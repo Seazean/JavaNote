@@ -15257,7 +15257,7 @@ struct clusterNodeFailReport {
 
 
 
-选举新主节点的方法和选举领头 Sentinel 的方法非常相似，两者都是基于 Raft 算法的领头选举（eader election）方法实现的
+选举新主节点的方法和选举领头 Sentinel 的方法非常相似，两者都是基于 Raft 算法的领头选举（leader election）方法实现的
 
 
 

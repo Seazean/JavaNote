@@ -6089,35 +6089,6 @@ public class ExceptionDemo{
 5. 算术异常（数学操作异常）：ArithmeticException
 6. 数字转换异常：NumberFormatException
 
-```java
-public class ExceptionDemo {
-    public static void main(String[] args) {
-        System.out.println("程序开始。。。。。。");
-        // 1.数组索引越界异常: ArrayIndexOutOfBoundsException。
-        int[] arrs = {10 ,20 ,30};
-        System.out.println(arrs[3]); //出现了数组索引越界异常。代码在此处直接执行死亡！
-
-        // 2.空指针异常 : NullPointerException。
-        String name = null ;
-        System.out.println(name); // 直接输出没有问题
-        System.out.println(name.length());//出现了空指针异常。代码直接执行死亡！
-
-        /** 3.类型转换异常：ClassCastException。 */
-        Object o = "齐天大圣";
-        Integer s = (Integer) o;  // 此处出现了类型转换异常。代码在此处直接执行死亡！
-
-        /** 5.数学操作异常：ArithmeticException。 */
-        int c = 10 / 0 ; // 此处出现了数学操作异常。代码在此处直接执行死亡！
-
-        /** 6.数字转换异常： NumberFormatException。 */
-        String num = "23aa";
-        Integer it = Integer.valueOf(num); //出现了数字转换异常。代码在此处执行死亡！
-
-        System.out.println("程序结束。。。。。。");
-    }
-}
-```
-
 
 
 ****
@@ -8625,9 +8596,9 @@ public class AnnotationDemo{
     }
 }
 
-@Book(value = "《Java基础到精通》", price = 99.5, authors = {"波仔","波妞"})
+@Book(value = "《Java基础到精通》", price = 99.5, authors = {"张三","李四"})
 class BookStore{
-    @Book(value = "《Mybatis持久层框架》", price = 199.5, authors = {"dlei","播客"})
+    @Book(value = "《Mybatis持久层框架》", price = 199.5, authors = {"王五","小六"})
     public void run(){
     }
 }
@@ -8637,47 +8608,6 @@ class BookStore{
     String value();
     double price() default 100;
     String[] authors();
-}
-```
-
-
-
-***
-
-
-
-### 注解模拟
-
-注解模拟写一个 Junit 框架的基本使用
-
-1. 定义一个自定义注解 MyTest，只能注解方法，存活范围一直都在。
-2. 定义若干个方法，只要有 @MyTest 注解的方法就能被触发执行，没有这个注解的方法不能执行！！
-
-```java
-public class TestDemo{
-    @MyTest
-    public void test01(){System.out.println("===test01===");}
-    public void test02(){System.out.println("===test02===");}
-    @MyTest
-    public void test03(){System.out.println("===test03===");}
-    @MyTest
-    public void test04(){System.out.println("===test04===");}
-    
-    public static void main(String[] args) throws Exception {
-        TestDemo t = new TestDemo();
-        Class c = TestDemo.class;
-        Method[] methods = c.getDeclaredMethods();
-        for (Method method : methods) {
-            if(method.isAnnotationPresent(MyTest.class)){
-                method.invoke(t);
-            }
-        }
-    }
-}
-
-@Target(ElementType.METHOD) // 只能注解方法！
-@Retention(RetentionPolicy.RUNTIME) // 一直都活着
-@interface MyTest{
 }
 ```
 
@@ -8837,8 +8767,6 @@ XML 文件中常见的组成元素有:文档声明、元素、属性、注释、
 
 #### DTD
 
-##### DTD 定义
-
 DTD 是文档类型定义（Document Type Definition）。DTD 可以定义在 XML 文档中出现的元素、这些元素出现的次序、它们如何相互嵌套以及 XML 文档结构的其它详细信息。
 
 DTD 规则：
@@ -8922,127 +8850,16 @@ DTD 规则：
    * 代码
 
      ```dtd
-     <!ATTLIST 书									<!--设置"书"元素的的属性列表-->
-     	id ID #REQUIRED						 <!--"id"属性值为必须有-->
-     	编号 CDATA #IMPLIED				    <!--"编号"属性可有可无-->
-     	出版社 (清华|北大|传智播客) "传智播客" <!--"出版社"属性值是枚举值，默认为“传智播客”-->
-     	type CDATA #FIXED "IT"            <!--"type"属性为文本字符串并且固定值为"IT"-->
+     <!ATTLIST 书					   <!--设置"书"元素的的属性列表-->
+     	id ID #REQUIRED				<!--"id"属性值为必须有-->
+     	编号 CDATA #IMPLIED		   <!--"编号"属性可有可无-->
+     	出版社 (清华|北大) "清华" 	  <!--"出版社"属性值是枚举值，默认为“123”-->
+     	type CDATA #FIXED "IT"		<!--"type"属性为文本字符串并且固定值为"IT"-->
      >
      <!ATTLIST person id CDATA #REQUIRED>  <!--id是文本字符串必须有-->
      ```
    
      
-
-****
-
-
-
-##### DTD 引入
-
-* 引入本地 dtd
-
-  ```dtd
-  <!DOCTYPE 根元素名称 SYSTEM ‘DTD文件的路径'>
-  ```
-
-* 在 xml 文件内部引入
-
-  ```dtd
-  <!DOCTYPE 根元素名称 [ dtd文件内容 ]>
-  ```
-
-* 引入网络 dtd
-
-  ```dtd
-  <!DOCTYPE 根元素的名称 PUBLIC "DTD文件名称" "DTD文档的URL">
-  ```
-
-```dtd
-<!--这是persondtd.dtd文件中的内容,已经提前写好-->
-<!ELEMENT persons (person)>
-<!ELEMENT person (name,age)>
-<!ELEMENT name (#PCDATA)>
-<!ELEMENT age (#PCDATA)>
-```
-
-```xml
-<!--引入本地DTD-->
-<!DOCTYPE persons SYSTEM 'persondtd.dtd'>
-<persons>
-    <person>
-        <name>张三</name>
-        <age>23</age>
-    </person>
-
-</persons>
-```
-
-```xml-dtd
-<!--内部引入DTD-->
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE persons [
-        <!ELEMENT persons (person)>
-        <!ELEMENT person (name,age)>
-        <!ELEMENT name (#PCDATA)>
-        <!ELEMENT age (#PCDATA)>
-        ]>
-
-<persons>
-    <person>
-        <name>张三</name>
-        <age>23</age>
-    </person>
-</persons>
-```
-
-```dtd
-<!--引入网络DTD--><?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE persons PUBLIC "dtd文件的名称" "dtd文档的URL">
-
-<persons>
-    <person>
-        <name>张三</name>
-        <age>23</age>
-    </person>
-</persons>
-```
-
-
-
-***
-
-
-
-##### DTD 实现
-
-persondtd.dtd 文件
-
-```dtd
-<!ELEMENT persons (person+)>   	<!--约束人们至少一个人-->
-<!ELEMENT person (name,age)>	<!--约束元素人的子元素必须为姓名、年龄，并且按顺序-->
-<!ELEMENT name (#PCDATA)>		<!--"姓名"元素体为字符串数据-->
-<!ELEMENT age ANY>       		<!--"年龄"元素体为任意类型-->
-<!ATTLIST person id CDATA #REQUIRED>  <!--id是文本字符串必须有-->
-```
-
-```xml-dtd
-<?xml version="1.0" encoding="UTF-8" ?>
-<!DOCTYPE persons SYSTEM 'persondtd.dtd'>
-
-<persons>
-    <person id="001">
-        <name>张三</name>
-        <age>23</age>
-    </person>
-
-    <person id = "002">
-        <name>张三</name>
-        <age>23</age>
-    </person>
-</persons>
-```
-
-
 
 ***
 
@@ -9050,7 +8867,7 @@ persondtd.dtd 文件
 
 #### Schema
 
-##### XSD 定义
+XSD 定义：
 
 1. Schema 语言也可作为 XSD（XML Schema Definition）
 2. Schema 约束文件本身也是一个 XML 文件，符合 XML 的语法，这个文件的后缀名 .xsd
@@ -9058,13 +8875,7 @@ persondtd.dtd 文件
 4. dtd 里面元素类型的取值比较单一常见的是 PCDATA 类型，但是在 Schema 里面可以支持很多个数据类型
 5. **Schema 文件约束 XML 文件的同时也被别的文件约束着**
 
-
-
-***
-
-
-
-##### XSD 规则
+XSD 规则：
 
 1. 创建一个文件，这个文件的后缀名为 .xsd
 2. 定义文档声明
@@ -9110,88 +8921,6 @@ person.xsd
 ```
 
 
-
-****
-
-
-
-##### XSD 引入
-
-1. 在根标签上定义属性 xmlns="http://www.w3.org/2001/XMLSchema-instance"
-2. **通过 xmlns 引入约束文件的名称空间**
-3. 给某一个 xmlns 属性添加一个标识，用于区分不同的名称空间，格式为 `xmlns:标识="名称空间url"` ，标识可以是任意的，但是一般取值都是 xsi
-4. 通过 xsi:schemaLocation 指定名称空间所对应的约束文件路径，格式为 `xsi:schemaLocation = "名称空间url 文件路径`
-
-```scheme
-<?xml version="1.0" encoding="UTF-8" ?>
-<persons
-	xmlms:xis="http://www.w3.org/2001/XMLSchema-instance" <!--被别人约束-->
-    xmlns="http://www.seazean.cn/javase"                  <!--约束文件的名称空间-->
-    xsi:schemaLocation="http://www.seazean.cn/javase person.xsd"
->
-
- <person>
-        <name>张三</name>
-        <age>23</age>
-    </person>
-
-</persons>
-```
-
-
-
-****
-
-
-
-##### XSD 属性
-
-```scheme
-<?xml version="1.0" encoding="UTF-8" ?>
-<schema
-    xmlns="http://www.w3.org/2001/XMLSchema"
-    targetNamespace="http://www.seazean.cn/javase"
-    elementFormDefault="qualified"
->
-
-    <!--定义persons复杂元素-->
-    <element name="persons">
-        <complexType>
-            <sequence>
-                <!--定义person复杂元素-->
-                <element name = "person">
-                    <complexType>
-                        <sequence>
-                            <!--定义name和age简单元素-->
-                            <element name = "name" type = "string"></element>
-                            <element name = "age" type = "string"></element>
-                        </sequence>
-                        <!--定义的位置是sequence的外面，complexType的里面-->
-                        <!--定义属性，required( 必须的)/optional( 可选的)-->
-                        <attribute name="id" type="string" use="required">		
-						</attribute>
-                    </complexType>
-                    
-                </element>
-            </sequence>
-        </complexType>
-    </element>
-    
-</schema>
-
-<?xml version="1.0" encoding="UTF-8" ?>
-<persons
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xmlns="http://www.seazean.cn/javase"
-    xsi:schemaLocation="http://www.seazean.cn/javase person.xsd"
->
-    <person id="001">
-        <name>张三</name>
-        <age>23</age>
-    </person>
-
-</persons>
-```
 
 
 
@@ -9256,7 +8985,7 @@ public class Dom4JDemo {
 <books>
     <book id="0001" desc="第一本书">
         <name>  JavaWeb开发教程</name>
-        <author>    张孝祥</author>
+        <author>    张三</author>
         <sale>100.00元   </sale>
     </book>
     <book id="0002">
@@ -9390,8 +9119,6 @@ public class Dom4JDemo {
         System.out.println(bookEle.elementTextTrim("name")); // 去前后空格
         System.out.println(bookEle.elementText("author"));
         System.out.println(bookEle.elementTextTrim("author")); // 去前后空格
-        System.out.println(bookEle.elementText("sale"));
-        System.out.println(bookEle.elementTextTrim("sale")); // 去前后空格
 
         // 6.先获取到子元素对象，再获取该文本值
         Element bookNameEle = bookEle.element("name");
