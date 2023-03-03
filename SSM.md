@@ -14632,7 +14632,7 @@ ApplicationContextInitializer、SpringApplicationRunListener、CommandLineRunner
 
 #### 文件类型
 
-SpringBoot 是基于约定的，很多配置都有默认值，如果想使用自己的配置替换默认配置，可以使用 application.properties 或者application.yml（application.yaml）进行配置
+SpringBoot 是基于约定的，很多配置都有默认值，如果想使用自己的配置替换默认配置，可以使用 application.properties 或者 application.yml（application.yaml）进行配置
 
 * 默认配置文件名称：application
 * 在同一级目录下优先级为：properties > yml > yaml

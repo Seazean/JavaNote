@@ -2865,7 +2865,7 @@ public class MyArraysDemo {
 1. 导入包：`import java.util.Random`
 2. 创建对象：`Random r = new Random()`
 3. 随机整数：`int num = r.nextInt(10)`
-   * 解释：10 代表的是一个范围，如果括号写 10，产生的随机数就是 0 - 9，括号写 20 的随机数则是 0 - 19	
+   * 解释：10 代表的是一个范围，如果括号写 10，产生的随机数就是 0 - 9，括号写 20 的随机数则是 0 - 19
    * 获取 0 - 10：`int num = r.nextInt(10 + 1)`
 
 4. 随机小数：`public double nextDouble()` 从范围 `0.0d` 至 `1.0d` （左闭右开），伪随机地生成并返回
