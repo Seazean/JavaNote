@@ -1505,7 +1505,7 @@ Object 类 API：
 ```java
 public final void notify():唤醒正在等待对象监视器的单个线程。
 public final void notifyAll():唤醒正在等待对象监视器的所有线程。
-public final void wait():导致当前线程等待，直到另一个线程调用该对象的notify()方法或 notifyAll()方法。
+public final void wait():导致当前线程等待，直到另一个线程调用该对象的 notify() 方法或 notifyAll()方法。
 public final native void wait(long timeout):有时限的等待, 到n毫秒后结束等待，或是被唤醒
 ```
 
