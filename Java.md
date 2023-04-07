@@ -330,7 +330,7 @@ valueOf() 方法的实现比较简单，就是先判断值是否在缓存池中�
 - Integer values between -128 and 127
 - Character in the range \u0000 to \u007F (0 and 127)
 
-在 jdk 1.8 所有的数值类缓冲池中，**Integer 的缓存池 IntegerCache 很特殊，这个缓冲池的下界是 -128，上界默认是 127**，但是上界是可调的，在启动 JVM 时通过 `AutoBoxCacheMax=<size>` 来指定这个缓冲池的大小，该选项在 JVM 初始化的时候会设定一个名为 java.lang.IntegerCache.high 系统属性，然后 IntegerCache 初始化的时候就会读取该系统属性来决定上界
+在 jdk 1.8 所有的数值类缓冲池中，**Integer 的缓存池 IntegerCache 很特殊，这个缓冲池的下界是 -128，上界默认是 127**，但是上界是可调的，在启动 JVM 时通过 `AutoBoxCacheMax=<size>` 来指定这个缓冲池的大小，该选项在 JVM 初始化的时候会设定一个名为 java.lang.Integer.IntegerCache 系统属性，然后 IntegerCache 初始化的时候就会读取该系统属性来决定上界
 
 ```java
 Integer x = 100;				// 自动装箱，底层调用 Integer.valueOf(1)
